@@ -624,6 +624,7 @@ extern Bool_type face_matches_shell( /* el, face, analy */ );
 extern int select_item( /* item_type, posx, posy, find_only, analy */ );
 extern void get_mesh_edges( /* analy */ );
 extern void create_elem_blocks( /* analy */ );
+extern void write_ref_file( /* tokens, token_cnt, analy */ );
 
 /* time.c */
 extern void change_state();
