@@ -13,6 +13,7 @@
 #include "viewer.h"
 
 
+static Bool_type is_rate_enabled();
 static void update_min_max();
 static void load_hex_result();
 static void load_shell_result();
@@ -213,6 +214,37 @@ char *trans_result[][4] =
 
 
 /*****************************************************************
+ * TAG( rate_enabled )
+ *
+ * Table of results for which rate calculation may be performed.
+ */
+static int 
+rate_enabled[] = 
+{
+    VAL_SHARE_EPS_EFF
+};
+
+
+/*****************************************************************
+ * TAG( is_rate_enabled )
+ *
+ * Tests a result for membership in the rate_enabled table.
+ */
+static Bool_type
+is_rate_enabled( result_id )
+int result_id;
+{
+    int i;
+    
+    for ( i = 0; i < sizeof( rate_enabled ) / sizeof( rate_enabled[0] ); i++ )
+        if ( rate_enabled[i] == result_id )
+	    return TRUE;
+    
+    return FALSE;
+}
+
+
+/*****************************************************************
  * TAG( resultid_to_index )
  *
  * Table which gives the index in the trans_result table for each
@@ -372,6 +404,51 @@ Result_type result_id;
 
 
 /*****************************************************************
+ * TAG( mod_required )
+ *
+ * Determine if current result is sensitive to a transition in a 
+ * result modifier.
+ *
+ * Note that TIME_DERIVATIVE is a "pseudo" modifier which will 
+ * never be passed in but occurs if strain variety is RATE and
+ * the current result implements a simple history variable
+ * rate calculation (initially only "eeff" implements this).
+ */
+Bool_type
+mod_required( analy, modifier, old, new )
+Analysis *analy;
+Result_modifier_type modifier;
+int old;
+int new;
+{
+    int i, cnt;
+    Result_modifier_type mods[QTY_RESULT_MODIFIER_TYPES];
+    
+    /* Sanity check. */
+    if ( old == new )
+        return FALSE;
+
+    cnt = get_result_modifiers( analy, mods );
+    
+    for ( i = 0; i < cnt; i++ )
+        if ( mods[i] == modifier )
+	    return TRUE;
+    /*
+     * Above test won't reveal transitions both into and out of
+     * "TIME_DERIVATIVE" applicability, since depending on when
+     * this function is called get_result_modifiers() won't
+     * detect it.  The test below will catch both.
+     */
+    if ( is_rate_enabled( analy->result_id ) 
+         && modifier == STRAIN_TYPE
+	 && ( old == RATE || new == RATE ) )
+        return TRUE;
+    
+    return FALSE;
+}
+
+
+/*****************************************************************
  * TAG( get_result_modifiers )
  *
  * Determine which possible result modifiers affect the
@@ -411,6 +488,12 @@ Result_modifier_type modifiers[];
              || ( res_id >= VAL_SHARE_EPSX && res_id <= VAL_SHARE_EPSZX ) )
 	    modifiers[cnt++] = REFERENCE_FRAME;
     }
+    
+    /* Plastic strain with strain type = RATE causes derivative of "eeff". */
+    if ( res_id == VAL_SHARE_EPS_EFF
+         && analy->strain_variety == RATE
+         && ( analy->geom_p->bricks != NULL || analy->geom_p->shells != NULL ) )
+        modifiers[cnt++] = TIME_DERIVATIVE;
     
     return cnt;
 }
