@@ -2,9 +2,9 @@
 /* 
  * gui.c - Graphical user interface routines.
  * 
- * 	Donald J. Dovey
- * 	Lawrence Livermore National Laboratory
- * 	Apr 27 1992
+ *      Donald J. Dovey
+ *      Lawrence Livermore National Laboratory
+ *      Apr 27 1992
  *
  * Copyright (c) 1992 Regents of the University of California
  */
@@ -666,13 +666,13 @@ char **argv;
     if ( !include_util_panel )
     {
         sprintf( action_spec, "Ctrl<Key>m: action_create_app_widg( %d ) \n ", 
-	         BTN_MTL_MGR );
+                 BTN_MTL_MGR );
         sprintf( action_spec + strlen( action_spec ), 
-	         "Ctrl<Key>u: action_create_app_widg( %d )", BTN_UTIL_PANEL );
+                 "Ctrl<Key>u: action_create_app_widg( %d )", BTN_UTIL_PANEL );
     }
     else
         sprintf( action_spec, "Ctrl<Key>m: action_create_app_widg( %d )", 
-	         BTN_MTL_MGR );
+                 BTN_MTL_MGR );
     XtAppAddActions( app_context, &global_actions, 1 );
     
     /* Add the creation translations to the rendering window. */
@@ -762,11 +762,11 @@ Widget parent;
         XtSetArg( args[n], XmNaccelerator, "Ctrl<Key>u" ); n++;
         XtSetArg( args[n], XmNacceleratorText, accel_str ); n++;
         util_button = XmCreatePushButtonGadget( menu_pane, "Utility Panel", 
-	                                        args, n );
+                                                args, n );
         XmStringFree( accel_str );
         XtManageChild( util_button );
         XtAddCallback( util_button, XmNactivateCallback, menu_CB, 
-	               (XtPointer) BTN_UTIL_PANEL );
+                       (XtPointer) BTN_UTIL_PANEL );
     }
 
     accel_str = XmStringCreateSimple( "Ctrl+q" );
@@ -1176,7 +1176,7 @@ Widget main_widg;
 {
     Widget mat_mgr, mat_base, widg, func_select, scroll_win, sep1, 
         sep2, sep3, vert_scroll, func_operate, slider_base, mtl_label, 
-	frame, red_scale, green_scale, blue_scale, col_comp;
+        frame, red_scale, green_scale, blue_scale, col_comp;
     Arg args[10];
     char win_title[64];
     char mtl_toggle_name[8];
@@ -1215,7 +1215,7 @@ Widget main_widg;
                                 XtDisplay( main_widg ), args, n );
 
     XtAddCallback( mat_mgr, XmNdestroyCallback, 
-	           destroy_mtl_mgr_CB, (XtPointer) NULL );
+                   destroy_mtl_mgr_CB, (XtPointer) NULL );
 
     XtAddEventHandler( mat_mgr, EnterWindowMask | LeaveWindowMask, False, 
                        gress_mtl_mgr, NULL );
@@ -1223,36 +1223,36 @@ Widget main_widg;
     /* Use a Form widget to manage everything else. */
     mat_base = XtVaCreateManagedWidget( 
         "mat_base", xmFormWidgetClass, mat_mgr, 
-	NULL );
-	
+        NULL );
+        
     widg = XtVaCreateManagedWidget( 
         "Function", xmLabelGadgetClass, mat_base, 
-	XmNalignment, XmALIGNMENT_CENTER, 
-	XmNtopAttachment, XmATTACH_FORM, 
-	XmNrightAttachment, XmATTACH_FORM, 
-	XmNleftAttachment, XmATTACH_FORM, 
-	NULL );
+        XmNalignment, XmALIGNMENT_CENTER, 
+        XmNtopAttachment, XmATTACH_FORM, 
+        XmNrightAttachment, XmATTACH_FORM, 
+        XmNleftAttachment, XmATTACH_FORM, 
+        NULL );
 
     /* Use a RowColumn to hold the function select toggles. */
     func_select = XtVaCreateManagedWidget( 
         "func_select", xmRowColumnWidgetClass, mat_base, 
-	XmNorientation, XmHORIZONTAL, 
-	XmNpacking, XmPACK_COLUMN, 
-	XmNtraversalOn, False, 
-	XmNisAligned, True, 
-	XmNentryAlignment, XmALIGNMENT_CENTER, 
-	XmNtopAttachment, XmATTACH_WIDGET, 
-	XmNtopWidget, widg, 
-	XmNrightAttachment, XmATTACH_POSITION, 
-	XmNrightPosition, 50, 
-	NULL );
+        XmNorientation, XmHORIZONTAL, 
+        XmNpacking, XmPACK_COLUMN, 
+        XmNtraversalOn, False, 
+        XmNisAligned, True, 
+        XmNentryAlignment, XmALIGNMENT_CENTER, 
+        XmNtopAttachment, XmATTACH_WIDGET, 
+        XmNtopWidget, widg, 
+        XmNrightAttachment, XmATTACH_POSITION, 
+        XmNrightPosition, 50, 
+        NULL );
 
     /* Get these for geometry adjustment later. */
     XtVaGetValues( func_select, 
         XmNmarginWidth, &margin_width, 
-	XmNspacing, &spacing, 
-	NULL );
-	
+        XmNspacing, &spacing, 
+        NULL );
+        
     max_mgr_width = 0;
     max_child_width = 0;
     
@@ -1260,13 +1260,13 @@ Widget main_widg;
     {
         mtl_mgr_func_toggles[i] = XtVaCreateManagedWidget( 
             func_names[i], xmToggleButtonWidgetClass, func_select, 
-	    XmNindicatorOn, False, 
-	    XmNshadowThickness, 3, 
-	    XmNfillOnSelect, True, 
-	    NULL );
+            XmNindicatorOn, False, 
+            XmNshadowThickness, 3, 
+            XmNfillOnSelect, True, 
+            NULL );
 
         XtAddCallback( mtl_mgr_func_toggles[i], XmNdisarmCallback, 
-	               mtl_func_select_CB, (XtPointer) mtl_mgr_func_toggles );
+                       mtl_func_select_CB, (XtPointer) mtl_mgr_func_toggles );
 
         XtVaGetValues( mtl_mgr_func_toggles[i], XmNwidth, &width, NULL );
         if ( width > max_child_width )
@@ -1284,23 +1284,23 @@ Widget main_widg;
 
     if ( func_width > max_mgr_width )
         max_mgr_width = func_width;
-	
+        
     sep1 = XtVaCreateManagedWidget( 
         "sep1", xmSeparatorGadgetClass, mat_base, 
-	XmNtopAttachment, XmATTACH_WIDGET, 
-	XmNtopWidget, func_select, 
-	XmNrightAttachment, XmATTACH_FORM, 
-	XmNleftAttachment, XmATTACH_FORM, 
-	NULL );
-	
+        XmNtopAttachment, XmATTACH_WIDGET, 
+        XmNtopWidget, func_select, 
+        XmNrightAttachment, XmATTACH_FORM, 
+        XmNleftAttachment, XmATTACH_FORM, 
+        NULL );
+        
     mtl_label = XtVaCreateManagedWidget( 
         "Material", xmLabelGadgetClass, mat_base, 
-	XmNalignment, XmALIGNMENT_CENTER, 
-	XmNtopAttachment, XmATTACH_WIDGET, 
-	XmNtopWidget, sep1, 
-	XmNrightAttachment, XmATTACH_FORM, 
-	XmNleftAttachment, XmATTACH_FORM, 
-	NULL );
+        XmNalignment, XmALIGNMENT_CENTER, 
+        XmNtopAttachment, XmATTACH_WIDGET, 
+        XmNtopWidget, sep1, 
+        XmNrightAttachment, XmATTACH_FORM, 
+        XmNleftAttachment, XmATTACH_FORM, 
+        NULL );
 
     /* 
      * Now build up from the bottom... 
@@ -1311,45 +1311,45 @@ Widget main_widg;
 
     if ( col_ed_width > max_mgr_width )
         max_mgr_width = col_ed_width;
-	
+        
     color_editor = XtVaCreateManagedWidget( 
         "color_editor", xmBulletinBoardWidgetClass, mat_base, 
-	XmNwidth, col_ed_width, 
-	XmNheight, 225, 
-	XmNmarginHeight, 0, 
-	XmNmarginWidth, 0, 
-	XmNtraversalOn, False, 
-	XmNresizePolicy, XmRESIZE_NONE, 
-	XmNtopAttachment, XmATTACH_NONE, 
-	XmNrightAttachment, XmATTACH_POSITION, 
-	XmNrightPosition, 50, 
-	XmNrightOffset, -(col_ed_width / 2), 
-	XmNbottomAttachment, XmATTACH_FORM, 
-	NULL );
-	
+        XmNwidth, col_ed_width, 
+        XmNheight, 225, 
+        XmNmarginHeight, 0, 
+        XmNmarginWidth, 0, 
+        XmNtraversalOn, False, 
+        XmNresizePolicy, XmRESIZE_NONE, 
+        XmNtopAttachment, XmATTACH_NONE, 
+        XmNrightAttachment, XmATTACH_POSITION, 
+        XmNrightPosition, 50, 
+        XmNrightOffset, -(col_ed_width / 2), 
+        XmNbottomAttachment, XmATTACH_FORM, 
+        NULL );
+        
     /* Use a RowColumn to hold the color property select buttons. */
     col_comp = XtVaCreateManagedWidget( 
         "col_comp", xmRowColumnWidgetClass, color_editor, 
-	XmNx, 10, 
-	XmNy, 30, 
-	XmNorientation, XmHORIZONTAL, 
-	XmNradioBehavior, True, 
-	XmNradioAlwaysOne, False,
-	XmNisAligned, True, 
-	XmNentryAlignment, XmALIGNMENT_CENTER, 
-	XmNpacking, XmPACK_COLUMN, 
-	NULL );
-	
+        XmNx, 10, 
+        XmNy, 30, 
+        XmNorientation, XmHORIZONTAL, 
+        XmNradioBehavior, True, 
+        XmNradioAlwaysOne, False,
+        XmNisAligned, True, 
+        XmNentryAlignment, XmALIGNMENT_CENTER, 
+        XmNpacking, XmPACK_COLUMN, 
+        NULL );
+        
     widg = XtVaCreateManagedWidget( 
         " Property", xmLabelGadgetClass, col_comp, 
-	NULL ); 
+        NULL ); 
     XtVaGetValues( widg, XmNwidth, &name_len, NULL );
 
     for ( i = 0; i < 4; i++ )
     {
         color_comps[i] = XtVaCreateManagedWidget( 
             comp_names[i], xmToggleButtonWidgetClass, col_comp, 
-	    XmNset, False, 
+            XmNset, False, 
             XmNindicatorOn, False, 
             XmNshadowThickness, 3, 
             XmNfillOnSelect, True, 
@@ -1357,41 +1357,41 @@ Widget main_widg;
 
         XtAddCallback( color_comps[i], XmNdisarmCallback, 
                        col_comp_disarm_CB, (XtPointer) i );
-	
-	prop_val_changed[i] = FALSE;
+        
+        prop_val_changed[i] = FALSE;
         property_vals[i] = NEW_N( GLfloat, 3, "Col comp val" );
     }
 
     XtVaGetValues( color_editor, XmNforeground, &fg, XmNbackground, &bg, NULL );
     check = XCreatePixmapFromBitmapData( dpy, 
         RootWindow( dpy, DefaultScreen( dpy ) ), GrizCheck_bits, GrizCheck_width, 
-	GrizCheck_height, fg, bg, DefaultDepth( dpy, DefaultScreen( dpy ) ) );
-	
+        GrizCheck_height, fg, bg, DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+        
     /* Use a RowColumn to hold the property-modify indicators. */
     widg = XtVaCreateManagedWidget( 
         "col_comp_checks", xmRowColumnWidgetClass, color_editor, 
-	XmNx, (name_len + 10 + margin_width + spacing), 
-	XmNy, 5, 
-	XmNorientation, XmHORIZONTAL, 
-	XmNisAligned, True, 
-	XmNentryAlignment, XmALIGNMENT_CENTER, 
-	XmNpacking, XmPACK_COLUMN, 
-	NULL );
+        XmNx, (name_len + 10 + margin_width + spacing), 
+        XmNy, 5, 
+        XmNorientation, XmHORIZONTAL, 
+        XmNisAligned, True, 
+        XmNentryAlignment, XmALIGNMENT_CENTER, 
+        XmNpacking, XmPACK_COLUMN, 
+        NULL );
 
     /* Use a pixmap of a check as the modify indicator. */
     for ( i = 0; i < (EMISSIVE + 1); i++ )
     {
-	prop_checks[i] = XtVaCreateManagedWidget( 
+        prop_checks[i] = XtVaCreateManagedWidget( 
             "check", xmLabelWidgetClass, widg, 
-	    XmNlabelType, XmPIXMAP, 
-	    XmNlabelPixmap, check, 
-	    XmNwidth, name_len, 
-	    XmNrecomputeSize, False, 
-	    XmNmappedWhenManaged, False, 
-	    XmNmarginWidth, 0, 
-	    XmNmarginHeight, 0, 
-	    XmNpositionIndex, ((short) i), 
-	    NULL );
+            XmNlabelType, XmPIXMAP, 
+            XmNlabelPixmap, check, 
+            XmNwidth, name_len, 
+            XmNrecomputeSize, False, 
+            XmNmappedWhenManaged, False, 
+            XmNmarginWidth, 0, 
+            XmNmarginHeight, 0, 
+            XmNpositionIndex, ((short) i), 
+            NULL );
     }
     
     /* These need to be #def'd when stable. */
@@ -1406,9 +1406,9 @@ Widget main_widg;
     /* Now add the modify indicator for the shininess scale. */
     prop_checks[SHININESS] = XtVaCreateManagedWidget( 
         "check", xmLabelWidgetClass, color_editor, 
-	XmNx, (hori_offset + (name_len - GrizCheck_width) / 2), 
-	XmNy, (vert_offset + 3 * vert_height 
-	       + 4 * vert_space + vert_height / 2 - GrizCheck_height), 
+        XmNx, (hori_offset + (name_len - GrizCheck_width) / 2), 
+        XmNy, (vert_offset + 3 * vert_height 
+               + 4 * vert_space + vert_height / 2 - GrizCheck_height), 
         XmNlabelType, XmPIXMAP, 
         XmNlabelPixmap, check, 
         XmNmappedWhenManaged, False, 
@@ -1421,40 +1421,40 @@ Widget main_widg;
     for ( i = 0; i < 4; i++ )
     {
         vert_pos = vert_offset + i * vert_height + i * vert_space;
-	if ( i == SHININESS_SCALE )
-	    vert_pos += vert_height / 2 + vert_space;
-	    
+        if ( i == SHININESS_SCALE )
+            vert_pos += vert_height / 2 + vert_space;
+            
         widg = XtVaCreateManagedWidget( 
             scale_names[i], xmLabelGadgetClass, color_editor, 
-	    XmNx, hori_offset, 
-	    XmNy, vert_pos, 
-	    XmNwidth, name_len, 
-	    XmNheight, vert_height, 
-	    XmNalignment, XmALIGNMENT_END, 
-	    NULL ); 
+            XmNx, hori_offset, 
+            XmNy, vert_pos, 
+            XmNwidth, name_len, 
+            XmNheight, vert_height, 
+            XmNalignment, XmALIGNMENT_END, 
+            NULL ); 
         col_ed_scales[0][i] = XtVaCreateManagedWidget( 
             "scale", xmScaleWidgetClass, color_editor, 
-	    XmNx, hori_offset + name_len + spacing, 
-	    XmNy, vert_pos + (vert_height - 20) / 2, 
-	    XmNwidth, scale_len, 
-	    XmNheight, 20, 
-	    XmNorientation, XmHORIZONTAL, 
-	    XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ), 
-	    XmNvalue, 0, 
-	    XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ), 
-	    NULL );
+            XmNx, hori_offset + name_len + spacing, 
+            XmNy, vert_pos + (vert_height - 20) / 2, 
+            XmNwidth, scale_len, 
+            XmNheight, 20, 
+            XmNorientation, XmHORIZONTAL, 
+            XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ), 
+            XmNvalue, 0, 
+            XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ), 
+            NULL );
         frame = XtVaCreateManagedWidget( 
             "frame", xmFrameWidgetClass, color_editor, 
-	    XmNx, hori_offset + name_len + scale_len + spacing, 
-	    XmNy, vert_pos, 
-/*	    XmNwidth, val_len, */
-	    XmNheight, vert_height, 
-	    NULL ); 
+            XmNx, hori_offset + name_len + scale_len + spacing, 
+            XmNy, vert_pos, 
+/*          XmNwidth, val_len, */
+            XmNheight, vert_height, 
+            NULL ); 
         col_ed_scales[1][i] = XtVaCreateManagedWidget( 
             "scale_val", xmLabelGadgetClass, frame, 
-	    XmNalignment, XmALIGNMENT_CENTER, 
-	    XmNlabelString, val_text, 
-	    NULL ); 
+            XmNalignment, XmALIGNMENT_CENTER, 
+            XmNlabelString, val_text, 
+            NULL ); 
         XtAddCallback( col_ed_scales[0][i], XmNdragCallback, 
                        col_ed_scale_CB, (XtPointer) i );
         XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, 
@@ -1468,14 +1468,14 @@ Widget main_widg;
     val_text = XmStringCreateLocalized( "0" );
     XtVaSetValues( col_ed_scales[1][SHININESS_SCALE], 
                    XmNlabelString, val_text, 
-		   NULL );
+                   NULL );
     XmStringFree( val_text );
     
     /* Create the color swatch in a frame. */
     loc = hori_offset + name_len + scale_len + spacing + val_len + 28;
     swatch_frame = XtVaCreateManagedWidget( 
         "frame", xmFrameWidgetClass, color_editor, 
-	XmNx, loc, 
+        XmNx, loc, 
         XmNy, vert_offset, 
         XmNwidth, 60, 
         XmNheight, 60, 
@@ -1484,7 +1484,7 @@ Widget main_widg;
     /* Create the OpenGL drawing window. */
     ogl_widg[SWATCH] = XtVaCreateManagedWidget( 
         "swatch", glwMDrawingAreaWidgetClass, swatch_frame, 
-	GLwNvisualInfo, vi,
+        GLwNvisualInfo, vi,
         NULL );
 
     XtAddCallback( ogl_widg[SWATCH], GLwNginitCallback, 
@@ -1495,13 +1495,13 @@ Widget main_widg;
     /* Label to show current material in the swatch. */
     swatch_label = XtVaCreateManagedWidget( 
         "swatch_label", xmLabelWidgetClass, color_editor, 
-	XmNalignment, XmALIGNMENT_CENTER, 
-	XmNmappedWhenManaged, False, 
-	XmNrecomputeSize, False, 
-	XmNx, (loc - (104 - 60) / 2), 
-	XmNy, vert_offset + 60 + 10, 
-	XmNwidth, 104, 
-	NULL );
+        XmNalignment, XmALIGNMENT_CENTER, 
+        XmNmappedWhenManaged, False, 
+        XmNrecomputeSize, False, 
+        XmNx, (loc - (104 - 60) / 2), 
+        XmNy, vert_offset + 60 + 10, 
+        XmNwidth, 104, 
+        NULL );
    
     /* Init some globals associated with the color editor. */
     prop_val_changed[SHININESS] = FALSE;
@@ -1516,35 +1516,35 @@ Widget main_widg;
     /* Place a separator on top of the color editor. */
     sep3 = XtVaCreateManagedWidget( 
         "sep3", xmSeparatorGadgetClass, mat_base, 
-	XmNbottomAttachment, XmATTACH_WIDGET, 
-	XmNbottomWidget, color_editor, 
-	XmNrightAttachment, XmATTACH_FORM, 
-	XmNleftAttachment, XmATTACH_FORM, 
-	NULL );
+        XmNbottomAttachment, XmATTACH_WIDGET, 
+        XmNbottomWidget, color_editor, 
+        XmNrightAttachment, XmATTACH_FORM, 
+        XmNleftAttachment, XmATTACH_FORM, 
+        NULL );
 
     /* Use a RowColumn to hold the function operate buttons. */
     func_operate = XtVaCreateManagedWidget( 
         "func_operate", xmRowColumnWidgetClass, mat_base, 
-	XmNorientation, XmHORIZONTAL, 
-	XmNpacking, XmPACK_COLUMN, 
-	XmNtraversalOn, False, 
-	XmNisAligned, True, 
-	XmNentryAlignment, XmALIGNMENT_CENTER, 
-	XmNtopAttachment, XmATTACH_NONE, 
-	XmNrightAttachment, XmATTACH_POSITION, 
-	XmNrightPosition, 50, 
-	XmNbottomAttachment, XmATTACH_WIDGET, 
-	XmNbottomWidget, sep3, 
-	NULL );
+        XmNorientation, XmHORIZONTAL, 
+        XmNpacking, XmPACK_COLUMN, 
+        XmNtraversalOn, False, 
+        XmNisAligned, True, 
+        XmNentryAlignment, XmALIGNMENT_CENTER, 
+        XmNtopAttachment, XmATTACH_NONE, 
+        XmNrightAttachment, XmATTACH_POSITION, 
+        XmNrightPosition, 50, 
+        XmNbottomAttachment, XmATTACH_WIDGET, 
+        XmNbottomWidget, sep3, 
+        NULL );
 
     max_child_width = 0;
-	
+        
     for ( i = 0; i < sizeof( op_names ) / sizeof( op_names[0] ); i++ )
     {
         op_buttons[i] = XtVaCreateManagedWidget( 
             op_names[i], xmPushButtonGadgetClass, func_operate, 
-	    XmNsensitive, False, 
-	    NULL ); 
+            XmNsensitive, False, 
+            NULL ); 
 
         XtAddCallback( op_buttons[i], XmNdisarmCallback, mtl_func_operate_CB, 
                        (XtPointer) (OP_PREVIEW + i) );
@@ -1564,50 +1564,50 @@ Widget main_widg;
 
     if ( func_width > max_mgr_width )
         max_mgr_width = func_width;
-	
+        
     widg = XtVaCreateManagedWidget( 
         "Action", xmLabelGadgetClass, mat_base, 
-	XmNalignment, XmALIGNMENT_CENTER, 
-	XmNbottomAttachment, XmATTACH_WIDGET, 
-	XmNbottomWidget, func_operate, 
-	XmNrightAttachment, XmATTACH_FORM, 
-	XmNleftAttachment, XmATTACH_FORM, 
-	NULL );
+        XmNalignment, XmALIGNMENT_CENTER, 
+        XmNbottomAttachment, XmATTACH_WIDGET, 
+        XmNbottomWidget, func_operate, 
+        XmNrightAttachment, XmATTACH_FORM, 
+        XmNleftAttachment, XmATTACH_FORM, 
+        NULL );
 
     /* Place a separator on top of the operation buttons. */
     sep2 = XtVaCreateManagedWidget( 
         "sep2", xmSeparatorGadgetClass, mat_base, 
-	XmNbottomAttachment, XmATTACH_WIDGET, 
-	XmNbottomWidget, widg, 
-	XmNrightAttachment, XmATTACH_FORM, 
-	XmNleftAttachment, XmATTACH_FORM, 
-	NULL );
+        XmNbottomAttachment, XmATTACH_WIDGET, 
+        XmNbottomWidget, widg, 
+        XmNrightAttachment, XmATTACH_FORM, 
+        XmNleftAttachment, XmATTACH_FORM, 
+        NULL );
 
     /* Use a RowColumn to hold the global material select buttons. */
     quick_select = XtVaCreateManagedWidget( 
         "quick_select", xmRowColumnWidgetClass, mat_base, 
-	XmNorientation, XmHORIZONTAL, 
-	XmNpacking, XmPACK_COLUMN, 
-	XmNtraversalOn, False, 
-	XmNisAligned, True, 
-	XmNentryAlignment, XmALIGNMENT_CENTER, 
-	XmNbottomAttachment, XmATTACH_WIDGET, 
-	XmNbottomWidget, sep2, 
-	XmNrightAttachment, XmATTACH_POSITION, 
-	XmNrightPosition, 50, 
-	NULL );
-	
+        XmNorientation, XmHORIZONTAL, 
+        XmNpacking, XmPACK_COLUMN, 
+        XmNtraversalOn, False, 
+        XmNisAligned, True, 
+        XmNentryAlignment, XmALIGNMENT_CENTER, 
+        XmNbottomAttachment, XmATTACH_WIDGET, 
+        XmNbottomWidget, sep2, 
+        XmNrightAttachment, XmATTACH_POSITION, 
+        XmNrightPosition, 50, 
+        NULL );
+        
     max_child_width = 0;
     
     for ( i = 0; i < 4; i++ )
     {
         select_buttons[i] = XtVaCreateManagedWidget( 
             select_names[i], xmPushButtonGadgetClass, quick_select, 
-	    XmNshadowThickness, 3, 
-	    NULL );
+            XmNshadowThickness, 3, 
+            NULL );
 
         XtAddCallback( select_buttons[i], XmNdisarmCallback, 
-	               mtl_quick_select_CB, (XtPointer) ctl_buttons );
+                       mtl_quick_select_CB, (XtPointer) ctl_buttons );
 
         XtVaGetValues( select_buttons[i], XmNwidth, &width, NULL );
         if ( width > max_child_width )
@@ -1633,14 +1633,14 @@ Widget main_widg;
      
     scroll_win = XtVaCreateManagedWidget( 
         "mtl_scroll", xmScrolledWindowWidgetClass, mat_base, 
-	XmNscrollingPolicy, XmAUTOMATIC, 
-	XmNtopAttachment, XmATTACH_WIDGET, 
-	XmNtopWidget, mtl_label, 
-	XmNrightAttachment, XmATTACH_FORM, 
-	XmNleftAttachment, XmATTACH_FORM, 
-	XmNbottomAttachment, XmATTACH_WIDGET, 
-	XmNbottomWidget, quick_select, 
-	NULL );
+        XmNscrollingPolicy, XmAUTOMATIC, 
+        XmNtopAttachment, XmATTACH_WIDGET, 
+        XmNtopWidget, mtl_label, 
+        XmNrightAttachment, XmATTACH_FORM, 
+        XmNleftAttachment, XmATTACH_FORM, 
+        XmNbottomAttachment, XmATTACH_WIDGET, 
+        XmNbottomWidget, quick_select, 
+        NULL );
     
     XtVaGetValues( scroll_win, XmNverticalScrollBar, &vert_scroll, NULL );
     XtVaGetValues( vert_scroll, XmNwidth, &scrollbar_width, NULL );
@@ -1653,24 +1653,24 @@ Widget main_widg;
 
     mtl_row_col = XtVaCreateManagedWidget(
         "row_col", xmRowColumnWidgetClass, scroll_win, 
-	XmNorientation, XmHORIZONTAL, 
-	XmNpacking, XmPACK_COLUMN, 
-	XmNrowColumnType, XmWORK_AREA, 
-	XmNentryAlignment, XmALIGNMENT_CENTER, 
-	XmNisAligned, True, 
-	NULL );
+        XmNorientation, XmHORIZONTAL, 
+        XmNpacking, XmPACK_COLUMN, 
+        XmNrowColumnType, XmWORK_AREA, 
+        XmNentryAlignment, XmALIGNMENT_CENTER, 
+        XmNisAligned, True, 
+        NULL );
 
     mtl_deselect_list = NULL;
     mtl_select_list = NULL;
     for ( i = 0; i < qty_mtls; i++ ) 
     {
         Material_list_obj *p_mtl;
-	
+        
         mtl = i + 1;
         if ( mtl < 10 )
-	    sprintf( mtl_toggle_name, " %d ", mtl );
-	else
-	    sprintf( mtl_toggle_name, "%d", mtl );
+            sprintf( mtl_toggle_name, " %d ", mtl );
+        else
+            sprintf( mtl_toggle_name, "%d", mtl );
         widg = XtVaCreateManagedWidget( 
             mtl_toggle_name, xmToggleButtonWidgetClass, mtl_row_col, 
             XmNtraversalOn, False, 
@@ -1680,11 +1680,11 @@ Widget main_widg;
             NULL );
 
         p_mtl = NEW( Material_list_obj, "Init mtl list" );
-	p_mtl->mtl = mtl;
-	INSERT( p_mtl, mtl_deselect_list );
-	
+        p_mtl->mtl = mtl;
+        INSERT( p_mtl, mtl_deselect_list );
+        
         XtAddCallback( widg, XmNdisarmCallback, mtl_select_CB, 
-	               (XtPointer) mtl );
+                       (XtPointer) mtl );
     }
     
     /* 
@@ -1709,7 +1709,7 @@ Widget main_widg;
         sw_height = 3 * height + 2 * (spacing + margin_width) + fudge;
     else
         sw_height = rows * height + (rows - 1) * spacing + 2 * margin_width
-	            + fudge;
+                    + fudge;
     XtVaSetValues( scroll_win, XmNheight, sw_height, NULL );
     
     /* Make color editor & children insensitive. */
@@ -1747,7 +1747,7 @@ Widget main_widg;
     util_shell = XtAppCreateShell( "GRIZ", "util_panel",
                                    topLevelShellWidgetClass,
                                    XtDisplay( main_widg ), args, n );
-				   
+                                   
     util_main = create_utility_panel( util_shell );
 
     /* Pop it up. */
@@ -1785,34 +1785,34 @@ Widget main_widg;
     /* Use a Form widget to manage everything else. */
     util_main = XtVaCreateManagedWidget( 
         "util_main", xmFormWidgetClass, main_widg, 
-	NULL );
+        NULL );
 
     XtAddCallback( util_main, XmNdestroyCallback, 
-	           destroy_util_panel_CB, (XtPointer) NULL );
+                   destroy_util_panel_CB, (XtPointer) NULL );
 
     state_ctl = XtVaCreateManagedWidget(
         "state_ctl", xmRowColumnWidgetClass, util_main, 
-	XmNorientation, XmHORIZONTAL, 
-	XmNrowColumnType, XmWORK_AREA, 
-	XmNtraversalOn, False, 
-	XmNtopAttachment, XmATTACH_FORM, 
-	XmNrightAttachment, XmATTACH_POSITION, 
-	XmNrightPosition, 50, 
-	NULL );
+        XmNorientation, XmHORIZONTAL, 
+        XmNrowColumnType, XmWORK_AREA, 
+        XmNtraversalOn, False, 
+        XmNtopAttachment, XmATTACH_FORM, 
+        XmNrightAttachment, XmATTACH_POSITION, 
+        XmNrightPosition, 50, 
+        NULL );
 
     /* Get these for use later. */
     XtVaGetValues( state_ctl, 
         XmNmarginWidth, &margin_width, 
-	XmNspacing, &spacing, 
-	XmNforeground, &fg, 
-	XmNbackground, &bg, 
-	NULL );
-	
+        XmNspacing, &spacing, 
+        XmNforeground, &fg, 
+        XmNbackground, &bg, 
+        NULL );
+        
     rc_width = 2 * margin_width + 12 * spacing;
     
     widg = XtVaCreateManagedWidget( 
         "Step", xmLabelGadgetClass, state_ctl, 
-	NULL );
+        NULL );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
     
@@ -1820,52 +1820,52 @@ Widget main_widg;
     
     pixmap_leftstop = XCreatePixmapFromBitmapData( dpy, 
         RootWindow( dpy, DefaultScreen( dpy ) ), GrizLeftStop_bits, 
-	GrizLeftStop_width, GrizLeftStop_height, fg, bg, 
-	DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+        GrizLeftStop_width, GrizLeftStop_height, fg, bg, 
+        DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget( 
         "first_state", xmPushButtonGadgetClass, state_ctl, 
-	XmNlabelType, XmPIXMAP, 
-	XmNlabelPixmap, pixmap_leftstop, 
-	NULL );
+        XmNlabelType, XmPIXMAP, 
+        XmNlabelPixmap, pixmap_leftstop, 
+        NULL );
     XtAddCallback( widg, XmNactivateCallback, step_CB, STEP_FIRST );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
     pixmap_left = XCreatePixmapFromBitmapData( dpy, 
         RootWindow( dpy, DefaultScreen( dpy ) ), GrizLeft_bits, 
-	GrizLeft_width, GrizLeft_height, fg, bg, 
-	DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+        GrizLeft_width, GrizLeft_height, fg, bg, 
+        DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget( 
         "prev_state", xmPushButtonGadgetClass, state_ctl, 
-	XmNlabelType, XmPIXMAP, 
-	XmNlabelPixmap, pixmap_left, 
-	NULL );
+        XmNlabelType, XmPIXMAP, 
+        XmNlabelPixmap, pixmap_left, 
+        NULL );
     XtAddCallback( widg, XmNactivateCallback, step_CB, STEP_DOWN );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
     pixmap_right = XCreatePixmapFromBitmapData( dpy, 
         RootWindow( dpy, DefaultScreen( dpy ) ), GrizRight_bits, 
-	GrizRight_width, GrizRight_height, fg, bg, 
-	DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+        GrizRight_width, GrizRight_height, fg, bg, 
+        DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget( 
         "next_state", xmPushButtonGadgetClass, state_ctl, 
-	XmNlabelType, XmPIXMAP, 
-	XmNlabelPixmap, pixmap_right, 
-	NULL );
+        XmNlabelType, XmPIXMAP, 
+        XmNlabelPixmap, pixmap_right, 
+        NULL );
     XtAddCallback( widg, XmNactivateCallback, step_CB, STEP_UP );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
     pixmap_rightstop = XCreatePixmapFromBitmapData( dpy, 
         RootWindow( dpy, DefaultScreen( dpy ) ), GrizRightStop_bits, 
-	GrizRightStop_width, GrizRightStop_height, fg, bg, 
-	DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+        GrizRightStop_width, GrizRightStop_height, fg, bg, 
+        DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget( 
         "last_state", xmPushButtonGadgetClass, state_ctl, 
-	XmNlabelType, XmPIXMAP, 
-	XmNlabelPixmap, pixmap_rightstop, 
-	NULL );
+        XmNlabelType, XmPIXMAP, 
+        XmNlabelPixmap, pixmap_rightstop, 
+        NULL );
     XtAddCallback( widg, XmNactivateCallback, step_CB, STEP_LAST );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
@@ -1874,8 +1874,8 @@ Widget main_widg;
                                      XmSTRING_DEFAULT_CHARSET );
     widg = XtVaCreateManagedWidget( 
         "stride_label", xmLabelGadgetClass, state_ctl, 
-	XmNlabelString, stride_str, 
-	NULL );
+        XmNlabelString, stride_str, 
+        NULL );
     XmStringFree( stride_str );
     XtVaGetValues( widg, XmNwidth, &child_width, XmNheight, &height, NULL );
     rc_width += child_width;
@@ -1883,68 +1883,68 @@ Widget main_widg;
     sprintf( stride_text, "%d", step_stride );
     stride_label = XtVaCreateManagedWidget( 
         "stride_text", xmTextFieldWidgetClass, state_ctl, 
-	XmNcolumns, 3, 
-	XmNcursorPositionVisible, True, 
-	XmNeditable, True, 
-	XmNresizeWidth, True, 
-	XmNvalue, stride_text, 
-	NULL );
+        XmNcolumns, 3, 
+        XmNcursorPositionVisible, True, 
+        XmNeditable, True, 
+        XmNresizeWidth, True, 
+        XmNvalue, stride_text, 
+        NULL );
     XtAddCallback( stride_label, XmNactivateCallback, stride_CB, STRIDE_EDIT );
     XtVaGetValues( stride_label, XmNwidth, &child_width, NULL );
     rc_width += child_width;
-	
+        
     widg = XtVaCreateManagedWidget( 
         "stride_incr", xmArrowButtonWidgetClass, state_ctl, 
-	NULL );
+        NULL );
     XtAddCallback( widg, XmNactivateCallback, stride_CB, STRIDE_INCREMENT );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
     
     widg = XtVaCreateManagedWidget( 
         "stride_decr", xmArrowButtonWidgetClass, state_ctl, 
-	XmNarrowDirection, XmARROW_DOWN, 
-	NULL );
+        XmNarrowDirection, XmARROW_DOWN, 
+        NULL );
     XtAddCallback( widg, XmNactivateCallback, stride_CB, STRIDE_DECREMENT );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
     
     widg = XtVaCreateManagedWidget( 
         "  Animate", xmLabelGadgetClass, state_ctl, 
-	NULL );
+        NULL );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
     
     pixmap_start = XCreatePixmapFromBitmapData( dpy, 
         RootWindow( dpy, DefaultScreen( dpy ) ), GrizStart_bits, 
-	GrizStart_width, GrizStart_height, fg, bg, 
-	DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+        GrizStart_width, GrizStart_height, fg, bg, 
+        DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget( 
         "start_anim", xmPushButtonGadgetClass, state_ctl, 
-	XmNlabelType, XmPIXMAP, 
-	XmNlabelPixmap, pixmap_start, 
-	NULL );
+        XmNlabelType, XmPIXMAP, 
+        XmNlabelPixmap, pixmap_start, 
+        NULL );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
     XtAddCallback( widg, XmNactivateCallback, menu_CB, BTN_ANIMATE );
     
     pixmap_stop = XCreatePixmapFromBitmapData( dpy, 
         RootWindow( dpy, DefaultScreen( dpy ) ), GrizStop_bits, 
-	GrizStop_width, GrizStop_height, fg, bg, 
-	DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+        GrizStop_width, GrizStop_height, fg, bg, 
+        DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget( 
         "stop_anim", xmPushButtonGadgetClass, state_ctl, 
-	XmNlabelType, XmPIXMAP, 
-	XmNlabelPixmap, pixmap_stop, 
-	NULL );
+        XmNlabelType, XmPIXMAP, 
+        XmNlabelPixmap, pixmap_stop, 
+        NULL );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
     XtAddCallback( widg, XmNactivateCallback, menu_CB, BTN_STOPANIMATE );
     
     widg = XtVaCreateManagedWidget( 
         "cont_anim", xmPushButtonGadgetClass, state_ctl, 
-	XmNlabelType, XmPIXMAP, 
-	XmNlabelPixmap, pixmap_right, 
-	NULL );
+        XmNlabelType, XmPIXMAP, 
+        XmNlabelPixmap, pixmap_right, 
+        NULL );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
     XtAddCallback( widg, XmNactivateCallback, menu_CB, BTN_CONTANIMATE );
@@ -1954,76 +1954,76 @@ Widget main_widg;
 
     sep1 = XtVaCreateManagedWidget(
         "sep1", xmSeparatorGadgetClass, util_main, 
-	XmNtopAttachment, XmATTACH_WIDGET, 
-	XmNtopWidget, state_ctl, 
-	XmNrightAttachment, XmATTACH_FORM, 
-	XmNleftAttachment, XmATTACH_FORM, 
-	NULL );
+        XmNtopAttachment, XmATTACH_WIDGET, 
+        XmNtopWidget, state_ctl, 
+        XmNrightAttachment, XmATTACH_FORM, 
+        XmNleftAttachment, XmATTACH_FORM, 
+        NULL );
 
     util_render_ctl = XtVaCreateManagedWidget( 
         "util_render_ctl", xmRowColumnWidgetClass, util_main, 
-	XmNtopAttachment, XmATTACH_WIDGET, 
-	XmNtopWidget, sep1, 
-	XmNrightAttachment, XmATTACH_POSITION, 
-	XmNrightPosition, 50, 
-	XmNorientation, XmHORIZONTAL, 
-	XmNpacking, XmPACK_COLUMN, 
-	XmNtraversalOn, False, 
-	NULL );
+        XmNtopAttachment, XmATTACH_WIDGET, 
+        XmNtopWidget, sep1, 
+        XmNrightAttachment, XmATTACH_POSITION, 
+        XmNrightPosition, 50, 
+        XmNorientation, XmHORIZONTAL, 
+        XmNpacking, XmPACK_COLUMN, 
+        XmNtraversalOn, False, 
+        NULL );
 
     util_render_btns = NEW_N( Widget, UTIL_PANEL_BTN_QTY, "Util render btns" );
 
     rend_child = XtVaCreateManagedWidget( 
         "render_select", xmRowColumnWidgetClass, util_render_ctl, 
-	XmNisAligned, True, 
-	XmNentryAlignment, XmALIGNMENT_CENTER, 
-	XmNorientation, XmVERTICAL, 
-	XmNpacking, XmPACK_COLUMN, 
-	NULL );
+        XmNisAligned, True, 
+        XmNentryAlignment, XmALIGNMENT_CENTER, 
+        XmNorientation, XmVERTICAL, 
+        XmNpacking, XmPACK_COLUMN, 
+        NULL );
 
     child_width = 0;
     
     widg = XtVaCreateManagedWidget( 
         "Mesh View", xmLabelGadgetClass, rend_child, 
-	NULL );
+        NULL );
     XtVaGetValues( widg, XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
-	
+        
     util_render_btns[VIEW_SOLID] = XtVaCreateManagedWidget( 
         "Solid", xmToggleButtonWidgetClass, rend_child, 
-	XmNindicatorOn,  False, 
-	XmNset,  ( analy->render_mode == RENDER_FILLED ), 
-	XmNshadowThickness, 3, 
-	XmNfillOnSelect, True, 
+        XmNindicatorOn,  False, 
+        XmNset,  ( analy->render_mode == RENDER_FILLED ), 
+        XmNshadowThickness, 3, 
+        XmNfillOnSelect, True, 
         NULL );
     XtVaGetValues( util_render_btns[VIEW_SOLID], XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
     XtAddCallback( util_render_btns[VIEW_SOLID], XmNvalueChangedCallback, 
                    util_render_CB, (XtPointer) VIEW_SOLID );
-	
+        
     util_render_btns[VIEW_SOLID_MESH] = XtVaCreateManagedWidget( 
         "Solid Mesh", xmToggleButtonWidgetClass, rend_child, 
-	XmNindicatorOn, False, 
-	XmNset, ( analy->render_mode == RENDER_HIDDEN ), 
-	XmNshadowThickness, 3, 
-	XmNfillOnSelect, True, 
-	NULL );
+        XmNindicatorOn, False, 
+        XmNset, ( analy->render_mode == RENDER_HIDDEN ), 
+        XmNshadowThickness, 3, 
+        XmNfillOnSelect, True, 
+        NULL );
     XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
     XtAddCallback( util_render_btns[VIEW_SOLID_MESH], XmNvalueChangedCallback, 
                    util_render_CB, (XtPointer) VIEW_SOLID_MESH );
-	
+        
     util_render_btns[VIEW_EDGES] = XtVaCreateManagedWidget( 
         "Edges Only", xmToggleButtonWidgetClass, rend_child, 
-	XmNindicatorOn, False, 
-	XmNset, ( analy->show_edges 
-	          && env.curr_analy->render_mode == RENDER_NONE ), 
-	XmNshadowThickness, 3, 
-	XmNfillOnSelect, True, 
-	NULL );
+        XmNindicatorOn, False, 
+        XmNset, ( analy->show_edges 
+                  && env.curr_analy->render_mode == RENDER_NONE ), 
+        XmNshadowThickness, 3, 
+        XmNfillOnSelect, True, 
+        NULL );
     XtVaGetValues( util_render_btns[VIEW_EDGES], XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
@@ -2032,40 +2032,40 @@ Widget main_widg;
 
     rend_child = XtVaCreateManagedWidget( 
         "render_pick", xmRowColumnWidgetClass, util_render_ctl, 
-	XmNisAligned, True, 
-	XmNentryAlignment, XmALIGNMENT_CENTER, 
-	XmNradioBehavior, True, 
-	XmNradioAlwaysOne, True, 
-	XmNorientation, XmVERTICAL, 
-	XmNpacking, XmPACK_COLUMN, 
-	NULL );
+        XmNisAligned, True, 
+        XmNentryAlignment, XmALIGNMENT_CENTER, 
+        XmNradioBehavior, True, 
+        XmNradioAlwaysOne, True, 
+        XmNorientation, XmVERTICAL, 
+        XmNpacking, XmPACK_COLUMN, 
+        NULL );
 
     widg = XtVaCreateManagedWidget( 
         "Pick Mode", xmLabelGadgetClass, rend_child, 
-	NULL );
+        NULL );
     XtVaGetValues( widg, XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
     util_render_btns[PICK_MODE_SELECT] = XtVaCreateManagedWidget( 
         "Select", xmToggleButtonWidgetClass, rend_child, 
-	XmNindicatorOn, False, 
-	XmNset, ( analy->mouse_mode == MOUSE_SELECT ), 
-	XmNshadowThickness, 3, 
-	XmNfillOnSelect, True, 
+        XmNindicatorOn, False, 
+        XmNset, ( analy->mouse_mode == MOUSE_SELECT ), 
+        XmNshadowThickness, 3, 
+        XmNfillOnSelect, True, 
         NULL );
     XtVaGetValues( util_render_btns[PICK_MODE_SELECT], XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
     XtAddCallback( util_render_btns[PICK_MODE_SELECT], XmNvalueChangedCallback, 
                    util_render_CB, (XtPointer) PICK_MODE_SELECT );
-	
+        
     util_render_btns[PICK_MODE_HILITE] = XtVaCreateManagedWidget( 
         "Hilite", xmToggleButtonWidgetClass, rend_child, 
-	XmNindicatorOn, False, 
-	XmNset, ( analy->mouse_mode == MOUSE_HILITE ), 
-	XmNshadowThickness, 3, 
-	XmNfillOnSelect, True, 
-	NULL );
+        XmNindicatorOn, False, 
+        XmNset, ( analy->mouse_mode == MOUSE_HILITE ), 
+        XmNshadowThickness, 3, 
+        XmNfillOnSelect, True, 
+        NULL );
     XtVaGetValues( util_render_btns[PICK_MODE_HILITE], XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
@@ -2074,26 +2074,26 @@ Widget main_widg;
 
     rend_child = XtVaCreateManagedWidget( 
         "bt2_pick", xmRowColumnWidgetClass, util_render_ctl, 
-	XmNisAligned, True, 
-	XmNentryAlignment, XmALIGNMENT_CENTER, 
-	XmNradioBehavior, True, 
-	XmNradioAlwaysOne, True, 
-	XmNorientation, XmVERTICAL, 
-	XmNpacking, XmPACK_COLUMN, 
-	NULL );
+        XmNisAligned, True, 
+        XmNentryAlignment, XmALIGNMENT_CENTER, 
+        XmNradioBehavior, True, 
+        XmNradioAlwaysOne, True, 
+        XmNorientation, XmVERTICAL, 
+        XmNpacking, XmPACK_COLUMN, 
+        NULL );
 
     widg = XtVaCreateManagedWidget( 
         "Btn-2 Pick", xmLabelGadgetClass, rend_child, 
-	NULL );
+        NULL );
     XtVaGetValues( widg, XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
     util_render_btns[BTN2_SHELL] = XtVaCreateManagedWidget( 
         "Shells", xmToggleButtonWidgetClass, rend_child, 
-	XmNindicatorOn, False, 
-	XmNset, ( analy->pick_beams != TRUE ), 
-	XmNshadowThickness, 3, 
-	XmNfillOnSelect, True, 
+        XmNindicatorOn, False, 
+        XmNset, ( analy->pick_beams != TRUE ), 
+        XmNshadowThickness, 3, 
+        XmNfillOnSelect, True, 
         NULL );
     XtVaGetValues( util_render_btns[BTN2_SHELL], XmNwidth, &width, NULL );
     if ( width > child_width ) 
@@ -2103,35 +2103,35 @@ Widget main_widg;
 
     util_render_btns[BTN2_BEAM] = XtVaCreateManagedWidget( 
         "Beams", xmToggleButtonWidgetClass, rend_child, 
-	XmNindicatorOn, False, 
-	XmNset, ( analy->pick_beams == TRUE ), 
-	XmNshadowThickness, 3, 
-	XmNfillOnSelect, True, 
-	NULL );
+        XmNindicatorOn, False, 
+        XmNset, ( analy->pick_beams == TRUE ), 
+        XmNshadowThickness, 3, 
+        XmNfillOnSelect, True, 
+        NULL );
     XtVaGetValues( util_render_btns[BTN2_BEAM], XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
     XtAddCallback( util_render_btns[BTN2_BEAM], XmNvalueChangedCallback, 
                    util_render_CB, (XtPointer) BTN2_BEAM );
-	
+        
     rend_child = XtVaCreateManagedWidget( 
         "render_clean", xmRowColumnWidgetClass, util_render_ctl, 
-	XmNisAligned, True, 
-	XmNentryAlignment, XmALIGNMENT_CENTER, 
-	XmNorientation, XmVERTICAL, 
-	XmNpacking, XmPACK_COLUMN, 
-	NULL );
+        XmNisAligned, True, 
+        XmNentryAlignment, XmALIGNMENT_CENTER, 
+        XmNorientation, XmVERTICAL, 
+        XmNpacking, XmPACK_COLUMN, 
+        NULL );
 
     widg = XtVaCreateManagedWidget( 
         "Clean-up", xmLabelGadgetClass, rend_child, 
-	NULL );
+        NULL );
     XtVaGetValues( widg, XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
-	
+        
     util_render_btns[CLEAN_SELECT] = XtVaCreateManagedWidget( 
         "Clear select", xmPushButtonGadgetClass, rend_child, 
-	NULL );
+        NULL );
     XtVaGetValues( util_render_btns[CLEAN_SELECT], XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
@@ -2149,7 +2149,7 @@ Widget main_widg;
     
     util_render_btns[CLEAN_NEARFAR] = XtVaCreateManagedWidget( 
         "Set near/far", xmPushButtonGadgetClass, rend_child, 
-	NULL );
+        NULL );
     XtVaGetValues( util_render_btns[CLEAN_NEARFAR], XmNwidth, &width, NULL );
     if ( width > child_width ) 
         child_width = width;
@@ -2160,7 +2160,7 @@ Widget main_widg;
     
     XtVaSetValues( util_render_ctl, 
         XmNrightOffset, -((int) (rc_width / 2)), NULL );
-	
+        
     return util_main;
 }
 
@@ -2308,10 +2308,10 @@ caddr_t call_data;
             parse_command( "copyrt", env.curr_analy );
             break;
         case BTN_MTL_MGR:
-	    create_app_widg( BTN_MTL_MGR );
+            create_app_widg( BTN_MTL_MGR );
             break;
         case BTN_UTIL_PANEL:
-	    create_app_widg( BTN_UTIL_PANEL );
+            create_app_widg( BTN_UTIL_PANEL );
             break;
         case BTN_QUIT:
             quit( 0 );
@@ -2517,76 +2517,76 @@ XmScaleCallbackStruct *call_data;
         case ButtonRelease:
             if ( mode == MOUSE_STATIC )
             {
-	        identify_only = ( call_data->event->xbutton.state & ShiftMask
-		                  || call_data->event->xbutton.state 
-				     & ControlMask );
-		
+                identify_only = ( call_data->event->xbutton.state & ShiftMask
+                                  || call_data->event->xbutton.state 
+                                     & ControlMask );
+                
                 switch( call_data->event->xbutton.button )
                 {
                     case Button1:
                         ident = select_item( NODE_T, posx, posy, identify_only, 
-			                     env.curr_analy );
-			obj_type = NODE_T;
+                                             env.curr_analy );
+                        obj_type = NODE_T;
                         break;
                     case Button2:
                         if ( env.curr_analy->pick_beams )
-			{
+                        {
                             ident = select_item( BEAM_T, posx, posy, 
-			                         identify_only, 
-			                         env.curr_analy );
-			    obj_type = BEAM_T;
-			}
+                                                 identify_only, 
+                                                 env.curr_analy );
+                            obj_type = BEAM_T;
+                        }
                         else
-			{
+                        {
                             ident = select_item( SHELL_T, posx, posy, 
-			                         identify_only, 
-			                         env.curr_analy );
-			    obj_type = SHELL_T;
-			}
+                                                 identify_only, 
+                                                 env.curr_analy );
+                            obj_type = SHELL_T;
+                        }
                         break;
                     case Button3:
                         ident = select_item( BRICK_T, posx, posy, identify_only, 
-			                     env.curr_analy );
-			obj_type = BRICK_T;
+                                             env.curr_analy );
+                        obj_type = BRICK_T;
                         break;
                 }
-		
-		if ( identify_only && ident > 0 )
-		    if ( call_data->event->xbutton.state & ShiftMask )
-		    {
-			sprintf( str, "tellpos %s %d", obj_type_names[obj_type], 
-			         ident );
-		        parse_command( str, env.curr_analy );
-		    }
-		    else
-		    {
-		        ident--;
-		        switch ( obj_type )
-			{
-			    case BEAM_T:
-			        select_mtl_mgr_mtl( 
-				    env.curr_analy->geom_p->beams->mat[ident] );
-				break;
-			    case SHELL_T:
-			        select_mtl_mgr_mtl( 
-				    env.curr_analy->geom_p->shells->mat[ident] );
-				break;
-			    case BRICK_T:
-			        select_mtl_mgr_mtl( 
-				    env.curr_analy->geom_p->bricks->mat[ident] );
-				break;
-			    default:
-			        popup_dialog( INFO_POPUP, 
-				              "To select a material, %s\n%s", 
-					      "please pick", 
-					      "an element instead of a node." );
-				break;
-			}
-		    }
+                
+                if ( identify_only && ident > 0 )
+                    if ( call_data->event->xbutton.state & ShiftMask )
+                    {
+                        sprintf( str, "tellpos %s %d", obj_type_names[obj_type], 
+                                 ident );
+                        parse_command( str, env.curr_analy );
+                    }
+                    else
+                    {
+                        ident--;
+                        switch ( obj_type )
+                        {
+                            case BEAM_T:
+                                select_mtl_mgr_mtl( 
+                                    env.curr_analy->geom_p->beams->mat[ident] );
+                                break;
+                            case SHELL_T:
+                                select_mtl_mgr_mtl( 
+                                    env.curr_analy->geom_p->shells->mat[ident] );
+                                break;
+                            case BRICK_T:
+                                select_mtl_mgr_mtl( 
+                                    env.curr_analy->geom_p->bricks->mat[ident] );
+                                break;
+                            default:
+                                popup_dialog( INFO_POPUP, 
+                                              "To select a material, %s\n%s", 
+                                              "please pick", 
+                                              "an element instead of a node." );
+                                break;
+                        }
+                    }
             }
             else
             {
-	        unset_alt_cursor();
+                unset_alt_cursor();
                 update_display( env.curr_analy );
             }
             break;
@@ -2594,24 +2594,24 @@ XmScaleCallbackStruct *call_data;
         case MotionNotify:
             orig_posx = posx;
             orig_posy = posy;
-	    
-	    /* Cursor motion must exceed threshold to be a real move. */
-	    if ( mode == MOUSE_STATIC )
-	    {
-		pixdx = (double) call_data->event->xbutton.x - orig_posx;
-		pixdy = (double) call_data->event->xbutton.y - orig_posy;
-		dist = (float) sqrt( pixdx * pixdx + pixdy * pixdy );
-		if ( dist < motion_threshold )
-		    break;
-		else
-		    mode = MOUSE_MOVE;
-	    }
+            
+            /* Cursor motion must exceed threshold to be a real move. */
+            if ( mode == MOUSE_STATIC )
+            {
+                pixdx = (double) call_data->event->xbutton.x - orig_posx;
+                pixdy = (double) call_data->event->xbutton.y - orig_posy;
+                dist = (float) sqrt( pixdx * pixdx + pixdy * pixdy );
+                if ( dist < motion_threshold )
+                    break;
+                else
+                    mode = MOUSE_MOVE;
+            }
 
-	    set_alt_cursor( CURSOR_FLEUR );
+            set_alt_cursor( CURSOR_FLEUR );
 
             posx = call_data->event->xbutton.x;
             posy = call_data->event->xbutton.y;
-	    
+            
             if ( call_data->event->xmotion.state & Button1Mask )
             {
                 angle = (posx - orig_posx) / 10.0;
@@ -2705,86 +2705,86 @@ XmToggleButtonCallbackStruct *call_data;
     /* Find the index of the complimentary function to the widget executed. */
     for ( i = 0; i < 4; i++ )
         if ( w == function_toggles[i] )
-	    break;
+            break;
     switch ( i )
     {
-	case VIS:
-	    compliment = INVIS;
-	    break;
-	case INVIS:
-	    compliment = VIS;
-	    break;
-	case ENABLE:
-	    compliment = DISABLE;
-	    break;
-	case DISABLE:
-	    compliment = ENABLE;
-	    break;
+        case VIS:
+            compliment = INVIS;
+            break;
+        case INVIS:
+            compliment = VIS;
+            break;
+        case ENABLE:
+            compliment = DISABLE;
+            break;
+        case DISABLE:
+            compliment = ENABLE;
+            break;
     }
     
     /* Color function toggle. */
     if ( w == function_toggles[COLOR] )
     {
         if ( call_data->set )
-	{
+        {
             /* Exclude other functions while color is selected. */
-	    XtVaGetValues( function_toggles[VIS], XmNset, &set, NULL );
-	    XtVaGetValues( function_toggles[INVIS], XmNset, &comp_set, NULL );
-	    if ( set )
-	        XtVaSetValues( function_toggles[VIS], XmNset, False, NULL );
-	    else if ( comp_set )
-	        XtVaSetValues( function_toggles[INVIS], XmNset, False, NULL );
-	    
-	    XtVaGetValues( function_toggles[ENABLE], XmNset, &set, NULL );
-	    XtVaGetValues( function_toggles[DISABLE], XmNset, &comp_set, NULL );
-	    if ( set )
-	        XtVaSetValues( function_toggles[ENABLE], XmNset, False, NULL );
-	    else if ( comp_set )
-	        XtVaSetValues( function_toggles[DISABLE], XmNset, False, NULL );
-	
-	    XtSetSensitive( color_editor, True );
-	
-	    XtManageChild( swatch_frame );
-	    switch_opengl_win( SWATCH );
-	    update_swatch_label();
-	    XtMapWidget( swatch_label );
-	
-	    /* Set color scales if a component is selected. */
-	    set_scales_to_mtl();
-	}
-	else
-	{
-	    switch_opengl_win( MESH );
-	    XtUnmanageChild( swatch_frame );
-	    XtUnmapWidget( swatch_label );
-	    XtSetSensitive( color_editor, False );
-	}
+            XtVaGetValues( function_toggles[VIS], XmNset, &set, NULL );
+            XtVaGetValues( function_toggles[INVIS], XmNset, &comp_set, NULL );
+            if ( set )
+                XtVaSetValues( function_toggles[VIS], XmNset, False, NULL );
+            else if ( comp_set )
+                XtVaSetValues( function_toggles[INVIS], XmNset, False, NULL );
+            
+            XtVaGetValues( function_toggles[ENABLE], XmNset, &set, NULL );
+            XtVaGetValues( function_toggles[DISABLE], XmNset, &comp_set, NULL );
+            if ( set )
+                XtVaSetValues( function_toggles[ENABLE], XmNset, False, NULL );
+            else if ( comp_set )
+                XtVaSetValues( function_toggles[DISABLE], XmNset, False, NULL );
+        
+            XtSetSensitive( color_editor, True );
+        
+            XtManageChild( swatch_frame );
+            switch_opengl_win( SWATCH );
+            update_swatch_label();
+            XtMapWidget( swatch_label );
+        
+            /* Set color scales if a component is selected. */
+            set_scales_to_mtl();
+        }
+        else
+        {
+            switch_opengl_win( MESH );
+            XtUnmanageChild( swatch_frame );
+            XtUnmapWidget( swatch_label );
+            XtSetSensitive( color_editor, False );
+        }
     }
     else
     {
         /* If color or invisible functions set, unset them. */
-	XtVaGetValues( function_toggles[COLOR], XmNset, &color_set, NULL );
-	XtVaGetValues( function_toggles[compliment], XmNset, &set, NULL );
-	if ( color_set )
-	{
-	    XtVaSetValues( function_toggles[COLOR], XmNset, False, NULL );
+        XtVaGetValues( function_toggles[COLOR], XmNset, &color_set, NULL );
+        XtVaGetValues( function_toggles[compliment], XmNset, &set, NULL );
+        if ( color_set )
+        {
+            XtVaSetValues( function_toggles[COLOR], XmNset, False, NULL );
 
-	    switch_opengl_win( MESH );
-	    XtUnmanageChild( swatch_frame );
-	    XtUnmapWidget( swatch_label );
-	    XtSetSensitive( color_editor, False );
-	    
-	    if ( preview_set )
-	    {
-		/* Cancel the preview. */
-		send_mtl_cmd( "mtl cancel", 2 );
-	        XtSetSensitive( mtl_row_col, True );
-	        XtSetSensitive( quick_select, True );
-		preview_set = FALSE;
-	    }
-	}
-	else if ( set )
-	    XtVaSetValues( function_toggles[compliment], XmNset, False, NULL );
+            switch_opengl_win( MESH );
+            XtUnmanageChild( swatch_frame );
+            XtUnmapWidget( swatch_label );
+            XtSetSensitive( color_editor, False );
+            
+            if ( preview_set )
+            {
+                /* Cancel the preview. */
+                send_mtl_cmd( "mtl cancel", 2 );
+                XtSetSensitive( mtl_row_col, True );
+                XtSetSensitive( quick_select, True );
+                preview_set = FALSE;
+            }
+        }
+        else if ( set )
+            XtVaSetValues( function_toggles[compliment], XmNset, False, NULL );
     }
     
     update_actions_sens();
@@ -2821,215 +2821,215 @@ XmPushButtonCallbackStruct call_data;
     if ( w == ctl_buttons[1][ALL] )
     {
         /* Select all materials. */
-	
+        
         if ( mtl_deselect_list != NULL )
-	{
-	    APPEND( mtl_deselect_list, mtl_select_list );
-	    mtl_deselect_list = NULL;
-	}
+        {
+            APPEND( mtl_deselect_list, mtl_select_list );
+            mtl_deselect_list = NULL;
+        }
         for ( i = qty_mtls - 1, p_mtl = mtl_select_list; 
-	      i >= 0; 
-	      p_mtl = p_mtl->next, i-- )
-	{
-    	    XtVaSetValues( children[i], XmNset, True, NULL );
-	    p_mtl->mtl = i + 1;
-	}
+              i >= 0; 
+              p_mtl = p_mtl->next, i-- )
+        {
+            XtVaSetValues( children[i], XmNset, True, NULL );
+            p_mtl->mtl = i + 1;
+        }
     }
     else if ( w == ctl_buttons[1][NONE] )
     {
         /* Deselect all materials. */
-	
+        
         if ( mtl_select_list != NULL )
-	{
-	    APPEND( mtl_select_list, mtl_deselect_list );
-	    mtl_select_list = NULL;
-	}
+        {
+            APPEND( mtl_select_list, mtl_deselect_list );
+            mtl_select_list = NULL;
+        }
         for ( i = 0; i < qty_mtls; i++ )
-    	    XtVaSetValues( children[i], XmNset, False, NULL );
+            XtVaSetValues( children[i], XmNset, False, NULL );
     }
     else if ( w == ctl_buttons[1][INVERT] )
     {
         /* Invert all selections. */
-	
-	/* Swap the lists. */
+        
+        /* Swap the lists. */
         p_mtl = mtl_deselect_list;
-	mtl_deselect_list = mtl_select_list;
-	mtl_select_list = p_mtl;
-	
-	/* Toggle the (now) selected toggles on, deselected off. */
-	p_mtl = mtl_select_list;
-	for ( i = qty_mtls - 1; i >= 0; i-- )
-	{
-    	    XtVaGetValues( children[i], XmNset, &set, NULL );
-	    if ( set )
-    	        XtVaSetValues( children[i], XmNset, False, NULL );
-	    else
-	    {
-    	        XtVaSetValues( children[i], XmNset, True, NULL );
-		if ( p_mtl != NULL )
-		{
-		    p_mtl->mtl = i + 1;
-		    p_mtl = p_mtl->next;
-		}
-		else
-		    popup_dialog( WARNING_POPUP, 
-		        "Material selection list does not match set state." );
-	    }
-	}
+        mtl_deselect_list = mtl_select_list;
+        mtl_select_list = p_mtl;
+        
+        /* Toggle the (now) selected toggles on, deselected off. */
+        p_mtl = mtl_select_list;
+        for ( i = qty_mtls - 1; i >= 0; i-- )
+        {
+            XtVaGetValues( children[i], XmNset, &set, NULL );
+            if ( set )
+                XtVaSetValues( children[i], XmNset, False, NULL );
+            else
+            {
+                XtVaSetValues( children[i], XmNset, True, NULL );
+                if ( p_mtl != NULL )
+                {
+                    p_mtl->mtl = i + 1;
+                    p_mtl = p_mtl->next;
+                }
+                else
+                    popup_dialog( WARNING_POPUP, 
+                        "Material selection list does not match set state." );
+            }
+        }
     }
     else if ( w == ctl_buttons[1][BY_FUNC] )
     {
         /*
-	 * Select materials which are the intersection of the 
-	 * selected functions.
-	 */
-	
-	/* First empty the material select list. */
-	if ( mtl_select_list != NULL )
-	{
-	    APPEND( mtl_select_list, mtl_deselect_list );
-	    mtl_select_list = NULL;
-	}
-	
-    	XtVaGetValues( ctl_buttons[0][VIS], XmNset, &vis_set, NULL );
-    	XtVaGetValues( ctl_buttons[0][INVIS], XmNset, &invis_set, NULL );
-    	XtVaGetValues( ctl_buttons[0][ENABLE], XmNset, &enable_set, NULL );
-    	XtVaGetValues( ctl_buttons[0][DISABLE], XmNset, &disable_set, NULL );
-	
-	if ( vis_set && enable_set )
-	{
-	    for ( i = 0; i < qty_mtls; i++ )
-		if ( !mtl_invis[i] && !mtl_disable[i] )
-		{
-    	            XtVaSetValues( children[i], XmNset, True, NULL );
-		    p_mtl = mtl_deselect_list;
-		    UNLINK( p_mtl, mtl_deselect_list );
-		    p_mtl->mtl = i + 1;
-		    INSERT( p_mtl, mtl_select_list );
-		}
-		else
-    	            XtVaSetValues( children[i], XmNset, False, NULL );
-	}
-	else if ( vis_set && disable_set )
-	{
-	    for ( i = 0; i < qty_mtls; i++ )
-		if ( !mtl_invis[i] && mtl_disable[i] )
-		{
-    	            XtVaSetValues( children[i], XmNset, True, NULL );
-		    p_mtl = mtl_deselect_list;
-		    UNLINK( p_mtl, mtl_deselect_list );
-		    p_mtl->mtl = i + 1;
-		    INSERT( p_mtl, mtl_select_list );
-		}
-		else
-    	            XtVaSetValues( children[i], XmNset, False, NULL );
-	}
-	else if ( invis_set && enable_set )
-	{
-	    for ( i = 0; i < qty_mtls; i++ )
-		if ( mtl_invis[i] && !mtl_disable[i] )
-		{
-    	            XtVaSetValues( children[i], XmNset, True, NULL );
-		    p_mtl = mtl_deselect_list;
-		    UNLINK( p_mtl, mtl_deselect_list );
-		    p_mtl->mtl = i + 1;
-		    INSERT( p_mtl, mtl_select_list );
-		}
-		else
-    	            XtVaSetValues( children[i], XmNset, False, NULL );
-	}
-	else if ( invis_set && disable_set )
-	{
-	    for ( i = 0; i < qty_mtls; i++ )
-		if ( mtl_invis[i] && mtl_disable[i] )
-		{
-    	            XtVaSetValues( children[i], XmNset, True, NULL );
-		    p_mtl = mtl_deselect_list;
-		    UNLINK( p_mtl, mtl_deselect_list );
-		    p_mtl->mtl = i + 1;
-		    INSERT( p_mtl, mtl_select_list );
-		}
-		else
-    	            XtVaSetValues( children[i], XmNset, False, NULL );
-	}
-	else if ( vis_set )
-	{
-	    for ( i = 0; i < qty_mtls; i++ )
-		if ( !mtl_invis[i] )
-		{
-    	            XtVaSetValues( children[i], XmNset, True, NULL );
-		    p_mtl = mtl_deselect_list;
-		    UNLINK( p_mtl, mtl_deselect_list );
-		    p_mtl->mtl = i + 1;
-		    INSERT( p_mtl, mtl_select_list );
-		}
-		else
-    	            XtVaSetValues( children[i], XmNset, False, NULL );
-	}
-	else if ( invis_set )
-	{
-	    for ( i = 0; i < qty_mtls; i++ )
-		if ( mtl_invis[i] )
-		{
-    	            XtVaSetValues( children[i], XmNset, True, NULL );
-		    p_mtl = mtl_deselect_list;
-		    UNLINK( p_mtl, mtl_deselect_list );
-		    p_mtl->mtl = i + 1;
-		    INSERT( p_mtl, mtl_select_list );
-		}
-		else
-    	            XtVaSetValues( children[i], XmNset, False, NULL );
-	}
-	else if ( enable_set )
-	{
-	    for ( i = 0; i < qty_mtls; i++ )
-		if ( !mtl_disable[i] )
-		{
-    	            XtVaSetValues( children[i], XmNset, True, NULL );
-		    p_mtl = mtl_deselect_list;
-		    UNLINK( p_mtl, mtl_deselect_list );
-		    p_mtl->mtl = i + 1;
-		    INSERT( p_mtl, mtl_select_list );
-		}
-		else
-    	            XtVaSetValues( children[i], XmNset, False, NULL );
-	}
-	else if ( disable_set )
-	{
-	    for ( i = 0; i < qty_mtls; i++ )
-		if ( mtl_disable[i] )
-		{
-    	            XtVaSetValues( children[i], XmNset, True, NULL );
-		    p_mtl = mtl_deselect_list;
-		    UNLINK( p_mtl, mtl_deselect_list );
-		    p_mtl->mtl = i + 1;
-		    INSERT( p_mtl, mtl_select_list );
-		}
-		else
-    	            XtVaSetValues( children[i], XmNset, False, NULL );
-	}
-	else
-	{
-	    /* Set all if color function selected, else unset all. */
-    	    XtVaGetValues( ctl_buttons[0][COLOR], XmNset, &set, NULL );
-	    if ( set )
-	        for ( i = 0; i < qty_mtls; i++ )
-		{
-    	            XtVaSetValues( children[i], XmNset, True, NULL );
-		    p_mtl = mtl_deselect_list;
-		    UNLINK( p_mtl, mtl_deselect_list );
-		    p_mtl->mtl = i + 1;
-		    INSERT( p_mtl, mtl_select_list );
-		}
-	    else
-	        for ( i = 0; i < qty_mtls; i++ )
-    	            XtVaSetValues( children[i], XmNset, False, NULL );
-	}
+         * Select materials which are the intersection of the 
+         * selected functions.
+         */
+        
+        /* First empty the material select list. */
+        if ( mtl_select_list != NULL )
+        {
+            APPEND( mtl_select_list, mtl_deselect_list );
+            mtl_select_list = NULL;
+        }
+        
+        XtVaGetValues( ctl_buttons[0][VIS], XmNset, &vis_set, NULL );
+        XtVaGetValues( ctl_buttons[0][INVIS], XmNset, &invis_set, NULL );
+        XtVaGetValues( ctl_buttons[0][ENABLE], XmNset, &enable_set, NULL );
+        XtVaGetValues( ctl_buttons[0][DISABLE], XmNset, &disable_set, NULL );
+        
+        if ( vis_set && enable_set )
+        {
+            for ( i = 0; i < qty_mtls; i++ )
+                if ( !mtl_invis[i] && !mtl_disable[i] )
+                {
+                    XtVaSetValues( children[i], XmNset, True, NULL );
+                    p_mtl = mtl_deselect_list;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    p_mtl->mtl = i + 1;
+                    INSERT( p_mtl, mtl_select_list );
+                }
+                else
+                    XtVaSetValues( children[i], XmNset, False, NULL );
+        }
+        else if ( vis_set && disable_set )
+        {
+            for ( i = 0; i < qty_mtls; i++ )
+                if ( !mtl_invis[i] && mtl_disable[i] )
+                {
+                    XtVaSetValues( children[i], XmNset, True, NULL );
+                    p_mtl = mtl_deselect_list;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    p_mtl->mtl = i + 1;
+                    INSERT( p_mtl, mtl_select_list );
+                }
+                else
+                    XtVaSetValues( children[i], XmNset, False, NULL );
+        }
+        else if ( invis_set && enable_set )
+        {
+            for ( i = 0; i < qty_mtls; i++ )
+                if ( mtl_invis[i] && !mtl_disable[i] )
+                {
+                    XtVaSetValues( children[i], XmNset, True, NULL );
+                    p_mtl = mtl_deselect_list;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    p_mtl->mtl = i + 1;
+                    INSERT( p_mtl, mtl_select_list );
+                }
+                else
+                    XtVaSetValues( children[i], XmNset, False, NULL );
+        }
+        else if ( invis_set && disable_set )
+        {
+            for ( i = 0; i < qty_mtls; i++ )
+                if ( mtl_invis[i] && mtl_disable[i] )
+                {
+                    XtVaSetValues( children[i], XmNset, True, NULL );
+                    p_mtl = mtl_deselect_list;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    p_mtl->mtl = i + 1;
+                    INSERT( p_mtl, mtl_select_list );
+                }
+                else
+                    XtVaSetValues( children[i], XmNset, False, NULL );
+        }
+        else if ( vis_set )
+        {
+            for ( i = 0; i < qty_mtls; i++ )
+                if ( !mtl_invis[i] )
+                {
+                    XtVaSetValues( children[i], XmNset, True, NULL );
+                    p_mtl = mtl_deselect_list;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    p_mtl->mtl = i + 1;
+                    INSERT( p_mtl, mtl_select_list );
+                }
+                else
+                    XtVaSetValues( children[i], XmNset, False, NULL );
+        }
+        else if ( invis_set )
+        {
+            for ( i = 0; i < qty_mtls; i++ )
+                if ( mtl_invis[i] )
+                {
+                    XtVaSetValues( children[i], XmNset, True, NULL );
+                    p_mtl = mtl_deselect_list;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    p_mtl->mtl = i + 1;
+                    INSERT( p_mtl, mtl_select_list );
+                }
+                else
+                    XtVaSetValues( children[i], XmNset, False, NULL );
+        }
+        else if ( enable_set )
+        {
+            for ( i = 0; i < qty_mtls; i++ )
+                if ( !mtl_disable[i] )
+                {
+                    XtVaSetValues( children[i], XmNset, True, NULL );
+                    p_mtl = mtl_deselect_list;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    p_mtl->mtl = i + 1;
+                    INSERT( p_mtl, mtl_select_list );
+                }
+                else
+                    XtVaSetValues( children[i], XmNset, False, NULL );
+        }
+        else if ( disable_set )
+        {
+            for ( i = 0; i < qty_mtls; i++ )
+                if ( mtl_disable[i] )
+                {
+                    XtVaSetValues( children[i], XmNset, True, NULL );
+                    p_mtl = mtl_deselect_list;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    p_mtl->mtl = i + 1;
+                    INSERT( p_mtl, mtl_select_list );
+                }
+                else
+                    XtVaSetValues( children[i], XmNset, False, NULL );
+        }
+        else
+        {
+            /* Set all if color function selected, else unset all. */
+            XtVaGetValues( ctl_buttons[0][COLOR], XmNset, &set, NULL );
+            if ( set )
+                for ( i = 0; i < qty_mtls; i++ )
+                {
+                    XtVaSetValues( children[i], XmNset, True, NULL );
+                    p_mtl = mtl_deselect_list;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    p_mtl->mtl = i + 1;
+                    INSERT( p_mtl, mtl_select_list );
+                }
+            else
+                for ( i = 0; i < qty_mtls; i++ )
+                    XtVaSetValues( children[i], XmNset, False, NULL );
+        }
     }
     
     if ( mtl_select_list == NULL )
         cur_mtl = 0;
-	
+        
     /* 
      * Reset all color component value change flags regardless of 
      * current function.  Component changes are remembered only 
@@ -3083,31 +3083,31 @@ XmToggleButtonCallbackStruct *call_data;
     if ( call_data->set )
     {
         if ( mtl_deselect_list != NULL )
-	{
-	    p_mtl = mtl_deselect_list;
-	    UNLINK( p_mtl, mtl_deselect_list );
-	    p_mtl->mtl = mtl;
-	    INSERT( p_mtl, mtl_select_list );
-	}
-	else
-	    return;
+        {
+            p_mtl = mtl_deselect_list;
+            UNLINK( p_mtl, mtl_deselect_list );
+            p_mtl->mtl = mtl;
+            INSERT( p_mtl, mtl_select_list );
+        }
+        else
+            return;
     }
     else
     {
-	for ( p_mtl = mtl_select_list; p_mtl != NULL; p_mtl = p_mtl->next )
-	    if ( p_mtl->mtl == mtl )
-	        break;
-	if ( p_mtl != NULL )
-	{
-	    UNLINK( p_mtl, mtl_select_list );
-	    INSERT( p_mtl, mtl_deselect_list );
-	    if ( mtl_select_list == NULL )
-	        cur_mtl = 0;
-	}
-	else
-	    return;
+        for ( p_mtl = mtl_select_list; p_mtl != NULL; p_mtl = p_mtl->next )
+            if ( p_mtl->mtl == mtl )
+                break;
+        if ( p_mtl != NULL )
+        {
+            UNLINK( p_mtl, mtl_select_list );
+            INSERT( p_mtl, mtl_deselect_list );
+            if ( mtl_select_list == NULL )
+                cur_mtl = 0;
+        }
+        else
+            return;
     }
-	
+        
     /* 
      * Reset all color component value change flags regardless of 
      * current function.  Component changes are remembered only 
@@ -3155,19 +3155,19 @@ XmToggleButtonCallbackStruct *call_data;
     if ( call_data->set )
     {
         cur_mtl_comp = comp;
-	for ( i = 0; i < 3; i++ )
-	    if ( !XtIsSensitive( col_ed_scales[0][i] ) )
-	        XtSetSensitive( col_ed_scales[0][i], True );
+        for ( i = 0; i < 3; i++ )
+            if ( !XtIsSensitive( col_ed_scales[0][i] ) )
+                XtSetSensitive( col_ed_scales[0][i], True );
         set_scales_to_mtl();
     }
     else
     {
         cur_mtl_comp = MTL_PROP_QTY;
         set_scales_to_mtl();
-	for ( i = 0; i < 3; i++ )
-	    XtSetSensitive( col_ed_scales[0][i], False );
+        for ( i = 0; i < 3; i++ )
+            XtSetSensitive( col_ed_scales[0][i], False );
     }
-	
+        
     update_actions_sens();
 }
 
@@ -3255,7 +3255,7 @@ XmScaleCallbackStruct *call_data;
         sprintf( valbuf, "%4.2f", fval );
     }
     else
-	sprintf( valbuf, "%d", (int) call_data->value );
+        sprintf( valbuf, "%d", (int) call_data->value );
 
     sval = XmStringCreateLocalized( valbuf );
     XtVaSetValues( col_ed_scales[1][scale], XmNlabelString, sval, NULL );
@@ -3291,27 +3291,27 @@ XmScaleCallbackStruct *call_data;
     
     if ( scale == SHININESS_SCALE )
     {
-	prop_val_changed[SHININESS] = TRUE;
-	property_vals[SHININESS][0] = (GLfloat) call_data->value;
+        prop_val_changed[SHININESS] = TRUE;
+        property_vals[SHININESS][0] = (GLfloat) call_data->value;
     }
     else
     {
-	/* 
-	 * Regardless of which of r,g,b changed, save entire
-	 * triple for the current material component.
-	 */
+        /* 
+         * Regardless of which of r,g,b changed, save entire
+         * triple for the current material component.
+         */
         prop_val_changed[cur_mtl_comp] = TRUE;
-	for ( i = 0; i < 3; i++ )
-	{
-	    if ( i == scale )
-	        property_vals[cur_mtl_comp][i] = (GLfloat) call_data->value 
-		                                           / 100.0;
-	    else
-	    {
-		XtVaGetValues( col_ed_scales[0][i], XmNvalue, &ival, NULL );
-		property_vals[cur_mtl_comp][i] = (GLfloat) ival / 100.0;
-	    }
-	}
+        for ( i = 0; i < 3; i++ )
+        {
+            if ( i == scale )
+                property_vals[cur_mtl_comp][i] = (GLfloat) call_data->value 
+                                                           / 100.0;
+            else
+            {
+                XtVaGetValues( col_ed_scales[0][i], XmNvalue, &ival, NULL );
+                property_vals[cur_mtl_comp][i] = (GLfloat) ival / 100.0;
+            }
+        }
     }
     
     update_actions_sens();
@@ -3347,123 +3347,123 @@ XmPushButtonCallbackStruct call_data;
     
     switch( op )
     {
-	case OP_PREVIEW:
-	    /* Preview is only a color function option. */
-	    for ( p_src = "preview mat "; *p_dest = *p_src; p_src++, p_dest++ );
-	    token_cnt += 2;
-	    
-	    len = load_selected_mtls( p_dest, &t_cnt );
-	    p_dest += len;
-	    token_cnt += t_cnt;
-	    
-	    len = load_mtl_properties( p_dest, &t_cnt );
-	    p_dest += len;
-	    token_cnt += t_cnt;
-	    if ( t_cnt == 0 )
-	        break;
-	    
-	    send_mtl_cmd( mtl_mgr_cmd, token_cnt );
-	    
-	    /* Prevent any material selection changes while in preview. */
-	    XtSetSensitive( quick_select, False );
-	    XtSetSensitive( mtl_row_col, False );
-	    
-	    preview_set = TRUE;
-	    break;
-	    
-	case OP_CANCEL:
-	    for ( p_src = "cancel "; *p_dest = *p_src; p_src++, p_dest++ );
-	    token_cnt++;
-		
-	    send_mtl_cmd( mtl_mgr_cmd, token_cnt );
-		
-	    preview_set = FALSE;
-	    
-	    XtSetSensitive( quick_select, True );
-	    XtSetSensitive( mtl_row_col, True );
+        case OP_PREVIEW:
+            /* Preview is only a color function option. */
+            for ( p_src = "preview mat "; *p_dest = *p_src; p_src++, p_dest++ );
+            token_cnt += 2;
+            
+            len = load_selected_mtls( p_dest, &t_cnt );
+            p_dest += len;
+            token_cnt += t_cnt;
+            
+            len = load_mtl_properties( p_dest, &t_cnt );
+            p_dest += len;
+            token_cnt += t_cnt;
+            if ( t_cnt == 0 )
+                break;
+            
+            send_mtl_cmd( mtl_mgr_cmd, token_cnt );
+            
+            /* Prevent any material selection changes while in preview. */
+            XtSetSensitive( quick_select, False );
+            XtSetSensitive( mtl_row_col, False );
+            
+            preview_set = TRUE;
+            break;
+            
+        case OP_CANCEL:
+            for ( p_src = "cancel "; *p_dest = *p_src; p_src++, p_dest++ );
+            token_cnt++;
+                
+            send_mtl_cmd( mtl_mgr_cmd, token_cnt );
+                
+            preview_set = FALSE;
+            
+            XtSetSensitive( quick_select, True );
+            XtSetSensitive( mtl_row_col, True );
 
             /* Reset scales to reflect original color. */
             switch_opengl_win( SWATCH );
     
             /* Reset change flags. */
             for ( i = 0; i < MTL_PROP_QTY; i++ )
-	        prop_val_changed[i] = FALSE;
+                prop_val_changed[i] = FALSE;
 
-	    set_scales_to_mtl();
-	    break;
-	    
-	case OP_APPLY:
-	    if ( preview_set )
-	    {
-	        /* Simple command - just make preview permanent. */
-	        for ( p_src = "apply "; *p_dest = *p_src; p_src++, p_dest++ );
-		token_cnt++;
-	    }
-	    else
-	    {
-	        /* Build whole new command. */
-	        len = load_mtl_mgr_funcs( p_dest, &t_cnt );
-		if ( t_cnt == 0 )
-		    break;
-	        p_dest += len;
-		token_cnt += t_cnt;
-		
-	        len = load_selected_mtls( p_dest, &t_cnt );
-	        p_dest += len;
-		token_cnt += t_cnt;
-		
-		/* Color function will take material properties. */
-		if ( XtIsSensitive( color_editor ) )
-		{
-		    len = load_mtl_properties( p_dest, &t_cnt );
-		    p_dest += len;
-		    token_cnt += t_cnt;
-		    
-		    if ( t_cnt == 0 )
-		        break;
-		}
-	    }
-	    
-	    send_mtl_cmd( mtl_mgr_cmd, token_cnt );
+            set_scales_to_mtl();
+            break;
+            
+        case OP_APPLY:
+            if ( preview_set )
+            {
+                /* Simple command - just make preview permanent. */
+                for ( p_src = "apply "; *p_dest = *p_src; p_src++, p_dest++ );
+                token_cnt++;
+            }
+            else
+            {
+                /* Build whole new command. */
+                len = load_mtl_mgr_funcs( p_dest, &t_cnt );
+                if ( t_cnt == 0 )
+                    break;
+                p_dest += len;
+                token_cnt += t_cnt;
+                
+                len = load_selected_mtls( p_dest, &t_cnt );
+                p_dest += len;
+                token_cnt += t_cnt;
+                
+                /* Color function will take material properties. */
+                if ( XtIsSensitive( color_editor ) )
+                {
+                    len = load_mtl_properties( p_dest, &t_cnt );
+                    p_dest += len;
+                    token_cnt += t_cnt;
+                    
+                    if ( t_cnt == 0 )
+                        break;
+                }
+            }
+            
+            send_mtl_cmd( mtl_mgr_cmd, token_cnt );
     
             for ( i = 0; i < MTL_PROP_QTY; i++ )
-	        prop_val_changed[i] = FALSE;
-	    
-	    if ( preview_set )
-	    {
-	        preview_set = FALSE;
-	        XtSetSensitive( quick_select, True );
-	        XtSetSensitive( mtl_row_col, True );
-	    }
-	    
-	    break;
-	    
-	case OP_DEFAULT:
-	    for ( p_src = "default "; *p_dest = *p_src; p_src++, p_dest++ );
-	    token_cnt++;
-	    
-	    len = load_selected_mtls( p_dest, &t_cnt );
-	    p_dest += len;
-	    token_cnt += t_cnt;
-		
-	    send_mtl_cmd( mtl_mgr_cmd, token_cnt );
+                prop_val_changed[i] = FALSE;
+            
+            if ( preview_set )
+            {
+                preview_set = FALSE;
+                XtSetSensitive( quick_select, True );
+                XtSetSensitive( mtl_row_col, True );
+            }
+            
+            break;
+            
+        case OP_DEFAULT:
+            for ( p_src = "default "; *p_dest = *p_src; p_src++, p_dest++ );
+            token_cnt++;
+            
+            len = load_selected_mtls( p_dest, &t_cnt );
+            p_dest += len;
+            token_cnt += t_cnt;
+                
+            send_mtl_cmd( mtl_mgr_cmd, token_cnt );
     
             for ( i = 0; i < MTL_PROP_QTY; i++ )
-	        prop_val_changed[i] = FALSE;
+                prop_val_changed[i] = FALSE;
 
             switch_opengl_win( SWATCH );
-	    set_scales_to_mtl();
-		
-	    if ( preview_set )
-	    {
-	        preview_set = FALSE;
-	        XtSetSensitive( quick_select, True );
-	        XtSetSensitive( mtl_row_col, True );
-	    }
-	    break;
-	    
-	default:
-	    wrt_text( "Unknown Material Manager operation; ignored.\n" );
+            set_scales_to_mtl();
+                
+            if ( preview_set )
+            {
+                preview_set = FALSE;
+                XtSetSensitive( quick_select, True );
+                XtSetSensitive( mtl_row_col, True );
+            }
+            break;
+            
+        default:
+            wrt_text( "Unknown Material Manager operation; ignored.\n" );
     }
 
     update_actions_sens();
@@ -3495,7 +3495,7 @@ XmAnyCallbackStruct call_data;
     for ( i = 0; i < MTL_PROP_QTY; i++ )
     {
         free( property_vals[i] );
-	property_vals[i] = NULL;
+        property_vals[i] = NULL;
     }
     
     DELETE_LIST( mtl_select_list );
@@ -3525,8 +3525,6 @@ Widget w;
 XtPointer client_data;
 XmAnyCallbackStruct call_data;
 {
-    step_stride = 1;
-    
     free( util_render_btns );
     util_render_btns = NULL;
     
@@ -3564,57 +3562,57 @@ XmToggleButtonCallbackStruct *call_data;
     
     switch( btn )
     {
-	case VIEW_SOLID:
-	    if ( call_data->set )
-	    {
-	        parse_command( "sw solid", env.curr_analy );
-	        if ( all_true( env.curr_analy->hide_material, 
-	                       env.curr_analy->num_materials ) )
-	            parse_command( "mtl vis all", env.curr_analy );
-	    }
-	    else
-	        /* Explicitly unsetting filled view. Do something... */
-		parse_command( "sw none", env.curr_analy );
-	    break;
-	case VIEW_SOLID_MESH:
-	    if ( call_data->set )
-	    {
-	        parse_command( "sw hidden", env.curr_analy );
-	        if ( all_true( env.curr_analy->hide_material, 
-	                       env.curr_analy->num_materials ) )
-	            parse_command( "mtl vis all", env.curr_analy );
-	    }
-	    else
-	        /* Explicitly unsetting mesh view. Do something... */
-		parse_command( "sw none", env.curr_analy );
-	    break;
-	case VIEW_EDGES:
-	    if ( call_data->set )
-	    {
+        case VIEW_SOLID:
+            if ( call_data->set )
+            {
+                parse_command( "sw solid", env.curr_analy );
+                if ( all_true( env.curr_analy->hide_material, 
+                               env.curr_analy->num_materials ) )
+                    parse_command( "mtl vis all", env.curr_analy );
+            }
+            else
+                /* Explicitly unsetting filled view. Do something... */
+                parse_command( "sw none", env.curr_analy );
+            break;
+        case VIEW_SOLID_MESH:
+            if ( call_data->set )
+            {
+                parse_command( "sw hidden", env.curr_analy );
+                if ( all_true( env.curr_analy->hide_material, 
+                               env.curr_analy->num_materials ) )
+                    parse_command( "mtl vis all", env.curr_analy );
+            }
+            else
+                /* Explicitly unsetting mesh view. Do something... */
+                parse_command( "sw none", env.curr_analy );
+            break;
+        case VIEW_EDGES:
+            if ( call_data->set )
+            {
             util_panel_CB_active = TRUE;
-	        parse_command( "sw none", env.curr_analy );
+                parse_command( "sw none", env.curr_analy );
             util_panel_CB_active = FALSE;
                 parse_command( "on edges", env.curr_analy );
-	    }
-	    else
-	        parse_command( "off edges", env.curr_analy );
-	    break;
-	case PICK_MODE_SELECT:
-	    if ( call_data->set )
-	        parse_command( "sw picsel", env.curr_analy );
-	    break;
-	case PICK_MODE_HILITE:
-	    if ( call_data->set )
-	        parse_command( "sw pichil", env.curr_analy );
-	    break;
-	case BTN2_BEAM:
-	    if ( call_data->set )
-	        parse_command( "sw picbm", env.curr_analy );
-	    break;
-	case BTN2_SHELL:
-	    if ( call_data->set )
-	        parse_command( "sw picsh", env.curr_analy );
-	    break;
+            }
+            else
+                parse_command( "off edges", env.curr_analy );
+            break;
+        case PICK_MODE_SELECT:
+            if ( call_data->set )
+                parse_command( "sw picsel", env.curr_analy );
+            break;
+        case PICK_MODE_HILITE:
+            if ( call_data->set )
+                parse_command( "sw pichil", env.curr_analy );
+            break;
+        case BTN2_BEAM:
+            if ( call_data->set )
+                parse_command( "sw picbm", env.curr_analy );
+            break;
+        case BTN2_SHELL:
+            if ( call_data->set )
+                parse_command( "sw picsh", env.curr_analy );
+            break;
     }
 }
 
@@ -3640,22 +3638,22 @@ XmAnyCallbackStruct *call_data;
     
     switch( btn )
     {
-	case STEP_FIRST:
-	    parse_command( "f", analy );
-	    break;
-	case STEP_DOWN:
-	    st_num = analy->cur_state + 1 - step_stride;
-	    sprintf( cmd, "state %d", st_num );
-	    parse_command( cmd, analy );
-	    break;
-	case STEP_UP:
-	    st_num = analy->cur_state + 1 + step_stride;
-	    sprintf( cmd, "state %d", st_num );
-	    parse_command( cmd, analy );
-	    break;
-	case STEP_LAST:
-	    parse_command( "l", analy );
-	    break;
+        case STEP_FIRST:
+            parse_command( "f", analy );
+            break;
+        case STEP_DOWN:
+            st_num = analy->cur_state + 1 - step_stride;
+            sprintf( cmd, "state %d", st_num );
+            parse_command( cmd, analy );
+            break;
+        case STEP_UP:
+            st_num = analy->cur_state + 1 + step_stride;
+            sprintf( cmd, "state %d", st_num );
+            parse_command( cmd, analy );
+            break;
+        case STEP_LAST:
+            parse_command( "l", analy );
+            break;
     }
 }
 
@@ -3682,31 +3680,31 @@ XmAnyCallbackStruct *call_data;
     switch ( stride_mod )
     {
         case STRIDE_INCREMENT:
-	    if ( step_stride < env.curr_analy->num_states )
-	    {
-	        step_stride++;
-	        sprintf( stride_str, "%d", step_stride );
-		XmTextSetString( stride_label, stride_str );
-	    }
-	    break;
+            if ( step_stride < env.curr_analy->num_states )
+            {
+                step_stride++;
+                sprintf( stride_str, "%d", step_stride );
+            XmTextSetString( stride_label, stride_str );
+            }
+            break;
         case STRIDE_DECREMENT:
-	    if ( step_stride > 1 )
-	    {
-	        step_stride--;
-	        sprintf( stride_str, "%d", step_stride );
-		XmTextSetString( stride_label, stride_str );
-	    }
-	    break;
-	case STRIDE_EDIT:
-	    text = XmTextGetString( stride_label );
-	    sval = atoi( text );
-	    if ( sval > env.curr_analy->num_states || sval < 1 )
-	    {
-		sprintf( stride_str, "%d", step_stride );
-		XmTextSetString( stride_label, stride_str );
-	    }
-	    else 
-	        step_stride = sval;
+            if ( step_stride > 1 )
+            {
+                step_stride--;
+                sprintf( stride_str, "%d", step_stride );
+            XmTextSetString( stride_label, stride_str );
+            }
+            break;
+        case STRIDE_EDIT:
+            text = XmTextGetString( stride_label );
+            sval = atoi( text );
+            if ( sval >= env.curr_analy->num_states || sval < 1 )
+            {
+            sprintf( stride_str, "%d", step_stride );
+            XmTextSetString( stride_label, stride_str );
+            }
+            else 
+                step_stride = sval;
     }
 }
 
@@ -3727,13 +3725,13 @@ Btn_type btn;
     /* Assign parameters for creation. */
     if ( btn == BTN_MTL_MGR )
     {
-	app_widg = &mtl_mgr_widg;
-	create_func = create_mtl_manager;
+        app_widg = &mtl_mgr_widg;
+        create_func = create_mtl_manager;
     }
     else if ( btn == BTN_UTIL_PANEL )
     {
-	app_widg = &util_panel_widg;
-	create_func = create_free_util_panel;
+        app_widg = &util_panel_widg;
+        create_func = create_free_util_panel;
     }
     else
         return;
@@ -3744,8 +3742,8 @@ Btn_type btn;
      */
     if ( *app_widg == NULL )
     {
-	*app_widg = create_func( ctl_shell_widg );
-	
+        *app_widg = create_func( ctl_shell_widg );
+        
         /* Add the creation translations to the app widget. */
 /*
         XtVaGetValues( *app_widg, XmNchildren, &children, NULL );
@@ -3755,9 +3753,9 @@ Btn_type btn;
     }
     else
     {
-	XWindowChanges xwc;
-	xwc.stack_mode = Above;
-	XConfigureWindow( dpy, XtWindow( *app_widg ), CWStackMode, &xwc );
+        XWindowChanges xwc;
+        xwc.stack_mode = Above;
+        XConfigureWindow( dpy, XtWindow( *app_widg ), CWStackMode, &xwc );
     }
 }
 
@@ -3775,6 +3773,7 @@ Util_panel_button_type button;
 {
     Boolean set;
     Bool_type all_invis;
+    char stride_str[8];
     
     /* 
      * If utility panel not up or this called as a result of 
@@ -3783,11 +3782,9 @@ Util_panel_button_type button;
     if ( util_panel_widg == NULL || util_panel_CB_active )
         return;
     
-    /*
-     * Render_modes "point cloud" and "none" are not currently
-     * available as buttons, so don't try to set them.
-     */
-    if ( button != VIEW_POINT_CLOUD && button != VIEW_NONE )
+    /* Don't try to set a button for modes that aren't implemented as such. */
+    if ( button != VIEW_POINT_CLOUD && button != VIEW_NONE 
+         && button != STRIDE_EDIT )
     {
         XtVaGetValues( util_render_btns[button], XmNset, &set, NULL );
         if ( !set && button != VIEW_EDGES )
@@ -3796,146 +3793,150 @@ Util_panel_button_type button;
     
     switch( button )
     {
-	case VIEW_SOLID:
-	    XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set, 
-		           NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False, 
-		               NULL );
-	    else
-	    {
-	        XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, 
-		               NULL );
-		if ( set )
-		{
-	            /*XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, 
-		                   NULL );*/
-		    parse_command( "off edges", env.curr_analy );
-		}
-	    }
-	    break;
-	case VIEW_SOLID_MESH:
-	    XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, 
-		               NULL );
-	    else
-	    {
-	        XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, 
-		               NULL );
-		if ( set )
-		{
-	            /*XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, 
-		                   NULL );*/
-		    parse_command( "off edges", env.curr_analy );
-		}
-	    }
-	    break;
-	case VIEW_EDGES:
-	    /* 
-	     * This called when edge on/off is modified
-	     * to maintain consistency of "Edges Only" toggle with
-	     * the current state.
-	     */
+        case STRIDE_EDIT:
+            sprintf( stride_str, "%d", step_stride );
+            XmTextSetString( stride_label, stride_str );
+            break;
+        case VIEW_SOLID:
+            XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set, 
+                           NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False, 
+                               NULL );
+            else
+            {
+                XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, 
+                               NULL );
+                if ( set )
+                {
+                    /*XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, 
+                                   NULL );*/
+                    parse_command( "off edges", env.curr_analy );
+                }
+            }
+            break;
+        case VIEW_SOLID_MESH:
+            XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, 
+                               NULL );
+            else
+            {
+                XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, 
+                               NULL );
+                if ( set )
+                {
+                    /*XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, 
+                                   NULL );*/
+                    parse_command( "off edges", env.curr_analy );
+                }
+            }
+            break;
+        case VIEW_EDGES:
+            /* 
+             * This called when edge on/off is modified
+             * to maintain consistency of "Edges Only" toggle with
+             * the current state.
+             */
             XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, NULL );
-	    
-	    if ( env.curr_analy->render_mode == RENDER_NONE
-	         && env.curr_analy->show_edges )
-	    {
-	        if ( !set )
-		    XtVaSetValues( util_render_btns[VIEW_EDGES], 
-		        XmNset, True, 
-			NULL );
-		
-		/* Unset "Solid" or "Solid Mesh" buttons if either set. */
-	        XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
-	        if ( set )
-		    XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, 
-		                   NULL );
-	        else
-	        {
-		    XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], 
-		                   XmNset, &set, 
-		                   NULL );
-		    if ( set )
-	                XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], 
-			               XmNset, False, 
-		                       NULL );
-	        }
-	    }
-	    else
-	    {
-	        if ( set )
-		    XtVaSetValues( util_render_btns[VIEW_EDGES], 
-		        XmNset, False, 
-			NULL );
-	    }
-	    break;
-	case VIEW_POINT_CLOUD:
-	    XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, 
-		               NULL );
-			       
-	    XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set, 
-	                   NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False, 
-		               NULL );
-			       
-	    XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, 
-		               NULL );
-	    break;
-	case VIEW_NONE:
-	    XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, 
-		               NULL );
-			       
-	    XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set, 
-	                   NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False, 
-		               NULL );
-			       
-	    XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, 
-		               NULL );
-	    
-	    /* Check for possible "Edges only" state. */
-	    update_util_panel( VIEW_EDGES );
-	    break;
-	case PICK_MODE_SELECT:
-	    XtVaGetValues( util_render_btns[PICK_MODE_HILITE], XmNset, &set, 
-	                   NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[PICK_MODE_HILITE], 
-		               XmNset, False, 
-			       NULL );
-	    break;
-	case PICK_MODE_HILITE:
-	    XtVaGetValues( util_render_btns[PICK_MODE_SELECT], XmNset, &set, 
-	                   NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[PICK_MODE_SELECT], 
-		               XmNset, False, 
-			       NULL );
-	    break;
-	case BTN2_SHELL:
-	    XtVaGetValues( util_render_btns[BTN2_BEAM], XmNset, &set, NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[BTN2_BEAM], XmNset, False, 
-			       NULL );
-	    break;
-	case BTN2_BEAM:
-	    XtVaGetValues( util_render_btns[BTN2_SHELL], XmNset, &set, NULL );
-	    if ( set )
-	        XtVaSetValues( util_render_btns[BTN2_SHELL], XmNset, False, 
-			       NULL );
-	    break;
+            
+            if ( env.curr_analy->render_mode == RENDER_NONE
+                 && env.curr_analy->show_edges )
+            {
+                if ( !set )
+                    XtVaSetValues( util_render_btns[VIEW_EDGES], 
+                        XmNset, True, 
+                        NULL );
+                
+                /* Unset "Solid" or "Solid Mesh" buttons if either set. */
+                XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
+                if ( set )
+                    XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, 
+                                   NULL );
+                else
+                {
+                    XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], 
+                                   XmNset, &set, 
+                                   NULL );
+                    if ( set )
+                        XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], 
+                                       XmNset, False, 
+                                       NULL );
+                }
+            }
+            else
+            {
+                if ( set )
+                    XtVaSetValues( util_render_btns[VIEW_EDGES], 
+                        XmNset, False, 
+                        NULL );
+            }
+            break;
+        case VIEW_POINT_CLOUD:
+            XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, 
+                               NULL );
+                               
+            XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set, 
+                           NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False, 
+                               NULL );
+                               
+            XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, 
+                               NULL );
+            break;
+        case VIEW_NONE:
+            XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, 
+                               NULL );
+                               
+            XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set, 
+                           NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False, 
+                               NULL );
+                               
+            XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, 
+                               NULL );
+            
+            /* Check for possible "Edges only" state. */
+            update_util_panel( VIEW_EDGES );
+            break;
+        case PICK_MODE_SELECT:
+            XtVaGetValues( util_render_btns[PICK_MODE_HILITE], XmNset, &set, 
+                           NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[PICK_MODE_HILITE], 
+                               XmNset, False, 
+                               NULL );
+            break;
+        case PICK_MODE_HILITE:
+            XtVaGetValues( util_render_btns[PICK_MODE_SELECT], XmNset, &set, 
+                           NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[PICK_MODE_SELECT], 
+                               XmNset, False, 
+                               NULL );
+            break;
+        case BTN2_SHELL:
+            XtVaGetValues( util_render_btns[BTN2_BEAM], XmNset, &set, NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[BTN2_BEAM], XmNset, False, 
+                               NULL );
+            break;
+        case BTN2_BEAM:
+            XtVaGetValues( util_render_btns[BTN2_SHELL], XmNset, &set, NULL );
+            if ( set )
+                XtVaSetValues( util_render_btns[BTN2_SHELL], XmNset, False, 
+                               NULL );
+            break;
     }
 }
 
@@ -3956,8 +3957,8 @@ int mtl;
     /* Sanity check. */
     if ( mtl_mgr_widg == NULL )
     {
-	popup_dialog( INFO_POPUP, "No Material Manager..." );
-	return;
+        popup_dialog( INFO_POPUP, "No Material Manager..." );
+        return;
     }
     
     /* Get the material toggles. */
@@ -3968,29 +3969,29 @@ int mtl;
     if ( set )
     {
         /* Toggle from selected to deselected. */
-    	XtVaSetValues( children[mtl], XmNset, False, NULL );
-	src_list = &mtl_select_list;
-	dest_list = &mtl_deselect_list;
+        XtVaSetValues( children[mtl], XmNset, False, NULL );
+        src_list = &mtl_select_list;
+        dest_list = &mtl_deselect_list;
     }
     else
     {
         /* Toggle from deselected to selected. */
-    	XtVaSetValues( children[mtl], XmNset, True, NULL );
-	src_list = &mtl_deselect_list;
-	dest_list = &mtl_select_list;
+        XtVaSetValues( children[mtl], XmNset, True, NULL );
+        src_list = &mtl_deselect_list;
+        dest_list = &mtl_select_list;
     }
     
     /* Find material's entry in the appropriate list. */
     for ( p_mtl = *src_list; p_mtl != NULL; p_mtl = p_mtl->next )
-	if ( p_mtl->mtl == mtl + 1 )
-	    break;
-	    
+        if ( p_mtl->mtl == mtl + 1 )
+            break;
+            
     if ( p_mtl == NULL )
     {
         popup_dialog( WARNING_POPUP, 
-	              "Material toggle selection state inconsistent\n%s", 
-		      "with selection list." );
-	return;
+                      "Material toggle selection state inconsistent\n%s", 
+                      "with selection list." );
+        return;
     }
     
     /* Remove from one list and put on other. */
@@ -3999,7 +4000,7 @@ int mtl;
 
     if ( mtl_select_list == NULL )
         cur_mtl = 0;
-		
+                
     /* 
      * Reset all color component value change flags regardless of 
      * current function.  Component changes are remembered only 
@@ -4019,10 +4020,10 @@ int mtl;
         /* Switch rendering context to allow swatch update. */
         save_win = cur_opengl_win;
         switch_opengl_win( SWATCH );
-	
+        
         update_swatch_label();
         set_scales_to_mtl();
-	
+        
         switch_opengl_win( save_win );
     }
     
@@ -4084,8 +4085,8 @@ mtl_func_active()
     int i;
     
     for ( i = 0; i < MTL_FUNC_QTY; i++ )
-	if ( XmToggleButtonGetState( mtl_mgr_func_toggles[i] ) )
-	    return TRUE;
+        if ( XmToggleButtonGetState( mtl_mgr_func_toggles[i] ) )
+            return TRUE;
     
     return FALSE;
 }
@@ -4111,52 +4112,52 @@ set_scales_to_mtl()
     /* If no materials, set everything to zero. */
     if ( mtl_select_list == NULL )
     {
-	set_rgb_scales( black );
-	set_shininess_scale( (GLfloat) 0.0 );
+        set_rgb_scales( black );
+        set_shininess_scale( (GLfloat) 0.0 );
     }
     else
     {
         /* Get material index. */
         idx = (mtl_select_list->mtl - 1) % MAX_MATERIALS;
         
-	/*
-	 * Set shininess according to value-changed flag.  If this routine
-	 * is called to initialize the rgb scales, we don't want an
-	 * adjusted shininess value to be overwritten with the current
-	 * material value.
-	 */
-	if ( prop_val_changed[SHININESS] )
-	    set_shininess_scale( property_vals[SHININESS][0] );
-	else
-	    set_shininess_scale( v_win->matl_shininess[idx] );
-	
-	/* Never update if scales are insensitive. */
-	if ( rgb_sens )
-	{
-	    if ( prop_val_changed[cur_mtl_comp] )
-	        set_rgb_scales( property_vals[cur_mtl_comp] );
-	    else
-	        switch( cur_mtl_comp )
-		{
-		    case AMBIENT:
-		        set_rgb_scales( v_win->matl_ambient[idx] );
-			break;
-		    case DIFFUSE:
-		        set_rgb_scales( v_win->matl_diffuse[idx] );
-			break;
-		    case SPECULAR:
-		        set_rgb_scales( v_win->matl_specular[idx] );
-			break;
-		    case EMISSIVE:
-		        set_rgb_scales( v_win->matl_emission[idx] );
-			break;
-		    default:
-		        set_rgb_scales( black );
-		}
-	    
+        /*
+         * Set shininess according to value-changed flag.  If this routine
+         * is called to initialize the rgb scales, we don't want an
+         * adjusted shininess value to be overwritten with the current
+         * material value.
+         */
+        if ( prop_val_changed[SHININESS] )
+            set_shininess_scale( property_vals[SHININESS][0] );
+        else
+            set_shininess_scale( v_win->matl_shininess[idx] );
+        
+        /* Never update if scales are insensitive. */
+        if ( rgb_sens )
+        {
+            if ( prop_val_changed[cur_mtl_comp] )
+                set_rgb_scales( property_vals[cur_mtl_comp] );
+            else
+                switch( cur_mtl_comp )
+                {
+                    case AMBIENT:
+                        set_rgb_scales( v_win->matl_ambient[idx] );
+                        break;
+                    case DIFFUSE:
+                        set_rgb_scales( v_win->matl_diffuse[idx] );
+                        break;
+                    case SPECULAR:
+                        set_rgb_scales( v_win->matl_specular[idx] );
+                        break;
+                    case EMISSIVE:
+                        set_rgb_scales( v_win->matl_emission[idx] );
+                        break;
+                    default:
+                        set_rgb_scales( black );
+                }
+            
             cur_mtl = ( cur_mtl_comp == MTL_PROP_QTY ) 
-	              ? 0 : mtl_select_list->mtl;
-	}
+                      ? 0 : mtl_select_list->mtl;
+        }
     }
 }
 
@@ -4178,17 +4179,17 @@ GLfloat col[4];
     for ( i = 0; i < 3; i++ )
     {
         XtVaGetValues( col_ed_scales[0][i], 
-	    XmNminimum, &min, 
-	    XmNmaximum, &max, 
-	    NULL );
+            XmNminimum, &min, 
+            XmNmaximum, &max, 
+            NULL );
         sprintf( valbuf, "%4.2f", col[i] );
         sval = XmStringCreateLocalized( valbuf );
-	ival = (int) ((float) min + col[i] * (max - min) + 0.5);
+        ival = (int) ((float) min + col[i] * (max - min) + 0.5);
         XtVaSetValues( col_ed_scales[0][i], XmNvalue, ival, NULL );
         XtVaSetValues( col_ed_scales[1][i], XmNlabelString, sval, NULL );
         XmStringFree( sval );
-	
-	cur_color[i] = col[i];
+        
+        cur_color[i] = col[i];
     }
     draw_mtl_swatch( cur_color );
 }
@@ -4216,10 +4217,10 @@ GLfloat shine;
     sval = XmStringCreateLocalized( valbuf );
     XtVaSetValues( col_ed_scales[0][SHININESS_SCALE], 
         XmNvalue, (int) shine, 
-	NULL );
+        NULL );
     XtVaSetValues( col_ed_scales[1][SHININESS_SCALE], 
         XmNlabelString, sval, 
-	NULL );
+        NULL );
     XmStringFree( sval );
 }
 
@@ -4239,51 +4240,51 @@ int tok_qty;
     if ( tok_qty > MAXTOKENS )
     {
         char *cbuf, *p_c;
-	int sent, max_tok, limit, i, j, eff_tok_qty;
-	
-	p_c = cmd + 4; /* Skip over "mtl " at beginning of command. */
-	eff_tok_qty = tok_qty - 1; /* Disregard "mtl" in count as well. */
-	sent = 0;
-	max_tok = MAXTOKENS - 2; /* Allow for "mtl" and "continue" tokens. */
-	while ( sent < eff_tok_qty )
-	{
-	    /*
-	     * Set "limit" to pass the maximum number of tokens each time
-	     * parse_command is called.  On last pass, copy last token
-	     * "manually" as it is not terminated with a space character
-	     * and counting logic will fail.
-	     */
-	    limit = ( eff_tok_qty - sent > max_tok ) 
-	            ? max_tok : eff_tok_qty - sent - 1;
-	    for ( i = 0, j = 0; i < limit; j++, i++ )
-	        for ( ; *(p_c + j) != ' '; j++ );
-		
-	    /* 
-	     * Allocate enough buffer for command tokens plus "mtl "
-	     * plus "continue" (not always present) and a null 
-	     * terminator.
-	     */
-	    cbuf = NEW_N( char, j + 13, "Subdivided mtl cmd" );
-	    
-	    /* Copy the tokens for this pass, add "continue" if not last pass. */
-	    memcpy( cbuf, cmd, 4 ); /* "mtl " begins the command. */
-	    memcpy( cbuf + 4, p_c, j ); /* Add the current subdivision. */
-	    if ( limit == max_tok )
-	        memcpy( cbuf + 4 + j, "continue", 9 );
-	    else
-	    {
-	        /* Copy last token into buffer. */
-		strcpy( cbuf + 4 + j, p_c + j );
-		limit++; /* Want last token counted when "sent" is updated. */
-	    }
-	    
-	    parse_command( cbuf, env.curr_analy );
-	    
-	    free( cbuf );
-	    
-	    p_c += j;
-	    sent += limit;
-	}
+        int sent, max_tok, limit, i, j, eff_tok_qty;
+        
+        p_c = cmd + 4; /* Skip over "mtl " at beginning of command. */
+        eff_tok_qty = tok_qty - 1; /* Disregard "mtl" in count as well. */
+        sent = 0;
+        max_tok = MAXTOKENS - 2; /* Allow for "mtl" and "continue" tokens. */
+        while ( sent < eff_tok_qty )
+        {
+            /*
+             * Set "limit" to pass the maximum number of tokens each time
+             * parse_command is called.  On last pass, copy last token
+             * "manually" as it is not terminated with a space character
+             * and counting logic will fail.
+             */
+            limit = ( eff_tok_qty - sent > max_tok ) 
+                    ? max_tok : eff_tok_qty - sent - 1;
+            for ( i = 0, j = 0; i < limit; j++, i++ )
+                for ( ; *(p_c + j) != ' '; j++ );
+                
+            /* 
+             * Allocate enough buffer for command tokens plus "mtl "
+             * plus "continue" (not always present) and a null 
+             * terminator.
+             */
+            cbuf = NEW_N( char, j + 13, "Subdivided mtl cmd" );
+            
+            /* Copy the tokens for this pass, add "continue" if not last pass. */
+            memcpy( cbuf, cmd, 4 ); /* "mtl " begins the command. */
+            memcpy( cbuf + 4, p_c, j ); /* Add the current subdivision. */
+            if ( limit == max_tok )
+                memcpy( cbuf + 4 + j, "continue", 9 );
+            else
+            {
+                /* Copy last token into buffer. */
+                strcpy( cbuf + 4 + j, p_c + j );
+                limit++; /* Want last token counted when "sent" is updated. */
+            }
+            
+            parse_command( cbuf, env.curr_analy );
+            
+            free( cbuf );
+            
+            p_c += j;
+            sent += limit;
+        }
     }
     else
         parse_command( cmd, env.curr_analy );
@@ -4312,35 +4313,35 @@ int *p_token_cnt;
     XtVaGetValues( mtl_mgr_func_toggles[VIS], XmNset, &set, NULL );
     if ( set )
     {
-	t_cnt++;
+        t_cnt++;
         for ( p_src = "vis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
     }
     
     XtVaGetValues( mtl_mgr_func_toggles[INVIS], XmNset, &set, NULL );
     if ( set )
     {
-	t_cnt++;
+        t_cnt++;
         for ( p_src = "invis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
     }
     
     XtVaGetValues( mtl_mgr_func_toggles[ENABLE], XmNset, &set, NULL );
     if ( set )
     {
-	t_cnt++;
+        t_cnt++;
         for ( p_src = "enable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
     }
     
     XtVaGetValues( mtl_mgr_func_toggles[DISABLE], XmNset, &set, NULL );
     if ( set )
     {
-	t_cnt++;
+        t_cnt++;
         for ( p_src = "disable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
     }
     
     XtVaGetValues( mtl_mgr_func_toggles[COLOR], XmNset, &set, NULL );
     if ( set )
     {
-	t_cnt++;
+        t_cnt++;
         for ( p_src = "mat "; *p_dest = *p_src; i++, p_src++, p_dest++ );
     }
 
@@ -4371,9 +4372,9 @@ int *p_tok_cnt;
     
     for ( p_mtl = mtl_select_list; p_mtl != NULL; p_mtl = p_mtl->next )
     {
-	sprintf( p_dest, "%d ", p_mtl->mtl );
-	p_dest += strlen( p_dest );
-	t_cnt++;
+        sprintf( p_dest, "%d ", p_mtl->mtl );
+        p_dest += strlen( p_dest );
+        t_cnt++;
     }
     
     *p_tok_cnt = t_cnt;
@@ -4405,50 +4406,50 @@ int *p_tok_cnt;
     for ( i = 0; i < MTL_PROP_QTY; i++ )
     {
         /* 
-	 * Update any changed property plus the currently selected property
-	 * when there are multiple materials selected (this assumes that
-	 * the current property will be different for the multiple selected
-	 * materials so an update makes sense.  Conversely, if there were
-	 * only one material selected and the current property had not
-	 * changed there'd be no sense in updating it).
-	 */
-	if ( prop_val_changed[i] || ( i == cur_mtl_comp 
-	                              && mtl_select_list->next != NULL ) )
-	{
-	    if ( i == SHININESS )
-	    {
-	        /* Shininess is ONLY passed if it changed. */
+         * Update any changed property plus the currently selected property
+         * when there are multiple materials selected (this assumes that
+         * the current property will be different for the multiple selected
+         * materials so an update makes sense.  Conversely, if there were
+         * only one material selected and the current property had not
+         * changed there'd be no sense in updating it).
+         */
+        if ( prop_val_changed[i] || ( i == cur_mtl_comp 
+                                      && mtl_select_list->next != NULL ) )
+        {
+            if ( i == SHININESS )
+            {
+                /* Shininess is ONLY passed if it changed. */
 
-	        /* Shininess has only one value. */
-		sprintf( p_dest, "shine %4.2f ", property_vals[i][0] );
-		t_cnt += 2;
-		c_cnt += 11;
-		p_dest += 11;
-	    }
-	    else
-	    {
-	        /* 
-		 * If ambient, diffuse, specular, or emissive property
-		 * is the currently selected property and hasn't changed, 
-		 * read it from the global cur_color array.
-		 */
-		if ( !prop_val_changed[i] )
-		    p_prop_val = cur_color;
-		else
-		    p_prop_val = property_vals[i];
-		    
-	        /* 
-		 * These properties each have three values.
-		 */
-		sprintf( p_dest, "%s %4.2f %4.2f %4.2f ", name[i], 
-		         p_prop_val[0], p_prop_val[1], 
-			 p_prop_val[2] );
-	        t_cnt += 4;
-		c_add = strlen( name[i] ) + 1 + 3 * 5;
-		c_cnt += c_add;
-		p_dest += c_add;
-	    }
-	}
+                /* Shininess has only one value. */
+                sprintf( p_dest, "shine %4.2f ", property_vals[i][0] );
+                t_cnt += 2;
+                c_cnt += 11;
+                p_dest += 11;
+            }
+            else
+            {
+                /* 
+                 * If ambient, diffuse, specular, or emissive property
+                 * is the currently selected property and hasn't changed, 
+                 * read it from the global cur_color array.
+                 */
+                if ( !prop_val_changed[i] )
+                    p_prop_val = cur_color;
+                else
+                    p_prop_val = property_vals[i];
+                    
+                /* 
+                 * These properties each have three values.
+                 */
+                sprintf( p_dest, "%s %4.2f %4.2f %4.2f ", name[i], 
+                         p_prop_val[0], p_prop_val[1], 
+                         p_prop_val[2] );
+                t_cnt += 4;
+                c_add = strlen( name[i] ) + 1 + 3 * 5;
+                c_cnt += c_add;
+                p_dest += c_add;
+            }
+        }
     }
     
     *p_tok_cnt = t_cnt;
@@ -4480,95 +4481,95 @@ update_actions_sens()
          * At least one function and one material must be selected for
          * any action to be sensitive.
          */
-	for ( i = 0; i < MTL_OP_QTY; i++ )
-	{
-	    if ( XtIsSensitive( op_buttons[i] ) )
-	        XtSetSensitive( op_buttons[i], False );
-	    if ( set )
-	        XtUnmapWidget( prop_checks[i] );
-	}
+        for ( i = 0; i < MTL_OP_QTY; i++ )
+        {
+            if ( XtIsSensitive( op_buttons[i] ) )
+                XtSetSensitive( op_buttons[i], False );
+            if ( set )
+                XtUnmapWidget( prop_checks[i] );
+        }
     }
     else if ( set )
     {
         /* 
-	 * Default is always available when color selected and
-	 * material select list is not empty.
-	 */
-	if ( !XtIsSensitive( op_buttons[OP_DEFAULT] ) )
-	    XtSetSensitive( op_buttons[OP_DEFAULT], True );
-	/* 
-	 * When color function selected, manage the property modify
-	 * indicators.  Actions are sensitive if any modify indicators
-	 * are shown (Preview/Cancel must be handled as well).
-	 */
-	for ( i = 0; i < MTL_PROP_QTY; i++ )
-	{
-	    show_check[i] = FALSE;
-	    if ( prop_val_changed[i] )
-	        show_check[i] = TRUE;
-	    else if ( i != SHININESS )
-	    {
-	        set = False;
-		XtVaGetValues( color_comps[i], XmNset, &set, NULL );
-		if ( set && mtl_select_list->next != NULL )
-		    show_check[i] = TRUE;
-	    }
-	}
-	
-	actions_set = FALSE;
-	for ( i = 0; i < MTL_PROP_QTY; i++ )
-	{
-	    if ( show_check[i] )
-	    {
-		XtMapWidget( prop_checks[i] );
-		
-		if ( !actions_set )
-		{
-	            /* 
-		     * Apply always sensitive when a component is
-		     * selected. 
-		     */
-	            if ( !XtIsSensitive( op_buttons[OP_APPLY] ) )
-	                XtSetSensitive( op_buttons[OP_APPLY], True );
-	    
-	            /* Preview and Cancel are mutually exclusive. */
-	            if ( preview_set )
-	            {
-	                XtSetSensitive( op_buttons[OP_CANCEL], True );
-	                XtSetSensitive( op_buttons[OP_PREVIEW], False );
-	            }
-	            else
-	            {
-	                XtSetSensitive( op_buttons[OP_CANCEL], False );
-	                XtSetSensitive( op_buttons[OP_PREVIEW], True );
-	            }
-		    
-		    actions_set = TRUE;
-		}
-	    }
-	    else
-	        XtUnmapWidget( prop_checks[i] );
-	}
-	
-	/* If no modify indicators were mapped, only Default available. */
-	if ( !actions_set )
-	    for ( i = 0; i < OP_DEFAULT; i++ )
-	    {
-	        if ( XtIsSensitive( op_buttons[i] ) )
-	            XtSetSensitive( op_buttons[i], False );
-	    }
+         * Default is always available when color selected and
+         * material select list is not empty.
+         */
+        if ( !XtIsSensitive( op_buttons[OP_DEFAULT] ) )
+            XtSetSensitive( op_buttons[OP_DEFAULT], True );
+        /* 
+         * When color function selected, manage the property modify
+         * indicators.  Actions are sensitive if any modify indicators
+         * are shown (Preview/Cancel must be handled as well).
+         */
+        for ( i = 0; i < MTL_PROP_QTY; i++ )
+        {
+            show_check[i] = FALSE;
+            if ( prop_val_changed[i] )
+                show_check[i] = TRUE;
+            else if ( i != SHININESS )
+            {
+                set = False;
+                XtVaGetValues( color_comps[i], XmNset, &set, NULL );
+                if ( set && mtl_select_list->next != NULL )
+                    show_check[i] = TRUE;
+            }
+        }
+        
+        actions_set = FALSE;
+        for ( i = 0; i < MTL_PROP_QTY; i++ )
+        {
+            if ( show_check[i] )
+            {
+                XtMapWidget( prop_checks[i] );
+                
+                if ( !actions_set )
+                {
+                    /* 
+                     * Apply always sensitive when a component is
+                     * selected. 
+                     */
+                    if ( !XtIsSensitive( op_buttons[OP_APPLY] ) )
+                        XtSetSensitive( op_buttons[OP_APPLY], True );
+            
+                    /* Preview and Cancel are mutually exclusive. */
+                    if ( preview_set )
+                    {
+                        XtSetSensitive( op_buttons[OP_CANCEL], True );
+                        XtSetSensitive( op_buttons[OP_PREVIEW], False );
+                    }
+                    else
+                    {
+                        XtSetSensitive( op_buttons[OP_CANCEL], False );
+                        XtSetSensitive( op_buttons[OP_PREVIEW], True );
+                    }
+                    
+                    actions_set = TRUE;
+                }
+            }
+            else
+                XtUnmapWidget( prop_checks[i] );
+        }
+        
+        /* If no modify indicators were mapped, only Default available. */
+        if ( !actions_set )
+            for ( i = 0; i < OP_DEFAULT; i++ )
+            {
+                if ( XtIsSensitive( op_buttons[i] ) )
+                    XtSetSensitive( op_buttons[i], False );
+            }
     }
     else
     {
-	/* For non-color functions, Apply is is only action. */
-	if ( !XtIsSensitive( op_buttons[OP_APPLY] ) )
-	    XtSetSensitive( op_buttons[OP_APPLY], True );
-	if ( XtIsSensitive( op_buttons[OP_PREVIEW] ) )
-	    XtSetSensitive( op_buttons[OP_PREVIEW], False );
-	if ( XtIsSensitive( op_buttons[OP_CANCEL] ) )
-	    XtSetSensitive( op_buttons[OP_CANCEL], False );
-	if ( XtIsSensitive( op_buttons[OP_DEFAULT] ) )
-	    XtSetSensitive( op_buttons[OP_DEFAULT], False );
+        /* For non-color functions, Apply is is only action. */
+        if ( !XtIsSensitive( op_buttons[OP_APPLY] ) )
+            XtSetSensitive( op_buttons[OP_APPLY], True );
+        if ( XtIsSensitive( op_buttons[OP_PREVIEW] ) )
+            XtSetSensitive( op_buttons[OP_PREVIEW], False );
+        if ( XtIsSensitive( op_buttons[OP_CANCEL] ) )
+            XtSetSensitive( op_buttons[OP_CANCEL], False );
+        if ( XtIsSensitive( op_buttons[OP_DEFAULT] ) )
+            XtSetSensitive( op_buttons[OP_DEFAULT], False );
     }
 }
 
@@ -4610,9 +4611,9 @@ int *qty;
     
     if ( *qty != 1 )
     {
-	popup_dialog( WARNING_POPUP, 
-	              "Invalid args to action_create_app_widg()." );
-	return;
+        popup_dialog( WARNING_POPUP, 
+                      "Invalid args to action_create_app_widg()." );
+        return;
     }
     else
         btn = (Btn_type) atoi( params[0] );
@@ -4645,23 +4646,23 @@ int qty;
     
     XtVaGetValues( w, 
         XmNworkWindow, &row_col, 
-	XmNverticalScrollBar, &scroll, 
-	NULL );
+        XmNverticalScrollBar, &scroll, 
+        NULL );
     
     XtVaGetValues( row_col, 
         XmNchildren, &children, 
-	XmNmarginWidth, &margin_width, 
-	XmNspacing, &spacing, 
-	NULL );
+        XmNmarginWidth, &margin_width, 
+        XmNspacing, &spacing, 
+        NULL );
     
     XtVaGetValues( children[0], 
         XmNwidth, &button_width,
-	NULL ); 
+        NULL ); 
     
     XtVaGetValues( scroll, 
         XmNwidth, &scrollbar_width,
-	NULL ); 
-	
+        NULL ); 
+        
     max_cols = (width - 2.0 * margin_width - scrollbar_width - 4 + spacing)
                / (float) (button_width + spacing);
     rows = (short) ceil( (float) env.curr_analy->num_materials / max_cols );
@@ -4831,6 +4832,31 @@ get_monitor_width()
 
     return (int) ncols;
 }
+ 
+ 
+/*****************************************************************
+ * TAG( get_step_stride )
+ *
+ * Return current step stride.
+ */
+int
+get_step_stride()
+{
+    return( (int) step_stride );
+}
+
+
+/*****************************************************************
+ * TAG( put_step_stride )
+ *
+ * Return current step stride.
+ */
+void
+put_step_stride( stride )
+int stride;
+{
+    step_stride = stride;
+}
 
 
 /*****************************************************************
@@ -4857,19 +4883,19 @@ write_start_text()
         sprintf( file_spec, "%s/griz_start_text", griz_home );
         if ( stat( file_spec, &statbuf ) == 0 )
         {
-	    text_file = fopen( file_spec, "r" );
+            text_file = fopen( file_spec, "r" );
 
-	    if ( text_file )
-	    {
-	        /*
-	         * The start-up text file exists and is open, so copy its
-	         * contents into the monitor widget line-by-line.
-	         */
-	        while ( fgets( text_line, sizeof( text_line ), text_file ) )
-	        {
-		    XmTextInsert( monitor_widg, wpr_position, text_line );
+            if ( text_file )
+            {
+                /*
+                 * The start-up text file exists and is open, so copy its
+                 * contents into the monitor widget line-by-line.
+                 */
+                while ( fgets( text_line, sizeof( text_line ), text_file ) )
+                {
+                    XmTextInsert( monitor_widg, wpr_position, text_line );
                     wpr_position += strlen( text_line );
-	        }
+                }
             }
         }
     }
@@ -4878,13 +4904,13 @@ write_start_text()
 
     cnt = 0;
     sprintf( start_text[cnt++], "\nData file: %s\n",
-	     env.curr_analy->root_name );
+             env.curr_analy->root_name );
     if ( env.curr_analy->num_states > 0 )
     {
         sprintf( start_text[cnt++], "Start time: %.4e\n",
-	         env.curr_analy->state_times[0] );
+                 env.curr_analy->state_times[0] );
         sprintf( start_text[cnt++], "End time: %.4e\n",
-	         env.curr_analy->state_times[env.curr_analy->num_states-1] );
+                 env.curr_analy->state_times[env.curr_analy->num_states-1] );
     }
     else
     {
@@ -4892,12 +4918,12 @@ write_start_text()
         sprintf( start_text[cnt++], "End time: NULL\n" );
     }
     sprintf( start_text[cnt++], "Number of states: %d\n",
-	     env.curr_analy->num_states );
+             env.curr_analy->num_states );
     sprintf( start_text[cnt++], "Number of polygons to render: %d\n\n",
-	     ( env.curr_analy->geom_p->shells == NULL )
-	     ? env.curr_analy->face_cnt
-	       : env.curr_analy->face_cnt
-	         + env.curr_analy->geom_p->shells->cnt );
+             ( env.curr_analy->geom_p->shells == NULL )
+             ? env.curr_analy->face_cnt
+               : env.curr_analy->face_cnt
+                 + env.curr_analy->geom_p->shells->cnt );
 
     for ( i = 0; i < cnt; i++ )
     {
@@ -5023,21 +5049,21 @@ va_dcl
     /* Create an appropriate text body for the dialog. */
     switch ( dtype )
     {
-	case INFO_POPUP:
-	    sprintf( dialog_msg, "%s", msgbuf );
-	    break;
-	case USAGE_POPUP:
-	    sprintf( dialog_msg, "Usage:\n%s", msgbuf );
-	    break;
-	case WARNING_POPUP:
-	    sprintf( dialog_msg, "WARNING:\n%s", msgbuf );
-	    break;
+        case INFO_POPUP:
+            sprintf( dialog_msg, "%s", msgbuf );
+            break;
+        case USAGE_POPUP:
+            sprintf( dialog_msg, "Usage:\n%s", msgbuf );
+            break;
+        case WARNING_POPUP:
+            sprintf( dialog_msg, "WARNING:\n%s", msgbuf );
+            break;
     }
     
     if ( !gui_up )
     {
-	fprintf( stderr, "%s\n", dialog_msg );
-	return;
+        fprintf( stderr, "%s\n", dialog_msg );
+        return;
     }
 
     /*
@@ -5046,33 +5072,33 @@ va_dcl
      */
     if ( popup_dialog_count >= MAX_WARNING_DIALOGS )
     {
-	wrt_text( "Warning dialog limit reached.\n" );
-	wrt_text( "%s\n", dialog_msg );
-	return;
+        wrt_text( "Warning dialog limit reached.\n" );
+        wrt_text( "%s\n", dialog_msg );
+        return;
     }
     else if ( popup_dialog_count == 0 )
     {
         /* Position popup(s) relative to control window. */
-	
+        
         Position ctl_x, ctl_y;
-	Dimension ctl_width, ctl_height;
-	
+        Dimension ctl_width, ctl_height;
+        
         XtVaGetValues( ctl_shell_widg, 
             XmNx, &ctl_x, 
             XmNy, &ctl_y, 
-	    XmNwidth, &ctl_width, 
-	    XmNheight, &ctl_height, 
-	    NULL );
-	
-	first_popup_x = ctl_x + ctl_width / 2 - 100;
-	first_popup_y = ctl_y + ctl_height / 2 - 100;
+            XmNwidth, &ctl_width, 
+            XmNheight, &ctl_height, 
+            NULL );
+        
+        first_popup_x = ctl_x + ctl_width / 2 - 100;
+        first_popup_y = ctl_y + ctl_height / 2 - 100;
     }
 
     /* Allocate list node to hold popup dialog handle. */
     p_wlo = NEW( Widget_list_obj, "Warning popup node" );
 
     dialog_string = XmStringCreateLtoR( dialog_msg,
-					XmSTRING_DEFAULT_CHARSET );
+                                        XmSTRING_DEFAULT_CHARSET );
   
     /* Create the widget. */
     n = 0;
@@ -5081,15 +5107,15 @@ va_dcl
     XtSetArg( args[n], XmNy, first_popup_y + popup_dialog_count * y_incr ); n++;
     p_wlo->handle = ( dtype == WARNING_POPUP )
                     ? XmCreateWarningDialog( ctl_shell_widg, "Warning", args, n )
-		    : XmCreateInformationDialog( ctl_shell_widg, "Information", 
-		                                 args, n );
+                    : XmCreateInformationDialog( ctl_shell_widg, "Information", 
+                                                 args, n );
 
     /* ...make it look and act right */
     XtAddCallback( p_wlo->handle, XmNokCallback, remove_widget_CB, p_wlo );
     XtUnmanageChild( XmMessageBoxGetChild( p_wlo->handle,
-					   XmDIALOG_CANCEL_BUTTON ));
+                                           XmDIALOG_CANCEL_BUTTON ));
     XtUnmanageChild( XmMessageBoxGetChild( p_wlo->handle,
-					   XmDIALOG_HELP_BUTTON ));
+                                           XmDIALOG_HELP_BUTTON ));
     XmStringFree( dialog_string );
 
     /* Put it on the list. */
@@ -5116,13 +5142,13 @@ clear_popup_dialogs()
 
     while ( p_wlo != NULL )
     {
-	p_wlo2 = p_wlo->next;
+        p_wlo2 = p_wlo->next;
 
-	XtDestroyWidget( p_wlo->handle );
-	DELETE( p_wlo, popup_dialog_list );
-	popup_dialog_count--;
+        XtDestroyWidget( p_wlo->handle );
+        DELETE( p_wlo, popup_dialog_list );
+        popup_dialog_count--;
 
-	p_wlo = p_wlo2;
+        p_wlo = p_wlo2;
     }
 }
 
@@ -5147,8 +5173,8 @@ popup_fatal( message )
 
     if ( !gui_up )
     {
-	fprintf( stderr, error_msg );
-	quit( -1 );
+        fprintf( stderr, error_msg );
+        quit( -1 );
     }
 
     /* Keep any sneaky workproc's from sliding by...*/
@@ -5172,9 +5198,9 @@ popup_fatal( message )
      */
     dialog_shell = XtParent( error_dialog );
     WM_DELETE_WINDOW = XmInternAtom( XtDisplay( ctl_shell_widg ),
-				     "WM_DELETE_WINDOW", FALSE );
+                                     "WM_DELETE_WINDOW", FALSE );
     XmAddWMProtocolCallback( dialog_shell, WM_DELETE_WINDOW, exit_CB,
-			     error_dialog );
+                             error_dialog );
 
     XtUnmanageChild(
         XmMessageBoxGetChild( error_dialog, XmDIALOG_CANCEL_BUTTON ) );
@@ -5231,27 +5257,27 @@ OpenGL_win opengl_win;
 {
     switch ( opengl_win )
     {
-	case MESH:
-	    if ( cur_opengl_win != MESH )
-	    {
+        case MESH:
+            if ( cur_opengl_win != MESH )
+            {
                 glXMakeCurrent( dpy, XtWindow( ogl_widg[MESH] ), render_ctx );
-		cur_opengl_win = MESH;
-	    }
-	    break;
-	    
-	case SWATCH:
-	    if ( cur_opengl_win != SWATCH )
-	    {
+                cur_opengl_win = MESH;
+            }
+            break;
+            
+        case SWATCH:
+            if ( cur_opengl_win != SWATCH )
+            {
                 glXMakeCurrent( dpy, XtWindow( ogl_widg[SWATCH] ), swatch_ctx );
-		cur_opengl_win = SWATCH;
-	    }
-	    break;
-	    
-	default:
-	    popup_dialog( WARNING_POPUP, 
-	                  "Attempt to make invalid OpenGL window current." );
+                cur_opengl_win = SWATCH;
+            }
+            break;
+            
+        default:
+            popup_dialog( WARNING_POPUP, 
+                          "Attempt to make invalid OpenGL window current." );
             glXMakeCurrent( dpy, XtWindow( ogl_widg[MESH] ), render_ctx );
-	    cur_opengl_win = MESH;
+            cur_opengl_win = MESH;
     }
 }
 
@@ -5286,10 +5312,10 @@ Cursor_type cursor_type;
     /* Also set for Material Manager and (standalone) Utility Panel. */
     if ( mtl_mgr_widg != NULL )
         XDefineCursor( dpy, XtWindow( ctl_shell_widg ), 
-	               alt_cursors[cursor_type] );
+                       alt_cursors[cursor_type] );
     if ( !include_util_panel && util_panel_widg != NULL )
         XDefineCursor( dpy, XtWindow( util_panel_widg ), 
-	               alt_cursors[cursor_type] );
+                       alt_cursors[cursor_type] );
 
     XFlush( dpy );
 }

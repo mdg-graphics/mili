@@ -350,7 +350,7 @@ Analysis *analy;
             center_view( analy );
         update_display( analy );
 
-        anim_info.cur_state++;
+        anim_info.cur_state += get_step_stride();
         if ( anim_info.cur_state > anim_info.last_state )
         {
             end_animate_workproc( FALSE );

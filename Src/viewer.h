@@ -793,6 +793,8 @@ extern void init_animate_workproc();
 extern void end_animate_workproc();
 extern void set_window_size();
 extern int get_monitor_width();
+extern int get_step_stride();
+extern void put_step_stride();
 extern void wrt_text();
 extern void popup_dialog();
 extern void clear_popup_dialogs();

@@ -1984,6 +1984,26 @@ Analysis *analy;
         sscanf( tokens[1], "%d", &ival );
         analy->num_states = ival;
     }
+    else if ( strcmp( tokens[0], "stride" ) == 0 )
+    {
+        if ( token_cnt != 2 )
+            valid_command = FALSE;
+        else
+        {
+            ival = atoi( tokens[1] );
+            if ( ival >= 1 && ival < analy->num_states )
+            {
+                put_step_stride( ival );
+                update_util_panel( STRIDE_EDIT, NULL );
+            }
+            else
+                valid_command = FALSE;
+        }
+        if ( !valid_command )
+            popup_dialog( USAGE_POPUP, "stride <step size>\n  Where\n"
+                          "    1 <= <step size> < maximum state" );
+    }
+
     else if ( strcmp( tokens[0], "state" ) == 0 ||
               strcmp( tokens[0], "n" ) == 0 ||
               strcmp( tokens[0], "p" ) == 0 ||
