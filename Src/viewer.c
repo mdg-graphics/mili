@@ -181,7 +181,7 @@ char *argv[];
 
     /* Get today's date. */
     time_int = time( NULL );
-    tm_struct = gmtime( &time_int );
+    tm_struct = localtime( &time_int );
     strftime( env.date, 19, "%D", tm_struct );
 
     /* Get user's name. */

@@ -2,9 +2,9 @@
 /* 
  * interpret.c - Command line interpreter for graphics viewer.
  * 
- * 	Donald J. Dovey
- * 	Lawrence Livermore National Laboratory
- * 	Jan 2 1992
+ *      Donald J. Dovey
+ *      Lawrence Livermore National Laboratory
+ *      Jan 2 1992
  *
  * Copyright (c) 1992 Regents of the University of California
  */
@@ -66,7 +66,6 @@ static void create_alias();
 static void alias_substitute();
 static int parse_embedded_mtl_cmd();
 static void parse_vcent();
-static Bool_type is_numeric_token();
 static void parse_mtl_cmd();
 static int parse_embedded_mtl_cmd();
 static void update_previous_prop();
@@ -282,7 +281,7 @@ int *token_cnt;
         else if ( isspace( buf[chr] ) )
         {
             tokens[word][wchr] = '\0';
-	    ++word;
+            ++word;
             wchr = 0;
             while ( isspace( buf[chr] ) && buf[chr] != '\0' )
                 ++chr;
@@ -292,11 +291,11 @@ int *token_cnt;
             tokens[word][wchr] = buf[chr];
             ++chr;
             ++wchr;
-	    if ( buf[chr] == '\0' )
-	    {
-		tokens[word][wchr] = '\0';
-	        ++word;
-	    }
+            if ( buf[chr] == '\0' )
+            {
+                tokens[word][wchr] = '\0';
+                ++word;
+            }
         }
     }
 
@@ -373,8 +372,8 @@ Analysis *analy;
             sscanf( tokens[i+1], "%f", &(plane->pt[i]) );
         for ( i = 0; i < 3; i++ )
             sscanf( tokens[i+4], "%f", &(plane->norm[i]) );
-	val = -VEC_DOT( plane->pt, plane->norm );
-	add_clip_plane( plane->norm, val );
+        val = -VEC_DOT( plane->pt, plane->norm );
+        add_clip_plane( plane->norm, val );
         redrawview = TRUE;
     }
     else if ( strcmp( tokens[0], "ry" ) == 0 )
@@ -416,10 +415,10 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "minmov" ) == 0 )
     {
         sscanf( tokens[1], "%f", &val );
-	if ( val < 0.0 )
-	    popup_dialog( USAGE_POPUP, "minmov <pixel distance>" );
-	else
-	    set_motion_threshold( val );
+        if ( val < 0.0 )
+            popup_dialog( USAGE_POPUP, "minmov <pixel distance>" );
+        else
+            set_motion_threshold( val );
     }
     else if ( strcmp( tokens[0], "scalax" ) == 0 )
     {
@@ -437,20 +436,20 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "hilite" ) == 0 )
     {
         if ( strcmp( tokens[1], "node" ) == 0 
-	     || strcmp( tokens[1], "n" ) == 0 )
+             || strcmp( tokens[1], "n" ) == 0 )
             analy->hilite_type = 1;
         else if ( strcmp( tokens[1], "beam" ) == 0
-	          || strcmp( tokens[1], "b" ) == 0 )
+                  || strcmp( tokens[1], "b" ) == 0 )
             analy->hilite_type = 2;
         else if ( strcmp( tokens[1], "shell" ) == 0
-	          || strcmp( tokens[1], "s" ) == 0 )
+                  || strcmp( tokens[1], "s" ) == 0 )
             analy->hilite_type = 3;
         else if ( strcmp( tokens[1], "brick" ) == 0
-	          || strcmp( tokens[1], "h" ) == 0 )
+                  || strcmp( tokens[1], "h" ) == 0 )
             analy->hilite_type = 4;
         else
-	    popup_dialog( USAGE_POPUP,  "hilite %s <ident>", 
-			  mo_usage_spec );
+            popup_dialog( USAGE_POPUP,  "hilite %s <ident>", 
+                          mo_usage_spec );
 
         if ( token_cnt > 2 )
         {
@@ -462,27 +461,27 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "clrhil" ) == 0 )
     {
         analy->hilite_type = 0;
-	analy->hilite_num = -1;
+        analy->hilite_num = -1;
         redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "select" ) == 0 )
     {
         ival = -1;
         if ( strcmp( tokens[1], "node" ) == 0
-	     || strcmp( tokens[1], "n" ) == 0 )
+             || strcmp( tokens[1], "n" ) == 0 )
             ival = 0;
         else if ( strcmp( tokens[1], "beam" ) == 0
-	          || strcmp( tokens[1], "b" ) == 0 )
+                  || strcmp( tokens[1], "b" ) == 0 )
             ival = 1;
         else if ( strcmp( tokens[1], "shell" ) == 0
-	          || strcmp( tokens[1], "s" ) == 0 )
+                  || strcmp( tokens[1], "s" ) == 0 )
             ival = 2;
         else if ( strcmp( tokens[1], "brick" ) == 0
-	          || strcmp( tokens[1], "h" ) == 0 )
+                  || strcmp( tokens[1], "h" ) == 0 )
             ival = 3;
         else
-	    popup_dialog( USAGE_POPUP,  "select %s <ident>...", 
-			  mo_usage_spec );
+            popup_dialog( USAGE_POPUP,  "select %s <ident>...", 
+                          mo_usage_spec );
 
         if ( ival >= 0 )
         {
@@ -499,67 +498,67 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "clrsel" ) == 0 )
     {
         selection_cleared = FALSE;
-	
+        
         if ( token_cnt == 1 )
-	{
-	    for ( i = 0; i < 4; i++ )
-		analy->num_select[i] = 0;
-		
-	    selection_cleared = TRUE;
-	}
-	else
-	{
-	    ival = -1;
-	    if ( strcmp( tokens[1], "node" ) == 0
-		 || strcmp( tokens[1], "n" ) == 0 )
-		ival = 0;
-	    else if ( strcmp( tokens[1], "beam" ) == 0
-		      || strcmp( tokens[1], "b" ) == 0 )
-		ival = 1;
-	    else if ( strcmp( tokens[1], "shell" ) == 0
-		      || strcmp( tokens[1], "s" ) == 0 )
-		ival = 2;
-	    else if ( strcmp( tokens[1], "brick" ) == 0
-		      || strcmp( tokens[1], "h" ) == 0 )
-		ival = 3;
-	    else
-		popup_dialog( USAGE_POPUP,  "clrsel [%s <ident>...]", 
-		              mo_usage_spec );
+        {
+            for ( i = 0; i < 4; i++ )
+                analy->num_select[i] = 0;
+                
+            selection_cleared = TRUE;
+        }
+        else
+        {
+            ival = -1;
+            if ( strcmp( tokens[1], "node" ) == 0
+                 || strcmp( tokens[1], "n" ) == 0 )
+                ival = 0;
+            else if ( strcmp( tokens[1], "beam" ) == 0
+                      || strcmp( tokens[1], "b" ) == 0 )
+                ival = 1;
+            else if ( strcmp( tokens[1], "shell" ) == 0
+                      || strcmp( tokens[1], "s" ) == 0 )
+                ival = 2;
+            else if ( strcmp( tokens[1], "brick" ) == 0
+                      || strcmp( tokens[1], "h" ) == 0 )
+                ival = 3;
+            else
+                popup_dialog( USAGE_POPUP,  "clrsel [%s <ident>...]", 
+                              mo_usage_spec );
     
-	    if ( ival >= 0 )
-	    {
-	        sel_qty = analy->num_select[ival];
-		p_sel_id = analy->select_elems[ival];
-		
-		for ( i = 2; i < token_cnt; i++ )
-		{
-		    sscanf( tokens[i], "%d", &j );
-		    
-		    /* Locate the object id among current selected objects. */
-		    if ( is_in_iarray( j - 1, sel_qty, p_sel_id, &k ) )
-		    {
-		        /* Move remaining selections down. */
-			for ( m = k + 1; m < sel_qty; m++ )
-			    p_sel_id[m - 1] = p_sel_id[m];
-			
-			analy->num_select[ival]--;
-			sel_qty = analy->num_select[ival];
-			
-			selection_cleared = TRUE;
-		    }
+            if ( ival >= 0 )
+            {
+                sel_qty = analy->num_select[ival];
+                p_sel_id = analy->select_elems[ival];
+                
+                for ( i = 2; i < token_cnt; i++ )
+                {
+                    sscanf( tokens[i], "%d", &j );
+                    
+                    /* Locate the object id among current selected objects. */
+                    if ( is_in_iarray( j - 1, sel_qty, p_sel_id, &k ) )
+                    {
+                        /* Move remaining selections down. */
+                        for ( m = k + 1; m < sel_qty; m++ )
+                            p_sel_id[m - 1] = p_sel_id[m];
+                        
+                        analy->num_select[ival]--;
+                        sel_qty = analy->num_select[ival];
+                        
+                        selection_cleared = TRUE;
+                    }
                     else
-		        popup_dialog( INFO_POPUP,
-			              "%s %d not selected; request ignored.", 
-				      el_label[ival], j );
-		}
-	    }
-	}
-	
-	if ( selection_cleared )
-	{
-	    clear_gather( analy );
-	    redraw = TRUE;
-	}
+                        popup_dialog( INFO_POPUP,
+                                      "%s %d not selected; request ignored.", 
+                                      el_label[ival], j );
+                }
+            }
+        }
+        
+        if ( selection_cleared )
+        {
+            clear_gather( analy );
+            redraw = TRUE;
+        }
     }
     else if ( strcmp( tokens[0], "show" ) == 0 )
     {
@@ -653,7 +652,7 @@ Analysis *analy;
         }
         else
             popup_dialog( USAGE_POPUP, 
-	                  "tellpos { n | b | s | h } <ident>" );
+                          "tellpos { n | b | s | h } <ident>" );
     }
     else if ( strcmp( tokens[0], "savtxt" ) == 0)
     {
@@ -675,32 +674,32 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "bufqty" ) == 0 )
     {
         if ( token_cnt == 3 )
-	{
-	    if ( strcmp( tokens[1], "all" ) == 0 )
-	        i = ALL_OBJECT_T;
-	    else if ( strcmp( tokens[1], "n" ) == 0 )
-	        i = NODE_T;
-	    else if ( strcmp( tokens[1], "h" ) == 0 )
-	        i = BRICK_T;
-	    else if ( strcmp( tokens[1], "s" ) == 0 )
-	        i = SHELL_T;
-	    else if ( strcmp( tokens[1], "b" ) == 0 )
-	        i = BEAM_T;
-	    else
-	        valid_command = FALSE;
-	
-	    j = atoi( tokens[2] );
-	    if ( j < 0 )
-	        valid_command = FALSE;
-	}
-	else
-	    valid_command = FALSE;
-	
-	if ( valid_command )
-	    set_input_buffer_qty( i, j );
-	else
-	    popup_dialog( USAGE_POPUP, 
-	                  "bufqty { all | n | b | s | h } <buffer qty>" );
+        {
+            if ( strcmp( tokens[1], "all" ) == 0 )
+                i = ALL_OBJECT_T;
+            else if ( strcmp( tokens[1], "n" ) == 0 )
+                i = NODE_T;
+            else if ( strcmp( tokens[1], "h" ) == 0 )
+                i = BRICK_T;
+            else if ( strcmp( tokens[1], "s" ) == 0 )
+                i = SHELL_T;
+            else if ( strcmp( tokens[1], "b" ) == 0 )
+                i = BEAM_T;
+            else
+                valid_command = FALSE;
+        
+            j = atoi( tokens[2] );
+            if ( j < 0 )
+                valid_command = FALSE;
+        }
+        else
+            valid_command = FALSE;
+        
+        if ( valid_command )
+            set_input_buffer_qty( i, j );
+        else
+            popup_dialog( USAGE_POPUP, 
+                          "bufqty { all | n | b | s | h } <buffer qty>" );
     }
     else if ( strcmp( tokens[0], "rview" ) == 0 )
     {
@@ -709,7 +708,7 @@ Analysis *analy;
     }
     else if ( strcmp( tokens[0], "vcent" ) == 0 )
     {
-	parse_vcent( analy, tokens, token_cnt, &redraw );
+        parse_vcent( analy, tokens, token_cnt, &redraw );
     }
     else if ( strcmp( tokens[0], "conv" ) == 0 )
     {
@@ -755,8 +754,8 @@ Analysis *analy;
                 analy->show_title = setval;
             else if ( strcmp( tokens[i], "cmap" ) == 0 )
                 analy->show_colormap = setval;
-	    else if ( strcmp( tokens[i], "minmax" ) == 0 )
-	        analy->show_minmax = setval;
+            else if ( strcmp( tokens[i], "minmax" ) == 0 )
+                analy->show_minmax = setval;
             else if ( strcmp( tokens[i], "all" ) == 0 )
             {   
                 analy->show_coord = setval;
@@ -774,9 +773,9 @@ Analysis *analy;
                      ( analy->geom_p->bricks || analy->geom_p->shells ) )
                     get_mesh_edges( analy );
                 analy->show_edges = setval;
-		if ( setval && analy->m_edges_cnt == 0 )
-		    wrt_text( "Empty edge list; check material visibility.\n" );
-		update_util_panel( VIEW_EDGES );
+                if ( setval && analy->m_edges_cnt == 0 )
+                    wrt_text( "Empty edge list; check material visibility.\n" );
+                update_util_panel( VIEW_EDGES );
             }
             else if ( strcmp( tokens[i], "safe" ) == 0 )
                 analy->show_safe = setval;
@@ -827,12 +826,12 @@ Analysis *analy;
                 update_vec_points( analy );
                 check_visualizing( analy );
             }
-	    else if ( strcmp( tokens[i], "sphere" ) == 0 )
-	        analy->show_vector_spheres = setval;
-	    else if ( strcmp( tokens[i], "sclbyres" ) == 0 )
-	        analy->scale_vec_by_result = setval;
-	    else if ( strcmp( tokens[i], "zlines" ) == 0 )
-	        analy->z_buffer_lines = setval;
+            else if ( strcmp( tokens[i], "sphere" ) == 0 )
+                analy->show_vector_spheres = setval;
+            else if ( strcmp( tokens[i], "sclbyres" ) == 0 )
+                analy->scale_vec_by_result = setval;
+            else if ( strcmp( tokens[i], "zlines" ) == 0 )
+                analy->z_buffer_lines = setval;
             else if ( strcmp( tokens[i], "carpet" ) == 0 )
             {
                 if ( setval &&
@@ -856,7 +855,7 @@ Analysis *analy;
             else if ( strcmp( tokens[i], "cull" ) == 0 )
                 analy->manual_backface_cull = setval;
             else if ( strcmp( tokens[i], "cent" ) == 0 )
-	    {
+            {
                 /* This command has been changed. */
                 if ( setval )
                     wrt_text( "Use \"vcent hi\" to center view on %s",
@@ -886,13 +885,13 @@ Analysis *analy;
             else if ( strcmp( tokens[i], "autosz" ) == 0 )
                 analy->auto_frac_size = setval;
             else if ( strcmp( tokens[i], "lighting" ) == 0 )
-	    {
-		if ( analy->dimension == 2 && setval == TRUE )
-		    popup_dialog( INFO_POPUP, 
-		                  "Lighting is not utilized for 2D meshes." );
-		else
-		    v_win->lighting = setval;
-	    }
+            {
+                if ( analy->dimension == 2 && setval == TRUE )
+                    popup_dialog( INFO_POPUP, 
+                                  "Lighting is not utilized for 2D meshes." );
+                else
+                    v_win->lighting = setval;
+            }
             else if ( strcmp( tokens[i], "bgimage" ) == 0 )
                 analy->show_background_image = setval;
             else if ( strcmp( tokens[i], "coordxf" ) == 0 )
@@ -945,25 +944,25 @@ Analysis *analy;
 
             /* Rendering style. */
             else if ( strcmp( tokens[i], "hidden" ) == 0 )
-	    {
+            {
                 analy->render_mode = RENDER_HIDDEN;
-		update_util_panel( VIEW_SOLID_MESH );
-	    }
+                update_util_panel( VIEW_SOLID_MESH );
+            }
             else if ( strcmp( tokens[i], "solid" ) == 0 )
-	    {
+            {
                 analy->render_mode = RENDER_FILLED;
-		update_util_panel( VIEW_SOLID );
-	    }
+                update_util_panel( VIEW_SOLID );
+            }
             else if ( strcmp( tokens[i], "cloud" ) == 0 )
-	    {
+            {
                 analy->render_mode = RENDER_POINT_CLOUD;
-		update_util_panel( VIEW_POINT_CLOUD );
-	    }
+                update_util_panel( VIEW_POINT_CLOUD );
+            }
             else if ( strcmp( tokens[i], "none" ) == 0 )
-	    {
+            {
                 analy->render_mode = RENDER_NONE;
-		update_util_panel( VIEW_NONE );
-	    }
+                update_util_panel( VIEW_NONE );
+            }
 
             /* Interpolation mode. */
             else if ( strcmp( tokens[i], "noterp" ) == 0 )
@@ -975,44 +974,44 @@ Analysis *analy;
 
             /* Mouse picking mode. */
             else if ( strcmp( tokens[i], "picsel" ) == 0 )
-	    {
+            {
                 analy->mouse_mode = MOUSE_SELECT;
-		update_util_panel( PICK_MODE_SELECT );
-	    }
+                update_util_panel( PICK_MODE_SELECT );
+            }
             else if ( strcmp( tokens[i], "pichil" ) == 0 )
-	    {
+            {
                 analy->mouse_mode = MOUSE_HILITE;
-		update_util_panel( PICK_MODE_HILITE );
-	    }
+                update_util_panel( PICK_MODE_HILITE );
+            }
 
             /* Pick beams or shells with middle mouse button. */
             else if ( strcmp( tokens[i], "picbm" ) == 0 )
-	    {
+            {
                 analy->pick_beams = TRUE;
-		update_util_panel( BTN2_BEAM );
-	    }
+                update_util_panel( BTN2_BEAM );
+            }
             else if ( strcmp( tokens[i], "picsh" ) == 0 )
-	    {
+            {
                 analy->pick_beams = FALSE;
-		update_util_panel( BTN2_SHELL );
-	    }
+                update_util_panel( BTN2_SHELL );
+            }
 
             /* Result min/max. */
             else if( strcmp( tokens[i], "mstat" ) == 0 )
             {
                 analy->use_global_mm = FALSE;
-		if ( !analy->mm_result_set[0] )
+                if ( !analy->mm_result_set[0] )
                     analy->result_mm[0] = analy->state_mm[0];
-		if ( !analy->mm_result_set[1] )
+                if ( !analy->mm_result_set[1] )
                     analy->result_mm[1] = analy->state_mm[1];
                 update_vis( analy );
             }
             else if( strcmp( tokens[i], "mglob" ) == 0 )
             {
                 analy->use_global_mm = TRUE;
-		if ( !analy->mm_result_set[0] )
+                if ( !analy->mm_result_set[0] )
                     analy->result_mm[0] = analy->global_mm[0];
-		if ( !analy->mm_result_set[1] )
+                if ( !analy->mm_result_set[1] )
                     analy->result_mm[1] = analy->global_mm[1];
                 update_vis( analy );
             }
@@ -1037,59 +1036,59 @@ Analysis *analy;
             else if ( strcmp( tokens[i], "middle" ) == 0 )
             {
                 analy->ref_surf = MIDDLE;
-		analy->result_mod = TRUE;
+                analy->result_mod = TRUE;
             }
             else if ( strcmp( tokens[i], "inner" ) == 0 )
             {
                 analy->ref_surf = INNER;
-		analy->result_mod = TRUE;
+                analy->result_mod = TRUE;
             }
             else if ( strcmp( tokens[i], "outer" ) == 0 )
             {
                 analy->ref_surf = OUTER;
-		analy->result_mod = TRUE;
+                analy->result_mod = TRUE;
             }
 
             /* Strain basis. */
             else if ( strcmp( tokens[i], "rglob" ) == 0 )
             {
                 analy->ref_frame = GLOBAL;
-		analy->result_mod = TRUE;
+                analy->result_mod = TRUE;
             }
             else if ( strcmp( tokens[i], "rloc" ) == 0 )
             {
                 analy->ref_frame = LOCAL;
-		analy->result_mod = TRUE;
+                analy->result_mod = TRUE;
             }
 
             /* Strain variety. */
             else if ( strcmp( tokens[i], "infin" ) == 0 )
             {
-	        old = analy->strain_variety;
+                old = analy->strain_variety;
                 analy->strain_variety = INFINITESIMAL;
-		analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
-		                                  analy->strain_variety );
+                analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
+                                                  analy->strain_variety );
             }
             else if ( strcmp( tokens[i], "grn" ) == 0 )
             {
-	        old = analy->strain_variety;
+                old = analy->strain_variety;
                 analy->strain_variety = GREEN_LAGRANGE;
-		analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
-		                                  analy->strain_variety );
+                analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
+                                                  analy->strain_variety );
             }
             else if ( strcmp( tokens[i], "alman" ) == 0 )
             {
-	        old = analy->strain_variety;
+                old = analy->strain_variety;
                 analy->strain_variety = ALMANSI;
-		analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
-		                                  analy->strain_variety );
+                analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
+                                                  analy->strain_variety );
             }
             else if ( strcmp( tokens[i], "rate" ) == 0 )
             {
-	        old = analy->strain_variety;
+                old = analy->strain_variety;
                 analy->strain_variety = RATE;
-		analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
-		                                  analy->strain_variety );
+                analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
+                                                  analy->strain_variety );
             }
             else if ( strcmp( tokens[i], "grdvec" ) == 0 )
             {
@@ -1113,12 +1112,12 @@ Analysis *analy;
     }
     else if ( strcmp( tokens[0], "fracsz" ) == 0 )
     {
-	sscanf( tokens[1], "%d", &ival );
-	if ( ival >= 0 && ival <= 6 )
-	{
-	    analy->float_frac_size = ival;
-	    redraw = TRUE;
-	}
+        sscanf( tokens[1], "%d", &ival );
+        if ( ival >= 0 && ival <= 6 )
+        {
+            analy->float_frac_size = ival;
+            redraw = TRUE;
+        }
     }
     else if ( strcmp( tokens[0], "invis" ) == 0 ||
               strcmp( tokens[0], "vis" ) == 0 )
@@ -1149,7 +1148,7 @@ Analysis *analy;
         reset_face_visibility( analy );
 
         if ( analy->dimension == 3 ) renorm = TRUE;
-	analy->result_mod = TRUE;
+        analy->result_mod = TRUE;
         redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "disable" ) == 0 ||
@@ -1178,13 +1177,13 @@ Analysis *analy;
                     analy->disable_material[ival-1] = setval;
             }
         }
-	analy->result_mod = TRUE;
-	load_result( analy, TRUE );
+        analy->result_mod = TRUE;
+        load_result( analy, TRUE );
         redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "mtl" ) == 0 )
     {
-	parse_mtl_cmd( analy, tokens, token_cnt, TRUE, &redraw, &renorm );
+        parse_mtl_cmd( analy, tokens, token_cnt, TRUE, &redraw, &renorm );
     }
     else if ( strcmp( tokens[0], "tmx" ) == 0 )
     {
@@ -1220,7 +1219,7 @@ Analysis *analy;
         redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "clrtm" ) == 0
-	      || strcmp( tokens[0], "clrem" ) == 0 )
+              || strcmp( tokens[0], "clrem" ) == 0 )
     {
         analy->translate_material = FALSE;
         for ( i = 0; i < analy->num_materials; i++ )
@@ -1232,58 +1231,58 @@ Analysis *analy;
     }
     else if ( strcmp( tokens[0], "emsph" ) == 0 )
     {
-	if ( associate_matl_exp( token_cnt, tokens, analy, SPHERICAL ) != 0 )
+        if ( associate_matl_exp( token_cnt, tokens, analy, SPHERICAL ) != 0 )
             popup_dialog( USAGE_POPUP, 
-	                  "emsph <x> <y> <z> <materials> [<name>]" );
+                          "emsph <x> <y> <z> <materials> [<name>]" );
     }
     else if ( strcmp( tokens[0], "emcyl" ) == 0 )
     {
-	if ( associate_matl_exp( token_cnt, tokens, analy, CYLINDRICAL ) != 0 )
+        if ( associate_matl_exp( token_cnt, tokens, analy, CYLINDRICAL ) != 0 )
             popup_dialog( USAGE_POPUP, 
-	                  "emcyl <x1> <y1> <z1> <x2> <y2> <z2> %s",
-		          "<materials> [<name>]" );
+                          "emcyl <x1> <y1> <z1> <x2> <y2> <z2> %s",
+                          "<materials> [<name>]" );
     }
     else if ( strcmp( tokens[0], "emax" ) == 0 )
     {
-	if ( associate_matl_exp( token_cnt, tokens, analy, AXIAL ) != 0 )
+        if ( associate_matl_exp( token_cnt, tokens, analy, AXIAL ) != 0 )
             popup_dialog( USAGE_POPUP, 
-	                  "emax <x1> <y1> <z1> <x2> <y2> <z2> %s",
-		          "<materials> [<name>]" );
+                          "emax <x1> <y1> <z1> <x2> <y2> <z2> %s",
+                          "<materials> [<name>]" );
     }
     else if ( strcmp( tokens[0], "em" ) == 0 )
     {
-	if ( token_cnt < 2 )
-	    popup_dialog( USAGE_POPUP, "em [<name>...] <distance>" );
-	else
-	{
-	    analy->translate_material = TRUE;
-	    explode_materials( token_cnt, tokens, analy, FALSE );
-	    reset_face_visibility( analy );
-	    renorm = TRUE;
-	    redraw = TRUE;
-	}
+        if ( token_cnt < 2 )
+            popup_dialog( USAGE_POPUP, "em [<name>...] <distance>" );
+        else
+        {
+            analy->translate_material = TRUE;
+            explode_materials( token_cnt, tokens, analy, FALSE );
+            reset_face_visibility( analy );
+            renorm = TRUE;
+            redraw = TRUE;
+        }
     }
     else if ( strcmp( tokens[0], "emsc" ) == 0 )
     {
-	if ( token_cnt < 2 )
-	    popup_dialog( USAGE_POPUP, "emsc [<name>...] <scale>" );
-	else
-	{
-	    analy->translate_material = TRUE;
-	    explode_materials( token_cnt, tokens, analy, TRUE );
-	    reset_face_visibility( analy );
-	    renorm = TRUE;
-	    redraw = TRUE;
-	}
+        if ( token_cnt < 2 )
+            popup_dialog( USAGE_POPUP, "emsc [<name>...] <scale>" );
+        else
+        {
+            analy->translate_material = TRUE;
+            explode_materials( token_cnt, tokens, analy, TRUE );
+            reset_face_visibility( analy );
+            renorm = TRUE;
+            redraw = TRUE;
+        }
     }
     else if ( strcmp( tokens[0], "tellem" ) == 0 
               || strcmp( tokens[0], "telem" ) == 0 )
     {
-	report_exp_assoc();
+        report_exp_assoc();
     }
     else if ( strcmp( tokens[0], "emrm" ) == 0 )
     {
-	remove_exp_assoc( token_cnt, tokens );
+        remove_exp_assoc( token_cnt, tokens );
     }
     else if ( strcmp( tokens[0], "rnf" ) == 0 )
     {
@@ -1293,26 +1292,26 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "near" ) == 0 )
     {
         if ( token_cnt == 2 && is_numeric_token( tokens[1] ) )
-	{
+        {
             sscanf( tokens[1], "%f", &val );
             set_near( val );
             set_mesh_view();
             redraw = TRUE;
-	}
-	else
-	    popup_dialog( USAGE_POPUP, "near <value>" );
+        }
+        else
+            popup_dialog( USAGE_POPUP, "near <value>" );
     }
     else if ( strcmp( tokens[0], "far" ) == 0 )
     {
         if ( token_cnt == 2 && is_numeric_token( tokens[1] ) )
-	{
+        {
             sscanf( tokens[1], "%f", &val );
             set_far( val );
             set_mesh_view();
             redraw = TRUE;
-	}
-	else
-	    popup_dialog( USAGE_POPUP, "far <value>" );
+        }
+        else
+            popup_dialog( USAGE_POPUP, "far <value>" );
     }
     else if ( strcmp( tokens[0], "lookfr" ) == 0 ||
               strcmp( tokens[0], "lookat" ) == 0 ||
@@ -1386,67 +1385,67 @@ Analysis *analy;
     }
     else if ( strcmp( tokens[0], "bbsrc" ) == 0 )
     {
-	if ( token_cnt == 2 )
-	{
-	    free( analy->bbox_source );
-	    str_dup( &analy->bbox_source, tokens[1] );
-	    parse_command( "bbox", analy );
-	}
-	else
-	    popup_dialog( USAGE_POPUP, "bbsrc n|h|s|b|hs|hb|sb|hsb" );
+        if ( token_cnt == 2 )
+        {
+            free( analy->bbox_source );
+            str_dup( &analy->bbox_source, tokens[1] );
+            parse_command( "bbox", analy );
+        }
+        else
+            popup_dialog( USAGE_POPUP, "bbsrc n|h|s|b|hs|hb|sb|hsb" );
     }
     else if ( strcmp( tokens[0], "bbox" ) == 0 )
     {
         ival = analy->dimension;
-	if ( token_cnt <= 2 )
-	{
-	    redrawview = TRUE;
-	    
-	    if ( token_cnt == 1 )
+        if ( token_cnt <= 2 )
+        {
+            redrawview = TRUE;
+            
+            if ( token_cnt == 1 )
                 bbox_nodes( analy, analy->bbox_source, FALSE, pt, vec );
-	    else if ( strcmp( tokens[1], "vis" ) == 0 )
+            else if ( strcmp( tokens[1], "vis" ) == 0 )
                 bbox_nodes( analy, "v", FALSE, pt, vec );
-	    else
-	        redrawview = FALSE;
-	    
-	    if ( redrawview )
-	    {
-	        if ( analy->keep_max_bbox_extent )
-	        {
-		    for ( i = 0; i < 3; i++ )
-		    {
-		        if ( pt[i] < analy->bbox[0][i] )
-		            analy->bbox[0][i] = pt[i];
-		        if ( vec[i] > analy->bbox[1][i] )
-		            analy->bbox[1][i] = vec[i];
-		    }
-	        }
-	        else
-	        {
-		    VEC_COPY( analy->bbox[0], pt );
-		    VEC_COPY( analy->bbox[1], vec );
-	        }
-	    }
-	}
-	else if ( ival == 3 && token_cnt == 7 )
-	{
-	    for ( i = 0; i < 3; i++ )
-	    {
-	        pt[i] = atof( tokens[i + 1] );
-	        vec[i] = atof( tokens[i + 4] );
-	    }
-	    if ( pt[0] < vec[0] && pt[1] < vec[1] && pt[2] < vec[2] )
+            else
+                redrawview = FALSE;
+            
+            if ( redrawview )
             {
-		VEC_COPY( analy->bbox[0], pt );
-		VEC_COPY( analy->bbox[1], vec );
-		redrawview = TRUE;
-	    }
-	}
-	if ( !redrawview )
-	    popup_dialog( USAGE_POPUP, 
-	                  "bbox [%s | %s]"
-			  "vis", "<xmin> <ymin> <zmin> <xmax> <ymax> <zmax>" );
-	else
+                if ( analy->keep_max_bbox_extent )
+                {
+                    for ( i = 0; i < 3; i++ )
+                    {
+                        if ( pt[i] < analy->bbox[0][i] )
+                            analy->bbox[0][i] = pt[i];
+                        if ( vec[i] > analy->bbox[1][i] )
+                            analy->bbox[1][i] = vec[i];
+                    }
+                }
+                else
+                {
+                    VEC_COPY( analy->bbox[0], pt );
+                    VEC_COPY( analy->bbox[1], vec );
+                }
+            }
+        }
+        else if ( ival == 3 && token_cnt == 7 )
+        {
+            for ( i = 0; i < 3; i++ )
+            {
+                pt[i] = atof( tokens[i + 1] );
+                vec[i] = atof( tokens[i + 4] );
+            }
+            if ( pt[0] < vec[0] && pt[1] < vec[1] && pt[2] < vec[2] )
+            {
+                VEC_COPY( analy->bbox[0], pt );
+                VEC_COPY( analy->bbox[1], vec );
+                redrawview = TRUE;
+            }
+        }
+        if ( !redrawview )
+            popup_dialog( USAGE_POPUP, 
+                          "bbox [%s | %s]"
+                          "vis", "<xmin> <ymin> <zmin> <xmax> <ymax> <zmax>" );
+        else
             set_view_to_bbox( analy->bbox[0], analy->bbox[1], ival );
     }
     else if ( strcmp( tokens[0], "timhis" ) == 0 )
@@ -1473,25 +1472,25 @@ Analysis *analy;
             analy->th_filter_width = ival;
 
             /* Filter type. */
-	    if ( strcmp( tokens[2], "box" ) == 0 )
-	        analy->th_filter_type = BOX_FILTER;
+            if ( strcmp( tokens[2], "box" ) == 0 )
+                analy->th_filter_type = BOX_FILTER;
 /* Not implemented.
-	    else if ( strcmp( tokens[2], "tri" ) == 0 )
-	        analy->th_filter_type = TRIANGLE_FILTER;
-	    else if ( strcmp( tokens[2], "sync" ) == 0 )
-	        analy->th_filter_type = SYNC_FILTER;
+            else if ( strcmp( tokens[2], "tri" ) == 0 )
+                analy->th_filter_type = TRIANGLE_FILTER;
+            else if ( strcmp( tokens[2], "sync" ) == 0 )
+                analy->th_filter_type = SYNC_FILTER;
 */
-	    else
-	    {
-		popup_dialog( WARNING_POPUP, 
-		              "Unknown filter type \"%s\"; using \"box\".\n", 
-		              tokens[2] );
-		analy->th_filter_type = BOX_FILTER;
-	    }
+            else
+            {
+                popup_dialog( WARNING_POPUP, 
+                              "Unknown filter type \"%s\"; using \"box\".\n", 
+                              tokens[2] );
+                analy->th_filter_type = BOX_FILTER;
+            }
         }
         else
             popup_dialog( USAGE_POPUP, 
-	                  "thsm <filter_width> <filter_type>" );
+                          "thsm <filter_width> <filter_type>" );
     }
     else if ( strcmp( tokens[0], "gather" ) == 0 )
     {
@@ -1672,9 +1671,9 @@ Analysis *analy;
         /* Get the result types from the translation table. */
         for ( i = 0; i < token_cnt - 1 && i < 3; i++ )
         {
-	    if ( is_numeric_token( tokens[i+1] ) && atof( tokens[i+1] ) == 0.0 )
+            if ( is_numeric_token( tokens[i+1] ) && atof( tokens[i+1] ) == 0.0 )
                 analy->vec_id[i] = VAL_NONE;
-	    else
+            else
                 analy->vec_id[i] = (Result_type) lookup_result_id( tokens[i+1]);
 
             /* Error if we didn't get a match. */
@@ -1834,8 +1833,8 @@ Analysis *analy;
 
         if ( 3 == analy->dimension )
             prake( token_cnt, tokens, &ival, pt, vec, rgb, analy );
-	else
-	    wrt_text( "Particle traces on 3D datasets only.\n" );
+        else
+            wrt_text( "Particle traces on 3D datasets only.\n" );
     }
     else if ( strcmp( tokens[0], "clrpar" ) == 0 )
     {
@@ -1862,7 +1861,7 @@ Analysis *analy;
             sscanf( tokens[3], "%f", &val );
         else
             val = 0.0;
-	
+        
         /* "ptrace" deletes extant traces, leaving only new ones. */
         if ( tokens[0][0] == 'p' )
             DELETE_LIST( analy->trace_pts );
@@ -1872,113 +1871,113 @@ Analysis *analy;
     }
     else if ( strcmp( tokens[0], "ptstat" ) == 0 )
     {
-	if ( token_cnt < 4 )
-	    valid_command = FALSE;
-	else
-	{
-	    switch( tokens[1][0] )
-	    {
-		case 's':
-		    ival = atoi( tokens[2] );
-		    if ( ival < 1 || ival > analy->num_states )
-		        valid_command = FALSE;
-		    else
-		        vec[0] = analy->state_times[ival - 1];
-		    break;
-		case 't':
-		    val = atof( tokens[2] );
-		    if ( val < analy->state_times[0]
-		         || val > analy->state_times[analy->num_states - 1] )
-		        valid_command = FALSE;
-		    else
-		        vec[0] = val;
-		    break;
-		default:
-		    valid_command = FALSE;	    
-	    }
-	}
-	
-	if ( valid_command )
-	{
-	    vec[1] = atof( tokens[3] );
-	    val = ( token_cnt == 5 ) ? atof( tokens[4] ) : 0.0;
-	    particle_trace( vec[0], vec[1], val, analy, TRUE );
+        if ( token_cnt < 4 )
+            valid_command = FALSE;
+        else
+        {
+            switch( tokens[1][0] )
+            {
+                case 's':
+                    ival = atoi( tokens[2] );
+                    if ( ival < 1 || ival > analy->num_states )
+                        valid_command = FALSE;
+                    else
+                        vec[0] = analy->state_times[ival - 1];
+                    break;
+                case 't':
+                    val = atof( tokens[2] );
+                    if ( val < analy->state_times[0]
+                         || val > analy->state_times[analy->num_states - 1] )
+                        valid_command = FALSE;
+                    else
+                        vec[0] = val;
+                    break;
+                default:
+                    valid_command = FALSE;          
+            }
+        }
+        
+        if ( valid_command )
+        {
+            vec[1] = atof( tokens[3] );
+            val = ( token_cnt == 5 ) ? atof( tokens[4] ) : 0.0;
+            particle_trace( vec[0], vec[1], val, analy, TRUE );
             redraw = TRUE;
-	}
-	else
-	    popup_dialog( USAGE_POPUP, "%s\n%s\n%s", 
-	                  "ptstat t <time> <duration> [<delta t>]", 
-	                  " OR ", 
-			  "ptstat s <state> <duration> [<delta t>]" );
+        }
+        else
+            popup_dialog( USAGE_POPUP, "%s\n%s\n%s", 
+                          "ptstat t <time> <duration> [<delta t>]", 
+                          " OR ", 
+                          "ptstat s <state> <duration> [<delta t>]" );
     }
     else if ( strcmp( tokens[0], "ptlim" ) == 0 )
     {
-	ival = atoi( tokens[1] );
-	analy->ptrace_limit = ( ival > 0 ) ? ival : 0;
-	if ( analy->trace_pts != NULL )
-	    redraw = TRUE;
+        ival = atoi( tokens[1] );
+        analy->ptrace_limit = ( ival > 0 ) ? ival : 0;
+        if ( analy->trace_pts != NULL )
+            redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "ptwid" ) == 0 )
     {
-	val = atof( tokens[1] );
-	if ( val <= 0.0 )
-	{
-	    popup_dialog( INFO_POPUP, "Trace width must be greater than 0.0." );
-	    valid_command = FALSE;
-	}
-	else
-	{
-	    analy->trace_width = val;
-	    if ( analy->show_traces )
-	        redraw = TRUE;
-	}
+        val = atof( tokens[1] );
+        if ( val <= 0.0 )
+        {
+            popup_dialog( INFO_POPUP, "Trace width must be greater than 0.0." );
+            valid_command = FALSE;
+        }
+        else
+        {
+            analy->trace_width = val;
+            if ( analy->show_traces )
+                redraw = TRUE;
+        }
     }
     else if ( strcmp( tokens[0], "ptdis" ) == 0 )
     {
-	if ( analy->trace_disable != NULL )
-	{
-	    free( analy->trace_disable );
-	    analy->trace_disable = NULL;
-	}
-	analy->trace_disable_qty = 0;
-	    
-        if ( token_cnt > 1 )
-	{
-            /* Store material numbers for disabling particle traces. */
-	    analy->trace_disable = NEW_N( int, token_cnt - 1, "Trace disable" );
-	    for ( i = 1, j = 0; i < token_cnt; i++ )
-	    {
-	        ival = atoi( tokens[i] );
-	        if ( ival > 0 && ival <= analy->num_materials )
-	            analy->trace_disable[j++] = ival - 1;
-	        else
-	            wrt_text( "Invalid material \"%d\" ignored.\n", ival );
-	    }
-	
-	    if ( j == 0 )
-	    {
-	        free( analy->trace_disable );
-		analy->trace_disable = NULL;
-	    }
-	    else
-	        analy->trace_disable_qty = j;
+        if ( analy->trace_disable != NULL )
+        {
+            free( analy->trace_disable );
+            analy->trace_disable = NULL;
         }
-	
-	redraw = TRUE;
+        analy->trace_disable_qty = 0;
+            
+        if ( token_cnt > 1 )
+        {
+            /* Store material numbers for disabling particle traces. */
+            analy->trace_disable = NEW_N( int, token_cnt - 1, "Trace disable" );
+            for ( i = 1, j = 0; i < token_cnt; i++ )
+            {
+                ival = atoi( tokens[i] );
+                if ( ival > 0 && ival <= analy->num_materials )
+                    analy->trace_disable[j++] = ival - 1;
+                else
+                    wrt_text( "Invalid material \"%d\" ignored.\n", ival );
+            }
+        
+            if ( j == 0 )
+            {
+                free( analy->trace_disable );
+                analy->trace_disable = NULL;
+            }
+            else
+                analy->trace_disable_qty = j;
+        }
+        
+        redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "outpt" ) == 0 )
     {
-	if ( token_cnt == 2 )
+        if ( token_cnt == 2 )
             save_particle_traces( analy, tokens[1] );
-	else
-	    popup_dialog( USAGE_POPUP, "outpt <filename>" );
+        else
+            popup_dialog( USAGE_POPUP, "outpt <filename>" );
     }
     else if ( strcmp( tokens[0], "inpt" ) == 0 )
     {
-	if ( token_cnt == 2 )
+        if ( token_cnt == 2 )
             read_particle_traces( analy, tokens[1] );
-	else
-	    popup_dialog( USAGE_POPUP, "inpt <filename>" );
+        else
+            popup_dialog( USAGE_POPUP, "inpt <filename>" );
     }
     else if ( strcmp( tokens[0], "maxst" ) == 0 )
     {
@@ -2015,15 +2014,15 @@ Analysis *analy;
             if ( analy->cur_state < analy->num_states - 1 )
                 analy->cur_state += 1;
             else
-	        popup_dialog( INFO_POPUP, "Already at last state..." );
+                popup_dialog( INFO_POPUP, "Already at last state..." );
         }
         else if ( strcmp( tokens[0], "p" ) == 0 )
         {
             if ( analy->state_p->time <= analy->state_times[analy->cur_state] )
-	        if ( analy->cur_state > 0 )
-		    analy->cur_state -= 1;
-	        else
-	            popup_dialog( INFO_POPUP, "Already at first state..." );
+                if ( analy->cur_state > 0 )
+                    analy->cur_state -= 1;
+                else
+                    popup_dialog( INFO_POPUP, "Already at first state..." );
         }
         else if ( strcmp( tokens[0], "f" ) == 0 )
             analy->cur_state = 0;
@@ -2135,15 +2134,15 @@ Analysis *analy;
             sscanf( tokens[1], "%f", &val );
             if ( analy->result_id != VAL_NONE )
             {
-	        /*
-		 * If units conversion is turned on, assume the user-
-		 * specified value is in converted units and apply the
-		 * inverse conversion so that the value is stored
-		 * internally in "primal" units.
-		 */
-	        if ( analy->perform_unit_conversion )
-		    val = (val - analy->conversion_offset) 
-		          / analy->conversion_scale;
+                /*
+                 * If units conversion is turned on, assume the user-
+                 * specified value is in converted units and apply the
+                 * inverse conversion so that the value is stored
+                 * internally in "primal" units.
+                 */
+                if ( analy->perform_unit_conversion )
+                    val = (val - analy->conversion_offset) 
+                          / analy->conversion_scale;
 
                 add_contour_val( (val - analy->result_mm[0]) /
                                  (analy->result_mm[1] - analy->result_mm[0]),
@@ -2170,22 +2169,22 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "telliso" ) == 0 
               || strcmp( tokens[0], "teliso" ) == 0 )
     {
-	report_contour_vals( analy );
+        report_contour_vals( analy );
     }
     else if ( strcmp( tokens[0], "conwid" ) == 0 )
     {
-	val = atof( tokens[1] );
-	if ( val <= 0.0 )
-	{
-	    popup_dialog( INFO_POPUP, "Contour width must be greater than 0.0." );
-	    valid_command = FALSE;
-	}
-	else
-	{
-	    analy->contour_width = val;
-	    if ( analy->show_contours )
-	        redraw = TRUE;
-	}
+        val = atof( tokens[1] );
+        if ( val <= 0.0 )
+        {
+            popup_dialog( INFO_POPUP, "Contour width must be greater than 0.0." );
+            valid_command = FALSE;
+        }
+        else
+        {
+            analy->contour_width = val;
+            if ( analy->show_contours )
+                redraw = TRUE;
+        }
     }
     else if ( strcmp( tokens[0], "sym" ) == 0 )
     {
@@ -2235,7 +2234,7 @@ Analysis *analy;
              strcmp( tokens[0], "snap" ) == 0 )
     {
         popup_dialog( INFO_POPUP, 
-	              "HDF is no longer supported.  Try outrgb/outrgba." );
+                      "HDF is no longer supported.  Try outrgb/outrgba." );
     }
     else if( strcmp( tokens[0], "outrgb" ) == 0 )
     {
@@ -2261,8 +2260,8 @@ Analysis *analy;
      else if( strcmp( tokens[0], "ldhmap" ) == 0 )
     {
         wrt_text( "HDF palettes are no longer supported.\n" );
-	wrt_text( "Convert HDF palettes with \"h2g\" utility," );
-	wrt_text( "  then use \"ldmap\" instead." );
+        wrt_text( "Convert HDF palettes with \"h2g\" utility," );
+        wrt_text( "  then use \"ldmap\" instead." );
     }
     else if( strcmp( tokens[0], "ldmap" ) == 0 )
     {
@@ -2339,9 +2338,9 @@ Analysis *analy;
             else if ( strcmp( tokens[1], "vechd" ) == 0 )
                 analy->vec_hd_col_set = TRUE;
             else if ( strcmp( tokens[1], "rmin" ) == 0 
-	              || strcmp( tokens[1], "rmax" ) == 0 )
-	        set_cutoff_colors( TRUE, analy->mm_result_set[0], 
-		                   analy->mm_result_set[1] );
+                      || strcmp( tokens[1], "rmax" ) == 0 )
+                set_cutoff_colors( TRUE, analy->mm_result_set[0], 
+                                   analy->mm_result_set[1] );
         }
         else
             wrt_text( "Four arguments needed for setcol.\n" );
@@ -2396,26 +2395,26 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "edgbias" ) == 0 )
     {
         if ( token_cnt != 2 )
-	    popup_dialog( USAGE_POPUP, "edgbias <bias value>" );
-	else
-	{
+            popup_dialog( USAGE_POPUP, "edgbias <bias value>" );
+        else
+        {
             sscanf( tokens[1], "%f", &val );
             analy->edge_zbias = val;
             redraw = TRUE;
-	}
+        }
     }
     else if ( strcmp( tokens[0], "rzero" ) == 0 )
     {
         sscanf( tokens[1], "%f", &analy->zero_result );
         /*
          * If units conversion is turned on, assume the user-specified 
-	 * value is in converted units and apply the inverse conversion 
-	 * so that the value is stored internally in "primal" units.
+         * value is in converted units and apply the inverse conversion 
+         * so that the value is stored internally in "primal" units.
          */
         if ( analy->perform_unit_conversion )
-	    analy->zero_result = (analy->zero_result 
-	                           - analy->conversion_offset) 
-				  / analy->conversion_scale;
+            analy->zero_result = (analy->zero_result 
+                                   - analy->conversion_offset) 
+                                  / analy->conversion_scale;
         redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "rmax" ) == 0 )
@@ -2423,16 +2422,16 @@ Analysis *analy;
         sscanf( tokens[1], "%f", &analy->result_mm[1] );
         /*
          * If units conversion is turned on, assume the user-specified 
-	 * value is in converted units and apply the inverse conversion 
-	 * so that the value is stored internally in "primal" units.
+         * value is in converted units and apply the inverse conversion 
+         * so that the value is stored internally in "primal" units.
          */
         if ( analy->perform_unit_conversion )
-	    analy->result_mm[1] = (analy->result_mm[1] 
-	                           - analy->conversion_offset) 
-				  / analy->conversion_scale;
+            analy->result_mm[1] = (analy->result_mm[1] 
+                                   - analy->conversion_offset) 
+                                  / analy->conversion_scale;
         analy->mm_result_set[1] = TRUE;
-	set_cutoff_colors( TRUE, 
-	                   analy->mm_result_set[0], analy->mm_result_set[1] );
+        set_cutoff_colors( TRUE, 
+                           analy->mm_result_set[0], analy->mm_result_set[1] );
 /**/
 /*
         if ( !user_cmap_loaded )
@@ -2445,16 +2444,16 @@ Analysis *analy;
         sscanf( tokens[1], "%f", &analy->result_mm[0] );
         /*
          * If units conversion is turned on, assume the user-specified 
-	 * value is in converted units and apply the inverse conversion 
-	 * so that the value is stored internally in "primal" units.
+         * value is in converted units and apply the inverse conversion 
+         * so that the value is stored internally in "primal" units.
          */
         if ( analy->perform_unit_conversion )
-	    analy->result_mm[0] = (analy->result_mm[0] 
-	                           - analy->conversion_offset) 
-				  / analy->conversion_scale;
+            analy->result_mm[0] = (analy->result_mm[0] 
+                                   - analy->conversion_offset) 
+                                  / analy->conversion_scale;
         analy->mm_result_set[0] = TRUE;
-	set_cutoff_colors( TRUE, 
-	                   analy->mm_result_set[0], analy->mm_result_set[1] );
+        set_cutoff_colors( TRUE, 
+                           analy->mm_result_set[0], analy->mm_result_set[1] );
 /**/
 /*
         if ( !user_cmap_loaded )
@@ -2464,8 +2463,8 @@ Analysis *analy;
     }
     else if ( strcmp( tokens[0], "clrthr" ) == 0 )
     {
-	set_cutoff_colors( FALSE, 
-	                   analy->mm_result_set[0], analy->mm_result_set[1] );
+        set_cutoff_colors( FALSE, 
+                           analy->mm_result_set[0], analy->mm_result_set[1] );
         analy->zero_result = 0.0;
         analy->mm_result_set[0] = FALSE;
         analy->mm_result_set[1] = FALSE;
@@ -2489,13 +2488,20 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "globmm" ) == 0 )
     {
         get_global_minmax( analy );
-	redraw = TRUE;
+        redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "resetmm" ) == 0 )
     {
-	redraw = reset_global_minmax( analy );
+        redraw = reset_global_minmax( analy );
         if ( redraw )
             load_result( analy, TRUE );
+    }
+    else if ( strcmp( tokens[0], "outmm" ) == 0 )
+    {
+        if ( token_cnt < 2 )
+            popup_dialog( USAGE_POPUP, "outmm <file name> [<mat>...]" );
+        else
+            outmm( analy, tokens, token_cnt );
     }
     else if ( strcmp( tokens[0], "tellmm" ) == 0 )
     {
@@ -2626,15 +2632,15 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "light" ) == 0 )
     {
         if ( token_cnt >= 6 )
-	{
+        {
             set_light( token_cnt, tokens );
             redraw = TRUE;
-	}
-	else
-	    popup_dialog( USAGE_POPUP, 
-	                  "light n x y z w [amb r g b] [diff r g b]\n%s%s", 
-	                  "      [spec r g b] [spotdir x y z] ", 
-			  "[spot exp ang]" );
+        }
+        else
+            popup_dialog( USAGE_POPUP, 
+                          "light n x y z w [amb r g b] [diff r g b]\n%s%s", 
+                          "      [spec r g b] [spotdir x y z] ", 
+                          "[spot exp ang]" );
     }
     else if ( strcmp( tokens[0], "tlx" ) == 0 )
     {
@@ -2795,7 +2801,7 @@ Analysis *analy;
     }
     else if ( strcmp( tokens[0], "outref" ) == 0 )
     {
-	write_ref_file( tokens, token_cnt, analy );
+        write_ref_file( tokens, token_cnt, analy );
     }
     else if ( strcmp( tokens[0], "outobj" ) == 0 )
     {
@@ -2937,9 +2943,9 @@ Analysis *analy;
 
     if ( redraw || redrawview )
     {
-	    if ( analy->center_view )
+            if ( analy->center_view )
             center_view( analy );
-	    if ( analy->refresh )
+            if ( analy->refresh )
             update_display( analy );
     }
     analy->result_mod = FALSE;
@@ -2976,7 +2982,7 @@ Bool_type *p_renorm;
     Material_property_type j;
     
     if ( token_cnt == 1 )
-	return;
+        return;
     
     mtl_qty = ( analy->num_materials < MAX_MATERIALS )
               ? analy->num_materials : MAX_MATERIALS;
@@ -2992,89 +2998,89 @@ Bool_type *p_renorm;
     while( parsing )
     {
         if ( incomplete_cmd == TRUE )
-	{
+        {
             read = parse_embedded_mtl_cmd( analy, tokens + i, cnt, 
-	                                   preview_set, save_props, 
-					   p_renorm );
-	    incomplete_cmd = FALSE;
-	    if ( read + first_token >= token_cnt )
-	    {
-		parsing = FALSE;
-	        redraw = TRUE;
-	    }
-	    else
-	        i += read;
-	}
-	else if ( strcmp( tokens[i], "preview" ) == 0 )
-	{
-	    i++;
-	    preview_set = TRUE;
-	}
-	else if ( strcmp( tokens[i], "apply" ) == 0 )
-	{
-	    /* Free saved copies of material properties. */
-	    for ( j = AMBIENT; j < MTL_PROP_QTY; j++ )
-	    {
-		if ( save_props[j] != NULL )
-		{
-		    free( save_props[j] );
-		    save_props[j] = NULL;
-		}
-	    }
-	    preview_set = FALSE;
-	    parsing = FALSE;
-	    redraw = FALSE;
-	}
-	else if ( strcmp( tokens[i], "cancel" ) == 0 )
-	{
-	    /* Replace current structures with saved copies. */
-	    for ( j = AMBIENT; j < MTL_PROP_QTY; j++ )
-	    {
-		if ( save_props[j] != NULL )
-		{
-		    if ( j == AMBIENT )
-			p_dest = &v_win->matl_ambient[0][0];
-		    else if ( j == DIFFUSE )
-			p_dest = &v_win->matl_diffuse[0][0];
-		    else if ( j == SPECULAR )
-			p_dest = &v_win->matl_specular[0][0];
-		    else if ( j == EMISSIVE )
-			p_dest = &v_win->matl_emission[0][0];
-		    else if ( j == SHININESS )
-			p_dest = &v_win->matl_shininess[0];
-		    
-		    qty_vals = ( j == SHININESS ) ? mtl_qty : 4 * mtl_qty;
-		    bound = &save_props[j][0] + qty_vals;
-		    p_src = &save_props[j][0];
-		    
-		    for ( ; p_src < bound; *p_dest++ = *p_src++ );
-		    free( save_props[j] );
-		    save_props[j] = NULL;
-		}
-	    }
-	    preview_set = FALSE;
-	    parsing = FALSE;
-	    redraw = TRUE;
-	}
-	else if ( strcmp( tokens[i],  "continue" ) == 0 )
-	{
-	    parsing = FALSE;
-	    incomplete_cmd = TRUE;
-	    redraw = FALSE;
-	}
-	else
-	{
+                                           preview_set, save_props, 
+                                           p_renorm );
+            incomplete_cmd = FALSE;
+            if ( read + first_token >= token_cnt )
+            {
+                parsing = FALSE;
+                redraw = TRUE;
+            }
+            else
+                i += read;
+        }
+        else if ( strcmp( tokens[i], "preview" ) == 0 )
+        {
+            i++;
+            preview_set = TRUE;
+        }
+        else if ( strcmp( tokens[i], "apply" ) == 0 )
+        {
+            /* Free saved copies of material properties. */
+            for ( j = AMBIENT; j < MTL_PROP_QTY; j++ )
+            {
+                if ( save_props[j] != NULL )
+                {
+                    free( save_props[j] );
+                    save_props[j] = NULL;
+                }
+            }
+            preview_set = FALSE;
+            parsing = FALSE;
+            redraw = FALSE;
+        }
+        else if ( strcmp( tokens[i], "cancel" ) == 0 )
+        {
+            /* Replace current structures with saved copies. */
+            for ( j = AMBIENT; j < MTL_PROP_QTY; j++ )
+            {
+                if ( save_props[j] != NULL )
+                {
+                    if ( j == AMBIENT )
+                        p_dest = &v_win->matl_ambient[0][0];
+                    else if ( j == DIFFUSE )
+                        p_dest = &v_win->matl_diffuse[0][0];
+                    else if ( j == SPECULAR )
+                        p_dest = &v_win->matl_specular[0][0];
+                    else if ( j == EMISSIVE )
+                        p_dest = &v_win->matl_emission[0][0];
+                    else if ( j == SHININESS )
+                        p_dest = &v_win->matl_shininess[0];
+                    
+                    qty_vals = ( j == SHININESS ) ? mtl_qty : 4 * mtl_qty;
+                    bound = &save_props[j][0] + qty_vals;
+                    p_src = &save_props[j][0];
+                    
+                    for ( ; p_src < bound; *p_dest++ = *p_src++ );
+                    free( save_props[j] );
+                    save_props[j] = NULL;
+                }
+            }
+            preview_set = FALSE;
+            parsing = FALSE;
+            redraw = TRUE;
+        }
+        else if ( strcmp( tokens[i],  "continue" ) == 0 )
+        {
+            parsing = FALSE;
+            incomplete_cmd = TRUE;
+            redraw = FALSE;
+        }
+        else
+        {
             read = parse_embedded_mtl_cmd( analy, tokens + i, cnt, 
-	                                   preview_set, save_props, 
-					   p_renorm );
-	    if ( read + first_token >= token_cnt )
-	    {
-		parsing = FALSE;
-	        redraw = TRUE;
-	    }
-	    else
-	        i += read;
-	}
+                                           preview_set, save_props, 
+                                           p_renorm );
+            if ( read + first_token >= token_cnt )
+            {
+                parsing = FALSE;
+                redraw = TRUE;
+            }
+            else
+                i += read;
+        }
     }
     
     *p_redraw = redraw;
@@ -3123,203 +3129,203 @@ Bool_type *p_renorm;
     if ( reading_materials )
     {
         /* Read material numbers until end of list or a word is encountered. */
-	while ( is_numeric_token( tokens[i] ) && i < cnt )
-	{
-	    mtl = (atoi ( tokens[i] ) - 1) % MAX_MATERIALS;
-	    props.materials[props.mtl_cnt++] = mtl;
-	    i++;
-	}
-	
-	/*
-	 * If we ended reading materials for any reason other than
-	 * encountering the "continue" token, we're done reading materials.
-	 * We could be done even if "continue" occurs, but that can't be
-	 * known until the next call.
-	 */
-	if ( i == cnt || strcmp( tokens[i], "continue" ) != 0 )
-	    reading_materials = FALSE;
-	else
-	    return i;
+        while ( is_numeric_token( tokens[i] ) && i < cnt )
+        {
+            mtl = (atoi ( tokens[i] ) - 1) % MAX_MATERIALS;
+            props.materials[props.mtl_cnt++] = mtl;
+            i++;
+        }
+        
+        /*
+         * If we ended reading materials for any reason other than
+         * encountering the "continue" token, we're done reading materials.
+         * We could be done even if "continue" occurs, but that can't be
+         * known until the next call.
+         */
+        if ( i == cnt || strcmp( tokens[i], "continue" ) != 0 )
+            reading_materials = FALSE;
+        else
+            return i;
     }
     else if ( mat && props.cur_idx != 0 )
     {
         /*
-	 * Must be parsing a color property.  This assumes that when the
-	 * "mat" string is parsed there will always be at least one material
-	 * number to parse IN THE SAME CALL.  This is a safe assumption as
-	 * "mat" will be at most the third token and MAX_TOKENS should never
-	 * need to be set small (i.e., less than four), therefore we will
-	 * have at least started reading material numbers before encountering
-	 * the end of the tokens.  To have dropped into this block, reading
-	 * materials will have been finished, so if anything remains to be
-	 * read it must be color properties.
-	 */
-	for ( j = AMBIENT; j < MTL_PROP_QTY; j++ )
-	    if ( reading_cprop[j] )
-		break;
-	
-	if ( j == SHININESS )
-	    props.color_props[0] = atof( tokens[0] );
-	else if ( j != MTL_PROP_QTY )
-	{
-	    limit = 3 - props.cur_idx;
-	    for ( ; i < limit; i++ )
-	        props.color_props[props.cur_idx++] = 
-		    (GLfloat) atof( tokens[i] );
-	    props.cur_idx = 0;
-	}
+         * Must be parsing a color property.  This assumes that when the
+         * "mat" string is parsed there will always be at least one material
+         * number to parse IN THE SAME CALL.  This is a safe assumption as
+         * "mat" will be at most the third token and MAX_TOKENS should never
+         * need to be set small (i.e., less than four), therefore we will
+         * have at least started reading material numbers before encountering
+         * the end of the tokens.  To have dropped into this block, reading
+         * materials will have been finished, so if anything remains to be
+         * read it must be color properties.
+         */
+        for ( j = AMBIENT; j < MTL_PROP_QTY; j++ )
+            if ( reading_cprop[j] )
+                break;
+        
+        if ( j == SHININESS )
+            props.color_props[0] = atof( tokens[0] );
+        else if ( j != MTL_PROP_QTY )
+        {
+            limit = 3 - props.cur_idx;
+            for ( ; i < limit; i++ )
+                props.color_props[props.cur_idx++] = 
+                    (GLfloat) atof( tokens[i] );
+            props.cur_idx = 0;
+        }
     }
     
     /* Parse (rest of) tokens. */
     for ( ; i < cnt; i++ )
     {
         if ( is_numeric_token( tokens[i] ) )
-	{
-	    /* Material numbers precede any other numeric tokens. */
-	    if ( props.mtl_cnt == 0 )
-	        reading_materials = TRUE;
-	    
-	    if ( reading_materials )
-	    {
-	        mtl = (atoi ( tokens[i] ) - 1) % MAX_MATERIALS;
-	        props.materials[props.mtl_cnt++] = mtl;
-	    }
-	    else if ( mat )
-	    {
-		props.color_props[props.cur_idx++] = 
-		    (GLfloat) atof( tokens[i] );
-	    }
-	    else
-	        popup_dialog( WARNING_POPUP, "Bad Mtl Mgr numeric token parse." );
-	}
-	else if ( strcmp( tokens[i], "continue" ) == 0 )
-	    /* Kick out before incrementing i again. */
-	    break;
-	else if ( mat )
-	{
-	    /* Must be the start of a color property specification. */
-	    reading_materials = FALSE;
-	    mqty = ( analy->num_materials < MAX_MATERIALS )
-	           ? analy->num_materials : MAX_MATERIALS;
-	    if ( strcmp( tokens[i], "amb" ) == 0 )
-	    {
-		if ( preview )
-		    copy_property( AMBIENT, &v_win->matl_ambient[0][0], 
-		                   &save[AMBIENT], mqty );
-		update_previous_prop( AMBIENT, reading_cprop, &props );
-		reading_cprop[AMBIENT] = TRUE;
-	    }
-	    else if ( strcmp( tokens[i], "diff" ) == 0 )
-	    {
-		if ( preview )
-		    copy_property( DIFFUSE, &v_win->matl_diffuse[0][0], 
-		                   &save[DIFFUSE], mqty );
-		update_previous_prop( DIFFUSE, reading_cprop, &props );
-		reading_cprop[DIFFUSE] = TRUE;
-	    }
-	    else if ( strcmp( tokens[i], "spec" ) == 0 )
-	    {
-		if ( preview )
-		    copy_property( SPECULAR, &v_win->matl_specular[0][0], 
-		                   &save[SPECULAR], mqty );
-		update_previous_prop( SPECULAR, reading_cprop, &props );
-		reading_cprop[SPECULAR] = TRUE;
-	    }
-	    else if ( strcmp( tokens[i], "emis" ) == 0 )
-	    {
-		if ( preview )
-		    copy_property( EMISSIVE, &v_win->matl_emission[0][0], 
-		                   &save[EMISSIVE], mqty );
-		update_previous_prop( EMISSIVE, reading_cprop, &props );
-		reading_cprop[EMISSIVE] = TRUE;
-	    }
-	    else if ( strcmp( tokens[i], "shine" ) == 0 )
-	    {
-		if ( preview )
-		    copy_property( SHININESS, &v_win->matl_shininess[0], 
-		                   &save[SHININESS], mqty );
-		update_previous_prop( SHININESS, reading_cprop, &props );
-		reading_cprop[SHININESS] = TRUE;
-	    }
-	}
-	else if ( strcmp( tokens[i], "vis" ) == 0 )
-	    visible = TRUE;
-	else if ( strcmp( tokens[i], "invis" ) == 0 )
-	    invisible = TRUE;
-	else if ( strcmp( tokens[i], "enable" ) == 0 )
-	    enable = TRUE;
-	else if ( strcmp( tokens[i], "disable" ) == 0 )
-	    disable = TRUE;
-	else if ( strcmp( tokens[i], "mat" ) == 0 )
-	    mat = TRUE;
-	else if ( strcmp( tokens[i], "default" ) == 0 )
-	    apply_defaults = TRUE;
-	else if ( strcmp( tokens[i], "all" ) == 0 )
-	{
-	    if ( invisible || visible || enable || disable )
-	        modify_all = TRUE;
-	}
-	else
-	    popup_dialog( WARNING_POPUP, "Bad Mtl Mgr parse." );
+        {
+            /* Material numbers precede any other numeric tokens. */
+            if ( props.mtl_cnt == 0 )
+                reading_materials = TRUE;
+            
+            if ( reading_materials )
+            {
+                mtl = (atoi ( tokens[i] ) - 1) % MAX_MATERIALS;
+                props.materials[props.mtl_cnt++] = mtl;
+            }
+            else if ( mat )
+            {
+                props.color_props[props.cur_idx++] = 
+                    (GLfloat) atof( tokens[i] );
+            }
+            else
+                popup_dialog( WARNING_POPUP, "Bad Mtl Mgr numeric token parse." );
+        }
+        else if ( strcmp( tokens[i], "continue" ) == 0 )
+            /* Kick out before incrementing i again. */
+            break;
+        else if ( mat )
+        {
+            /* Must be the start of a color property specification. */
+            reading_materials = FALSE;
+            mqty = ( analy->num_materials < MAX_MATERIALS )
+                   ? analy->num_materials : MAX_MATERIALS;
+            if ( strcmp( tokens[i], "amb" ) == 0 )
+            {
+                if ( preview )
+                    copy_property( AMBIENT, &v_win->matl_ambient[0][0], 
+                                   &save[AMBIENT], mqty );
+                update_previous_prop( AMBIENT, reading_cprop, &props );
+                reading_cprop[AMBIENT] = TRUE;
+            }
+            else if ( strcmp( tokens[i], "diff" ) == 0 )
+            {
+                if ( preview )
+                    copy_property( DIFFUSE, &v_win->matl_diffuse[0][0], 
+                                   &save[DIFFUSE], mqty );
+                update_previous_prop( DIFFUSE, reading_cprop, &props );
+                reading_cprop[DIFFUSE] = TRUE;
+            }
+            else if ( strcmp( tokens[i], "spec" ) == 0 )
+            {
+                if ( preview )
+                    copy_property( SPECULAR, &v_win->matl_specular[0][0], 
+                                   &save[SPECULAR], mqty );
+                update_previous_prop( SPECULAR, reading_cprop, &props );
+                reading_cprop[SPECULAR] = TRUE;
+            }
+            else if ( strcmp( tokens[i], "emis" ) == 0 )
+            {
+                if ( preview )
+                    copy_property( EMISSIVE, &v_win->matl_emission[0][0], 
+                                   &save[EMISSIVE], mqty );
+                update_previous_prop( EMISSIVE, reading_cprop, &props );
+                reading_cprop[EMISSIVE] = TRUE;
+            }
+            else if ( strcmp( tokens[i], "shine" ) == 0 )
+            {
+                if ( preview )
+                    copy_property( SHININESS, &v_win->matl_shininess[0], 
+                                   &save[SHININESS], mqty );
+                update_previous_prop( SHININESS, reading_cprop, &props );
+                reading_cprop[SHININESS] = TRUE;
+            }
+        }
+        else if ( strcmp( tokens[i], "vis" ) == 0 )
+            visible = TRUE;
+        else if ( strcmp( tokens[i], "invis" ) == 0 )
+            invisible = TRUE;
+        else if ( strcmp( tokens[i], "enable" ) == 0 )
+            enable = TRUE;
+        else if ( strcmp( tokens[i], "disable" ) == 0 )
+            disable = TRUE;
+        else if ( strcmp( tokens[i], "mat" ) == 0 )
+            mat = TRUE;
+        else if ( strcmp( tokens[i], "default" ) == 0 )
+            apply_defaults = TRUE;
+        else if ( strcmp( tokens[i], "all" ) == 0 )
+        {
+            if ( invisible || visible || enable || disable )
+                modify_all = TRUE;
+        }
+        else
+            popup_dialog( WARNING_POPUP, "Bad Mtl Mgr parse." );
     }
     
     if ( i >= cnt )
     {
-	/* 
-	 * Didn't encounter "continue", so clean-up and reset
-	 * static variables for next new command.
-	 */
-	if ( mat )
-	{
-	    update_previous_prop( MTL_PROP_QTY, reading_cprop, &props );
-	    mat = FALSE;
-	}
-	else if ( apply_defaults )
-	{
-	    define_materials( props.materials, props.mtl_cnt );
-	    apply_defaults = FALSE;
-	}
-	else
-	{
-	    if ( visible || invisible )
-	    {
-	        if ( modify_all )
-		{
-		    for ( k = 0; k < analy->num_materials; k++ )
-		        analy->hide_material[k] = invisible;
-		    modify_all = FALSE;
-		}
-		else
-	            for ( k = 0; k < props.mtl_cnt; k++ )
-		        analy->hide_material[props.materials[k]] = invisible;
+        /* 
+         * Didn't encounter "continue", so clean-up and reset
+         * static variables for next new command.
+         */
+        if ( mat )
+        {
+            update_previous_prop( MTL_PROP_QTY, reading_cprop, &props );
+            mat = FALSE;
+        }
+        else if ( apply_defaults )
+        {
+            define_materials( props.materials, props.mtl_cnt );
+            apply_defaults = FALSE;
+        }
+        else
+        {
+            if ( visible || invisible )
+            {
+                if ( modify_all )
+                {
+                    for ( k = 0; k < analy->num_materials; k++ )
+                        analy->hide_material[k] = invisible;
+                    modify_all = FALSE;
+                }
+                else
+                    for ( k = 0; k < props.mtl_cnt; k++ )
+                        analy->hide_material[props.materials[k]] = invisible;
 
                 reset_face_visibility( analy );
                 if ( analy->dimension == 3 ) *p_renorm = TRUE;
                 analy->result_mod = TRUE;
                 visible = FALSE;
                 invisible = FALSE;
-	    }
-	    
-	    if ( enable || disable )
-	    {
-	        if ( modify_all )
-		{
-		    for ( k = 0; k < analy->num_materials; k++ )
-		        analy->disable_material[k] = disable;
-		    modify_all = FALSE;
-		}
-		else
-	            for ( k = 0; k < props.mtl_cnt; k++ )
-		        analy->disable_material[props.materials[k]] = disable;
+            }
+            
+            if ( enable || disable )
+            {
+                if ( modify_all )
+                {
+                    for ( k = 0; k < analy->num_materials; k++ )
+                        analy->disable_material[k] = disable;
+                    modify_all = FALSE;
+                }
+                else
+                    for ( k = 0; k < props.mtl_cnt; k++ )
+                        analy->disable_material[props.materials[k]] = disable;
 
                 analy->result_mod = TRUE;
                 load_result( analy, TRUE );
                 enable = FALSE;
                 disable = FALSE;
-	    }
-	}
-	reading_materials = FALSE;
-	props.mtl_cnt = 0;
+            }
+        }
+        reading_materials = FALSE;
+        props.mtl_cnt = 0;
     }
     
     return i;
@@ -3361,21 +3367,21 @@ Material_property_obj *props;
     for ( k = 0; k < props->mtl_cnt; k++ )
     {
         mtl = props->materials[k];
-	
-	if ( j == SHININESS )
-	    v_win->matl_shininess[mtl] = props->color_props[0];
-	else
-	{
+        
+        if ( j == SHININESS )
+            v_win->matl_shininess[mtl] = props->color_props[0];
+        else
+        {
             p_dest[mtl][0] = props->color_props[0];
             p_dest[mtl][1] = props->color_props[1];
             p_dest[mtl][2] = props->color_props[2];
             p_dest[mtl][3] = 1.0;
-	}
-	
-	if ( mtl == v_win->current_material )
-	    update_current_material( mtl, j );
+        }
+        
+        if ( mtl == v_win->current_material )
+            update_current_material( mtl, j );
     }
-	    
+            
     /* Clean-up for another specification. */
     update[j] = FALSE;
     props->cur_idx = 0;
@@ -3428,27 +3434,27 @@ Bool_type *p_redraw;
 
     if ( strcmp( tokens[1], "off" ) == 0 )
     {
-	analy->center_view = NO_CENTER;
-	*p_redraw = TRUE;
+        analy->center_view = NO_CENTER;
+        *p_redraw = TRUE;
     }
     else if ( strcmp( tokens[1], "hi" ) == 0 )
     {
         analy->center_view = HILITE;
         center_view( analy );
-	*p_redraw = TRUE;
+        *p_redraw = TRUE;
     }
     else if ( strcmp( tokens[1], "n" ) == 0 
               || strcmp( tokens[1], "node" ) == 0 )
     {
         ival = atoi( tokens[2] );
         if ( ival < 1 || ival > analy->state_p->nodes->cnt )
-    	    wrt_text( "Invalid node specified for view center.\n" );
+            wrt_text( "Invalid node specified for view center.\n" );
         else
         {
             analy->center_view = NODE;
-    	    analy->center_node = ival - 1;
-    	    center_view( analy );
-	    *p_redraw = TRUE;
+            analy->center_node = ival - 1;
+            center_view( analy );
+            *p_redraw = TRUE;
         }
     }
     else if ( token_cnt == 4 )
@@ -3458,13 +3464,13 @@ Bool_type *p_redraw;
         analy->view_center[2] = atof( tokens[3] );
         analy->center_view = POINT;
         center_view( analy );
-	*p_redraw = TRUE;
+        *p_redraw = TRUE;
     }
     else
         popup_dialog( USAGE_POPUP, "vcent off\n%s\n%s\n%s",
-		                   "vcent hi",
-		                   "vcent n|node <node_number>",
-    	                           "vcent <x> <y> <z>" );
+                                   "vcent hi",
+                                   "vcent n|node <node_number>",
+                                   "vcent <x> <y> <z>" );
 }
 
  
@@ -3699,7 +3705,7 @@ Refl_plane_obj *plane;
  * representation of an integer or floating point value
  * (does NOT recognize scientific notation).
  */
-static Bool_type
+Bool_type
 is_numeric_token( num_string )
 char *num_string;
 {
@@ -3716,17 +3722,17 @@ char *num_string;
      */
     for ( p_c = num_string; *p_c != '\0'; p_c++ )
     {
-	if ( *p_c > '9' )
-	    return FALSE;
-	else if ( *p_c < '0' )
-	    if ( *p_c != '.' )
-	        return FALSE;
-	    else
-	    {
-		pt_cnt++;
-		if ( pt_cnt > 1 )
-		    return FALSE;
-	    }
+        if ( *p_c > '9' )
+            return FALSE;
+        else if ( *p_c < '0' )
+            if ( *p_c != '.' )
+                return FALSE;
+            else
+            {
+                pt_cnt++;
+                if ( pt_cnt > 1 )
+                    return FALSE;
+            }
     }
     
     return (p_c == num_string) ? FALSE : TRUE;
@@ -3886,7 +3892,7 @@ Analysis *analy;
                      */
 
                     prake_token_cnt = tokenize( buffer, prake_tokens, 
-		                                (MAXTOKENS - 1) );
+                                                (MAXTOKENS - 1) );
 
                     if ( (0 != prake_token_cnt) &&
                          (comment = strstr( prake_tokens[0], "#" )) == NULL )
@@ -3898,17 +3904,17 @@ Analysis *analy;
                             strcpy( prake_tokens[0], "prake" );
                             prake_token_cnt++;
                             if ( (count = get_prake_data( prake_token_cnt, 
-			                                  prake_tokens, ptr_ival, 
+                                                          prake_tokens, ptr_ival, 
                                                           pt, vec, rgb )) > 0 )
                                 gen_trace_points( *ptr_ival, pt, vec, rgb, 
                                                   analy );
                             else
                                 popup_dialog( USAGE_POPUP, 
-				              "%s\n%s", usage1, usage2 );
+                                              "%s\n%s", usage1, usage2 );
                         }
                         else
                             popup_dialog( USAGE_POPUP, 
-				          "%s\n%s", usage1, usage2 );
+                                          "%s\n%s", usage1, usage2 );
                     }
                 }
                 fclose( prake_file );
@@ -3931,7 +3937,7 @@ Analysis *analy;
                     gen_trace_points( *ptr_ival, pt, vec, rgb, analy );
                 else
                     popup_dialog( USAGE_POPUP, "%s\n%s", 
-		                  usage1, usage2 );
+                                  usage1, usage2 );
             }
             else
                 popup_dialog( USAGE_POPUP, "%s\n%s", usage1, usage2 );
@@ -4007,12 +4013,12 @@ FILE *ofile;
     char
          *date_label   = "Date: ", 
          *file_creator = "Output file created by: ", 
-	 *infile_label = "Input file: "; 
+         *infile_label = "Input file: "; 
 
     fprintf( ofile, "#\n# %s%s\n# %s%s\n#\n# %s%s\n#\n",
              date_label, env.date, 
-	     file_creator, env.user_name, 
-	     infile_label, env.plotfile_name ); 
+             file_creator, env.user_name, 
+             infile_label, env.plotfile_name ); 
 
     return;
 }
@@ -4083,19 +4089,19 @@ Analysis *analy;
         width_column_3 = length_space +
                          ( ( number_width > length_z_label ) ?
                              number_width : length_z_label );
-			     
+                             
         subscript_0 = resultid_to_index[ analy->vec_id[0] ];
         length_vector_x_label = strlen ( trans_result[subscript_0][1] );
         width_column_4 = length_space +
                          ( ( number_width > length_vector_x_label ) ?
                              number_width : length_vector_x_label );
-			     
+                             
         subscript_1 = resultid_to_index[ analy->vec_id[1] ];
         length_vector_y_label = strlen ( trans_result[subscript_1][1] );
         width_column_5 = length_space +
                          ( ( number_width > length_vector_y_label ) ?
                              number_width : length_vector_y_label );
-			     
+                             
         subscript_2 = resultid_to_index[ analy->vec_id[2] ];
         length_vector_z_label = strlen ( trans_result[subscript_2][1] );
         width_column_6 = length_space +
@@ -4105,7 +4111,7 @@ Analysis *analy;
         if ( analy->vectors_at_nodes )
         {
             /* switch nodvec is set; Complete nodal data set:  3D */
-	    
+            
             qty_of_nodes = analy->state_p->nodes->cnt;
 
             /* Print column headings */
@@ -4137,7 +4143,7 @@ Analysis *analy;
             /* Print data */
             for (i = 0; i < 3; i++ )
                 get_result( analy->vec_id[i], analy->cur_state, 
-		            analy->tmp_result[i] );
+                            analy->tmp_result[i] );
 
             for ( i = 0; i < qty_of_nodes; i++ )
                 fprintf (
@@ -4463,50 +4469,50 @@ Analysis *analy;
               || strcmp( mode, "b" )  == 0 )
     {
         if ( analy->geom_p->beams == NULL )
-	    wrt_text( "\nNo beams present.\n" );
-	else
+            wrt_text( "\nNo beams present.\n" );
+        else
             tell_element_coords( id, 
-	                         el_label[BEAM_T], 
-			         2, 
-			         analy->geom_p->beams->cnt, 
-	                         analy->geom_p->beams->nodes, 
-	                         ( have_activity 
-			           ? analy->state_p->beams->activity : NULL ), 
-	                         analy->state_p->nodes, 
-			         analy->dimension );
+                                 el_label[BEAM_T], 
+                                 2, 
+                                 analy->geom_p->beams->cnt, 
+                                 analy->geom_p->beams->nodes, 
+                                 ( have_activity 
+                                   ? analy->state_p->beams->activity : NULL ), 
+                                 analy->state_p->nodes, 
+                                 analy->dimension );
     }
     else if ( strcmp( mode, "hex" ) == 0 
               || strcmp( mode, "brick" ) == 0 
-	      || strcmp( mode, "h" ) == 0 )
+              || strcmp( mode, "h" ) == 0 )
     {
         if ( analy->geom_p->bricks == NULL )
-	    wrt_text( "\nNo bricks present.\n" );
-	else
+            wrt_text( "\nNo bricks present.\n" );
+        else
             tell_element_coords( id, 
-	                         el_label[BRICK_T], 
-			         8, 
-	                         analy->geom_p->bricks->cnt, 
-	                         analy->geom_p->bricks->nodes, 
-	                         ( have_activity 
-	                           ? analy->state_p->bricks->activity : NULL ), 
-	                         analy->state_p->nodes, 
-	                         analy->dimension );
+                                 el_label[BRICK_T], 
+                                 8, 
+                                 analy->geom_p->bricks->cnt, 
+                                 analy->geom_p->bricks->nodes, 
+                                 ( have_activity 
+                                   ? analy->state_p->bricks->activity : NULL ), 
+                                 analy->state_p->nodes, 
+                                 analy->dimension );
     }
     else if ( strcmp( mode, "shell" ) == 0 
               || strcmp( mode, "s" ) == 0 )
     {
         if ( analy->geom_p->shells == NULL )
-	    wrt_text( "\nNo shells present.\n" );
-	else
+            wrt_text( "\nNo shells present.\n" );
+        else
             tell_element_coords( id, 
-	                         el_label[SHELL_T], 
-			         4, 
-	                         analy->geom_p->shells->cnt, 
-	                         analy->geom_p->shells->nodes, 
-	                         ( have_activity 
-	                           ? analy->state_p->shells->activity : NULL ), 
-	                         analy->state_p->nodes, 
-	                         analy->dimension );
+                                 el_label[SHELL_T], 
+                                 4, 
+                                 analy->geom_p->shells->cnt, 
+                                 analy->geom_p->shells->nodes, 
+                                 ( have_activity 
+                                   ? analy->state_p->shells->activity : NULL ), 
+                                 analy->state_p->nodes, 
+                                 analy->dimension );
     }
 
     return;
@@ -4539,7 +4545,7 @@ int dimensions;
     int width, el_buf_width;
     
     sprintf( el_buf, "%s %d", obj_label, el_ident );
-	
+        
     if ( el_ident >  0 && ( el_ident <= el_qty ) )
     {
         /* Set up to align output cleanly. */
@@ -4549,7 +4555,7 @@ int dimensions;
         /* For each node referenced by element... */
         for ( i = 0; i < node_qty; i++ )
         {
-	    /* Get node ident and its coordinates. */
+            /* Get node ident and its coordinates. */
             node_number = connects[i][el_ident - 1];
             node_id = node_number + 1;
 
@@ -4571,7 +4577,7 @@ int dimensions;
                 else
                     wrt_text( "%.*s  node %*d  x: % 9.6e  y: % 9.6e\n", 
                               el_buf_width, blanks, width, node_id, 
-			      x_coord, y_coord );
+                              x_coord, y_coord );
             }
             else
             {
@@ -4582,12 +4588,12 @@ int dimensions;
 
                     wrt_text( "%s  node %*d  x: % 9.6e  y: % 9.6e  z: % 9.6e\n", 
                               el_buf, width, node_id, 
-			      x_coord, y_coord, z_coord );
+                              x_coord, y_coord, z_coord );
                 }
                 else
                     wrt_text( "%.*s  node %*d  x: % 9.6e  y: % 9.6e  z: % 9.6e\n", 
                               el_buf_width, blanks, width, node_id, 
-			      x_coord, y_coord, z_coord );
+                              x_coord, y_coord, z_coord );
             }
         }
     }
@@ -4616,7 +4622,7 @@ int ident;
     for ( i = 0; i < node_cnt; i++ )
     {
         temp = (int) (log10( (double) connects[i][ident - 1] ) + 1.0);
-	
+        
         if ( temp > width ) 
             width = temp;
     }

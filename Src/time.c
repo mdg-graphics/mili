@@ -2,9 +2,9 @@
 /* 
  * time.c - Routines which execute time-related commands (like animation).
  * 
- * 	Donald J. Dovey
- * 	Lawrence Livermore National Laboratory
- * 	Jan 2 1992
+ *      Donald J. Dovey
+ *      Lawrence Livermore National Laboratory
+ *      Jan 2 1992
  *
  * Copyright (c) 1992 Regents of the University of California
  */
@@ -15,7 +15,8 @@
 
 /* Local routines. */
 static void interp_activity();
-
+static void write_nodal_mm_report();
+static void write_elem_mm_report();
 
 /*****************************************************************
  * TAG( anim_info )
@@ -345,7 +346,7 @@ Analysis *analy;
         /* Display the next state. */
         analy->cur_state = anim_info.cur_state;
         change_state( analy );
-	if ( analy->center_view )
+        if ( analy->center_view )
             center_view( analy );
         update_display( analy );
 
@@ -475,8 +476,8 @@ Analysis *analy;
 
         /* Update cut planes, isosurfs, contours. */
         update_vis( analy );
-	
-	if ( analy->center_view )
+        
+        if ( analy->center_view )
             center_view( analy );
 
         /*
@@ -571,8 +572,8 @@ Analysis *analy;
 
         for ( i = 0; i < analy->num_states; i++ )
         {
-	    init_mm_obj( &analy->tmp_elem_mm );
-	    
+            init_mm_obj( &analy->tmp_elem_mm );
+            
             get_result( analy->result_id, i, result );
             for ( j = 0; j < cnt; j++ )
             {
@@ -727,26 +728,26 @@ Bool_type *tellmm_redraw;
     /* Node/element label widths */
     if ( is_nodal_result( analy->result_id ) )
     {
-	obj_fwid = (int) ((double) 1.0 
-	                  + log10( (double) analy->geom_p->nodes->cnt ));
-	nam_fwid = 4; /* length of string "node" */
+        obj_fwid = (int) ((double) 1.0 
+                          + log10( (double) analy->geom_p->nodes->cnt ));
+        nam_fwid = 4; /* length of string "node" */
     }
     else
     {
         cnt1 = cnt2 = cnt3 = 0;
 
-	if ( analy->geom_p->bricks != NULL )
-	    cnt1 = analy->geom_p->bricks->cnt;
-	if ( analy->geom_p->shells != NULL )
-	    cnt2 = analy->geom_p->shells->cnt;
-	if ( analy->geom_p->beams != NULL )
-	    cnt3 = analy->geom_p->beams->cnt;
+        if ( analy->geom_p->bricks != NULL )
+            cnt1 = analy->geom_p->bricks->cnt;
+        if ( analy->geom_p->shells != NULL )
+            cnt2 = analy->geom_p->shells->cnt;
+        if ( analy->geom_p->beams != NULL )
+            cnt3 = analy->geom_p->beams->cnt;
 
-	cnt1 = MAX( cnt1, MAX( cnt2, cnt3 ) );
+        cnt1 = MAX( cnt1, MAX( cnt2, cnt3 ) );
     
         obj_fwid = (int) ((double) 1.0 + log10( (double) cnt1 ));
-	
-	nam_fwid = 5; /* length of longest of "beam", "shell", and "brick" */
+        
+        nam_fwid = 5; /* length of longest of "beam", "shell", and "brick" */
     }
     
     /* State number width */
@@ -758,7 +759,7 @@ Bool_type *tellmm_redraw;
     
     wrt_text( "\n\nReport of %s max/min values, states %d to %d:\n\n%s\n\n", 
               trans_result[resultid_to_index[analy->result_id]][1], 
-	      start_state, stop_state, 
+              start_state, stop_state, 
               "STATE          MAX                     MIN" );
 
     for ( i = start_idx; i < stop_idx; i++ )
@@ -783,14 +784,14 @@ Bool_type *tellmm_redraw;
             el_type = analy->elem_state_mm.el_type;
             el_id   = analy->elem_state_mm.mesh_object;
         }
-	
+        
         if ( analy->perform_unit_conversion )
         {
             low  = (analy->conversion_scale * el_mm[0]) 
                  + analy->conversion_offset;
             high = (analy->conversion_scale * el_mm[1]) 
                  + analy->conversion_offset;
-	}
+        }
         else
         {
             low  = el_mm[0];
@@ -798,9 +799,9 @@ Bool_type *tellmm_redraw;
         }
 
         wrt_text( " %*d    %9.2e  %*s %-*d    %9.2e  %*s %d\n", 
-	          st_fwid, state_id, 
-		  high, nam_fwid, el_label[el_type[1]], obj_fwid, el_id[1], 
-		  low, nam_fwid, el_label[el_type[0]], el_id[0] );
+                  st_fwid, state_id, 
+                  high, nam_fwid, el_label[el_type[1]], obj_fwid, el_id[1], 
+                  low, nam_fwid, el_label[el_type[0]], el_id[0] );
 
         if ( high > maximum_of_states )
         {
@@ -819,8 +820,8 @@ Bool_type *tellmm_redraw;
         }
 
         state_id++;
-	
-	cache_global_minmax( analy );
+        
+        cache_global_minmax( analy );
     }
 
     wrt_text( " \n" );
@@ -874,6 +875,642 @@ Bool_type *tellmm_redraw;
     /* update cut planes, isosurfaces, contours */
     if ( desired_result == analy->result_id )
         update_vis( analy );
+}
+
+
+/*****************************************************************
+ * TAG( outmm )
+ *
+ * Prepare summary of minimums and maximums for specified time
+ * states of currently (or specified) result.
+ *
+ * NOTE:  Similar to get_global_minmax
+ *
+ */
+void
+outmm( analy, tokens, token_cnt )
+Analysis *analy;
+char tokens[MAXTOKENS][TOKENLENGTH];
+int token_cnt;
+{
+    FILE *outfile;
+    int *beam_mat, *shell_mat, *hex_mat;
+    int req_mat_qty;
+    int *req_mats;
+    Bool_type is_nodal, is_beam, is_shell, is_hex;
+    Bool_type sorting;
+    float *beam_res, *shell_res, *hex_res;
+    int beam_qty, shell_qty, hex_qty;
+    int mat, qty_states, idx, size, rm_idx;
+    int max_rows;
+    int *mat_flags;
+    float *mins, *maxs;
+    int *min_ids, *max_ids;
+    float val;
+    int cur_state;
+    int i, j;
+    
+    if ( analy->result_id == VAL_NONE )
+    {
+        popup_dialog( INFO_POPUP, "%s\n%s",
+                      "Please specify a current result with \"show\",",
+                      "then retry \"outmm\"." );
+        return;
+    }
+
+    /*
+     * Filter input data
+     */
+
+    if ( (outfile = fopen( tokens[1], "w")) == 0 )
+    {
+        popup_dialog( WARNING_POPUP, "Unable to open output file %s.\n", 
+                      tokens[1] );
+        return;
+    }
+    
+    if ( is_numeric_token( tokens[1] ) )
+        popup_dialog( INFO_POPUP, "Writing outmm output to file \"%s\".",
+                      tokens[1] );
+    
+    if ( token_cnt > 2 )
+    {
+        req_mat_qty = token_cnt - 2;
+        req_mats = NEW_N( int, req_mat_qty, "Requested outmm materials" );
+        
+        rm_idx = 0;
+        for ( i = 2; i < token_cnt; i++ )
+        {
+            req_mats[rm_idx] = atoi( tokens[i] ) - 1;
+            
+            if ( req_mats[rm_idx] >= 0 
+                 && req_mats[rm_idx] < analy->num_materials )
+                rm_idx++;
+            else
+                popup_dialog( WARNING_POPUP,
+                              "Material %s out of range; ignored.", tokens[i] );
+        }
+     
+        if ( rm_idx == 0 )
+        {
+            popup_dialog( WARNING_POPUP, "%s\n%s",
+                          "Unable to successfully parse any materials.",
+                          "Aborting \"outmm\" command." );
+            free( req_mats );
+            fclose( outfile );
+            return;
+        }
+
+        req_mat_qty = rm_idx;
+        
+        /* Bubble sort to ensure material numbers are in ascending order. */
+        sorting = TRUE;
+        while ( sorting )
+        {
+            sorting = FALSE;
+            for ( i = 1; i < req_mat_qty; i++ )
+            {
+                if ( req_mats[i - 1] > req_mats[i] )
+                {
+                    SWAP( val, req_mats[i - 1], req_mats[i] );
+                    sorting = TRUE;
+                }
+            }
+        }
+    }
+    else
+    {
+        /* Initialize requested materials array to all materials. */
+        req_mat_qty = analy->num_materials;
+        req_mats = NEW_N( int, req_mat_qty, "Requested outmm all materials" );
+        for ( i = 0; i < req_mat_qty; i++ )
+            req_mats[i] = i;
+    }
+    
+    qty_states = analy->num_states;
+
+    /* Set mesh object source flags. */
+    is_nodal = is_nodal_result( analy->result_id );
+    is_beam = is_beam_result( analy->result_id )
+              && analy->geom_p->beams != NULL;
+    is_shell = ( is_shell_result( analy->result_id )
+                 || is_shared_result( analy->result_id ) )
+               && analy->geom_p->shells != NULL;
+    is_hex = ( is_hex_result( analy->result_id )
+               || is_shared_result( analy->result_id ) )
+             && analy->geom_p->bricks != NULL;
+    
+    /* Init local references for improved performance. */
+    if ( is_beam )
+    {
+        beam_mat = analy->geom_p->beams->mat;
+        beam_res = analy->beam_result;
+        beam_qty = analy->geom_p->beams->cnt;
+    }
+
+    if ( is_shell )
+    {
+        shell_mat = analy->geom_p->shells->mat;
+        shell_res = analy->shell_result;
+        shell_qty = analy->geom_p->shells->cnt;
+    }
+
+    if ( is_hex )
+    {
+        hex_mat = analy->geom_p->bricks->mat;
+        hex_res = analy->hex_result;
+        hex_qty = analy->geom_p->bricks->cnt;
+    }
+
+    /*
+     * Allocate tables.  For nodal results, we don't discriminate by
+     * material so only one per-state array is required.  For element
+     * results, need one per-state array per material.
+     */
+    if ( is_nodal )
+    {
+        max_rows = 1;
+        size = analy->num_states;
+        mins = NEW_N( float, size, "Nodal min table" );
+        maxs = NEW_N( float, size, "Nodal max table" );
+        min_ids = NEW_N( int, size, "Nodal min id table" );
+        max_ids = NEW_N( int, size, "Nodal max id table" );
+    }
+    else
+    {
+        max_rows = analy->num_materials;
+        size = max_rows * analy->num_states;
+        mins = NEW_N( float, size, "Nodal min table" );
+        maxs = NEW_N( float, size, "Nodal max table" );
+        min_ids = NEW_N( int, size, "Nodal min id table" );
+        max_ids = NEW_N( int, size, "Nodal max id table" );
+        mat_flags = NEW_N( Bool_type, max_rows, "Mat use flags" );
+    }
+     
+    /* Initialize min and max value arrays. */
+    for ( i = 0; i < size; i++ )
+    {
+        mins[i] = MAXFLOAT;
+        maxs[i] = -MAXFLOAT;
+    }
+     
+    /* Initialize material use flags. */
+    if ( !is_nodal )
+    {   
+        if ( is_beam )
+            for ( i = 0; i < beam_qty; i++ )
+                mat_flags[beam_mat[i]] = BEAM_T;
+        
+        if ( is_shell )
+            for ( i = 0; i < shell_qty; i++ )
+                mat_flags[shell_mat[i]] = SHELL_T;
+        
+        if ( is_hex )
+            for ( i = 0; i < hex_qty; i++ )
+                mat_flags[hex_mat[i]] = BRICK_T;
+    }
+
+    /* retain current state data */
+    cur_state = analy->cur_state;
+
+    /* Loop over states to fill tables. */
+    for ( i = 0; i < analy->num_states; i++ )
+    {
+        analy->cur_state = i;
+        analy->state_p   = get_state( i, analy->state_p );
+
+        /* Update result */
+        load_result( analy, TRUE );
+
+        if ( is_nodal )
+        {
+            mins[i] = analy->state_mm[0];
+            maxs[i] = analy->state_mm[1];
+            min_ids[i] = analy->state_mm_nodes[0];
+            max_ids[i] = analy->state_mm_nodes[1];
+        }
+        else
+        {
+            if ( is_beam )
+            {
+                for ( j = 0; j < beam_qty; j++ )
+                {
+                    mat = beam_mat[j];
+                    idx = mat * qty_states + i;
+                    val = beam_res[j];
+
+                    if ( val < mins[idx] )
+                    {
+                        mins[idx] = val;
+                        min_ids[idx] = j + 1;
+                    }
+                    if ( val > maxs[idx] )
+                    {
+                        maxs[idx] = val;
+                        max_ids[idx] = j + 1;
+                    }
+                }
+            }
+
+            if ( is_shell )
+            {
+                for ( j = 0; j < shell_qty; j++ )
+                {
+                    mat = shell_mat[j];
+                    idx = mat * qty_states + i;
+                    val = shell_res[j];
+
+                    if ( val < mins[idx] )
+                    {
+                        mins[idx] = val;
+                        min_ids[idx] = j + 1;
+                    }
+                    if ( val > maxs[idx] )
+                    {
+                        maxs[idx] = val;
+                        max_ids[idx] = j + 1;
+                    }
+                }
+            }
+
+            if ( is_hex )
+            {
+                for ( j = 0; j < hex_qty; j++ )
+                {
+                    mat = hex_mat[j];
+                    idx = mat * qty_states + i;
+                    val = hex_res[j];
+
+                    if ( val < mins[idx] )
+                    {
+                        mins[idx] = val;
+                        min_ids[idx] = j + 1;
+                    }
+                    if ( val > maxs[idx] )
+                    {
+                        maxs[idx] = val;
+                        max_ids[idx] = j + 1;
+                    }
+                }
+            }
+        }
+    }
+     
+    /* Convert data units if requested. */   
+    if ( analy->perform_unit_conversion )
+    {
+        float scale, offset;
+        
+        scale = analy->conversion_scale;
+        offset = analy->conversion_offset;
+
+        if ( is_nodal )
+        {
+            for ( i = 0; i < qty_states; i++ )
+            {
+                mins[i] = (scale * mins[i]) + offset;
+                maxs[i] = (scale * maxs[i]) + offset;
+            }
+        }
+        else
+        {
+            float *mat_min_row, *mat_max_row;
+            
+            mat_min_row = mins;
+            mat_max_row = maxs;
+            rm_idx = 0;
+
+            for ( i = 0; i < max_rows && rm_idx < req_mat_qty; i++ )
+            {
+                /* Increment material index to next requested material. */
+                while ( i < req_mats[rm_idx] )
+                {
+                    i++;
+                    mat_min_row += qty_states;
+                    mat_max_row += qty_states;
+                }
+
+                if ( mat_flags[i] )
+                {
+                    for ( j = 0; j < qty_states; j++ )
+                    {
+                        mat_min_row[j] = (scale * mat_min_row[j]) + offset;
+                        mat_max_row[j] = (scale * mat_max_row[j]) + offset;
+                    }
+                }
+                
+                mat_min_row += qty_states;
+                mat_max_row += qty_states;
+                rm_idx++;
+            }
+        }
+    }
+    
+    /*
+     * Output.
+     */
+
+    if ( is_nodal )
+        write_nodal_mm_report( analy, outfile, mins, min_ids, maxs, max_ids );
+    else
+        write_elem_mm_report( analy, outfile, mins, min_ids, maxs, max_ids,
+                              is_beam, is_shell, is_hex, mat_flags, 
+                              req_mat_qty, req_mats );
+    
+    fclose( outfile );
+    
+    free( req_mats );
+    free( mins );
+    free( maxs );
+    free( min_ids );
+    free( max_ids );
+
+    /*
+     * Return to original status
+     */
+    analy->cur_state = cur_state;
+    analy->state_p = get_state( analy->cur_state, analy->state_p );
+    load_result( analy, TRUE );
+}
+
+
+/*****************************************************************
+ * TAG( write_nodal_mm_report )
+ *
+ * Output to text file min/max data for nodal result.
+ */
+static void
+write_nodal_mm_report( analy, outfile, mins, min_ids, maxs, max_ids )
+Analysis *analy;
+FILE *outfile;
+float *mins;
+int *min_ids;
+float *maxs;
+int *max_ids;
+{
+    int qty_states;
+    int i, min_st, max_st, limit_st; 
+    int ident_width, node_label_width, node_pre;
+    float minval, maxval;
+    char *node_label = "Node";
+    char *min_label = " <min", *max_label = " <<<max";
+    char *std_out_format = " %5d  %12.6e %10.3e %*d  %10.3e %*d\n";
+    char *mm_out_format = " %5d  %12.6e %10.3e %*d  %10.3e %*d%s";
+    char *blanks = "                    ";
+    Bool_type min_first;
+    
+    qty_states = analy->num_states;
+    
+    /* Determine states with min and max values. */
+    minval = mins[0];
+    maxval = maxs[0];
+    min_st = max_st = 0;
+    for ( i = 1; i < qty_states; i++ )
+    {
+        if ( mins[i] < minval )
+        {
+            minval = mins[i];
+            min_st = i;
+        }
+        
+        if ( maxs[i] > maxval )
+        {
+            maxval = maxs[i];
+            max_st = i;
+        }
+    }
+
+    min_first = ( min_st <= max_st ) ? TRUE : FALSE;
+    
+    /* Dump preamble. */
+    fprintf( outfile, "# Report of nodal %s min/max values.\n",
+             trans_result[resultid_to_index[analy->result_id]][1] );
+    write_preamble( outfile );
+     
+    /* Calculate field width parameters. */   
+    ident_width = (int) ((double) 1.0 
+                         + log10( (double) analy->geom_p->nodes->cnt ));
+    node_label_width = strlen( node_label );
+    if ( ident_width < node_label_width )
+        ident_width = node_label_width;
+    
+    node_pre = (ident_width - node_label_width + 1) / 2;
+    
+    /* Dump column headers. */
+    fprintf( outfile, "# State     Time       Maximum%.*s%s%.*sMinimum%.*s%s\n",
+             2 + node_pre, blanks, node_label, 
+             ident_width - node_label_width - node_pre + 4, blanks,
+             2 + node_pre, blanks, node_label );
+
+    /* Dump states before the first min or max extreme. */
+    limit_st = min_first ? min_st : max_st;
+    for ( i = 0; i < limit_st; i++ )
+        fprintf( outfile, std_out_format,
+                 i + 1, analy->state_times[i], maxs[i], ident_width, max_ids[i],
+                 mins[i], ident_width, min_ids[i] );
+    
+    /* Dump the min or max extreme which occurs first. */
+    fprintf( outfile, mm_out_format,
+             i + 1, analy->state_times[i], maxs[i], ident_width, max_ids[i],
+             mins[i], ident_width, min_ids[i], 
+             (min_first ? min_label : max_label) );
+    if ( min_st == max_st )
+        fprintf( outfile, " %s\n", max_label );
+    else
+        fprintf( outfile, "\n" );
+    i++;
+    
+    /* Dump the states after first extreme but before the second extreme. */
+    limit_st = min_first ? max_st : min_st;
+    for ( ; i < limit_st; i++ )
+        fprintf( outfile, std_out_format,
+                 i + 1, analy->state_times[i], maxs[i], ident_width, max_ids[i],
+                 mins[i], ident_width, min_ids[i] );
+    
+    /* Dump the second min or max extreme. */
+    if ( min_st != max_st )
+    {
+        fprintf( outfile, mm_out_format,
+                 i + 1, analy->state_times[i], maxs[i], ident_width, max_ids[i],
+                 mins[i], ident_width, min_ids[i], 
+                 (min_first ? max_label : min_label) );
+        fprintf( outfile, "\n" );
+        i++;
+    }
+    
+    /* Dump the states after the second extreme. */
+    for ( ; i < qty_states; i++ )
+        fprintf( outfile, std_out_format,
+                 i + 1, analy->state_times[i], maxs[i], ident_width, max_ids[i],
+                 mins[i], ident_width, min_ids[i] );
+}
+
+
+/*****************************************************************
+ * TAG( write_elem_mm_report )
+ *
+ * Output to text file min/max data for element result.
+ */
+static void
+write_elem_mm_report( analy, outfile, mins, min_ids, maxs, max_ids, is_beam, 
+                      is_shell, is_hex, mat_flags, req_mat_qty, req_mats )
+Analysis *analy;
+FILE *outfile;
+float *mins;
+int *min_ids;
+float *maxs;
+int *max_ids;
+Bool_type is_beam;
+Bool_type is_shell;
+Bool_type is_hex;
+int *mat_flags;
+int req_mat_qty;
+int *req_mats;
+{
+    int qty_states;
+    int i, j, min_st, max_st, rm_idx, limit_st, max_rows; 
+    int ident_width, elem_label_width, node_pre;
+    float minval, maxval;
+    char *header = 
+        "# Material  State     Time       Maximum%.*s%s%.*sMinimum%.*s%s\n";
+    char *elem_label = "Elem";
+    char *min_label = " <min", *max_label = " <<<max";
+    char *std_out_format = "   %4d    %5d  %12.6e %10.3e %*d  %10.3e %*d\n";
+    char *mm_out_format = 
+        "   %4d    %5d  %12.6e %10.3e %*d  %10.3e %*d%s";
+    char *blanks = "                    ";
+    Bool_type min_first;
+    float *mat_min_row, *mat_max_row;
+    int *mat_min_id, *mat_max_id;
+    int beam_qty, shell_qty, hex_qty, max_qty;
+    
+    qty_states = analy->num_states;
+    max_rows = analy->num_materials;
+
+    /* Dump preamble. */
+    fprintf( outfile, 
+             "# Report of %s min/max values %s.\n",
+             trans_result[resultid_to_index[analy->result_id]][1],
+             (( max_rows == req_mat_qty ) 
+              ? "by material" : "on selected materials") );
+    write_preamble( outfile );
+     
+    /* Calculate field width parameters. */
+    beam_qty = is_beam ? analy->geom_p->beams->cnt : 0;
+    shell_qty = is_shell ? analy->geom_p->shells->cnt : 0;
+    hex_qty = is_hex ? analy->geom_p->bricks->cnt : 0;
+    max_qty = MAX( beam_qty, MAX( shell_qty, hex_qty ) );
+    
+    ident_width = (int) ((double) 1.0 + log10( (double) max_qty ));
+
+    elem_label_width = strlen( elem_label );
+    if ( ident_width < elem_label_width )
+        ident_width = elem_label_width;
+    
+    node_pre = (ident_width - elem_label_width + 1) / 2;
+    
+    /* Loop over materials, dumping all states per requested material. */
+    mat_min_row = mins;
+    mat_max_row = maxs;
+    mat_min_id = min_ids;
+    mat_max_id = max_ids;
+    rm_idx = 0;
+
+    for ( i = 0; i < max_rows && rm_idx < req_mat_qty; i++ )
+    {
+        /* Increment material index to next requested material. */
+        while ( i < req_mats[rm_idx] )
+        {
+            i++;
+            mat_min_row += qty_states;
+            mat_min_id += qty_states;
+            mat_max_row += qty_states;
+            mat_max_id += qty_states;
+        }
+
+        if ( mat_flags[i] )
+        {
+            /* Dump column headers. */
+            fprintf( outfile, "#\n#\n" );
+            fprintf( outfile, header,
+                     2 + node_pre, blanks, elem_label, 
+                     ident_width - elem_label_width - node_pre + 4, blanks,
+                     2 + node_pre, blanks, elem_label );
+    
+            /* Determine states with min and max values. */
+            minval = mat_min_row[0];
+            maxval = mat_max_row[0];
+            min_st = max_st = 0;
+            for ( j = 1; j < qty_states; j++ )
+            {
+                if ( mat_min_row[j] < minval )
+                {
+                    minval = mat_min_row[j];
+                    min_st = j;
+                }
+                
+                if ( mat_max_row[j] > maxval )
+                {
+                    maxval = mat_max_row[j];
+                    max_st = j;
+                }
+            }
+
+            min_first = ( min_st <= max_st ) ? TRUE : FALSE;
+
+            /* Dump states before the first min or max extreme. */
+            limit_st = min_first ? min_st : max_st;
+            for ( j = 0; j < limit_st; j++ )
+                fprintf( outfile, std_out_format,
+                         i + 1, j + 1, analy->state_times[j], mat_max_row[j], 
+                         ident_width, mat_max_id[j], mat_min_row[j], 
+                         ident_width, mat_min_id[j] );
+            
+            /* Dump the min or max extreme which occurs first. */
+            fprintf( outfile, mm_out_format,
+                     i + 1, j + 1, analy->state_times[j], mat_max_row[j], 
+                     ident_width, mat_max_id[j], mat_min_row[j], ident_width, 
+                     mat_min_id[j], (min_first ? min_label : max_label) );
+            if ( min_st == max_st )
+                fprintf( outfile, " %s\n", max_label );
+            else
+                fprintf( outfile, "\n" );
+            j++;
+            
+            /* Dump states after first extreme but before second extreme. */
+            limit_st = min_first ? max_st : min_st;
+            for ( ; j < limit_st; j++ )
+                fprintf( outfile, std_out_format,
+                         i + 1, j + 1, analy->state_times[j], mat_max_row[j], 
+                         ident_width, mat_max_id[j], mat_min_row[j], 
+                         ident_width, mat_min_id[j] );
+            
+            /* Dump the second min or max extreme. */
+            if ( min_st != max_st )
+            {
+                fprintf( outfile, mm_out_format,
+                         i + 1, j + 1, analy->state_times[j], mat_max_row[j], 
+                         ident_width, mat_max_id[j], mat_min_row[j], 
+                         ident_width, mat_min_id[j], 
+                         (min_first ? max_label : min_label) );
+                fprintf( outfile, "\n" );
+                j++;
+            }
+            
+            /* Dump the states after the second extreme. */
+            for ( ; j < qty_states; j++ )
+                fprintf( outfile, std_out_format,
+                         i + 1, j + 1, analy->state_times[j], mat_max_row[j], 
+                         ident_width, mat_max_id[j], mat_min_row[j], 
+                         ident_width, mat_min_id[j] );
+        }
+        
+        mat_min_row += qty_states;
+        mat_min_id += qty_states;
+        mat_max_row += qty_states;
+        mat_max_id += qty_states;
+        rm_idx++;
+    }
 }
 
 

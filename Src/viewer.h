@@ -659,6 +659,7 @@ extern Bool_type step_animate();
 extern void end_animate();
 extern void get_global_minmax();
 extern void tellmm();
+extern void outmm();
 
 /* VISUALIZATION */
 
@@ -783,6 +784,7 @@ extern void parse_command();
 extern void update_vis();
 extern void create_reflect_mats();
 extern void write_preamble();
+extern Bool_type is_numeric_token();
 
 /* gui.c */
 extern void gui_start();
