@@ -2181,7 +2181,7 @@ Analysis *analy;
                  */
 
                 popup_dialog( USAGE_POPUP
-                             ,"tellmm result [state 1] [state n]" );
+                             ,"tellmm [<result> [<first state> [<last state>]]]" );
             }
         }
         else if ( token_cnt == 3 )
@@ -2211,7 +2211,7 @@ Analysis *analy;
                  */
 
                 popup_dialog( USAGE_POPUP
-                             ,"tellmm result [state 1] [state n]" );
+                             ,"tellmm [<result> [<first state> [<last state>]]]" );
             }
         }
         else if ( token_cnt == 4 )
@@ -2243,13 +2243,13 @@ Analysis *analy;
                  */
 
                 popup_dialog( USAGE_POPUP
-                             ,"tellmm result [state 1] [state n]" );
+                             ,"tellmm [<result> [<first state> [<last state>]]]" );
             }
         }
         else
         {
             popup_dialog( USAGE_POPUP
-                         ,"tellmm result [state 1] [state n]" );
+                         ,"tellmm [<result> [<first state> [<last state>]]]" );
         }
     }
     else if ( strcmp( tokens[0], "pause" ) == 0 )

@@ -694,7 +694,7 @@ Bool_type *tellmm_redraw;
          */
 
         popup_dialog( USAGE_POPUP
-                     ,"tellmm result [state 1] [state n]" );
+                     ,"tellmm [<result> [<first state> [<last state>]]]" );
 
         tellmm_redraw = FALSE;
         return;
