@@ -157,9 +157,20 @@ float *resultArr;
         for ( j = 0; j < 3; j++ )
             devStress[j] = hexStress[j][i] + pressure;
 
-        resultElem[i] = -( devStress[0]*devStress[1] +
-                           devStress[1]*devStress[2] +
-                           devStress[0]*devStress[2] ) +
+        /* Calculate effective stress from deviatoric components. */
+	/* Updated derivation from E. Zywicz to avoid negative
+	 * square root operand seen under UNICOS.
+	 * Old:
+         *      resultElem[i] = -( devStress[0]*devStress[1] +
+         *                         devStress[1]*devStress[2] +
+         *                         devStress[0]*devStress[2] ) +
+         *                      hexStress[3][i]*hexStress[3][i] +
+         *                      hexStress[4][i]*hexStress[4][i] +
+         *                      hexStress[5][i]*hexStress[5][i] ;
+	 */
+        resultElem[i] = 0.5 * ( devStress[0]*devStress[0] +
+                                devStress[1]*devStress[1] +
+                                devStress[2]*devStress[2] ) +
                         hexStress[3][i]*hexStress[3][i] +
                         hexStress[4][i]*hexStress[4][i] +
                         hexStress[5][i]*hexStress[5][i] ;
@@ -233,14 +244,14 @@ float *resultArr;
          */
         if ( Invariant[1] >= 1e-7 )
         {
-            alpha = -0.5*sqrt((double)27.0/Invariant[1])*
+            alpha = -0.5*sqrt( (double)27.0/Invariant[1])*
                               Invariant[2]/Invariant[1];
             if ( alpha < 0 ) 
                 alpha = MAX( alpha, -1.0 );
             else if ( alpha > 0 )
                 alpha = MIN( alpha, 1.0 );
             angle = acos((double)alpha) / 3.0;
-            value = 2.0 * sqrt((double)Invariant[1]/3.0);
+            value = 2.0 * sqrt( (double)Invariant[1]/3.0);
             princStress[0] = value*cos((double)angle);
             angle = angle - 2.0*M_PI/3.0;
             princStress[1] = value*cos((double)angle);
@@ -469,15 +480,25 @@ float *resultArr;
             devStress[j] = shellStress[j][i] + pressure;
 
         /* Calculate effective stress from deviatoric components. */
-        resultElem[i] = -( devStress[0]*devStress[1] +
-                           devStress[1]*devStress[2] +
-                           devStress[0]*devStress[2] ) +
+	/* Updated derivation from E. Zywicz to avoid negative
+	 * square root operand seen under UNICOS.
+	 * Old:
+         *      resultElem[i] = -( devStress[0]*devStress[1] +
+         *                         devStress[1]*devStress[2] +
+         *                         devStress[0]*devStress[2] ) +
+         *                      shellStress[3][i]*shellStress[3][i] +
+         *                      shellStress[4][i]*shellStress[4][i] +
+         *                      shellStress[5][i]*shellStress[5][i] ;
+	 */
+        resultElem[i] = 0.5 * ( devStress[0]*devStress[0] +
+                                devStress[1]*devStress[1] +
+                                devStress[2]*devStress[2] ) +
                         shellStress[3][i]*shellStress[3][i] +
                         shellStress[4][i]*shellStress[4][i] +
                         shellStress[5][i]*shellStress[5][i] ;
         resultElem[i] = sqrt( (double)(3.0*resultElem[i]) );
     }
-
+    
     shell_to_nodal( resultElem, resultArr, analy, TRUE );
 }
 
@@ -580,7 +601,7 @@ float *resultArr;
                      6.0*bending_resultant[1][i]*one_over_t2 ;
                 sxy = normal_resultant[2][i]*one_over_t +
                       6.0*bending_resultant[2][i]*one_over_t2 ;
-                resultElem[i] = sqrt((double)
+                resultElem[i] = sqrt( (double)
                                      (sx*sx - sx*sy + sy*sy + 3.0*sxy*sxy));
                 break;
             case VAL_SHELL_EFF2:
@@ -591,7 +612,7 @@ float *resultArr;
                      6.0*bending_resultant[1][i]*one_over_t2 ;
                 sxy = normal_resultant[2][i]*one_over_t -
                       6.0*bending_resultant[2][i]*one_over_t2 ;
-                resultElem[i] = sqrt((double)
+                resultElem[i] = sqrt( (double)
                                      (sx*sx - sx*sy + sy*sy + 3.0*sxy*sxy));
                 break;
             case VAL_SHELL_EFF3:
@@ -602,7 +623,7 @@ float *resultArr;
                      6.0*bending_resultant[1][i]*one_over_t2 ;
                 sxy = normal_resultant[2][i]*one_over_t +
                       6.0*bending_resultant[2][i]*one_over_t2 ;
-                sigef[0] = sqrt((double)
+                sigef[0] = sqrt( (double)
                                 (sx*sx - sx*sy + sy*sy + 3.0*sxy*sxy));
 
                 /* Now calc lower surface. */
@@ -612,7 +633,7 @@ float *resultArr;
                      6.0*bending_resultant[1][i]*one_over_t2 ;
                 sxy = normal_resultant[2][i]*one_over_t -
                       6.0*bending_resultant[2][i]*one_over_t2 ;
-                sigef[1] = sqrt((double)
+                sigef[1] = sqrt( (double)
                                 (sx*sx - sx*sy + sy*sy + 3.0*sxy*sxy));
 
                 /* Return maximum value. */
