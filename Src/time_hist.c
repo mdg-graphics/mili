@@ -610,7 +610,8 @@ Analysis *analy;
 	 * Take care of the special case where min and max are 
 	 * approximately equal. APX_EQ macro was too tight.
 	 */
-	if ( fabs( (double) 1.0 - min_ax[i] / max_ax[i] ) < EPS )
+	if ( min_ax[i] == max_ax[i]
+	     || fabs( (double) 1.0 - min_ax[i] / max_ax[i] ) < EPS )
         {
             if ( min_ax[i] == 0.0 )
             {
