@@ -247,17 +247,21 @@ int qty;
  * of integers.
  */
 Bool_type
-is_in_iarray( candidate, size, iarray )
+is_in_iarray( candidate, size, iarray, p_location )
 int candidate;
 int size;
 int *iarray;
+int *p_location;
 {
     int *p_int, *bound;
     
     bound = iarray + size;
     for ( p_int = iarray; p_int < bound; p_int++ )
 	if ( candidate == *p_int )
+	{
+	    *p_location = p_int - iarray;
 	    break;
+	}
     
     return ( p_int != bound );
 }

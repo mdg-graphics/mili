@@ -769,6 +769,7 @@ int *new_qty;
     int i, stop;
     Bool_type disabled;
     Trace_segment_obj *p_seg;
+    int idum;
     
     /*
      * On initialization, build an array of flags, one per trace step
@@ -785,7 +786,7 @@ int *new_qty;
 	for ( p_seg = pt->mtl_segments; p_seg != NULL; NEXT( p_seg ) )
 	{
 	    disabled = is_in_iarray( p_seg->material, analy->trace_disable_qty, 
-	                             analy->trace_disable );
+	                             analy->trace_disable, &idum );
 	    for ( ; i <= p_seg->last_pt_idx && i < end; i++ )
 	        vis_map[i] = ( disabled ) ? FALSE : TRUE;
 	}
@@ -798,7 +799,7 @@ int *new_qty;
 	if ( end > i )
 	{
 	    disabled = is_in_iarray( pt->mtl_num, analy->trace_disable_qty, 
-	                             analy->trace_disable );
+	                             analy->trace_disable, &idum );
 	    for ( ; i < end; i++ )
 	        vis_map[i] = ( disabled ) ? FALSE : TRUE;
 	}
