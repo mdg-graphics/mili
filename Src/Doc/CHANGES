@@ -1112,3 +1112,24 @@ Internal changes
     Replaced wrt_text() calls for "hilite", "select", and
     "clrsel" commands with popup_dialog() calls. (Speck)
 
+
+August 20 1997
+
+New commands
+    outref <filename> [x|y|z <coord value>]...
+        The "outref" command allows the user to create
+	a reference surface definition file from the
+	current set of visible external hex element faces.
+	With no constraints specified, the entire face
+	table is written out as a reference surface.
+	Constraints consist of a dimension specifier
+	(a letter "x", "y", or "z") and a coordinate
+	value.  When a constraint is specified, only those
+	external element faces for which all four nodes
+	are within an epsilon (currently .001) of the
+	constraint value, in the constrained dimension,
+	are output to the file (using the initial positions
+	of the nodes for comparison).  Practically, this 
+	means that only axis-aligned subsets of the 
+	external face table can be written.  Any number of 
+	constraints can be specified. (Speck)

@@ -1,6 +1,6 @@
 $Id$
 ************************************************************
-                      Updated: 8/1/97
+                      Updated: 8/20/97
 
                      WELCOME TO GRIZ 2.0
 
@@ -50,6 +50,24 @@ Changed commands
 	the mouse and cursor.)
 
 New commands
+    outref <filename> [x|y|z <coord value>]...
+        The "outref" command allows the user to create
+	a reference surface definition file from the
+	current set of visible external hex element faces.
+	With no constraints specified, the entire face
+	table is written out as a reference surface.
+	Constraints consist of a dimension specifier
+	(a letter "x", "y", or "z") and a coordinate
+	value.  When a constraint is specified, only those
+	external element faces for which all four nodes
+	are within an epsilon (currently .001) of the
+	constraint value, in the constrained dimension,
+	are output to the file (using the initial positions
+	of the nodes for comparison).  Practically, this 
+	means that only axis-aligned subsets of the 
+	external face table can be written.  Any number of 
+	constraints can be specified.
+	
     bbox vis
         Calculate a new bounding box for the mesh based
 	upon the extents only of visible materials.  The
