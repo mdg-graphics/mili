@@ -479,7 +479,7 @@ char *root_name;
     }
 
     /* Turbulence vector. */
-    if ( ixd & K_EPSILON_MASK )
+    if ( !fam->lstc_database && ixd & K_EPSILON_MASK )
     {
 	fam->result_offsets[VAL_NODE_K] = loc;
 	fam->result_offsets[VAL_NODE_EPSILON] = -2;
