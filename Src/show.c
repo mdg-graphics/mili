@@ -31,8 +31,7 @@ Analysis *analy;
     int idx;
 
     /* Cache the current global min/max. */
-    cache_global_minmax( analy->result_id, analy->global_mm, 
-                         analy->result_mm_list, analy->global_mm_nodes, analy );
+    cache_global_minmax( analy );
 
     /* Get the result type. */
     analy->result_id = lookup_result_id( token );
@@ -132,14 +131,20 @@ Analysis *analy;
  * stashes it in a list for later retrieval.
  */
 static void
-cache_global_minmax( result_id, test_mm, mm_list, mesh_object, analy )
-Result_type result_id;
-float test_mm[2];
-Minmax_obj *mm_list;
-int mesh_object[2];
+cache_global_minmax( analy )
 Analysis *analy;
 {
+    int result_id;
+    float *test_mm;
+    float *el_mm_vals;
+    Minmax_obj *mm_list;
+    int *mesh_object;
     Minmax_obj *mm;
+    
+    result_id = analy->result_id;
+    test_mm = analy->global_mm;
+    mm_list = analy->result_mm_list;
+    mesh_object = analy->global_mm_nodes;
 
     if ( result_id == VAL_NONE )
         return;
@@ -147,7 +152,7 @@ Analysis *analy;
     /* See if it's already in the list.
      */
     for ( mm = mm_list; mm != NULL; mm = mm->next )
-        if ( match_result( analy, result_id, &mm->result ) )
+        if ( match_result( analy, analy->result_id, &mm->result ) )
         {
 /* Why update unequivocally?
             mm->minmax[0] = test_mm[0];
@@ -163,6 +168,20 @@ Analysis *analy;
 	        mm->minmax[1] = test_mm[1];
 		mm->mesh_object[1] = mesh_object[1];
 	    }
+	    
+	    /* 
+	     * If element result, update element minmax for use when
+	     * interpolation mode is "noterp".
+	     */
+	    if ( !is_nodal_result( result_id ) )
+	    {
+		el_mm_vals = analy->global_elem_mm;
+		
+		if ( el_mm_vals[0] < mm->el_minmax[0] )
+	            mm->el_minmax[0] = el_mm_vals[0];
+		if ( el_mm_vals[1] > mm->el_minmax[1] )
+	            mm->el_minmax[1] = el_mm_vals[1];
+	    }
             return;
         }
 
@@ -174,6 +193,8 @@ Analysis *analy;
     mm->minmax[1] = test_mm[1];
     mm->mesh_object[0] = mesh_object[0];
     mm->mesh_object[1] = mesh_object[1];
+    mm->el_minmax[0] = analy->elem_state_mm.el_minmax[0];
+    mm->el_minmax[1] = analy->elem_state_mm.el_minmax[1];
     /* Save these regardless of result (cheaper than all the tests). */
     mm->result.strain_variety = analy->strain_variety;
     mm->result.ref_frame = analy->ref_frame;
@@ -201,7 +222,10 @@ Analysis *analy;
     Minmax_obj *mm;
     Bool_type found;
     int i;
+    float *el_state_mm;
 
+    el_state_mm = analy->elem_state_mm.el_minmax;
+    
     /*
      * Lookup the global min/max for a result from the library.
      * If the global min/max is not found in the library, we must
@@ -222,6 +246,9 @@ Analysis *analy;
             analy->global_mm[1] = mm->minmax[1];
 	    analy->global_mm_nodes[1] = mm->mesh_object[1];
 
+	    analy->global_elem_mm[0] = mm->el_minmax[0];
+	    analy->global_elem_mm[1] = mm->el_minmax[1];
+	    
             found = TRUE;
             break;
         }
@@ -239,6 +266,12 @@ Analysis *analy;
             analy->global_mm[1] = analy->state_mm[1];
 	    analy->global_mm_nodes[1] = analy->state_mm_nodes[1];
 	}
+    
+	/* Update the global minmax for element (pre-interpolated) results. */
+	if ( el_state_mm[0] < analy->global_elem_mm[0] )
+	    analy->global_elem_mm[0] = el_state_mm[0];
+	if ( el_state_mm[1] > analy->global_elem_mm[1] )
+	    analy->global_elem_mm[1] = el_state_mm[1];
     }
     else
     {
@@ -247,6 +280,8 @@ Analysis *analy;
 	analy->global_mm_nodes[0] = analy->state_mm_nodes[0];
         analy->global_mm[1] = analy->state_mm[1];
 	analy->global_mm_nodes[1] = analy->state_mm_nodes[1];
+        analy->global_elem_mm[0] = el_state_mm[0];
+        analy->global_elem_mm[1] = el_state_mm[1];
     }
 
     /* Update the current min/max. */
