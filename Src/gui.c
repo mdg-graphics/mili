@@ -1870,7 +1870,7 @@ Widget main_widg;
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
     
-    stride_str = XmStringCreateLtoR( "  Step\n Stride", 
+    stride_str = XmStringCreateLtoR( "Stride", 
                                      XmSTRING_DEFAULT_CHARSET );
     widg = XtVaCreateManagedWidget( 
         "stride_label", xmLabelGadgetClass, state_ctl, 
