@@ -318,7 +318,7 @@ Analysis *analy;
     int token_cnt;
     int object_id;
     char str[90];
-    float val, pt[3], vec[3], rgb[3], pt2[3];
+    float val, pt[3], vec[3], rgb[3], pt2[3], pt3[3], pt4[3];
     Bool_type redraw, redrawview, renorm, setval, valid_command;
     int sz[3], nodes[3];
     int ival, i, j, k, m, dim;
@@ -330,6 +330,7 @@ Analysis *analy;
     int *p_sel_id;
     int old;
     char *mo_usage_spec = "{{node|n}|{beam|b}|{shell|s}|{brick|h}}";
+    float (*xfmat)[3];
 
     tokenize_line( buf, tokens, &token_cnt );
 
@@ -894,6 +895,20 @@ Analysis *analy;
 	    }
             else if ( strcmp( tokens[i], "bgimage" ) == 0 )
                 analy->show_background_image = setval;
+            else if ( strcmp( tokens[i], "coordxf" ) == 0 )
+            {
+                analy->do_tensor_transform = setval;
+                if ( analy->tensor_transform_matrix != NULL
+                     && (    analy->result_id >= VAL_SHARE_EPSX
+                             && analy->result_id <= VAL_SHARE_EPSZX
+                          || 
+                             analy->result_id >= VAL_SHARE_SIGX
+                             && analy->result_id <= VAL_SHARE_SIGZX ) )
+                {
+                    analy->result_mod = TRUE;
+                    load_result( analy, TRUE );
+                }
+            }
             else
                 wrt_text( "On/Off command unrecognized: %s\n", tokens[i] );
         } 
@@ -1482,6 +1497,75 @@ Analysis *analy;
     {
         parse_gather_command( token_cnt, tokens, analy );
     }
+    else if ( strcmp( tokens[0], "coordxf" ) == 0 )
+    {
+        setval = TRUE;
+
+        if ( token_cnt == 10 )
+        {
+            for ( i = 1; i < 4; i++ )
+                pt[i - 1] = atof( tokens[i] );
+            for ( j = 0; j < 3; j++, i++ )
+                pt2[j] = atof( tokens[i] );
+            for ( j = 0; j < 3; j++, i++ )
+                pt3[j] = atof( tokens[i] );
+        }
+        else if ( token_cnt == 4 )
+        {
+            for ( i = 0; i < 3; i++ )
+                nodes[i] = atoi( tokens[i + 2] ) - 1;
+            for ( i = 0; i < 3; i++ )
+                pt[i] = analy->state_p->nodes->xyz[i][nodes[0]];
+            for ( i = 0; i < 3; i++ )
+                pt2[i] = analy->state_p->nodes->xyz[i][nodes[1]];
+            for ( i = 0; i < 3; i++ )
+                pt3[i] = analy->state_p->nodes->xyz[i][nodes[2]];
+        }
+        else
+        {
+            popup_dialog( USAGE_POPUP, "%s\n%s\n%s",
+                          "coordxf <node 1> <node 2> <node 3>"
+                          "OR"
+                          "coordxf <x1> <y1> <z1> <x2> <y2> <z2> <x3> <y3> <z3>"
+                        );
+            setval = FALSE;
+        }
+        
+        if ( setval )
+        {
+            if ( analy->tensor_transform_matrix == NULL )
+                analy->tensor_transform_matrix = (float (*)[3]) NEW_N( float, 9,
+                                                "Tensor xform matrix" );
+            xfmat = analy->tensor_transform_matrix;
+
+            /* "i" axis is direction from first to second point. */
+            VEC_SUB( xfmat[0], pt2, pt );
+            
+            /* "j" axis is perpendicular to "i" and contains third point. */
+            near_pt_on_line( pt3, pt, xfmat[0], pt4 );
+            VEC_SUB( xfmat[1], pt3, pt4 );
+            
+            /* "k" axis is cross-product of "i" and "j". */
+            VEC_CROSS( xfmat[2], xfmat[0], xfmat[1] );
+            
+            vec_norm( xfmat[0] );
+            vec_norm( xfmat[1] );
+            vec_norm( xfmat[2] );
+            
+            if ( analy->do_tensor_transform
+                 && (    analy->result_id >= VAL_SHARE_EPSX
+                         && analy->result_id <= VAL_SHARE_EPSZX
+                      || 
+                         analy->result_id >= VAL_SHARE_SIGX
+                         && analy->result_id <= VAL_SHARE_SIGZX ) )
+            {
+                analy->result_mod = TRUE;
+                load_result( analy, TRUE );
+                redraw = TRUE;
+            }
+        }
+            
+    }
     else if ( strcmp( tokens[0], "dirv" ) == 0 )
     {
         if ( token_cnt != analy->dimension + 1 )
@@ -1585,7 +1669,7 @@ Analysis *analy;
 	    if ( is_numeric_token( tokens[i+1] ) && atof( tokens[i+1] ) == 0.0 )
                 analy->vec_id[i] = VAL_NONE;
 	    else
-                analy->vec_id[i] = lookup_result_id( tokens[i+1] );
+                analy->vec_id[i] = (Result_type) lookup_result_id( tokens[i+1]);
 
             /* Error if we didn't get a match. */
             if ( analy->vec_id[i] < 0 )
@@ -2400,6 +2484,12 @@ Analysis *analy;
     {
         get_global_minmax( analy );
 	redraw = TRUE;
+    }
+    else if ( strcmp( tokens[0], "resetmm" ) == 0 )
+    {
+	redraw = reset_global_minmax( analy );
+        if ( redraw )
+            load_result( analy, TRUE );
     }
     else if ( strcmp( tokens[0], "tellmm" ) == 0 )
     {
