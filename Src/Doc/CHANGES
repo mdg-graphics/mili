@@ -724,4 +724,86 @@ New functionality
 Bug fixes
     Griz now recognizes and reads LLNL Topaz databases,
     accessing nodal temperature correctly. (Speck)
+    
+    
+October 24 1996
+
+New commands
+    on/off zlines   (Default: on)
+        This controls whether or not antialiased lines
+	(edge lines and beam elements) are depth-buffered
+	with respect to each other.  With zlines on, they
+	are depth-buffered and so render correctly in
+	depth.  However, there are some rendering artifacts
+	which appear in this mode which can be distracting
+	during  video-animations.  With zlines off, those
+	artifacts disappear but depth-buffering may be
+	incorrect.  GRIZ PREVIOUSLY BEHAVED AS IF ZLINES
+	WERE OFF. (Speck)
+
+    setcol rmin <red value> <green value> <blue value>
+    setcol rmax <red value> <green value> <blue value>
+        These allow users to set the result threshold
+	colors used when "rmin" or "rmax" values are set.
+	The initial default values are still the same
+	(magenta for rmin and red for rmax).  Reloading the
+	current colormap ("hotmap" command produces the
+	standard hot-cold colormap) while rmin and/or rmax
+	are active overwrites the current rmin and rmax
+	colors with whatever is in the colormap; rmin/rmax
+	colors set with "setcol" can be put back into the
+	colormap by repeating the rmin or rmax command.
+	All red/green/blue color values are on [0.0, 1.0].
+	(Speck)
+	
+New functionality
+    Setting rmin or rmax values does not reset the current
+    colormap, it just replaces the colors in the first
+    and/or last entries of the current colormap with the
+    current rmin/rmax colors.  Previously, using rmin or
+    rmax with one of Griz's internal colormaps (hot-cold
+    or grey-scale) caused the colormap to be reset to a
+    hot-cold colormap variant. (Speck)
+    
+    Using "switch mstat" or "switch mglob" does NOT
+    override any rmin or rmax values currently in effect.
+    (Speck)
+	
+Bug fixes
+    Errors which occur during rgb-file output (such as when
+    attempting to overwrite an existing file) no longer 
+    cause Griz to exit. (Speck)
+    
+    The maximum number of materials has been increased to
+    300. Griz exits with a diagnostic if it is given a mesh
+    with more than the maximum number of materials, as this
+    presently requires a re-compile to accommodate. (Speck)
+    
+    Toggle button widgets in the Material Manager and 
+    Utility Panel now refresh their appearance properly to
+    reflect current state.  This error did not occur under
+    IRIX 5.x, but did happen under IRIX 6.2 and Solaris.
+    (Speck)
+    
+    Colorscale labeling and color interpolation when result
+    interpolation is turned off ("switch noterp") are now
+    correct; "globmm" saves non-interpolated (element)
+    values during its database traversal and colormapping
+    with global results ("switch mglob") when "switch
+    noterp" is in effect is correct; nodal result viewing
+    is correct when "switch noterp" is in effect (nodal
+    results never need to be interpolated so noterp/interp
+    makes no difference); beam result color interpolation
+    has been corrected (beams are always rendered without
+    result interpolation, unlike other elements, but
+    previously the non-interpolated min and max were
+    erroneously limited to the min and max produced by
+    by averaging element values to the nodes). (Speck)
+    
+    View centering ("vcent...") during animations works.
+    (Speck)
+    
+    Meshes which contain both beam and shell elements now
+    display the beams properly. (Speck)
+
 

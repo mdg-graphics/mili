@@ -1,52 +1,83 @@
 $Id$
 ************************************************************
-                      Updated: 7/23/96
+                      Updated: 10/24/96
 
                      WELCOME TO GRIZ 2.0
 
 New commands
-    fracsz <qty digits>
-        Set the number of digits to render after the decimal
-	point on the colormap scale, node/element min/max
-	values, result values on selected nodes/elements,
-	and on time-history plot axis scales.  This does
-	NOT override "on autosz" on time-history plots.
-	Set to two by default.
-	
-    on/off autosz
-        With "autosz" on, Griz will automatically calculate
-	the number of decimal digits to render on time-
-	history plot axis scales so that numeric
-	differences between adjacent values will be 
-	resolved with a minimal number of digits.  The 
-	number of digits after the decimal point is bounded 
-	to [1,6].  This feature is on by default.
-	
-    on/off bbmax
-        With "bbmax" on, Griz defines the mesh bounding box
-	by only the largest displacement magnitude values 
-	experienced across all invocations of the "bbox" 
-	command.  The intent of this is that, by invoking 
-	"bbox" at appropriate states, one can set the 
-	bounding box, and by derivation the mesh view, to a 
-	size that will encompass the mesh regardless of 
-	displacement.  However, if explicit box values are 
-	given with the "bbox" command, they will be used 
-	regardless of "bbmax" setting.  This feature is off
-	by default.
+    on/off zlines   (Default: on)
+        This controls whether or not antialiased lines
+	(edge lines and beam elements) are depth-buffered
+	with respect to each other.  With zlines on, they
+	are depth-buffered and so render correctly in
+	depth.  However, there are some rendering artifacts
+	which appear in this mode which can be distracting
+	during  video-animations.  With zlines off, those
+	artifacts disappear but depth-buffering may be
+	incorrect.  GRIZ PREVIOUSLY BEHAVED AS IF ZLINES
+	WERE OFF.
+
+    setcol rmin <red value> <green value> <blue value>
+    setcol rmax <red value> <green value> <blue value>
+        These allow users to set the result threshold
+	colors used when "rmin" or "rmax" values are set.
+	The initial default values are still the same
+	(magenta for rmin and red for rmax).  Reloading the
+	current colormap ("hotmap" command produces the
+	standard hot-cold colormap) while rmin and/or rmax
+	are active overwrites the current rmin and rmax
+	colors with whatever is in the colormap; rmin/rmax
+	colors set with "setcol" can be put back into the
+	colormap by repeating the rmin or rmax command.
+	All red/green/blue color values are on [0.0, 1.0].
 	
 New functionality
-    The Griz cursor changes shape to provide user feedback
-    during various operations.  This functionality can be
-    added to any Griz operation, and users are welcome to
-    make suggestions if they note a relatively slow
-    operation during which it would be appropriate to change
-    the cursor shape (to a watch, for example).
+    Setting rmin or rmax values does not reset the current
+    colormap, it just replaces the colors in the first
+    and/or last entries of the current colormap with the
+    current rmin/rmax colors.  Previously, using rmin or
+    rmax with one of Griz's internal colormaps (hot-cold
+    or grey-scale) caused the colormap to be reset to a
+    hot-cold colormap variant.
+    
+    Using "switch mstat" or "switch mglob" does NOT
+    override any rmin or rmax values currently in effect.
 
 Bug fixes
-    Griz now recognizes and reads LLNL Topaz databases,
-    accessing nodal temperature correctly.
+    Errors which occur during rgb-file output (such as when
+    attempting to overwrite an existing file) no longer 
+    cause Griz to exit.
+    
+    The maximum number of materials has been increased to
+    300. Griz exits with a diagnostic if it is given a mesh
+    with more than the maximum number of materials, as this
+    presently requires a re-compile to accommodate.
+    
+    Toggle button widgets in the Material Manager and 
+    Utility Panel now refresh their appearance properly to
+    reflect current state.  This error did not occur under
+    IRIX 5.x, but did happen under IRIX 6.2 and Solaris.
+    
+    Colorscale labeling and color interpolation when result
+    interpolation is turned off ("switch noterp") are now
+    correct; "globmm" saves non-interpolated (element)
+    values during its database traversal and colormapping
+    with global results ("switch mglob") when "switch
+    noterp" is in effect is correct; nodal result viewing
+    is correct when "switch noterp" is in effect (nodal
+    results never need to be interpolated so noterp/interp
+    makes no difference); beam result color interpolation
+    has been corrected (beams are always rendered without
+    result interpolation, unlike other elements, but
+    previously the non-interpolated min and max were
+    erroneously limited to the min and max produced by
+    by averaging element values to the nodes).
+    
+    View centering ("vcent...") during animations works.
+    
+    Meshes which contain both beam and shell elements now
+    display the beams properly.
 	    
-See the file /public/Griz/CHANGES_2.0 for an up-to-date list
-of GRIZ 2.0 changes.
+See the file GRIZ_CHANGES, co-located with the Griz binary,
+for a complete list of GRIZ 2.0 changes.
 ************************************************************
