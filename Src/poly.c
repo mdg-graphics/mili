@@ -181,20 +181,28 @@ Analysis *analy;
     FILE *infile;
     Ref_poly *poly;
     char token[80];
+    char *p_tok;
     int poly_cnt;
     int nd, i, j;
+    int rsmat;
 
     /*
      * The ref surface file gives us a way to refer to particular
      * surfaces on hex volume elements.  The file is organized as
      * follows:
      *
-     *     N_srf
+     *     N_srf [material number]
      *     n1 n2 n3 n4
      *     n1 n2 n3 n4
      *     .
      *     .
      *     .
+     *
+     * The material number is optional, and is allowed as a way of
+     * independently setting the surface color by tying it to an
+     * arbitrary material.  It also allows for unlinking a reference
+     * surface from translations of the material which make up the
+     * element providing the face(s) of the reference surface.
      *
      * This routine reads in the ref surface file and puts the
      * ref surface polygons on the external surface list.  This
@@ -204,17 +212,24 @@ Analysis *analy;
 
     if ( ( infile = fopen(fname, "r") ) == NULL )
     {
-        wrt_text( "Couldn't open file %s.\n", fname );
+        popup_dialog( WARNING_POPUP, "Couldn't open file %s.\n", fname );
         return;
     }
 
-    read_token( infile, token, 80 );
-    sscanf( token, "%d", &poly_cnt );
+    /* Get the polygon count. */
+    fgets( token, 80, infile );
+    p_tok = strtok( token, " \n" );
+    sscanf( p_tok, "%d", &poly_cnt );
+    
+    /* Get the material number if it exists. */
+    p_tok = strtok( NULL, " \n" );
+    rsmat = ( p_tok != NULL ) ? atoi( p_tok ) - 1 : 0;
+    
 
     for ( i = 0; i < poly_cnt; i++ )
     {
         poly = NEW( Ref_poly, "Reference polygon" );
-        poly->mat = 0;
+        poly->mat = rsmat;
 
         for ( j = 0; j < 4; j++ )
         {
