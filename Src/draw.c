@@ -836,17 +836,28 @@ center_view( analy )
 Analysis *analy;
 {
     Transf_mat view_trans;
-    Nodal *nodes;
+    Nodal *nodes, *onodes;
     Beam_geom *beams;
     Shell_geom *shells;
     Hex_geom *bricks;
-    float ctr_pt[3];
-    float *pt;
+    float ctr_pt[3], opt[3];
+    float *pt, *factors;
     int hi_type;
     int hi_num;
     int node;
     int i, j;
+    Bool_type dscale;
 
+    dscale = analy->displace_exag;
+    if ( analy->displace_exag )
+    {
+	dscale = TRUE;
+	onodes = analy->geom_p->nodes;
+	factors = analy->displace_scale;
+    }
+    else
+        dscale = FALSE;
+    
     pt = analy->view_center;
 
     /* Get the centering point. */
@@ -858,6 +869,8 @@ Analysis *analy;
 
 	case HILITE:
 	    VEC_SET( pt, 0.0, 0.0, 0.0 );
+	    if ( dscale )
+	        VEC_SET( opt, 0.0, 0.0, 0.0 );
             nodes = analy->state_p->nodes;
             hi_type = analy->hilite_type;
             hi_num = analy->hilite_num;
@@ -875,7 +888,11 @@ Analysis *analy;
                     break;
                 case 1:
                     for ( i = 0; i < 3; i++ )
+		    {
                         pt[i] = nodes->xyz[i][hi_num];
+			if ( dscale )
+			    opt[i] = onodes->xyz[i][hi_num];
+		    }
                     break;
                 case 2:
                     beams = analy->geom_p->beams;
@@ -883,6 +900,11 @@ Analysis *analy;
                         for ( j = 0; j < 3; j++ )
                             pt[j] += nodes->xyz[j][beams->nodes[i][hi_num]]
 				     / 2.0;
+		    if ( dscale )
+			for ( i = 0; i < 2; i++ )
+			    for ( j = 0; j < 3; j++ )
+				opt[j] += onodes->xyz[j][beams->nodes[i][hi_num]]
+					  / 2.0;
                     break;
                 case 3:
                     /* Highlight a shell element. */
@@ -891,6 +913,11 @@ Analysis *analy;
                         for ( j = 0; j < 3; j++ )
                             pt[j] += nodes->xyz[j][shells->nodes[i][hi_num]]
 				     / 4.0;
+		    if ( dscale )
+			for ( i = 0; i < 4; i++ )
+			    for ( j = 0; j < 3; j++ )
+				opt[j] += onodes->xyz[j][shells->nodes[i][hi_num]]
+					  / 4.0;
                     break;
                 case 4:
                     /* Highlight a brick element. */
@@ -899,6 +926,11 @@ Analysis *analy;
                         for ( j = 0; j < 3; j++ )
                             pt[j] += nodes->xyz[j][bricks->nodes[i][hi_num]]
 				     / 8.0;
+		    if ( dscale )
+			for ( i = 0; i < 8; i++ )
+			    for ( j = 0; j < 3; j++ )
+				opt[j] += onodes->xyz[j][bricks->nodes[i][hi_num]]
+					  / 8.0;
                     break;
             }
 	    break;
@@ -907,14 +939,26 @@ Analysis *analy;
             nodes = analy->state_p->nodes;
             for ( i = 0; i < 3; i++ )
                 pt[i] = nodes->xyz[i][analy->center_node];
+	    if ( dscale )
+		for ( i = 0; i < 3; i++ )
+		    opt[i] = onodes->xyz[i][analy->center_node];
             break;
 	
 	case POINT:
             /* Do nothing, coords already in pt (i.e., analy->view_center). */
+	    if ( dscale )
+	        VEC_SET( opt, 0.0, 0.0, 0.0 );
             break;
 	
 	default:
 	    return;
+    }
+
+    if ( dscale )
+    {
+	/* Scale the point's displacements. */
+	for ( i = 0; i < 3; i++ )
+	    pt[i] = opt[i] + factors[i] * (pt[i] - opt[i]);
     }
 
     view_transf_mat( &view_trans );
