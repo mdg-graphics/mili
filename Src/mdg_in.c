@@ -1285,7 +1285,7 @@ Hex_geom *bricks;
  */
 static void
 check_degen_shells( shells )
-Hex_geom *shells;
+Shell_geom *shells;
 {
     int tmp, shift, i, j, k;
 
