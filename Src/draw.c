@@ -886,7 +886,6 @@ Analysis *analy;
                 case 0:
                     /* Nothing hilighted. */
                     return;
-                    break;
                 case 1:
                     for ( i = 0; i < 3; i++ )
 		    {
@@ -3640,11 +3639,12 @@ float *vmin;
 float *vmax;
 {
     Result_type tmp_id;
-    Bool_type init;
+    Bool_type init, convert;
     float *tmp_res;
     float vec[3];
     float mag, min, max;
     int node_cnt, i;
+    float scale, offset;
 
     node_cnt = analy->state_p->nodes->cnt;
 
@@ -3661,11 +3661,25 @@ float *vmax;
     }
     analy->result_id = tmp_id;
     analy->result = tmp_res;
+    
+    convert = analy->perform_unit_conversion;
+    if ( convert )
+    {
+        scale = analy->conversion_scale;
+        offset = analy->conversion_offset;
+    }
 
     /* Get the min and max magnitude for the vector result. */
     init = FALSE;
     for ( i = 0; i < node_cnt; i++ )
     {
+        if ( convert )
+        {
+            vec_result[0][i] = vec_result[0][i] * scale + offset;
+            vec_result[1][i] = vec_result[1][i] * scale + offset;
+            vec_result[2][i] = vec_result[2][i] * scale + offset;
+        }
+
         vec[0] = vec_result[0][i];
         vec[1] = vec_result[1][i];
         vec[2] = vec_result[2][i];
@@ -5154,6 +5168,7 @@ draw_foreground( analy )
 Analysis *analy;
 {
     Transf_mat mat, tmat;
+    float (*ttmat)[3];
     float pt[3], pto[3], pti[3], ptj[3], ptk[3], ptv[3];
     float world_to_vp[2], vp_to_world[2];
     float zpos, cx, cy;
@@ -5595,8 +5610,6 @@ Analysis *analy;
     /* Global coordinate system. */
     if ( analy->show_coord )
     {
-/*        show_dirvec = ( analy->result_id == VAL_PROJECTED_VEC ); */
-
         leng = 35*vp_to_world[0];
         sub_leng = leng / 10.0;
 
@@ -5666,6 +5679,63 @@ Analysis *analy;
 
         antialias_lines( TRUE, TRUE );
 	glLineWidth( 1.25 );
+        
+        /* Show tensor transformation coordinate system if on. */
+        if ( analy->do_tensor_transform 
+             && analy->tensor_transform_matrix != NULL )
+        {
+            ttmat = analy->tensor_transform_matrix;
+
+            /* Draw the axis lines. */
+            VEC_SET( pt, 0.0, 0.0, 0.0 );
+            point_transform( pto, pt, &tmat );
+            VEC_SET( pt, ttmat[0][0] * leng, ttmat[0][1] * leng, 
+                     ttmat[0][2] * leng );
+            point_transform( pti, pt, &tmat );
+            VEC_SET( pt, ttmat[1][0] * leng, ttmat[1][1] * leng, 
+                     ttmat[1][2] * leng );
+            point_transform( ptj, pt, &tmat );
+            VEC_SET( pt, ttmat[2][0] * leng, ttmat[2][1] * leng, 
+                     ttmat[2][2] * leng );
+            point_transform( ptk, pt, &tmat );
+/**/
+            /* Hard-code brown/red for now. */
+            glColor3f( 0.6, 0.2, 0.0 );
+
+            glBegin( GL_LINES );
+            glVertex3fv( pto );
+            glVertex3fv( pti );
+            glVertex3fv( pto );
+            glVertex3fv( ptj );
+            glVertex3fv( pto );
+            glVertex3fv( ptk );
+            glEnd();
+            
+            /* Draw the axis labels. */
+            VEC_SET( pt, ttmat[0][0] * leng + sub_leng, 
+                     ttmat[0][1] * leng - sub_leng, 
+                     ttmat[0][2] * leng - sub_leng );
+            point_transform( pti, pt, &tmat );
+            VEC_SET( pt, ttmat[1][0] * leng - sub_leng, 
+                     ttmat[1][1] * leng + sub_leng, 
+                     ttmat[1][2] * leng - sub_leng );
+            point_transform( ptj, pt, &tmat );
+            VEC_SET( pt, ttmat[2][0] * leng - sub_leng, 
+                     ttmat[2][1] * leng - sub_leng, 
+                     ttmat[2][2] * leng + sub_leng );
+            point_transform( ptk, pt, &tmat );
+
+            antialias_lines( FALSE, 0 );
+            glLineWidth( 1.0 );
+            
+            draw_3d_text( pti, "x" );
+            draw_3d_text( ptj, "y" );
+            draw_3d_text( ptk, "z" );
+
+            antialias_lines( TRUE, TRUE );
+            glLineWidth( 1.25 );
+            glColor3fv( v_win->foregrnd_color );
+        }
     }
     
     /* Result value min/max. */
@@ -6287,7 +6357,7 @@ puthexpix(outfile,p)
 FILE *outfile;
 unsigned char p;
 {
-    static npixo = 0;
+    static int npixo = 0;
     static char tohex[] = "0123456789ABCDEF";
 
     putc(tohex[(p>>4)&0xF],outfile);
