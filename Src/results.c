@@ -929,6 +929,13 @@ Bool_type update;
 
     if ( analy->result_id != VAL_NONE )
     {
+
+        if ( env.result_timing && !env.timing )
+        {
+            wrt_text( "\nTiming for result computation...\n" );
+            check_timing( 0 );
+        }
+	
         /* Initialize temporary element min/max values. */
 	init_mm_obj( &analy->tmp_elem_mm );
 	
@@ -936,6 +943,9 @@ Bool_type update;
         r_idx = resultid_to_index[analy->result_id];
         compute_func = (void (*)()) trans_result[r_idx][2];
         compute_func( analy, analy->result );
+    
+        if ( env.result_timing && !env.timing )
+            check_timing( 1 );
     }
 
     if ( update && analy->result_id != VAL_NONE )
