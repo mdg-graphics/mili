@@ -555,6 +555,9 @@ typedef struct _Analysis
     Bool_type scale_vec_by_result;
     
     float dir_vec[3];
+    
+    Bool_type do_tensor_transform;
+    float (*tensor_transform_matrix)[3];
 
     Bool_type show_carpet;
     float vec_cell_size;
@@ -823,6 +826,7 @@ extern void load_result( /* analy */ );
 /* show.c */
 extern int parse_show_command();
 extern void cache_global_minmax();
+extern Bool_type reset_global_minmax();
 extern void compute_shell_in_data();
 extern void compute_beam_in_data();
 extern void compute_node_in_data();
@@ -860,7 +864,8 @@ extern void compute_vector_component();
 
 /* frame.c */
 extern void global_to_local_mtx();
-extern void transform_tensor();
+extern void transform_tensors();
+extern Bool_type transform_stress_strain();
 
 /* explode.c */
 extern int associate_matl_exp();
