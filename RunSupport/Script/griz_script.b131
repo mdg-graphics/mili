@@ -19,11 +19,19 @@
 #   11-Dec-96  Added support for GLX/X distinction, Sun FFB, and
 #              OSF/Irix and OSF/Sun peculiarities
 #              (Doug Speck)
+
+#   11-Nov-02  Changes to support maintaining multiple versions 
+#              of Griz4
+#              (I. R. Corey)
+
+#   02-Dec-04  Added simple loggin 
+#              (T. R. Treadway)
 #*******************************************************************
 
 # set echo
 setenv PATH ${PATH}:/usr/bin/X11
-setenv GRIZHOME /mdg/bin
+
+setenv GRIZHOME /mdg/bin/griz4s-V4_04-dir
 
 # Good for all except OSF; reset under OSF block below
 setenv HFONTLIB /mdg/lib/font/Hershey/sgi_sun_ibm_hp
@@ -150,14 +158,26 @@ endif
 # echo "system=${system} release=$release majorrelease=$majorrelease."
 # echo "Extension=$extension."
 
+# Logging of griz execution
+if (( -e $GRIZHOME/griz_usagelog ) && ( -w $GRIZHOME/griz_usagelog )) then
+  echo "Starting--" $$ "--" `date` >> $GRIZHOME/griz_usagelog
+  echo `whoami` "--" `hostname` "--" $GRIZHOME"/griz."$extension $* >> $GRIZHOME/griz_usagelog
+endif
+
 # Execute the appropriate executable, and return its exit status
 
 $GRIZHOME/griz.$extension $*
+if (( -e $GRIZHOME/griz_usagelog ) && ( -w $GRIZHOME/griz_usagelog )) then
+  echo "Ending--" $$ "--" `date` >> $GRIZHOME/griz_usagelog
+endif
 exit
 
 # Error exit
 
 contactmdg:
 echo "Please contact the Methods Development Group."
+if (( -e $GRIZHOME/griz_usagelog ) && ( -w $GRIZHOME/griz_usagelog )) then
+  echo "Aborting--" $$ "--" `date` >> $GRIZHOME/griz_usagelog
+endif
 echo "ABORTING."
 exit -1
