@@ -588,6 +588,7 @@ typedef struct
     char user_name[30];
     char date[20];
     Bool_type timing;
+    Bool_type result_timing;
     Bool_type single_buffer;
     Bool_type foreground;
 } Environ;    
