@@ -19,13 +19,16 @@
 #   11-Dec-96  Added support for GLX/X distinction, Sun FFB, and
 #              OSF/Irix and OSF/Sun peculiarities
 #              (Doug Speck)
+
+#   11-Nov-02  Changes to support maintaining multiple versions 
+#              of Griz4
+#              (I. R. Corey)
 #*******************************************************************
 
 # set echo
 setenv PATH ${PATH}:/usr/bin/X11
 
-# Use GRIZ4HOME rather than GRIZHOME to avoid picking up GRIZ2 griz_start_text
-setenv GRIZ4HOME /mdg/bin
+setenv GRIZHOME /mdg/bin/griz4s-V4_04-dir
 
 # Good for all except OSF; reset under OSF block below
 setenv HFONTLIB /mdg/lib/font/Hershey/sgi_sun_ibm_hp
@@ -57,9 +60,9 @@ if ($system != OSF1) then
   
 else
 
-  set glx = `${GRIZ4HOME}/xqext.osf GLX`
-  set vendor = `${GRIZ4HOME}/xqvendor.osf | awk '/vendor string/ {print $3}'`
-  set x_release = `${GRIZ4HOME}/xqrelease.osf | awk '/vendor release number/ {print $4}'`
+  set glx = `${GRIZHOME}/xqext.osf GLX`
+  set vendor = `${GRIZHOME}/xqvendor.osf | awk '/vendor string/ {print $3}'`
+  set x_release = `${GRIZHOME}/xqrelease.osf | awk '/vendor release number/ {print $4}'`
 
 endif
 
@@ -177,7 +180,7 @@ endif
 
 # Execute the appropriate executable, and return its exit status
 
-$GRIZ4HOME/griz4s.$extension $*
+$GRIZHOME/griz4s.$extension $*
 exit
 
 # Error exit
