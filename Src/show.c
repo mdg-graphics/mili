@@ -317,28 +317,54 @@ Result_spec *test;
 	    if ( analy->ref_surf != test->ref_surf )
 	        return FALSE;
 	    /* 
-	     * Reference frame needed for shared stresses and strains.
+	     * Reference frame needed for shared stresses and strains;
+	     * for plastic strain, strain variety = RATE must match
+	     * or not match exclusively
 	     */
 	    if ( ( result_id >= VAL_SHARE_SIGX
 	           && result_id <= VAL_SHARE_SIGZX )
 		 || ( result_id >= VAL_SHARE_EPSX
 		      && result_id <= VAL_SHARE_EPSZX ) )
+            {
 	        if ( analy->ref_frame != test->ref_frame )
 		    return FALSE;
+	    }
+	    else if ( result_id == VAL_SHARE_EPS_EFF )
+	    {
+	        if ( analy->strain_variety == RATE 
+		     && test->strain_variety != RATE )
+		    return FALSE;
+		else if ( analy->strain_variety != RATE 
+		          && test->strain_variety == RATE )
+		    return FALSE;
+	    }
 	}
 	
 	/* Special cases when bricks present. */
 	if ( analy->geom_p->bricks != NULL )
 	{
 	    /*
-	     * Strain variety needed for strains.
+	     * Strain variety needed for derived strains;
+	     * for plastic strain, strain variety = RATE must match
+	     * or not match exclusively
 	     */
 	    if ( ( result_id >= VAL_SHARE_EPSX
 	           && result_id <= VAL_SHARE_EPSZX )
 		 || ( result_id >= VAL_HEX_EPS_PD1
 		      && result_id <= VAL_HEX_EPS_P3 ) )
+	    {
                 if ( analy->strain_variety != test->strain_variety )
 		    return FALSE;
+	    }
+	    else if ( result_id == VAL_SHARE_EPS_EFF )
+	    {
+	        if ( analy->strain_variety == RATE 
+		     && test->strain_variety != RATE )
+		    return FALSE;
+		else if ( analy->strain_variety != RATE 
+		          && test->strain_variety == RATE )
+		    return FALSE;
+	    }
 	}
 	
 	return TRUE;
