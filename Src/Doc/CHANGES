@@ -882,3 +882,18 @@ Bug fix
     produced a small negative number instead of zero. (Speck)
 
 
+March 25 1997
+
+New results
+    Seven results formerly available only for brick
+    elements are now available for shell elements as well.  
+    They are:
+        "Prin Dev Stress 1" ("pdev1"), 
+        "Prin Dev Stress 2" ("pdev2"), 
+        "Prin Dev Stress 3" ("pdev3"), 
+        "Maximum Shear Stress" ("maxshr"), 
+        "Principal Stress 1", ("prin1"),
+        "Principal Stress 2", ("prin2"), and
+        "Principal Stress 3", ("prin3").
+    (Speck)
+
