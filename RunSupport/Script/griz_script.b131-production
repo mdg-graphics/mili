@@ -19,13 +19,16 @@
 #   11-Dec-96  Added support for GLX/X distinction, Sun FFB, and
 #              OSF/Irix and OSF/Sun peculiarities
 #              (Doug Speck)
+#
+#   04-Mar-05  Added capability to run from a beta release.
+#              (Bob Corey)
 #*******************************************************************
 
 # set echo
 setenv PATH ${PATH}:/usr/bin/X11
 
 # Use GRIZ4HOME rather than GRIZHOME to avoid picking up GRIZ2 griz_start_text
-setenv GRIZ4HOME /mdg/bin/griz4s-V4_04-dir
+setenv GRIZ4HOME /mdg/bin
 
 # Good for all except OSF; reset under OSF block below
 setenv HFONTLIB /mdg/lib/font/Hershey/sgi_sun_ibm_hp
@@ -82,34 +85,6 @@ if (($system == IRIX) || ($system == IRIX64)) then
   unsetenv LD_LIBRARY_PATH
   setenv LD_LIBRARY_PATH /mdg/lib/irix
 
-# else if ($system == OSF1) then
-
-#   unsetenv HFONTLIB
-#   setenv HFONTLIB /mdg/lib/font/Hershey/osf
-
-#   if ($vendor == Silicon) then
-    
-#     if ($x_release == 5000) then
-#       set extension = osf.mesa
-#     else
-#       set extension = osf.mesa
-#     endif
-
-#   else if ($vendor == Sun) then
-
-#   For now, Sun GLX doesn't work with OSF clients.
-#     if ($glx == GLX) then
-#       set extension = osf.mesa
-#     else
-#       set extension = osf.mesa
-#     endif
-
-#   else if ($glx == GLX) then
-#     set extension = osf.mesa
-#   else
-#     set extension = osf.mesa
-#   endif
-
 else if ($system == SunOS) then
 
   if ($majorrelease == 5) then  
@@ -120,6 +95,7 @@ else if ($system == SunOS) then
     unsetenv LD_LIBRARY_PATH
 
     if ($batch == yes) then
+
 #
 # Batch execution.  SunBlade or other Sun platform?
 #
@@ -176,9 +152,6 @@ else
   goto contactmdg            # Print contact info and take error exit.
 endif
 
-# echo "system=${system} release=$release majorrelease=$majorrelease."
-# echo "Extension=$extension."
-
 # Execute the appropriate executable, and return its exit status
 
 $GRIZ4HOME/griz4s.$extension $*
@@ -190,3 +163,4 @@ contactmdg:
 echo "Please contact the Methods Development Group."
 echo "ABORTING."
 exit -1
+
