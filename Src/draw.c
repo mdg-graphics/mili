@@ -60,6 +60,14 @@ static float proj_param_y;
 #define LINE_SPACING_COEFF (1.25)
 #define TOP_OFFSET (0.5)
 
+/* Some annotation strings. */
+char *strain_label[] = 
+{ 
+    "infinitesimal", "Green-Lagrange", "Almansi", "Rate" 
+};
+char *ref_surf_label[] = { "middle", "inner", "outer" };
+char *ref_frame_label[] = { "global", "local" };
+
 
 GLfloat black[] = {0.0, 0.0, 0.0};
 GLfloat white[] = {1.0, 1.0, 1.0};
@@ -5101,17 +5109,11 @@ Analysis *analy;
     char str[90];
     int nstripes, i, frst, lst;
     static char *el_label[] = { "node", "beam", "shell", "brick" };
-    static char *strain_label[] = 
-    { 
-        "infinitesimal", "Green-Lagrange", "Almansi", "Rate" 
-    };
-    static char *ref_surf_label[] = { "middle", "inner", "outer" };
-    static char *ref_frame_label[] = { "global", "local" };
     float *el_mm;
     int *el_type, *el_id;
     int mm_node_types[2];
     int mod_cnt;
-    Result_modifier_type mods[3];
+    Result_modifier_type mods[QTY_RESULT_MODIFIER_TYPES];
     int fracsz;
     float scale_y, value;
     float scale_minimum, scale_maximum, distance;
@@ -5410,6 +5412,14 @@ Analysis *analy;
 		                     ref_frame_label[analy->ref_frame] );
                             hcharstr( str );
                             yp -= LINE_SPACING_COEFF * text_height;
+                            break;
+		    
+                        case TIME_DERIVATIVE:
+                            hmove2( xp, yp );
+                            sprintf( str, "Result type: Time derivative" );
+                            hcharstr( str );
+                            yp -= LINE_SPACING_COEFF * text_height;
+                            break;
                     }
                 }
             }
