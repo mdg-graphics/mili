@@ -1009,3 +1009,13 @@ Bug fix
     effect has been made approximately five times faster
     by restructuring the logic to eliminate redundant 
     disk accesses.
+
+
+May 16 1997
+    
+Bug fix
+    View centering on a node or element now takes 
+    displacement scaling ("dscal", "dscalx", etc.) into
+    account.  Note that when centering the view on an 
+    arbitrary point in space, displacement scale factors 
+    have no effect.

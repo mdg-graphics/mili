@@ -1,6 +1,6 @@
 $Id$
 ************************************************************
-                      Updated: 4/4/97
+                      Updated: 5/16/97
 
                      WELCOME TO GRIZ 2.0
 
@@ -117,6 +117,12 @@ Bug fixes
     effect has been made approximately five times faster
     by restructuring the logic to eliminate redundant 
     disk accesses.
+    
+    View centering on a node or element now takes 
+    displacement scaling ("dscal", "dscalx", etc.) into
+    account.  Note that when centering the view on an 
+    arbitrary point in space, displacement scale factors 
+    have no effect.
 
 See the file GRIZ_CHANGES, co-located with the Griz binary,
 for a complete list of GRIZ 2.0 changes.
