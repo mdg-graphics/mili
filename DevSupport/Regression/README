@@ -1,0 +1,30 @@
+Most of the files in this directory are generated from the
+NoWeb file (*.nw)
+
+rtest.nw:
+To generate the LaTex file use:
+ noweave -index rtest.nw rtest_support.nw > rtest.tex
+To generate the DVI file use:
+ latex rtest.tex; latex rtest.tex
+To generate the PDF version use:
+ dvipdfm rtest.dvi
+To generate the HTML file use:
+ noweave -filter l2h -index -autodefs c -html rtest.nw rtest_support.nw > rtest.html
+To produce the source code use:
+ notangle -L'%N' rtest.nw rtest_support.nw > rtest.py
+note: the first empty line must be removed
+ edit rtest.py
+
+rtest_init.nw:
+To generate the LaTex file use:
+ noweave -index rtest_init.nw rtest_support.nw > rtest_init.tex
+To generate the DVI file use:
+ latex rtest_init.tex; latex rtest_init.tex
+To generate the PDF version use:
+ dvipdfm rtest_init.dvi
+To generate the HTML file use:
+ noweave -filter l2h -index -autodefs c -html rtest_init.nw > rtest_init.html
+To produce source code:
+ notangle -L'%N' rtest_init.nw > rtest_init.py
+note: the first empty line must be removed.
+ edit rtest_init.py
