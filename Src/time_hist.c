@@ -514,11 +514,14 @@ Analysis *analy;
     float min_ax[2], max_ax[2], incr_ax[2];
     float pos[3];
     float val, val2;
+    float char_width;
+    float y_scale_width, x_scale_width;
     float *st_result;
     char str[90];
     int num_states;
     int max_incrs, incr_cnt[2];
     int i, j, k;
+    int fracsz, y_fracsz, x_fracsz;
 
     num_states = analy->num_states;
 
@@ -555,8 +558,25 @@ Analysis *analy;
     htextsize( text_height, text_height );
 
     /* Width of scale values on the sides of the graph. */
-    hgetcharsize( '0', &val, &val2 );
-    scale_width = 8.0*val;
+    /* hgetcharsize( '0', &val, &val2 ); */
+    /* scale_width = 8.0*val; */
+    /* fracsz = analy->float_frac_size; */
+    /* scale_width = ((float) fracsz + 6.0) * val; */
+    
+    /* 
+     * Assign a scale width and graph corners based upon the 
+     * current fraction size.  If auto fraction size has been
+     * requested, use the maximum allowable digit quantity but
+     * recalculate actual size and graph corners later.
+     * 
+     * Note that there is a cart-before-the-horse problem.
+     * To calculate the fraction size, we need the tic interval.
+     * To calculate the tic interval, we need the fraction size.
+     * We could iterate, but is it really worth it?
+     */
+    hgetcharsize( '0', &char_width, &val2 );
+    fracsz = analy->float_frac_size;
+    scale_width = ((( analy->auto_frac_size ) ? 6 : fracsz) + 6.0) * char_width;
 
     /* Corners of the window. */
     win_ll[0] = -cx;
@@ -638,6 +658,28 @@ Analysis *analy;
         /* Number of increments along the axes. */
         incr_cnt[i] = (int) ((max_ax[i] - min_ax[i])/incr_ax[i] + 0.5);
     }
+    
+    if ( analy->auto_frac_size )
+    {
+	y_fracsz = calc_fracsz( max_ax[1], min_ax[1], incr_cnt[1] );
+	y_scale_width = (y_fracsz + 6.0) * char_width;
+	
+	x_fracsz = calc_fracsz( max_ax[0], min_ax[0], incr_cnt[0] );
+	x_scale_width = (x_fracsz + 6.0) * char_width;
+
+	/* Corners of the graph. */
+	gr_ll[0] = win_ll[0] + 3*text_height + y_scale_width;
+	gr_ll[1] = win_ll[1] + 6*text_height + x_scale_width;
+	gr_ur[0] = win_ur[0] - text_height;
+	gr_ur[1] = win_ur[1] - text_height;
+    }
+    else
+    {
+	y_fracsz = fracsz;
+	y_scale_width = scale_width;
+	x_fracsz = fracsz;
+	x_scale_width = scale_width;
+    }
 
     /* No lighting for foreground stuff. */
     if ( v_win->lighting )
@@ -700,7 +742,8 @@ Analysis *analy;
         pos[0] += 0.5*text_height;
         pos[1] = gr_ll[1] - 0.5*text_height;
         hmove( pos[0], pos[1], pos[2] );
-        sprintf( str, "%.2e", i*incr_ax[0] + min_ax[0] );
+        /* sprintf( str, "%.2e", i*incr_ax[0] + min_ax[0] ); */
+        sprintf( str, "%.*e", x_fracsz, i*incr_ax[0] + min_ax[0] );
         hcharstr( str );
     }
 
@@ -719,19 +762,20 @@ Analysis *analy;
         pos[0] = gr_ll[0] - 0.5*text_height;
         pos[1] -= 0.5*text_height;
         hmove( pos[0], pos[1], pos[2] );
-        sprintf( str, "%.2e", i*incr_ax[1] + min_ax[1] );
+        /* sprintf( str, "%.2e", i*incr_ax[1] + min_ax[1] ); */
+        sprintf( str, "%.*e", y_fracsz, i*incr_ax[1] + min_ax[1] );
         hcharstr( str );
     }
 
     /* Label each axis. */
     hcentertext( TRUE );
     pos[0] = 0.5*(gr_ur[0]-gr_ll[0]) + gr_ll[0];
-    pos[1] = gr_ll[1] - scale_width - 2.0*text_height;
+    pos[1] = gr_ll[1] - x_scale_width - 2.0*text_height;
     hmove( pos[0], pos[1], pos[2] );
     hcharstr( "Time" );
 
     htextang( 90.0 );
-    pos[0] = gr_ll[0] - scale_width - 2.0*text_height;
+    pos[0] = gr_ll[0] - y_scale_width - 2.0*text_height;
     pos[1] = 0.5*(gr_ur[1]-gr_ll[1]) + gr_ll[1];
     hmove( pos[0], pos[1], pos[2] );
     hcharstr( trans_result[resultid_to_index[analy->result_id]][1] );
@@ -745,8 +789,8 @@ Analysis *analy;
 	       * text_height;
     hmove( pos[0], pos[1], pos[2] );
     hcharstr( el_label );
-    hgetcharsize( '0', &val, &val2 );
-    pos[0] += 8.0*val; 
+    /* hgetcharsize( '0', &val, &val2 ); */
+    pos[0] += 8.0 * char_width; 
 
     for ( i = 0; i < num_plots; i++ )
     {
@@ -754,7 +798,7 @@ Analysis *analy;
         glColor3fv( plot_colors[i] );
         sprintf( str, "%d", el_numbers[i] + 1 );
         hcharstr( str );
-        pos[0] += 6.0*val; 
+        pos[0] += 6.0 * char_width; 
     }
     
     /* Notify if data conversion active. */

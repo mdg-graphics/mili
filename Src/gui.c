@@ -17,6 +17,7 @@
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
 #include <X11/keysym.h>
+#include <X11/cursorfont.h>
 #include <Xm/MainW.h>
 #include <Xm/Form.h>
 #include <Xm/CascadeB.h>
@@ -114,6 +115,7 @@ static void string_convert();
 static Boolean animate_workproc_CB();
 static void write_start_text();
 static void remove_widget_CB();
+static void init_alt_cursors();
 
 
 /*
@@ -465,6 +467,9 @@ static Bool_type gui_up = FALSE;
 FILE *text_history_file = NULL;
 Bool_type text_history_invoked = FALSE;
 
+/* Non-default cursors. */
+static Cursor alt_cursors[CURSOR_QTY];
+
 /*
  * Resource settings for GL choose visual.  Demand full 24 bit
  * color -- otherwise you can get yucky dithering.
@@ -684,6 +689,8 @@ char **argv;
      */
     switch_opengl_win( MESH );
     init_gui();
+    
+    init_alt_cursors();
 
     /* Start event processing. */
     XtAppMainLoop( app_context );
@@ -2572,11 +2579,13 @@ XmScaleCallbackStruct *call_data;
             }
             else
             {
+	        unset_alt_cursor();
                 update_display( env.curr_analy );
             }
             break;
 
         case MotionNotify:
+	    set_alt_cursor( CURSOR_FLEUR );
             mode = MOUSE_MOVE;
             orig_posx = posx;
             orig_posy = posy;
@@ -3684,8 +3693,7 @@ XmAnyCallbackStruct *call_data;
 /*****************************************************************
  * TAG( create_app_widg )
  *
- * Routine to update the utility panel after a pertinent pulldown menu
- * or command line action.
+ * Routine to create additional standalone interface widgets.
  */
 static void
 create_app_widg( btn )
@@ -5224,5 +5232,66 @@ OpenGL_win opengl_win;
             glXMakeCurrent( dpy, XtWindow( ogl_widg[MESH] ), render_ctx );
 	    cur_opengl_win = MESH;
     }
+}
+
+
+/*****************************************************************
+ * TAG( init_alt_cursors )
+ *
+ * Define alternative cursor resources.
+ */
+static void
+init_alt_cursors()
+{
+    alt_cursors[CURSOR_WATCH] = XCreateFontCursor( dpy, XC_watch );
+    alt_cursors[CURSOR_EXCHANGE] = XCreateFontCursor( dpy, XC_exchange );
+    alt_cursors[CURSOR_FLEUR] = XCreateFontCursor( dpy, XC_fleur );
+}
+
+
+/*****************************************************************
+ * TAG( set_alt_cursor )
+ *
+ * Switch to an alternative cursor.
+ */
+void
+set_alt_cursor( cursor_type )
+Cursor_type cursor_type;
+{
+    /* Always set for rendering window and control window. */
+    XDefineCursor( dpy, XtWindow( ogl_widg[MESH] ), alt_cursors[cursor_type] );
+    XDefineCursor( dpy, XtWindow( ctl_shell_widg ), alt_cursors[cursor_type] );
+    
+    /* Also set for Material Manager and (standalone) Utility Panel. */
+    if ( mtl_mgr_widg != NULL )
+        XDefineCursor( dpy, XtWindow( ctl_shell_widg ), 
+	               alt_cursors[cursor_type] );
+    if ( !include_util_panel && util_panel_widg != NULL )
+        XDefineCursor( dpy, XtWindow( util_panel_widg ), 
+	               alt_cursors[cursor_type] );
+
+    XFlush( dpy );
+}
+
+
+/*****************************************************************
+ * TAG( unset_alt_cursor )
+ *
+ * Set cursor to default.
+ */
+void
+unset_alt_cursor()
+{
+    /* Always set for rendering window and control window. */
+    XUndefineCursor( dpy, XtWindow( ogl_widg[MESH] ) );
+    XUndefineCursor( dpy, XtWindow( ctl_shell_widg ) );
+    
+    /* Also set for Material Manager and (standalone) Utility Panel. */
+    if ( mtl_mgr_widg != NULL )
+        XUndefineCursor( dpy, XtWindow( ctl_shell_widg ) );
+    if ( !include_util_panel && util_panel_widg != NULL )
+        XUndefineCursor( dpy, XtWindow( util_panel_widg ) );
+
+    XFlush( dpy );
 }
 

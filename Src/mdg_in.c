@@ -142,7 +142,7 @@ char *root_name;
     struct stat statbuf;
     int sum, sumsav, max_st, st_num;
     int fnum, loc;
-    int ndim, numnp, nglbv, it, iu, iv, ia, ixd, xnd, nvqty;
+    int ndim, numnp, icode, nglbv, it, iu, iv, ia, ixd, xnd, nvqty;
     int nel8, nummat8, nv3d, nel2, nummat2, nv1d;
     int nel4, nummat4, nv2d, activ;
     int nv3dact, nv2dact, nv1dact;
@@ -204,6 +204,7 @@ char *root_name;
 
     ndim    = fam->ctl[ 0];
     numnp   = fam->ctl[ 1];
+    icode   = fam->ctl[ 2];
     nglbv   = fam->ctl[ 3];
     it      = fam->ctl[ 4];
     iu      = fam->ctl[ 5];
@@ -243,7 +244,7 @@ char *root_name;
      * Calculate number of nodal variable fields in state record.
      * Assume A2 will never be present without k and epsilon.
      */
-    nvqty = it + xnd + ndim * (iu + iv + ia);
+    nvqty = (( icode == 1 ) ? 1 : it) + xnd + ndim * (iu + iv + ia);
 
 #ifdef DEBUG
     wrt_text( "ndim %d nnodes %d nel8 %d nel4 %d nel2 %d\n",
@@ -423,7 +424,7 @@ char *root_name;
     }
 
     /* Nodal temperatures. */
-    if ( it )
+    if ( it || icode == 1 )
     {
         fam->result_offsets[VAL_NODE_TEMP] = loc;
         loc += seg;

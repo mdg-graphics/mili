@@ -260,3 +260,72 @@ char *p_text;
 
     return ( p_line != NULL ) ? p_str : NULL;
 }
+
+
+/*****************************************************************
+ * TAG( calc_fracsz )
+ *
+ * Calculate the quantity of digits to display after the decimal
+ * point for a given range and quantity of values.  Bound the
+ * result to [1, 6].
+ */
+int
+calc_fracsz( min, max, intervals )
+float min; 
+float max;
+int intervals;
+{
+    double dmin, dmax, big_sz, little_sz, dtmp;
+    int fracsz;
+    
+    /* Sanity check. */
+    if ( min == max )
+        return 2;
+
+    /*
+     * Calculate the fraction size as the difference between the 
+     * base-10 log of the largest number to be displayed and the
+     * base-10 log of the interval between adjacent samples.
+     */
+    
+    /* Big_sz - log of largest displayed value. */
+    
+    dmin = fabs( (double) min );
+    dmax = fabs( (double) max );
+    if ( dmin > dmax )
+	dmax = dmin;
+    
+    big_sz = log10( dmax );
+    
+    if ( big_sz < 0 )
+	big_sz = -(ceil( -big_sz ));
+    else
+	big_sz = ceil( big_sz );
+
+    /* Little_sz - log of interval magnitude. */
+    
+    dtmp = ((double) max - min) / (double) intervals;
+    dtmp = fabs( dtmp );
+    
+    little_sz = log10( dtmp );
+    
+    if ( little_sz < 0 )
+	little_sz = -(ceil( -little_sz ));
+    else
+	little_sz = ceil( little_sz );
+
+    /* 
+     * Subtract one from difference because values will be rendered
+     * with one digit to the left of the decimal point.
+     */
+    fracsz = (int) (big_sz - little_sz + 0.5) - 1;
+
+    /* Bound the value. */
+    if ( fracsz < 1 )
+	fracsz = 1;
+    else if ( fracsz > 6 )
+	fracsz = 6;
+
+    return fracsz;
+}
+

@@ -176,5 +176,6 @@ extern Bool_type all_true();
 extern Bool_type all_false();
 extern Bool_type is_in_iarray();
 extern char *find_text();
+extern int calc_fracsz();
 
 #endif MISC_H

@@ -1423,6 +1423,9 @@ Analysis *analy;
         wrt_text( "\nTiming for rendering...\n" );
         check_timing( 0 );
     }
+    
+    /* Set cursor to let user know something is happening. */
+    set_alt_cursor( CURSOR_WATCH );
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
              GL_STENCIL_BUFFER_BIT );
@@ -1462,6 +1465,8 @@ Analysis *analy;
 
     gui_swap_buffers();
 
+    unset_alt_cursor();
+    
     if ( env.timing )
         check_timing( 1 );
 }
@@ -2548,8 +2553,10 @@ Analysis *analy;
     int i, j;
     Bool_type verts_ok;
     float val;
+    int fracsz;
 
     rfac = 0.1;                             /* Radius scale factor. */
+    fracsz = analy->float_frac_size;
 
     /* Outline the hilighted element. */
     switch ( hilite_type )
@@ -2570,7 +2577,7 @@ Analysis *analy;
 		      ? analy->result[hilite_num] * analy->conversion_scale
 		        + analy->conversion_offset
 		      : analy->result[hilite_num];
-                sprintf( label, " Node %d (%.4e)", hilite_num+1, val );
+                sprintf( label, " Node %d (%.*e)", hilite_num+1, fracsz, val );
 	    }
             else
                 sprintf( label, " Node %d", hilite_num+1 );
@@ -2609,7 +2616,7 @@ Analysis *analy;
 		      ? analy->beam_result[hilite_num] * analy->conversion_scale
 		        + analy->conversion_offset
 		      : analy->beam_result[hilite_num];
-                sprintf( label, " Beam %d (%.4e)", hilite_num+1, val );
+                sprintf( label, " Beam %d (%.*e)", hilite_num+1, fracsz, val );
 	    }
             else
                 sprintf( label, " Beam %d", hilite_num+1 );
@@ -2646,7 +2653,7 @@ Analysis *analy;
 		      ? analy->shell_result[hilite_num] * analy->conversion_scale
 		        + analy->conversion_offset
 		      : analy->shell_result[hilite_num];
-                sprintf( label, " Shell %d (%.4e)", hilite_num+1, val );
+                sprintf( label, " Shell %d (%.*e)", hilite_num+1, fracsz, val );
 	    }
             else
                 sprintf( label, " Shell %d", hilite_num+1 );
@@ -2688,7 +2695,7 @@ Analysis *analy;
 		      ? analy->hex_result[hilite_num] * analy->conversion_scale
 		        + analy->conversion_offset
 		      : analy->hex_result[hilite_num];
-                sprintf( label, " Brick %d (%.4e)", hilite_num+1, val );
+                sprintf( label, " Brick %d (%.*e)", hilite_num+1, fracsz, val );
 	    }
             else
                 sprintf( label, " Brick %d", hilite_num+1 );
@@ -4886,7 +4893,11 @@ char *text;
 
     hmove( spt[0], spt[1], spt[2] );
     htextsize( text_height, text_height );
+    antialias_lines( TRUE );
+    glLineWidth( 1.25 );
     hcharstr( text );
+    glLineWidth( 1.0 );
+    antialias_lines( FALSE );
 
     /* Restore the model view matrix. */
     glPopMatrix();
@@ -4971,6 +4982,7 @@ Analysis *analy;
     int mm_node_types[2];
     int mod_cnt;
     Result_modifier_type mods[3];
+    int fracsz;
 
 
 
@@ -5000,6 +5012,7 @@ Analysis *analy;
     /* For the textual information. */
     text_height = 14.0 * vp_to_world[1];
     htextsize( text_height, text_height );
+    fracsz = analy->float_frac_size;
 
     /* Colormap. */
     if ( analy->show_colormap && analy->result_id != VAL_NONE )
@@ -5116,7 +5129,7 @@ Analysis *analy;
             hcharstr( str );
 
             hmove2( xp, ypos + ysize + b_height + 0.25*text_height );
-            sprintf( str, "%.2e", high );
+            sprintf( str, "%.*e", fracsz, high );
             hcharstr( str );
 
             */
@@ -5215,7 +5228,7 @@ Analysis *analy;
             low_text_bound = yp - (0.6 * text_height) + text_height;
 
             hmove2( xp, yp - (0.6 * text_height) );
-            sprintf( str, "%.2e", low );
+            sprintf( str, "%.*e", fracsz, low );
             hcharstr( str );
 
             xp = xpos - (2.0 * b_width);
@@ -5232,7 +5245,7 @@ Analysis *analy;
             high_text_bound = yp - (0.6 * text_height);
 
             hmove2( xp, yp - (0.6 * text_height) );
-            sprintf( str, "%.2e", high );
+            sprintf( str, "%.*e", fracsz, high );
             hcharstr( str );
 
             xp = xpos - (2.0 * b_width);
@@ -5268,7 +5281,7 @@ Analysis *analy;
                         xp = xpos - (2.0 * b_width) - (0.6 * text_height);
 
                         hmove2( xp, yp - (0.6 * text_height) );
-                        sprintf( str, "%.2e", value );
+                        sprintf( str, "%.*e", fracsz, value );
                         hcharstr( str );
 
 
@@ -5301,7 +5314,7 @@ Analysis *analy;
                 xp = xpos - (2.0 * b_width) - (0.6 * text_height);
                 /*hmove2( xp - (2.0 * b_width), yp - (0.6 * text_height) );*/
                 hmove2( xp, yp - (0.6 * text_height) );
-                sprintf( str, "%.2e", high );
+                sprintf( str, "%.*e", fracsz, high );
                 hcharstr( str );
 	    }
 
@@ -5477,9 +5490,15 @@ Analysis *analy;
         VEC_SET( pt, sub_leng, sub_leng, leng + sub_leng );
         point_transform( ptk, pt, &tmat );
 
+        antialias_lines( FALSE );
+	glLineWidth( 1.0 );
+	
         draw_3d_text( pti, "X" );
         draw_3d_text( ptj, "Y" );
         draw_3d_text( ptk, "Z" );
+
+        antialias_lines( TRUE );
+	glLineWidth( 1.25 );
     }
     
     /* Result value min/max. */
@@ -5519,15 +5538,15 @@ Analysis *analy;
 	hleftjustify( TRUE );
 	hmove2( xp, yp );
 	if ( analy->result_id != VAL_NONE )
-	    sprintf( str, "min: %.2e, %s %d", low, el_label[el_type[0]], 
+	    sprintf( str, "min: %.*e, %s %d", fracsz, low, el_label[el_type[0]], 
 	             el_id[0] );
 	else
 	    sprintf( str, "min: (no result)" );
 	hcharstr( str );
 	hmove2( xp, yp - LINE_SPACING_COEFF * text_height );
 	if ( analy->result_id != VAL_NONE )
-	    sprintf( str, "max: %.2e, %s %d", high, el_label[el_type[1]], 
-	             el_id[1] );
+	    sprintf( str, "max: %.*e, %s %d", fracsz, high, 
+	             el_label[el_type[1]], el_id[1] );
 	else
 	    sprintf( str, "max: (no result)" );
 	hcharstr( str );
@@ -5570,7 +5589,7 @@ Analysis *analy;
 {
     Transf_mat look_rot;
     float arr[16], scal;
-
+    
     /* Center the view on a point before rendering. */
     if ( analy->center_view )
         center_view( analy );

@@ -27,6 +27,9 @@
 #define VIDEO_WIDTH (720)
 #define VIDEO_HEIGHT (486)
 
+/* Default number of significant figures in floating point numbers. */
+#define DEFAULT_FLOAT_FRACTION_SIZE (2)
+
 /* Number of materials with settable properties. */
 #define MAX_MATERIALS 200
 
@@ -370,6 +373,20 @@ typedef enum
 
 
 /*****************************************************************
+ * TAG( Cursor_type )
+ *
+ * Enumeration of non-default cursors that Griz uses.  
+ */
+typedef enum
+{
+    CURSOR_WATCH, 
+    CURSOR_EXCHANGE, 
+    CURSOR_FLEUR, 
+    CURSOR_QTY
+} Cursor_type;
+
+
+/*****************************************************************
  * TAG( Analysis )
  *
  * Struct which contains all the info related to an analysis.
@@ -404,6 +421,7 @@ typedef struct _Analysis
     int *block_lo;
     int *block_hi;
     float *block_bbox[2][3];
+    Bool_type keep_max_bbox_extent;
 
     Bool_type normals_smooth;
     Render_mode_type render_mode;
@@ -417,6 +435,8 @@ typedef struct _Analysis
     Bool_type show_colorscale;
     Bool_type show_minmax;
     Bool_type use_colormap_pos;
+    int float_frac_size;
+    Bool_type auto_frac_size;
     float colormap_pos[4];
     Mouse_mode_type mouse_mode;
     Bool_type pick_beams;
@@ -742,6 +762,8 @@ extern void switch_opengl_win();
 extern void destroy_mtl_mgr();
 extern void update_util_panel();
 extern void reset_window_titles();
+extern void set_alt_cursor();
+extern void unset_alt_cursor();
 
 /* DERIVED VARIABLES. */
 

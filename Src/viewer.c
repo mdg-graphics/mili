@@ -233,6 +233,8 @@ Analysis *analy;
     analy->render_mode = RENDER_HIDDEN;
     analy->interp_mode = REG_INTERP;
     analy->manual_backface_cull = TRUE;
+    analy->float_frac_size = DEFAULT_FLOAT_FRACTION_SIZE;
+    analy->auto_frac_size = TRUE;
     analy->show_colorscale = TRUE;
     analy->result_id = VAL_NONE;
     analy->use_global_mm = TRUE;
@@ -462,6 +464,8 @@ Analysis *analy;
     else
         fclose( infile );
 
+    set_alt_cursor( CURSOR_EXCHANGE );
+    
     close_family();
     close_analysis( analy );
     memset( analy, 0, sizeof( Analysis ) );
@@ -469,6 +473,8 @@ Analysis *analy;
     open_analysis( fname, analy );
     reset_mesh_window( analy );
     reset_window_titles();
+    
+    unset_alt_cursor();
 }
 
 

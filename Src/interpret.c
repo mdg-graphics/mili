@@ -769,6 +769,10 @@ Analysis *analy;
                 analy->perform_unit_conversion = setval;
             else if ( strcmp( tokens[i], "bmbias" ) == 0 )
                 analy->zbias_beams = setval;
+            else if ( strcmp( tokens[i], "bbmax" ) == 0 )
+                analy->keep_max_bbox_extent = setval;
+            else if ( strcmp( tokens[i], "autosz" ) == 0 )
+                analy->auto_frac_size = setval;
             else
                 wrt_text( "On/Off command unrecognized: %s\n", tokens[i] );
         } 
@@ -958,6 +962,15 @@ Analysis *analy;
             update_vis( analy );
         }
         redraw = TRUE;
+    }
+    else if ( strcmp( tokens[0], "fracsz" ) == 0 )
+    {
+	sscanf( tokens[1], "%d", &ival );
+	if ( ival >= 0 && ival <= 6 )
+	{
+	    analy->float_frac_size = ival;
+	    redraw = TRUE;
+	}
     }
     else if ( strcmp( tokens[0], "invis" ) == 0 ||
               strcmp( tokens[0], "vis" ) == 0 )
@@ -1231,8 +1244,22 @@ Analysis *analy;
         ival = analy->dimension;
 	if ( token_cnt == 1 )
 	{
-            bbox_nodes( analy, analy->bbox_source, FALSE, analy->bbox[0], 
-	                analy->bbox[1] );
+            bbox_nodes( analy, analy->bbox_source, FALSE, pt, vec );
+	    if ( analy->keep_max_bbox_extent )
+	    {
+		for ( i = 0; i < 3; i++ )
+		{
+		    if ( pt[i] < analy->bbox[0][i] )
+		        analy->bbox[0][i] = pt[i];
+		    if ( vec[i] > analy->bbox[1][i] )
+		        analy->bbox[1][i] = vec[i];
+		}
+	    }
+	    else
+	    {
+		VEC_COPY( analy->bbox[0], pt );
+		VEC_COPY( analy->bbox[1], vec );
+	    }
 	    redrawview = TRUE;
 	}
 	else if ( ival == 3 && token_cnt == 7 )
@@ -2968,6 +2995,8 @@ void
 update_vis( analy )
 Analysis *analy;
 {
+    set_alt_cursor( CURSOR_WATCH );
+    
     if ( analy->geom_p->bricks != NULL )
     {
         gen_cuts( analy );
@@ -2975,6 +3004,8 @@ Analysis *analy;
     }
     update_vec_points( analy );
     gen_contours( analy );
+    
+    unset_alt_cursor();
 }
 
 
