@@ -344,6 +344,8 @@ Analysis *analy;
         /* Display the next state. */
         analy->cur_state = anim_info.cur_state;
         change_state( analy );
+	if ( analy->center_view )
+            center_view( analy );
         update_display( analy );
 
         anim_info.cur_state++;
@@ -472,6 +474,9 @@ Analysis *analy;
 
         /* Update cut planes, isosurfs, contours. */
         update_vis( analy );
+	
+	if ( analy->center_view )
+            center_view( analy );
 
         /*
          * Redraw the mesh.
@@ -529,12 +534,23 @@ Analysis *analy;
     float *global_mm, *result;
     int cur_state;
     int cnt, i, j;
+    Minmax_obj mm_save;
 
     if ( analy->result_id == VAL_NONE )
         return;
 
     cur_state = analy->cur_state;
+    mm_save = analy->elem_state_mm;
 
+/**/
+/* This speed-up avoids nodal interpolation of element results and so
+ * generates a global minmax based on element results.  The normal
+ * minmax update logic always generates the global minmax from nodal
+ * results (interpolated element results) and saves the element minmax
+ * into analy->global_elem_mm.  So...this speed-up is wrong, but keep
+ * it around temporarily for reference.
+ */
+#ifdef BAD_SPEEDUP
     if ( is_in_database( analy->result_id ) )
     {
         /* Result is in database (not derived), loop to grab it.
@@ -554,6 +570,8 @@ Analysis *analy;
 
         for ( i = 0; i < analy->num_states; i++ )
         {
+	    init_mm_obj( &analy->tmp_elem_mm );
+	    
             get_result( analy->result_id, i, result );
             for ( j = 0; j < cnt; j++ )
             {
@@ -575,8 +593,19 @@ Analysis *analy;
             load_result( analy, TRUE );
         }
     }
+#else
+    for ( i = 0; i < analy->num_states; i++ )
+    {
+        analy->cur_state = i;
+        analy->state_p = get_state( i, analy->state_p );
+
+        /* Update displayed result. */
+        load_result( analy, TRUE );
+    }
+#endif
 
     /* Go back to where we were before. */
+    analy->elem_state_mm = mm_save;
     analy->cur_state = cur_state;
     change_state( analy );
 }
