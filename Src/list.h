@@ -1,4 +1,5 @@
 /* $Id$ */
+
 /* 
  * list.h - Definitions for list operations.
  * 
@@ -57,6 +58,17 @@
                                   { (elem)->next = (list);  \
                                     (list)->prev = (elem); }  \
                                (list) = (elem); }
+
+
+/*****************************************************************
+ * TAG( INSERT_BEFORE )
+ * 
+ * Insert an element before another in a list.
+ */
+#define INSERT_BEFORE( new_elem, elem ) { if ( (elem)->prev != NULL ) {  \
+                 (elem)->prev->next = (new_elem);  \
+                 (new_elem)->prev = (elem)->prev; }  \
+                 (new_elem)->next = (elem); (elem)->prev = (new_elem); }
 
 
 /*****************************************************************
