@@ -632,6 +632,7 @@ extern void continue_animate();
 extern Bool_type step_animate();
 extern void end_animate();
 extern void get_global_minmax();
+extern void tellmm();
 
 /* VISUALIZATION */
 
@@ -792,6 +793,7 @@ extern void load_result( /* analy */ );
 
 /* show.c */
 extern int parse_show_command();
+extern void cache_global_minmax();
 extern void compute_shell_in_data();
 extern void compute_beam_in_data();
 extern void compute_node_in_data();
