@@ -294,7 +294,7 @@ Analysis *analy;
     for ( i = 0; i < 3; i++ )
         analy->mtl_trans[i] = NEW_N( float, analy->num_materials,
                                      "Material translations" );
-
+    
     /* Use element blocks to speed up the adjacency table creation. */
     create_elem_blocks( analy );
 

@@ -5700,7 +5700,8 @@ Bool_type alpha;
     img = iopen( fname, "w", RLE( 1 ), 3, vp_width, vp_height, components );
     if ( img == 0 )
     {
-	wrt_text( "Unable to open rgb image file \"%s\".\n", fname );
+	popup_dialog( WARNING_POPUP, "Unable to open rgb image file \"%s\".\n",
+	              fname );
 	return;
     }
     

@@ -717,6 +717,8 @@ Geom *geo;
             if ( geo->bricks->mat[i] < 0 || geo->bricks->mat[i] > 1000000 )
                 geo->bricks->mat[i] = 0;
         }
+
+        check_degen_bricks( geo->bricks );
     }
 
     if ( nel2 > 0 )
@@ -756,6 +758,8 @@ Geom *geo;
             if ( geo->shells->mat[i] < 0 || geo->shells->mat[i] > 1000000 )
                 geo->shells->mat[i] = 0;
         }
+
+        check_degen_shells( geo->shells );
     }
 
     free( tmp2 );
@@ -1310,6 +1314,8 @@ Hex_geom *shells;
             shift = 3;
             shells->degen_elems = TRUE; 
         }
+	else
+	    continue;
 
         for ( j = 0; j < shift; j++ )
         {

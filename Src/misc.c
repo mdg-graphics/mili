@@ -329,3 +329,17 @@ int intervals;
     return fracsz;
 }
 
+
+/*****************************************************************
+ * TAG( do_nothing_stub )
+ *
+ * A stub that does nothing - to be used as error handler for
+ * image lib.
+ */
+void
+do_nothing_stub( text )
+char *text;
+{
+    /* OK, here is where we do nothing. */
+}
+
