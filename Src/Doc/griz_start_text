@@ -15,6 +15,36 @@ New results
         "Principal Stress 1", ("prin1"),
         "Principal Stress 2", ("prin2"), and
         "Principal Stress 3", ("prin3").
+
+New command
+    bbox vis
+        Calculate a new bounding box for the mesh based
+	upon the extents only of visible materials.  The
+	"rnf" command attempts to reset the near/far
+	clipping planes on the basis of the Z-extents of
+	the bounding box.  At large scale factors, the
+	bounding box may extend behind the visualization
+	eyepoint, causing the "rnf" command to fail.  This
+	new variation of the "bbox" command allows the user
+	to calculate a potentially smaller bounding box
+	which may allow the "rnf" command to succeed in
+	those cases.
+
+New functionality
+    View centering ("vcent...") now centers the mesh in Z
+    as well as X and Y, automatically positioning the
+    depth of the mesh to keep the view centering point
+    centered between the near and far clipping planes.
+    This can be useful when applying large scale factors
+    that cause the mesh to (apparently) disappear.  A
+    side-effect of this functionality is that issuing an
+    "rnf" command with view centering on can result in
+    a sudden jump forward or backward of the mesh as it
+    is re-centered between the new near/far clipping 
+    planes.
+    
+    The warning popup dialog for an "rnf" failure has
+    been re-written to be more helpful.
     
 Bug fix
     Updated effective stress calculation for hex's and
