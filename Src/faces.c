@@ -1511,6 +1511,7 @@ Analysis *analy;
     char comstr[80];
     int el, fc, nd, near_num;
     int i, j, k;
+    int idum;
 
     nodes = analy->state_p->nodes;
     onodes = analy->geom_p->nodes;
@@ -1757,11 +1758,21 @@ Analysis *analy;
     {
         /* Hilite or select the picked element or node. */
         if ( analy->mouse_mode == MOUSE_HILITE )
-            sprintf( comstr, "hilite %s %d", elem_strs[item_type],
-                     near_num + 1 );
+	    if ( analy->hilite_num == near_num )
+		sprintf( comstr, "clrhil" );
+	    else
+		sprintf( comstr, "hilite %s %d", elem_strs[item_type],
+			 near_num + 1 );
         else if ( analy->mouse_mode == MOUSE_SELECT )
-            sprintf( comstr, "select %s %d", elem_strs[item_type],
-                     near_num + 1 );
+	{
+	    if ( is_in_iarray( near_num, analy->num_select[item_type], 
+	                       analy->select_elems[item_type], &idum ) )
+	        sprintf( comstr, "clrsel %s %d", elem_strs[item_type], 
+		         near_num + 1 );
+	    else
+		sprintf( comstr, "select %s %d", elem_strs[item_type],
+			 near_num + 1 );
+	}
 
         parse_command( comstr, env.curr_analy );
     }
