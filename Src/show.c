@@ -12,7 +12,6 @@
 #include "viewer.h"
 
 /* Local routines. */
-static void cache_global_minmax();
 static void lookup_global_minmax();
 
 
@@ -130,7 +129,7 @@ Analysis *analy;
  * Takes the global min/max for the specified result type and
  * stashes it in a list for later retrieval.
  */
-static void
+extern void
 cache_global_minmax( analy )
 Analysis *analy;
 {
