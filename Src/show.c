@@ -33,7 +33,7 @@ Analysis *analy;
     cache_global_minmax( analy );
 
     /* Get the result type. */
-    analy->result_id = lookup_result_id( token );
+    analy->result_id = (Result_type) lookup_result_id( token );
 
     /* Error if no match in table. */
     if ( analy->result_id < 0 )
@@ -218,7 +218,7 @@ Analysis *analy;
     /* Isn't in the list yet, add it.
      */
     mm = NEW( Minmax_obj, "Minmax obj" );
-    mm->result.ident = result_id;
+    mm->result.ident = (Result_type) result_id;
     mm->minmax[0] = test_mm[0];
     mm->minmax[1] = test_mm[1];
     mm->mesh_object[0] = mesh_object[0];
@@ -323,6 +323,39 @@ Analysis *analy;
             else
                 analy->result_mm[i] = analy->state_mm[i];
         }
+}
+
+
+/*****************************************************************
+ * TAG( reset_global_minmax )
+ * 
+ * Remove any cached global min/max value for a result.
+ */
+extern Bool_type
+reset_global_minmax( analy )
+Analysis *analy;
+{
+    Minmax_obj *mm;
+    Bool_type found;
+    int i;
+
+    if ( analy->result_id == VAL_NONE )
+        return FALSE;
+
+    /* If a cached min/max for the current result exists, delete it.  */
+    for ( mm = analy->result_mm_list; mm != NULL; mm = mm->next )
+        if ( match_result( analy, analy->result_id, &mm->result ) )
+            DELETE( mm, analy->result_mm_list );
+    
+    /* Always reset the current global min/max from the current state. */
+    analy->global_mm[0] = analy->state_mm[0];
+    analy->global_mm_nodes[0] = analy->state_mm_nodes[0];
+    analy->global_mm[1] = analy->state_mm[1];
+    analy->global_mm_nodes[1] = analy->state_mm_nodes[1];
+    analy->global_elem_mm[0] = analy->elem_state_mm.el_minmax[0];
+    analy->global_elem_mm[1] = analy->elem_state_mm.el_minmax[1];
+    
+    return TRUE;
 }
 
 
