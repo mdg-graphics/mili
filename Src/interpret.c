@@ -723,6 +723,8 @@ Analysis *analy;
 	        analy->show_vector_spheres = setval;
 	    else if ( strcmp( tokens[i], "sclbyres" ) == 0 )
 	        analy->scale_vec_by_result = setval;
+	    else if ( strcmp( tokens[i], "zlines" ) == 0 )
+	        analy->z_buffer_lines = setval;
             else if ( strcmp( tokens[i], "carpet" ) == 0 )
             {
                 if ( setval &&
@@ -865,15 +867,19 @@ Analysis *analy;
             else if( strcmp( tokens[i], "mstat" ) == 0 )
             {
                 analy->use_global_mm = FALSE;
-                analy->result_mm[0] = analy->state_mm[0];
-                analy->result_mm[1] = analy->state_mm[1];
+		if ( !analy->mm_result_set[0] )
+                    analy->result_mm[0] = analy->state_mm[0];
+		if ( !analy->mm_result_set[1] )
+                    analy->result_mm[1] = analy->state_mm[1];
                 update_vis( analy );
             }
             else if( strcmp( tokens[i], "mglob" ) == 0 )
             {
                 analy->use_global_mm = TRUE;
-                analy->result_mm[0] = analy->global_mm[0];
-                analy->result_mm[1] = analy->global_mm[1];
+		if ( !analy->mm_result_set[0] )
+                    analy->result_mm[0] = analy->global_mm[0];
+		if ( !analy->mm_result_set[1] )
+                    analy->result_mm[1] = analy->global_mm[1];
                 update_vis( analy );
             }
 
@@ -1977,6 +1983,10 @@ Analysis *analy;
                 analy->vec_col_set = TRUE;
             else if ( strcmp( tokens[1], "vechd" ) == 0 )
                 analy->vec_hd_col_set = TRUE;
+            else if ( strcmp( tokens[1], "rmin" ) == 0 
+	              || strcmp( tokens[1], "rmax" ) == 0 )
+	        set_cutoff_colors( TRUE, analy->mm_result_set[0], 
+		                   analy->mm_result_set[1] );
         }
         else
             wrt_text( "Four arguments needed for setcol.\n" );
@@ -2066,8 +2076,13 @@ Analysis *analy;
 	                           - analy->conversion_offset) 
 				  / analy->conversion_scale;
         analy->mm_result_set[1] = TRUE;
+	set_cutoff_colors( TRUE, 
+	                   analy->mm_result_set[0], analy->mm_result_set[1] );
+/**/
+/*
         if ( !user_cmap_loaded )
             cutoff_colormap( analy->mm_result_set[0], analy->mm_result_set[1] );
+*/
         redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "rmin" ) == 0 )
@@ -2083,12 +2098,19 @@ Analysis *analy;
 	                           - analy->conversion_offset) 
 				  / analy->conversion_scale;
         analy->mm_result_set[0] = TRUE;
+	set_cutoff_colors( TRUE, 
+	                   analy->mm_result_set[0], analy->mm_result_set[1] );
+/**/
+/*
         if ( !user_cmap_loaded )
             cutoff_colormap( analy->mm_result_set[0], analy->mm_result_set[1] );
+*/
         redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "clrthr" ) == 0 )
     {
+	set_cutoff_colors( FALSE, 
+	                   analy->mm_result_set[0], analy->mm_result_set[1] );
         analy->zero_result = 0.0;
         analy->mm_result_set[0] = FALSE;
         analy->mm_result_set[1] = FALSE;
@@ -2101,14 +2123,18 @@ Analysis *analy;
         {
             analy->result_mm[0] = analy->state_mm[0];
             analy->result_mm[1] = analy->state_mm[1];
-        } 
+        }
+/**/
+/*
         if ( !user_cmap_loaded )
             hot_cold_colormap();
+*/
         redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "globmm" ) == 0 )
     {
         get_global_minmax( analy );
+	redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "pause" ) == 0 )
     {
