@@ -668,3 +668,14 @@ Internal change
     old bug has been seen in a late '94 binary and shows
     up in corrupted depth-buffering (and something else -
     see email with Ed Bouch @ Sandia). (Speck)
+
+June 27, 1996
+
+Bug fix
+    Colormap scale adjusted position of both min and max
+    values if either rmin or rmax were set.  Now only the
+    appropriate value's position is adjusted. (Sanford)
+
+Internal change
+    Replaced bzero, bcopy calls with equivalent "mem..." calls.
+    (Sanford)
