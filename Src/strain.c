@@ -737,7 +737,7 @@ float *resultArr;
     resultElem = analy->shell_result;
     
     cur_st = analy->cur_state;
-    cnt = analy->geom_p->bricks->cnt;
+    cnt = analy->geom_p->shells->cnt;
 
     switch ( ref_surf )
     {
