@@ -12,6 +12,9 @@ Bug fixes
     Resultant") and "res8" ("N_zz Bending Resultant") have
     been corrected (to "M_xy Bending Resultant" and "N_xy
     Bending Resultant", respectively).
+    
+    Exposing the rendering window with refresh off will
+    not cause a redraw.
 
 See the file GRIZ_CHANGES, co-located with the Griz binary,
 for a complete list of GRIZ 2.0 changes.

@@ -1158,3 +1158,15 @@ Name correction
     Resultant") and "res8" ("N_zz Bending Resultant") have
     been corrected (to "M_xy Bending Resultant" and "N_xy
     Bending Resultant", respectively). (Speck)
+    
+    
+November 14 1997
+
+Bug fix
+    Exposing the rendering window with refresh off will
+    not cause a redraw.  Internally, the refresh state
+    variable which was a local static variable in 
+    parse_command() is now a field of the Analysis
+    struct, and expose_CB() checks it before calling
+    update_display(). (Speck)
+    
