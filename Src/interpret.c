@@ -59,6 +59,7 @@ typedef struct _Material_property_obj
 static Bool_type refresh = TRUE;
 static char last_command[200] = "\n";
 static Bool_type user_cmap_loaded = FALSE;
+static char *el_label[] = { "Node", "Beam", "Shell", "Hex" };
 
 /* Local routines. */
 static void check_visualizing();
@@ -321,11 +322,15 @@ Analysis *analy;
     float val, pt[3], vec[3], rgb[3];
     Bool_type redraw, redrawview, renorm, setval, valid_command;
     int sz[3];
-    int ival, i, j;
+    int ival, i, j, k, m;
     int start_state, stop_state;
     char result_variable[1];
     Bool_type tellmm_redraw;
+    Bool_type selection_cleared;
+    int sel_qty;
+    int *p_sel_id;
     int old;
+    char *mo_usage_spec = "{{node|n}|{beam|b}|{shell|s}|{brick|h}}";
 
     tokenize_line( buf, tokens, &token_cnt );
 
@@ -444,7 +449,8 @@ Analysis *analy;
 	          || strcmp( tokens[1], "h" ) == 0 )
             analy->hilite_type = 4;
         else
-            wrt_text( "Please identify what type element to hilite.\n" );
+	    popup_dialog( USAGE_POPUP,  "hilite %s <ident>", 
+			  mo_usage_spec );
 
         if ( token_cnt > 2 )
         {
@@ -456,6 +462,7 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "clrhil" ) == 0 )
     {
         analy->hilite_type = 0;
+	analy->hilite_num = -1;
         redraw = TRUE;
     }
     else if ( strcmp( tokens[0], "select" ) == 0 )
@@ -474,7 +481,8 @@ Analysis *analy;
 	          || strcmp( tokens[1], "h" ) == 0 )
             ival = 3;
         else
-            wrt_text( "Please identify what type element to select.\n" );
+	    popup_dialog( USAGE_POPUP,  "select %s <ident>...", 
+			  mo_usage_spec );
 
         if ( ival >= 0 )
         {
@@ -490,10 +498,68 @@ Analysis *analy;
     }
     else if ( strcmp( tokens[0], "clrsel" ) == 0 )
     {
-        for ( i = 0; i < 4; i++ )
-            analy->num_select[i] = 0;
-        clear_gather( analy );
-        redraw = TRUE;
+        selection_cleared = FALSE;
+	
+        if ( token_cnt == 1 )
+	{
+	    for ( i = 0; i < 4; i++ )
+		analy->num_select[i] = 0;
+		
+	    selection_cleared = TRUE;
+	}
+	else
+	{
+	    ival = -1;
+	    if ( strcmp( tokens[1], "node" ) == 0
+		 || strcmp( tokens[1], "n" ) == 0 )
+		ival = 0;
+	    else if ( strcmp( tokens[1], "beam" ) == 0
+		      || strcmp( tokens[1], "b" ) == 0 )
+		ival = 1;
+	    else if ( strcmp( tokens[1], "shell" ) == 0
+		      || strcmp( tokens[1], "s" ) == 0 )
+		ival = 2;
+	    else if ( strcmp( tokens[1], "brick" ) == 0
+		      || strcmp( tokens[1], "h" ) == 0 )
+		ival = 3;
+	    else
+		popup_dialog( USAGE_POPUP,  "clrsel [%s <ident>...]", 
+		              mo_usage_spec );
+    
+	    if ( ival >= 0 )
+	    {
+	        sel_qty = analy->num_select[ival];
+		p_sel_id = analy->select_elems[ival];
+		
+		for ( i = 2; i < token_cnt; i++ )
+		{
+		    sscanf( tokens[i], "%d", &j );
+		    
+		    /* Locate the object id among current selected objects. */
+		    if ( is_in_iarray( j - 1, sel_qty, p_sel_id, &k ) )
+		    {
+		        /* Move remaining selections down. */
+			for ( m = k + 1; m < sel_qty; m++ )
+			    p_sel_id[m - 1] = p_sel_id[m];
+			
+			analy->num_select[ival]--;
+			sel_qty = analy->num_select[ival];
+			
+			selection_cleared = TRUE;
+		    }
+                    else
+		        popup_dialog( INFO_POPUP,
+			              "%s %d not selected; request ignored.", 
+				      el_label[ival], j );
+		}
+	    }
+	}
+	
+	if ( selection_cleared )
+	{
+	    clear_gather( analy );
+	    redraw = TRUE;
+	}
     }
     else if ( strcmp( tokens[0], "show" ) == 0 )
     {
@@ -4144,7 +4210,6 @@ Analysis *analy;
 {
     Nodal *geom_nodes;
     float x_coord, y_coord, z_coord;
-    static char *el_label[] = { "Node", "Beam", "Shell", "Hex" };
     Bool_type have_activity;
     
     have_activity = analy->state_p->activity_present;
