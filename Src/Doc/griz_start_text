@@ -122,16 +122,19 @@ New functionality
     the actual material and (2) control the color of the 
     reference surface independently of the actual material.
     The material number specified in the reference surface
-    file can be any number less than or equal the maximum
-    number of materials allowed (currently 300).  If the
-    material number is one of the actual materials in the
-    mesh, the reference surface will be tied to transla-
-    tions of that material.  In all cases, whether or not a
-    material number is specified, if "switch gterp" is in 
-    effect, a result will be rendered on the reference
-    surface unless the material is disabled (even if
-    "off refres" is in effect - this is a flaw in the
+    file can be any number less than or equal to the 
+    maximum number of materials allowed (currently 300).  
+    If the material number is one of the actual materials 
+    in the mesh, the reference surface will be tied to 
+    translations of that material.  In all cases, whether 
+    or not a material number is specified, if "switch 
+    gterp" is in effect, a result will be rendered on the 
+    reference surface unless the material is disabled (even
+    if "off refres" is in effect - this is a flaw in the
     existing "on/off refres" logic).
+    
+    If "on title" is in effect, the title is rendered on
+    time history plots.
     
 Bug fixes
     Updated effective stress calculation for hex's and

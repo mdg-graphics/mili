@@ -1036,7 +1036,7 @@ New command
 	faster with lighting off. (Speck)
 
 
-July 22 1997
+July 24 1997
 
 New functionality
     Reference surface definition files can now optionally
@@ -1058,4 +1058,7 @@ New functionality
     surface unless the material is disabled (even if
     "off refres" is in effect - this is a flaw in the
     existing "on/off refres" logic). (Speck)
+    
+    If "on title" is in effect, the title is rendered on
+    time history plots. (Speck)
 
