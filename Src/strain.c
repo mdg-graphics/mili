@@ -31,6 +31,7 @@ static void compute_shell_strain();
 static void hex_partial_deriv();
 static void extract_strain_vec();
 static void hex_principal_strain();
+static void compute_hex_eff_strain();
 static void compute_shell_eff_strain();
 
 
@@ -77,8 +78,12 @@ float *resultArr;
 {
     if ( analy->geom_p->bricks != NULL )
     {
+/**/
+/*
         get_result( VAL_HEX_EPS_EFF, analy->cur_state, analy->hex_result );
         hex_to_nodal( analy->hex_result, resultArr, analy );
+*/
+	compute_hex_eff_strain( analy, resultArr );
     }
     else
         memset( resultArr, 0, analy->geom_p->nodes->cnt * sizeof(float) );
@@ -113,12 +118,34 @@ float *resultArr;
     float *resultElem;               /* Array for the element data. */
     float meanStrain;                /* Mean strain for an element. */
     int i, j, k, nd;
+    float *nxv, *nyv, *nzv;          /* Nodal velocity arrays for rate calc. */
 
     bricks = analy->geom_p->bricks;
     initGeom = analy->geom_p->nodes;
     currentGeom = analy->state_p->nodes;
 
     resultElem = analy->hex_result;
+    
+    /* Get nodal velocities if strain rate is desired. */
+    if ( analy->strain_variety == RATE )
+    {
+	nxv = analy->tmp_result[0];
+	nyv = analy->tmp_result[1];
+	nzv = analy->tmp_result[2];
+	
+	tmp_id = analy->result_id;
+	
+	analy->result_id = VAL_NODE_VELX;
+	compute_node_velocity( analy, nxv );
+	
+	analy->result_id = VAL_NODE_VELY;
+	compute_node_velocity( analy, nyv );
+	
+	analy->result_id = VAL_NODE_VELZ;
+	compute_node_velocity( analy, nzv );
+
+	analy->result_id = tmp_id;
+    }
 
     for ( i = 0; i < bricks->cnt; i++ )
     {
@@ -137,32 +164,13 @@ float *resultArr;
         /* Nodal velocities needed for strain rate calculation. */
         if ( analy->strain_variety == RATE )
         {
-           tmp_id = analy->result_id;
-           analy->result_id = VAL_NODE_VELX;
-           compute_node_velocity( analy, resultArr );
            for ( j = 0; j < 8; j++ )
            {
                 nd = bricks->nodes[j][i];
-                xv[j] = resultArr[nd];
+                xv[j] = nxv[nd];
+                yv[j] = nyv[nd];
+                zv[j] = nzv[nd];
            }
-
-           analy->result_id = VAL_NODE_VELY;
-           compute_node_velocity( analy, resultArr );
-           for ( j = 0; j < 8; j++ )
-           {
-                nd = bricks->nodes[j][i];
-                yv[j] = resultArr[nd];
-           }
-
-           analy->result_id = VAL_NODE_VELZ;
-           compute_node_velocity( analy, resultArr );
-           for ( j = 0; j < 8; j++ )
-           {
-                nd = bricks->nodes[j][i];
-                zv[j] = resultArr[nd];
-           }
-
-           analy->result_id = tmp_id;
         }
 
         memset( F, 0, sizeof(float)*9 );
@@ -402,6 +410,75 @@ Strain_type s_type;
             strain[5] = -0.5*(F[0]*F[2] + F[3]*F[5] + F[6]*F[8] );
             break;
     }
+}
+
+ 
+/************************************************************
+ * TAG( compute_hex_eff_strain )
+ *
+ * 
+ */
+static void 
+compute_hex_eff_strain( analy, resultArr )
+Analysis *analy;
+float *resultArr;
+{
+    int cur_st, cnt;
+    int i;
+    float *e0, *e1, *e2;
+    float dt1_inv, dt2_inv;
+    
+    cur_st = analy->cur_state;
+    cnt = analy->geom_p->bricks->cnt;
+    
+    if ( analy->strain_variety != RATE )
+        get_result( VAL_HEX_EPS_EFF, cur_st, analy->hex_result );
+    else
+    {
+	e0 = analy->hex_result;
+	e1 = analy->tmp_result[0];
+	e2 = analy->tmp_result[1];
+	
+	if ( cur_st == 0 )
+	    /* Rate is zero at first state. */
+	    memset( analy->hex_result, 0, cnt * sizeof( float ) );
+	else
+	{
+	    /* Calculate rate from backward difference. */
+	    
+            get_result( VAL_HEX_EPS_EFF, cur_st - 1, e0 );
+            get_result( VAL_HEX_EPS_EFF, cur_st, e1 );
+	    
+	    dt1_inv = 1.0 / (analy->state_times[cur_st]
+	                     - analy->state_times[cur_st - 1]);
+	    
+	    for ( i = 0; i < cnt; i++ )
+		e0[i] = (e1[i] - e0[i]) * dt1_inv;
+
+	    if ( cur_st != analy->num_states - 1 )
+	    {
+	        /*
+		 * Not at last state, so calculate rate from forward
+		 * difference and average to get final value. 
+		 * (Time steps are not constant so this is not the
+		 * simpler typical central difference expression.)
+		 */
+                get_result( VAL_HEX_EPS_EFF, cur_st + 1, e2 );
+		
+	        dt2_inv = 1.0 / (analy->state_times[cur_st + 1]
+	                         - analy->state_times[cur_st]);
+		
+		for ( i = 0; i < cnt; i++ )
+		{
+		    e0[i] += (e2[i] - e1[i]) * dt2_inv;
+		    e0[i] *= 0.5;
+		}
+	    }
+	}
+	
+    }
+    
+    hex_to_nodal( analy->hex_result, resultArr, analy );
 }
 
  
@@ -650,21 +727,75 @@ float *resultArr;
 {
     Ref_surf_type ref_surf;
     float *resultElem;
+    int cur_st, cnt;
+    int i;
+    float *e1, *e2;
+    float dt1_inv, dt2_inv;
+    int result_id;
 
     ref_surf = analy->ref_surf;
     resultElem = analy->shell_result;
+    
+    cur_st = analy->cur_state;
+    cnt = analy->geom_p->bricks->cnt;
 
     switch ( ref_surf )
     {
         case MIDDLE:
-            get_result( VAL_SHELL_EPS_EFF_MID, analy->cur_state, resultElem );
+            result_id = VAL_SHELL_EPS_EFF_MID;
             break;
         case INNER:
-            get_result( VAL_SHELL_EPS_EFF_IN, analy->cur_state, resultElem );
+            result_id = VAL_SHELL_EPS_EFF_IN;
             break;
         case OUTER:
-            get_result( VAL_SHELL_EPS_EFF_OUT, analy->cur_state, resultElem );
+            result_id = VAL_SHELL_EPS_EFF_OUT;
             break;
+    }
+    
+    if ( analy->strain_variety != RATE )
+        get_result( result_id, cur_st, resultElem );
+    else
+    {
+	e1 = analy->tmp_result[0];
+	e2 = analy->tmp_result[1];
+	
+	if ( cur_st == 0 )
+	    /* Rate is zero at first state. */
+	    memset( resultElem, 0, cnt * sizeof( float ) );
+	else
+	{
+	    /* Calculate rate from backward difference. */
+	    
+            get_result( result_id, cur_st - 1, resultElem );
+            get_result( result_id, cur_st, e1 );
+	    
+	    dt1_inv = 1.0 / (analy->state_times[cur_st]
+	                     - analy->state_times[cur_st - 1]);
+	    
+	    for ( i = 0; i < cnt; i++ )
+		resultElem[i] = (e1[i] - resultElem[i]) * dt1_inv;
+
+	    if ( cur_st != analy->num_states - 1 )
+	    {
+	        /*
+		 * Not at last state, so calculate rate from forward
+		 * difference and average to get final value. 
+		 * (Time steps are not constant so this is not the
+		 * simpler typical central difference expression.)
+		 */
+                get_result( result_id, cur_st + 1, e2 );
+		
+	        dt2_inv = 1.0 / (analy->state_times[cur_st + 1]
+	                         - analy->state_times[cur_st]);
+		
+		for ( i = 0; i < cnt; i++ )
+		{
+		    resultElem[i] += (e2[i] - e1[i]) * dt2_inv;
+		    resultElem[i] *= 0.5;
+		}
+	    }
+	}
+	
     }
 
     shell_to_nodal( resultElem, resultArr, analy, TRUE );
