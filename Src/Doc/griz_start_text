@@ -1,6 +1,6 @@
 $Id$
 ************************************************************
-                      Updated: 7/22/97
+                      Updated: 7/24/97
 
                      WELCOME TO GRIZ 2.0
 
@@ -121,6 +121,17 @@ New functionality
     (1) unlink the reference surface from translations of 
     the actual material and (2) control the color of the 
     reference surface independently of the actual material.
+    The material number specified in the reference surface
+    file can be any number less than or equal the maximum
+    number of materials allowed (currently 300).  If the
+    material number is one of the actual materials in the
+    mesh, the reference surface will be tied to transla-
+    tions of that material.  In all cases, whether or not a
+    material number is specified, if "switch gterp" is in 
+    effect, a result will be rendered on the reference
+    surface unless the material is disabled (even if
+    "off refres" is in effect - this is a flaw in the
+    existing "on/off refres" logic).
     
 Bug fixes
     Updated effective stress calculation for hex's and
