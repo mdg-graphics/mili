@@ -634,32 +634,36 @@ int
 get_input_buffer_qty( object_type )
 int object_type;
 {
+    int rval;
+
     switch ( object_type )
     {
 	case NODE_T:
-	    return cur_family->node_input->buffer_count;
+	    rval = cur_family->node_input->buffer_count;
 	    break;
 	case BRICK_T:
 	    if ( cur_family->hex_input != NULL )
-	        return cur_family->hex_input->buffer_count;
+	        rval = cur_family->hex_input->buffer_count;
             else
-	        return -1;
+	        rval = -1;
 	    break;
 	case SHELL_T:
 	    if ( cur_family->shell_input != NULL )
-	        return cur_family->shell_input->buffer_count;
+	        rval = cur_family->shell_input->buffer_count;
             else
-	        return -1;
+	        rval = -1;
 	    break;
 	case BEAM_T:
 	    if ( cur_family->beam_input != NULL )
-	        return cur_family->beam_input->buffer_count;
+	        rval = cur_family->beam_input->buffer_count;
             else
-	        return -1;
+	        rval = -1;
 	    break;
 	default:
-	    return -1;
+	    rval = -1;
     }
+    
+    return rval;
 }
 
 
@@ -1517,6 +1521,78 @@ float *arr_z;
     }
     else
         popup_fatal( err_msg );
+}
+
+
+/*****************************************************************
+ * TAG( get_tensor_result )
+ *
+ * Get stress tensors for hex or shell data from the plotfile 
+ * family.  The "which" argument must be one of the four SIGX 
+ * results or the two EPSX results.
+ */
+Bool_type
+get_tensor_result( st_num, which, tensor_array )
+int st_num;
+Result_type which;
+float *tensor_array;
+{
+    int i, j;
+    int qty, stride, loc, offset, fnum;
+    float *tmp, *p_src, *p_dest;
+
+    /* Sanity. */
+    if ( which != VAL_HEX_SIGX
+         && which != VAL_SHELL_SIGX_MID
+         && which != VAL_SHELL_SIGX_IN
+         && which != VAL_SHELL_SIGX_OUT
+         && which != VAL_SHELL_EPSX_IN
+         && which != VAL_SHELL_EPSX_OUT )
+        return FALSE;
+    
+    if ( cur_family->result_offsets[which] == -1 )
+        return FALSE;
+
+    if ( which == VAL_HEX_SIGX )
+    {
+        qty = cur_family->ctl[8];
+        stride = cur_family->hex_nvar;
+        loc = cur_family->st_file_loc[st_num]
+              + cur_family->hex_offset;
+        offset = cur_family->result_offsets[VAL_HEX_SIGX];
+    }
+    else
+    {
+        qty = cur_family->ctl[16];
+        stride = cur_family->shell_nvar;
+        loc = cur_family->st_file_loc[st_num]
+              + cur_family->shell_offset;
+        offset = cur_family->result_offsets[which];
+    }
+    
+    tmp = NEW_N( float, qty * stride, "Temp tensor array" );
+    if ( tmp == NULL )
+        return FALSE;
+    
+    /* Read in the element data. */
+    fnum = cur_family->st_file_num[st_num];
+    mdg_read( fnum, loc, qty * stride * sizeof(float), tmp );
+    
+    /* Extract the stress tensors from the element data. */
+    p_src = tmp + offset;
+    p_dest = tensor_array;
+    for ( i = 0; i < qty; i++ )
+    {
+        for ( j = 0; j < 6; j++ )
+            p_dest[j] = p_src[j];
+        
+        p_dest += 6;
+        p_src += stride;
+    }
+    
+    free( tmp );
+
+    return TRUE;
 }
 
 
