@@ -678,7 +678,6 @@ Analysis *analy;
                 analy->show_elem_nums = setval;
             else if ( strcmp( tokens[i], "shrfac" ) == 0 )
                 analy->shared_faces = setval;
-
             else if ( strcmp( tokens[i], "rough" ) == 0 )
             {
                 analy->show_roughcut = setval;
@@ -768,6 +767,8 @@ Analysis *analy;
                 analy->th_smooth = setval;
             else if ( strcmp( tokens[i], "conv" ) == 0 )
                 analy->perform_unit_conversion = setval;
+            else if ( strcmp( tokens[i], "bmbias" ) == 0 )
+                analy->zbias_beams = setval;
             else
                 wrt_text( "On/Off command unrecognized: %s\n", tokens[i] );
         } 
@@ -1984,6 +1985,17 @@ Analysis *analy;
         get_mesh_edges( analy );
         renorm = TRUE;
         redraw = TRUE;
+    }
+    else if ( strcmp( tokens[0], "edgbias" ) == 0 )
+    {
+        if ( token_cnt != 2 )
+	    popup_dialog( USAGE_POPUP, "edgbias <bias value>" );
+	else
+	{
+            sscanf( tokens[1], "%f", &val );
+            analy->edge_zbias = val;
+            redraw = TRUE;
+	}
     }
     else if ( strcmp( tokens[0], "rzero" ) == 0 )
     {
