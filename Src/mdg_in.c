@@ -591,6 +591,44 @@ char *root_name;
 
 
 /*****************************************************************
+ * TAG( get_input_buffer_qty )
+ *
+ * Query the quantity of buffers used for data input.
+ */
+int
+get_input_buffer_qty( object_type )
+int object_type;
+{
+    switch ( object_type )
+    {
+	case NODE_T:
+	    return cur_family->node_input->buffer_count;
+	    break;
+	case BRICK_T:
+	    if ( cur_family->hex_input != NULL )
+	        return cur_family->hex_input->buffer_count;
+            else
+	        return -1;
+	    break;
+	case SHELL_T:
+	    if ( cur_family->shell_input != NULL )
+	        return cur_family->shell_input->buffer_count;
+            else
+	        return -1;
+	    break;
+	case BEAM_T:
+	    if ( cur_family->beam_input != NULL )
+	        return cur_family->beam_input->buffer_count;
+            else
+	        return -1;
+	    break;
+	default:
+	    return -1;
+    }
+}
+
+
+/*****************************************************************
  * TAG( set_input_buffer_qty )
  *
  * Reset the quantity of buffers used for data input.

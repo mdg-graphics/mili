@@ -228,6 +228,7 @@ extern void get_vec_result( /* result_id, state_num, arr_x, arr_y, arr_z */ );
 extern void get_state_times( /* state_times */ );
 extern void get_family_title( /* title_string */ );
 extern void close_family();
+extern int get_input_buffer_qty( /* object_type */ );
 
 
 #endif MDG_H
