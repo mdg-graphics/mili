@@ -134,8 +134,9 @@ float mat[][3];
  * The transformed components are left in analy->tmp_result.
  */
 Bool_type
-transform_stress_strain( which, analy )
+transform_stress_strain( which, single_component, analy )
 int which;
+Bool_type single_component;
 Analysis *analy;
 {
     int qty;
@@ -150,7 +151,6 @@ Analysis *analy;
     qty = ( which == VAL_HEX_SIGX ) ? analy->geom_p->bricks->cnt
                                     : analy->geom_p->shells->cnt;
     
-    
     /* Do it... */
     transform_tensors( qty, analy->tmp_result[0],
                        analy->tensor_transform_matrix );
@@ -159,7 +159,7 @@ Analysis *analy;
      * Re-order tensors into separate component arrays (i.e., x,
      * y, z, xy, yz, zx) before returning.
      */
-    return transpose_tensors( qty, analy );
+    return transpose_tensors( which, single_component, analy );
 }
 
 
@@ -170,47 +170,79 @@ Analysis *analy;
  * into analy->tmp_result[0...5].
  */
 static Bool_type
-transpose_tensors( qty, analy )
-int qty;
+transpose_tensors( which, single_component, analy )
+int which;
+Bool_type single_component;
 Analysis *analy;
 {
+    int qty, idx, i;
     float *p_tmp, *p_t0, *p_t1, *p_t2, *p_t3, *p_t4, *p_t5;
     float (*tens)[6];
     double *p_dsrc, *p_dbound, *p_ddest;
-    int i;
     
-    p_tmp = NEW_N( float, qty * 6, "Temp tensors array" );
-    if ( p_tmp == NULL )
-        return FALSE;
+    qty = ( which == VAL_HEX_SIGX ) ? analy->geom_p->bricks->cnt
+                                    : analy->geom_p->shells->cnt;
     
-    /* Copy array of tensors to temp storage with double-sized moves. */
-    p_dsrc = (double *) analy->tmp_result[0];
-    p_dbound = (double *) (analy->tmp_result[0] + qty * 6);
-    p_ddest = (double *) p_tmp;
-    for ( ; p_dsrc < p_dbound; *p_ddest++ = *p_dsrc++ );
+    /* 
+     * If only a single component is required, transpose back into
+     * the correct element result array, otherwise copy and transpose
+     * back into analy->tmp_result;
+     */
     
-    /* Now transpose back into analy->tmp_result. */
-    
-    /* Assign local pointers. */
-    p_t0 = analy->tmp_result[0];
-    p_t1 = analy->tmp_result[1];
-    p_t2 = analy->tmp_result[2];
-    p_t3 = analy->tmp_result[3];
-    p_t4 = analy->tmp_result[4];
-    p_t5 = analy->tmp_result[5];
-    
-    tens = (float (*)[6]) p_tmp;
-    for ( i = 0; i < qty; i++ )
+    if ( single_component )
     {
-        p_t0[i] = tens[i][0];
-        p_t1[i] = tens[i][1];
-        p_t2[i] = tens[i][2];
-        p_t3[i] = tens[i][3];
-        p_t4[i] = tens[i][4];
-        p_t5[i] = tens[i][5];
+        tens = (float (*)[6]) analy->tmp_result[0];
+
+        if ( which == VAL_HEX_SIGX )
+        {
+            p_t0 = analy->hex_result;
+            idx = analy->result_id - VAL_SHARE_SIGX;
+        }
+        else
+        {
+            p_t0 = analy->shell_result;
+            idx = analy->result_id - VAL_SHARE_EPSX;
+        }
+                                         
+        /* Extract the requested component into the result array. */
+        for ( i = 0; i < qty; i++ )
+            p_t0[i] = tens[i][idx];
     }
+    else
+    {
+        p_tmp = NEW_N( float, qty * 6, "Temp tensors array" );
+        if ( p_tmp == NULL )
+            return FALSE;
     
-    free( p_tmp );
+        /* Copy array of tensors to temp storage with double-sized moves. */
+        p_dsrc = (double *) analy->tmp_result[0];
+        p_dbound = (double *) (analy->tmp_result[0] + qty * 6);
+        p_ddest = (double *) p_tmp;
+        for ( ; p_dsrc < p_dbound; *p_ddest++ = *p_dsrc++ );
+        
+        /* Assign local pointers. */
+        p_t0 = analy->tmp_result[0];
+        p_t1 = analy->tmp_result[1];
+        p_t2 = analy->tmp_result[2];
+        p_t3 = analy->tmp_result[3];
+        p_t4 = analy->tmp_result[4];
+        p_t5 = analy->tmp_result[5];
+        
+        /* Now transpose back into analy->tmp_result. */
+        
+        tens = (float (*)[6]) p_tmp;
+        for ( i = 0; i < qty; i++ )
+        {
+            p_t0[i] = tens[i][0];
+            p_t1[i] = tens[i][1];
+            p_t2[i] = tens[i][2];
+            p_t3[i] = tens[i][3];
+            p_t4[i] = tens[i][4];
+            p_t5[i] = tens[i][5];
+        }
+    
+        free( p_tmp );
+    }
     
     return TRUE;
 }
