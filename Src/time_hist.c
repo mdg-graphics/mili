@@ -593,7 +593,8 @@ Analysis *analy;
     gr_ll[0] = win_ll[0] + 3*text_height + scale_width;
     gr_ll[1] = win_ll[1] + 6*text_height + scale_width;
     gr_ur[0] = win_ur[0] - text_height;
-    gr_ur[1] = win_ur[1] - text_height;
+    gr_ur[1] = win_ur[1] - 
+               (analy->show_title ? 2.0 * text_height : text_height);
 
     /* Get the tic increment and start and end tic values for each axis. */
     for ( i = 0; i < 2; i++ )
@@ -693,11 +694,9 @@ Analysis *analy;
 	x_fracsz = calc_fracsz( max_ax[0], min_ax[0], incr_cnt[0] );
 	x_scale_width = (x_fracsz + 6.0) * char_width;
 
-	/* Corners of the graph. */
+	/* Update pertinent corners of the graph. */
 	gr_ll[0] = win_ll[0] + 3*text_height + y_scale_width;
 	gr_ll[1] = win_ll[1] + 6*text_height + x_scale_width;
-	gr_ur[0] = win_ur[0] - text_height;
-	gr_ur[1] = win_ur[1] - text_height;
     }
     else
     {
@@ -859,6 +858,18 @@ Analysis *analy;
         sprintf( str, "%d", el_numbers[i] + 1 );
         hcharstr( str );
         pos[0] += 6.0 * char_width; 
+    }
+
+    /* File title. */
+    if ( analy->show_title )
+    {
+        glColor3fv( v_win->foregrnd_color );
+        hcentertext( TRUE );
+        pos[0] = 0.0;
+        pos[1] = win_ur[1] - text_height;
+        hmove( pos[0], pos[1], pos[2] );
+        hcharstr( analy->title );
+        hcentertext( FALSE );
     }
     
     /* Notify if data conversion active. */
