@@ -1,6 +1,6 @@
 $Id$
 ************************************************************
-                      Updated: 4/1/97
+                      Updated: 4/4/97
 
                      WELCOME TO GRIZ 2.0
 
@@ -8,6 +8,25 @@ New results
     Volumetric Strain - "evol"
         This derived result is the natural log of the
 	relative volume.
+	
+    Plastic strain rate
+        By setting "switch rate" while the current result
+	is Effective Plastic Strain ("eeff"), the derived
+	result is the rate of change of "eeff".  This is
+	calculated by a simple first order central 
+	difference approximation.  Users should be aware
+	that it will return a non-zero rate at times when
+	"eeff" is itself zero if "eeff" at the next or
+	previous time step is non-zero.
+	
+	When this calculation is in effect, the rendering
+	window contains this annotation:
+	    "Result type: Time derivative"
+	This is to distinguish this result from the
+	(correct) tensor strain rate calculation that is 
+	performed on hex element strain results when
+	"switch rate" is in effect.  For those strains,
+	the annotation is "Strain Type: Rate".
 
     Seven results formerly available only for brick
     elements are now available for shell elements as well.
@@ -49,13 +68,17 @@ New commands
 	speedups for result computations which require
 	as inputs several primal results from the plotfile
 	database.  With no buffering, each primal result
-	causes disk access.  If viewing results at 
-	interpolated time values, a buffer quantity of two
-	can offer further performance improvement by 
-	limiting or eliminating disk accesses for some 
-	time values.  For most users, there's probably no 
-	advantage in ever setting the buffer quantity 
-	above two.
+	causes disk access.  
+	
+	When viewing results at interpolated time values, 
+	a buffer quantity of two can offer further 
+	performance improvement by limiting or eliminating 
+	disk accesses for some time values.  There are 
+	other analysis patterns which can benefit from
+	using two buffers, and unless memory is an issue
+	users may wish to make that their normal operating
+	mode.  For most users, there's probably no advantage
+	in ever setting the buffer quantity above two.
 
 New functionality
     View centering ("vcent...") now centers the mesh in Z
@@ -73,11 +96,27 @@ New functionality
     The warning popup dialog for an "rnf" failure has
     been re-written to be more helpful.
     
-Bug fix
+    Results that are affected by the element reference
+    frame, strain type, or shell surface now have
+    annotations giving the current settings of those
+    parameters appended to their Y-axis labels on
+    time history plots.
+    
+Bug fixes
     Updated effective stress calculation for hex's and
     shells with a re-derived expression that avoids the 
     possibility of a negative input to the sqrt() function.  
     This was causing crashes under UNICOS.
+    
+    Switching among strain types when the current result
+    is NOT sensitive to strain type no longer causes the
+    colorscale min/max values to be updated to the current
+    state's min/max values.
+    
+    Calculation of hex strains when "switch rate" is in
+    effect has been made approximately five times faster
+    by restructuring the logic to eliminate redundant 
+    disk accesses.
 
 See the file GRIZ_CHANGES, co-located with the Griz binary,
 for a complete list of GRIZ 2.0 changes.
