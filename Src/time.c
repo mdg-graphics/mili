@@ -630,7 +630,7 @@ Bool_type *tellmm_redraw;
 {
     Bool_type recompute_norms;
     Minmax_obj mm_save;
-    Result_type desired_result_id ,result_id_save;
+    Result_type desired_result ,result_id_save;
     float high, low, maximum_of_states, minimum_of_states;
     float *el_mm;
     int cur_state, i, state_id;
@@ -647,7 +647,7 @@ Bool_type *tellmm_redraw;
      * Filter input data
      */
 
-    desired_result_id = lookup_result_id( desired_result_variable );
+    desired_result = (Result_type) lookup_result_id( desired_result_variable );
 
     if ( (analy->result_id != VAL_NONE) &&
          (strcmp( desired_result_variable, "" ) == 0 ) )
@@ -660,13 +660,13 @@ Bool_type *tellmm_redraw;
 
         result_id_save = analy->result_id;
 
-        if ( analy->result_id == desired_result_id )
+        if ( analy->result_id == desired_result )
             *tellmm_redraw = TRUE;
         else
             *tellmm_redraw = FALSE;
     }
-    else if ( (desired_result_id != VAL_NONE) &&
-              (desired_result_id != -1) &&
+    else if ( (desired_result != VAL_NONE) &&
+              (desired_result != -1) &&
               (strcmp( desired_result_variable, "" ) != 0 ) )
     {
         /*
@@ -676,9 +676,9 @@ Bool_type *tellmm_redraw;
          */
 
         result_id_save   = analy->result_id;
-        analy->result_id = desired_result_id;
+        analy->result_id = desired_result;
 
-        if ( analy->result_id == desired_result_id )
+        if ( analy->result_id == desired_result )
             *tellmm_redraw = TRUE;
         else
             *tellmm_redraw = FALSE;
@@ -690,7 +690,7 @@ Bool_type *tellmm_redraw;
          *
          * current result_id and desired result_id == materials;
          * desired result_id == materials;
-         * invalid overriding desired_result_id is specified
+         * invalid overriding desired_result is specified
          */
 
         popup_dialog( USAGE_POPUP
@@ -872,7 +872,7 @@ Bool_type *tellmm_redraw;
     load_result( analy, TRUE );
 
     /* update cut planes, isosurfaces, contours */
-    if ( desired_result_id == analy->result_id )
+    if ( desired_result == analy->result_id )
         update_vis( analy );
 }
 
