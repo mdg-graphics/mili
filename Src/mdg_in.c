@@ -26,6 +26,11 @@ typedef struct _Family
     int num_states;
     int *file_sz;
 
+    Bool_type lstc_database;
+    int lstc_mdlopt;
+
+    int activ;
+
     /* Arrays with information about the individual states. */
     float *st_time;
     int *st_file_num;
@@ -155,6 +160,7 @@ char *root_name;
     int nel8, nummat8, nv3d, nel2, nummat2, nv1d;
     int nel4, nummat4, nv2d, activ;
     int nv3dact, nv2dact, nv1dact;
+    int maxint, narbs, nv3dt;
     int seg;
     char fname[50];
     int i;
@@ -230,13 +236,45 @@ char *root_name;
     nummat4 = fam->ctl[17];
     nv2d    = fam->ctl[18];
     activ   = fam->ctl[20];
+    maxint  = fam->ctl[21]; /* LSTC option */
     ixd     = fam->ctl[24];
+    nv3dt   = fam->ctl[27]; /* LSTC option */
+
+    if ( nv3dt != 0 )
+    {
+        /* Assume LSTC database. */
+        fam->lstc_database = TRUE;
+        narbs = ixd;
+
+        if ( maxint >= 0 )
+            fam->lstc_mdlopt = 0;
+        else if ( maxint >= -10000 )
+            fam->lstc_mdlopt = 1;
+        else
+        {
+            fam->lstc_mdlopt = 2;
+            fam->activ = 1000;
+        }
+
+        xnd = 0;
+    }
+    else
+    {
+        narbs = 0;
+       
+        /* Want activ in a common location. */
+        fam->activ = activ;
+
+        /* Check extra data flags to account for additional data. */
+        xnd = ( ixd & K_EPSILON_MASK ) ? 2 : 0;  /* 2 more var's if flag set. */
+        xnd += ( ixd & A2_MASK ) ? 1 : 0;        /* One more var if flag set. */
+    }
 
     /* If activity data present, include it with the rest of the variables. */
     nv1dact = nv1d;
     nv2dact = nv2d;
     nv3dact = nv3d;
-    if ( activ >= 1000 && activ <= 1005 )
+    if ( fam->activ >= 1000 && fam->activ <= 1005 )
     {
         if ( nel2 > 0 )
             nv1dact++;
@@ -245,10 +283,6 @@ char *root_name;
         if ( nel8 > 0 )
             nv3dact++;
     }
-
-    /* Check extra data flags to account for additional data. */
-    xnd = ( ixd & K_EPSILON_MASK ) ? 2 : 0;  /* Two add'l var's if flag set. */
-    xnd += ( ixd & A2_MASK ) ? 1 : 0;          /* One add'l var if flag set. */
 
     /*
      * Calculate number of nodal variable fields in state record.
@@ -261,7 +295,8 @@ char *root_name;
                   ndim, numnp, nel8, nel4, nel2 );
 #endif
 
-    fam->geom_sz = (ndim*numnp + 9*nel8 + 5*nel4 + 6*nel2) * sizeof( float );
+    fam->geom_sz = (ndim*numnp + 9*nel8 + 5*nel4 + 6*nel2) * sizeof( float )
+                   + narbs * sizeof( int );
     fam->state_sz = (nvqty*numnp + nel8*nv3dact + 
                     nel4*nv2dact + nel2*nv1dact + 1 + nglbv) * sizeof( float );
 
@@ -566,7 +601,7 @@ char *root_name;
     }
 
     /* Activity data. */
-    if ( activ )
+    if ( fam->activ )
     {
         if ( nel8 > 0 )
         {
@@ -1127,7 +1162,7 @@ State *st_ptr;
     nglbv = cur_family->ctl[3];
     iu    = cur_family->ctl[5];
 
-    if ( cur_family->ctl[20] >= 1000 && cur_family->ctl[20] <= 1005 )
+    if ( cur_family->activ >= 1000 && cur_family->activ <= 1005 )
         activ = TRUE;
     else
         activ = FALSE;
