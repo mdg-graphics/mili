@@ -1325,3 +1325,27 @@ June 24, 1998
 Bug fix
     Invoking a units conversion ("conv" and "on/off conv")
     now affects vectors ("vec" and "on/off vec"). (Speck)
+
+March 24, 1999
+
+New command
+    outmm <file name> [<mat>...]
+        Write a report of min/max values at all states for
+        the current result to the named file.  If the
+        current result is an element rather than nodal
+        result, individual reports are generated for
+        each material in the mesh that supports the current
+        result.  If one or more material numbers are listed
+        on the command line, reports are generated only for
+        those materials (assuming they support the result).
+        Material numbers have no affect if the current
+        result is a nodal quantity. (Speck)
+
+Bug fix
+    Dates in output are now given in local time rather than
+    Greenwich Mean Time. (Speck)
+    
+Internal change
+    Function is_numeric_string() in file interpret.c was
+    changed from file scope to global scope.
+

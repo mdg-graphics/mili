@@ -1,6 +1,6 @@
 $Id$
 ************************************************************
-                      Updated: 6/24/98
+                      Updated: 3/24/98
 
                      WELCOME TO GRIZ 2.0
                      
@@ -13,6 +13,17 @@ New functionality
     continue to refine it as necessary.
 
 New commands
+    outmm <file name> [<mat>...]
+        Write a report of min/max values at all states for
+        the current result to the named file.  If the
+        current result is an element rather than nodal
+        result, individual reports are generated for
+        each material in the mesh that supports the current
+        result.  If one or more material numbers are listed
+        on the command line, reports are generated only for
+        those materials (assuming they support the result).
+        Material numbers have no affect if the current
+        result is a nodal quantity.
     on/off coordxf
         Turn on or off transformations of stress or
         strain results into an alternative global
@@ -149,6 +160,9 @@ Bug fixes
     
     Invoking a units conversion ("conv" and "on/off conv")
     now affects vectors ("vec" and "on/off vec").
+    
+    Dates in output are now given in local time rather than
+    Greenwich Mean Time.
 
 See the file GRIZ_CHANGES, co-located with the Griz binary,
 for a complete list of GRIZ 2.0 changes.
