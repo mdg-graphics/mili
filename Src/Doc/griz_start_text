@@ -1,42 +1,22 @@
 $Id$
 ************************************************************
-                      Updated: 4/26/96
+                      Updated: 6/25/96
 
                      WELCOME TO GRIZ 2.0
 
-Bug fix
-    Added depth-buffer bias to ensure edge lines are 
-    always rendered in front of mesh polygons. This
-    cures the tendency of coincident edge lines and
-    polygons to "interleave" in Z (see new command
-    "edgbias"). Also added similar treatment to beam 
-    elements, since they are rendered as lines and
-    are susceptible to the same effect. The bias for
-    beams may be turned on or off (see new command
-    "on/off bmbias"). (Speck)
-
-New commands
-
-    edgbias <bias value>
-        Set the depth-buffer bias value used when
-	rendering edge lines ("on edges").  The value
-	should be a small positive number between zero
-	and one.  The default is 0.005.  The value is
-	clamped to [0,1]. Larger values of the bias
-	increase the depth-offset between the edge lines
-	and mesh polygons and may be necessary with
-	lines that have a large Z-slope, but large biases
-	also introduce unsightly artifacts at some edge
-	line junctions, so a compromise is necessary.
-	(Speck)
-
-    on/off bmbias
-        Turn on or off the use of depth-buffer bias
-	when rendering beam elements.  The bias is
-	on by default.  The value of the bias is not
-	currently adjustable. (Speck)
-
 New functionality
+    Colormap value scale - The colormap now displays a
+    scale of values along its left side.  Scale values are
+    selected to fall on "round" values between the result
+    min and max (including zero, for example).  An
+    alternative implementation could always pick a set
+    number of scale values equally spaced between the min
+    and max and let the values fall where they may.  If
+    you have any feedback, please submit it to Doug Speck
+    or Larry Sanford.
+    
+    Rendered text is now anti-aliased.
+    
     <Ctrl><mouse pick>
         Picking an element while the Control key is 
 	depressed will select or deselect the element's
