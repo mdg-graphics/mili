@@ -1,0 +1,92 @@
+%*   ****************************************************************
+%*   * (c) Copyright 1997, 1998, 1999, 1900 The Regents of the      *
+%*   *     University  of California.  All Rights Reserved.         *
+%*   *                                                              *
+%*   *     This work was produced under the sponsorship of the      *
+%*   *     United States Department of Energy.  The Government      *
+%*   *     retains certain rights therein.                          *
+%*   ****************************************************************
+%*   
+%*   ****************************************************************
+%*   This file uses the noweb utilities to generate the source code
+%*   and documentation.
+%*   To generate the LaTex file use:
+%*   noweave -index rtest_init.nw rtest_support.nw > rtest_init.tex
+%*   latex rtest_init.tex; latex rtest_init.tex
+%*   To generate the PDF version use:
+%*   dvipdfm rtest_init.dvi
+%*   To generate the HTML file use:
+%*   noweave -filter l2h -index -autodefs c -html 
+%*           rtest_init.nw > rtest_init.html
+%*   to produce source code:
+%*   notangle -L'%N' rtest_init.nw > rtest_init.py
+%*      note: the first empty line must be removed.
+%*   ****************************************************************
+
+
+\title{Regression Initiation: [[rtest_init]]}
+\author{Victor M. Castillo\\Methods Development Group}
+\maketitle
+
+@
+\section{Scope}
+This [[Python]] script generates the [[.info]] file used by 
+[[rtest]] to determine what element types are available within
+each sample case. A [[grizinit]] file is created that instructs GRIZ
+to dump the results of the [[info]] command to a file named [[.info]].
+
+<<*>>=
+#!/usr/bin/env /grdev/regrtest/bin/python
+<<init>>
+
+<<init>>=
+<<rtest support>>
+#import os,re,string
+from rtest_support import *
+
+"""This routine does some basic initialization for the
+regression testing.
+
+A griz binary is called to generate an ascii file with
+*/.info* about the sample file. The file is then parsed
+to determine the relevant elements.
+
+***This only needs to be run once for each sample***
+"""
+
+generate=1
+
+GRIZBIN=TEST['bin'][0]
+DB='d3plot'
+for sample in CASE['SAMP']+CASE['SND']:
+   print("Analyzing data for "+sample+"...")
+   os.chdir(RHOME+sample+"/")
+   if generate:
+      g=open('grizinit','w+')    #create grizinit file 
+      g.write(HEADER)
+      g.write("savtxt .info\n")
+      g.write("info\n")
+      g.write("endtxt\n")
+      g.write("savtxt done\n")
+      g.write("endtxt\n")
+      g.write("quit\n")
+      g.close()
+      err=os.system(GRIZBIN+" -i "+DB)   #run griz with new grizinit file
+      if not os.path.exists('done'):
+         print("waiting ...")
+      while not os.path.exists('done'):
+         pass
+      os.remove('done')
+      os.remove('grizinit')
+   #Now parse .info file
+   if not os.path.exists('.info'):
+      print("ERROR: No info file found.")
+   info=open('.info','r+')
+   raw = info.read() 
+   info.close()
+   #
+   for key in IS.keys():
+      etest = re.compile(IS[key][0])
+      if etest.search(raw):
+         np=string.replace(IS[key][0],':','')
+         print(">>> "+np+" detected in "+sample)

@@ -1,0 +1,377 @@
+%*   ****************************************************************
+%*   * (c) Copyright 1997, 1998, 1999, 1900 The Regents of the      *
+%*   *     University  of California.  All Rights Reserved.         *
+%*   *                                                              *
+%*   *     This work was produced under the sponsorship of the      *
+%*   *     United States Department of Energy.  The Government      *
+%*   *     retains certain rights therein.                          *
+%*   ****************************************************************
+%*   
+%*   ****************************************************************
+%*   This file uses the noweb utilities to generate the source code
+%*   and documentation.
+%*   To generate the LaTex file use:
+%*   noweave -index rtest.nw rtest_support.nw > rtest.tex
+%*   latex rtest.tex; latex rtest.tex
+%*   To generate the PDF version use:
+%*   dvipdfm rtest.dvi
+%*   To generate the HTML file use:
+%*   noweave -filter l2h -index -autodefs c -html 
+%*           rtest.nw rtest_support.nw > rtest.html
+%*   To produce the source code use:
+%*   notangle -L'%N' rtest.nw rtest_support.nw > rtest.py
+%*      note: the first empty line must be removed
+%*   notangle -L'%N' rtest_init.nw > rtest_init.py
+%*   ****************************************************************
+
+\title{Specialized Regression Testing for Griz2(Taurus) verses 
+Griz4(Taurus and Mili) Codes}
+\author{Victor M. Castillo\\Methods Development Group}
+\maketitle
+
+\section{Introduction}
+The new version of GRIZ (GRIZ4) has the capability of reading the Mili
+database format. For backward compatability, it retains the ability to 
+read the Taurus database. 
+This specialized regression test is used to compare the results of GRIZ2
+and GRIZ4 using the Taurus database. A second comparison is then made 
+using GRIZ4 to compare the results of reading the Taurus and Mili databases.\\
+\newline
+%
+\begin{tabular}{|p{1.5cm}|p{2.5cm}|p{1.5cm}|p{2.5cm}|p{1.5cm}|}
+ GRIZ2 (Taurus)&  --- compare --- &GRIZ4 (Taurus)&  --- compare --- &GRIZ4 (Mili)\\
+\end{tabular}\\
+%
+\newline
+Comparisons are made for a variety of historic sample cases,
+including those using the SAND model. The set of sample cases used
+in this test are referred to as 
+\{[[SAMP1]], [[SAMP2]], [[SAMP4]], [[SAMP6]], [[SAMP8]], 
+[[SND1]], [[SND2]], [[SND3]]\}.
+For each of these sample cases, derived and primitive results are
+compared for each element type available. In addition, a time history
+of one of the results (preferably a derived result) is compared for
+each element type (see Table 1).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[h] \centering 
+\caption[]{Tested results for each element type}
+\begin{tabular}{|p{2.5cm}|p{1.62cm}|p{1.5cm}|p{1.5cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|}
+\hline
+Result & Nodal & Shell & Brick & Shared or Global & Material\\
+\hline
+Derived&
+'dispx' 'dispy' 'dispz' 'dispmag' 'velx' 'vely' 'velz' 
+'velmag' 'accx' 'accy' 'accz' 'accmag' 'pvmag'
+&
+'surf1' 'surf2' 'surf3' 'surf4' 'surf5' 'surf6'
+'eff1' 'eff2' 'effmax'
+&
+'ex' 'ey' 'ez' 'exy' 'eyz' 'ezx' 'pdstrn1' 'pdstrn2' 
+'pdstrn3' 'pshrstr' 'pstrn1' 'pstrn2' 'pstrn3' 'relvol' 'evol'
+&
+'sx' 'sy' 'sz' 'sxy' 'syz' 'szx' 'press' 'seff' 'pdev1' 'pdev2' 
+'pdev3' 'maxshr' 'prin1' 'prin2' 'prin3'
+&\\
+\hline
+Primal&'nodpos[ux]'&'eeff\_mid'&'eeff'&'ke'&'matpe'\\
+\hline
+Time History&'dispmag'&'effmax'&'prin1'&'ke'&'matpe'\\
+\hline
+\end{tabular}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\bigskip
+%\newline
+
+\subsection{Using the regression test}
+The operation of the regression test relies on a particular directory 
+structure and a set of particular filenames, most of which are created
+by the program if needed. For each sample case (listed in the [[CASE]] 
+dictionary), a directory must be created by the user which contains
+the Tuarus and Mili database for the [[dyna3d]] runs. 
+The subdirectories [[G2T]], [[G4T]], and [[G4M]] are created within each 
+of these case directories to store the results of the GRIZ2(Taurus), GRIZ4(Taurus), 
+and GRIZ4(Mili) runs. The results are written to a file with the name
+convention
+\begin{center}
+[[casedir]]+``/"+[[testdir]]+``/"+[[result_type]]+[[elem_type]]+[[result]]+``.his".
+\end{center}
+For example, the derived result [[velx]] for the [[Nodal]] element
+types from GRIZ4 using the Taurus database from [[SAMP1]] is called 
+``SAMP1/G4T/DRNodalvelx.his".
+The Unix [[diff]] operation are done on comparable
+result files and stored in the common case directory. These [[diff]] 
+files are named by the convention:
+\begin{center}
+[[casedir]]+``/"+[[dir1]]+[[dir2]]+[[element_type]] +``."+[[result_type]].
+\end{center}
+For example, the comparison between GRIZ2(Taurus) and GRIZ4(Taurus) 
+for [[Brick]] element type for all [[derived results]] of [[SAMP1]]is called 
+``SAMP1/G2TG4TBrick.dr".
+
+Within each case directory, a [[.info]] file is used to indicate to
+the regression test what element types are available for testing. This 
+file is generated by a separate [[Python]] script, [[rtest_init.py]]
+(Generated by [[rtest_init.nw]] -- see [[rtest_init.ps|pdf|html|dvi]] for more
+documentation. If the [[.info]] the regression test will not continue.
+
+The [[Python]] script can be modified to select the cases to be used
+and the result type(s). For development of the regression routines, 
+set [[CASELIST=SHORTLIST]]. For exhaustive testing, set [[CASELIST=LONGLIST]].
+Also, for development, the time history ([[TH]]) comparisons are quickest.
+For more detailed testing uncomment the lines in [[main]] for the [[DR]] and
+[[PR]] result types.
+
+\subsection{Revision History} 
+\emph{Also see headers in individual functions.}
+\begin{itemize}
+\item 8-Jun-1999  Original version. (Victor M. Castillo)
+\item 14-Dec-1999 Converted to noweb form (This document) (VMC)
+\end{itemize}
+
+@
+\subsection{Program flow}
+This section describes the flow of the program and is used by
+[[NoWeb]] to construct the source code.
+<<*>>= 
+#!/usr/bin/env /grdev/regrtest/bin/python
+   <<Define global variables and dictionaries>>
+   <<Main>>
+   <<Read info file>>
+   <<Make grizinit file>>
+   <<Griz it>>
+   <<Onespace>>
+   <<Diff it>>
+   <<Rprint>>
+   <<Exit code>>
+
+@
+\section{Code listing and description}
+Each code section is listed below with a brief description. 
+
+@
+\subsection{Global variables and dictionaries}
+Most of the global variables and dictionaries are defined in
+the file [[rtest_support.py]] (see Appendix). Here [[CASELIST]]
+and [[verbose]] are defined for development convenience.
+
+<<Define global variables and dictionaries>>=
+<<rtest support>>
+#from rtest_support import * #Not used for NoWeb version
+SHORTLIST=CASE['SAMP'][0],
+LONGLIST=CASE['SAMP']+CASE['SND']
+CASELIST=SHORTLIST
+verbose=1
+clean=0
+
+@
+\subsection{Main}
+Function [[main]] calls the function [[readlist]] to get the element
+type list appropriate for each sample in [[CASELIST]]. For each
+result type, main calls [[griz_it]] to do the rest.
+
+<<Main>>=
+def main():
+   elem_type_list=[]
+   for sample in CASELIST:
+      os.chdir(RHOME+sample+"/")
+      elem_type_list=read_info()
+      print sample,": ",elem_type_list 
+      #ok=griz_it(sample,'DR',elem_type_list)
+      ok=griz_it(sample,'TH',elem_type_list)
+      #ok=griz_it(sample,'PR',elem_type_list)
+   return 0
+
+@
+\subsection{Parse the [[.info]] file}
+The [[.info]] file, created by [[rtest_init]], is parsed to determine
+what element type(s) are available for testing. 
+
+<<Read info file>>=
+def read_info(): 
+   "Parse ./.info file to determine relevant element types"
+   if not os.path.exists('.info'):
+      print("ERROR: No info file found. Run rtest_init.py.")
+      return -1
+   info=open('.info','r+')
+   raw = info.read() 
+   info.close()
+   keylist=[]
+   for key in IS.keys():
+      etest = re.compile(IS[key][0])
+      if etest.search(raw):
+         keylist.append(key)
+   return keylist
+
+@
+\subsection{Griz loop}
+The function [[griz_it]] does the bulk of the work of the regression
+test. For each element type, [[make_g_file]] is called to generate 
+a grizinit file. The appropriate GRIZ binary is then executed, generating
+result data files. Care is taken to make sure that the GRIZ process is
+finished before comparing result data files by checking for the file 
+named "[[done]]" (created by GRIZ).
+The function [[diff_it]] is then called to compare the result data files.
+
+<<Griz it>>=
+def griz_it(sample,result_type,elem_type_list):
+   result_type_string=RS[result_type]
+   os.chdir(RHOME+sample)
+   for elem_type in elem_type_list:
+      rprint("Testing "+elem_type+" "+result_type_string+" with "+sample)
+      for i in range(len(TEST['bin'])):
+         GRIZBIN=TEST['bin'][i]   #selects the binary, Griz2 or Griz4
+         DB=TEST['db'][i]         #selects the database, Taurus or Mili
+         DIR=TEST['dir'][i]       #selects the appropriate directory for results
+         if not os.path.exists(DIR):
+            # if appropriate directory does not exist, create it
+            if verbose:print "creating directory: "+DIR
+            os.mkdir(DIR)
+         os.chdir(DIR)              #change to appropriate directory
+         ok=make_g_file(result_type, elem_type)   #create grizinit file 
+         err=os.system(GRIZBIN+" -i "+DB)   #run griz with new grizinit file
+         os.chdir('..')
+      #force all runs to finish before comparing results
+      for i in [0,1,2]:
+         DIR=TEST['dir'][i]
+         if not os.path.exists(DIR):
+            print("ERROR: Directory "+DIR+"was not created")
+         if not os.path.exists(DIR+'/done'):
+            print("waiting for "+DIR+"...")
+         while not os.path.exists(DIR+'/done'):
+            pass
+      for i in [0,1,2]:
+         os.remove(TEST['dir'][i]+'/done')
+      ok=diff_it(result_type,elem_type)
+   rprint("fini")
+   return 1
+
+@
+\subsection{Make [[grizinit]] file}
+Here the [[grizinit]] is created for each result type.
+Each [[grizinit]] file instructs GRIZ to run the sample case
+for all results associated with each element type available.
+A GRIZ history file of the name 
+[[result_type]]+[[elem_type]]+[[result]]+``.his"
+is created by GRIZ for the result data.
+
+<<Make grizinit file>>=
+def make_g_file(result_type,elem_type):
+   g=open('grizinit','w+')    #create grizinit file 
+   g.write(HEADER)
+   if result_type=='DR':
+      for result in DR[elem_type]: 
+         hisfile='DR'+elem_type+result+".his"
+         g.write("show "+result+"\n")
+         g.write("savtxt "+hisfile+"\n")
+         g.write("tellmm\n")
+         g.write("endtxt\n")
+      g.write("savtxt done\n")
+      g.write("endtxt\n")
+   elif result_type=='PR':
+      for result in PR[elem_type]: 
+         hisfile='PR'+elem_type+result+".his"
+         g.write("show "+result+"\n")
+         g.write("savtxt "+hisfile+"\n")
+         g.write("tellmm\n")
+         g.write("endtxt\n")
+      g.write("savtxt done\n")
+      g.write("endtxt\n")
+   elif result_type=='TH':
+      for result in TH[elem_type]: 
+         hisfile='TH'+elem_type+result+".his"
+         g.write("select node 1\n")
+         g.write("select beam 1\n")
+         g.write("select shell 1\n")
+         g.write("select brick 1\n")
+         g.write("show "+result+"\n")
+         g.write("timhis \n")
+         g.write("outth "+hisfile+"\n")
+      g.write("savtxt done\n")
+      g.write("endtxt\n")
+   else:
+      g.write("quit\n")
+      g.close()
+      return 0
+   g.write("quit\n")
+   g.close()
+   return 1
+
+@
+\subsection{Compare the results}
+This routine uses the Unix [[diff]] command to compare result files. 
+the difference is piped to a file in the sample case directory.
+
+<<Diff it>>=
+def diff_it(result_type,elem_type):
+   # compare results for G2T and G4T and G4M
+   for i in [0,1]:
+      DIR1=TEST['dir'][i]
+      DIR2=TEST['dir'][i+1]
+      rprint("Comparing results: "+DIR1+" and "+DIR2)
+      ext="."+string.lower(result_type)
+      TEMP=DIR1+DIR2+elem_type+ext
+      err=os.system('echo  >'+TEMP)
+      for result in eval(result_type)[elem_type]:
+         TARG1=DIR1+'/'+result_type+elem_type+result+".his"
+         TARG2=DIR2+'/'+result_type+elem_type+result+".his"
+         if result_type =='TH':
+            ok=onespace(TARG1)
+            ok=onespace(TARG2)
+         err=os.system('diff '+TARG1+' '+TARG2+'>>'+TEMP)
+   for i in [0,1,2]:
+      for result in eval(result_type)[elem_type]:
+         hisfile=TEST['dir'][i]+'/'+result_type+elem_type+result+".his"
+         if not os.path.exists(hisfile):
+            msg="File not created: "+hisfile
+            rprint(msg)
+            err=os.system('echo '+msg+' >>'+TEMP)
+         else:
+            if clean:
+               err=os.remove(hisfile)
+   return 1
+
+@
+\subsection{Rprint}
+This routine sends messages to the log file and to the standard
+output if verbose. I might add a ranking to each message so that 
+it is printed to standard output only if it is below the "verbosity"
+number.
+
+<<Rprint>>=
+def rprint(text):
+   "Reports information to report file and console if verbose"
+   # r.write(text+"\n")
+   if verbose: print(text) 
+   return 0
+
+@
+\subsection{Onespace}
+This routine takes the GRIZ result files and converts it
+to one where the data is delimited by a single space. This 
+is needed in cases where the versions have different formatting.
+
+<<Onespace>>=
+def onespace(filename):
+   tempfilename='tempfile'
+   tempfile=open(tempfilename,'w+')
+   datafile=open(filename,'r+')
+   datin=datafile.readlines()
+   for i in range(len(datin)):
+      j=string.join(string.split(datin[i]))
+      tempfile.write(j+"\n")
+   datafile.close()
+   tempfile.close()
+   err=os.system('mv '+tempfilename+' '+filename)
+   return 1
+
+@
+\subsection{Exit}
+Normal system exits come from Main.
+<<Exit code>>=
+if __name__ == '__main__':
+   sys.exit(main())
+
+
+
