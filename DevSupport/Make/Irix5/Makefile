@@ -34,42 +34,16 @@ GRIZHOME = .
 # these symbols are used to pass the appropriate paths into the
 # GRIZ shell script.
 GRIZBINLOC = ${GRIZHOME}
-HFONTLOC = ${GRIZHOME}
+HFONTLOC = ${GRIZHOME}/Font
 
 # SGI compile flags; add -mips2 if running on R4000, etc.
-#CFLAGS = -cckr -g
-
-# Historical reference from GRIZ v1.0, which used the SGI VideoFramer...
-# CFLAGS = -cckr -g -DVIDEO_FRAMER -I/usr/video/vfr/src/inc
-
-#
-# Flags used on other platforms:
-#
-# Sun Solaris		-O2 -Xa
-# DEC OSF		-O2
-# Cray UNICOS		-h nostdc -Gn
-# HPUX                  -Ae
-#
+CFLAGS = -cckr -g
 
 # Minimal library set (not complete! See below.)
 LIBS = -lXm -lXt -lX11 -lGLw -lGLU -lGL -lm -PW
-#
-# For these systems, add libraries...
-# SGI			-PW
-# Sun Solaris		-Xext -Xmu
-# DEC OSF		-Xext -Xmu
-# Cray UNICOS		-Xmu
-# HPUX                  -Xext -Xmu
-#
-# Additional notes on libraries:
-# Depending on your platform and environment, it may well be necessary 
-# to add appropriate "-I" and/or "-L" switches so all the include 
-# files and libraries can be found. Also, order of specification is 
-# important.
-#
 
 OURLIBS = \
-	${GRIZHOME}/libhershey.a ${GRIZHOME}/libimage.a
+	${GRIZHOME}/Lib/libhershey.a ${GRIZHOME}/Lib/libimage.a
 
 OBJS = \
 	viewer.o faces.o geometric.o mdg_mem.o mdg_in.o misc.o \
