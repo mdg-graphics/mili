@@ -98,5 +98,8 @@ flow.o:       	viewer.h misc.h list.h mdg.h results.h geometric.h draw.h
 poly.o:		viewer.h misc.h list.h mdg.h results.h geometric.h draw.h
 explode.o:	viewer.h misc.h list.h mdg.h results.h geometric.h
 
+image.h:
+		ln -s Include/image.h image.h
+
 clean:
 	rm *.o
