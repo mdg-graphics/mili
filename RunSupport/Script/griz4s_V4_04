@@ -33,12 +33,6 @@ setenv GRIZHOME /mdg/bin/griz4s-V4_04-dir
 # Good for all except OSF; reset under OSF block below
 setenv HFONTLIB /mdg/lib/font/Hershey/sgi_sun_ibm_hp
 
-# Capture the batch flag if it exists
-set batch = no
-foreach argument ($argv[*])
-    if (x$argument == x-b) set batch = yes
-end
-
 set system = `/bin/uname -s`
 set release = `/bin/uname -r`
 set majorrelease = $release:r
@@ -66,112 +60,95 @@ else
 
 endif
 
-# Generate correct binary extension
+# Generate the appropriate extension for the operating system,
+# local hardware, and remote (display) hardware combination:
+#
+#   SYSTEM     VERSION     LOCAL CAP     DISPLAY CAP     EXTENSION
+#
+#    IRIX       (any)        (any)           GLX           .sgi
+#    IRIX       (any)        (any)            X            .sgi.mesa
+#
+#   SunOS        4.x         (any)          (any)          .sun.np
+#
+#   SunOS        5.x       Ultra FFB         GLX           .ultra
+#   SunOS        5.x       Ultra FFB          X            .sol
+#   SunOS        5.x        (other)         (any)          .sol
+#
+# Digital UNIX   3.x         (any)           GLX           .osf.mesa
+# Digital UNIX   3.x         (any)            X            .osf.mesa
+# Digital UNIX   3.x         (any)      GLX (IRIX 5.x)     .osf.mesa
+# Digital UNIX   3.x         (any)      GLX (Solaris)      .osf.mesa
 
 if (($system == IRIX) || ($system == IRIX64)) then
 
-  if ($batch == yes) then
-    set extension = sgi.osmesa
-  else if ($glx == GLX) then
+  if ( $glx == GLX ) then
     set extension = sgi
   else
     set extension = sgi.mesa
   endif
-  
-  unsetenv LD_LIBRARY_PATH
-  setenv LD_LIBRARY_PATH /mdg/lib/irix
 
-# else if ($system == OSF1) then
+else if ($system == OSF1) then
 
-#   unsetenv HFONTLIB
-#   setenv HFONTLIB /mdg/lib/font/Hershey/osf
+  unsetenv HFONTLIB
+  setenv HFONTLIB /mdg/lib/font/Hershey/osf
 
-#   if ($vendor == Silicon) then
+  if ($vendor == Silicon) then
     
-#     if ($x_release == 5000) then
-#       set extension = osf.mesa
-#     else
-#       set extension = osf.mesa
-#     endif
+    if ($x_release == 5000) then
+      set extension = osf.mesa
+    else
+      set extension = osf.mesa
+    endif
 
-#   else if ($vendor == Sun) then
+  else if ($vendor == Sun) then
 
 #   For now, Sun GLX doesn't work with OSF clients.
-#     if ($glx == GLX) then
-#       set extension = osf.mesa
-#     else
-#       set extension = osf.mesa
-#     endif
+    if ($glx == GLX) then
+      set extension = osf.mesa
+    else
+      set extension = osf.mesa
+    endif
 
-#   else if ($glx == GLX) then
-#     set extension = osf.mesa
-#   else
-#     set extension = osf.mesa
-#   endif
+  else if ($glx == GLX) then
+    set extension = osf.mesa
+  else
+    set extension = osf.mesa
+  endif
 
 else if ($system == SunOS) then
 
-  if ($majorrelease == 5) then  
+  if ($majorrelease == 4) then
+    set extension = sun.np
+  else if ($majorrelease == 5) then  
   
-#   Capture whether this is a SunBlade
-    set blade = `uname -a | awk -F- '/Blade/ {print $3}'`
+#   Capture presence of Fast Framebuffer
+    set ffb = `/usr/sbin/prtconf | awk -F, '/ffb/ {print $2}'`
     
-    unsetenv LD_LIBRARY_PATH
-
-    if ($batch == yes) then
-#
-# Batch execution.  SunBlade or other Sun platform?
-#
-      setenv LD_LIBRARY_PATH /mdg/lib/solaris:/usr/openwin/lib:/usr/dt/lib/:/usr/lib
-
-      if ($blade == Blade) then
-        set extension = sol.blade.osmesa
-#       Want to find libgex.so in lib/solarisBlade before lib/solaris
-        setenv LD_LIBRARY_PATH /mdg/lib/solarisBlade:${LD_LIBRARY_PATH}
-      else
-        set extension = sol.osmesa
-      endif
+    if ($glx == GLX) then
     
-    else if ($glx == GLX) then
-#
-# Regular interactive execution.  SunBlade or other Sun platform?
-#
-      if ($blade == Blade) then
-        set extension = sol.blade
-#       Add lib/solarisBlade so Griz will find the right SunBlade libgex.so for Exodus db's
-        setenv LD_LIBRARY_PATH /usr/openwin/lib:/usr/dt/lib/:/usr/lib:/mdg/lib/solarisBlade
+      if ($ffb == ffb) then
+        set extension = ultra
       else
         set extension = sol
-#       Add lib/solaris last so it won't find Mesa OpenGL before Sun's OpenGL but
-#       it will still find libgex.so for Exodus db's
-        setenv LD_LIBRARY_PATH /usr/openwin/lib:/usr/dt/lib/:/usr/lib:/mdg/lib/solaris
       endif
       
-    else if ($blade == Blade) then
-#
-# Interactive execution but no GLX so use Mesa versions.  SunBlade or other Sun platform?
-#
-      set extension = sol.blade.mesa
-      setenv LD_LIBRARY_PATH /mdg/lib/solarisBlade:/usr/openwin/lib:/usr/dt/lib/:/usr/lib
-
     else
-
-      set extension = sol.mesa
-      setenv LD_LIBRARY_PATH /mdg/lib/solaris:/usr/openwin/lib:/usr/dt/lib/:/usr/lib
-
+      set extension = sol
     endif
+    
+    setenv LD_LIBRARY_PATH /opt/SUNWspro/lib:/usr/lib:/usr/dt/lib:/usr/openwin/lib:/usr/ucblib
     
   else
   
-    echo "ERROR: You are trying to run GRIZ4 on a $system release $majorrelease system."
-    echo "GRIZ4 is not currently available for that release of $system."
+    echo "ERROR: You are trying to run GRIZ on a $system release $majorrelease system."
+    echo "GRIZ is not currently available for that release of $system."
     goto contactmdg          # Print contact info and take error exit.
     
   endif
 
 else
-  echo "ERROR:  You are trying to run GRIZ4 on a $system system."
-  echo "GRIZ4 is not currently available for $system systems."
+  echo "ERROR:  You are trying to run GRIZ on a $system system."
+  echo "GRIZ is not currently available for $system systems."
   goto contactmdg            # Print contact info and take error exit.
 endif
 
@@ -180,7 +157,7 @@ endif
 
 # Execute the appropriate executable, and return its exit status
 
-$GRIZHOME/griz4s.$extension $*
+$GRIZHOME/griz.$extension $*
 exit
 
 # Error exit
