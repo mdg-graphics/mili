@@ -673,6 +673,9 @@ extern void gen_reg_carpet_points();
 /* DISPLAY ROUTINES. */
 
 /* draw.c */
+extern char *strain_label[];
+extern char *ref_surf_label[];
+extern char *ref_frame_label[];
 extern void init_mesh_window();
 extern void reset_mesh_window();
 extern void get_pick_ray();
@@ -784,6 +787,7 @@ extern int is_hex_result( /* Result_type */ );
 extern int is_shell_result( /* Result_type */ );
 extern int is_beam_result( /* Result_type */ );
 extern int is_nodal_result( /* Result_type */ );
+extern Bool_type mod_required( /* analy, modifier, old, new */ );
 extern int get_result_modifier();
 extern float hex_vol( /* xx, yy, zz */ );
 extern float hex_vol_exact( /* xx, yy, zz */ );
