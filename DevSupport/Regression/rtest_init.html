@@ -1,5 +1,5 @@
 <!-- this file was generated automatically by noweave; better not edit it-->
-<html><head><title>rtest_init.nw rtest_support.nw</title></head><body><!--*   ****************************************************************-->
+<html><head><title>rtest_init.nw</title></head><body><!--*   ****************************************************************-->
 <!--*   * (c) Copyright 1997, 1998, 1999, 1900 The Regents of the      *-->
 <!--*   *     University  of California.  All Rights Reserved.         *-->
 <!--*   *                                                              *-->
@@ -40,7 +40,7 @@ to dump the results of the <code>info</code> command to a file named <code>.info
 <a name="NWrteD-*-1-u1" href="#NWrteD-ini4-1"><i>&lt;init&gt;</i></a>
 
 </pre><pre><a name="NWrteD-ini4-1" href="#NWrteD-ini4-1"><dfn>&lt;init&gt;=</dfn></a> <b>(<a href="#NWD2">&lt;-U</a>)</b>
-<a name="NWrteD-ini4-1-u1" href="#NWD4"><i>&lt;rtest support&gt;</i></a>
+<a name="NWrteD-ini4-1-u1" href="#nw@notdef"><i>&lt;rtest support&gt;</i></a>
 #import os,re,string
 from rtest_support import *
 
@@ -91,116 +91,15 @@ for sample in CASE['SAMP']+CASE['SND']:
          np=string.replace(IS[key][0],':','')
          print(&quot;&gt;&gt;&gt; &quot;+np+&quot; detected in &quot;+sample)
 </pre><blockquote>Defines <a href="#NWI-griz"><code>griz</code></a> (links are to index).<p>
-</blockquote><p><!--*   ****************************************************************-->
-<!--*   * (c) Copyright 1997, 1998, 1999, 1900 The Regents of the      *-->
-<!--*   *     University  of California.  All Rights Reserved.         *-->
-<!--*   *                                                              *-->
-<!--*   *     This work was produced under the sponsorship of the      *-->
-<!--*   *     United States Department of Energy.  The Government      *-->
-<!--*   *     retains certain rights therein.                          *-->
-<!--*   ****************************************************************-->
-<!--*   -->
-<!--*   ****************************************************************-->
-<!--*   This file uses the noweb utilities to generate the source code-->
-<!--*   and documentation.-->
-<!--*   To generate the LaTex file use:-->
-<!--*   noweave -index rtest_init.nw > <a name="NWD3">rtest_init.tex--></a>
-<!--*   To generate the HTML file use:-->
-<!--*   noweave -filter l2h -index -autodefs c -html -->
-<!--*           rtest_init.nw > rtest_init.html-->
-<!--*   ****************************************************************-->
-
-
-
-<h2><a name="NWD4">Appendix: </a><code>rtest_support</code></h2>
-This file defines all of the Python dictionaries used for the 
-regression testing. Dictionaries have an unordered set of 
-<em>key:value</em> pairs where the key can be a string.
-<p>
-<pre><a name="NWrteG-rteD.2-1" href="#NWD4"><dfn>&lt;rtest support&gt;=</dfn></a> <b>(<a href="#NWrteD-ini4-1">&lt;-U</a>)</b>
-
-import os,sys,re,string
-
-verbose=1
-RHOME=&quot;/grdev/regrtest/&quot;
-GRIZ2=RHOME+&quot;bin/griz2&quot;
-GRIZ4=RHOME+&quot;bin/griz4&quot;
-TAURUS=&quot;../d3plot&quot;
-MILI=&quot;../m_plot&quot;
-H1=&quot;# This grizinit file was automatically generated\n&quot;
-H2=&quot;# by regrtest.py for regression testing of Griz4\n&quot;
-H3=&quot;# -Vic Castillo\n#\n&quot;
-HEADER=H1+H2+H3
-
-TEST={}
-TEST['bin']=GRIZ2,GRIZ4,GRIZ4
-TEST['db']=TAURUS,TAURUS,MILI
-TEST['dir']='G2T','G4T','G4M'
-
-CASE={}
-CASE['SAMP']='SAMP1','SAMP2','SAMP4','SAMP6','SAMP8'
-CASE['SND']='SND1','SND2','SND3'
-
-# Derived Results Dictionary
-DR={}
-drnd1='dispx','dispy','dispz','dispmag'
-drnd2='velx','vely','velz','velmag'
-drnd3='accx','accy','accz','accmag','pvmag'
-DR['Nodal']=drnd1+drnd2+drnd3
-drshr1='sx','sy','sz','sxy','syz','szx'
-drshr2='press','seff','pdev1','pdev2','pdev3'
-drshr3='maxshr','prin1','prin2','prin3'
-DR['Share']=drshr1+drshr2+drshr3
-drshl1='surf1','surf2','surf3','surf4','surf5','surf6'
-drshl2='eff1','eff2','effmax'
-DR['Shell']=drshl1+drshl2
-drbrk1='ex','ey','ez','exy','eyz','ezx'
-drbrk2='pdstrn1','pdstrn2','pdstrn3','pshrstr'
-drbrk3='pstrn1','pstrn2','pstrn3','relvol','evol'
-DR['Brick']=drbrk1+drbrk2+drbrk3
-
-# Primal Results Dictionary
-PR={}
-PR['Nodal']='nodpos[ux]',
-PR['Global']='ke',
-PR['Mat']='matpe',
-PR['Brick']='eeff',
-PR['Shell']='eeff_mid',
-
-# Time History Dictionary
-# These are the results selected for the time histories
-TH={}
-TH['Nodal']='dispmag',
-TH['Global']='ke',
-TH['Mat']='matpe',
-TH['Brick']='prin1',
-TH['Shell']='effmax',
-
-# Info String Dictionary
-# These are the string patterns from the <a href="#NWrteD-ini4-1">griz</a> 'info' command.
-# (Why does it not work without the commas?)
-IS={}
-IS['Nodal']='Nodes:',
-IS['Brick']='Hex elements:',
-IS['Shell']='Shell elements:',
-# IS['Beam']='Beam elements:',
-
-# These are the strings describing result types
-RS={}
-RS['DR']='Derived Results'
-RS['PR']='Primative Results'
-RS['TH']='Time History Results'
-
-
-</pre>
+</blockquote>
 
 <ul>
 <li><a href="#NWD2"><i>&lt;*&gt;</i></a>: <a href="#NWD2">D1</a>
 <li><a href="#NWrteD-ini4-1"><i>&lt;init&gt;</i></a>: <a href="#NWD2">U1</a>, <a href="#NWrteD-ini4-1">D2</a>
-<li><a href="#NWD4"><i>&lt;rtest support&gt;</i></a>: <a href="#NWrteD-ini4-1">U1</a>, <a href="#NWD4">D2</a>
+<li><a href="#nw@notdef"><i>&lt;rtest support&gt;</i></a>: <a href="#NWrteD-ini4-1">U1</a>
 </ul>
 <ul>
-<li><a name="NWI-griz" href="#NWrteD-ini4-1">griz</a>: <a href="#NWrteD-ini4-1">D1</a>, <a href="#NWD4">U2</a>
+<li><a name="NWI-griz" href="#NWrteD-ini4-1">griz</a>: <a href="#NWrteD-ini4-1">D1</a>
 </ul>
 </body></html>
 
