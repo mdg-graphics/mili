@@ -4971,7 +4971,7 @@ va_dcl
     char *fmt;
     Popup_Dialog_Type dtype;
     Widget_list_obj *p_wlo;
-    char dialog_msg[128];
+    char dialog_msg[256];
     XmString dialog_string;
     int n;
     Arg args[5];
