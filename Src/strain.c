@@ -427,10 +427,12 @@ float *resultArr;
     float detF;                     /* Determinant of element 
                                        deformation gradient. */
     float *resultElem;              /* Array for the element data. */
+    register Bool_type vol_strain;
 
     bricks = analy->geom_p->bricks;
     initGeom    = analy->geom_p->nodes;
     currentGeom = analy->state_p->nodes;
+    vol_strain = ( analy->result_id == VAL_HEX_VOL_STRAIN ) ? TRUE : FALSE;
 
     resultElem = analy->hex_result;
 
@@ -464,8 +466,12 @@ float *resultArr;
         }
         detF =  F[0]*F[4]*F[8] + F[1]*F[5]*F[6] + F[2]*F[3]*F[7] 
                 -F[2]*F[4]*F[6] - F[1]*F[3]*F[8] - F[0]*F[5]*F[7];
-
-        resultElem[i] = detF;
+        
+	/*
+	 * Foolishly assuming detF will never be negative, we won't
+	 * test to ensure it's positive as required by log().
+	 */
+        resultElem[i] = vol_strain ? log( detF ) : detF;
     } 
 
     hex_to_nodal( resultElem, resultArr, analy );

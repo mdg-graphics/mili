@@ -218,6 +218,7 @@ static int share_btns[] =
 static int hex_btns[] =
 {
     VAL_HEX_RELVOL,        /* Relative volume */
+    VAL_HEX_VOL_STRAIN,    /* Volumetric Strain */
     VAL_HEX_EPS_PD1,       /* 1st prinicipal deviatoric strain */
     VAL_HEX_EPS_PD2,       /* 2nd prinicipal deviatoric strain */
     VAL_HEX_EPS_PD3,       /* 3rd prinicipal deviatoric strain */

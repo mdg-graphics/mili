@@ -93,6 +93,8 @@ char *trans_result[][4] =
       (char *) compute_hex_strain,              "pstrn3" },
     { (char *) VAL_HEX_RELVOL,                  "Relative Volume",
       (char *) compute_hex_relative_volume,     "relvol" },
+    { (char *) VAL_HEX_VOL_STRAIN,              "Volumetric Strain",
+      (char *) compute_hex_relative_volume,     "evol" },
 
     { (char *) VAL_SHELL_RES1,                  "M_xx Bending Resultant",
       (char *) compute_shell_in_data,           "res1" },
