@@ -525,8 +525,8 @@ Analysis *analy;
          */
         for ( i = 0; i < analy->face_cnt; i++ )
         {
-            el = analy->face_el[j];
-            fc = analy->face_fc[j];
+            el = analy->face_el[i];
+            fc = analy->face_fc[i];
 
             /*
              * Remove faces that are shared with shell elements, so
