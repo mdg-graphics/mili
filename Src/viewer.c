@@ -280,8 +280,11 @@ Analysis *analy;
         sz = analy->geom_p->shells->cnt;
     if ( analy->geom_p->beams != NULL && analy->geom_p->beams->cnt > sz )
         sz = analy->geom_p->beams->cnt;
-    for ( i = 0; i < 6; i++ )
-        analy->tmp_result[i] = NEW_N( float, sz, "Tmp result cache" );
+
+    /* Allocate temp result arrays as one big array for greater flexibility. */
+    analy->tmp_result[0] = NEW_N( float, sz * 6, "Tmp result cache" );
+    for ( i = 1; i < 6; i++ )
+        analy->tmp_result[i] = analy->tmp_result[i - 1] + sz;
     VEC_SET( analy->displace_scale, 1.0, 1.0, 1.0 );
 
 /*
@@ -440,8 +443,7 @@ Analysis *analy;
         free( analy->shell_result );
     if ( analy->hex_result != NULL )
         free( analy->hex_result );
-    for ( i = 0; i < 6; i++ )
-        free( analy->tmp_result[i] );
+    free( analy->tmp_result[0] );
     DELETE_LIST( analy->result_mm_list );
     if ( analy->m_edges_cnt > 0 )
     {
