@@ -5,8 +5,12 @@ $Id$
                      WELCOME TO GRIZ 2.0
 
 New results
+    Volumetric Strain - "evol"
+        This derived result is the natural log of the
+	relative volume ("relvol").
+
     Seven results formerly available only for brick
-    elements are now available for shell elements as well.  
+    elements are now available for shell elements as well.
     They are:
         "Prin Dev Stress 1" ("pdev1"), 
         "Prin Dev Stress 2" ("pdev2"), 
@@ -15,6 +19,8 @@ New results
         "Principal Stress 1", ("prin1"),
         "Principal Stress 2", ("prin2"), and
         "Principal Stress 3", ("prin3").
+    These results are now found in the "Shared" result
+    menu.
 
 New command
     bbox vis
