@@ -638,3 +638,33 @@ New commands
 	when rendering beam elements.  The bias is
 	on by default.  The value of the bias is not
 	currently adjustable. (Speck)
+
+June 25, 1996
+
+New functionality
+    Colormap value scale - The colormap now displays a
+    scale of values along its left side.  Scale values are
+    selected to fall on "round" values between the result
+    min and max (including zero, for example).  An
+    alternative implementation could always pick a set
+    number of scale values equally spaced between the min
+    and max and let the values fall where they may.  If
+    you have any feedback, please submit it to Doug Speck
+    or Larry Sanford. (Sanford)
+    
+    Rendered text is now anti-aliased. (Speck)
+
+Internal change
+    Un-did, by commenting out two "glEnable( GL_LIGHTING )" 
+    and two "glDisable( GL_LIGHTING )" calls, the bug fix
+    of 5 April which allowed mesh edge lines to be shaded
+    if the foreground color wasn't black.  This fix seems
+    to expose a vulnerability to an apparently long-standing
+    bug which causes some aspects of rendering to become
+    hosed if transitioning from a 2D to a 3D mesh or when
+    post-processing (some?) 2D meshes.  With the bug fix
+    in place, if the old bug is exposed it causes all
+    elements to be rendered black or some dark color.  The
+    old bug has been seen in a late '94 binary and shows
+    up in corrupted depth-buffering (and something else -
+    see email with Ed Bouch @ Sandia). (Speck)
