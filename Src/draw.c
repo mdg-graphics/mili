@@ -4977,9 +4977,8 @@ Analysis *analy;
     float scale_y, value;
     float scale_minimum, scale_maximum, distance;
     int qty_of_intervals, scale_error_status;
-    float offset;
+    float rmin_offset, rmax_offset;
     int ntrips;
-    float space_factor;
     float low_text_bound, high_text_bound;
     float comparison_tolerance;
 
@@ -5010,7 +5009,6 @@ Analysis *analy;
             extend_colormap = TRUE;
         else
             extend_colormap = FALSE;
-
         /* Width of black border. */
         b_width = 3.5 * vp_to_world[0];
         b_height = 3.5 * vp_to_world[1];
@@ -5189,12 +5187,18 @@ Analysis *analy;
 
             /* Assign labelled and scaled tic marks. */
 
-            if ( TRUE == extend_colormap )
-                offset = 0.05 * ysize;
+            if ( TRUE == analy->mm_result_set[0] )
+                rmin_offset = 0.05 * ysize;
             else
-                offset = 0.0;
+                rmin_offset = 0.0;
 
-            scale_y = ((ypos + ysize - offset) - (ypos + offset)) / (high - low);
+            if ( TRUE == analy->mm_result_set[1] )
+                rmax_offset = 0.05 * ysize;
+            else
+                rmax_offset = 0.0;
+
+            scale_y = ((ypos + ysize - rmax_offset) - (ypos + rmin_offset)) /
+                      (high - low);
 
             /* Compute legend scale intervals */
 
@@ -5205,12 +5209,10 @@ Analysis *analy;
 
             /* Label low and high actual values */
 
-            space_factor = 0.33 * text_height;
-
             xp = xpos - (2.0 * b_width) - (0.6 * text_height);
-            yp = ypos + offset + (scale_y * (low - low));
+            yp = ypos + rmin_offset + (scale_y * (low - low));
 
-            low_text_bound = yp + text_height + space_factor;
+            low_text_bound = yp - (0.6 * text_height) + text_height;
 
             hmove2( xp, yp - (0.6 * text_height) );
             sprintf( str, "%.2e", low );
@@ -5225,9 +5227,9 @@ Analysis *analy;
             glEnd();
 
             xp = xpos - (2.0 * b_width) - (0.6 * text_height);
-            yp = ypos + offset + (scale_y * (high - low));
+            yp = ypos + rmin_offset + (scale_y * (high - low));
 
-            high_text_bound = yp - text_height - space_factor;
+            high_text_bound = yp - (0.6 * text_height);
 
             hmove2( xp, yp - (0.6 * text_height) );
             sprintf( str, "%.2e", high );
@@ -5246,7 +5248,8 @@ Analysis *analy;
                 /* Label scaled values at computed intervals */
 
                 comparison_tolerance = machine_tolerance();
-                ntrips = MAX( round( (double)((scale_maximum - scale_minimum + distance) / distance), comparison_tolerance ), 0.0 );
+                ntrips = MAX( round( (double)((scale_maximum - scale_minimum + distance) / distance),
+                                     comparison_tolerance ), 0.0 );
 
                 for ( i = 0; i < ntrips; i++ )
                 {
@@ -5255,12 +5258,12 @@ Analysis *analy;
                     /* NOTE:  scaled values MAY exceed bounds of tightly restricted
                               legend limits */
 
-                    yp = ypos + offset + (scale_y * (value - low));
+                    yp = ypos + rmin_offset + (scale_y * (value - low));
 
-                    if ( (low < value)          &&
-                         (value < high)         &&
-                         (low_text_bound <= yp) &&
-                         (yp <= high_text_bound) )
+                    if ( (low < value)  &&
+                         (value < high)  &&
+                         (low_text_bound <= yp - (0.6 * text_height)) &&
+                         (yp - (0.6 * text_height) + text_height <= high_text_bound) )
                     {
                         xp = xpos - (2.0 * b_width) - (0.6 * text_height);
 
@@ -5276,6 +5279,8 @@ Analysis *analy;
                         glVertex2f( xp - (0.4 * text_height), yp + (0.2 * text_height) );
                         glVertex2f( xp - (0.4 * text_height), yp - (0.2 * text_height) );
                         glEnd();
+
+                        low_text_bound = yp - (0.6 * text_height) + text_height;
                     }
                 }
             }
@@ -5285,7 +5290,7 @@ Analysis *analy;
 		 * Scaling failed.   
 		 * Just draw max value at top of color scale.
 		 */
-	        yp = ypos + ysize - offset;
+	        yp = ypos + ysize - rmin_offset;
 
                 glBegin( GL_TRIANGLES );
                 glVertex2f( xp, yp );
