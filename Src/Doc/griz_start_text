@@ -1,8 +1,48 @@
 $Id$
 ************************************************************
-                      Updated: 10/09/97
+                      Updated: 1/9/98
 
                      WELCOME TO GRIZ 2.0
+
+New commands
+    dirv <x component> <y component> [<z component>]
+        Specifies a direction vector in the mesh coordinate
+        system.
+    dir3n <node 1> <node 2> <node 3>
+        Specifies a direction vector in the mesh coordinate
+        system as the normal to a plane defined by the 
+        positions of three mesh nodes at the current state 
+        (right-hand rule determines positive direction).
+    dir3p <x1> <y1> <z1> <x2> <y2> <z2> <x3> <y3> <z3>
+        Specifies a direction vector in the mesh coordinate
+        system as the normal to a plane defined by the
+        three specified points (right-hand rule applies).
+
+New result
+    Projected Vector Magnitude - "pvmag"
+        This nodal result requires that both a direction 
+        vector ("dirv", "dir3n", or "dir3p" commands) and a
+        vector result ("vec" command) be defined.  Given 
+        those, "pvmag" is the magnitude of the vector 
+        value at each node when projected onto the defined 
+        direction vector, i.e., the component of the vector
+        in that direction.
+        
+        Example - The following commands would show the 
+        magnitude of the displacement parallel to a line 
+        midway between the X, Y, and Z axes:
+            vec dispx dispy dispz
+            dirv 1 1 1
+            show pvmag
+
+        When "pvmag" is the current result, the components
+        forming the vector quantity are listed beneath
+        the result title above the colormap, and the 
+        current direction vector is rendered as a red line
+        coming out of the origin of the coordinate system
+        orientation display (The coordinate system 
+        orientation is rendered when "on coord" or "on all" 
+        are in effect).
 
 Bug fixes
     The "getedg" command, executed after a material
