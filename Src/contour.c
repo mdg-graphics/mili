@@ -218,6 +218,8 @@ Analysis *analy;
          analy->result_mm[0] >= analy->result_mm[1] )
         return;
 
+    check_interp_mode( analy );
+
     nodes = analy->state_p->nodes;
     c_vals = NEW_N( float, analy->contour_cnt, "Temp contour values" );
 

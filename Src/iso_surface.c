@@ -67,6 +67,8 @@ Analysis *analy;
     if ( analy->geom_p->bricks != NULL && analy->show_hex_result &&
          analy->show_isosurfs && analy->contour_cnt > 0 )
     {
+        check_interp_mode( analy );
+	
         /* Convert from percentages to actual contour values. */
         diff = analy->result_mm[1] - analy->result_mm[0];
         base = analy->result_mm[0];
