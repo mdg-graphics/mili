@@ -120,13 +120,12 @@ static void init_alt_cursors();
  * interface widgets.
  */
 String fallback_resources[] = {
-    "*fontList: -*-screen-medium-*-*-*-13-*-*-*-*-*-*-*",
+    "*fontList: -schumacher-clean-medium-r-normal-*-14-*-*-*-*-*-*-*",
     "*background: grey", 
     "*monitor*height: 130",
     "*monitor*columns: 60",
     NULL
 };
-
 
 /*
  * Menu button IDs.
