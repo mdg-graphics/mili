@@ -1,13 +1,13 @@
 $Id$
 ************************************************************
-                      Updated: 3/25/97
+                      Updated: 4/1/97
 
                      WELCOME TO GRIZ 2.0
 
 New results
     Volumetric Strain - "evol"
         This derived result is the natural log of the
-	relative volume ("relvol").
+	relative volume.
 
     Seven results formerly available only for brick
     elements are now available for shell elements as well.
@@ -22,7 +22,7 @@ New results
     These results are now found in the "Shared" result
     menu.
 
-New command
+New commands
     bbox vis
         Calculate a new bounding box for the mesh based
 	upon the extents only of visible materials.  The
@@ -35,6 +35,27 @@ New command
 	to calculate a potentially smaller bounding box
 	which may allow the "rnf" command to succeed in
 	those cases.
+
+    bufqty {all | n | h | s | b} <buffer quantity>
+        Set the number of states' data which is buffered
+	in memory for a particular mesh object type
+	("n" for nodes, "h" for hex elements, "s" for
+	shells, and "b" for beams), or for all types, to
+	avoid redundant disk accesses during result
+	computation.  By default, one states' data is 
+	buffered ("bufqty all 1").  Former behavior was 
+	equivalent to "bufqty all 0", in which no data is
+	buffered.  Buffering data can lead to significant
+	speedups for result computations which require
+	as inputs several primal results from the plotfile
+	database.  With no buffering, each primal result
+	causes disk access.  If viewing results at 
+	interpolated time values, a buffer quantity of two
+	can offer further performance improvement by 
+	limiting or eliminating disk accesses for some 
+	time values.  For most users, there's probably no 
+	advantage in ever setting the buffer quantity 
+	above two.
 
 New functionality
     View centering ("vcent...") now centers the mesh in Z

@@ -932,3 +932,40 @@ New functionality
     The warning popup dialog for an "rnf" failure has
     been re-written to be more helpful.
 
+
+April 1 1997
+
+New commands
+    bufqty {all | n | h | s | b} <buffer quantity>
+        Set the number of states' data which is buffered
+	in memory for a particular mesh object type
+	("n" for nodes, "h" for hex elements, "s" for
+	shells, and "b" for beams), or for all types, to
+	avoid redundant disk accesses during result
+	computation.  By default, one states' data is 
+	buffered ("bufqty all 1").  Former behavior was 
+	equivalent to "bufqty all 0", in which no data is
+	buffered.  Buffering data can lead to significant
+	speedups for result computations which require
+	as inputs several primal results from the plotfile
+	database.  With no buffering, each primal result
+	causes disk access.  If viewing results at 
+	interpolated time values, a buffer quantity of two
+	can offer further performance improvement by 
+	limiting or eliminating disk accesses for some 
+	time values.  For most users, there's probably no 
+	advantage in ever setting the buffer quantity 
+	above two.
+    
+    on derivtime
+        Turn on timing of derived result computation.  This
+	function is exclusive of "on timing", with "timing"
+	having precedence, since the "timing" metric includes
+	result computation and the nature of the resource
+	monitoring interface precludes simultaneous
+	evaluations.  They can both be "on" simultaneously,
+	but only the "timing" metric will cause output.
+
+Internal change
+    Added RENEW_N macro (misc.h) and supporting verbose_realloc()
+    function (misc.c).
