@@ -1335,7 +1335,7 @@ float *result_arr;
 	{
 	    /* Copy data from buffer into result array. */
 	    tmp_arr = p_bp->data_buffers[idx]
-	              + cur_family->result_offsets[VAL_NODE_TEMP]
+	              + (cur_family->result_offsets[VAL_NODE_TEMP] - offset)
 		        / sizeof( float );
 	    
 	    memcpy( result_arr, tmp_arr, obj_qty * sizeof( float ) );
@@ -1379,14 +1379,14 @@ float *result_arr;
 	if ( buffered )
 	{
 	    tmp_arr = p_bp->data_buffers[idx]
-	              + cur_family->result_offsets[result_id - jmp]
+	              + (cur_family->result_offsets[result_id - jmp] - offset)
 		        / sizeof( float );
 	}
 	else
 	{
             /* Get the proper offset from the X value identifier. */
             loc = cur_family->st_file_loc[st_num] + 
-                  cur_family->result_offsets[result_id-jmp];
+                  cur_family->result_offsets[result_id - jmp];
 
             tmp_arr = NEW_N( float, stride * obj_qty, "Tmp read result arr" );
             mdg_read( fnum, loc, stride * obj_qty * sizeof(float), tmp_arr );
