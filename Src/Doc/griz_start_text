@@ -1,10 +1,13 @@
 $Id$
 ************************************************************
-                      Updated: 3/24/98
+                      Updated: 5/7/98
 
                      WELCOME TO GRIZ 2.0
                      
 New functionality
+    The maximum number of materials has been increased from
+    300 to 5000. 
+
     Griz has an initial capability to detect and read
     LS-Dyna plot databases.  Due to conflicts in the 
     interpretation of certain control words between
