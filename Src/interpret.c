@@ -325,6 +325,7 @@ Analysis *analy;
     int start_state, stop_state;
     char result_variable[1];
     Bool_type tellmm_redraw;
+    int old;
 
     tokenize_line( buf, tokens, &token_cnt );
 
@@ -951,7 +952,7 @@ Analysis *analy;
 		analy->result_mod = TRUE;
             }
 
-            /* Result reference frame. */
+            /* Strain basis. */
             else if ( strcmp( tokens[i], "rglob" ) == 0 )
             {
                 analy->ref_frame = GLOBAL;
@@ -963,26 +964,34 @@ Analysis *analy;
 		analy->result_mod = TRUE;
             }
 
-            /* Strain basis. */
+            /* Strain variety. */
             else if ( strcmp( tokens[i], "infin" ) == 0 )
             {
+	        old = analy->strain_variety;
                 analy->strain_variety = INFINITESIMAL;
-		analy->result_mod = TRUE;
+		analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
+		                                  analy->strain_variety );
             }
             else if ( strcmp( tokens[i], "grn" ) == 0 )
             {
+	        old = analy->strain_variety;
                 analy->strain_variety = GREEN_LAGRANGE;
-		analy->result_mod = TRUE;
+		analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
+		                                  analy->strain_variety );
             }
             else if ( strcmp( tokens[i], "alman" ) == 0 )
             {
+	        old = analy->strain_variety;
                 analy->strain_variety = ALMANSI;
-		analy->result_mod = TRUE;
+		analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
+		                                  analy->strain_variety );
             }
             else if ( strcmp( tokens[i], "rate" ) == 0 )
             {
+	        old = analy->strain_variety;
                 analy->strain_variety = RATE;
- 		analy->result_mod = TRUE;
+		analy->result_mod = mod_required( analy, STRAIN_TYPE, old, 
+		                                  analy->strain_variety );
             }
             else if ( strcmp( tokens[i], "grdvec" ) == 0 )
             {
