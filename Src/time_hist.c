@@ -661,6 +661,26 @@ Analysis *analy;
         /* Number of increments along the axes. */
         incr_cnt[i] = (int) ((max_ax[i] - min_ax[i])/incr_ax[i] + 0.5);
     }
+
+    /* Sanity checks. */
+    if ( incr_cnt[0] == 0 )
+    {
+        incr_cnt[0] = 1;
+        incr_ax[0] =  max_ax[0] - min_ax[0];
+        popup_dialog( WARNING_POPUP, "%s\n%s",
+                      "Standard X-axis generation failed;",
+                      "data values may be incorrect." );
+    }
+
+    if ( incr_cnt[1] == 0 )
+    {
+        incr_cnt[1] = 1;
+        incr_ax[1] =  max_ax[1] - min_ax[1];
+        popup_dialog( WARNING_POPUP, "%s\n%s",
+                      "Standard Y-axis generation failed;",
+                      "data values may be incorrect." );
+    }
+
     
     if ( analy->auto_frac_size )
     {
