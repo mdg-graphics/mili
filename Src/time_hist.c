@@ -306,6 +306,7 @@ Analysis *analy;
 
     cur_state = analy->cur_state;
     wrt_text( "Gathering timehist values...\n" );
+    set_alt_cursor( CURSOR_WATCH );
 
     for ( i = 0; i < num_states; i++ )
     {
@@ -331,6 +332,7 @@ Analysis *analy;
     analy->cur_state = cur_state;
     analy->state_p = get_state( cur_state, analy->state_p );
     load_result( analy, FALSE );
+    unset_alt_cursor();
     wrt_text( "Done gathering timehist values.\n" );
 }
 
