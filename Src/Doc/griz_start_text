@@ -113,6 +113,15 @@ New functionality
     parameters appended to their Y-axis labels on
     time history plots.
     
+    Reference surface definition files can now optionally
+    specify a material number on the first line after
+    the face count.  By specifying a material number
+    other than the actual material for the elements
+    providing the reference surface faces, the user can
+    (1) unlink the reference surface from translations of 
+    the actual material and (2) control the color of the 
+    reference surface independently of the actual material.
+    
 Bug fixes
     Updated effective stress calculation for hex's and
     shells with a re-derived expression that avoids the 
