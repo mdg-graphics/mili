@@ -1829,6 +1829,21 @@ Analysis *analy;
     {
 	report_contour_vals( analy );
     }
+    else if ( strcmp( tokens[0], "conwid" ) == 0 )
+    {
+	val = atof( tokens[1] );
+	if ( val <= 0.0 )
+	{
+	    popup_dialog( INFO_POPUP, "Contour width must be greater than 0.0." );
+	    valid_command = FALSE;
+	}
+	else
+	{
+	    analy->contour_width = val;
+	    if ( analy->show_contours )
+	        redraw = TRUE;
+	}
+    }
     else if ( strcmp( tokens[0], "sym" ) == 0 )
     {
         if ( token_cnt < 7 )

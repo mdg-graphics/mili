@@ -1628,9 +1628,15 @@ Analysis *analy;
 
 /*        lsetdepth( v_win->z_front_near, v_win->z_front_far ); */
 
+        antialias_lines( TRUE );
+        glLineWidth( (GLfloat) analy->contour_width );
+
         glColor3fv( v_win->contour_color );
         for ( cont = analy->contours; cont != NULL; cont = cont->next )
             draw_line( cont->cnt, cont->pts, -1, analy, FALSE );
+
+        glLineWidth( (GLfloat) 1.0 );
+        antialias_lines( FALSE );
 
         /* Reset near/far planes to the defaults. */
 /*        lsetdepth( v_win->z_default_near, v_win->z_default_far ); */
@@ -1751,9 +1757,15 @@ Analysis *analy;
     {
         Contour_obj *cont;
 
+        antialias_lines( TRUE );
+        glLineWidth( (GLfloat) analy->contour_width );
+
         glColor3fv( v_win->contour_color );
         for ( cont = analy->contours; cont != NULL; cont = cont->next )
             draw_line( cont->cnt, cont->pts, -1, analy, FALSE );
+
+        glLineWidth( (GLfloat) 1.0 );
+        antialias_lines( FALSE );
     }
 
     /*
