@@ -104,6 +104,37 @@ Analysis *analy;
 	    analy->result_id = VAL_NONE;
 	    return( 0 );
 	}
+        else if ( analy->result_id == VAL_PROJECTED_VEC )
+        {
+            if ( analy->vec_id[0] == VAL_NONE
+                 && analy->vec_id[1] == VAL_NONE 
+                 && analy->vec_id[2] == VAL_NONE )
+            {
+                popup_dialog( INFO_POPUP, "%s\n%s",
+                              "Please define a vector quantity, then retry;",
+                              "(i.e., \"vec <x> <y> <z>\")." );
+                analy->result_id = VAL_NONE;
+                return( 0 );
+            }
+            else if ( analy->dir_vec[0] == 0.0
+                      && analy->dir_vec[1] == 0.0
+                      && analy->dir_vec[2] == 0.0 )
+            {
+                popup_dialog( INFO_POPUP, "%s\n%s",
+                              "Please define a direction, then retry;",
+                              "(i.e., \"dir3n\", \"dir3p\", or \"dirv\")." );
+                analy->result_id = VAL_NONE;
+                return( 0 );
+            }
+            
+            if ( analy->use_global_mm )
+                popup_dialog( WARNING_POPUP, "%s\n%s\n%s\n%s", 
+                              "Because min/max caching is not sensitive to",
+                              "changes in either the current direction vector",
+                              "or vector result, \"switch mstat\" should be",
+                              "in effect for the result \"pvmag\"." );
+        }
+
         analy->show_hex_result = TRUE;
         analy->show_shell_result = TRUE;
     }

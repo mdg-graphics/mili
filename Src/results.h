@@ -44,6 +44,7 @@ typedef enum
     VAL_NODE_K,            /* Nodal K value */
     VAL_NODE_EPSILON,      /* Nodal epsilon */
     VAL_NODE_A2,           /* Nodal A2 */
+    VAL_PROJECTED_VEC,     /* Projected vector magnitude */
 
     /* For file reader only. */
     VAL_NODE_POS,

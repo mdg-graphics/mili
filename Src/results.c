@@ -77,6 +77,8 @@ char *trans_result[][4] =
       (char *) compute_node_in_data,		"eps" },
     { (char *) VAL_NODE_A2,			"A2",
       (char *) compute_node_in_data,		"a2" },
+    { (char *) VAL_PROJECTED_VEC,		"Projected Vector Magnitude",
+      (char *) compute_vector_component,	"pvmag" },
 
     { (char *) VAL_HEX_EPS_PD1,                 "Prin Dev Strain 1",
       (char *) compute_hex_strain,              "pdstrn1" },

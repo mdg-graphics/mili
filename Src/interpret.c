@@ -318,10 +318,10 @@ Analysis *analy;
     int token_cnt;
     int object_id;
     char str[90];
-    float val, pt[3], vec[3], rgb[3];
+    float val, pt[3], vec[3], rgb[3], pt2[3];
     Bool_type redraw, redrawview, renorm, setval, valid_command;
-    int sz[3];
-    int ival, i, j, k, m;
+    int sz[3], nodes[3];
+    int ival, i, j, k, m, dim;
     int start_state, stop_state;
     char result_variable[1];
     Bool_type tellmm_redraw;
@@ -1480,6 +1480,101 @@ Analysis *analy;
     {
         parse_gather_command( token_cnt, tokens, analy );
     }
+    else if ( strcmp( tokens[0], "dirv" ) == 0 )
+    {
+        if ( token_cnt != analy->dimension + 1 )
+        {
+            popup_dialog( USAGE_POPUP, "dirv <x> <y> <z (if 3D)>" );
+            return;
+        }
+        
+        for ( i = 0; i < analy->dimension; i++ )
+            analy->dir_vec[i] = atof( tokens[i + 1] );
+        
+        if ( analy->dimension == 2 )
+            analy->dir_vec[2] = 0.0;
+        
+        vec_norm( analy->dir_vec );
+        
+        if ( analy->result_id == VAL_PROJECTED_VEC )
+        {
+            analy->result_mod = TRUE;
+            load_result( analy, TRUE );
+            redraw = TRUE;
+        }
+    }
+    else if ( strcmp( tokens[0], "dir3p" ) == 0 )
+    {
+        dim = analy->dimension;
+        
+        if ( dim == 2 )
+        {
+            popup_dialog( INFO_POPUP,
+                          "\"dir3p\" not implemented for 2D data;\n%s",
+                          "use \"dirv\" instead." );
+            return;
+        }
+
+        if ( token_cnt != 10 )
+        {
+            popup_dialog( USAGE_POPUP, "dir3p <x1> <y1> <z1>  %s",
+                          "<x2> <y2> <z2>  <x3> <y3> <z3>" );
+            return;
+        }
+        
+        for ( i = 0; i < dim; i++ )
+            pt[i] = atof( tokens[i + 1] );
+        for ( j = 0; j < dim; j++, i++ )
+            pt2[j] = atof( tokens[i + 1] );
+        for ( j = 0; j < dim; j++, i++ )
+            vec[j] = atof( tokens[i + 1] );
+
+        norm_three_pts( analy->dir_vec, pt, pt2, vec );
+        
+        if ( analy->result_id == VAL_PROJECTED_VEC )
+        {
+            analy->result_mod = TRUE;
+            load_result( analy, TRUE );
+            redraw = TRUE;
+        }
+    }    
+    else if ( strcmp( tokens[0], "dir3n" ) == 0 )
+    {
+        dim = analy->dimension;
+        
+        if ( dim == 2 )
+        {
+            popup_dialog( INFO_POPUP,
+                          "\"dir3n\" not implemented for 2D data;\n%s",
+                          "use \"dirv\" instead." );
+            return;
+        }
+
+        if ( token_cnt != 4 )
+        {
+            popup_dialog( USAGE_POPUP, "dir3n <node 1> <node 2> <node 3>  %s" );
+            return;
+        }
+        
+        for ( i = 0; i < 3; i++ )
+            nodes[i] = atoi( tokens[i + 1] ) - 1;
+
+        for ( i = 0; i < 3; i++ )
+            pt[i] = analy->state_p->nodes->xyz[i][nodes[0]];
+        for ( i = 0; i < 3; i++ )
+            pt2[i] = analy->state_p->nodes->xyz[i][nodes[1]];
+        for ( i = 0; i < 3; i++ )
+            vec[i] = analy->state_p->nodes->xyz[i][nodes[2]];
+
+        norm_three_pts( analy->dir_vec, pt, pt2, vec );
+        
+        if ( analy->result_id == VAL_PROJECTED_VEC )
+        {
+            analy->result_mod = TRUE;
+            load_result( analy, TRUE );
+            redraw = TRUE;
+        }
+    }
     else if ( strcmp( tokens[0], "vec" ) == 0 )
     {
         /* Get the result types from the translation table. */
@@ -1507,6 +1602,12 @@ Analysis *analy;
 
         if ( analy->show_vectors || analy->show_carpet )
             redraw = TRUE;
+        else if ( analy->result_id == VAL_PROJECTED_VEC )
+        {
+            analy->result_mod = TRUE;
+            load_result( analy, TRUE );
+            redraw = TRUE;
+        }
     }
     else if ( strcmp( tokens[0], "veccm" ) == 0 )
     {

@@ -288,6 +288,7 @@ static int node_btns[] =
     VAL_NODE_K,            /* Nodal k */
     VAL_NODE_EPSILON,      /* Nodal epsilon */
     VAL_NODE_A2,           /* Nodal a2 */
+    VAL_PROJECTED_VEC,     /* Projected vector magnitude */
     VAL_ALL_END
 };
 

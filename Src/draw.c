@@ -5142,7 +5142,7 @@ draw_foreground( analy )
 Analysis *analy;
 {
     Transf_mat mat, tmat;
-    float pt[3], pto[3], pti[3], ptj[3], ptk[3];
+    float pt[3], pto[3], pti[3], ptj[3], ptk[3], ptv[3];
     float world_to_vp[2], vp_to_world[2];
     float zpos, cx, cy;
     float xpos, ypos, xp, yp, xsize, ysize;
@@ -5151,7 +5151,9 @@ Analysis *analy;
     float leng, sub_leng;
     float arr[16];
     Bool_type extend_colormap;
+    Bool_type show_dirvec;
     char str[90];
+    char *vec_x, *vec_y, *vec_z;
     int nstripes, i, frst, lst;
     static char *el_label[] = { "node", "beam", "shell", "brick" };
     float *el_mm;
@@ -5168,6 +5170,7 @@ Analysis *analy;
     float low_text_bound, high_text_bound;
     float comparison_tolerance;
     float scl_max;
+    float map_text_offset;
     
     /* Cap for colorscale interpolation. */
     scl_max = SCL_MAX;
@@ -5191,6 +5194,17 @@ Analysis *analy;
     text_height = 14.0 * vp_to_world[1];
     htextsize( text_height, text_height );
     fracsz = analy->float_frac_size;
+    
+    if ( analy->result_id == VAL_PROJECTED_VEC )
+    {
+        show_dirvec = TRUE;
+        map_text_offset = text_height * LINE_SPACING_COEFF;
+    }
+    else
+    {
+        show_dirvec = FALSE;
+        map_text_offset = 0.0;
+    }
 
     /* Colormap. */
     if ( analy->show_colormap && analy->result_id != VAL_NONE )
@@ -5218,7 +5232,7 @@ Analysis *analy;
    colorscale size.
             ypos = cy - vp_to_world[1]*255 - b_height; 
 */
-            ypos = cy - vp_to_world[1]*240 - b_height;
+            ypos = cy - vp_to_world[1]*240 - b_height - map_text_offset;
             xsize = vp_to_world[0]*25;
             ysize = vp_to_world[1]*200;
         }
@@ -5305,8 +5319,23 @@ Analysis *analy;
    position.
             hmove2( xpos + xsize, ypos+ysize+b_height+2.0*text_height ); 
 */
-            hmove2( xpos + xsize, ypos+ysize+b_height+1.0*text_height );
+            hmove2( xpos + xsize, 
+                    ypos + ysize + b_height + 1.0 * text_height 
+                    + map_text_offset );
             hcharstr( analy->result_title );
+
+            if ( show_dirvec )
+            {
+                vec_x = trans_result[resultid_to_index[analy->vec_id[0]]][3];
+                vec_y = trans_result[resultid_to_index[analy->vec_id[1]]][3];
+                vec_z = trans_result[resultid_to_index[analy->vec_id[2]]][3];
+
+                sprintf( str, "(%s, %s, %s)", vec_x, vec_y, vec_z );
+
+                hmove2( xpos + xsize, 
+                        ypos + ysize + b_height + 1.0 * text_height );
+                hcharstr( str );
+            }
 
             /* Account for min/max result thresholds. */
             if ( TRUE == analy->mm_result_set[0] )
@@ -5554,6 +5583,8 @@ Analysis *analy;
     /* Global coordinate system. */
     if ( analy->show_coord )
     {
+/*        show_dirvec = ( analy->result_id == VAL_PROJECTED_VEC ); */
+
         leng = 35*vp_to_world[0];
         sub_leng = leng / 10.0;
 
@@ -5586,6 +5617,25 @@ Analysis *analy;
         glVertex3fv( pto );
         glVertex3fv( ptk );
         glEnd();
+
+        if ( show_dirvec )
+        {
+            VEC_SET( pt, analy->dir_vec[0] * leng * 0.75, 
+                     analy->dir_vec[1] * leng * 0.75, 
+                     analy->dir_vec[2] * leng * 0.75 );
+            point_transform( ptv, pt, &tmat );
+            
+            glColor3fv( material_colors[15] ); /* Red */
+            glLineWidth( 2.25 );
+
+            glBegin( GL_LINES );
+            glVertex3fv( pto );
+            glVertex3fv( ptv );
+            glEnd();
+        
+            glLineWidth( 1.25 );
+            glColor3fv( v_win->foregrnd_color );
+        }
 
         /* Label the axes. */
         VEC_SET( pt, leng + sub_leng, sub_leng, sub_leng );

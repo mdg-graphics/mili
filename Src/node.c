@@ -496,3 +496,74 @@ float *resultArr;
 }
 
 
+/************************************************************
+ * TAG( compute_vector_component )
+ *
+ * Computes the length of the component of the currently
+ * defined vector result in the specified direction at each 
+ * node.
+ */
+void
+compute_vector_component( analy, resultArr )
+Analysis *analy;
+float *resultArr;
+{
+    float *vec_comp[3];
+    float vec[3];
+    float *tmp_res;
+    int i, j, tmp_id, node_qty, dim;
+    
+    tmp_id = analy->result_id;
+    tmp_res = analy->result;
+    node_qty = analy->geom_p->nodes->cnt;
+    dim = analy->dimension;
+    
+    /* Read in the vector components. */
+    for ( i = 0; i < dim; i++ )
+    {
+        vec_comp[i] = analy->tmp_result[i];
+
+        if ( analy->vec_id[i] != VAL_NONE )
+        {
+            analy->result_id = analy->vec_id[i];
+            analy->result = vec_comp[i];
+            
+            /* 
+             * Recursively call load_result() so that element-based
+             * components will be interpolated back to nodes.
+             */
+            load_result( analy, FALSE );
+        }
+        else
+            memset( vec_comp[i], 0, node_qty * sizeof( float ) );
+    }
+    analy->result_id = tmp_id;
+    analy->result = tmp_res;
+    
+    /* 
+     * Dot each nodal vector with the direction unit vector to
+     * generate the magnitude of its component in that direction.
+     */
+    if ( dim == 3 )
+    {
+        for ( i = 0; i < node_qty; i++ )
+        {
+            for ( j = 0; j < 3; j++ )
+                vec[j] = vec_comp[j][i];
+            
+            resultArr[i] = VEC_DOT( vec, analy->dir_vec );
+        }
+    }
+    else
+    {
+        for ( i = 0; i < node_qty; i++ )
+        {
+            for ( j = 0; j < 2; j++ )
+                vec[j] = vec_comp[j][i];
+            
+            resultArr[i] = VEC_DOT_2D( vec, analy->dir_vec );
+        }
+    }
+}
+
+

@@ -535,6 +535,8 @@ typedef struct _Analysis
     Vector_pt_obj *vec_pts;
     Bool_type vectors_at_nodes;
     Bool_type scale_vec_by_result;
+    
+    float dir_vec[3];
 
     Bool_type show_carpet;
     float vec_cell_size;
@@ -835,6 +837,7 @@ extern void compute_node_pr_intense();
 extern void set_pr_ref();
 extern void compute_node_helicity();
 extern void compute_node_enstrophy();
+extern void compute_vector_component();
 
 /* frame.c */
 extern void global_to_local_mtx();
