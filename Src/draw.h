@@ -19,6 +19,9 @@
 #include "geometric.h"
 
 
+#define CMAP_SIZE (256)
+
+
 typedef struct 
 {
     int win_x;
@@ -56,7 +59,11 @@ typedef struct
     GLfloat select_color[3];
     GLfloat vector_color[3];
     GLfloat vector_hd_color[3];
-    GLfloat colormap[256][3];
+    GLfloat cmap_min_color[3];   /* Last five tied to a colormap. */
+    GLfloat cmap_max_color[3];
+    GLfloat rmin_color[3];
+    GLfloat rmax_color[3];
+    GLfloat colormap[CMAP_SIZE][3];
 
     Bool_type lighting;
     Bool_type light_active[6];
