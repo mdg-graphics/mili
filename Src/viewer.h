@@ -31,7 +31,7 @@
 #define DEFAULT_FLOAT_FRACTION_SIZE (2)
 
 /* Number of materials with settable properties. */
-#define MAX_MATERIALS 200
+#define MAX_MATERIALS 300
 
 /* Default depth-buffer bias for rendering lines in front of polygons. */
 #define DFLT_ZBIAS .005
@@ -509,6 +509,7 @@ typedef struct _Analysis
     float *contour_vals;
     Bool_type show_contours;
     Contour_obj *contours;
+    float contour_width;
     Bool_type show_isosurfs;
     Triangle_poly *isosurf_poly;
 
