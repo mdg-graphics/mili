@@ -1133,3 +1133,28 @@ New commands
 	means that only axis-aligned subsets of the 
 	external face table can be written.  Any number of 
 	constraints can be specified. (Speck)
+    
+
+October 9 1997
+
+Bug fix
+    The "getedg" command, executed after a material
+    translation, now correctly generates a new edge set.
+    This correction was implemented by modifying
+    edge_node_cmp() to perform further comparisons of
+    material number and relative material translation if
+    edge nodes are identical.  This causes further sorting
+    of multiple references to the same edge, keeping like
+    materials together and (relatively) translated
+    materials apart, allowing correct identification of
+    visual edges.
+    (Speck)
+
+
+November 13 1997
+
+Name correction
+    The titles for shell results "res3" ("M_zz Bending
+    Resultant") and "res8" ("N_zz Bending Resultant") have
+    been corrected (to "M_xy Bending Resultant" and "N_xy
+    Bending Resultant", respectively). (Speck)
