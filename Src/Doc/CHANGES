@@ -1062,3 +1062,18 @@ New functionality
     If "on title" is in effect, the title is rendered on
     time history plots. (Speck)
 
+
+July 25 1997
+
+New command
+    minmov <pixel distance>
+        The minmov command provides a cursor motion margin 
+	of error for node/element picks. It sets a threshold 
+	distance the cursor must be moved with the mouse 
+	before GRIZ treats the motion as intentional 
+	manipulation of the mesh.  Continuous moves totaling 
+	less than the threshold distance, when the mouse 
+	button is released, are treated as node/element 
+	picks (with the pick position being the cursor 
+	position when the mouse button was first depressed). 
+	(Speck)

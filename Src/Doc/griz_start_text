@@ -1,6 +1,6 @@
 $Id$
 ************************************************************
-                      Updated: 7/24/97
+                      Updated: 7/25/97
 
                      WELCOME TO GRIZ 2.0
 
@@ -89,6 +89,17 @@ New commands
 	spatial orientation cues provided by lit facets are
 	lost.  Rendering time is approximately 10 percent
 	faster with lighting off.
+
+    minmov <pixel distance>
+        The minmov command provides a cursor motion margin 
+	of error for node/element picks. It sets a threshold 
+	distance the cursor must be moved with the mouse 
+	before GRIZ treats the motion as intentional 
+	manipulation of the mesh.  Continuous moves totaling 
+	less than the threshold distance, when the mouse 
+	button is released, are treated as node/element 
+	picks (with the pick position being the cursor 
+	position when the mouse button was first depressed). 
 	
 
 New functionality
