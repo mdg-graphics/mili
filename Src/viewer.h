@@ -776,6 +776,7 @@ extern void update_util_panel();
 extern void reset_window_titles();
 extern void set_alt_cursor();
 extern void unset_alt_cursor();
+extern void set_motion_threshold();
 
 /* DERIVED VARIABLES. */
 

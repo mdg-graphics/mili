@@ -468,6 +468,9 @@ Bool_type text_history_invoked = FALSE;
 /* Non-default cursors. */
 static Cursor alt_cursors[CURSOR_QTY];
 
+/* Mouse motion/pick threshold. */
+static float motion_threshold = 0.0;
+
 /*
  * Resource settings for GL choose visual.  Demand full 24 bit
  * color -- otherwise you can get yucky dithering.
@@ -1707,7 +1710,7 @@ Widget main_widg;
     else
         sw_height = rows * height + (rows - 1) * spacing + 2 * margin_width
 	            + fudge;
-    XtVaSetValues( scroll_win, XmNheight, sw_height, NULL ); 
+    XtVaSetValues( scroll_win, XmNheight, sw_height, NULL );
     
     /* Make color editor & children insensitive. */
     XtSetSensitive( color_editor, False );
@@ -2487,6 +2490,8 @@ XmScaleCallbackStruct *call_data;
     Bool_type identify_only;
     static char *obj_type_names[] = { "n", "b", "s", "h" };
     XButtonEvent *evt;
+    float dist;
+    double pixdx, pixdy;
 
     switch( call_data->event->type )
     {
@@ -2586,12 +2591,26 @@ XmScaleCallbackStruct *call_data;
             break;
 
         case MotionNotify:
-	    set_alt_cursor( CURSOR_FLEUR );
-            mode = MOUSE_MOVE;
             orig_posx = posx;
             orig_posy = posy;
+	    
+	    /* Cursor motion must exceed threshold to be a real move. */
+	    if ( mode == MOUSE_STATIC )
+	    {
+		pixdx = (double) call_data->event->xbutton.x - orig_posx;
+		pixdy = (double) call_data->event->xbutton.y - orig_posy;
+		dist = (float) sqrt( pixdx * pixdx + pixdy * pixdy );
+		if ( dist < motion_threshold )
+		    break;
+		else
+		    mode = MOUSE_MOVE;
+	    }
+
+	    set_alt_cursor( CURSOR_FLEUR );
+
             posx = call_data->event->xbutton.x;
             posy = call_data->event->xbutton.y;
+	    
             if ( call_data->event->xmotion.state & Button1Mask )
             {
                 angle = (posx - orig_posx) / 10.0;
@@ -5294,5 +5313,19 @@ unset_alt_cursor()
         XUndefineCursor( dpy, XtWindow( util_panel_widg ) );
 
     XFlush( dpy );
+}
+
+
+/*****************************************************************
+ * TAG( set_motion_threshold )
+ *
+ * Set the threshold distance that controls when small mouse
+ * motions become identified as intentional motion activity.
+ */
+void
+set_motion_threshold( threshold )
+float threshold;
+{
+    motion_threshold = threshold;
 }
 

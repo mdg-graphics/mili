@@ -408,6 +408,14 @@ Analysis *analy;
         set_mesh_scale( val, val, val );
         redrawview = TRUE;
     }
+    else if ( strcmp( tokens[0], "minmov" ) == 0 )
+    {
+        sscanf( tokens[1], "%f", &val );
+	if ( val < 0.0 )
+	    popup_dialog( USAGE_POPUP, "minmov <pixel distance>" );
+	else
+	    set_motion_threshold( val );
+    }
     else if ( strcmp( tokens[0], "scalax" ) == 0 )
     {
         sscanf( tokens[1], "%f", &vec[0] );
