@@ -4514,6 +4514,7 @@ Analysis *analy;
     */
     glStencilFunc( GL_EQUAL, 0, 1 );
     glStencilOp( GL_KEEP, GL_KEEP, GL_KEEP );
+    
     if ( analy->interp_mode == GOOD_INTERP )
     {
         /* Scan convert the polygon by hand. */
