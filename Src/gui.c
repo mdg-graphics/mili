@@ -35,7 +35,7 @@
 #include <Xm/Text.h>
 #include <Xm/MessageB.h>
 #include <Xm/PushBG.h>
-#include <Xm/ToggleBG.h>
+#include <Xm/ToggleB.h>
 #include <Xm/TextF.h>
 #include <Xm/ArrowB.h>
 #include <Xm/Protocols.h>
@@ -1258,7 +1258,7 @@ Widget main_widg;
     for ( i = 0; i < 5; i++ )
     {
         mtl_mgr_func_toggles[i] = XtVaCreateManagedWidget( 
-            func_names[i], xmToggleButtonGadgetClass, func_select, 
+            func_names[i], xmToggleButtonWidgetClass, func_select, 
 	    XmNindicatorOn, False, 
 	    XmNshadowThickness, 3, 
 	    XmNfillOnSelect, True, 
@@ -1347,7 +1347,7 @@ Widget main_widg;
     for ( i = 0; i < 4; i++ )
     {
         color_comps[i] = XtVaCreateManagedWidget( 
-            comp_names[i], xmToggleButtonGadgetClass, col_comp, 
+            comp_names[i], xmToggleButtonWidgetClass, col_comp, 
 	    XmNset, False, 
             XmNindicatorOn, False, 
             XmNshadowThickness, 3, 
@@ -1671,7 +1671,7 @@ Widget main_widg;
 	else
 	    sprintf( mtl_toggle_name, "%d", mtl );
         widg = XtVaCreateManagedWidget( 
-            mtl_toggle_name, xmToggleButtonGadgetClass, mtl_row_col, 
+            mtl_toggle_name, xmToggleButtonWidgetClass, mtl_row_col, 
             XmNtraversalOn, False, 
             XmNindicatorOn, False, 
             XmNshadowThickness, 3, 
@@ -1990,7 +1990,7 @@ Widget main_widg;
         child_width = width;
 	
     util_render_btns[VIEW_SOLID] = XtVaCreateManagedWidget( 
-        "Solid", xmToggleButtonGadgetClass, rend_child, 
+        "Solid", xmToggleButtonWidgetClass, rend_child, 
 	XmNindicatorOn,  False, 
 	XmNset,  ( analy->render_mode == RENDER_FILLED ), 
 	XmNshadowThickness, 3, 
@@ -2003,7 +2003,7 @@ Widget main_widg;
                    util_render_CB, (XtPointer) VIEW_SOLID );
 	
     util_render_btns[VIEW_SOLID_MESH] = XtVaCreateManagedWidget( 
-        "Solid Mesh", xmToggleButtonGadgetClass, rend_child, 
+        "Solid Mesh", xmToggleButtonWidgetClass, rend_child, 
 	XmNindicatorOn, False, 
 	XmNset, ( analy->render_mode == RENDER_HIDDEN ), 
 	XmNshadowThickness, 3, 
@@ -2016,7 +2016,7 @@ Widget main_widg;
                    util_render_CB, (XtPointer) VIEW_SOLID_MESH );
 	
     util_render_btns[VIEW_EDGES] = XtVaCreateManagedWidget( 
-        "Edges Only", xmToggleButtonGadgetClass, rend_child, 
+        "Edges Only", xmToggleButtonWidgetClass, rend_child, 
 	XmNindicatorOn, False, 
 	XmNset, ( analy->show_edges 
 	          && env.curr_analy->render_mode == RENDER_NONE ), 
@@ -2046,7 +2046,7 @@ Widget main_widg;
     if ( width > child_width ) 
         child_width = width;
     util_render_btns[PICK_MODE_SELECT] = XtVaCreateManagedWidget( 
-        "Select", xmToggleButtonGadgetClass, rend_child, 
+        "Select", xmToggleButtonWidgetClass, rend_child, 
 	XmNindicatorOn, False, 
 	XmNset, ( analy->mouse_mode == MOUSE_SELECT ), 
 	XmNshadowThickness, 3, 
@@ -2059,7 +2059,7 @@ Widget main_widg;
                    util_render_CB, (XtPointer) PICK_MODE_SELECT );
 	
     util_render_btns[PICK_MODE_HILITE] = XtVaCreateManagedWidget( 
-        "Hilite", xmToggleButtonGadgetClass, rend_child, 
+        "Hilite", xmToggleButtonWidgetClass, rend_child, 
 	XmNindicatorOn, False, 
 	XmNset, ( analy->mouse_mode == MOUSE_HILITE ), 
 	XmNshadowThickness, 3, 
@@ -2088,7 +2088,7 @@ Widget main_widg;
     if ( width > child_width ) 
         child_width = width;
     util_render_btns[BTN2_SHELL] = XtVaCreateManagedWidget( 
-        "Shells", xmToggleButtonGadgetClass, rend_child, 
+        "Shells", xmToggleButtonWidgetClass, rend_child, 
 	XmNindicatorOn, False, 
 	XmNset, ( analy->pick_beams != TRUE ), 
 	XmNshadowThickness, 3, 
@@ -2101,7 +2101,7 @@ Widget main_widg;
                    util_render_CB, (XtPointer) BTN2_SHELL );
 
     util_render_btns[BTN2_BEAM] = XtVaCreateManagedWidget( 
-        "Beams", xmToggleButtonGadgetClass, rend_child, 
+        "Beams", xmToggleButtonWidgetClass, rend_child, 
 	XmNindicatorOn, False, 
 	XmNset, ( analy->pick_beams == TRUE ), 
 	XmNshadowThickness, 3, 
@@ -2770,14 +2770,6 @@ XmToggleButtonCallbackStruct *call_data;
     }
     
     update_actions_sens();
-    
-#ifdef SUNOS5
-    /* 
-     * Motif libs on Solaris don't seem to update visual state of toggles
-     * immediately.  Get out the big gun...
-     */
-    XFlush( dpy );
-#endif
 }
 
 
@@ -3039,14 +3031,6 @@ XmPushButtonCallbackStruct call_data;
     }
     
     update_actions_sens();
-    
-#ifdef SUNOS5
-    /* 
-     * Motif libs on Solaris don't seem to update visual state of toggles
-     * immediately.  Get out the big gun...
-     */
-    XFlush( dpy );
-#endif
 }
 
 
@@ -3614,14 +3598,6 @@ XmToggleButtonCallbackStruct *call_data;
 	        parse_command( "sw picsh", env.curr_analy );
 	    break;
     }
-    
-#ifdef SUNOS5
-    /* 
-     * Motif libs on Solaris don't seem to update visual state of toggles
-     * immediately.  Get out the big gun...
-     */
-    XFlush( dpy );
-#endif
 }
 
 
@@ -3943,14 +3919,6 @@ Util_panel_button_type button;
 			       NULL );
 	    break;
     }
-    
-#ifdef SUNOS5
-    /* 
-     * Motif libs on Solaris don't seem to update visual state of toggles
-     * immediately.  Get out the big gun...
-     */
-    XFlush( dpy );
-#endif
 }
 
 
