@@ -735,19 +735,34 @@ Bool_type *tellmm_redraw;
     else
     {
         cnt1 = cnt2 = cnt3 = 0;
+        nam_fwid = 0;
 
-        if ( analy->geom_p->bricks != NULL )
+        if ( (is_hex_result( analy->result_id )
+              || is_shared_result( analy->result_id ))
+             && analy->geom_p->bricks != NULL )
+        {
             cnt1 = analy->geom_p->bricks->cnt;
-        if ( analy->geom_p->shells != NULL )
+            nam_fwid = 5; /* "Brick" */
+        }
+
+        if ( (is_shell_result( analy->result_id )
+              || is_shared_result( analy->result_id ))
+             && analy->geom_p->shells != NULL )
+        {
             cnt2 = analy->geom_p->shells->cnt;
-        if ( analy->geom_p->beams != NULL )
+            nam_fwid = MAX( nam_fwid, 5 ); /* "Shell" */
+        }
+
+        if ( is_beam_result( analy->result_id )
+             && analy->geom_p->beams != NULL )
+        {
             cnt3 = analy->geom_p->beams->cnt;
+            nam_fwid = MAX( nam_fwid, 4 ); /* "Beam" */
+        }
 
         cnt1 = MAX( cnt1, MAX( cnt2, cnt3 ) );
     
         obj_fwid = (int) ((double) 1.0 + log10( (double) cnt1 ));
-        
-        nam_fwid = 5; /* length of longest of "beam", "shell", and "brick" */
     }
     
     /* State number width */
