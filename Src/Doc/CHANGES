@@ -1,0 +1,593 @@
+$Id$
+
+June 15, 1995
+
+
+Changed files
+-------------
+
+All files
+
+
+Code changes
+------------
+
+Removed "-sliders" option from command line.
+        Also removed the "trlit", "trfr", "trat" and "clrtr" commands along
+        with the sliders.  (These hooked up a light, the look from pt or
+        the look at pt to the sliders.) (Dovey)
+
+Removed "on/off dlist" option -- drawing no longer uses display lists.
+                                 (I think this option was undocumented.)
+				 (Dovey)
+
+Removed "switch line" option -- this option just drew the mesh lines
+                                and not the element interiors. (Dovey)
+
+Removed "on/off bdrop" option -- draw backdrop (not very useful.)
+                                 functionality superceded by external geom
+                                 option (Dovey)
+
+Removed split quad option -- "on/off splitq" and "nsplit"
+                             functionality should be replaced by linear
+                             texture mapping (Dovey)
+
+Removed "on/off lights" option -- show lights.  This never worked all that
+                                  well anyway. (Dovey)
+
+Added "on/off cscale" command -- Turn on or off display of the scale on
+                                 the colormap.  (ALERT MICHAEL of this!!!)
+				 (Dovey)
+
+Fixed bugs in "vcent" which caused hilite centering to not work and
+   point centering to work only part of the time. (Dovey)
+
+   Forms of "vcent" command:
+   vcent hi			Center view on currently hilited object.
+   vcent n <node number>	Center view on the given node.
+   vcent <x> <y> <z>		Center view on object-space point (x,y,z).
+
+
+Added interpolation modes:
+   "switch noterp"  No interpolation, values at element centers are
+                    drawn over the full polygons.
+   "switch interp"  Regular color interpolation from polygon nodes.
+   "switch gterp"   Good (but expensive) color interpolation.  Dices the
+                    polygons into pixel-sized fragments.  Suggest users
+                    give -s flag (single-buffer mode) to GRIZ when using
+                    this option so they can watch the rendering process.
+
+   (No interpolation mode was a request of Roger Logan's.) (Dovey)
+
+Added "conmap <int n>" command -- contour the colormap with N stripes.
+      This routine samples the current colormap at N places and then
+      creates a band of each color.
+      "chmap <int n>" -- Create a hot/cold colormap with N contours.
+      "cgmap <int n>" -- Create a gray colormap with N contours.
+      All of these routines are intended to be used with "switch gterp"
+      (Dovey)
+
+Fixed bug in handling of prism (wedge) elements that caused normals and
+   colors to be associated with the wrong vertices. (Dovey)
+
+Added point cloud option
+      "sw cloud" -- goes with "sw solid" and "sw hidden".  Just draw the
+      nodes of the grid as points.  Might be somewhat useful for verifying
+      grid correctness. (Dovey)
+
+
+OpenGL changes
+--------------
+
+    "camang" sets the camera angle for a perspective view.
+    (Note the Y direction is irrelevant.  X or Y is chosen based on the
+     aspect ratio of the window.) (Dovey)
+
+    All colors are reals and are specified in the range [0, 1].
+    This includes the "ldmap" command. (Dovey)
+
+    (Optional) parameters for set_light are
+
+        light <number> pos <x y z w> amb <r g b> diff <r g b> spec <r g b>
+            spotdir <x y z> spotexp <exp> spotcut <cutoff_angle>
+
+        Light numbers 1 to 6 can be set.  In OpenGL, lights are located
+        in object space (they get transformed by the viewing transform.)
+        Lights have four coordinates -- the last is 0 for a directional
+        light and 1 for a positional light.  A positional light will
+        give nicer shading, particularly when placed close to the object,
+        but will probably slow rendering. (Dovey)
+
+    Temporary problems:
+
+        Mesh edges and contour lines blend into the polygons behind
+        them.  This will be fixed in Irix5.3, which supplies and OpenGL
+        extension to do the offsetting trick that we used previously.
+
+        The "hidden" program is probably broken.
+
+June 15, 1995
+
+Bug fixes
+    
+    Isocontouring is fixed and now adapts to varying contour
+    curvature. (Speck)
+    
+    Start-up text displays correctly so that top of text shows at
+    beginning of session. (Speck)
+
+
+July 10, 1995
+
+New commands
+
+    bbsrc n|h|s|b|hb|hs|sb|hsb
+        Set the source to use for mesh bounding box calculation and reset 
+	the view.  The letters "n", "h", "s", and "b" imply nodes, hex 
+	elements, shells, and beams, respectively.  The default is "hsb", 
+	which means GRIZ will set the bounding box based on the extents of 
+	all elements in the mesh.  Previously, GRIZ set the bounding box by 
+	the extents of the nodes.  For most meshes, these representations 
+	will be the same (though using nodes directly is slightly more 
+	efficient).  However, for some meshes there are nodes in the geometry 
+	which aren't referenced by any elements, and if these nodes are
+	positioned away from the elements then the rendered image will be 
+	proportionately reduced in scale if the bounding box is based on 
+	node extents rather than element extents. (Speck)
+    
+    bbox [<xmin> <ymin> <zmin> <xmax> <ymax> <zmax>]
+        Reset the mesh bounding box and reset the view.  If coordinates 
+	are given, use them explicitly as the bounding box extents, 
+	otherwise recalculate the bounding box based on the current value 
+	of the bounding box source (see "bbsrc") and mesh position of the 
+	current state. (Speck)
+
+
+August 9, 1995
+
+New command
+    on/off minmax
+	Turn on/off display of min and max values for
+	current result at current state.  Display is in
+	upper lefthand corner of the rendering window.
+	Includes element or node number at which min and
+	max occur.  Note that for elemental results, the
+	min and max will not necessarily match the colormap
+	min and max because the colormap values represent
+	elemental values interpolated back to the nodes.
+	(Minmax is also selectable from the Rendering
+	pulldown menu and by "on all".) (Speck)
+
+
+August 10, 1995
+
+Changed command
+    on/off cmap
+	Now shows value of strain type, shell reference surface, and
+	strain basis for those results they apply to when cmap is on.
+        (Speck)
+
+August 11, 1995
+
+Changed commands:
+    ptstat
+        New forms: ptstat t <time> <duration> [<delta_t>]
+                   ptstat s <state> <duration> [<delta_t>]
+	
+        Because of floating point roundoff errors, it can be
+	very difficult to specify a time for a trace that
+	is an actual state time.  The new forms allow the
+	user to trace at any state or at an arbitrary
+	time.  Also, after a trace is completed, Griz now
+	stays at the time of the trace rather than returning
+	to the state active when ptstat was called. (Speck)
+
+New commands:
+    ptlim <qty integration steps>
+        This limits the number of particle trace segments
+	displayed to the most recent n steps.  It has the
+	effect of shortening the traces to particle "tails"
+	whose length is a function of the particle velocity
+	history over the n steps.  The limit affects both
+        static (ptstat) and dynamic (ptrace) particle
+	traces, and is cleared when clrpar is called. (Speck)
+
+August 18, 1995
+
+Bug fix:
+    After interactively resizing the rendering window, node
+    or element picking was broken.  It works correctly now.
+    (Dovey)
+
+September 12, 1995
+
+New Interface Component - The GRIZ Material Manager
+    Select the "Material Mgr" option in the Control
+    pulldown or just type <Ctrl>m while the cursor is in
+    the main control window.
+    
+    The Material Manager allows convenient control of
+    visibility/invisibility, enable/disable, and material
+    color components and is particularly useful for meshes
+    with large numbers of materials. (Speck)
+
+Interface addition
+    <Ctrl>q while the cursor is in the main control window
+    will kill Griz. (Speck)
+    
+New result for Hydra databases
+    Enstrophy, in the Nodal result submenu ("ens" on the
+    command line).  Valid only for 3D Hydra databases.
+    Enstrophy is one-half the square of the vorticity
+    magnitude. (Speck)
+
+September 26, 1995
+
+New Interface Component - The GRIZ Utility Panel
+    The Utility Panel unites some of the more commonly
+    used functions on a single, readily accessed panel
+    which can be called up as a standalone window or
+    configured as part of the main control window.  The
+    Utility Panel indicates the state of some current
+    selections and provides "one-button" access to the
+    command sequence "on edges"-"switch none" (useful for
+    positioning relatively large meshes to avoid painfully
+    slow redraws).  It also provides a convenient
+    "step stride" feature which allows stepping through
+    states in multiple-state increments.
+    
+    To call it up as a standalone window, select the
+    "Utility Panel" option in the Control pulldown or type 
+    <Ctrl>u while the cursor is in either the main control 
+    window or the rendering window.  To configure it as 
+    part of the main control window (appearing between 
+    the feedback window and the command history window) 
+    execute Griz with the "-u" command-line option. (Speck)
+
+Bug fix - When executing the "load" command to examine
+    a new database, the path/filename indicators in the
+    titles of the main control and rendering windows are
+    updated to reflect the new database. (Speck)
+
+September 28, 1995
+
+Bug fixes
+    "Outps" should no longer crash after resizing the
+    rendering window.  As it turns out, the error wasn't a 
+    function of the size of the window, but whether or not
+    the width of the window was an odd number. (Speck)
+    
+    Also, when Griz is started up the keyboard focus is
+    automatically set to the command entry area so it's
+    not necessary to move the cursor into the command
+    entry area and click the mouse to establish focus.
+    (Speck)
+    
+September 29, 1995
+
+New Commands
+    outrgb <filename>
+        Dump the rendering window into a ".rgb" (SGI image
+	file) file.
+    outrgba <filename>
+        Dump the rendering window into a ".rgba" (SGI image
+	file with alpha channel) file.
+    As with the "outps" command, these commands both 
+    in effect read off of the screen so care must be taken
+    to avoid occluding the rendering window with another
+    window or icon.  Both rgb and rgba files are run-length
+    encoded for compactness. (Speck)
+
+Deprecated command
+    outhdf - HDF output format is no longer supported.  Use
+    rgb/rgba files instead.  Most utilities that process
+    HDF image files also handle rgb files. (Speck)
+
+October 19, 1995
+
+New commands
+    switch nodvec
+    switch grdvec
+        Set the source for vectors displayed with "on vec".
+	The default is "nodvec", meaning vectors will be
+	rendered at the nodes.  In "grdvec" mode, vectors
+	will be rendered on any vgrids that have been
+	defined.  If mode is "grdvec" and there are no
+	vgrids when "on vec" is active, a warning is issued 
+	and no vectors are rendered. (Sanford)
+
+Changed command
+    prake <filename> | <n> <x1> <y1> <z1> <x2> <y2> <z2> <rgb>
+        Take a single prake specification from the command line
+        or read one or more particle rake specifications from
+	the text file specified by <filename>.  Blank lines
+	and lines beginning with the pound symbol ("#") in
+	the first column are ignored.  All other lines 
+	should contain valid prake specifications, one per
+	line but WITHOUT the word "prake" preceding the
+	arguments. (Sanford)
+	
+Bug fixes
+    Setting material shininess (from the command line or
+    the Material Manager) works now and does not cause Griz
+    to crash. (Speck)
+    
+    The "shininess" scale in the color editor of the
+    Material Manager now ranges from 0 to 128, the full
+    range allowed by OpenGL. (Speck)
+
+October 20, 1995
+
+Bug fix
+    "Default" and "Cancel" actions would not update the current
+    OpenGL material when a color editor action affected it.
+    The current OpenGL material properties now are set to the 
+    correct values. (Speck)
+
+October 24, 1995
+
+Bug fix
+    "sw gterp" correctly renders geometry regardless of polygon
+    size.  A logic error previously precluded subdivision of
+    polygons which were approximately 2 pixels on a side. (Dovey)
+
+October 25, 1995
+
+New command
+    outvec <filename>
+        Write an ASCII file <filename> containing vector
+        coordinates and vector component values.  If the
+        switch "nodvec" is in effect, vector coordinates
+        and vector component values at the nodes will be
+        written.  If the switch "grdvec" is in effect,
+        vector coordinates and vector component values
+        of the vectors specified in any of the "vgridN"
+        definitions will be written. (Sanford)
+
+November 8, 1995
+
+Bug fixes
+    Fixed a very obscure bug which would cause a crash if
+    you entered a command with exactly the maximum number
+    of arguments (25) and added trailing blanks after the
+    last argument.  As it turns out, this is not too hard
+    to do if you have 15 or 20 (or more) materials and
+    you're using the Material Manager. (Speck)
+
+    View centering ("vcent...") wouldn't work properly if
+    refresh was turned off. (Speck)
+
+November 28, 1995
+
+New commands
+    aptrace <t_start> <t_end> <dt>
+        This command is identical in functionality to the
+	ptrace command except that it does not destroy
+	any existing traces.  Rather, it appends new
+	traces to the set of existing traces.  This allows, 
+	for example, traces from a rake to be generated at 
+	different times.  Used in conjunction with the 
+	ptlim command to shorten the traces, aptrace can be 
+	employed to generate repeated pulses of particles 
+	and more fully illustrate the time-dependent nature 
+	of a flow. (Speck)
+
+    outpt <filename>
+        Save current particle traces in the named file as
+	ASCII text.  All information necessary for 
+	displaying a trace is saved to the file. (Speck)
+
+    inpt <filename>
+        Read the named file, which should be output from a
+	previous "outpt" command, and create particle
+	traces.  No checking is performed to verify that 
+	the traces in the file were actually created from
+	the database loaded at the time of the "inpt"
+	command. (Speck)
+	
+    ptdis <material> [,<material>...]
+        Disable particle traces in the materials listed.
+	When rendered, no particle trace steps which are
+	contained partially or wholly within a
+	"trace-disabled" material will be drawn.  Each
+	invocation of "ptdis" replaces any previous
+	invocation, so the results of successive calls are
+	not cumulative.  Invoking "ptdis" with no arguments
+	eliminates all trace disabling so traces are
+	visible in all materials. (Speck)
+	
+    ptwid <trace width>
+        Set the rendered width of particle traces in
+	pixels.  Fractional widths are acceptable, although
+	the fractional granularity is platform dependent.
+	The specified width must be a positive non-zero 
+	value. (Speck)
+
+    on sphere
+    off sphere (default)
+        Turn on/off rendering of spheres at the base of 3D
+	vectors. (Speck)
+
+Deprecated command
+    ldhmap
+        HDF palettes are no longer supported.  A utility
+	program "h2g" is provided which will convert HDF
+	palette files into GRIZ colormap files which can
+	be loaded with the "ldmap" command.
+	
+	"h2g" syntax is:
+	    h2g <HDF palette file name>
+	The output goes to standard out. (Speck)
+
+February 29, 1996
+
+New commands
+    {on | off} conv
+        Turn on (off) application of data units conversion.
+	The scale and offset used in the conversion are
+	specified with the "conv" command.  When conversion
+	is on, mesh renderings and time histories display
+	the scale and offset values used in the conversion.
+	IMPORTANT - when data conversion is turned on, 
+	result values specified with the commands "rmin",
+	"rmax", "rzero", and "isov" are assumed to be in 
+	the converted units.  If conversion is turned off
+	following such specifications, the stored values
+	are effectively converted back to "primal" units
+	as well. (Sanford, Speck)
+	
+    conv <scale> <offset>
+        Specify parameters for a linear data conversion
+	of the form:
+	         y_new = y_old * scale + offset
+        "Scale" defaults to 1 and "offset" defaults to 0.
+	(Sanford)
+		 
+    clrconv
+        Reset data conversion parameters to their default
+	values and turn conversion off. (Sanford)
+
+    tellpos {n | b | s | h} <ident>
+        Report the current coordinates of the specified 
+	node, beam element, shell element, or hex element 
+	to the feedback window.  For elements, the 
+	coordinates of the nodes referenced by the element 
+	are reported.  The report notes if an element is 
+	an inactive SAND element. (Sanford, Speck)
+	Examples:
+	    tellpos n 123              # node 123
+	    tellpos h 46               # hex element 46
+	
+    savtxt <filename>
+        Start saving a copy of all text written to the 
+	feedback window into the named text file. (Sanford)
+	
+    endtxt
+        Stop saving feedback text and close the text file.
+	(Sanford)
+	
+Changed commands
+    "thsave" --> "outth"
+        "thsave" is still accepted, but "outth" is the
+	correct (documented) command to save time history
+	output.  This change brings this output function
+	into consistency with other file output commands
+	(i.e., "outps", "outrgb", "outpt", etc.). (Speck)
+
+Bug fixes
+    The "dellit" command now works. (Speck, from Charman)
+    
+    Reflected polygons which are backfacing in the original
+    mesh are no longer removed if they should be visible
+    as reflected mesh faces. (Speck)
+    
+    Particle traces no longer require the user to specify
+    a vector quantity with the "vec" command.  This was
+    superfluous as the particle tracing code is hard-coded
+    to use the velocity vector to integrate particle
+    positions. (Sanford)
+
+March 8, 1996
+
+Changed commands
+    light <n> <x> <y> <z> <w> [amb <r g b>] [diff <r g b>]
+      [spec <r g b>] [spotdir <vx vy vz>] [spot <exp> <ang>]
+	Light number <n> and homogeneous coordinates <x>, 
+	<y>, <z>, and <w> are required (keyword "pos" is no 
+	longer utilized), the other arguments are optional.
+	Coordinate <w> should be 0 or 1.  If it is 0, the
+	light is treated as a directional light, i.e., the
+	direction to the light is the same for all objects
+	in the scene.  See the GRIZ User Manual (Revision 1
+	for GRIZ v2.0) for explanation of the optional
+	arguments. (Dovey, Speck)
+
+    vec res1 [res2 [res3]]
+	Any component result may be specified as zero
+	instead of a result name, and for all vectors 
+	rendered that component's value will be zero. This
+	functionality existed previously, but it would
+	generate a warning and was undocumented. Any
+	components left off, as before, are valued at zero.
+        (Speck)
+
+    {on | off} sclbyres
+        Scale vector by result. When on, causes vectors to 
+	be scaled onto the colormap using the current result's 
+	min and max if there is a current result. (Speck)
+	THIS IS NOT AN "ADVERTISED" FEATURE AND IS NOT DOCUMENTED
+	IN REVISION 1 OF THE USER MANUAL.
+
+April 5, 1996
+
+New functionality
+    <Ctrl><mouse pick>
+        Picking an element while the Control key is 
+	depressed will select or deselect the element's
+	material in the Material Manager.  The element is 
+	not hilited or selected.  If the Material Manager
+	is not up, an information dialog pops up stating
+	this fact.  <Ctrl>-picking a node generates a 
+	dialog telling the user to pick an element.
+	(Speck)
+	NOT DOCUMENTED IN REVISION 1 OF USER MANUAL.
+
+    <Shift><mouse pick>
+        Picking a node or element while the Shift key is
+	depressed effects a "tellpos" query on the picked
+	object.  No hilite or selection occurs. (Speck)
+	NOT DOCUMENTED IN REVISION 1 OF USER MANUAL.
+	
+Changed commands
+    telem -> tellem
+        For consistency with other "tell..." commands, 
+	the correct form to report exploded view material
+	associations is "tellem", although "telem" is,
+	for the time being, still accepted. (Speck)
+
+Bug fixes
+    There was a time history plotting bug in which the y-
+    axis tics would be labeled incorrectly if the min and
+    max y-values were not exactly equal but differed only
+    in the sixth or seventh significant figure.  This is
+    fixed. (Speck)
+    
+    When rendering at an interpolated time (the "time"
+    command), the time displayed in the window was the time
+    for the last state preceding the interpolated time.
+    The interpolated time is now displayed. (Speck)
+    
+    Related to the above bug, when displaying an 
+    interpolated time and the "p" command was given, the
+    next state displayed was the last state preceding the
+    interpolated time minus one.  Now, the last state
+    preceding the interpolated time is displayed. (Speck)
+    
+    If the foreground color wasn't black, the element
+    edge lines in "hidden" mesh mode could be shaded
+    incorrectly.  They are now shaded correctly. (Speck)
+
+Internal changes
+    popup_warning() replaced by popup_dialog(), which takes
+    an enum parameter which specifies a dialog type among
+    USAGE, INFO, and WARNING.  Motif Information popups are used
+    for USAGE and INFO, Warning popups are used for WARNING.
+    The calling text may now specify formatting like printf(),
+    wrt_text(), etc. (Speck)
+
+********
+Revision 1 of User Manual locked.
+********
+
+April 9, 1996
+
+Bug fixes
+    Data is now re-gathered for time histories when
+    plotting a result a second time after changing the
+    basis, reference surface, or strain variety (if the
+    result is affected by any of those parameters).
+    Previously, Griz only checked the result id of
+    previously-gathered results when determining whether
+    or not to re-gather, so it could incorrectly display
+    a result calculated with a different setting of one
+    of the affecting parameters. (Speck)
