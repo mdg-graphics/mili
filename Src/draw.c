@@ -30,6 +30,8 @@
 #include "draw.h"
 #include "image.h"
 
+#define SCL_MAX ((float) CMAP_SIZE - 2.01)
+
 typedef struct _Render_poly_obj
 {
     struct _Render_poly_obj *next;
@@ -100,6 +102,7 @@ static void color_lookup();
 static void draw_grid();
 static void draw_grid_2d();
 static int check_for_tri_face();
+static void get_min_max();
 static void draw_hex();
 static void draw_shells();
 static void draw_beams();
@@ -207,6 +210,8 @@ Analysis *analy;
     set_color( "con", 1.0, 0.0, 1.0 );           /* Magenta. */
     set_color( "hilite", 1.0, 0.0, 0.0 );        /* Red. */
     set_color( "select", 0.0, 1.0, 0.0 );        /* Green. */
+    set_color( "rmin", 1.0, 0.0, 1.0 );          /* Magenta. */
+    set_color( "rmax", 1.0, 0.0, 0.0 );          /* Red. */
     hot_cold_colormap();
 
     /* Select and load a Hershey font. */
@@ -1274,6 +1279,9 @@ char tokens[MAXTOKENS][TOKENLENGTH];
  *     "hilite" -- Color of node & element pick highlights.
  *     "select" -- Color of node & element selection highlights.
  *     "vec" -- Color of 3D vectors for vector command.
+ *     "vechd" -- Color for vector heads in vector carpets.
+ *     "rmin" -- Color of result minimum threshold.
+ *     "rmax" -- Color of result maximum threshold.
  */
 void
 set_color( select, r_col, g_col, b_col )
@@ -1340,6 +1348,20 @@ float b_col;
         v_win->vector_hd_color[1] = g_col;
         v_win->vector_hd_color[2] = b_col;
     }
+    else if ( strcmp( select, "rmin" ) == 0 )
+    {
+        /* Color for result minimum cutoff. */
+        v_win->rmin_color[0] = r_col;
+        v_win->rmin_color[1] = g_col;
+        v_win->rmin_color[2] = b_col;
+    }
+    else if ( strcmp( select, "rmax" ) == 0 )
+    {
+        /* Color for result maximum cutoff. */
+        v_win->rmax_color[0] = r_col;
+        v_win->rmax_color[1] = g_col;
+        v_win->rmax_color[2] = b_col;
+    }
     else
         wrt_text( "Color selection \"%s\" not recognized.\n", select );
 }
@@ -1363,6 +1385,7 @@ int matl;
 Bool_type colorflag;
 {
     int idx;
+    float scl_max;
 
     /* Get alpha from the material. */
     col[3] = v_win->matl_diffuse[ matl%MAX_MATERIALS ][3];
@@ -1392,7 +1415,8 @@ Bool_type colorflag;
     }
     else
     {
-        idx = (int)( 253.99*(val-result_min)/(result_max-result_min) ) + 1;
+        scl_max = (float) CMAP_SIZE - 2.01;
+        idx = (int)( scl_max * (val-result_min)/(result_max-result_min) ) + 1;
         VEC_COPY( col, v_win->colormap[idx] );
     }
 }
@@ -1490,7 +1514,11 @@ Analysis *analy;
     float cols[4][4];
     float vals[4];
     float rdiff;
+    float scl_max;
     int i, j, k;
+    
+    /* Cap for colorscale interpolation. */
+    scl_max = SCL_MAX;
 
     /* Enable color to change AMBIENT & DIFFUSE property of the material. */
     glEnable( GL_COLOR_MATERIAL );
@@ -1526,7 +1554,7 @@ Analysis *analy;
              * color.
              */
             k = (int)( (tri->result[0] - analy->result_mm[0]) *
-                       253.99 / rdiff ) + 1;
+                       scl_max / rdiff ) + 1;
 
             for ( i = 0; i < 3; i++ )
             {
@@ -1628,7 +1656,7 @@ Analysis *analy;
 
 /*        lsetdepth( v_win->z_front_near, v_win->z_front_far ); */
 
-        antialias_lines( TRUE );
+        antialias_lines( TRUE, analy->z_buffer_lines );
         glLineWidth( (GLfloat) analy->contour_width );
 
         glColor3fv( v_win->contour_color );
@@ -1636,7 +1664,7 @@ Analysis *analy;
             draw_line( cont->cnt, cont->pts, -1, analy, FALSE );
 
         glLineWidth( (GLfloat) 1.0 );
-        antialias_lines( FALSE );
+        antialias_lines( FALSE, 0 );
 
         /* Reset near/far planes to the defaults. */
 /*        lsetdepth( v_win->z_default_near, v_win->z_default_far ); */
@@ -1757,7 +1785,7 @@ Analysis *analy;
     {
         Contour_obj *cont;
 
-        antialias_lines( TRUE );
+        antialias_lines( TRUE, analy->z_buffer_lines );
         glLineWidth( (GLfloat) analy->contour_width );
 
         glColor3fv( v_win->contour_color );
@@ -1765,7 +1793,7 @@ Analysis *analy;
             draw_line( cont->cnt, cont->pts, -1, analy, FALSE );
 
         glLineWidth( (GLfloat) 1.0 );
-        antialias_lines( FALSE );
+        antialias_lines( FALSE, 0 );
     }
 
     /*
@@ -1885,6 +1913,48 @@ int ord[4];
 
 
 /************************************************************
+ * TAG( get_min_max )
+ *
+ * Get the appropriate result min and max.
+ */
+static void
+get_min_max( analy, no_interp, p_min, p_max )
+Analysis *analy;
+Bool_type no_interp;
+float *p_min;
+float *p_max;
+{
+    /* Nodal results never get an element min/max. */
+    if ( is_nodal_result( analy->result_id ) )
+    {
+        *p_min = analy->result_mm[0];
+        *p_max = analy->result_mm[1];
+    }
+    else if ( analy->interp_mode == NO_INTERP || no_interp )
+    {
+        if ( analy->mm_result_set[0] )
+	    *p_min = analy->result_mm[0];
+	else if ( analy->use_global_mm )
+	    *p_min = analy->global_elem_mm[0];
+	else
+	    *p_min = analy->elem_state_mm.el_minmax[0];
+
+        if ( analy->mm_result_set[1] )
+	    *p_max = analy->result_mm[1];
+	else if ( analy->use_global_mm )
+	    *p_max = analy->global_elem_mm[1];
+	else
+	    *p_max = analy->elem_state_mm.el_minmax[1];
+    }
+    else
+    {
+        *p_min = analy->result_mm[0];
+        *p_max = analy->result_mm[1];
+    }
+}
+
+
+/************************************************************
  * TAG( draw_hex )
  *
  * Draw the external faces of hex volume elements in the model.
@@ -1912,8 +1982,7 @@ Analysis *analy;
         return;
 
     bricks = analy->geom_p->bricks;
-    rmin = analy->result_mm[0];
-    rmax = analy->result_mm[1];
+    get_min_max( analy, FALSE, &rmin, &rmax );
 
     /* Enable color to change AMBIENT & DIFFUSE property of the material. */
     glEnable( GL_COLOR_MATERIAL );
@@ -1988,10 +2057,15 @@ Analysis *analy;
             {
                 res[ ord[j] ] = analy->result[nd];
             }
-            else if ( analy->interp_mode == NO_INTERP )
+            else if ( analy->interp_mode == NO_INTERP 
+	              && !is_nodal_result( analy->result_id ) )
             {
                 /* Bound is needed because min/max is for nodes. */
+/**/
+/* rmin/rmax now set appropriately dependent on interp_mode
                 val = BOUND( rmin, analy->hex_result[el], rmax );
+*/
+                val = analy->hex_result[el];
                 color_lookup( cols[ ord[j] ], val, rmin, rmax,
                               analy->zero_result, matl, colorflag );
             }
@@ -2042,8 +2116,7 @@ Analysis *analy;
     shells = analy->geom_p->shells;
     activity = analy->state_p->activity_present ?
                analy->state_p->shells->activity : NULL;
-    rmin = analy->result_mm[0];
-    rmax = analy->result_mm[1];
+    get_min_max( analy, FALSE, &rmin, &rmax );
 
     /* Enable color to change AMBIENT & DIFFUSE property of the material. */
     glEnable( GL_COLOR_MATERIAL );
@@ -2087,10 +2160,15 @@ Analysis *analy;
             {
                 res[j] = analy->result[nd];
             }
-            if ( analy->interp_mode == NO_INTERP )
+            else if ( analy->interp_mode == NO_INTERP 
+	              && !is_nodal_result( analy->result_id ) )
             {
                 /* Bound is needed because min/max is for nodes. */
+/**/
+/* As for hex's...
                 val = BOUND( rmin, analy->shell_result[i], rmax );
+*/
+                val = analy->shell_result[i];
                 color_lookup( cols[j], val, rmin, rmax,
                               analy->zero_result, matl, colorflag );
             }
@@ -2147,11 +2225,10 @@ Analysis *analy;
     beams = analy->geom_p->beams;
     activity = analy->state_p->activity_present ?
                analy->state_p->beams->activity : NULL;
-    rmin = analy->result_mm[0];
-    rmax = analy->result_mm[1];
+    get_min_max( analy, TRUE, &rmin, &rmax );
     threshold = analy->zero_result;
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, analy->z_buffer_lines );
     glLineWidth( 3 );
 
     /* Bias the depth-buffer so beams are in front. */
@@ -2187,7 +2264,11 @@ Analysis *analy;
          * we're drawing element values for beams, need to clamp
          * them to the nodal min/max.
          */
+/**/
+/* As for shells and hex's...
         val = BOUND( rmin, analy->beam_result[i], rmax );
+*/
+        val = analy->beam_result[i];
         color_lookup( col, val, rmin, rmax, threshold, matl, colorflag );
         glColor3fv( col );
 
@@ -2202,7 +2283,7 @@ Analysis *analy;
     if ( analy->zbias_beams )
         glDepthRange( nearfar[0], nearfar[1] );
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
 }
 
@@ -2291,7 +2372,8 @@ Analysis *analy;
             {
                 res[j] = analy->result[nd];
             }
-            else if ( analy->interp_mode == NO_INTERP )
+            else if ( analy->interp_mode == NO_INTERP 
+	              && !is_nodal_result( analy->result_id ) )
             {
                 /* Bound is needed because min/max is for nodes. */
                 val = BOUND( rmin, analy->shell_result[i], rmax );
@@ -2387,7 +2469,7 @@ Analysis *analy;
     rmax = analy->result_mm[1];
     threshold = analy->zero_result;
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, analy->z_buffer_lines );
     glLineWidth( 3.0 );
 
     for ( i = 0; i < beams->cnt; i++ )
@@ -2436,7 +2518,7 @@ Analysis *analy;
         draw_line( 2, pts, matl, analy, FALSE );
     }
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
 }
 
@@ -2497,7 +2579,7 @@ Analysis *analy;
     nodes = analy->state_p->nodes;
     onodes = analy->geom_p->nodes;
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, analy->z_buffer_lines );
 
     /* Bias the depth buffer so edges are in front of polygons. */
     glDepthRange( 0, 1 - analy->edge_zbias );
@@ -2532,7 +2614,7 @@ Analysis *analy;
     /* Remove depth bias. */
     glDepthRange( 0, 1 );
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
 }
 
 
@@ -2909,7 +2991,7 @@ float bbox[2][3];
 
     get_verts_of_bbox( bbox, verts );
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, FALSE );
 
     glColor3fv( v_win->foregrnd_color );
 
@@ -2921,7 +3003,7 @@ float bbox[2][3];
     }
     glEnd();
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
 }
 
 
@@ -3081,6 +3163,10 @@ Analysis *analy;
     float tmp[3], pts[6];
     float leng[3], radius;
     int cnt, i;
+    float scl_max;
+    
+    /* Cap for colorscale interpolation. */
+    scl_max = SCL_MAX;
 
     /* See if there are some to draw. */
     if ( analy->vec_pts == NULL )
@@ -3110,7 +3196,7 @@ Analysis *analy;
     vec_leng = analy->vec_scale * VEC_3D_LENGTH /
                (v_win->vp_height * v_win->bbox_scale * vmax);
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, analy->z_buffer_lines );
 
     /* Draw the vectors. */
     for ( pt = analy->vec_pts, cnt = 0; pt != NULL; pt = pt->next, cnt++ )
@@ -3124,7 +3210,7 @@ Analysis *analy;
                 vmag = 0.0;
             else
                 vmag = (sqrt((double)(VEC_DOT(pt->vec, pt->vec))) - vmin)/diff;
-            i = (int)(vmag * 253.99) + 1;
+            i = (int)(vmag * scl_max) + 1;
             glColor3fv( v_win->colormap[i] );
         }
 
@@ -3138,7 +3224,7 @@ Analysis *analy;
         draw_line( 2, pts, -1, analy, FALSE );
     }
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
 
     /* Get sphere radius for base of vector. */
     for ( i = 0; i < 3; i++ )
@@ -3165,7 +3251,7 @@ Analysis *analy;
                 else
                     vmag = (sqrt((double)(VEC_DOT(pt->vec, pt->vec)))-vmin) /
                            diff;
-                i = (int)(vmag * 253.99) + 1;
+                i = (int)(vmag * scl_max) + 1;
                 glColor3fv( v_win->colormap[i] );
             }
             draw_sphere( pt->pt, radius );
@@ -3197,6 +3283,10 @@ Analysis *analy;
     float headpts[3][3], verts[4][3];
     float cols[4][4];
     int cnt, i;
+    float scl_max;
+    
+    /* Cap for colorscale interpolation. */
+    scl_max = SCL_MAX;
 
     /* See if there are some to draw. */
     if ( analy->vec_pts == NULL )
@@ -3229,7 +3319,7 @@ Analysis *analy;
     headpts[2][1] = 2.0*pixsize*analy->vec_head_scale;
     headpts[2][2] = 0.0;
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, analy->z_buffer_lines );
 
     /* Draw the vectors. */
     for ( pt = analy->vec_pts, cnt = 0; pt != NULL; pt = pt->next, cnt++ )
@@ -3246,7 +3336,7 @@ Analysis *analy;
                 vmag = 0.0;
             else
                 vmag = (sqrt((double)(VEC_DOT(pt->vec, pt->vec))) - vmin)/diff;
-            i = (int)(vmag * 253.99) + 1;
+            i = (int)(vmag * scl_max) + 1;
             VEC_COPY( cols[0], v_win->colormap[i] );
             glColor3fv( cols[0] );
         }
@@ -3280,7 +3370,7 @@ Analysis *analy;
         }
     }
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
 }
 
 
@@ -3304,6 +3394,10 @@ Analysis *analy;
     float leng[3];
     float radius;
     int i, j;
+    float scl_max;
+    
+    /* Cap for colorscale interpolation. */
+    scl_max = SCL_MAX;
 
     nodes = analy->state_p->nodes;
 
@@ -3361,7 +3455,7 @@ Analysis *analy;
             glEnable( GL_LIGHTING );
     }
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, analy->z_buffer_lines );
 
     /* Draw the vectors. */
     for ( i = 0; i < nodes->cnt; i++ )
@@ -3383,7 +3477,7 @@ Analysis *analy;
                 vmag = 0.0;
             else
                 vmag = (sqrt((double)(VEC_DOT(vec, vec))) - vmin)/diff;
-            j = (int)(vmag * 253.99) + 1;
+            j = (int)(vmag * scl_max) + 1;
             VEC_COPY( cols[0], v_win->colormap[j] );
         }
         glColor3fv( cols[0] );
@@ -3421,7 +3515,7 @@ Analysis *analy;
             draw_sphere( pts, radius );
     }
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
 
     if ( !draw_heads && analy->show_vector_spheres )
     {
@@ -3575,6 +3669,10 @@ Analysis *analy;
     float vec2[3], vec3[3];
     float vmag, diff, scale;
     int i;
+    float scl_max;
+    
+    /* Cap for colorscale interpolation. */
+    scl_max = SCL_MAX;
 
     diff = vmax - vmin;
 
@@ -3595,7 +3693,7 @@ Analysis *analy;
             vmag = 0.0;
         else
             vmag = (sqrt((double)VEC_DOT(vec, vec)) - vmin)/diff;
-        i = (int)(vmag * 253.99) + 1;
+        i = (int)(vmag * scl_max) + 1;
         VEC_COPY( cols[0], v_win->colormap[i] );
     }
     if ( analy->vec_hd_col_set )
@@ -3734,7 +3832,7 @@ Analysis *analy;
         incrk = 1;
     }
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, analy->z_buffer_lines );
 
     /* Loop through grid points from back to front. */
     for ( ii = si; ii != ei; ii += incri )
@@ -3767,7 +3865,7 @@ Analysis *analy;
                 draw_carpet_vector( pt, vec, vec_leng, vmin, vmax, analy );
             }
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
 
     /* Free temporary arrays. */
     for ( i = 0; i < 3; i++ )
@@ -3811,7 +3909,7 @@ Analysis *analy;
     vec_leng = analy->vec_scale * VEC_3D_LENGTH /
                (v_win->vp_height * v_win->bbox_scale * vmax);
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, analy->z_buffer_lines );
 
     /* Sort the vector points. */
     index = NEW_N( int, analy->vol_carpet_cnt, "Carpet tmp" );
@@ -3853,7 +3951,7 @@ Analysis *analy;
         draw_carpet_vector( pt, vec, vec_leng, vmin, vmax, analy );
     }
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
 
     /* Free temporary arrays. */
     for ( i = 0; i < 3; i++ )
@@ -3898,7 +3996,7 @@ Analysis *analy;
     vec_leng = analy->vec_scale * VEC_3D_LENGTH /
                (v_win->vp_height * v_win->bbox_scale * vmax);
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, analy->z_buffer_lines );
 
     /* Sort the vector points. */
     index = NEW_N( int, analy->shell_carpet_cnt, "Carpet tmp" );
@@ -3938,7 +4036,7 @@ Analysis *analy;
         draw_carpet_vector( pt, vec, vec_leng, vmin, vmax, analy );
     }
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
 
     /* Free temporary arrays. */
     for ( i = 0; i < 3; i++ )
@@ -3981,7 +4079,7 @@ Analysis *analy;
                (v_win->vp_height * v_win->bbox_scale * vmax);
     vecs_per_area = 1.0 / ( analy->vec_cell_size * analy->vec_cell_size );
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, analy->z_buffer_lines );
 
     /* Seed the random function so jitter is consistent across passes. */
     seed = 50731;
@@ -4024,7 +4122,7 @@ Analysis *analy;
         }
     }
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
 
     /* Free temporary array. */
     for ( i = 0; i < 3; i++ )
@@ -4072,7 +4170,7 @@ Analysis *analy;
 
     limit = analy->ptrace_limit;
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, analy->z_buffer_lines );
     glLineWidth( (GLfloat) analy->trace_width );
 
     time = analy->state_p->time;
@@ -4124,7 +4222,7 @@ Analysis *analy;
     }
 
     glLineWidth( (GLfloat) 1.0 );
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
 }
 
 
@@ -4905,11 +5003,11 @@ char *text;
 
     hmove( spt[0], spt[1], spt[2] );
     htextsize( text_height, text_height );
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, TRUE );
     glLineWidth( 1.25 );
     hcharstr( text );
     glLineWidth( 1.0 );
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
 
     /* Restore the model view matrix. */
     glPopMatrix();
@@ -4995,9 +5093,6 @@ Analysis *analy;
     int mod_cnt;
     Result_modifier_type mods[3];
     int fracsz;
-
-
-
     float scale_y, value;
     float scale_minimum, scale_maximum, distance;
     int qty_of_intervals, scale_error_status;
@@ -5005,6 +5100,10 @@ Analysis *analy;
     int ntrips;
     float low_text_bound, high_text_bound;
     float comparison_tolerance;
+    float scl_max;
+    
+    /* Cap for colorscale interpolation. */
+    scl_max = SCL_MAX;
 
     /* Foreground overwrites everything else in the scene. */
     glDepthFunc( GL_ALWAYS );
@@ -5087,24 +5186,26 @@ Analysis *analy;
             }
             for ( i = frst; i < lst; i++ )
             {
-                glColor3fv( v_win->colormap[ (int)((i-frst)*253.99 /
+                glColor3fv( v_win->colormap[ (int)((i-frst)*scl_max /
                                              (float)(lst-frst-1)) + 1 ] );
                 glRectf( xpos, yp, xpos + xsize, yp + vp_to_world[1] );
                 yp += vp_to_world[1];
             }
             for ( i = lst; i < nstripes; i++ )
             {
-                glColor3fv( v_win->colormap[255] );
+                glColor3fv( v_win->colormap[CMAP_SIZE - 1] );
                 glRectf( xpos, yp, xpos + xsize, yp + vp_to_world[1] );
                 yp += vp_to_world[1];
             }
         }
         else
         {
+	    scl_max = (float) CMAP_SIZE - 0.01;
+	    
             for ( i = 0; i < nstripes; i++ )
             {
-                glColor3fv( v_win->colormap[ (int)(i*255.99 /
-                                                   (float)(nstripes-1)) ] );
+                glColor3fv( v_win->colormap[ (int)(i * scl_max /
+                                                   (float)(nstripes - 1)) ] );
                 glRectf( xpos, yp, xpos + xsize, yp + vp_to_world[1] );
                 yp += vp_to_world[1];
             }
@@ -5115,11 +5216,12 @@ Analysis *analy;
         /* Draw the writing (scale) next to the colormap. */
         if ( analy->show_colorscale )
         {
-            antialias_lines( TRUE );
+            antialias_lines( TRUE, TRUE );
             glLineWidth( 1.25 );
-	    
-            low = analy->result_mm[0];
-            high = analy->result_mm[1];
+
+            get_min_max( analy, is_beam_result( analy->result_id ), 
+	                 &low, &high );
+
             if ( analy->perform_unit_conversion )
 	    {
                 low = (analy->conversion_scale * low) 
@@ -5130,22 +5232,6 @@ Analysis *analy;
 	    
             hrightjustify( TRUE );
 
-            /* Min and max result values. */
-
-            /* Temporarily DISABLE display of min and max result values. */
-            /*
-
-            xp = xpos + xsize + b_width;
-            hmove2( xp, ypos - b_height - 1.25*text_height );
-            sprintf( str, "%.2e", low );
-            hcharstr( str );
-
-            hmove2( xp, ypos + ysize + b_height + 0.25*text_height );
-            sprintf( str, "%.*e", fracsz, high );
-            hcharstr( str );
-
-            */
-
 
             /* Result title. */
 /* Temporary adjustment.  Should become an explicit function of colorscale
@@ -5155,63 +5241,7 @@ Analysis *analy;
             hmove2( xpos + xsize, ypos+ysize+b_height+1.0*text_height );
             hcharstr( analy->result_title );
 
-
-            /* Mark the zero value of the result with a little tic. */
-
-            /* DISABLE display of zero value. */
-            /*
-
-            if ( low < 0.0 && high > 0.0 )
-            {
-                if ( extend_colormap )
-                    yp = ypos + 0.9*ysize*(fabs((double)low)/(high-low)) +
-                         0.05*ysize;
-                else
-                    yp = ypos + ysize*( fabs((double)low) / (high-low) );
-                xp = xpos - 2.0*b_width;
-
-                glBegin( GL_TRIANGLES );
-                glVertex2f( xp, yp );
-                glVertex2f( xp - 0.4*text_height, yp + 0.2*text_height );
-                glVertex2f( xp - 0.4*text_height, yp - 0.2*text_height );
-                glEnd();
-
-                if ( !analy->use_colormap_pos )
-                {
-                    hmove2( xp - 0.6*text_height, yp-0.5*text_height );
-                    hcharstr( "0" );
-                }
-            }
-            */
-
-            /* Mark the top and bottom cutoffs with tics. */
-            /* DISABLE display of top and bottom cutoffs with tics. */
-            /*
-
-            if ( extend_colormap )
-            {
-                xp = xpos - 2.0*b_width;
-                for ( i = 0; i < 2; i++ )
-                {
-                    if ( analy->mm_result_set[i] )
-                    {
-                        if ( i == 0 )
-                            yp = ypos + 0.05*ysize;
-                        else
-                            yp = ypos + ysize - 0.05*ysize;
-
-                        glBegin( GL_TRIANGLES );
-                        glVertex2f( xp, yp );
-                        glVertex2f( xp-0.4*text_height, yp+0.2*text_height );
-                        glVertex2f( xp-0.4*text_height, yp-0.2*text_height );
-                        glEnd();
-                    }
-                }
-            }
-            */
-
-            /* Assign labelled and scaled tic marks. */
-
+            /* Account for min/max result thresholds. */
             if ( TRUE == analy->mm_result_set[0] )
                 rmin_offset = 0.05 * ysize;
             else
@@ -5222,22 +5252,9 @@ Analysis *analy;
             else
                 rmax_offset = 0.0;
 
-            scale_y = ((ypos + ysize - rmax_offset) - (ypos + rmin_offset)) /
-                      (high - low);
-
-            /* Compute legend scale intervals */
-
-            qty_of_intervals = 5;
-            linear_variable_scale( low, high, qty_of_intervals, 
-	                           &scale_minimum, &scale_maximum, &distance,  
-                                   &scale_error_status );
-
-            /* Label low and high actual values */
-
+            /* Always label the low value. */
             xp = xpos - (2.0 * b_width) - (0.6 * text_height);
-            yp = ypos + rmin_offset + (scale_y * (low - low));
-
-            low_text_bound = yp - (0.6 * text_height) + text_height;
+            yp = ypos + rmin_offset;
 
             hmove2( xp, yp - (0.6 * text_height) );
             sprintf( str, "%.*e", fracsz, low );
@@ -5251,83 +5268,84 @@ Analysis *analy;
             glVertex2f( xp - (0.4 * text_height), yp - (0.2 * text_height) );
             glEnd();
 
-            xp = xpos - (2.0 * b_width) - (0.6 * text_height);
-            yp = ypos + rmin_offset + (scale_y * (high - low));
-
-            high_text_bound = yp - (0.6 * text_height);
-
-            hmove2( xp, yp - (0.6 * text_height) );
-            sprintf( str, "%.*e", fracsz, high );
-            hcharstr( str );
-
-            xp = xpos - (2.0 * b_width);
-
-            glBegin( GL_TRIANGLES );
-            glVertex2f( xp, yp );
-            glVertex2f( xp - (0.4 * text_height), yp + (0.2 * text_height) );
-            glVertex2f( xp - (0.4 * text_height), yp - (0.2 * text_height) );
-            glEnd();
-
-            if ( FALSE == scale_error_status )
-            {
-                /* Label scaled values at computed intervals */
-
-                comparison_tolerance = machine_tolerance();
-                ntrips = MAX( round( (double)((scale_maximum - scale_minimum + distance) / distance),
-                                     comparison_tolerance ), 0.0 );
-
-                for ( i = 0; i < ntrips; i++ )
-                {
-                    value = scale_minimum + (i * distance);
-
-                    /* NOTE:  scaled values MAY exceed bounds of tightly restricted
-                              legend limits */
-
-                    yp = ypos + rmin_offset + (scale_y * (value - low));
-
-                    if ( (low < value)  &&
-                         (value < high)  &&
-                         (low_text_bound <= yp - (0.6 * text_height)) &&
-                         (yp - (0.6 * text_height) + text_height <= high_text_bound) )
-                    {
-                        xp = xpos - (2.0 * b_width) - (0.6 * text_height);
-
-                        hmove2( xp, yp - (0.6 * text_height) );
-                        sprintf( str, "%.*e", fracsz, value );
-                        hcharstr( str );
-
-
-                        xp = xpos - (2.0 * b_width);
-
-                        glBegin( GL_TRIANGLES );
-                        glVertex2f( xp, yp );
-                        glVertex2f( xp - (0.4 * text_height), yp + (0.2 * text_height) );
-                        glVertex2f( xp - (0.4 * text_height), yp - (0.2 * text_height) );
-                        glEnd();
-
-                        low_text_bound = yp - (0.6 * text_height) + text_height;
-                    }
-                }
-            }
-            else
+            /* Conditionally render the high value and scale. */
+            if ( low != high )
 	    {
-	        /*
-		 * Scaling failed.   
-		 * Just draw max value at top of color scale.
-		 */
-	        yp = ypos + ysize - rmin_offset;
+                scale_y = ((ypos + ysize - rmax_offset) - (ypos + rmin_offset)) 
+		          / (high - low);
 
-                glBegin( GL_TRIANGLES );
-                glVertex2f( xp, yp );
-                glVertex2f( xp - 0.4*text_height, yp + 0.2*text_height );
-                glVertex2f( xp - 0.4*text_height, yp - 0.2*text_height );
-                glEnd();
-		
+                /* Compute legend scale intervals */
+                qty_of_intervals = 5;
+                linear_variable_scale( low, high, qty_of_intervals, 
+	                           &scale_minimum, &scale_maximum, &distance,  
+                                   &scale_error_status );
+
+                low_text_bound = yp - (0.6 * text_height) + text_height;
+
+                /* Label the high value. */
                 xp = xpos - (2.0 * b_width) - (0.6 * text_height);
-                /*hmove2( xp - (2.0 * b_width), yp - (0.6 * text_height) );*/
+                yp = ypos + rmin_offset + (scale_y * (high - low));
+
+                high_text_bound = yp - (0.6 * text_height);
+
                 hmove2( xp, yp - (0.6 * text_height) );
                 sprintf( str, "%.*e", fracsz, high );
                 hcharstr( str );
+
+                xp = xpos - (2.0 * b_width);
+
+                glBegin( GL_TRIANGLES );
+                glVertex2f( xp, yp );
+                glVertex2f( xp - (0.4 * text_height), yp + (0.2 * text_height) );
+                glVertex2f( xp - (0.4 * text_height), yp - (0.2 * text_height) );
+                glEnd();
+
+                /* If scaling succeeded, render the scale. */
+                if ( FALSE == scale_error_status )
+                {
+                    /* Label scaled values at computed intervals */
+
+                    comparison_tolerance = machine_tolerance();
+                    ntrips = MAX( round( (double)((scale_maximum - scale_minimum + distance) / distance),
+                                     comparison_tolerance ), 0.0 );
+
+                    for ( i = 0; i < ntrips; i++ )
+                    {
+                        value = scale_minimum + (i * distance);
+
+                        /* 
+			 * NOTE:  scaled values MAY exceed bounds of tightly 
+			 * restricted legend limits. 
+			 */
+
+                        yp = ypos + rmin_offset + (scale_y * (value - low));
+
+                        if ( (low < value)
+                             && (value < high)
+                             && (low_text_bound <= yp - (0.6 * text_height))
+                             && (yp - (0.6 * text_height)
+			         + text_height <= high_text_bound) )
+                        {
+                            xp = xpos - (2.0 * b_width) - (0.6 * text_height);
+
+                            hmove2( xp, yp - (0.6 * text_height) );
+                            sprintf( str, "%.*e", fracsz, value );
+                            hcharstr( str );
+
+                            xp = xpos - (2.0 * b_width);
+
+                            glBegin( GL_TRIANGLES );
+                            glVertex2f( xp, yp );
+                            glVertex2f( xp - (0.4 * text_height), 
+			                yp + (0.2 * text_height) );
+                            glVertex2f( xp - (0.4 * text_height), 
+			                yp - (0.2 * text_height) );
+                            glEnd();
+
+                            low_text_bound = yp - (0.6 * text_height) + text_height;
+                        }
+                    }
+		}
 	    }
 
             /* Set up for left side text. */
@@ -5386,13 +5404,13 @@ Analysis *analy;
 		yp -= LINE_SPACING_COEFF * text_height;
 	    }
 	    
-            antialias_lines( FALSE );
+            antialias_lines( FALSE, 0 );
             glLineWidth( 1.0 );
         }
     }
     else if ( analy->show_colormap )
     {
-        antialias_lines( TRUE );
+        antialias_lines( TRUE, TRUE );
         glLineWidth( 1.25 );
 	
         /* Draw the material colors and label them. */
@@ -5430,11 +5448,11 @@ Analysis *analy;
         hmove2( xp + text_height, ypos + ysize + 1.5*text_height );
         hcharstr( "Materials" );
 
-        antialias_lines( FALSE );
+        antialias_lines( FALSE, 0 );
         glLineWidth( 1.0 );
     }
     
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, TRUE );
     glLineWidth( 1.25 );
 
     /* File title. */
@@ -5502,14 +5520,14 @@ Analysis *analy;
         VEC_SET( pt, sub_leng, sub_leng, leng + sub_leng );
         point_transform( ptk, pt, &tmat );
 
-        antialias_lines( FALSE );
+        antialias_lines( FALSE, 0 );
 	glLineWidth( 1.0 );
 	
         draw_3d_text( pti, "X" );
         draw_3d_text( ptj, "Y" );
         draw_3d_text( ptk, "Z" );
 
-        antialias_lines( TRUE );
+        antialias_lines( TRUE, TRUE );
 	glLineWidth( 1.25 );
     }
     
@@ -5525,7 +5543,7 @@ Analysis *analy;
 	}
 	else
 	{
-            el_mm = analy->elem_state_mm.minmax;
+            el_mm = analy->elem_state_mm.el_minmax;
 	    el_type = analy->elem_state_mm.el_type;
 	    el_id = analy->elem_state_mm.mesh_object;
 	}
@@ -5550,21 +5568,21 @@ Analysis *analy;
 	hleftjustify( TRUE );
 	hmove2( xp, yp );
 	if ( analy->result_id != VAL_NONE )
-	    sprintf( str, "min: %.*e, %s %d", fracsz, low, el_label[el_type[0]], 
-	             el_id[0] );
-	else
-	    sprintf( str, "min: (no result)" );
-	hcharstr( str );
-	hmove2( xp, yp - LINE_SPACING_COEFF * text_height );
-	if ( analy->result_id != VAL_NONE )
-	    sprintf( str, "max: %.*e, %s %d", fracsz, high, 
-	             el_label[el_type[1]], el_id[1] );
+	    sprintf( str, "max: %.*e, %s %d", fracsz, high, el_label[el_type[1]], 
+	             el_id[1] );
 	else
 	    sprintf( str, "max: (no result)" );
 	hcharstr( str );
+	hmove2( xp, yp - LINE_SPACING_COEFF * text_height );
+	if ( analy->result_id != VAL_NONE )
+	    sprintf( str, "min: %.*e, %s %d", fracsz, low, 
+	             el_label[el_type[0]], el_id[0] );
+	else
+	    sprintf( str, "min: (no result)" );
+	hcharstr( str );
     }
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
 
     /* Draw a "safe action area" box for the conversion to NTSC video.
@@ -5993,7 +6011,7 @@ unsigned char p;
  * TAG( read_text_colormap )
  *
  * Read a colormap from a text file.  The file should contain
- * 256 float triples for r,g,b, in the range [0, 1].
+ * CMAP_SIZE float triples for r,g,b, in the range [0, 1].
  */
 void
 read_text_colormap( fname )
@@ -6009,7 +6027,7 @@ char *fname;
         return;
     }
 
-    for ( i = 0; i < 256; i++ )
+    for ( i = 0; i < CMAP_SIZE; i++ )
     {
         fscanf( infile, "%f%f%f", &r, &g, &b );
         v_win->colormap[i][0] = r;
@@ -6017,11 +6035,17 @@ char *fname;
         v_win->colormap[i][2] = b;
         if ( feof( infile ) )
         {
+	    fclose( infile );
             popup_dialog( WARNING_POPUP, 
 	                  "Palette file end reached too soon." );
+	    hot_cold_colormap();
             return;
         }
     }
+    
+    /* Save the colormap's native min and max colors. */
+    VEC_COPY( v_win->cmap_min_color, v_win->colormap[0] );
+    VEC_COPY( v_win->cmap_max_color, v_win->colormap[CMAP_SIZE - 1] );
 
     fclose( infile );
 }
@@ -6038,10 +6062,8 @@ hot_cold_colormap()
 {
     float delta, rv, gv, bv;
     int group_sz, i, j;
-    int sz;
 
-    sz = 256;                   /* Colormap size. */
-    group_sz = sz / 4;          /* Number of indices per group. */
+    group_sz = CMAP_SIZE / 4;   /* Number of indices per group. */
     i = 0;                      /* Next color index. */
     delta = 1.0 / (group_sz-1);
 
@@ -6093,13 +6115,17 @@ hot_cold_colormap()
     }
 
     /* Take care of any remainder. */
-    while ( i < sz )
+    while ( i < CMAP_SIZE )
     {
         v_win->colormap[i][0] = rv;
         v_win->colormap[i][1] = gv;
         v_win->colormap[i][2] = bv;
         i++;
     }
+    
+    /* Save the colormap's native min and max colors. */
+    VEC_COPY( v_win->cmap_min_color, v_win->colormap[0] );
+    VEC_COPY( v_win->cmap_max_color, v_win->colormap[CMAP_SIZE - 1] );
 }
 
 
@@ -6113,14 +6139,59 @@ invert_colormap()
 {
     float tmp;
     int i, j;
+    int loop_max;
+    int idx_max;
+    GLfloat ctmp[3];
+    
+    loop_max = CMAP_SIZE / 2 - 1;
+    idx_max = CMAP_SIZE - 1;
 
-    for ( i = 0; i <= 127; i++ )
+    for ( i = 0; i <= loop_max; i++ )
         for ( j = 0; j < 3; j++ )
         {
             tmp = v_win->colormap[i][j];
-            v_win->colormap[i][j] = v_win->colormap[255-i][j];
-            v_win->colormap[255-i][j] = tmp;
+            v_win->colormap[i][j] = v_win->colormap[idx_max-i][j];
+            v_win->colormap[idx_max-i][j] = tmp;
         }
+
+    /* Update the cached native min and max colors. */
+    VEC_COPY( v_win->cmap_min_color, v_win->colormap[0] );
+    VEC_COPY( v_win->cmap_max_color, v_win->colormap[idx_max] );
+}
+
+
+/************************************************************
+ * TAG( set_cutoff_colors )
+ *
+ * Load cutoff threshold colors into the colormap or reset
+ * those colormap entries to their native values.
+ */
+void
+set_cutoff_colors( set, cut_low, cut_high )
+Bool_type set;
+Bool_type cut_low;
+Bool_type cut_high;
+{
+    if ( set )
+    {
+        /* Set the low cutoff color. */
+        if ( cut_low )
+            VEC_COPY( v_win->colormap[0], v_win->rmin_color );
+
+        /* Set the high cutoff color. */
+        if ( cut_high )
+            VEC_COPY( v_win->colormap[CMAP_SIZE - 1], v_win->rmax_color );
+    }
+    else
+    {
+        /* Reset the low cutoff color. */
+        if ( cut_low )
+            VEC_COPY( v_win->colormap[0], v_win->cmap_min_color );
+
+        /* Reset the high cutoff color. */
+        if ( cut_high )
+            VEC_COPY( v_win->colormap[CMAP_SIZE - 1], v_win->cmap_max_color );
+    }
 }
 
 
@@ -6139,10 +6210,8 @@ Bool_type cut_high;
 {
     float delta, rv, gv, bv;
     int group_sz, i, j;
-    int sz;
 
-    sz = 256;                   /* Colormap size. */
-    group_sz = sz / 3;          /* Number of indices per group. */
+    group_sz = CMAP_SIZE / 4;   /* Number of indices per group. */
     i = 0;                      /* Next color index. */
     delta = 1.0 / (group_sz-1);
 
@@ -6182,8 +6251,19 @@ Bool_type cut_high;
         i++;
     }
 
+    /* Yellow to red group. */
+    rv = 1.0;
+    for ( j = 0; j < group_sz; j++ )
+    {
+        v_win->colormap[i][0] = rv;
+        v_win->colormap[i][1] = gv;
+        v_win->colormap[i][2] = bv;
+        gv = MAX( 0.0, gv - delta );
+        i++;
+    }
+
     /* Take care of any remainder. */
-    while ( i < sz )
+    while ( i < CMAP_SIZE )
     {
         v_win->colormap[i][0] = rv;
         v_win->colormap[i][1] = gv;
@@ -6191,21 +6271,13 @@ Bool_type cut_high;
         i++;
     }
 
-    /* The low cutoff color is magenta. */
+    /* Set the low cutoff color. */
     if ( cut_low )
-    {
-        v_win->colormap[0][0] = 1.0;
-        v_win->colormap[0][1] = 0.0;
-        v_win->colormap[0][2] = 1.0;
-    }
+        VEC_COPY( v_win->colormap[0], v_win->rmin_color );
 
-    /* The high cutoff color is red. */
+    /* Set the high cutoff color. */
     if ( cut_high )
-    {
-        v_win->colormap[sz-1][0] = 1.0;
-        v_win->colormap[sz-1][1] = 0.0;
-        v_win->colormap[sz-1][2] = 0.0;
-    }
+        VEC_COPY( v_win->colormap[CMAP_SIZE - 1], v_win->rmax_color );
 }
 
 
@@ -6223,7 +6295,7 @@ Bool_type inverse;
     float start, step;
     int sz, i;
 
-    sz = 256;
+    sz = CMAP_SIZE;
 
     if ( inverse )
     {
@@ -6242,6 +6314,10 @@ Bool_type inverse;
         v_win->colormap[i][1] = start + i*step;
         v_win->colormap[i][2] = start + i*step;
     }
+    
+    /* Save the colormap's native min and max colors. */
+    VEC_COPY( v_win->cmap_min_color, v_win->colormap[0] );
+    VEC_COPY( v_win->cmap_max_color, v_win->colormap[CMAP_SIZE - 1] );
 }
 
 
@@ -6255,21 +6331,23 @@ void
 contour_colormap( ncont )
 int ncont;
 {
-    float band_sz, col[3];
-    int idx, lo, hi;
+    float band_sz, col[3], thresh;
+    int idx, lo, hi, max;
     int i, j;
 
-    band_sz = 253.999 / ncont;
+    max = CMAP_SIZE - 2;
+    thresh = (float) max - 0.001;
+    band_sz = thresh / ncont;
 
     for ( i = 0; i < ncont; i++ )
     {
-        idx = (int)(253.999 * i / (ncont - 1.0)) + 1;
+        idx = (int)(thresh * i / (ncont - 1.0)) + 1;
         VEC_COPY( col, v_win->colormap[idx] );
 
         lo = i * band_sz + 1;
         hi = (i+1) * band_sz + 1;
-        if ( hi > 254 )
-            hi = 254;
+        if ( hi > max )
+            hi = max;
 
         for ( j = lo; j <= hi; j++ )
         {
@@ -6503,7 +6581,7 @@ draw_vid_title()
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     glColor3fv( v_win->foregrnd_color );
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, TRUE );
     glLineWidth( 1.5 );
 
     /* Get drawing window and position. */
@@ -6524,7 +6602,7 @@ draw_vid_title()
 
     hcentertext( FALSE );
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
 
     gui_swap_buffers();
@@ -6545,7 +6623,7 @@ Analysis *analy;
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     glColor3fv( v_win->foregrnd_color  );
 
-    antialias_lines( TRUE );
+    antialias_lines( TRUE, TRUE );
     glLineWidth( 1.5 );
 
     /* Get drawing window and position. */
@@ -6597,7 +6675,7 @@ Analysis *analy;
     hcharstr("Copyright (c) 1992 The Regents of the University of California");
     hcentertext( FALSE );
 
-    antialias_lines( FALSE );
+    antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
 
     gui_swap_buffers();
@@ -6706,8 +6784,9 @@ float a[4];
  * Switch on or off line antialiasing.
  */
 static void
-antialias_lines( select )
+antialias_lines( select, depth_buffer_lines )
 Bool_type select;
+Bool_type depth_buffer_lines;
 {
     if ( select == TRUE )
     {
@@ -6724,7 +6803,8 @@ Bool_type select;
 	 * without depth-sorting will allow incorrect overlaps
 	 * between lines.
 	 */
-	glDepthMask( GL_FALSE );
+	if ( !depth_buffer_lines )
+	    glDepthMask( GL_FALSE );
     }
     else
     {
@@ -7076,4 +7156,26 @@ label:
         goto label;
 
     return( tolerance );
+}
+
+
+/************************************************************
+ * TAG( check_interp_mode )
+ *
+ * To be called when isocontours or isosurfaces are turned
+ * on to notify users of inconsistency with non-interpolated
+ * results.
+ *
+ */
+void
+check_interp_mode( analy )
+Analysis *analy;
+{
+    if ( analy->interp_mode == NO_INTERP
+         && !is_nodal_result( analy->result_id ) )
+        popup_dialog( INFO_POPUP, "%s\n%s\n%s\n%s", 
+	              "You are currently visualizing non-interpolated results.", 
+		      "Isocontours/Isosurfaces are of necessity generated from", 
+		      "results which have been interpolated to the nodes to", 
+		      "provide variation over the elements." );
 }
