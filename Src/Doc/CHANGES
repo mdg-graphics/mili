@@ -1259,3 +1259,69 @@ New commands
         background. (Speck)
     
 
+June 4, 1998
+
+New commands
+    on/off coordxf
+        Turn on or off transformations of stress or
+        strain results into an alternative global
+        coordinate system.  The results affected are sx,
+        sy, sz, sxy, syz, szx, epsx, epsy, epsz, epsxy,
+        epsyz, and epszx.  The alternative coordinate system
+        is specified with the "coordxf" command (below).
+        When both "on coord" and "on coordxf" are in effect,
+        both the original and alternative coordinate
+        triples are rendered with a common origin.  The
+        alternative coordinate system is rendered in brown, 
+        with lower-case "x", "y", and "z" axis labels, 
+        whereas the original coordinate system is rendered 
+        in black with upper-case labels as before. (Speck)
+    coordxf <x1> <y1> <z1> <x2> <y2> <z2> <x3> <y3> <z3>
+    coordxf <node 1> <node 2> <node 3>
+        Specify a coordinate system for stress/strain
+        result transformations.  The specification requires
+        the definition of three points in the mesh global
+        coordinate system.  The two forms of the command
+        allow the user to specify the coordinates of the
+        three points explicitly (first form above) or to
+        use the current coordinates of three mesh nodes.
+        The transformation coordinate system is derived
+        from the three points as follows:  The ray from 
+        point 1 through point 2 defines the positive X-axis
+        of the new coordinate system.  The positive Y-axis
+        is the ray, perpendicular to and originating on
+        the X-axis, which contains point 3.  The positive 
+        Z-axis is formed by crossing the X-axis into the 
+        Y-axis (right-hand rule). (Speck)
+    resetmm
+        Reset the global min and max for the current result
+        to the current state min and max and delete any
+        cached min/max generated from calculating the
+        result at other states.  This has the effect of 
+        nullifying a previous "globmm" command with the 
+        current result active and making it seem as if only
+        the current state had been visited for the current 
+        result.  The intent of this command is to prevent 
+        distortions of cached min/max values for results 
+        which can undergo transformations that might 
+        generate different mins/maxs at already-visited 
+        states.  Specifically, a stress or strain that is 
+        transformed to a different coordinate system 
+        ("on coordxf", above), or a "pvmag" result (above)
+        in which the driving vector definition is changed 
+        will create different value domains from which 
+        mins/maxs are taken, but the min/max caching 
+        facility does not take this into account.  By
+        issuing a "resetmm" command immediately after
+        applying a new coordinate transformation or new 
+        vector definition, and again when a transformation
+        is removed, one can ensure that cached mins/maxs
+        originate from the same result value domain as the 
+        currently viewed result. (Speck)
+ 
+
+June 24, 1998
+
+Bug fix
+    Invoking a units conversion ("conv" and "on/off conv")
+    now affects vectors ("vec" and "on/off vec"). (Speck)
