@@ -225,7 +225,9 @@ typedef enum
 {
     STRAIN_TYPE,
     REFERENCE_SURFACE,
-    REFERENCE_FRAME
+    REFERENCE_FRAME, 
+    TIME_DERIVATIVE, 
+    QTY_RESULT_MODIFIER_TYPES
 } Result_modifier_type;
 
 
