@@ -2137,8 +2137,11 @@ Analysis *analy;
                 /*
                  * Magical constant.  An edge is detected when the angle
                  * between normals is greater than a critical angle.
+		 * 
+		 * Need absolute value of dot product for shells because
+		 * normals can be parallel but opposite.
                  */
-                if ( dot < explicit_threshold )
+                if ( fabs( dot ) < explicit_threshold )
                 {
                     m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
                     m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
