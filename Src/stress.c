@@ -51,10 +51,34 @@ compute_share_stress( analy, resultArr )
 Analysis *analy;
 float *resultArr;
 {
+    Bool_type no_transform;
+
     if ( analy->geom_p->bricks != NULL )
     {
-        get_result( VAL_HEX_SIGX + (analy->result_id - VAL_SHARE_SIGX),
-                    analy->cur_state, analy->hex_result );
+        no_transform = TRUE;
+        
+        if ( analy->do_tensor_transform )
+        {
+            if ( analy->tensor_transform_matrix == NULL )
+            {
+                popup_dialog( INFO_POPUP, "%s\n%s",
+                              "No transformation coordinate system has",
+                              "been specified; results are not transformed." );
+            }
+            else if ( !transform_stress_strain( VAL_HEX_SIGX, TRUE, analy ) )
+            {
+                popup_dialog( WARNING_POPUP, "%s\n%s",
+                              "Stress tensor coordinate transformation failed.",
+                              "Results are not transformed." );
+            }
+            else
+                no_transform = FALSE;
+        }
+
+        if ( no_transform )
+            get_result( VAL_HEX_SIGX + (analy->result_id - VAL_SHARE_SIGX),
+                        analy->cur_state, analy->hex_result );
+
         hex_to_nodal( analy->hex_result, resultArr, analy );
     }
     else
@@ -331,6 +355,7 @@ float *resultArr;
     float localMat[3][3];
     float sigma[6];
     int base, idx, shell_cnt, i, j;
+    Bool_type no_transform;
 
     /* 
      * The result_id is SIGX, SIGY, SIGZ, SIGXY, SIGYZ, or SIGZX.
@@ -358,7 +383,28 @@ float *resultArr;
 
     if ( ref_frame == GLOBAL )
     {
-        get_result( base + idx, analy->cur_state, resultElem );
+        no_transform = TRUE;
+        
+        if ( analy->do_tensor_transform )
+        {
+            if ( analy->tensor_transform_matrix == NULL )
+            {
+                popup_dialog( INFO_POPUP, "%s\n%s",
+                              "No transformation coordinate system has",
+                              "been specified; results are not transformed." );
+            }
+            else if ( !transform_stress_strain( base, TRUE, analy ) )
+            {
+                popup_dialog( WARNING_POPUP, "%s\n%s",
+                              "Stress tensor coordinate transformation failed.",
+                              "Results are not transformed." );
+            }
+            else
+                no_transform = FALSE;
+        }
+
+        if ( no_transform )
+            get_result( base + idx, analy->cur_state, resultElem );
     }
     else if ( ref_frame == LOCAL )
     {
@@ -376,7 +422,7 @@ float *resultArr;
             for ( j = 0; j < 6; j++ )
                sigma[j] = analy->tmp_result[j][i];
             global_to_local_mtx( analy, i, localMat );
-            transform_tensor( sigma, localMat );
+            transform_tensors( 1, sigma, localMat );
 
             resultElem[i] = sigma[idx];
         }

@@ -56,7 +56,8 @@ float *resultArr;
             compute_shell_strain( analy, resultArr );
         else
         {
-            wrt_text( "No strain data present for shell elements.\n" );
+            popup_dialog( INFO_POPUP, 
+                          "No strain data present for shell elements.\n" );
             analy->show_shell_result = FALSE;
             if ( analy->geom_p->bricks == NULL )
                 analy->result_id = VAL_NONE;
@@ -235,8 +236,16 @@ float *resultArr;
                 detF = fabs( (double)detF );
                 break;
         }
-         
+
         extract_strain_vec( eps, F, analy->strain_variety );
+        
+        if ( analy->do_tensor_transform )
+        {
+            if ( analy->tensor_transform_matrix != NULL
+                 && analy->result_id >= VAL_SHARE_EPSX 
+                 && analy->result_id <= VAL_SHARE_EPSZX )
+                transform_tensors( 1, eps, analy->tensor_transform_matrix );
+        }
             
         switch( analy->result_id )
         {
@@ -651,22 +660,57 @@ float *resultArr;
 
     if ( ref_frame == GLOBAL )
     {
-        switch ( ref_surf )
+        if ( analy->do_tensor_transform )
         {
-            case MIDDLE:
-                res1 = analy->tmp_result[1];
-                res2 = analy->tmp_result[2];
-                get_result( in + idx, cstate, res1 );
-                get_result( out + idx, cstate, res2 );
-                for ( i = 0; i < shell_cnt; i++ )
-                    resultElem[i] = 0.5*(res1[i] + res2[i]);
-                break;
-            case INNER:
-                get_result( in + idx, cstate, resultElem );
-                break;
-            case OUTER:
-                get_result( out + idx, cstate, resultElem );
-                break;
+            switch ( ref_surf )
+            {
+                case MIDDLE:
+                    /* Get transformed inner surface strain. */
+                    transform_stress_strain( in, FALSE, analy );
+                    
+                    /* Save copy of requested inner surface strain. */
+                    res1 = NEW_N( float, shell_cnt, "Temp shell stress" );
+                    res2 = analy->tmp_result[idx];
+                    for ( i = 0; i < shell_cnt; i++ )
+                        res1[i] = res2[i];
+                    
+                    /* Get transformed outer surface strain. */
+                    transform_stress_strain( out, analy );
+                    /* "res2" now references outer surface strain. */
+
+                    for ( i = 0; i < shell_cnt; i++ )
+                        resultElem[i] = 0.5*(res1[i] + res2[i]);
+                    
+                    free( res1 );
+
+                    break;
+                case INNER:
+                    transform_stress_strain( in, TRUE, analy );
+                    break;
+                case OUTER:
+                    transform_stress_strain( out, TRUE, analy );
+                    break;
+            }
+        }
+        else
+        {
+            switch ( ref_surf )
+            {
+                case MIDDLE:
+                    res1 = analy->tmp_result[1];
+                    res2 = analy->tmp_result[2];
+                    get_result( in + idx, cstate, res1 );
+                    get_result( out + idx, cstate, res2 );
+                    for ( i = 0; i < shell_cnt; i++ )
+                        resultElem[i] = 0.5*(res1[i] + res2[i]);
+                    break;
+                case INNER:
+                    get_result( in + idx, cstate, resultElem );
+                    break;
+                case OUTER:
+                    get_result( out + idx, cstate, resultElem );
+                    break;
+            }
         }
     }
     else if ( ref_frame == LOCAL )
@@ -674,6 +718,11 @@ float *resultArr;
         /* Need to transform global quantities to local quantities.
          * The full tensor must be transformed.
          */
+/**/
+/* 
+ * These might benefit from being updated with calls to
+ * get_tensor_result() then transpose_tensors().
+ */
 
         switch ( ref_surf )
         {
@@ -704,7 +753,7 @@ float *resultArr;
             for ( j = 0; j < 6; j++ )
                 eps[j] = analy->tmp_result[j][i];
             global_to_local_mtx( analy, i, localMat );
-            transform_tensor( eps, localMat );
+            transform_tensors( 1, eps, localMat );
 
             resultElem[i] = eps[idx];
         }
