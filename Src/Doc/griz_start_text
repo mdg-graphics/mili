@@ -1,6 +1,6 @@
 $Id$
 ************************************************************
-                      Updated: 3/24/98
+                      Updated: 4/3/98
 
                      WELCOME TO GRIZ 2.0
                      
@@ -8,11 +8,38 @@ New functionality
     Griz has an initial capability to detect and read
     LS-Dyna plot databases.  Due to conflicts in the 
     interpretation of certain control words between
-    Livermore Software and MDG codes, it's not clear how
+    Livermore Software and MDG codes, it's uncertain how
     robust this initial capability is, but we will
     continue to refine it as necessary.
 
 New commands
+    inrgb [bg] <rgb filename>
+        Load the indicated rgb image file into memory.  If
+        the "bg" switch is not given, the image is
+        immediately loaded into the framebuffer and freed
+        from memory.  The image will stay in the window
+        until any activity causes Griz to redraw.  If the
+        "bg" switch is given, the image is not immediately 
+        loaded into the framebuffer but is saved 
+        indefinitely for use as an alternative background 
+        in the rendering window.  To employ the image as a 
+        background use the "on bgimage" command (below).
+        Whenever an rgb image is loaded into the 
+        framebuffer, the lower left corner of the image is
+        placed at the lower left corner of the rendering
+        window.  If in any dimension the image is larger
+        than the window, the image is cropped.  If in any
+        dimension the window is larger than the image, the
+        extra space is filled in the current background
+        color ("setcol bg <r> <g> <b>").
+    on/off bgimage
+        Turn on (off) utilization of the current background 
+        rgb image as the background for the rendering 
+        window.  If no image is currently loaded into
+        memory, there is no effect, but as soon as a
+        subsequent "inrgb bg <file>" command is parsed, the
+        loaded image will immediately show up in the 
+        background.
     dirv <x component> <y component> [<z component>]
         Specifies a direction vector in the mesh coordinate
         system.
