@@ -7018,7 +7018,7 @@ float d;
  * linear intervals of size "distance".
  *
  */
-void
+static void
 linear_variable_scale( data_minimum
                       ,data_maximum
                       ,qty_of_intervals
@@ -7154,7 +7154,7 @@ int   *error_status;
  * Perform "fuzzy" rounding
  *
  */
-double
+static double
 round (x, comparison_tolerance)
 double x;
 double comparison_tolerance;
@@ -7171,7 +7171,7 @@ double comparison_tolerance;
  * Perform "fuzzy" floor operation
  *
  */
-double
+static double
 tfloor (x, comparison_tolerance)
 double x;
 double comparison_tolerance;
@@ -7209,7 +7209,8 @@ double temp_tfloor;
  * Compute machine tolerance
  *
  */
-double machine_tolerance ()
+static double
+machine_tolerance ()
 {
 double a;
 double b;
