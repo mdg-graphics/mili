@@ -2873,6 +2873,7 @@ Analysis *analy;
     bricks = analy->geom_p->bricks;
 
     glColor3fv( v_win->foregrnd_color );
+    glDepthFunc( GL_ALWAYS );
 
     /*
      * Label elements.
@@ -2935,6 +2936,7 @@ Analysis *analy;
     /*
      * Label nodes.
      */
+
     if ( analy->show_node_nums )
     {
         ndflag = NEW_N( int, nodes->cnt, "Temp node label flags" );
@@ -2967,13 +2969,20 @@ Analysis *analy;
         {
             if ( ndflag[i] )
             {
+                pt[0] = nodes->xyz[0][i];
+                pt[1] = nodes->xyz[1][i];
+                pt[2] = nodes->xyz[2][i];
+
                 sprintf( label, "%d", i+1 );
+
                 draw_3d_text( pt, label );
             }
         }
 
         free( ndflag );
     }
+    
+    glDepthFunc( GL_LEQUAL );
 }
 
 
