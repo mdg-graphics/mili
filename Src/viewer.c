@@ -204,6 +204,7 @@ Analysis *analy;
     float bb_lo[3], bb_hi[3];
     int num_states;
     int i, j, k, sz;
+    char mbuf[128];
 
     /* Open the familied file and read in the geom and first state. */
     num_states = open_family( fname );
@@ -251,6 +252,7 @@ Analysis *analy;
     analy->mouse_mode = MOUSE_HILITE;
     analy->result_on_refs = TRUE;
     analy->vec_cell_size = 1.0;
+    analy->contour_width = 1.0;
     analy->trace_width = 1.0;
     analy->vectors_at_nodes = TRUE;
     analy->conversion_scale = 1.0;
@@ -287,6 +289,13 @@ Analysis *analy;
 
     /* Count the number of materials for material display. */
     count_materials( analy );
+    if ( analy->num_materials > MAX_MATERIALS )
+    {
+        sprintf( mbuf, "Material count (%d) exceeds current maximum (%d%s\n", 
+	         analy->num_materials, MAX_MATERIALS, 
+		 ").\nContact the Methods Development Group." );
+	popup_fatal( mbuf );
+    }
     analy->hide_material = NEW_N( Bool_type, analy->num_materials,
                                  "Material visibility" );
     analy->disable_material = NEW_N( Bool_type, analy->num_materials,
