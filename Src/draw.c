@@ -144,6 +144,7 @@ static void draw_poly_2d();
 static void draw_line();
 static void draw_3d_text();
 static void draw_foreground();
+static void memory_to_screen();
 static void get_verts_of_bbox();
 static void hvec_copy();
 static void antialias_lines();
@@ -1504,6 +1505,7 @@ Analysis *analy;
 {
     Transf_mat look_rot;
     float arr[16], scal;
+    RGB_raster_obj *p_rro;
 
     if ( env.timing )
     {
@@ -1516,6 +1518,16 @@ Analysis *analy;
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
              GL_STENCIL_BUFFER_BIT );
+    
+    if ( analy->show_background_image && analy->background_image != NULL )
+    {
+        p_rro = analy->background_image;
+
+        glDisable( GL_DEPTH_TEST );
+        memory_to_screen( FALSE, p_rro->img_width, p_rro->img_height, 
+                          p_rro->alpha, p_rro->raster );
+        glEnable( GL_DEPTH_TEST );
+    }
 
     glPushMatrix();
 
@@ -5794,6 +5806,168 @@ Analysis *analy;
 /*
  * SECTION_TAG( Image saving )
  */
+
+
+/************************************************************
+ * TAG( rgb_to_screen )
+ *
+ * Load an rgb file image into memory.
+ */
+void
+rgb_to_screen( fname, background, analy )
+char *fname;
+Bool_type background;
+Analysis *analy;
+{
+    IMAGE *img;
+    int img_width, img_height, channels;
+    int i, j;
+    int upa;
+    unsigned char *raster, *prgb_byte;
+    unsigned short *rbuf, *gbuf, *bbuf, *abuf;
+    unsigned short *pr_short, *pg_short, *pb_short, *pa_short;
+    Bool_type alpha;
+    RGB_raster_obj *p_rro;
+    
+    img = iopen( fname, "r" );
+    if ( img == NULL )
+    {
+        popup_dialog( INFO_POPUP, 
+                      "Unable to open rgb image file \"%s\".", fname );
+        return;
+    }
+    
+    channels = img->zsize;
+    if ( channels != 3 && channels != 4 )
+    {
+        popup_dialog( INFO_POPUP, "File \"%s\" %s%s%s", fname, 
+                      "does not contain a 3 channel (RGB) or\n",
+                      "4 channel (RGBA) image.  Other image types are not",
+                      " supported." );
+        iclose( img );
+        return;
+    }
+    
+    alpha = ( channels == 4 );
+    img_width = img->xsize;
+    img_height = img->ysize;
+    
+    raster = NEW_N( unsigned char, img_width * img_height * channels,
+                    "Image memory" );
+    
+    rbuf = NEW_N( unsigned short, img_width, "RGB red row buf" );
+    gbuf = NEW_N( unsigned short, img_width, "RGB green row buf" );
+    bbuf = NEW_N( unsigned short, img_width, "RGB blue row buf" );
+    if ( alpha )
+        abuf = NEW_N( unsigned short, img_width, "RGB alpha row buf" );
+    
+    /*
+     * Multiplex r, g, b, and alpha values into the raster buffer
+     * on a row-by-row basis.
+     */
+    prgb_byte = raster;
+    for( j = 0; j < img_height; j++ )
+    {
+        getrow( img, rbuf, j, 0 );
+        getrow( img, gbuf, j, 1 );
+        getrow( img, bbuf, j, 2 );
+        if ( alpha )
+            getrow( img, abuf, j, 3 );
+        
+        pr_short = rbuf;
+        pg_short = gbuf;
+        pb_short = bbuf;
+        pa_short = abuf;
+        
+        for( i = 0; i < img_width; i++ )
+        {
+            *prgb_byte++ = (unsigned char) *pr_short++;
+            *prgb_byte++ = (unsigned char) *pg_short++;
+            *prgb_byte++ = (unsigned char) *pb_short++;
+            if ( alpha )
+                *prgb_byte++ = (unsigned char) *pa_short++;
+        }
+    }
+    
+    iclose( img );
+
+    free( rbuf );
+    free( gbuf );
+    free( bbuf );
+    if ( alpha )
+        free( abuf );
+    
+    if ( background )
+    {
+        /*
+         * Prepare to use during background initialization, but don't
+         * load the image now.
+         */
+        if ( analy->background_image != NULL )
+        {
+            p_rro = analy->background_image;
+            free( p_rro->raster );
+        }
+        else
+            p_rro = NEW( RGB_raster_obj, "Background raster" );
+
+        p_rro->raster = raster;
+        p_rro->img_width = img_width;
+        p_rro->img_height = img_height;
+        p_rro->alpha = alpha;
+        
+        analy->background_image = p_rro;
+    }
+    else
+    {
+        /* Not for a background, so load it now and release it. */
+        memory_to_screen( TRUE, img_width, img_height, alpha, raster );
+        free( raster );
+    }
+}
+
+
+/************************************************************
+ * TAG( memory_to_screen )
+ *
+ * Load the framebuffer with pixels from an in-memory image
+ * raster.
+ */
+static void
+memory_to_screen( clear, width, height, alpha, raster )
+Bool_type clear;
+int width;
+int height;
+Bool_type alpha;
+unsigned char *raster;
+{
+    int upa;
+
+    /* Save the current value of the unpack alignment. */
+    glGetIntegerv( GL_UNPACK_ALIGNMENT, &upa );
+
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+    
+    /* glDrawBuffer( GL_BACK ); */
+    
+    /*
+     * Clear everything to the default background color in case the
+     * image has a smaller dimension than the current window.
+     */
+    if ( clear )
+        glClear( GL_COLOR_BUFFER_BIT );
+    
+    /* Now copy the pixels... */
+    glDrawPixels( width, height, (alpha ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, 
+                  raster );
+    
+    if ( clear )
+        gui_swap_buffers();
+    
+    /* Reset the unpack alignment if necessary. */
+    if ( upa != 1 )
+        glPixelStorei( GL_UNPACK_ALIGNMENT, upa );
+}
 
 
 /************************************************************

@@ -892,6 +892,8 @@ Analysis *analy;
 		else
 		    v_win->lighting = setval;
 	    }
+            else if ( strcmp( tokens[i], "bgimage" ) == 0 )
+                analy->show_background_image = setval;
             else
                 wrt_text( "On/Off command unrecognized: %s\n", tokens[i] );
         } 
@@ -2120,6 +2122,24 @@ Analysis *analy;
     {
         DELETE_LIST( analy->refl_planes );
         redraw = TRUE;
+    }
+    else if ( strcmp( tokens[0], "inrgb" ) == 0 )
+    {
+        if ( token_cnt > 1 && token_cnt <= 3 )
+        {
+            setval = FALSE;
+
+            if ( token_cnt == 3 )
+                if ( strcmp( tokens[1], "bg" ) == 0 )
+                {
+                    setval = TRUE;
+                    redraw = TRUE;
+                }
+
+            rgb_to_screen( tokens[token_cnt - 1], setval, analy );
+        }
+        else
+            popup_dialog( USAGE_POPUP, "inrgb [bg] <rgb filename>" );
     }
     else if( strcmp( tokens[0], "outhdf" ) == 0 ||
              strcmp( tokens[0], "snap" ) == 0 )

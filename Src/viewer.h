@@ -36,6 +36,21 @@
 /* Default depth-buffer bias for rendering lines in front of polygons. */
 #define DFLT_ZBIAS .005
 
+
+/*****************************************************************
+ * TAG( RGB_raster_obj )
+ *
+ * An in-memory RGB or RGBA image raster with associated information.
+ */
+typedef struct _rgb_raster_obj
+{
+    int img_width;
+    int img_height;
+    unsigned char *raster;
+    Bool_type alpha;
+} RGB_raster_obj;
+
+
 /*****************************************************************
  * TAG( Trace_segment_obj )
  *
@@ -423,6 +438,9 @@ typedef struct _Analysis
     int *block_hi;
     float *block_bbox[2][3];
     Bool_type keep_max_bbox_extent;
+    
+    Bool_type show_background_image;
+    RGB_raster_obj *background_image;
 
     Bool_type refresh;
     Bool_type normals_smooth;
@@ -713,6 +731,7 @@ extern void set_color();
 extern void update_display();
 extern void get_foreground_window();
 extern void quick_update_display();
+extern void rgb_to_screen();
 extern void screen_to_memory();
 extern void screen_to_rgb();
 extern void screen_to_ps();
