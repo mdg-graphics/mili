@@ -591,3 +591,16 @@ Bug fixes
     or not to re-gather, so it could incorrectly display
     a result calculated with a different setting of one
     of the affecting parameters. (Speck)
+
+
+April 17, 1996
+
+    Put current version under CVS. (Speck)
+    
+    
+April 18, 1996
+
+Internal change
+    Added D. Dovey update of faces.c which implements
+    a new face table structure and improved performance.
+    (Dovey)
