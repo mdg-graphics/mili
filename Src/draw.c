@@ -138,6 +138,12 @@ static void hvec_copy();
 static void antialias_lines();
 static void begin_draw_poly();
 static void end_draw_poly();
+static void linear_variable_scale();
+
+static double round();
+static double tfloor();
+static double machine_tolerance();
+
 
 
 /*
@@ -4314,7 +4320,9 @@ Analysis *analy;
     glEnd();
 
     /* Fill the polygon. */
+    /*
     glEnable( GL_LIGHTING );
+    */
     glStencilFunc( GL_EQUAL, 0, 1 );
     glStencilOp( GL_KEEP, GL_KEEP, GL_KEEP );
     if ( analy->interp_mode == GOOD_INTERP )
@@ -4335,7 +4343,9 @@ Analysis *analy;
     }
 
     /* Clear the stencil buffer. */
+    /*
     glDisable( GL_LIGHTING );
+    */
     glStencilFunc( GL_ALWAYS, 0, 1 );
     glStencilOp( GL_INVERT, GL_INVERT, GL_INVERT );
     glColor3fv( v_win->foregrnd_color  );
@@ -4962,10 +4972,24 @@ Analysis *analy;
     int mod_cnt;
     Result_modifier_type mods[3];
 
+
+
+    float scale_y, value;
+    float scale_minimum, scale_maximum, distance;
+    int qty_of_intervals, scale_error_status;
+    float offset;
+    int ntrips;
+    float space_factor;
+    float low_text_bound, high_text_bound;
+    float comparison_tolerance;
+
+
+
+
     /* Foreground overwrites everything else in the scene. */
     glDepthFunc( GL_ALWAYS );
 
-    /* Get drawing windew and position. */
+    /* Get drawing window and position. */
     get_foreground_window( &zpos, &cx, &cy );
 
     world_to_vp[0] = v_win->vp_width / (2.0*cx);
@@ -5080,6 +5104,10 @@ Analysis *analy;
             hrightjustify( TRUE );
 
             /* Min and max result values. */
+
+            /* Temporarily DISABLE display of min and max result values. */
+            /*
+
             xp = xpos + xsize + b_width;
             hmove2( xp, ypos - b_height - 1.25*text_height );
             sprintf( str, "%.2e", low );
@@ -5089,11 +5117,19 @@ Analysis *analy;
             sprintf( str, "%.2e", high );
             hcharstr( str );
 
+            */
+
+
             /* Result title. */
             hmove2( xpos + xsize, ypos+ysize+b_height+2.0*text_height );
             hcharstr( analy->result_title );
 
+
             /* Mark the zero value of the result with a little tic. */
+
+            /* DISABLE display of zero value. */
+            /*
+
             if ( low < 0.0 && high > 0.0 )
             {
                 if ( extend_colormap )
@@ -5116,7 +5152,12 @@ Analysis *analy;
                 }
             }
 
+            */
+
             /* Mark the top and bottom cutoffs with tics. */
+            /* DISABLE display of top and bottom cutoffs with tics. */
+            /*
+
             if ( extend_colormap )
             {
                 xp = xpos - 2.0*b_width;
@@ -5137,7 +5178,125 @@ Analysis *analy;
                     }
                 }
             }
+
+            */
     
+
+
+
+
+            /* Assign labelled and scaled tic marks. */
+
+            if ( TRUE == extend_colormap )
+                offset = 0.05 * ysize;
+            else
+                offset = 0.0;
+
+            scale_y = ((ypos + ysize - offset) - (ypos + offset)) / (high - low);
+
+
+            /* Compute legend scale intervals */
+
+            qty_of_intervals = 5;
+
+            linear_variable_scale( low
+                                  ,high
+                                  ,qty_of_intervals
+                                  ,&scale_minimum
+                                  ,&scale_maximum
+                                  ,&distance
+                                  ,&scale_error_status );
+
+
+            /* Label low and high actual values */
+
+            space_factor = 0.33 * text_height;
+
+            xp = xpos - (2.0 * b_width) - (0.6 * text_height);
+            yp = ypos + offset + (scale_y * (low - low));
+
+            low_text_bound = yp + text_height + space_factor;
+
+            hmove2( xp, yp - (0.6 * text_height) );
+            sprintf( str, "%.2e", low );
+            hcharstr( str );
+
+            xp = xpos - (2.0 * b_width);
+
+            glBegin( GL_TRIANGLES );
+            glVertex2f( xp, yp );
+            glVertex2f( xp - (0.4 * text_height), yp + (0.2 * text_height) );
+            glVertex2f( xp - (0.4 * text_height), yp - (0.2 * text_height) );
+            glEnd();
+
+
+            xp = xpos - (2.0 * b_width) - (0.6 * text_height);
+            yp = ypos + offset + (scale_y * (high - low));
+
+            high_text_bound = yp - text_height - space_factor;
+
+            hmove2( xp, yp - (0.6 * text_height) );
+            sprintf( str, "%.2e", high );
+            hcharstr( str );
+
+            xp = xpos - (2.0 * b_width);
+
+            glBegin( GL_TRIANGLES );
+            glVertex2f( xp, yp );
+            glVertex2f( xp - (0.4 * text_height), yp + (0.2 * text_height) );
+            glVertex2f( xp - (0.4 * text_height), yp - (0.2 * text_height) );
+            glEnd();
+
+
+            if ( FALSE == scale_error_status )
+            {
+                /* Label scaled values at computed intervals */
+
+/*
+                ntrips = (int) (scale_maximum - scale_minimum) / distance;
+*/
+                comparison_tolerance = machine_tolerance();
+                ntrips = MAX( round( (double)((scale_maximum - scale_minimum + distance) / distance), comparison_tolerance ), 0.0 );
+
+                for ( i = 0; i < ntrips; i++ )
+                {
+                    value = scale_minimum + (i * distance);
+
+                    /* NOTE:  scaled values MAY exceed bounds of tightly restricted
+                              legend limits */
+
+                    yp = ypos + offset + (scale_y * (value - low));
+
+                    if ( (low < value)          &&
+                         (value < high)         &&
+                         (low_text_bound <= yp) &&
+                         (yp <= high_text_bound) )
+                    {
+                        xp = xpos - (2.0 * b_width) - (0.6 * text_height);
+
+                        hmove2( xp, yp - (0.6 * text_height) );
+                        sprintf( str, "%.2e", value );
+                        hcharstr( str );
+
+
+                        xp = xpos - (2.0 * b_width);
+
+                        glBegin( GL_TRIANGLES );
+                        glVertex2f( xp, yp );
+                        glVertex2f( xp - (0.4 * text_height), yp + (0.2 * text_height) );
+                        glVertex2f( xp - (0.4 * text_height), yp - (0.2 * text_height) );
+                        glEnd();
+                    }
+                }
+            }
+            else
+                printf ( "\n\nWARNING:  Result minimum > result maximum\n\n" );
+
+
+
+
+
+
             /* Set up for left side text. */
             hleftjustify( TRUE );
             xp = -cx + text_height;
@@ -6547,7 +6706,9 @@ Analysis *analy;
         glStencilFunc( GL_ALWAYS, 0, 1 );
         glStencilOp( GL_INVERT, GL_INVERT, GL_INVERT );
         glColor3fv( v_win->foregrnd_color  );
+        /*
         glDisable( GL_LIGHTING );
+        */
     }
 
     /* Calculate constants needed for projecting polygons to screen. */
@@ -6604,7 +6765,9 @@ Analysis *analy;
 {
     if ( analy->render_mode == RENDER_HIDDEN )
     {
+        /*
         glEnable( GL_LIGHTING );
+        */
         glDisable( GL_STENCIL_TEST );
     }
 }
@@ -6631,3 +6794,232 @@ float d;
     glEnable( GL_CLIP_PLANE0 );
 }
 
+
+/************************************************************
+ * TAG( linear_variable_scale )
+ *
+ * Establish a linear scale, i.e., a scale having an interval size
+ * which is a product of an integer power of 10 and 1, 2, or 5,
+ * and scale values which are integer multiples of the interval
+ * size.
+ *
+ * Given "data_minimum", "data_maximum", and "qty_of_intervals"
+ * the routine computes a new scale range from "scale_minimum" to
+ * "scale_maximum" divisible into approximately "qty_of_intervals"
+ * linear intervals of size "distance".
+ *
+ */
+void
+linear_variable_scale( data_minimum
+                      ,data_maximum
+                      ,qty_of_intervals
+                      ,scale_minimum
+                      ,scale_maximum
+                      ,distance
+                      ,error_status )
+float  data_minimum;
+float  data_maximum;
+int    qty_of_intervals;
+float *scale_minimum;
+float *scale_maximum;
+float *distance;
+int   *error_status;
+{
+    float
+          approximate_interval
+         ,float_magnitude
+         ,geometric_mean [3]
+         ,scaled_interval;
+
+    int
+        evaluate
+       ,i
+       ,log_approximate_interval
+       ,magnitude;
+
+
+   /* Establish compensation for computer round-off */
+
+    static
+           float epsilon = 0.00002;
+
+
+    /* Establish acceptable scale interval values (times an integer power of 10 */
+
+    static
+           float interval_size[4] = { 1.0, 2.0, 5.0, 10.0 };
+
+
+    /* */
+
+
+    if ( (data_maximum > data_minimum) && (qty_of_intervals > 0) )
+    {
+        *error_status = FALSE;
+
+
+        /* Establish geometric means between adjacent scale interval values */
+
+        geometric_mean[0] = sqrt( (double) interval_size[0] *
+                                  (double) interval_size[1] );
+        geometric_mean[1] = sqrt( (double) interval_size[1] *
+                                  (double) interval_size[2] );
+        geometric_mean[2] = sqrt( (double) interval_size[2] *
+                                  (double) interval_size[3] );
+
+
+        /* Compute approximate interval size of data */
+
+        approximate_interval = ( data_maximum - data_minimum ) / qty_of_intervals;
+
+        log_approximate_interval = (int) log10( approximate_interval );
+
+        if ( approximate_interval < 1.0 )
+            log_approximate_interval--;
+
+
+        /* Scale approximate interval to fall within range:  1 -- 10 */
+
+        scaled_interval = approximate_interval /
+                          pow( 10.0, (double) log_approximate_interval );
+
+
+        /* Establish closest permissible value for scaled interval */
+
+        evaluate = TRUE;
+        i = 0;
+
+        while ( (TRUE == evaluate) && (i < 3) )
+        {
+            if ( scaled_interval < geometric_mean[i] )
+                evaluate = FALSE;
+            else
+                i++;
+        }
+
+        *distance = interval_size[i] *
+                    pow( 10.0, (double) log_approximate_interval );
+
+
+        /* Compute new scale minimum */
+
+        float_magnitude = data_minimum / *distance;
+        magnitude        = (int) float_magnitude;
+
+        if ( float_magnitude < 0.0 )
+            magnitude--;
+
+        if ( fabs( (float) magnitude + 1.0 - float_magnitude ) < epsilon ) 
+            magnitude++;
+
+        *scale_minimum = *distance * (float) magnitude;
+
+
+        /* Compute new scale maximum */
+
+        float_magnitude = data_maximum / *distance;
+        magnitude       = (int) ( float_magnitude + 1.0 );
+
+        if ( float_magnitude < -1.0 )
+            magnitude--;
+
+        if ( fabs( float_magnitude + 1.0 - (float) magnitude) < epsilon ) 
+            magnitude--;
+
+        *scale_maximum = *distance * magnitude;
+
+
+        /* Adjust, as required, scale limits to account for computer round-off */
+
+        *scale_minimum = MIN( *scale_minimum, data_minimum );
+        *scale_maximum = MAX( *scale_maximum, data_maximum );
+    }
+    else
+        *error_status = TRUE;
+}
+
+
+/************************************************************
+ * TAG( round )
+ *
+ * Perform "fuzzy" rounding
+ *
+ */
+double
+round (x, comparison_tolerance)
+double x;
+double comparison_tolerance;
+{
+    extern double tfloor ();
+
+    return( tfloor( (x + 0.5), comparison_tolerance ) );
+}
+
+
+/************************************************************
+ * TAG( tfloor )
+ *
+ * Perform "fuzzy" floor operation
+ *
+ */
+double
+tfloor (x, comparison_tolerance)
+double x;
+double comparison_tolerance;
+{
+#define DFLOOR(a)  (DINT( (a) ) - (double)fmod( (2.0 + DSIGN( 1.0, (a) )), 3.0 ))
+#define DINT(a)    ((a) - (double)fmod( (a), 1.0 ))
+#define DSIGN(a,b) ((b) >= 0.0 ? (double)fabs( (a) ) : -(double)fabs( (a) ))
+
+double q, rmax, eps5;
+double temp_tfloor;
+
+
+    if ( x >= 0.0 )
+       q = 1.0;
+    else
+       q = 1.0 - comparison_tolerance;
+
+    rmax = q / (2.0 - comparison_tolerance);
+
+    eps5 = comparison_tolerance / q;
+
+    temp_tfloor = DFLOOR( x + MAX( comparison_tolerance,
+                          MIN( rmax, eps5 * (double)fabs( 1.0 + DFLOOR( x ) ))));
+
+    if ( (x <= 0.0) || ((temp_tfloor - x) < rmax) )
+        return( temp_tfloor );
+    else
+        return( temp_tfloor - 1.0 );
+}
+
+
+/************************************************************
+ * TAG( machine_tolerance )
+ *
+ * Compute machine tolerance
+ *
+ */
+double machine_tolerance ()
+{
+double a;
+double b;
+double c;
+double tolerance;
+
+
+    a = 4.0 / 3.0;
+
+label:
+
+    b = a - 1.0;
+
+    c = b + b + b;
+
+    tolerance = (double)fabs( c - 1.0);
+
+    if ( 0.0 == tolerance )
+        goto label;
+
+    return( tolerance );
+}
