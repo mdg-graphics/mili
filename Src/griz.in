@@ -1,6 +1,6 @@
-# $Id$
-#
 #!/bin/sh
+#
+# $Id$
 #
 GRIZHOME=_grizhome_
 HFONTLIB=_hfontlib_
