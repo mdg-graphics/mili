@@ -1101,7 +1101,11 @@ Bug fix
     introduced recently (presumably) when adding rate
     estimation. (Speck)
 
-Internal change
+Internal changes
     Routing is_in_iarray() (misc.c) now takes an int pointer
     at which to write the index number of the candidate
     when found. (Speck)
+    
+    Replaced wrt_text() calls for "hilite", "select", and
+    "clrsel" commands with popup_dialog() calls. (Speck)
+
