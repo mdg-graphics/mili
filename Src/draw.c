@@ -5182,7 +5182,7 @@ Analysis *analy;
     char str[90];
     char *vec_x, *vec_y, *vec_z;
     int nstripes, i, frst, lst;
-    static char *el_label[] = { "node", "beam", "shell", "brick" };
+    static char *el_label[] = { "Node", "Beam", "Shell", "Brick" };
     float *el_mm;
     int *el_type, *el_id;
     int mm_node_types[2];

@@ -642,7 +642,7 @@ Bool_type *tellmm_redraw;
         minimum_element_id, minimum_element_type, minimum_state_id, 
         mm_node_types[2];
     int *el_type, *el_id;
-    static char *el_label[] = { "node", "beam", "shell", "brick" };
+    static char *el_label[] = { "Node", "Beam", "Shell", "Brick" };
 
     /*
      * Filter input data
