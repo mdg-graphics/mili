@@ -1,0 +1,126 @@
+#!/bin/csh -f
+#
+#   Filename: griz4s-OSF1
+#
+#
+#   ****************************************************************
+#   * (c) Copyright 1996 The Regents of the University of          *
+#   *     California.  All Rights Reserved.                        *
+#   *                                                              *
+#   *     This work was produced under the sponsorship of the      *
+#   *     United States Department of Energy.  The Government      *
+#   *     retains certain rights therein.                          *
+#   ****************************************************************
+#
+#*******************************************************************
+#  Revision History:
+#   22-Aug-96  Original version.
+#              (Robert J. Sherwood)
+#
+#   11-Dec-96  Added support for GLX/X distinction, Sun FFB, and
+#              OSF/Irix and OSF/Sun peculiarities
+#              (Doug Speck)
+
+#  04-Apr-05   Add support for beta release of Griz.
+#              (Bob Corey)
+#*******************************************************************
+
+# Capture the batch flag and beta if they exist
+set batch = no
+set beta  = no
+
+foreach argument ($argv[*])
+    if (x$argument == "x-b")    set batch = yes
+    if (x$argument == "x-beta") set beta = yes
+end
+
+if ($beta == yes) then
+   setenv GRIZ4HOME /usr/gapps/mdg/tru64_5/archive/grizdir/beta/bin
+   setenv HFONTLIB  /usr/gapps/mdg/tru64_5/archive/grizdir/beta/Font
+   setenv LD_LIBRARY_PATH /usr/gapps/mdg/tru64_5/archive/grizdir/beta/bin
+else
+   setenv GRIZ4HOME /usr/gapps/mdg/tru64_5/archive/grizdir/V4_04/bin
+   setenv HFONTLIB  /usr/gapps/mdg/tru64_5/archive/grizdir/V4_04/Font
+   setenv LD_LIBRARY_PATH /usr/gapps/mdg/tru64_5/archive/grizdir/V4_04/bin
+endif
+
+
+set system = `/bin/uname -s`
+set release = `/bin/uname -r`
+set majorrelease = $release:r
+
+# Get the first digit of the release
+
+while ($majorrelease != $release)
+  set release = $majorrelease
+  set majorrelease = $release:r
+end
+
+# Capture display host information
+#
+# OSF -> Irix 6.2 causes a xdpyinfo problem, so use custom functions
+# instead
+#
+# set glx = `xdpyinfo | awk '/^ *GLX/ {print $1}'`
+# set vendor = `xdpyinfo | awk '/vendor string/ {print $3}'`
+# set x_release = `xdpyinfo | awk '/vendor release number/ {print $4}'`
+
+set glx = `${GRIZ4HOME}/xqext GLX`
+set vendor = `${GRIZ4HOME}/xqvendor | awk '/vendor string/ {print $3}'`
+set x_release = `${GRIZ4HOME}/xqrelease | awk '/vendor release number/ {print $4}'`
+
+# Generate the appropriate extension for the operating system,
+# local hardware, and remote (display) hardware combination:
+
+if ($system == OSF1) then
+
+  if ($batch == yes) then
+
+    set extension = dec.osmesa
+
+  else if ($vendor == Silicon) then
+    
+    if ($x_release == 5000) then
+      set extension = dec.mesa
+    else
+      set extension = dec
+    endif
+
+  else if ($vendor == Sun) then
+
+#   For now, Sun GLX doesn't work with OSF clients.
+    if ($glx == GLX) then
+      set extension = dec
+    else
+      set extension = dec.mesa
+    endif
+
+  else if ($glx == GLX) then
+    set extension = dec
+  else
+    set extension = dec.mesa
+  endif
+
+
+else
+  echo "ERROR:  You are trying to run GRIZ4 on a $system system."
+  echo "GRIZ4 is not currently available for $system systems."
+  goto contactmdg            # Print contact info and take error exit.
+endif
+
+# echo "system=${system} release=$release majorrelease=$majorrelease."
+# echo "Extension=$extension."
+
+echo "Loading Griz executable: $GRIZ4HOME/griz4s.$extension"
+
+# Execute the appropriate executable, and return its exit status
+
+$GRIZ4HOME/griz4s.$extension $*
+exit
+
+# Error exit
+
+contactmdg:
+echo "Please contact the Methods Development Group."
+echo "ABORTING."
+exit -1
