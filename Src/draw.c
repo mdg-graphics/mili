@@ -2785,7 +2785,7 @@ Analysis *analy;
                 /* Get label position and label. */
                 if ( analy->hide_material[beams->mat[i]] )
                     continue;
-                bzero( pt, 3*sizeof(float) );
+                memset( pt, 0, 3*sizeof(float) );
                 for ( j = 0; j < 2; j++ )
                     for ( k = 0; k < 3; k++ )
                         pt[k] += nodes->xyz[k][beams->nodes[j][i]] / 2.0;
@@ -2800,7 +2800,7 @@ Analysis *analy;
                 /* Get label position and label. */
                 if ( analy->hide_material[shells->mat[i]] )
                     continue;
-                bzero( pt, 3*sizeof(float) );
+                memset( pt, 0, 3*sizeof(float) );
                 for ( j = 0; j < 4; j++ )
                     for ( k = 0; k < 3; k++ )
                         pt[k] += nodes->xyz[k][shells->nodes[j][i]] / 4.0;
@@ -2818,7 +2818,7 @@ Analysis *analy;
                 if ( analy->hide_material[bricks->mat[el]] )
                     continue;
 
-                bzero( pt, 3*sizeof(float) );
+                memset( pt, 0, 3*sizeof(float) );
                 for ( j = 0; j < 4; j++ )
                 {
                     nd = bricks->nodes[ fc_nd_nums[face][j] ][el];

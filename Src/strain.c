@@ -47,7 +47,7 @@ float *resultArr;
     if ( analy->geom_p->bricks != NULL )
         compute_hex_strain( analy, resultArr );
     else
-        bzero( resultArr, analy->geom_p->nodes->cnt * sizeof(float) );
+        memset( resultArr, 0, analy->geom_p->nodes->cnt * sizeof(float) );
 
     if ( analy->geom_p->shells != NULL )
     {
@@ -81,7 +81,7 @@ float *resultArr;
         hex_to_nodal( analy->hex_result, resultArr, analy );
     }
     else
-        bzero( resultArr, analy->geom_p->nodes->cnt * sizeof(float) );
+        memset( resultArr, 0, analy->geom_p->nodes->cnt * sizeof(float) );
 
     if ( analy->geom_p->shells != NULL )
         compute_shell_eff_strain( analy, resultArr );
@@ -165,7 +165,7 @@ float *resultArr;
            analy->result_id = tmp_id;
         }
 
-        bzero( F, sizeof(float)*9 );
+        memset( F, 0, sizeof(float)*9 );
 
         switch ( analy->strain_variety )
         {
@@ -315,7 +315,7 @@ float coorZ[8];
     float jacob[9], invJacob[9], detJacob;
     int k;
 
-    bzero( jacob, sizeof(float)*9 );
+    memset( jacob, 0, sizeof(float)*9 );
     for ( k = 0; k < 8; k++ )
     {
         jacob[0] += dN1[k]*coorX[k];
@@ -447,7 +447,7 @@ float *resultArr;
             zz[j] = currentGeom->xyz[2][ bricks->nodes[j][i] ];
         }
 
-        bzero(F,sizeof(float)*9);
+        memset(F, 0, sizeof(float)*9);
 
         hex_partial_deriv( dNx, dNy, dNz, x, y, z );
         for ( j = 0; j < 8; j++ )

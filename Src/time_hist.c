@@ -429,7 +429,7 @@ Analysis *analy;
     for ( i = 0; i < mat_cnt; i++ )
     {
         mark_nodes[i] = analy->tmp_result[i];
-        bzero( mark_nodes[i], num_nodes*sizeof( float ) );
+        memset( mark_nodes[i], 0, num_nodes*sizeof( float ) );
 
         if ( bricks != NULL ) 
         {

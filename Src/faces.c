@@ -953,7 +953,7 @@ Analysis *analy;
      * We must be smooth shading.  Zero out the node normals array.
      */
     for ( i = 0; i < 3; i++ )
-        bzero( node_norm[i], nodes->cnt*sizeof( float ) );
+        memset( node_norm[i], 0, nodes->cnt*sizeof( float ) );
  
     /*
      * Compute average normals at each of the nodes.
@@ -1079,7 +1079,7 @@ Analysis *analy;
      * We must be smooth shading.  Zero out the node normals array.
      */
     for ( i = 0; i < 3; i++ )
-        bzero( node_norm[i], nodes->cnt*sizeof( float ) );
+        memset( node_norm[i], 0, nodes->cnt*sizeof( float ) );
  
     /*
      * Compute average normals at each of the nodes.

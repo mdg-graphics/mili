@@ -1697,13 +1697,13 @@ Analysis *analy;
     for ( i = 0; i < 3; i++ )
     {
         ftmp = NEW_N( float, cnt, "Iso carpet coords" );
-        bcopy( carpet_coords[i], ftmp, cnt*sizeof(float) );
+        memcpy( ftmp, carpet_coords[i], cnt*sizeof(float) );
         free( carpet_coords[i] );
         analy->vol_carpet_coords[i] = ftmp;
     }
 
     itmp = NEW_N( int, max_cnt, "Iso carpet elem" );
-    bcopy( carpet_elem, itmp, cnt*sizeof(int) );
+    memcpy( itmp, carpet_elem, cnt*sizeof(int) );
     free( carpet_elem );
     analy->vol_carpet_elem = itmp;
 }
@@ -1799,12 +1799,12 @@ Analysis *analy;
         for ( i = 0; i < 3; i++ )
         {
             ftmp = NEW_N( float, cnt, "Carpet coords" );
-            bcopy( carpet_coords[i], ftmp, cnt*sizeof(float) );
+            memcpy( ftmp, carpet_coords[i], cnt*sizeof(float) );
             free( carpet_coords[i] );
             analy->vol_carpet_coords[i] = ftmp;
         }
         itmp = NEW_N( int, max_cnt, "Carpet elem" );
-        bcopy( carpet_elem, itmp, cnt*sizeof(int) );
+        memcpy( itmp, carpet_elem, cnt*sizeof(int) );
         free( carpet_elem );
         analy->vol_carpet_elem = itmp;
     }
@@ -1869,12 +1869,12 @@ Analysis *analy;
         for ( i = 0; i < 2; i++ )
         {
             ftmp = NEW_N( float, cnt, "Carpet coords" );
-            bcopy( carpet_coords[i], ftmp, cnt*sizeof(float) );
+            memcpy( ftmp, carpet_coords[i], cnt*sizeof(float) );
             free( carpet_coords[i] );
             analy->shell_carpet_coords[i] = ftmp;
         }
         itmp = NEW_N( int, max_cnt, "Carpet elem" );
-        bcopy( carpet_elem, itmp, cnt*sizeof(int) );
+        memcpy( itmp, carpet_elem, cnt*sizeof(int) );
         free( carpet_elem );
         analy->shell_carpet_elem = itmp;
     }

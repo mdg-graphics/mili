@@ -73,7 +73,7 @@ char *argv[];
     Analysis *analy;
 
     /* Clear out the env struct just in case. */
-    bzero( &env, sizeof( Environ ) );
+    memset( &env, 0, sizeof( Environ ) );
 
     /* Scan command-line arguments, other initialization. */
     scan_args( argc, argv );
@@ -464,7 +464,7 @@ Analysis *analy;
 
     close_family();
     close_analysis( analy );
-    bzero( analy, sizeof( Analysis ) );
+    memset( analy, 0, sizeof( Analysis ) );
     strcpy( env.plotfile_name, fname );
     open_analysis( fname, analy );
     reset_mesh_window( analy );

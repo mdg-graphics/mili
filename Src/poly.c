@@ -583,7 +583,7 @@ Analysis *analy;
     {
         activity = analy->state_p->activity_present ?
                    analy->state_p->shells->activity : NULL;
-        bzero( matl_cnts, num_matls*sizeof( int ) );
+        memset( matl_cnts, 0, num_matls*sizeof( int ) );
 
         /*
          * Check which materials need to be output.

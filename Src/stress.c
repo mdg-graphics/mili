@@ -32,7 +32,7 @@ float *resultArr;
     if ( analy->geom_p->bricks != NULL )
         compute_hex_press( analy, resultArr );
     else
-        bzero( resultArr, analy->geom_p->nodes->cnt * sizeof(float) );
+        memset( resultArr, 0, analy->geom_p->nodes->cnt * sizeof(float) );
 
     if ( analy->geom_p->shells != NULL )
         compute_shell_press( analy, resultArr );
@@ -56,7 +56,7 @@ float *resultArr;
         hex_to_nodal( analy->hex_result, resultArr, analy );
     }
     else
-        bzero( resultArr, analy->geom_p->nodes->cnt * sizeof(float) );
+        memset( resultArr, 0, analy->geom_p->nodes->cnt * sizeof(float) );
 
     if ( analy->geom_p->shells != NULL )
         compute_shell_stress( analy, resultArr );
@@ -78,7 +78,7 @@ float *resultArr;
         compute_hex_effstress( analy, resultArr );
     }
     else
-        bzero( resultArr, analy->geom_p->nodes->cnt * sizeof(float) );
+        memset( resultArr, 0, analy->geom_p->nodes->cnt * sizeof(float) );
 
     if ( analy->geom_p->shells != NULL )
         compute_shell_effstress( analy, resultArr );

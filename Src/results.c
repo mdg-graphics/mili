@@ -601,7 +601,7 @@ Analysis *analy;
     activity = analy->state_p->activity_present ?
                analy->state_p->bricks->activity : NULL;
 
-    bzero( val_nodal, nodes->cnt * sizeof( float ) );
+    memset( val_nodal, 0, nodes->cnt * sizeof( float ) );
     hex_vols = NEW_N( float, bricks->cnt, "Hex volumes" );
     vol_sums = NEW_N( float, nodes->cnt, "Volume sums" );
 
@@ -739,7 +739,7 @@ Bool_type merge;
         }
     }
     else
-        bzero( val_nodal, nodes->cnt * sizeof( float ) );
+        memset( val_nodal, 0, nodes->cnt * sizeof( float ) );
     
     /* Prepare to extract element min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.minmax;
@@ -816,7 +816,7 @@ Analysis *analy;
 
     adj_cnt = NEW_N( int, nodes->cnt, "Tmp beam result cnts" );
 
-    bzero( val_nodal, nodes->cnt * sizeof( float ) );
+    memset( val_nodal, 0, nodes->cnt * sizeof( float ) );
     
     /* Prepare to extract element min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.minmax;

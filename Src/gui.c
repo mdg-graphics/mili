@@ -3308,7 +3308,7 @@ XmPushButtonCallbackStruct call_data;
     
     switch_opengl_win( MESH );
     
-    bzero( mtl_mgr_cmd, 128 + env.curr_analy->num_materials * 4 );
+    memset( mtl_mgr_cmd, 0, 128 + env.curr_analy->num_materials * 4 );
     
     /* Command always starts with "mtl ". */
     for ( p_dest = mtl_mgr_cmd, p_src = "mtl "; *p_dest = *p_src; 
