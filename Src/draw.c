@@ -5689,13 +5689,13 @@ Analysis *analy;
             /* Draw the axis lines. */
             VEC_SET( pt, 0.0, 0.0, 0.0 );
             point_transform( pto, pt, &tmat );
-            VEC_SET( pt, ttmat[0][0] * leng, ttmat[0][1] * leng, 
-                     ttmat[0][2] * leng );
+            VEC_SET( pt, ttmat[0][0] * leng, ttmat[1][0] * leng, 
+                     ttmat[2][0] * leng );
             point_transform( pti, pt, &tmat );
-            VEC_SET( pt, ttmat[1][0] * leng, ttmat[1][1] * leng, 
-                     ttmat[1][2] * leng );
+            VEC_SET( pt, ttmat[0][1] * leng, ttmat[1][1] * leng, 
+                     ttmat[2][1] * leng );
             point_transform( ptj, pt, &tmat );
-            VEC_SET( pt, ttmat[2][0] * leng, ttmat[2][1] * leng, 
+            VEC_SET( pt, ttmat[0][2] * leng, ttmat[1][2] * leng, 
                      ttmat[2][2] * leng );
             point_transform( ptk, pt, &tmat );
 /**/
@@ -5713,15 +5713,15 @@ Analysis *analy;
             
             /* Draw the axis labels. */
             VEC_SET( pt, ttmat[0][0] * leng + sub_leng, 
-                     ttmat[0][1] * leng - sub_leng, 
-                     ttmat[0][2] * leng - sub_leng );
+                     ttmat[1][0] * leng - sub_leng, 
+                     ttmat[2][0] * leng - sub_leng );
             point_transform( pti, pt, &tmat );
-            VEC_SET( pt, ttmat[1][0] * leng - sub_leng, 
+            VEC_SET( pt, ttmat[0][1] * leng - sub_leng, 
                      ttmat[1][1] * leng + sub_leng, 
-                     ttmat[1][2] * leng - sub_leng );
+                     ttmat[2][1] * leng - sub_leng );
             point_transform( ptj, pt, &tmat );
-            VEC_SET( pt, ttmat[2][0] * leng - sub_leng, 
-                     ttmat[2][1] * leng - sub_leng, 
+            VEC_SET( pt, ttmat[0][2] * leng - sub_leng, 
+                     ttmat[1][2] * leng - sub_leng, 
                      ttmat[2][2] * leng + sub_leng );
             point_transform( ptk, pt, &tmat );
 

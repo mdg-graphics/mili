@@ -1551,6 +1551,17 @@ Analysis *analy;
             vec_norm( xfmat[0] );
             vec_norm( xfmat[1] );
             vec_norm( xfmat[2] );
+            
+            /* Want column vectors. */
+            VEC_COPY( pt, xfmat[0] );
+            VEC_COPY( pt2, xfmat[1] );
+            VEC_COPY( pt3, xfmat[2] );
+            for ( i = 0; i < 3; i++ )
+            {
+                xfmat[i][0] = pt[i];
+                xfmat[i][1] = pt2[i];
+                xfmat[i][2] = pt3[i];
+            }
 
             if ( analy->do_tensor_transform )
             {
