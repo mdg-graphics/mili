@@ -31,7 +31,7 @@
 #define DEFAULT_FLOAT_FRACTION_SIZE (2)
 
 /* Number of materials with settable properties. */
-#define MAX_MATERIALS 300
+#define MAX_MATERIALS 5000
 
 /* Default depth-buffer bias for rendering lines in front of polygons. */
 #define DFLT_ZBIAS .005
