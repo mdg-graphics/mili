@@ -252,6 +252,9 @@ Analysis *analy;
     analy->trace_width = 1.0;
     analy->vectors_at_nodes = TRUE;
     analy->conversion_scale = 1.0;
+    analy->zbias_beams = TRUE;
+    analy->beam_zbias = DFLT_ZBIAS;
+    analy->edge_zbias = DFLT_ZBIAS;
 
     analy->result = NEW_N( float, analy->geom_p->nodes->cnt, "Result" );
     if ( analy->geom_p->beams != NULL )
