@@ -259,6 +259,7 @@ Analysis *analy;
     analy->zbias_beams = TRUE;
     analy->beam_zbias = DFLT_ZBIAS;
     analy->edge_zbias = DFLT_ZBIAS;
+    analy->z_buffer_lines = TRUE;
 
     analy->result = NEW_N( float, analy->geom_p->nodes->cnt, "Result" );
     if ( analy->geom_p->beams != NULL )
