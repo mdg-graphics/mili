@@ -865,7 +865,7 @@ extern void compute_vector_component();
 /* frame.c */
 extern void global_to_local_mtx();
 extern void transform_tensors();
-extern Bool_type transform_stress_strain();
+extern Bool_type transform_primal_stress_strain();
 
 /* explode.c */
 extern int associate_matl_exp();

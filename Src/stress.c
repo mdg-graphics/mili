@@ -65,7 +65,8 @@ float *resultArr;
                               "No transformation coordinate system has",
                               "been specified; results are not transformed." );
             }
-            else if ( !transform_stress_strain( VAL_HEX_SIGX, TRUE, analy ) )
+            else if ( !transform_primal_stress_strain( VAL_HEX_SIGX, TRUE, 
+                                                       analy ) )
             {
                 popup_dialog( WARNING_POPUP, "%s\n%s",
                               "Stress tensor coordinate transformation failed.",
@@ -393,7 +394,7 @@ float *resultArr;
                               "No transformation coordinate system has",
                               "been specified; results are not transformed." );
             }
-            else if ( !transform_stress_strain( base, TRUE, analy ) )
+            else if ( !transform_primal_stress_strain( base, TRUE, analy ) )
             {
                 popup_dialog( WARNING_POPUP, "%s\n%s",
                               "Stress tensor coordinate transformation failed.",

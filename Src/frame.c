@@ -125,17 +125,22 @@ float mat[][3];
 
 
 /************************************************************
- * TAG( transform_stress_strain )
+ * TAG( transform_primal_stress_strain )
  *
- * Transform stress or strain tensors for hex or shell 
+ * Transform primal stress or strain tensors for hex or shell 
  * elements at the current state according to the currently 
  * defined coordinate transformation matrix.
  *
  * The transformed components are left in analy->tmp_result.
+ * as a contiguous array of tensors if single_component is 
+ * TRUE (and the specified component is in the appropriate
+ * element-result array), otherwise they are separated into
+ * individual component arrays in analy->tmp_result[0] through
+ * analy->tmp_result[5].
  */
 Bool_type
-transform_stress_strain( which, single_component, analy )
-int which;
+transform_primal_stress_strain( primal_base, single_component, analy )
+int primal_base;
 Bool_type single_component;
 Analysis *analy;
 {
@@ -143,13 +148,28 @@ Analysis *analy;
     Bool_type rval;
 
     /* Load the tensors for all elements from the database. */
-    rval = get_tensor_result( analy->cur_state, which, 
+    rval = get_tensor_result( analy->cur_state, primal_base, 
                               analy->tmp_result[0] );
     if ( !rval )
         return FALSE;
     
-    qty = ( which == VAL_HEX_SIGX ) ? analy->geom_p->bricks->cnt
-                                    : analy->geom_p->shells->cnt;
+    switch ( primal_base )
+    {
+        case VAL_HEX_SIGX:
+            qty = analy->geom_p->bricks->cnt;
+            break;
+            
+        case VAL_SHELL_SIGX_MID:
+        case VAL_SHELL_SIGX_IN:
+        case VAL_SHELL_SIGX_OUT:
+        case VAL_SHELL_EPSX_IN:
+        case VAL_SHELL_EPSX_OUT:
+            qty = analy->geom_p->shells->cnt;
+            break;
+        
+        default:
+            qty = 0; /* Shouldn't get here. */
+    }
     
     /* Do it... */
     transform_tensors( qty, analy->tmp_result[0],
@@ -159,7 +179,7 @@ Analysis *analy;
      * Re-order tensors into separate component arrays (i.e., x,
      * y, z, xy, yz, zx) before returning.
      */
-    return transpose_tensors( which, single_component, analy );
+    return transpose_tensors( qty, primal_base, single_component, analy );
 }
 
 
@@ -167,21 +187,20 @@ Analysis *analy;
  * TAG( transpose_tensors )
  *
  * Transpose the tensors in analy->tmp_result[0], storing back
- * into analy->tmp_result[0...5].
+ * into analy->tmp_result[0...5] unless single_componet is
+ * TRUE.
  */
 static Bool_type
-transpose_tensors( which, single_component, analy )
-int which;
+transpose_tensors( qty, primal_base, single_component, analy )
+int qty;
+int primal_base;
 Bool_type single_component;
 Analysis *analy;
 {
-    int qty, idx, i;
+    int idx, i;
     float *p_tmp, *p_t0, *p_t1, *p_t2, *p_t3, *p_t4, *p_t5;
     float (*tens)[6];
     double *p_dsrc, *p_dbound, *p_ddest;
-    
-    qty = ( which == VAL_HEX_SIGX ) ? analy->geom_p->bricks->cnt
-                                    : analy->geom_p->shells->cnt;
     
     /* 
      * If only a single component is required, transpose back into
@@ -192,16 +211,32 @@ Analysis *analy;
     if ( single_component )
     {
         tens = (float (*)[6]) analy->tmp_result[0];
+    
+        switch ( primal_base )
+        {
+            case VAL_HEX_SIGX:
+                p_t0 = analy->hex_result;
+                idx = analy->result_id - VAL_SHARE_SIGX;
+                break;
+                
+            case VAL_SHELL_SIGX_MID:
+            case VAL_SHELL_SIGX_IN:
+            case VAL_SHELL_SIGX_OUT:
+                p_t0 = analy->shell_result;
+                idx = analy->result_id - VAL_SHARE_SIGX;
+                break;
 
-        if ( which == VAL_HEX_SIGX )
-        {
-            p_t0 = analy->hex_result;
-            idx = analy->result_id - VAL_SHARE_SIGX;
-        }
-        else
-        {
-            p_t0 = analy->shell_result;
-            idx = analy->result_id - VAL_SHARE_EPSX;
+            case VAL_SHELL_EPSX_IN:
+            case VAL_SHELL_EPSX_OUT:
+                p_t0 = analy->shell_result;
+                idx = analy->result_id - VAL_SHARE_EPSX;
+                break;
+            
+            default:
+                popup_dialog( WARNING_POPUP, "%s\n%s", 
+                              "Unknown base result for tensor transposition;",
+                              "Results are incorrect." );
+                qty = 0;
         }
                                          
         /* Extract the requested component into the result array. */

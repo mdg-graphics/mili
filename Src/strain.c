@@ -666,7 +666,7 @@ float *resultArr;
             {
                 case MIDDLE:
                     /* Get transformed inner surface strain. */
-                    transform_stress_strain( in, FALSE, analy );
+                    transform_primal_stress_strain( in, FALSE, analy );
                     
                     /* Save copy of requested inner surface strain. */
                     res1 = NEW_N( float, shell_cnt, "Temp shell stress" );
@@ -675,7 +675,7 @@ float *resultArr;
                         res1[i] = res2[i];
                     
                     /* Get transformed outer surface strain. */
-                    transform_stress_strain( out, analy );
+                    transform_primal_stress_strain( out, FALSE, analy );
                     /* "res2" now references outer surface strain. */
 
                     for ( i = 0; i < shell_cnt; i++ )
@@ -685,10 +685,10 @@ float *resultArr;
 
                     break;
                 case INNER:
-                    transform_stress_strain( in, TRUE, analy );
+                    transform_primal_stress_strain( in, TRUE, analy );
                     break;
                 case OUTER:
-                    transform_stress_strain( out, TRUE, analy );
+                    transform_primal_stress_strain( out, TRUE, analy );
                     break;
             }
         }
