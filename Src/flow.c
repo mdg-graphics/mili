@@ -1353,8 +1353,9 @@ Analysis *analy;
     float *tmp_res;
     float *vec_result[3];
     float vmag, vmin, vmax;
-    Bool_type init;
+    Bool_type init, convert;
     int i, j, nd, node_cnt;
+    float scale, offset;
 
     if ( analy->show_vectors == FALSE || analy->vec_pts == NULL )
         return;
@@ -1382,6 +1383,13 @@ Analysis *analy;
     }
     analy->result_id = tmp_id;
     analy->result = tmp_res;
+    
+    convert = analy->perform_unit_conversion;
+    if ( convert )
+    {
+        scale = analy->conversion_scale;
+        offset = analy->conversion_offset;
+    }
 
     /* Get the min and max magnitude for the vector result. */
 /*
@@ -1393,6 +1401,13 @@ Analysis *analy;
 /*
     for ( i = 0; i < node_cnt; i++ )
     {
+        if ( convert )
+        {
+            vec_result[0][i] = vec_result[0][i] * scale + offset;
+            vec_result[1][i] = vec_result[1][i] * scale + offset;
+            vec_result[2][i] = vec_result[2][i] * scale + offset;
+        }
+        
         vec[0] = vec_result[0][i];
         vec[1] = vec_result[1][i];
         vec[2] = vec_result[2][i];
@@ -1419,6 +1434,16 @@ Analysis *analy;
     /* Interpolate the nodal vectors to get the vectors at the
      * grid points.
      */
+    if ( convert )
+    {
+        for ( i = 0; i < node_cnt; i++ )
+        {
+            vec_result[0][i] = vec_result[0][i] * scale + offset;
+            vec_result[1][i] = vec_result[1][i] * scale + offset;
+            vec_result[2][i] = vec_result[2][i] * scale + offset;
+        }
+    }
+        
     for ( pt = analy->vec_pts; pt != NULL; pt = pt->next )
     {
         VEC_SET( pt->vec, 0.0, 0.0, 0.0 );
