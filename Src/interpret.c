@@ -1048,7 +1048,11 @@ Analysis *analy;
             for ( i = 1; i < token_cnt; i++ )
             {
                 sscanf( tokens[i], "%d", &ival );
+/**/
+/*
                 if ( ival > 0 && ival <= analy->num_materials )
+*/
+                if ( ival > 0 && ival <= MAX_MATERIALS )
                     analy->hide_material[ival-1] = setval;
             }
         }
@@ -1076,7 +1080,11 @@ Analysis *analy;
             for ( i = 1; i < token_cnt; i++ )
             {
                 sscanf( tokens[i], "%d", &ival );
+/**/
+/*
                 if ( ival > 0 && ival <= analy->num_materials )
+*/
+                if ( ival > 0 && ival <= MAX_MATERIALS )
                     analy->disable_material[ival-1] = setval;
             }
         }

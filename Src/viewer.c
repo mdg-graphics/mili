@@ -297,9 +297,16 @@ Analysis *analy;
 		 ").\nContact the Methods Development Group." );
 	popup_fatal( mbuf );
     }
+/**/
+/* 
     analy->hide_material = NEW_N( Bool_type, analy->num_materials,
                                  "Material visibility" );
     analy->disable_material = NEW_N( Bool_type, analy->num_materials,
+                                     "Material-based result disabling" );
+*/
+    analy->hide_material = NEW_N( Bool_type, MAX_MATERIALS,
+                                 "Material visibility" );
+    analy->disable_material = NEW_N( Bool_type, MAX_MATERIALS,
                                      "Material-based result disabling" );
     for ( i = 0; i < 3; i++ )
         analy->mtl_trans[i] = NEW_N( float, analy->num_materials,
