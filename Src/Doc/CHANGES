@@ -870,3 +870,15 @@ Bug fixes
     (Sanford)
 
 
+February 13 1997
+
+Bug fix
+    Updated effective stress calculation for hex's and
+    shells with a re-derived expression (courtesy of E.
+    Zywicz) that avoids the possibility of a negative input
+    to the sqrt() function.  This was causing bombs under
+    UNICOS when the calculated pressure was exactly opposite
+    the sigma 1, 2, and 3 components, but adding them together
+    produced a small negative number instead of zero. (Speck)
+
+
