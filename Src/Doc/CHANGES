@@ -1216,3 +1216,12 @@ New result
         are in effect). (Speck)
 
 
+March 24, 1998
+                     
+New functionality
+    Griz has an initial capability to detect and read
+    LS-Dyna plot databases.  Due to conflicts in the 
+    interpretation of certain control words between
+    Livermore Software and MDG codes, it's not clear how
+    robust this initial capability is, but we will
+    continue to refine it as necessary. (Speck)

@@ -1,8 +1,16 @@
 $Id$
 ************************************************************
-                      Updated: 1/9/98
+                      Updated: 3/24/98
 
                      WELCOME TO GRIZ 2.0
+                     
+New functionality
+    Griz has an initial capability to detect and read
+    LS-Dyna plot databases.  Due to conflicts in the 
+    interpretation of certain control words between
+    Livermore Software and MDG codes, it's not clear how
+    robust this initial capability is, but we will
+    continue to refine it as necessary.
 
 New commands
     dirv <x component> <y component> [<z component>]
