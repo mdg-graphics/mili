@@ -625,7 +625,7 @@ Analysis *analy;
             }
             else
             {
-                incr_ax[i] = min_ax[i];
+                incr_ax[i] = (float) fabs( (double) min_ax[i] );
                 min_ax[i] = min_ax[i] - fabs( (double)min_ax[i] );
                 max_ax[i] = max_ax[i] + fabs( (double)max_ax[i] );
             }
