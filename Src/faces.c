@@ -2531,3 +2531,153 @@ fprintf( stderr, "\nNumber of blocks: %d\n\n", analy->num_blocks );
 }
 
 
+/************************************************************
+ * TAG( write_ref_file )
+ *
+ * Write out the current face table (or a subset thereof)
+ * as a reference surface file.
+ */
+void
+write_ref_file( tokens, token_cnt, analy )
+char tokens[MAXTOKENS][TOKENLENGTH];
+int token_cnt;
+Analysis *analy;
+{
+    FILE *ofile;
+    int i, j, k;
+    int **nodes;
+    int fc, el;
+    float *p_f;
+    float verts[4][3];
+    float *xyz_cons[3];
+    float con;
+    float *constraints;
+    int xyz_qtys[3];
+    static char xyz_chars[] = { 'x', 'y', 'z' };
+    int c_qty, out_qty;
+
+    if ( token_cnt == 1 )
+    {
+	popup_dialog( USAGE_POPUP, "outref <filename> [x|y|z <coord>]..." );
+	return;
+    }
+    
+    nodes = analy->geom_p->bricks->nodes;
+    
+    ofile = fopen( tokens[1], "w" );
+    if ( ofile == NULL )
+    {
+	popup_dialog( WARNING_POPUP, "Unable to open file \"%s\".", tokens[1] );
+	return;
+    }
+    
+    if ( token_cnt == 2 )
+    {
+	/* No constraints; dump all external faces. */
+	
+	/* Face count. */
+	fprintf( ofile, "%d\n", analy->face_cnt );
+	    
+	for ( i = 0; i < analy->face_cnt; i++ )
+	{
+	    el = analy->face_el[i];
+	    fc = analy->face_fc[i];
+    
+	    fprintf( ofile, "%d %d %d %d\n", 
+		     nodes[ fc_nd_nums[fc][0] ][el] + 1, 
+		     nodes[ fc_nd_nums[fc][1] ][el] + 1, 
+		     nodes[ fc_nd_nums[fc][2] ][el] + 1, 
+		     nodes[ fc_nd_nums[fc][3] ][el] + 1 );
+	}
+    }
+    else
+    {
+	/* Extract constraints. */
+	c_qty = (token_cnt - 2) / 2;
+	if ( c_qty * 2 + 2 != token_cnt )
+	{
+	    popup_dialog( USAGE_POPUP, "outref <filename> [x|y|z <coord>]..." );
+	    return;
+	}
+	
+	constraints = NEW_N( float, c_qty, "Outref constraint list" );
+	
+	/* Loop to find x, y, and z constraints sequentially. */
+	p_f = constraints;
+	for ( i = 0; i < 3; i++ )
+	{
+	    xyz_cons[i] = p_f;
+	    xyz_qtys[i] = 0;
+	    
+	    /* Scan entire constraints list for current coord constraints. */
+	    for ( j = 2; j < token_cnt; j += 2 )
+	        if ( tokens[j][0] == xyz_chars[i] )
+		{
+		    /* Found one.  Save constraint value. */
+		    *p_f++ = (float) atof( tokens[j + 1] );
+		    xyz_qtys[i]++;
+		}
+	}
+	
+	if ( p_f - constraints != c_qty )
+	{
+	    free( constraints );
+	    popup_dialog( USAGE_POPUP, "outref <filename> [x|y|z <coord>]..." );
+	    return;
+	}
+	
+	/*
+	 * Now write the file.
+	 */
+	
+	/* Write a blank first line since we don't know the count yet. */
+	fwrite( "          \n", 1, 11, ofile );
+	
+	/* Loop over external faces. */
+	out_qty = 0;
+	for ( i = 0; i < analy->face_cnt; i++ )
+	{
+	    el = analy->face_el[i];
+	    fc = analy->face_fc[i];
+	    
+            get_face_verts( el, fc, analy, verts );
+	    
+	    /* For each dimension... */
+	    for ( j = 0; j < 3; j++ )
+	    {
+	        /* For each constraint for this dimension... */
+		for ( k = 0; k < xyz_qtys[j]; k++ )
+		{
+		    con = xyz_cons[j][k];
+		    
+		    /* Compare coord for all four nodes. */
+		    if ( fabs( verts[0][j] - con ) < 0.001
+		         && fabs( verts[1][j] - con ) < 0.001
+		         && fabs( verts[2][j] - con ) < 0.001
+		         && fabs( verts[3][j] - con ) < 0.001 )
+		    {
+			/* Face matches constraint; write it out. */
+			fprintf( ofile, "%d %d %d %d\n", 
+				 nodes[ fc_nd_nums[fc][0] ][el] + 1, 
+				 nodes[ fc_nd_nums[fc][1] ][el] + 1, 
+				 nodes[ fc_nd_nums[fc][2] ][el] + 1, 
+				 nodes[ fc_nd_nums[fc][3] ][el] + 1 );
+			
+			out_qty++;
+		    }
+		}
+	    }
+    
+	}
+	
+	/* Now overwrite the first line with the correct face count. */
+	fseek( ofile, 0, SEEK_SET );
+	fprintf( ofile, "%d", out_qty );
+    }
+    
+    free( constraints );
+    
+    fclose( ofile );
+}
+
+
