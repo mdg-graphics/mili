@@ -1,0 +1,9 @@
+# $Id$
+#
+#!/bin/sh
+#
+GRIZHOME=_grizhome_
+HFONTLIB=_hfontlib_
+export HFONTLIB GRIZHOME
+#
+$GRIZHOME/_grizbin_ $*

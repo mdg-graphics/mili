@@ -1,0 +1,165 @@
+$Id$
+
+************************************************************************
+*                                                                      *
+*                 *****    *******    ******  *********                *
+*                *******   ********   ******  *********                *
+*               ***   ***  **     **    **         ***                 *
+*               **         **     **    **        ***                  *
+*               **         ********     **       ***                   *
+*               **  *****  *******      **      ***                    *
+*               **  *****  **  **       **     ***                     *
+*               ***   ***  **   **      **    ***                      *
+*                ********  **    **   ******  *********                *
+*                 **** **  **     **  ******  *********                *
+*                                                                      *
+************************************************************************
+                                                                        
+************************************************************************
+*                                                                      *
+*   GRIZ is an application for interactive visualization of finite     *
+*   element analysis results on unstructured grids.                    *
+*                                                                      *
+*   The following user manual is provided in PostScript form in the    *
+*   ./Doc subdirectory:                                                *
+*                                                                      *
+*   GRIZ: Finite Element Analysis Results Visualization for            *
+*      Unstructured Grids: User Manual                                 *
+*   UCRL-MA-115696 Rev. 1                                              *
+*   Douglas E. Speck and Donald J. Dovey                               *
+*   March, 1996                                                        *
+*                                                                      *
+************************************************************************
+
+************************************************************************
+*                                                                      *
+*   For additional information, consult the user's manual or contact:  *
+*                                                                      *
+*   Doug Speck                                                         *
+*   Methods Development Group                                          *
+*   Lawrence Livermore National Laboratory                             *
+*   L-125, P.O. Box 808                                                *
+*   Livermore, CA  94550                                               *
+*   Telephone: (510) 423-4208                                          *
+*   e-mail: despeck@llnl.gov                                           *
+*                                                                      *
+************************************************************************
+
+************************************************************************
+*                             Please Note                              *
+*                                                                      *
+*   Recipients of GRIZ may NOT redistribute the source to other        *
+*   facilities.  Rather, requests for the code should be directed      *
+*   to the Methods Development Group at LLNL.                          *
+*                                                                      *
+************************************************************************
+
+
+                     Compiling and Running GRIZ
+
+To compile GRIZ, you will need the OpenGL and Motif libraries and a basic
+knowledge of UNIX makefiles.  The GRIZ Makefile builds the GRIZ executable
+as well as a shell script used to run GRIZ.  The script makes assignments
+to environment variables used by GRIZ, making it unnecessary for users to
+define the variables themselves.
+
+Steps to compile and run GRIZ:
+
+  1.) Go into the Hershey/src subdirectory and edit the Makefile, changing
+      the GRIZHOME symbol to the correct path.  Then type "make" to 
+      compile libhershey.a.
+
+  2.) Go into the Image subdirectory and type "make" to build libimage.a.
+
+  3.) If you anticipate needing any of the utility programs (these are
+      not required for GRIZ operation), go to the Utils subdirectory and 
+      type "make".
+
+  4.) Return to the GRIZ home directory, copy the Makefile template
+      Makefile.in to file Makefile, then edit the Makefile, setting symbols 
+      appropriately per the comments. Type "make" to compile GRIZ and
+      create the GRIZ shell script.
+
+  5.) If GRIZ is being maintained in a central location for multiple users,
+      there is a facility provided whereby the installation maintainer
+      can put up announcements and other messages to users when GRIZ is
+      first executed. GRIZ looks for a text file called "griz_start_text"
+      in a location defined by a "GRIZHOME" environment variable.  If
+      GRIZ finds this file, it copies the text contained therein into the
+      feedback window at startup.  An example of a "griz_start_text" file
+      exists in the GRIZ source directory.
+
+  6.) If it is desired not to run GRIZ from the "griz" shell script, each 
+      user must set for himself/herself the environment variables defined 
+      in the script.
+      
+      At the time of this writing, there are two environment variables
+      used, "HFONTLIB" and "GRIZHOME".  "HFONTLIB" _must_ be defined for
+      GRIZ to run, and it should specify the path to the directory
+      containing the Hershey font file "futura.l".  This file is found
+      initially in the directory "./Hershey/hfonts" after step one above.
+
+      Here is a sample specification that could be placed in a user's
+      .cshrc file if the GRIZ source tree started at /usr/local/Griz:
+
+          setenv HFONTLIB /usr/local/Griz/Hershey/hfonts
+
+      The "GRIZHOME" environment variable is optional when running the
+      GRIZ binary directly. If "GRIZHOME" is undefined when the GRIZ 
+      binary executes, there will simply be no startup announcements 
+      displayed in the feedback window.
+
+  7.) The GRIZ User Manual is provided in PostSript form in the ./Doc
+      subdirectory.  It is formatted as a two-sided document so users, if
+      they desire, can save paper by printing it once and duplicating it 
+      appropriately.
+
+
+You should now have a working version of GRIZ.  Two test data plotfile
+families are provided in the "Data" subdirectory.  These databases were
+created on 32-bit, IEEE floating point format, Big-Endian workstations,
+so they will not work on DEC or Cray platforms, but should work on SGI, 
+Sun, HP, or IBM platforms.  To run GRIZ against a test database, type
+
+          griz -i Data/testplot
+or
+          griz -i Data/cylplot
+
+New users are advised to peruse the User Manual first to get an idea of
+what GRIZ will do (and how to do it).
+
+
+
+                        About portability...
+
+GRIZ is developed/maintained on SGI workstations, but technically should 
+compile and run on any platform with Motif and OpenGL available.  As of
+early 1996, we had compiled and run GRIZ V2.0 on Sun Solaris, Cray UNICOS,
+DEC OSF, and HPUX platforms using the freeware implementation of OpenGL called
+"Mesa", on DEC OSF with DEC's native OpenGL library, and on Sun Solaris 
+with Template Graphics Software and Portable Graphics implementations  of
+OpenGL. The Makefile contains some comments about compilation on some of 
+these platforms. None of the compilations behaved identically in all tested
+operations to the SGI version (and some clearly "buggy" behavior was
+observed in some cases), but all were usable if not particularly fast.  
+Commercial and vendor-native OpenGL implementations should take advantage 
+of hardware acceleration if it is available.
+
+GRIZ does make some function calls to routines that are apparently not
+available on all UNIX platforms.  In file draw.c, there are references to
+single-precision math functions tanf() and atan2f().  These functions were
+found only under IRIX, HPUX, and OSF, and were ifdef'd to the usual double
+precision versions on other platforms. In file misc.c, subroutine 
+timing_vals() references a BSD function getrusage() to support timing 
+evaluations.  This function was not found under UNICOS or HPUX, and on
+those platforms the reference to getrusage() is ifdef'd out and the timing 
+counts are set to zero.  Therefore, under those two operating systems, the
+command "on timing" will not produce any useful information.
+
+It may be that some of these routines are available on more platforms than 
+we found them on, depending on which libraries are installed.  The Methods 
+Development Group welcomes any additional information that GRIZ users 
+might uncover regarding the availability of these or other "standard" routines. 
+
+
+
