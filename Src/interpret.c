@@ -811,6 +811,8 @@ Analysis *analy;
                 analy->keep_max_bbox_extent = setval;
             else if ( strcmp( tokens[i], "autosz" ) == 0 )
                 analy->auto_frac_size = setval;
+            else if ( strcmp( tokens[i], "lighting" ) == 0 )
+                v_win->lighting = setval;
             else
                 wrt_text( "On/Off command unrecognized: %s\n", tokens[i] );
         } 
