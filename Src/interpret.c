@@ -1680,7 +1680,7 @@ Analysis *analy;
     }
     else if ( strcmp( tokens[0], "ptstat" ) == 0 )
     {
-	if ( token_cnt < 5 )
+	if ( token_cnt < 4 )
 	    valid_command = FALSE;
 	else
 	{
@@ -2577,33 +2577,37 @@ Analysis *analy;
         DELETE_LIST( analy->ref_polys );
         redraw = TRUE;
     }
+    else if ( strcmp( tokens[0], "outref" ) == 0 )
+    {
+	write_ref_file( tokens, token_cnt, analy );
+    }
     else if ( strcmp( tokens[0], "outobj" ) == 0 )
     {
         if ( token_cnt > 1 )
             write_obj_file( tokens[1], analy );
         else
-            wrt_text( "Filename needed for outobj command.\n" );
+            popup_dialog( USAGE_POPUP, "outobj <filename>" );
     }
     else if ( strcmp( tokens[0], "outhid" ) == 0 )
     {
         if ( token_cnt > 1 )
             write_hid_file( tokens[1], analy );
         else
-            wrt_text( "Filename needed for outhid command.\n" );
+            popup_dialog( USAGE_POPUP, "outhid <filename>" );
     }
     else if ( strcmp( tokens[0], "outvc" ) == 0 )
     {
         if ( token_cnt > 1 )
             write_vv_connectivity_file( tokens[1], analy );
         else
-            wrt_text( "Filename needed for outvc command.\n" );
+            popup_dialog( USAGE_POPUP, "outvc <filename>" );
     }
     else if ( strcmp( tokens[0], "outvv" ) == 0 )
     {
         if ( token_cnt > 1 )
             write_vv_state_file( tokens[1], analy );
         else
-            wrt_text( "Filename needed for outvv command.\n" );
+            popup_dialog( USAGE_POPUP, "outvv <filename>" );
     }
     else if ( strcmp( tokens[0], "pref" ) == 0 )
     {
