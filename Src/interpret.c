@@ -597,6 +597,36 @@ Analysis *analy;
             load_analysis( tokens[1], analy );
         redraw = TRUE;
     }
+    else if ( strcmp( tokens[0], "bufqty" ) == 0 )
+    {
+        if ( token_cnt == 3 )
+	{
+	    if ( strcmp( tokens[1], "all" ) == 0 )
+	        i = ALL_OBJECT_T;
+	    else if ( strcmp( tokens[1], "n" ) == 0 )
+	        i = NODE_T;
+	    else if ( strcmp( tokens[1], "h" ) == 0 )
+	        i = BRICK_T;
+	    else if ( strcmp( tokens[1], "s" ) == 0 )
+	        i = SHELL_T;
+	    else if ( strcmp( tokens[1], "b" ) == 0 )
+	        i = BEAM_T;
+	    else
+	        valid_command = FALSE;
+	
+	    j = atoi( tokens[2] );
+	    if ( j < 0 )
+	        valid_command = FALSE;
+	}
+	else
+	    valid_command = FALSE;
+	
+	if ( valid_command )
+	    set_input_buffer_qty( i, j );
+	else
+	    popup_dialog( USAGE_POPUP, 
+	                  "bufqty { all | n | b | s | h } <buffer qty>" );
+    }
     else if ( strcmp( tokens[0], "rview" ) == 0 )
     {
             reset_mesh_transform();
@@ -768,6 +798,8 @@ Analysis *analy;
                 analy->show_extern_polys = setval;
             else if ( strcmp( tokens[i], "timing" ) == 0 )
                 env.timing = setval;
+            else if ( strcmp( tokens[i], "derivtime" ) == 0 )
+                env.result_timing = setval;
             else if ( strcmp( tokens[i], "thsm" ) == 0 )
                 analy->th_smooth = setval;
             else if ( strcmp( tokens[i], "conv" ) == 0 )
