@@ -930,7 +930,7 @@ New functionality
     planes. (Speck)
     
     The warning popup dialog for an "rnf" failure has
-    been re-written to be more helpful.
+    been re-written to be more helpful. (Speck)
 
 
 April 1 1997
@@ -949,7 +949,7 @@ New commands
 	speedups for result computations which require
 	as inputs several primal results from the plotfile
 	database.  With no buffering, each primal result
-	causes disk access.  
+	causes disk access. 
 	
 	When viewing results at interpolated time values, 
 	a buffer quantity of two can offer further 
@@ -959,7 +959,7 @@ New commands
 	using two buffers, and unless memory is an issue
 	users may wish to make that their normal operating
 	mode.  For most users, there's probably no advantage
-	in ever setting the buffer quantity above two.
+	in ever setting the buffer quantity above two. (Speck)
     
     on derivtime
         Turn on timing of derived result computation.  This
@@ -969,10 +969,11 @@ New commands
 	monitoring interface precludes simultaneous
 	evaluations.  They can both be "on" simultaneously,
 	but only the "timing" metric will cause output.
+	(Speck)
 
 Internal change
     Added RENEW_N macro (misc.h) and supporting verbose_realloc()
-    function (misc.c).
+    function (misc.c). (Speck)
 
 
 April 4 1997
@@ -995,20 +996,20 @@ New result
 	(correct) tensor strain rate calculation that is 
 	performed on hex element strain results when
 	"switch rate" is in effect.  For those strains,
-	the annotation is "Strain Type: Rate".
+	the annotation is "Strain Type: Rate". (Speck)
 
 New functionality
     Results that are affected by the element reference
     frame, strain type, or shell surface now have
     annotations giving the current settings of those
     parameters appended to their Y-axis labels on
-    time history plots.
+    time history plots. (Speck)
     
 Bug fix
     Calculation of hex strains when "switch rate" is in
     effect has been made approximately five times faster
     by restructuring the logic to eliminate redundant 
-    disk accesses.
+    disk accesses. (Speck)
 
 
 May 16 1997
@@ -1018,4 +1019,19 @@ Bug fix
     displacement scaling ("dscal", "dscalx", etc.) into
     account.  Note that when centering the view on an 
     arbitrary point in space, displacement scale factors 
-    have no effect.
+    have no effect. (Speck)
+
+
+May 19 1997
+
+New command
+    on/off lighting
+        Turn on or off use of lighting calculation to shade
+	mesh polygons of 3D meshes.  By default, lighting
+	is on.  With lighting off, shading of facets is 
+	independent of their orientation.  This can allow
+	more accurate interpretation of color fringes, but
+	spatial orientation cues provided by lit facets are
+	lost.  Rendering time is approximately 10 percent
+	faster with lighting off. (Speck)
+

@@ -1,6 +1,6 @@
 $Id$
 ************************************************************
-                      Updated: 5/16/97
+                      Updated: 5/19/97
 
                      WELCOME TO GRIZ 2.0
 
@@ -79,6 +79,17 @@ New commands
 	users may wish to make that their normal operating
 	mode.  For most users, there's probably no advantage
 	in ever setting the buffer quantity above two.
+	
+    on/off lighting
+        Turn on or off use of lighting calculation to shade
+	mesh polygons of 3D meshes.  By default, lighting
+	is on.  With lighting off, shading of facets is 
+	independent of their orientation.  This can allow
+	more accurate interpretation of color fringes, but
+	spatial orientation cues provided by lit facets are
+	lost.  Rendering time is approximately 10 percent
+	faster with lighting off.
+	
 
 New functionality
     View centering ("vcent...") now centers the mesh in Z
