@@ -815,7 +815,7 @@ extern void compute_hex_relative_volume();
 extern void compute_share_stress();
 extern void compute_share_press();
 extern void compute_share_effstress();
-extern void compute_hex_principal_stress();
+extern void compute_share_prin_stress();
 extern void compute_shell_surface_stress();
 
 /* node.c */

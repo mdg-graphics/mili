@@ -52,13 +52,6 @@ typedef enum
     VAL_HEX_BEGIN,         /* DUMMY */
 
     VAL_HEX_RELVOL,        /* Relative volume */
-    VAL_HEX_SIG_PD1,       /* 1st prinicipal deviatoric stress */
-    VAL_HEX_SIG_PD2,       /* 2nd prinicipal deviatoric stress */
-    VAL_HEX_SIG_PD3,       /* 3rd prinicipal deviatoric stress */
-    VAL_HEX_SIG_MAX_SHEAR, /* Maximum shear stress */
-    VAL_HEX_SIG_P1,        /* 1st principal stress */
-    VAL_HEX_SIG_P2,        /* 2nd principal stress */
-    VAL_HEX_SIG_P3,        /* 3rd principal stress */
     VAL_HEX_EPS_PD1,       /* 1st principal deviatoric strain */
     VAL_HEX_EPS_PD2,       /* 2nd principal deviatoric strain */
     VAL_HEX_EPS_PD3,       /* 3rd principal deviatoric strain */
@@ -165,6 +158,13 @@ typedef enum
     VAL_SHARE_SIGYZ,       /* YZ stress */
     VAL_SHARE_SIGZX,       /* ZX stress */
     VAL_SHARE_SIG_EFF,     /* Effective stress */
+    VAL_SHARE_SIG_PD1,     /* 1st prinicipal deviatoric stress */
+    VAL_SHARE_SIG_PD2,     /* 2nd prinicipal deviatoric stress */
+    VAL_SHARE_SIG_PD3,     /* 3rd prinicipal deviatoric stress */
+    VAL_SHARE_SIG_MAX_SHEAR,/* Maximum shear stress */
+    VAL_SHARE_SIG_P1,      /* 1st principal stress */
+    VAL_SHARE_SIG_P2,      /* 2nd principal stress */
+    VAL_SHARE_SIG_P3,      /* 3rd principal stress */
     VAL_SHARE_EPSX,        /* X strain */
     VAL_SHARE_EPSY,        /* Y strain */
     VAL_SHARE_EPSZ,        /* Z strain */

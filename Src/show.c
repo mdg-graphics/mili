@@ -317,8 +317,7 @@ Result_spec *test;
 	    if ( analy->ref_surf != test->ref_surf )
 	        return FALSE;
 	    /* 
-	     * Reference frame needed for all but effective stress/strain
-	     * and pressure.
+	     * Reference frame needed for shared stresses and strains.
 	     */
 	    if ( ( result_id >= VAL_SHARE_SIGX
 	           && result_id <= VAL_SHARE_SIGZX )
@@ -332,8 +331,7 @@ Result_spec *test;
 	if ( analy->geom_p->bricks != NULL )
 	{
 	    /*
-	     * Strain variety needed for shared strains and
-	     * principal strains.
+	     * Strain variety needed for strains.
 	     */
 	    if ( ( result_id >= VAL_SHARE_EPSX
 	           && result_id <= VAL_SHARE_EPSZX )

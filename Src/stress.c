@@ -13,10 +13,12 @@
 
 
 static void compute_hex_effstress();
+static void compute_hex_principal_stress();
 static void compute_shell_effstress();
 static void compute_hex_press();
 static void compute_shell_press();
 static void compute_shell_stress();
+static void compute_shell_principal_stress();
 
 
 /************************************************************
@@ -82,6 +84,28 @@ float *resultArr;
 
     if ( analy->geom_p->shells != NULL )
         compute_shell_effstress( analy, resultArr );
+}
+
+
+/************************************************************
+ * TAG( compute_share_prin_stress )
+ *
+ * Computes the stress at nodes for hex and shell elements.
+ */
+void
+compute_share_prin_stress( analy, resultArr )
+Analysis *analy;
+float *resultArr;
+{
+    if ( analy->geom_p->bricks != NULL )
+    {
+        compute_hex_principal_stress( analy, resultArr );
+    }
+    else
+        memset( resultArr, 0, analy->geom_p->nodes->cnt * sizeof(float) );
+
+    if ( analy->geom_p->shells != NULL )
+        compute_shell_principal_stress( analy, resultArr );
 }
 
 
@@ -157,16 +181,10 @@ float *resultArr;
         for ( j = 0; j < 3; j++ )
             devStress[j] = hexStress[j][i] + pressure;
 
-        /* Calculate effective stress from deviatoric components. */
-	/* Updated derivation from E. Zywicz to avoid negative
-	 * square root operand seen under UNICOS.
-	 * Old:
-         *      resultElem[i] = -( devStress[0]*devStress[1] +
-         *                         devStress[1]*devStress[2] +
-         *                         devStress[0]*devStress[2] ) +
-         *                      hexStress[3][i]*hexStress[3][i] +
-         *                      hexStress[4][i]*hexStress[4][i] +
-         *                      hexStress[5][i]*hexStress[5][i] ;
+        /* 
+	 * Calculate effective stress from deviatoric components.
+	 * Updated derivation avoids negative square root operand
+	 * (UNICOS, of course).
 	 */
         resultElem[i] = 0.5 * ( devStress[0]*devStress[0] +
                                 devStress[1]*devStress[1] +
@@ -188,7 +206,7 @@ float *resultArr;
  * Computes the principal deviatoric stresses and principal
  * stresses.
  */
-void
+static void
 compute_hex_principal_stress( analy, resultArr )
 Analysis *analy;
 float *resultArr;
@@ -227,12 +245,12 @@ float *resultArr;
         /* Calculate invariants of deviatoric tensor. */
         /* Invariant[0] = 0.0 */
         Invariant[0] = devStress[0] + devStress[1] + devStress[2];
-        Invariant[1] = -( devStress[0]*devStress[1] + 
-                          devStress[1]*devStress[2] + 
-                          devStress[0]*devStress[2] ) + 
-                          hexStress[3][i]*hexStress[3][i] +
-                          hexStress[4][i]*hexStress[4][i] +
-                          hexStress[5][i]*hexStress[5][i] ;
+        Invariant[1] = 0.5 * ( devStress[0]*devStress[0] 
+                               + devStress[1]*devStress[1] 
+                               + devStress[2]*devStress[2] ) 
+                       + hexStress[3][i]*hexStress[3][i] 
+                       + hexStress[4][i]*hexStress[4][i] 
+                       + hexStress[5][i]*hexStress[5][i];
         Invariant[2] = -devStress[0]*devStress[1]*devStress[2] -
                        2.0*hexStress[3][i]*hexStress[4][i]*hexStress[5][i] +
                        devStress[0]*hexStress[4][i]*hexStress[4][i] +
@@ -267,25 +285,25 @@ float *resultArr;
 
         switch ( analy->result_id )
         {
-            case VAL_HEX_SIG_PD1 :
+            case VAL_SHARE_SIG_PD1 :
                 resultElem[i] = princStress[0];
                 break;
-            case VAL_HEX_SIG_PD2 :
+            case VAL_SHARE_SIG_PD2 :
                 resultElem[i] = princStress[1];
                 break;
-            case VAL_HEX_SIG_PD3 :
+            case VAL_SHARE_SIG_PD3 :
                 resultElem[i] = princStress[2];
                 break;
-            case VAL_HEX_SIG_MAX_SHEAR :
+            case VAL_SHARE_SIG_MAX_SHEAR :
                 resultElem[i] = (princStress[0] - princStress[2]) / 2.0;
                 break;
-            case VAL_HEX_SIG_P1 :
+            case VAL_SHARE_SIG_P1 :
                 resultElem[i] = princStress[0] - pressure;
                 break;
-            case VAL_HEX_SIG_P2 :
+            case VAL_SHARE_SIG_P2 :
                 resultElem[i] = princStress[1] - pressure;
                 break;
-            case VAL_HEX_SIG_P3 :
+            case VAL_SHARE_SIG_P3 :
                 resultElem[i] = princStress[2] - pressure;
                 break;
         }
@@ -479,16 +497,10 @@ float *resultArr;
         for ( j = 0; j < 3; j++ )
             devStress[j] = shellStress[j][i] + pressure;
 
-        /* Calculate effective stress from deviatoric components. */
-	/* Updated derivation from E. Zywicz to avoid negative
-	 * square root operand seen under UNICOS.
-	 * Old:
-         *      resultElem[i] = -( devStress[0]*devStress[1] +
-         *                         devStress[1]*devStress[2] +
-         *                         devStress[0]*devStress[2] ) +
-         *                      shellStress[3][i]*shellStress[3][i] +
-         *                      shellStress[4][i]*shellStress[4][i] +
-         *                      shellStress[5][i]*shellStress[5][i] ;
+        /* 
+	 * Calculate effective stress from deviatoric components.
+	 * Updated derivation avoids negative square root operand
+	 * (UNICOS, of course).
 	 */
         resultElem[i] = 0.5 * ( devStress[0]*devStress[0] +
                                 devStress[1]*devStress[1] +
@@ -499,6 +511,143 @@ float *resultArr;
         resultElem[i] = sqrt( (double)(3.0*resultElem[i]) );
     }
     
+    shell_to_nodal( resultElem, resultArr, analy, TRUE );
+}
+
+
+/************************************************************
+ * TAG( compute_shell_principal_stress )
+ *
+ * Computes the principal deviatoric stresses and principal
+ * stresses.
+ */
+static void
+compute_shell_principal_stress( analy, resultArr )
+Analysis *analy;
+float *resultArr;
+{
+    Shell_geom *shells;
+    float *resultElem;               /* Element results vector. */
+    float *shellStress[6];           /* Ptr to element stresses. */
+    float devStress[3];              /* Deviatoric stresses,
+                                        only need diagonal terms. */
+    float Invariant[3];              /* Invariants of tensor. */
+    float princStress[3];            /* Principal values. */
+    float pressure;
+    float alpha, angle, value;
+    int i, j;
+    int shell_cnt;
+
+
+    if ( analy->state_p->activity_present )
+        shell_cnt = analy->state_p->shells->cnt;
+    else
+	shell_cnt = analy->geom_p->shells->cnt;
+
+    /* Load the pointers to the component arrays. */
+    for ( i = 0; i < 6; i++ )
+    {
+        switch ( analy->ref_surf )
+        {
+            case MIDDLE:
+                get_result( VAL_SHELL_SIGX_MID + i,
+                            analy->cur_state, analy->tmp_result[i] );
+                break;
+            case INNER:
+                get_result( VAL_SHELL_SIGX_IN + i,
+                            analy->cur_state, analy->tmp_result[i] );
+                break;
+            case OUTER:
+                get_result( VAL_SHELL_SIGX_OUT + i,
+                            analy->cur_state, analy->tmp_result[i] );
+                break;
+        }
+        shellStress[i] = analy->tmp_result[i];
+    }
+
+    resultElem = analy->shell_result;
+
+    /* Calculate deviatoric stresses. */
+    for ( i = 0; i < shell_cnt; i++ )
+    {
+        /* Calculate pressure as intermediate variable needed for
+         * determining deviatoric components.
+         */
+        pressure = -( shellStress[0][i] +
+                      shellStress[1][i] +
+                      shellStress[2][i] ) / 3.0;
+
+        /* Calculate deviatoric components of stress tensor. */
+        for ( j = 0; j < 3; j++ )
+            devStress[j] = shellStress[j][i] + pressure;
+
+        /* Calculate invariants of deviatoric tensor. */
+        /* Invariant[0] = 0.0 */
+        Invariant[0] = devStress[0] + devStress[1] + devStress[2];
+        Invariant[1] = 0.5 * ( devStress[0] * devStress[0]
+                               + devStress[1] * devStress[1]
+                               + devStress[2] * devStress[2] )
+                       + shellStress[3][i] * shellStress[3][i]
+                       + shellStress[4][i] * shellStress[4][i]
+                       + shellStress[5][i] * shellStress[5][i];
+        Invariant[2] = -devStress[0] * devStress[1] * devStress[2]
+                       - 2.0 * shellStress[3][i] * shellStress[4][i] * shellStress[5][i]
+                       + devStress[0] * shellStress[4][i] * shellStress[4][i]
+                       + devStress[1] * shellStress[5][i] * shellStress[5][i]
+                       + devStress[2] * shellStress[3][i] * shellStress[3][i];
+
+        /* Check to see if we can have non-zero divisor, if not 
+         * set principal stress to 0.
+         */
+        if ( Invariant[1] >= 1e-7 )
+        {
+            alpha = -0.5*sqrt( (double)27.0/Invariant[1])*
+                              Invariant[2]/Invariant[1];
+            if ( alpha < 0 ) 
+                alpha = MAX( alpha, -1.0 );
+            else if ( alpha > 0 )
+                alpha = MIN( alpha, 1.0 );
+            angle = acos((double)alpha) / 3.0;
+            value = 2.0 * sqrt( (double)Invariant[1]/3.0);
+            princStress[0] = value*cos((double)angle);
+            angle = angle - 2.0*M_PI/3.0;
+            princStress[1] = value*cos((double)angle);
+            angle = angle + 4.0*M_PI/3.0;
+            princStress[2] = value*cos((double)angle);
+        }
+        else
+        {
+            princStress[0] = 0.0;
+            princStress[1] = 0.0;
+            princStress[2] = 0.0;
+        }
+
+        switch ( analy->result_id )
+        {
+            case VAL_SHARE_SIG_PD1 :
+                resultElem[i] = princStress[0];
+                break;
+            case VAL_SHARE_SIG_PD2 :
+                resultElem[i] = princStress[1];
+                break;
+            case VAL_SHARE_SIG_PD3 :
+                resultElem[i] = princStress[2];
+                break;
+            case VAL_SHARE_SIG_MAX_SHEAR :
+                resultElem[i] = (princStress[0] - princStress[2]) / 2.0;
+                break;
+            case VAL_SHARE_SIG_P1 :
+                resultElem[i] = princStress[0] - pressure;
+                break;
+            case VAL_SHARE_SIG_P2 :
+                resultElem[i] = princStress[1] - pressure;
+                break;
+            case VAL_SHARE_SIG_P3 :
+                resultElem[i] = princStress[2] - pressure;
+                break;
+        }
+    }
+
     shell_to_nodal( resultElem, resultArr, analy, TRUE );
 }
 

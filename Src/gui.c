@@ -197,6 +197,13 @@ static int share_btns[] =
     VAL_SHARE_SIGYZ,
     VAL_SHARE_SIGZX,
     VAL_SHARE_SIG_EFF,
+    VAL_SHARE_SIG_PD1,       /* 1st prinicipal deviatoric stress */
+    VAL_SHARE_SIG_PD2,       /* 2nd prinicipal deviatoric stress */
+    VAL_SHARE_SIG_PD3,       /* 3rd prinicipal deviatoric stress */
+    VAL_SHARE_SIG_MAX_SHEAR, /* Maximum shear stress */
+    VAL_SHARE_SIG_P1,        /* 1st principle stress */
+    VAL_SHARE_SIG_P2,        /* 2nd principle stress */
+    VAL_SHARE_SIG_P3,        /* 3rd principle stress */
     VAL_SHARE_EPSX,
     VAL_SHARE_EPSY,
     VAL_SHARE_EPSZ,
@@ -211,13 +218,6 @@ static int share_btns[] =
 static int hex_btns[] =
 {
     VAL_HEX_RELVOL,        /* Relative volume */
-    VAL_HEX_SIG_PD1,       /* 1st prinicipal deviatoric stress */
-    VAL_HEX_SIG_PD2,       /* 2nd prinicipal deviatoric stress */
-    VAL_HEX_SIG_PD3,       /* 3rd prinicipal deviatoric stress */
-    VAL_HEX_SIG_MAX_SHEAR, /* Maximum shear stress */
-    VAL_HEX_SIG_P1,        /* 1st principle stress */
-    VAL_HEX_SIG_P2,        /* 2nd principle stress */
-    VAL_HEX_SIG_P3,        /* 3rd principle stress */
     VAL_HEX_EPS_PD1,       /* 1st prinicipal deviatoric strain */
     VAL_HEX_EPS_PD2,       /* 2nd prinicipal deviatoric strain */
     VAL_HEX_EPS_PD3,       /* 3rd prinicipal deviatoric strain */

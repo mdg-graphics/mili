@@ -77,20 +77,6 @@ char *trans_result[][4] =
     { (char *) VAL_NODE_A2,			"A2",
       (char *) compute_node_in_data,		"a2" },
 
-    { (char *) VAL_HEX_SIG_PD1,                 "Prin Dev Stress 1",
-      (char *) compute_hex_principal_stress,    "pdev1" },
-    { (char *) VAL_HEX_SIG_PD2,                 "Prin Dev Stress 2",
-      (char *) compute_hex_principal_stress,    "pdev2" },
-    { (char *) VAL_HEX_SIG_PD3,                 "Prin Dev Stress 3",
-      (char *) compute_hex_principal_stress,    "pdev3" },
-    { (char *) VAL_HEX_SIG_MAX_SHEAR,           "Maximum Shear Stress",
-      (char *) compute_hex_principal_stress,    "maxshr" },
-    { (char *) VAL_HEX_SIG_P1,                  "Principal Stress 1",
-      (char *) compute_hex_principal_stress,    "prin1" },
-    { (char *) VAL_HEX_SIG_P2,                  "Principal Stress 2",
-      (char *) compute_hex_principal_stress,    "prin2" },
-    { (char *) VAL_HEX_SIG_P3,                  "Principal Stress 3",
-      (char *) compute_hex_principal_stress,    "prin3" },
     { (char *) VAL_HEX_EPS_PD1,                 "Prin Dev Strain 1",
       (char *) compute_hex_strain,              "pdstrn1" },
     { (char *) VAL_HEX_EPS_PD2,                 "Prin Dev Strain 2",
@@ -163,6 +149,21 @@ char *trans_result[][4] =
 
     { (char *) VAL_SHARE_SIG_EFF,               "Effective Stress",
       (char *) compute_share_effstress,         "seff" },
+
+    { (char *) VAL_SHARE_SIG_PD1,               "Prin Dev Stress 1",
+      (char *) compute_share_prin_stress,       "pdev1" },
+    { (char *) VAL_SHARE_SIG_PD2,               "Prin Dev Stress 2",
+      (char *) compute_share_prin_stress,       "pdev2" },
+    { (char *) VAL_SHARE_SIG_PD3,               "Prin Dev Stress 3",
+      (char *) compute_share_prin_stress,       "pdev3" },
+    { (char *) VAL_SHARE_SIG_MAX_SHEAR,         "Maximum Shear Stress",
+      (char *) compute_share_prin_stress,       "maxshr" },
+    { (char *) VAL_SHARE_SIG_P1,                "Principal Stress 1",
+      (char *) compute_share_prin_stress,       "prin1" },
+    { (char *) VAL_SHARE_SIG_P2,                "Principal Stress 2",
+      (char *) compute_share_prin_stress,       "prin2" },
+    { (char *) VAL_SHARE_SIG_P3,                "Principal Stress 3",
+      (char *) compute_share_prin_stress,       "prin3" },
 
     { (char *) VAL_SHARE_EPSX,                  "X Strain",
       (char *) compute_share_strain,            "ex" },
@@ -402,8 +403,7 @@ Result_modifier_type modifiers[];
         modifiers[cnt++] = REFERENCE_SURFACE;
 	
         /* 
-         * Reference frame needed for all but effective stress/strain
-         * and pressure.
+         * Reference frame needed for shared stresses and strains.
          */
         if ( ( res_id >= VAL_SHARE_SIGX && res_id <= VAL_SHARE_SIGZX )
              || ( res_id >= VAL_SHARE_EPSX && res_id <= VAL_SHARE_EPSZX ) )
