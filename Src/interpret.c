@@ -322,6 +322,9 @@ Analysis *analy;
     Bool_type redraw, redrawview, renorm, setval, valid_command;
     int sz[3];
     int ival, i, j;
+    int start_state, stop_state;
+    char result_variable[1];
+    Bool_type tellmm_redraw;
 
     tokenize_line( buf, tokens, &token_cnt );
 
@@ -2135,6 +2138,119 @@ Analysis *analy;
     {
         get_global_minmax( analy );
 	redraw = TRUE;
+    }
+    else if ( strcmp( tokens[0], "tellmm" ) == 0 )
+    {
+        if ( token_cnt == 1 )
+        {
+            /*
+             * Undocumented format:
+             *
+             * tellmm <no arguments>    --     display minimums and maximums
+             *                                 for all states of current display result
+             */
+
+            result_variable[0] = '\0';
+            start_state        = 1;
+            stop_state         = analy->num_states;
+
+            tellmm( analy, result_variable, start_state, stop_state, &tellmm_redraw );
+
+            redraw = tellmm_redraw;
+        }
+        else if ( token_cnt == 2 )
+        {
+            if ( ((lookup_result_id( tokens[1] )) != -1) &&
+                 ((lookup_result_id( tokens[1] )) != VAL_NONE) )
+            {
+                /*
+                 * tellmm valid_result; NOTE:  result MAY NOT be materials
+                 */
+
+                start_state = 1;
+                stop_state  = analy->num_states;
+
+                tellmm( analy, tokens[1], start_state, stop_state, &tellmm_redraw );
+
+                redraw = tellmm_redraw;
+            }
+            else
+            {
+                /*
+                 * tellmm invalid_result
+                 */
+
+                popup_dialog( USAGE_POPUP
+                             ,"tellmm result [state 1] [state n]" );
+            }
+        }
+        else if ( token_cnt == 3 )
+        {
+            if ( ((lookup_result_id( tokens[1] )) != -1)       &&
+                 ((lookup_result_id( tokens[1] )) != VAL_NONE) &&
+                 (((int)strtol( tokens[2], (char **)NULL, 10 )) != 0) )
+            {
+                /*
+                 * tellmm valid_result state_number
+                 *
+                 * NOTE:  result MAY NOT be materials;
+                 *        state_number != 0
+                 */
+
+                start_state        = (int)strtol( tokens[2], (char **)NULL, 10);
+                stop_state         = start_state;
+
+                tellmm( analy, tokens[1], start_state, stop_state, &tellmm_redraw );
+
+                redraw = tellmm_redraw;
+            }
+            else
+            {
+                /*
+                 * tellmm invalid_result
+                 */
+
+                popup_dialog( USAGE_POPUP
+                             ,"tellmm result [state 1] [state n]" );
+            }
+        }
+        else if ( token_cnt == 4 )
+        {
+
+            if ( ((lookup_result_id( tokens[1] )) != -1)              &&
+                 ((lookup_result_id( tokens[1] )) != VAL_NONE)        &&
+                 (((int)strtol( tokens[2], (char **)NULL, 10 )) != 0) &&
+                 (((int)strtol( tokens[3], (char **)NULL, 10 )) != 0) )
+            {
+                /*
+                 * tellmm result state_number state_number
+                 *
+                 * NOTE:  result MAY NOT be materials;
+                 *        state_number != 0
+                 */
+
+                start_state = (int)strtol( tokens[2], (char **)NULL, 10);
+                stop_state  = (int)strtol( tokens[3], (char **)NULL, 10);
+
+                tellmm( analy, tokens[1], start_state, stop_state, &tellmm_redraw );
+
+                redraw = tellmm_redraw;
+            }
+            else
+            {
+                /*
+                 * tellmm invalid_result
+                 */
+
+                popup_dialog( USAGE_POPUP
+                             ,"tellmm result [state 1] [state n]" );
+            }
+        }
+        else
+        {
+            popup_dialog( USAGE_POPUP
+                         ,"tellmm result [state 1] [state n]" );
+        }
     }
     else if ( strcmp( tokens[0], "pause" ) == 0 )
     {
