@@ -28,3 +28,6 @@ To produce source code:
  notangle -L'%N' rtest_init.nw > rtest_init.py
 note: the first empty line must be removed.
  edit rtest_init.py
+
+clean:
+ rm *.aux *.log
