@@ -1094,6 +1094,9 @@ New functionality
     mouse and cursor are now toggles - the first pick
     selects (or hilites), another pick de-selects 
     (de-hilites). (Speck)
+    
+    The default font for the GUI has been changed to a
+    font which is widely supported across vendors. (Speck)
 
 Bug fix
     Routine compute_shell_eff_strain() was referencing

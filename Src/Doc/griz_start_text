@@ -160,6 +160,9 @@ New functionality
     selects (or hilites), another pick de-selects 
     (de-hilites).
     
+    The default font for the GUI has been changed to a
+    font which is widely supported across vendors.
+    
 Bug fixes
     Updated effective stress calculation for hex's and
     shells with a re-derived expression that avoids the 
