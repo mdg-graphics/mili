@@ -30,6 +30,8 @@
 /* Number of materials with settable properties. */
 #define MAX_MATERIALS 200
 
+/* Default depth-buffer bias for rendering lines in front of polygons. */
+#define DFLT_ZBIAS .005
 
 /*****************************************************************
  * TAG( Trace_segment_obj )
@@ -473,11 +475,15 @@ typedef struct _Analysis
     Bool_type th_smooth;
     int th_filter_width;
     Filter_type th_filter_type;
+    
+    Bool_type zbias_beams;
+    float beam_zbias;
 
     Bool_type show_edges;
     int m_edges_cnt;
     int *m_edges[2];
     int *m_edge_mtl;
+    float edge_zbias;
    
     int contour_cnt;
     float *contour_vals;
