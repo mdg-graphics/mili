@@ -1251,25 +1251,35 @@ Analysis *analy;
     else if ( strcmp( tokens[0], "bbox" ) == 0 )
     {
         ival = analy->dimension;
-	if ( token_cnt == 1 )
+	if ( token_cnt <= 2 )
 	{
-            bbox_nodes( analy, analy->bbox_source, FALSE, pt, vec );
-	    if ( analy->keep_max_bbox_extent )
-	    {
-		for ( i = 0; i < 3; i++ )
-		{
-		    if ( pt[i] < analy->bbox[0][i] )
-		        analy->bbox[0][i] = pt[i];
-		    if ( vec[i] > analy->bbox[1][i] )
-		        analy->bbox[1][i] = vec[i];
-		}
-	    }
-	    else
-	    {
-		VEC_COPY( analy->bbox[0], pt );
-		VEC_COPY( analy->bbox[1], vec );
-	    }
 	    redrawview = TRUE;
+	    
+	    if ( token_cnt == 1 )
+                bbox_nodes( analy, analy->bbox_source, FALSE, pt, vec );
+	    else if ( strcmp( tokens[1], "vis" ) == 0 )
+                bbox_nodes( analy, "v", FALSE, pt, vec );
+	    else
+	        redrawview = FALSE;
+	    
+	    if ( redrawview )
+	    {
+	        if ( analy->keep_max_bbox_extent )
+	        {
+		    for ( i = 0; i < 3; i++ )
+		    {
+		        if ( pt[i] < analy->bbox[0][i] )
+		            analy->bbox[0][i] = pt[i];
+		        if ( vec[i] > analy->bbox[1][i] )
+		            analy->bbox[1][i] = vec[i];
+		    }
+	        }
+	        else
+	        {
+		    VEC_COPY( analy->bbox[0], pt );
+		    VEC_COPY( analy->bbox[1], vec );
+	        }
+	    }
 	}
 	else if ( ival == 3 && token_cnt == 7 )
 	{
@@ -1287,7 +1297,8 @@ Analysis *analy;
 	}
 	if ( !redrawview )
 	    popup_dialog( USAGE_POPUP, 
-	                  "bbox [<xmin> <ymin> <zmin> <xmax> <ymax> <zmax>]" );
+	                  "bbox [%s | %s]"
+			  "vis", "<xmin> <ymin> <zmin> <xmax> <ymax> <zmax>" );
 	else
             set_view_to_bbox( analy->bbox[0], analy->bbox[1], ival );
     }

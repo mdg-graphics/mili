@@ -1179,8 +1179,11 @@ Analysis *analy;
  * "types".  Lower and upper bounding coords are returned in 
  * bb_lo and bb_hi.
  *
+ * If "types" is "v", check nodes referenced by all 
+ * element types but only if that element's material is visible.
+ *
  * String "types" must not be null and should not contain
- * both 'n' and 'h', 's', or 'b'.
+ * 'n' or 'v' if it has 'h', 's', or 'b'.
  */
 void
 bbox_nodes( analy, types, use_geom, bb_lo, bb_hi )
@@ -1227,7 +1230,7 @@ float bb_hi[3];
 		{
 		    el_nodes_ok = TRUE;
                     find_extents( bricks->cnt, 8, bricks->nodes, 
-		                  xyz, tested, bb_lo, bb_hi );
+		                  xyz, tested, NULL, 0, bb_lo, bb_hi );
 		}
 	        break;
 	
@@ -1239,7 +1242,7 @@ float bb_hi[3];
 		{
 		    el_nodes_ok = TRUE;
                     find_extents( shells->cnt, 4, shells->nodes, 
-		                  xyz, tested, bb_lo, bb_hi );
+		                  xyz, tested, NULL, 0, bb_lo, bb_hi );
 		}
 	        break;
 	    
@@ -1251,7 +1254,40 @@ float bb_hi[3];
 		{
 		    el_nodes_ok = TRUE;
                     find_extents( beams->cnt, 2, beams->nodes, 
-		                  xyz, tested, bb_lo, bb_hi );
+		                  xyz, tested, NULL, 0, bb_lo, bb_hi );
+		}
+	        break;
+	    
+	    case 'v':
+	        /* 
+		 * Evaluate nodes referenced by all elements but constrained
+		 * by material visibility.
+		 */
+	        if ( tested == NULL )
+		    tested = NEW_N( Bool_type, nodes->cnt, "Node visit flags" );
+		    
+		if ( bricks != NULL )
+		{
+		    el_nodes_ok = TRUE;
+                    find_extents( bricks->cnt, 8, bricks->nodes, xyz, tested, 
+		                  analy->hide_material, bricks->mat, 
+				  bb_lo, bb_hi );
+		}
+		
+		if ( shells != NULL )
+		{
+		    el_nodes_ok = TRUE;
+                    find_extents( shells->cnt, 4, shells->nodes, xyz, tested, 
+		                  analy->hide_material, shells->mat, 
+				  bb_lo, bb_hi );
+		}
+		
+		if ( beams != NULL )
+		{
+		    el_nodes_ok = TRUE;
+                    find_extents( beams->cnt, 2, beams->nodes, xyz, tested, 
+		                  analy->hide_material, beams->mat, 
+				  bb_lo, bb_hi );
 		}
 	        break;
 	    
@@ -1284,26 +1320,35 @@ float bb_hi[3];
  * TAG( find_extents )
  *
  * Find geometric extents of nodes referenced by the passed
- * elements.
+ * elements.  If material invisibility array "mat_invis" is non-NULL, 
+ * only test the nodes of an element it its material is visible.
  */
 static void
-find_extents( qty_elems, qty_verts, elems, nodes, tested, bb_lo, bb_hi )
+find_extents( qty_elems, qty_verts, conns, nodes, tested, mat_invis, elem_mat, 
+              bb_lo, bb_hi )
 int qty_elems;
 int qty_verts;
-int **elems;
+int **conns;
 float **nodes;
 Bool_type tested[];
+int *mat_invis;
+int *elem_mat;
 float bb_lo[3];
 float bb_hi[3];
 {
     int i, j, k, nd;
+    Bool_type mat_fail;
     
     for ( j = 0; j < qty_elems; j++ )
     {
+        mat_fail = ( mat_invis == NULL )
+	           ? FALSE
+		   : mat_invis[elem_mat[j]];
+	
         for ( i = 0; i < qty_verts; i++ )
         {
-            nd = elems[i][j];
-	    if ( nd < 0 ) /* Should pass & test against node qty too. */
+            nd = conns[i][j];
+	    if ( mat_fail || nd < 0 ) /* Should pass & test against node qty too. */
 	        continue;
             if ( !tested[nd] )
             {

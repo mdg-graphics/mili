@@ -739,6 +739,7 @@ Analysis *analy;
     float t_pt[3];
     float low_z, high_z;
     int i;
+    float new_near, new_far;
 
     /*
      * Set up the viewing transformation matrix.
@@ -766,18 +767,27 @@ Analysis *analy;
             high_z = t_pt[2];
     }
 
-    v_win->near = -high_z - 1.0;
-    v_win->far = -low_z + 1.0;
+    new_near = -high_z - 1.0;
+    new_far = -low_z + 1.0;
 
     /*
      * Near/far planes shouldn't go behind the eyepoint.
      */
-    if ( v_win->near < 0.0 || v_win->far < v_win->near )
-        popup_dialog( WARNING_POPUP, "Near/far planes are screwed up." );
-
-    v_win->near = -high_z - 1.0;
-    v_win->far = -low_z + 1.0;
-    set_mesh_view();
+    if ( new_near < 0.0 || new_far < new_near )
+    {
+        popup_dialog( WARNING_POPUP, "Unable to reset near/far planes.%s%s%s%s", 
+	              "\nIf using material invisibility, try \"bbox vis\"", 
+	              "\nto minimize the mesh bounding box then \"rnf\" again OR"
+	              "\nuse \"info\" to see current near/far planes and", 
+		      "\nadjust manually using \"near\" and \"far\"." );
+	
+    }
+    else
+    {
+        v_win->near = new_near;
+        v_win->far = new_far;
+        set_mesh_view();
+    }
 }
 
 
@@ -901,7 +911,8 @@ Analysis *analy;
 
     view_transf_mat( &view_trans );
     point_transform( ctr_pt, pt, &view_trans );
-    inc_mesh_trans( -ctr_pt[0], -ctr_pt[1], 0.0 );
+    inc_mesh_trans( -ctr_pt[0], -ctr_pt[1], 
+                    -((v_win->near + v_win->far) * 0.5 + ctr_pt[2]) );
 }
 
 
