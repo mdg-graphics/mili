@@ -424,16 +424,17 @@ static void
 update_min_max( analy )
 Analysis *analy;
 {
-    float *state_mm, *result;
+    float *state_mm, *result, *el_state_mm;
     int cnt, i;
     int *mm_nodes;
 
     state_mm = analy->state_mm;
+    el_state_mm = analy->elem_state_mm.el_minmax;
     mm_nodes = analy->state_mm_nodes;
     result = analy->result;
     cnt = analy->geom_p->nodes->cnt;
 
-    /* Update the state min/max. */
+    /* Update the state min/max for nodal/interpolated data. */
     state_mm[0] = result[0];
     mm_nodes[0] = 1;
     state_mm[1] = result[0];
@@ -452,17 +453,24 @@ Analysis *analy;
 	    mm_nodes[1] = i + 1;
 	}
     }
+    
+    /* Update the state min/max for element/non-interpolated data. */
+    analy->elem_state_mm = analy->tmp_elem_mm;
 
     /* Update the global min/max. */
     if ( analy->result_mod )
     {
+        /* For a new result, always init the global mm from the state mm. */
         analy->global_mm[0] = state_mm[0];
 	analy->global_mm_nodes[0] = mm_nodes[0];
         analy->global_mm[1] = state_mm[1];
 	analy->global_mm_nodes[1] = mm_nodes[1];
+        analy->global_elem_mm[0] = el_state_mm[0];
+        analy->global_elem_mm[1] = el_state_mm[1];
     }
     else
     {
+        /* Same result - only update global if state has new extreme(s). */
         if ( state_mm[0] < analy->global_mm[0] )
 	{
             analy->global_mm[0] = state_mm[0];
@@ -473,6 +481,12 @@ Analysis *analy;
             analy->global_mm[1] = state_mm[1];
 	    analy->global_mm_nodes[1] = mm_nodes[1];
 	}
+    
+	/* Update the global minmax for element (pre-interpolated) results. */
+	if ( el_state_mm[0] < analy->global_elem_mm[0] )
+	    analy->global_elem_mm[0] = el_state_mm[0];
+	if ( el_state_mm[1] > analy->global_elem_mm[1] )
+	    analy->global_elem_mm[1] = el_state_mm[1];
     }
 
     /* Update the current min/max. */
@@ -589,7 +603,7 @@ Analysis *analy;
     Hex_geom *bricks;
     Nodal *nodes;
     float xx[8], yy[8], zz[8];
-    float *hex_vols, *vol_sums, *activity, *mm_val;
+    float *hex_vols, *vol_sums, *activity, *mm_val, *obj_mm;
     Bool_type volume_average;
     int i, j, nd;
     int *el_type, *el_id;
@@ -647,7 +661,7 @@ Analysis *analy;
     }
     
     /* Prepare to extract element min/max (values init'd in load_result()). */
-    mm_val = analy->tmp_elem_mm.minmax;
+    mm_val = analy->tmp_elem_mm.el_minmax;
     el_type = analy->tmp_elem_mm.el_type;
     el_id = analy->tmp_elem_mm.mesh_object;
 
@@ -742,7 +756,7 @@ Bool_type merge;
         memset( val_nodal, 0, nodes->cnt * sizeof( float ) );
     
     /* Prepare to extract element min/max (values init'd in load_result()). */
-    mm_val = analy->tmp_elem_mm.minmax;
+    mm_val = analy->tmp_elem_mm.el_minmax;
     el_type = analy->tmp_elem_mm.el_type;
     el_id = analy->tmp_elem_mm.mesh_object;
 
@@ -819,7 +833,7 @@ Analysis *analy;
     memset( val_nodal, 0, nodes->cnt * sizeof( float ) );
     
     /* Prepare to extract element min/max (values init'd in load_result()). */
-    mm_val = analy->tmp_elem_mm.minmax;
+    mm_val = analy->tmp_elem_mm.el_minmax;
     el_type = analy->tmp_elem_mm.el_type;
     el_id = analy->tmp_elem_mm.mesh_object;
 
@@ -869,6 +883,34 @@ Analysis *analy;
 
 
 /*****************************************************************
+ * TAG( init_mm_obj )
+ *
+ * Initialize an Minmax_obj.
+ */
+void
+init_mm_obj( p_mmo )
+Minmax_obj *p_mmo;
+{
+    static Minmax_obj mm_init = 
+    { 
+        NULL, 
+	NULL, 
+	{ 0, 0, 0, 0 }, 
+	MAXFLOAT, 
+	-MAXFLOAT, 
+	MAXFLOAT, 
+	-MAXFLOAT, 
+	0, 
+	0, 
+	0, 
+	0 
+    };
+
+    *p_mmo = mm_init;
+}
+
+
+/*****************************************************************
  * TAG( load_result )
  *
  * Load the result variable for display.  The update parameter
@@ -886,8 +928,7 @@ Bool_type update;
     if ( analy->result_id != VAL_NONE )
     {
         /* Initialize temporary element min/max values. */
-	analy->tmp_elem_mm.minmax[0] = MAXFLOAT;
-	analy->tmp_elem_mm.minmax[1] = -MAXFLOAT;
+	init_mm_obj( &analy->tmp_elem_mm );
 	
         /* Get the compute function from the result table and call it. */
         r_idx = resultid_to_index[analy->result_id];
@@ -896,10 +937,7 @@ Bool_type update;
     }
 
     if ( update && analy->result_id != VAL_NONE )
-    {
-        analy->elem_state_mm = analy->tmp_elem_mm;
         update_min_max( analy );
-    }
 }
 
 
