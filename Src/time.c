@@ -9,6 +9,7 @@
  * Copyright (c) 1992 Regents of the University of California
  */
 
+#include <values.h>
 #include "viewer.h"
 
 
@@ -608,6 +609,271 @@ Analysis *analy;
     analy->elem_state_mm = mm_save;
     analy->cur_state = cur_state;
     change_state( analy );
+}
+
+
+/*****************************************************************
+ * TAG( tellmm )
+ *
+ * Prepare summary of minimums and maximums for specified time
+ * states of currently (or specified) result.
+ *
+ * NOTE:  Similar to get_global_minmax
+ *
+ */
+void
+tellmm( analy, desired_result_variable, start_state, stop_state, tellmm_redraw )
+Analysis *analy;
+char *desired_result_variable;
+int start_state, stop_state;
+Bool_type *tellmm_redraw;
+{
+    Bool_type recompute_norms;
+    Minmax_obj mm_save;
+    Result_type desired_result_id ,result_id_save;
+    float high, low, maximum_of_states, minimum_of_states;
+    float *el_mm;
+    int cur_state, i, state_id;
+    int start_idx, stop_idx;
+    int obj_fwid, st_fwid, nam_fwid;
+    int cnt1, cnt2, cnt3;
+    int maximum_element_id, maximum_element_type, maximum_state_id, 
+        minimum_element_id, minimum_element_type, minimum_state_id, 
+        mm_node_types[2];
+    int *el_type, *el_id;
+    static char *el_label[] = { "node", "beam", "shell", "brick" };
+
+    /*
+     * Filter input data
+     */
+
+    desired_result_id = lookup_result_id( desired_result_variable );
+
+    if ( (analy->result_id != VAL_NONE) &&
+         (strcmp( desired_result_variable, "" ) == 0 ) )
+    {
+        /*
+         * current result_id != materials and
+         * no overriding result_id is specified -->
+         * process current result_id
+         */
+
+        result_id_save = analy->result_id;
+
+        if ( analy->result_id == desired_result_id )
+            *tellmm_redraw = TRUE;
+        else
+            *tellmm_redraw = FALSE;
+    }
+    else if ( (desired_result_id != VAL_NONE) &&
+              (desired_result_id != -1) &&
+              (strcmp( desired_result_variable, "" ) != 0 ) )
+    {
+        /*
+         * current result_id MAY or MAY NOT be materials, but
+         * valid overriding result_id is specified that is != materials -->
+         * process specified result_id
+         */
+
+        result_id_save   = analy->result_id;
+        analy->result_id = desired_result_id;
+
+        if ( analy->result_id == desired_result_id )
+            *tellmm_redraw = TRUE;
+        else
+            *tellmm_redraw = FALSE;
+    }
+    else
+    {
+        /*
+         * Invalid data present:
+         *
+         * current result_id and desired result_id == materials;
+         * desired result_id == materials;
+         * invalid overriding desired_result_id is specified
+         */
+
+        popup_dialog( USAGE_POPUP
+                     ,"tellmm result [state 1] [state n]" );
+
+        tellmm_redraw = FALSE;
+        return;
+    }
+
+    /* retain current state data */
+
+    cur_state = analy->cur_state;
+    mm_save   = analy->elem_state_mm;
+
+    maximum_of_states = -MAXFLOAT;
+    minimum_of_states =  MAXFLOAT;
+
+    state_id = start_state;
+
+    start_idx = MAX( 0, start_state - 1 );
+    stop_idx  = MIN( stop_state, analy->num_states );
+
+    if ( start_state > stop_state )
+    {
+        popup_dialog( WARNING_POPUP
+                     ,"Start state MUST be less than stop state." );
+        return;
+    }
+    
+    /* 
+     * Calculate field widths for formatting output. 
+     */
+    
+    /* Node/element label widths */
+    if ( is_nodal_result( analy->result_id ) )
+    {
+	obj_fwid = (int) ((double) 1.0 
+	                  + log10( (double) analy->geom_p->nodes->cnt ));
+	nam_fwid = 4; /* length of string "node" */
+    }
+    else
+    {
+        cnt1 = cnt2 = cnt3 = 0;
+
+	if ( analy->geom_p->bricks != NULL )
+	    cnt1 = analy->geom_p->bricks->cnt;
+	if ( analy->geom_p->shells != NULL )
+	    cnt2 = analy->geom_p->shells->cnt;
+	if ( analy->geom_p->beams != NULL )
+	    cnt3 = analy->geom_p->beams->cnt;
+
+	cnt1 = MAX( cnt1, MAX( cnt2, cnt3 ) );
+    
+        obj_fwid = (int) ((double) 1.0 + log10( (double) cnt1 ));
+	
+	nam_fwid = 5; /* length of longest of "beam", "shell", and "brick" */
+    }
+    
+    /* State number width */
+    st_fwid = (int) ((double) 1.0 + log10( (double) stop_state ));
+
+    /*
+     * Write the report.
+     */
+    
+    wrt_text( "\n\nReport of %s max/min values, states %d to %d:\n\n%s\n\n", 
+              trans_result[resultid_to_index[analy->result_id]][1], 
+	      start_state, stop_state, 
+              "STATE          MAX                     MIN" );
+
+    for ( i = start_idx; i < stop_idx; i++ )
+    {
+        analy->cur_state = i;
+        analy->state_p   = get_state( i, analy->state_p );
+
+        /* update displayed result */
+
+        load_result( analy, TRUE );
+
+        if ( is_nodal_result( analy->result_id ) )
+        {
+            mm_node_types[0] = mm_node_types[1] = NODE_T;
+            el_mm   = analy->state_mm;
+            el_type = mm_node_types;
+            el_id   = analy->state_mm_nodes;
+        }
+        else
+        {
+            el_mm   = analy->elem_state_mm.el_minmax;
+            el_type = analy->elem_state_mm.el_type;
+            el_id   = analy->elem_state_mm.mesh_object;
+        }
+	
+        if ( analy->perform_unit_conversion )
+        {
+            low  = (analy->conversion_scale * el_mm[0]) 
+                 + analy->conversion_offset;
+            high = (analy->conversion_scale * el_mm[1]) 
+                 + analy->conversion_offset;
+	}
+        else
+        {
+            low  = el_mm[0];
+            high = el_mm[1];
+        }
+
+        wrt_text( " %*d    %9.2e  %*s %-*d    %9.2e  %*s %d\n", 
+	          st_fwid, state_id, 
+		  high, nam_fwid, el_label[el_type[1]], obj_fwid, el_id[1], 
+		  low, nam_fwid, el_label[el_type[0]], el_id[0] );
+
+        if ( high > maximum_of_states )
+        {
+            maximum_of_states    = high;
+            maximum_element_type = el_type[1];
+            maximum_element_id   = el_id[1];
+            maximum_state_id     = state_id;
+        }
+                
+        if ( low < minimum_of_states )
+        {
+            minimum_of_states    = low;
+            minimum_element_type = el_type[0];
+            minimum_element_id   = el_id[0];
+            minimum_state_id     = state_id;
+        }
+
+        state_id++;
+	
+	cache_global_minmax( analy );
+    }
+
+    wrt_text( " \n" );
+
+    wrt_text( "Maximum of states:  %9.2e at %s %d, state %2d\n"
+             ,maximum_of_states
+             ,el_label[maximum_element_type]
+             ,maximum_element_id
+             ,maximum_state_id );
+
+    wrt_text( "Minimum of states:  %9.2e at %s %d, state %2d\n\n"
+             ,minimum_of_states
+             ,el_label[minimum_element_type]
+             ,minimum_element_id
+             ,minimum_state_id );
+
+    /*
+     * Return to original status
+     *
+     * NOTE:  This is an abbreviated form of "change_state"
+     *        which avoids display of messages superfluous
+     *        to "tellmm"
+     */
+
+    analy->elem_state_mm = mm_save;
+    analy->cur_state     = cur_state;
+    analy->result_id     = result_id_save;
+
+    analy->state_p = get_state( analy->cur_state,
+                                analy->state_p );
+
+    /* if activity data then activity may have changed */
+
+    recompute_norms = FALSE;
+
+    if ( analy->geom_p->bricks && analy->state_p->activity_present )
+    {
+        reset_face_visibility( analy );
+        recompute_norms = TRUE;
+    }
+
+    /* recompute normals if node positions have changed */
+
+    if ( !analy->normals_constant || recompute_norms )
+        compute_normals( analy );
+
+    /* update displayed result */
+
+    load_result( analy, TRUE );
+
+    /* update cut planes, isosurfaces, contours */
+    if ( desired_result_id == analy->result_id )
+        update_vis( analy );
 }
 
 
