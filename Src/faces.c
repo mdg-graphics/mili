@@ -14,11 +14,9 @@
 
 
 /* Local routines. */
+static void double_table_size();
+static int *check_match();
 static Bool_type check_degen_face();
-static void lengthen_tables();
-static void compress_block();
-static void heapsort();
-static int node_cmp();
 static void rough_cut();
 static int test_plane_elem();
 static void face_aver_norm();
@@ -45,25 +43,43 @@ float explicit_threshold = 0.719;
  * TAG( create_hex_adj )
  *
  * Compute volume element adjacency information and create
- * the element adjacency table.  The routine works by
- * putting all element faces in a list and then using a
- * sort to determine adjacency.  Assumes that the table has
- * already been allocated.
+ * the element adjacency table.  The routine uses a bucket
+ * sort with approximately linear complexity.
  */
 void
 create_hex_adj( analy )
 Analysis *analy;
 {
     Hex_geom *bricks; 
-    int **hex_adj;
-    int *face_tbl[6];
-    int *ord;
     Bool_type valid;
-    int nodes[4], tmp;
-    int tbl_factor, add_factor, block_sz, tbl_sz, add_sz;
-    int tbl_cnt, tbl_lo, tbl_hi, new_hi;
-    int bcnt, el, fc;
-    int i, j, k;
+    int **hex_adj;
+    int *node_tbl;
+    int *face_tbl[7];
+    int face_entry[6];
+    int bcnt, ncnt, tbl_sz, free_ptr;
+    int *idx, new_idx, tmp;
+    int el, fc, elem1, face1, elem2, face2;
+    int i, j;
+
+    /*
+     * The table face_tbl contains for each face entry
+     *
+     *     node1 node2 node3 node4 element face next
+     *
+     * The table hex_adj contains for each hex element
+     *
+     *     neighbor_elem1 n_elem2 n_elem3 n_elem4 n_elem5 n_elem6
+     *
+     * If a hex element has no neighbor adjacent to one of its faces,
+     * that face neighbor is marked with a -1 in the hex_adj table.
+     *
+     * For algorithm see:
+     *
+     *      "Visual3 - A Software Environment for Flow Visualization,"
+     *      Computer Graphics and Flow Visualization in Computational
+     *      Fluid Dynamics, VKI Lecture Series #10, Brussels, Sept 16-20
+     *      1991.
+     */
 
     if ( analy->geom_p->bricks == NULL )
         return;
@@ -71,54 +87,25 @@ Analysis *analy;
     bricks = analy->geom_p->bricks;
     hex_adj = analy->hex_adj;
     bcnt = bricks->cnt;
-/*
-fprintf( stderr, "Num blocks: %d\n", analy->num_blocks );
-for ( i = 0; i < analy->num_blocks; i++ )
-fprintf( stderr, "Block %d,  lo: %d  hi: %d\n", i, analy->block_lo[i],
-	analy->block_hi[i] );
-fprintf( stderr, "Brick cnt: %d\n", bcnt );
-*/
+    ncnt = analy->geom_p->nodes->cnt;
 
-    /*
-     * What's a good starting number?
-     * Should be a multiple of 2.
-     */
-    tbl_factor = 10;
-    add_factor = 2;
-
-    /*
-     * The table face_tbl contains for each face
-     *     node1 node2 node3 node4 element face
-     *
-     * The table hex_adj contains for each hex element
-     *     neighbor_elem1 n_elem2 n_elem3 n_elem4 n_elem5 n_elem6
-     *
-     * If a hex element has no neighbor adjacent to one of its faces,
-     * that face neighbor is marked with a -1 in the hex_adj table.
-     */
-
-    if ( analy->num_blocks > tbl_factor )
-    { 
-        block_sz = analy->block_hi[0] - analy->block_lo[0] + 1;
-        tbl_sz = 6 * tbl_factor * block_sz;
-        add_sz = 6 * add_factor * block_sz;
-    }
+    /* Arbitrarily set the table size. */
+    if ( analy->num_blocks > 1 )
+        tbl_sz = 6 * bcnt / 10;
     else
-    {
-        /* Just allocate full table all at once. */
-        tbl_sz = 6*bcnt;
-    }
-/*
-fprintf( stderr, "Face table size: %d bytes\n", tbl_sz*6*4 );
-*/
+        tbl_sz = 6 * bcnt;
 
-    /*
-     * Create the face sorting tables.  (The hex adjacency table has
-     * already been allocated.)
-     */
-    for ( i = 0; i < 6; i++ )
+    /* Allocate the tables and initialize table pointers. */
+    node_tbl = NEW_N( int, ncnt, "Node table" );
+    for ( i = 0; i < ncnt; i++ )
+        node_tbl[i] = -1;
+
+    for ( i = 0; i < 7; i++ )
         face_tbl[i] = NEW_N( int, tbl_sz, "Face table" );
-    ord = NEW_N( int, tbl_sz, "Face ordering table" );
+    for ( i = 0; i < tbl_sz; i++ )
+        face_tbl[6][i] = i + 1;
+    face_tbl[6][tbl_sz-1] = -1;
+    free_ptr = 0;
 
     /*
      * Initialize the adjacency table so all neighbors are NULL.
@@ -130,91 +117,133 @@ fprintf( stderr, "Face table size: %d bytes\n", tbl_sz*6*4 );
     /*
      * Table generation loop.
      */
-    tbl_cnt = 0;
-    for ( i = 0; i < analy->num_blocks; i++ )
-    {
-        block_sz = 6*( analy->block_hi[i] - analy->block_lo[i] + 1 );
-
-        /*
-         * If tables are too small to contain next block, try
-         * compressing them.
-         */
-        if ( tbl_cnt + block_sz > tbl_sz )
+    for ( el = 0; el < bcnt; el++ )
+        for ( fc = 0; fc < 6; fc++ )
         {
-            compress_block( 0, tbl_cnt-1, face_tbl, ord, hex_adj, &new_hi );
-            tbl_cnt = new_hi + 1;
-        }
+            /* Get nodes for a face. */
+            for ( i = 0; i < 4; i++ )
+                face_entry[i] = bricks->nodes[ fc_nd_nums[fc][i] ][el];
+            face_entry[4] = el;
+            face_entry[5] = fc;
 
-        /*
-         * If tables are still too small to contain next block, enlarge them.
-         */
-        if ( tbl_cnt + block_sz > tbl_sz )
-        {
-            lengthen_tables( tbl_sz, face_tbl, &ord, add_sz );
-            tbl_sz += add_sz;
+            /* Order the node numbers in ascending order. */
+            for ( i = 0; i < 3; i++ )
+                for ( j = i+1; j < 4; j++ )
+                    if ( face_entry[i] > face_entry[j] )
+                        SWAP( tmp, face_entry[i], face_entry[j] );
 
-            /* Add more next time around. */
-            add_sz += add_factor * block_sz;
-        }
-
-        /*
-         * Load the block into the table.
-         */
-        tbl_lo = tbl_cnt;
-        for ( el = analy->block_lo[i]; el <= analy->block_hi[i]; el++ )
-        {
-            for ( fc = 0; fc < 6; fc++ )
+            /* Check for degenerate element faces. */
+            if ( bricks->degen_elems )
             {
-                /* Get nodes for a face. */
-                for ( j = 0; j < 4; j++ )
-                    nodes[j] = bricks->nodes[ fc_nd_nums[fc][j] ][el];
+                valid = check_degen_face( face_entry );
 
-                /* Order the node numbers in ascending order. */
-                for ( j = 0; j < 3; j++ )
-                    for ( k = j+1; k < 4; k++ )
-                        if ( nodes[j] > nodes[k] )
-                            SWAP( tmp, nodes[j], nodes[k] );
+                /* If face is degenerate (pt or line), skip it. */
+                if ( !valid )
+                    continue;
+            }
 
-                /* Check for degenerate element faces. */
-                if ( bricks->degen_elems )
-                {
-                    valid = check_degen_face( nodes );
+            idx = check_match( face_entry, node_tbl, face_tbl );
 
-                    /* If face is degenerate (pt or line), skip it. */
-                    if ( !valid )
-                        continue;
-                }
+            if ( *idx >= 0 )
+            {
+                /*
+                 * The face is repeated, so make the two elements
+                 * that share the face point to each other.
+                 */
+                elem1 = face_entry[4];
+                face1 = face_entry[5];
+                elem2 = face_tbl[4][ *idx ];
+                face2 = face_tbl[5][ *idx ];
+                hex_adj[ face1 ][ elem1 ] = elem2;
+                hex_adj[ face2 ][ elem2 ] = elem1;
 
-                /* Enter face into table. */
-                for ( j = 0; j < 4; j++ )
-                    face_tbl[j][tbl_cnt] = nodes[j];
-                face_tbl[4][tbl_cnt] = el;
-                face_tbl[5][tbl_cnt] = fc;
+                /* Put the face entry on the free list. */
+                tmp = face_tbl[6][*idx];
+                face_tbl[6][*idx] = free_ptr;
+                free_ptr = *idx;
+                *idx = tmp;
+            }
+            else
+            {
+                /* Create a new face entry and append it to node list. */
+                if ( free_ptr < 0 )
+                    double_table_size( &tbl_sz, face_tbl, &free_ptr );
+                new_idx = free_ptr;
+                free_ptr = face_tbl[6][free_ptr];
 
-                tbl_cnt++;
+                for ( i = 0; i < 6; i++ )
+                    face_tbl[i][new_idx] = face_entry[i];
+                face_tbl[6][new_idx] = -1;
+                *idx = new_idx;
             }
         }
-        tbl_hi = tbl_cnt - 1;
 
-        /*
-         * Sort and compress the block.
-         */
-        compress_block( tbl_lo, tbl_hi, face_tbl, ord, hex_adj, &new_hi );
-        tbl_cnt = new_hi + 1;
+    /* Free the tables. */
+    free( node_tbl );
+    for ( i = 0; i < 7; i++ )
+        free( face_tbl[i] );
+}
+
+
+/************************************************************
+ * TAG( double_table_size )
+ *
+ * Expand the size of the face table to create more entries.
+ */
+static void
+double_table_size( tbl_sz, face_tbl, free_ptr )
+int *tbl_sz;
+int **face_tbl;
+int *free_ptr;
+{
+    int *new_tbl;
+    int sz, i, j;
+
+    sz = *tbl_sz;
+    fprintf( stderr, "Expanding face table.\n" );
+    for ( i = 0; i < 7; i++ )
+    {
+        new_tbl = NEW_N( int, 2*sz, "Face table" );
+        for ( j = 0; j < sz; j++ )
+            new_tbl[j] = face_tbl[i][j];
+        free( face_tbl[i] );
+        face_tbl[i] = new_tbl;
+    }
+    for ( i = sz; i < 2*sz; i++ )
+        face_tbl[6][i] = i + 1;
+    face_tbl[6][2*sz-1] = -1;
+    *free_ptr = sz;
+    *tbl_sz = sz*2;
+}
+
+
+/************************************************************
+ * TAG( check_match )
+ *
+ * Check if a face entry already exists.
+ */
+static int *
+check_match( face_entry, node_tbl, face_tbl )
+int *face_entry;
+int *node_tbl;
+int **face_tbl;
+{
+    int *idx;
+
+    idx = &node_tbl[face_entry[0]];
+    while ( *idx >= 0 )
+    {
+        if ( face_entry[0] == face_tbl[0][*idx] &&
+             face_entry[1] == face_tbl[1][*idx] &&
+             face_entry[2] == face_tbl[2][*idx] &&
+             face_entry[3] == face_tbl[3][*idx] )
+            return idx;
+        else
+            idx = &face_tbl[6][*idx];
     }
 
-    /*
-     * Do a final table compression to pick up rest of internal faces.
-     */
-    if ( analy->num_blocks > 1 )
-        compress_block( 0, tbl_cnt-1, face_tbl, ord, hex_adj, &new_hi );
-
-    /*
-     * Free up storage.
-     */
-    for ( i = 0; i < 6; i++ )
-        free( face_tbl[i] );
-    free( ord );
+    /* No match. */
+    return idx;
 }
 
 
@@ -235,7 +264,7 @@ fprintf( stderr, "Face table size: %d bytes\n", tbl_sz*6*4 );
  */
 static Bool_type
 check_degen_face( nodes )
-int nodes[4];
+int *nodes;
 {
     int match_cnt, tmp;
     int i, j;
@@ -268,234 +297,6 @@ int nodes[4];
 
     /* Valid face. */
     return TRUE;
-}
-
-
-/************************************************************
- * TAG( compress_block )
- *
- * Sort a block of entries in the face table.  Then remove
- * redundant faces and simultaneously place face connectivity
- * information in the brick adjacency table.  The top of the
- * newly compressed block is returned in the last parameter.
- */
-static void
-compress_block( lo, hi, face_tbl, ord, hex_adj, new_hi )
-int lo;
-int hi;
-int **face_tbl;
-int *ord;
-int **hex_adj;
-int *new_hi;
-{
-    int elem1, elem2, face1, face2, empty;
-    int i, j;
-/*
-int orig_diff, new_diff;
-*/
-
-/*
-fprintf( stderr, "Compressing block %d - %d,", lo, hi );
-orig_diff = hi - lo + 1;
-*/
-    if ( lo >= hi )
-    {
-        *new_hi = hi;
-        return;
-    }
-
-    /*
-     * The table face_tbl contains for each face
-     *     node1 node2 node3 node4 element face
-     *
-     * The table hex_adj contains for each hex element
-     *     neighbor_elem1 n_elem2 n_elem3 n_elem4 n_elem5 n_elem6
-     */
-
-    /* Sort the required portion of the face table. */
-    heapsort( lo, hi, face_tbl, ord );
-
-    /* Create the adjacency entries. */
-    for ( i = lo; i < hi; i++ )
-    {
-        if ( node_cmp( ord[i], ord[i+1], face_tbl ) == 0 )
-        {
-            /*
-             * The face is repeated.  Make the two elements that share
-             * the face point to each other.
-             */
-            elem1 = face_tbl[4][ ord[i] ];
-            face1 = face_tbl[5][ ord[i] ];
-            elem2 = face_tbl[4][ ord[i+1] ];
-            face2 = face_tbl[5][ ord[i+1] ];
-
-            hex_adj[ face1 ][ elem1 ] = elem2;
-            hex_adj[ face2 ][ elem2 ] = elem1;
-
-            /*
-             * Mark the two face entries for removal by setting their
-             * element number negative.
-             */
-            face_tbl[4][ ord[i] ] = -1;
-            face_tbl[4][ ord[i+1] ] = -1;
-
-            /* Skip past the second occurence. */
-            i++;
-        }
-    }
-
-    /* Remove marked faces, compressing the table. */
-    for ( empty = lo, i = lo; i <= hi; i++ )
-    {
-        if ( face_tbl[4][i] >= 0 )
-        {
-            if ( i > empty )
-            {
-                /* Move the entry down. */
-                for ( j = 0; j < 6; j++ )
-                    face_tbl[j][empty] = face_tbl[j][i];
-            }
-            ++empty;
-        }
-    }
-    *new_hi = empty - 1;
-/*
-new_diff = *new_hi - lo + 1;
-fprintf( stderr, "    Compression of %.2f percent\n",
-         (orig_diff - new_diff) / (float) orig_diff );
-*/
-}
-
-
-/************************************************************
- * TAG( lengthen_tables )
- *
- * Resize the face table and sort ordering table, adding
- * add_sz entries to each.
- */
-static void
-lengthen_tables( sz, face_tbl, ord_tbl, add_sz )
-int sz;
-int **face_tbl;
-int **ord_tbl;
-int add_sz;
-{
-    char *msg = "Expanding face table by %d\n";
-    int *new_face[6];
-    int i, j;
-
-    wrt_text( msg, add_sz );
-
-    /* Don't need to copy the ord table since it is a work array. */
-    free( *ord_tbl );
-    *ord_tbl = NEW_N( int, sz + add_sz, "Face ordering table" );
-
-    /* Allocate expanded face table. */
-    for ( i = 0; i < 6; i++ )
-        new_face[i] = NEW_N( int, sz + add_sz, "Face table" );
-
-    /* Copy entries into expanded face table. */
-    for ( i = 0; i < 6; i++ )
-        for ( j = 0; j < sz; j++ )
-            new_face[i][j] = face_tbl[i][j];
-
-    /* Delete old table. */
-    for ( i = 0; i < 6; i++ )
-    {
-        free( face_tbl[i] );
-        face_tbl[i] = new_face[i];
-    }
-}
-
-
-/*************************************************************
- * TAG( heapsort )
- *
- * Heap sort, from Numerical_Recipes_in_C.  The node list array
- * is arrin and the sorted ordering is returned in the indx array.
- * The table entries from index "lo" to index "hi" are sorted.
- */
-static void
-heapsort( lo, hi, arrin, indx )
-int lo;
-int hi;
-int *arrin[6];
-int indx[];
-{
-    int indxt, n, l, j, ir, i;
-
-    n = hi - lo + 1;
-
-    for ( j = 0; j < n; j++ )
-        indx[j+lo] = j + lo;
-
-    l = n/2;
-    ir = n - 1;
-
-    for (;;)
-    {
-    	if ( l > 0 )
-        {
-            --l;
-            indxt = indx[l+lo];
-        }
-	else
-        {
-	    indxt = indx[ir+lo];
-    	    indx[ir+lo] = indx[lo];
-            --ir;
-	    if ( ir == 0 )
-            {
-		indx[lo] = indxt;
-		return;
-	    }
-        }
-
-	i = l;
-        j = 2*l + 1;
-	while ( j <= ir ) 
-        {
-	    if ( j < ir && node_cmp( indx[j+lo], indx[j+lo+1], arrin ) < 0 )
-                j++;
-	    if ( node_cmp( indxt, indx[j+lo], arrin ) < 0 )
-            {
-		indx[i+lo] = indx[j+lo];
-                i = j;
-                j = 2*j + 1;
-	    }
-	    else
-                j = ir + 1;
-	}
-	indx[i+lo] = indxt;
-    }
-}
-
-
-/************************************************************
- * TAG( node_cmp )
- *
- * Compare two sets of nodes in an array.  Called by the sorting
- * routine to sort element faces.  Assumes that the node numbers
- * are stored in the first four entries of n_arr.
- */
-static int
-node_cmp( indx1, indx2, n_arr )
-int indx1, indx2;
-int *n_arr[6];
-{
-    int i;
-
-    for ( i = 0; i < 4; i++ )
-    {
-        if ( n_arr[i][indx1] < n_arr[i][indx2] )
-            return -1;
-        else if ( n_arr[i][indx1] > n_arr[i][indx2] )
-            return 1;
-    }
-
-    /* Entries match.
-     */
-    return 0;
 }
 
 
