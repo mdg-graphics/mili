@@ -836,3 +836,37 @@ Bug fixes
     (Speck)
 
 
+December 10 1996
+
+New commands
+    tellmm [<result> [<first state> [<last state>]]]
+        Generate a report of result min/max values, writing
+	it to the feedback window.  With no parameters,
+	tellmm generates a report for the currently
+	displayed result over all states in the database.
+	If only <result> is specified, the min/max values
+	for that result over all states in the database are
+	reported, so a report can be generated for any
+	result, regardless of what is currently displayed
+	on the mesh.  If <result> and <first state> are 
+	specified, tellmm reports the min and max for the
+	result at that state only.  If <last state> is
+	also specified, tellmm reports the min/max values
+	between <first state> and <last state>, inclusive.
+	The report includes the element or node at which
+	the min/max values occur as well as a summary
+	giving the overall min and max for the states
+	traversed for the report.
+	
+	Tellmm is like the globmm command in that it
+	updates the cached global min/max for a particular
+	result.  This means that, if "switch mglob" is in
+	effect, a tellmm command may update the min and
+	max values on the colorscale, causing a change in
+	the appearance of the current fringe plot. (Sanford)
+
+Bug fixes
+    "on/off ndnum" and "on/off elnum" have been fixed.
+    (Sanford)
+
+
