@@ -4983,9 +4983,6 @@ Analysis *analy;
     float low_text_bound, high_text_bound;
     float comparison_tolerance;
 
-
-
-
     /* Foreground overwrites everything else in the scene. */
     glDepthFunc( GL_ALWAYS );
 
@@ -5028,7 +5025,11 @@ Analysis *analy;
         else
         {
             xpos = cx - vp_to_world[0]*40 - b_width;
-            ypos = cy - vp_to_world[1]*255 - b_height;
+/* "255" is somewhat arbitrary and should become a parameter of the
+   colorscale size.
+            ypos = cy - vp_to_world[1]*255 - b_height; 
+*/
+            ypos = cy - vp_to_world[1]*240 - b_height;
             xsize = vp_to_world[0]*25;
             ysize = vp_to_world[1]*200;
         }
@@ -5091,6 +5092,9 @@ Analysis *analy;
         /* Draw the writing (scale) next to the colormap. */
         if ( analy->show_colorscale )
         {
+            antialias_lines( TRUE );
+            glLineWidth( 1.25 );
+	    
             low = analy->result_mm[0];
             high = analy->result_mm[1];
             if ( analy->perform_unit_conversion )
@@ -5121,7 +5125,11 @@ Analysis *analy;
 
 
             /* Result title. */
-            hmove2( xpos + xsize, ypos+ysize+b_height+2.0*text_height );
+/* Temporary adjustment.  Should become an explicit function of colorscale
+   position.
+            hmove2( xpos + xsize, ypos+ysize+b_height+2.0*text_height ); 
+*/
+            hmove2( xpos + xsize, ypos+ysize+b_height+1.0*text_height );
             hcharstr( analy->result_title );
 
 
@@ -5151,7 +5159,6 @@ Analysis *analy;
                     hcharstr( "0" );
                 }
             }
-
             */
 
             /* Mark the top and bottom cutoffs with tics. */
@@ -5178,12 +5185,7 @@ Analysis *analy;
                     }
                 }
             }
-
             */
-    
-
-
-
 
             /* Assign labelled and scaled tic marks. */
 
@@ -5194,19 +5196,12 @@ Analysis *analy;
 
             scale_y = ((ypos + ysize - offset) - (ypos + offset)) / (high - low);
 
-
             /* Compute legend scale intervals */
 
             qty_of_intervals = 5;
-
-            linear_variable_scale( low
-                                  ,high
-                                  ,qty_of_intervals
-                                  ,&scale_minimum
-                                  ,&scale_maximum
-                                  ,&distance
-                                  ,&scale_error_status );
-
+            linear_variable_scale( low, high, qty_of_intervals, 
+	                           &scale_minimum, &scale_maximum, &distance,  
+                                   &scale_error_status );
 
             /* Label low and high actual values */
 
@@ -5229,7 +5224,6 @@ Analysis *analy;
             glVertex2f( xp - (0.4 * text_height), yp - (0.2 * text_height) );
             glEnd();
 
-
             xp = xpos - (2.0 * b_width) - (0.6 * text_height);
             yp = ypos + offset + (scale_y * (high - low));
 
@@ -5247,14 +5241,10 @@ Analysis *analy;
             glVertex2f( xp - (0.4 * text_height), yp - (0.2 * text_height) );
             glEnd();
 
-
             if ( FALSE == scale_error_status )
             {
                 /* Label scaled values at computed intervals */
 
-/*
-                ntrips = (int) (scale_maximum - scale_minimum) / distance;
-*/
                 comparison_tolerance = machine_tolerance();
                 ntrips = MAX( round( (double)((scale_maximum - scale_minimum + distance) / distance), comparison_tolerance ), 0.0 );
 
@@ -5290,12 +5280,25 @@ Analysis *analy;
                 }
             }
             else
-                printf ( "\n\nWARNING:  Result minimum > result maximum\n\n" );
+	    {
+	        /*
+		 * Scaling failed.   
+		 * Just draw max value at top of color scale.
+		 */
+	        yp = ypos + ysize - offset;
 
-
-
-
-
+                glBegin( GL_TRIANGLES );
+                glVertex2f( xp, yp );
+                glVertex2f( xp - 0.4*text_height, yp + 0.2*text_height );
+                glVertex2f( xp - 0.4*text_height, yp - 0.2*text_height );
+                glEnd();
+		
+                xp = xpos - (2.0 * b_width) - (0.6 * text_height);
+                /*hmove2( xp - (2.0 * b_width), yp - (0.6 * text_height) );*/
+                hmove2( xp, yp - (0.6 * text_height) );
+                sprintf( str, "%.2e", high );
+                hcharstr( str );
+	    }
 
             /* Set up for left side text. */
             hleftjustify( TRUE );
@@ -5352,10 +5355,16 @@ Analysis *analy;
 		hcharstr( str );
 		yp -= LINE_SPACING_COEFF * text_height;
 	    }
+	    
+            antialias_lines( FALSE );
+            glLineWidth( 1.0 );
         }
     }
     else if ( analy->show_colormap )
     {
+        antialias_lines( TRUE );
+        glLineWidth( 1.25 );
+	
         /* Draw the material colors and label them. */
         if ( analy->use_colormap_pos )
         {
@@ -5390,7 +5399,13 @@ Analysis *analy;
         }
         hmove2( xp + text_height, ypos + ysize + 1.5*text_height );
         hcharstr( "Materials" );
+
+        antialias_lines( FALSE );
+        glLineWidth( 1.0 );
     }
+    
+    antialias_lines( TRUE );
+    glLineWidth( 1.25 );
 
     /* File title. */
     if ( analy->show_title )
@@ -5409,7 +5424,6 @@ Analysis *analy;
         hcentertext( TRUE );
         hmove2( 0.0, -cy + 1.0 * text_height );
         sprintf( str, "t = %.5e", analy->state_p->time );
-/*        sprintf( str, "t = %.5e", analy->state_times[analy->cur_state] ); */
         hcharstr( str );
         hcentertext( FALSE );
     }
@@ -5513,6 +5527,9 @@ Analysis *analy;
 	    sprintf( str, "max: (no result)" );
 	hcharstr( str );
     }
+
+    antialias_lines( FALSE );
+    glLineWidth( 1.0 );
 
     /* Draw a "safe action area" box for the conversion to NTSC video.
      * The region outside the box may get lost.  This box was defined
