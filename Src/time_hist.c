@@ -524,6 +524,9 @@ Analysis *analy;
     int max_incrs, incr_cnt[2];
     int i, j, k;
     int fracsz, y_fracsz, x_fracsz;
+    Result_modifier_type mods[QTY_RESULT_MODIFIER_TYPES];
+    int mod_cnt;
+    char ylabel[128];
 
     num_states = analy->num_states;
 
@@ -797,11 +800,45 @@ Analysis *analy;
     hmove( pos[0], pos[1], pos[2] );
     hcharstr( "Time" );
 
+    /* Build up the y-axis label. */
+    sprintf( ylabel, trans_result[resultid_to_index[analy->result_id]][1] );
+    mod_cnt = get_result_modifiers( analy, mods );
+    if ( mod_cnt > 0 )
+    {
+        strcat( ylabel, " (" );
+	
+	for ( i = 0; i < mod_cnt; i++ )
+	{
+	    if ( i > 0 )
+	        strcat( ylabel, ", " );
+		
+	    switch( mods[i] )
+	    {
+		case STRAIN_TYPE:
+		    strcat( ylabel, strain_label[analy->strain_variety] );
+		    break;
+	    
+		case REFERENCE_SURFACE:
+		    strcat( ylabel, ref_surf_label[analy->ref_surf] );
+		    break;
+	    
+		case REFERENCE_FRAME:
+		    strcat( ylabel, ref_frame_label[analy->ref_frame] );
+		    break;
+	    
+		case TIME_DERIVATIVE:
+		    strcat( ylabel, "time derivative" );
+		    break;
+	    }
+	}
+        strcat( ylabel, ")" );
+    }
+
     htextang( 90.0 );
     pos[0] = gr_ll[0] - y_scale_width - 2.0*text_height;
     pos[1] = 0.5*(gr_ur[1]-gr_ll[1]) + gr_ll[1];
     hmove( pos[0], pos[1], pos[2] );
-    hcharstr( trans_result[resultid_to_index[analy->result_id]][1] );
+    hcharstr( ylabel );
     htextang( 0.0 );
 
     /* Color key. */
