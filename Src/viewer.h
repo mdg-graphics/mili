@@ -424,6 +424,7 @@ typedef struct _Analysis
     float *block_bbox[2][3];
     Bool_type keep_max_bbox_extent;
 
+    Bool_type refresh;
     Bool_type normals_smooth;
     Render_mode_type render_mode;
     Interp_mode_type interp_mode;

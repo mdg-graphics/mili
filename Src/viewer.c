@@ -230,6 +230,7 @@ Analysis *analy;
         analy->normals_constant = analy->state_p->position_constant &&
                                   !analy->state_p->activity_present;
     analy->cur_state = 0;
+    analy->refresh = TRUE;
     analy->normals_smooth = TRUE;
     analy->render_mode = RENDER_HIDDEN;
     analy->interp_mode = REG_INTERP;

@@ -2226,8 +2226,9 @@ XtPointer call_data;
     
     save_win = cur_opengl_win;
     switch_opengl_win( MESH );
-    
-    update_display( env.curr_analy );
+
+    if ( env.curr_analy->refresh )
+        update_display( env.curr_analy );
     
     if ( save_win != MESH )
         switch_opengl_win( save_win );

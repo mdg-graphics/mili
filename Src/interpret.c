@@ -56,7 +56,6 @@ typedef struct _Material_property_obj
 } Material_property_obj;
 
 
-static Bool_type refresh = TRUE;
 static char last_command[200] = "\n";
 static Bool_type user_cmap_loaded = FALSE;
 static char *el_label[] = { "Node", "Beam", "Shell", "Hex" };
@@ -850,7 +849,7 @@ Analysis *analy;
                 check_visualizing( analy );
             }
             else if ( strcmp( tokens[i], "refresh" ) == 0 )
-                refresh = setval;
+                analy->refresh = setval;
             else if ( strcmp( tokens[i], "sym" ) == 0 )
                 analy->reflect = setval;
             else if ( strcmp( tokens[i], "cull" ) == 0 )
@@ -2721,9 +2720,9 @@ Analysis *analy;
 
     if ( redraw || redrawview )
     {
-	if ( analy->center_view )
+	    if ( analy->center_view )
             center_view( analy );
-	if ( refresh )
+	    if ( analy->refresh )
             update_display( analy );
     }
     analy->result_mod = FALSE;
