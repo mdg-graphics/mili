@@ -40,7 +40,7 @@ HFONTLOC = ${GRIZHOME}/Font
 CFLAGS = -cckr -g
 
 # Minimal library set (not complete! See below.)
-LIBS = -lXm -lXt -lX11 -lGLw -lGLU -lGL -lm -PW
+LIBS = -lXm -lXt -lX11 -lGLw -lGLU -lGL -lm -lPW
 
 OURLIBS = \
 	${GRIZHOME}/Lib/libhershey.a ${GRIZHOME}/Lib/libimage.a
