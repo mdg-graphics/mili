@@ -5175,7 +5175,7 @@ Analysis *analy;
     float xpos, ypos, xp, yp, xsize, ysize;
     float text_height, b_width, b_height;
     float low, high;
-    float leng, sub_leng;
+    float leng, sub_leng, xf_leng;
     float arr[16];
     Bool_type extend_colormap;
     Bool_type show_dirvec;
@@ -5685,18 +5685,20 @@ Analysis *analy;
              && analy->tensor_transform_matrix != NULL )
         {
             ttmat = analy->tensor_transform_matrix;
+            
+            xf_leng = 0.75 * leng;
 
             /* Draw the axis lines. */
             VEC_SET( pt, 0.0, 0.0, 0.0 );
             point_transform( pto, pt, &tmat );
-            VEC_SET( pt, ttmat[0][0] * leng, ttmat[1][0] * leng, 
-                     ttmat[2][0] * leng );
+            VEC_SET( pt, ttmat[0][0] * xf_leng, ttmat[1][0] * xf_leng, 
+                     ttmat[2][0] * xf_leng );
             point_transform( pti, pt, &tmat );
-            VEC_SET( pt, ttmat[0][1] * leng, ttmat[1][1] * leng, 
-                     ttmat[2][1] * leng );
+            VEC_SET( pt, ttmat[0][1] * xf_leng, ttmat[1][1] * xf_leng, 
+                     ttmat[2][1] * xf_leng );
             point_transform( ptj, pt, &tmat );
-            VEC_SET( pt, ttmat[0][2] * leng, ttmat[1][2] * leng, 
-                     ttmat[2][2] * leng );
+            VEC_SET( pt, ttmat[0][2] * xf_leng, ttmat[1][2] * xf_leng, 
+                     ttmat[2][2] * xf_leng );
             point_transform( ptk, pt, &tmat );
 /**/
             /* Hard-code brown/red for now. */
@@ -5712,17 +5714,17 @@ Analysis *analy;
             glEnd();
             
             /* Draw the axis labels. */
-            VEC_SET( pt, ttmat[0][0] * leng + sub_leng, 
-                     ttmat[1][0] * leng - sub_leng, 
-                     ttmat[2][0] * leng - sub_leng );
+            VEC_SET( pt, ttmat[0][0] * xf_leng + sub_leng, 
+                     ttmat[1][0] * xf_leng, 
+                     ttmat[2][0] * xf_leng );
             point_transform( pti, pt, &tmat );
-            VEC_SET( pt, ttmat[0][1] * leng - sub_leng, 
-                     ttmat[1][1] * leng + sub_leng, 
-                     ttmat[2][1] * leng - sub_leng );
+            VEC_SET( pt, ttmat[0][1] * xf_leng, 
+                     ttmat[1][1] * xf_leng + sub_leng, 
+                     ttmat[2][1] * xf_leng );
             point_transform( ptj, pt, &tmat );
-            VEC_SET( pt, ttmat[0][2] * leng - sub_leng, 
-                     ttmat[1][2] * leng - sub_leng, 
-                     ttmat[2][2] * leng + sub_leng );
+            VEC_SET( pt, ttmat[0][2] * xf_leng, 
+                     ttmat[1][2] * xf_leng, 
+                     ttmat[2][2] * xf_leng + sub_leng );
             point_transform( ptk, pt, &tmat );
 
             antialias_lines( FALSE, 0 );
