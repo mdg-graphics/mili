@@ -11,6 +11,8 @@
  *            the list ("prev" pointer for _new_ first element
  *            was not being reset to NULL).  (Doug Speck)
  *
+ * 08/02/96 - Same fix as UNLINK (above) for DELETE.  (Doug Speck)
+ *
  * Copyright 1991 (c) Regents of the University of California
  */
 
@@ -107,13 +109,24 @@
  * TAG( DELETE )
  * 
  * Delete an element from a list.
+ * 
+ * DOES NOT HANDLE DYNAMICALLY ALLOCATED DATA IN THE ELEMENT.
  */
+/* Original
 #define DELETE( elem, list ) { if ( (list) == (elem) )  \
                                   (list) = (elem)->next;  \
                                else {  \
                                   (elem)->prev->next = (elem)->next;  \
                                   if ( (elem)->next != NULL )  \
                                      (elem)->next->prev = (elem)->prev; } \
+                               free( elem ); } 
+*/
+#define DELETE( elem, list ) { if ( (list) == (elem) )  \
+                                  (list) = (elem)->next;  \
+                               else  \
+                                  (elem)->prev->next = (elem)->next;  \
+                               if ( (elem)->next != NULL )  \
+                                  (elem)->next->prev = (elem)->prev;  \
                                free( elem ); } 
 
 
