@@ -162,7 +162,8 @@ typedef struct _Minmax_obj
     struct _Minmax_obj *next;
     struct _Minmax_obj *prev;
     Result_spec result;
-    float minmax[2];
+    float minmax[2];     /* Nodal result (original or interpolated). */
+    float el_minmax[2];  /* Element result. */
     int mesh_object[2];
     int el_type[2];
 } Minmax_obj; 
@@ -485,6 +486,7 @@ typedef struct _Analysis
     int global_mm_nodes[2];        /* For result at nodes. */
     Minmax_obj *result_mm_list;    /* Cache for global min/max's (at nodes). */
     Bool_type mm_result_set[2];
+    float global_elem_mm[2];       /* For result on element. */
     Minmax_obj elem_state_mm;      /* For result on element. */
     Minmax_obj tmp_elem_mm;        /* For result on element. */
 
@@ -498,6 +500,8 @@ typedef struct _Analysis
     
     Bool_type zbias_beams;
     float beam_zbias;
+    
+    Bool_type z_buffer_lines;
 
     Bool_type show_edges;
     int m_edges_cnt;
@@ -707,6 +711,7 @@ extern void read_hdf_colormap();
 extern void read_text_colormap();
 extern void hot_cold_colormap();
 extern void invert_colormap();
+extern void set_cutoff_colors();
 extern void cutoff_colormap();
 extern void gray_colormap();
 extern void contour_colormap();
@@ -716,6 +721,7 @@ extern void move_light();
 extern void set_vid_title();
 extern void draw_vid_title();
 extern void copyright();
+extern void check_interp_mode();
 /**/
 extern void add_clip_plane();
 extern void init_swatch();
@@ -781,6 +787,7 @@ extern float hex_vol( /* xx, yy, zz */ );
 extern float hex_vol_exact( /* xx, yy, zz */ );
 extern void hex_to_nodal( /* val_hex, val_nodal, analy */ );
 extern void shell_to_nodal( /* val_shell, val_nodal, analy */ );
+extern void init_mm_obj( /* Minmax_obj *p_minmax_obj */ );
 extern void load_result( /* analy */ );
 
 /* show.c */
