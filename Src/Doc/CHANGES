@@ -1077,3 +1077,31 @@ New command
 	picks (with the pick position being the cursor 
 	position when the mouse button was first depressed). 
 	(Speck)
+
+
+August 1 1997
+
+Changed commands
+    clrsel [{{node|n}|{beam|b}|{shell|s}|{brick|h}} <n>...]
+        The "clrsel" command now optionally takes a list of
+	node or element numbers to allow de-selections of a
+	subset of currently selected objects.  (See "New
+	functionality" below regarding de-selections with
+	the mouse and cursor.) (Speck)
+    
+New functionality
+    Node and element picks (hilites or selects) with the
+    mouse and cursor are now toggles - the first pick
+    selects (or hilites), another pick de-selects 
+    (de-hilites). (Speck)
+
+Bug fix
+    Routine compute_shell_eff_strain() was referencing
+    geom brick data instead of shell data.  This error was
+    introduced recently (presumably) when adding rate
+    estimation. (Speck)
+
+Internal change
+    Routing is_in_iarray() (misc.c) now takes an int pointer
+    at which to write the index number of the candidate
+    when found. (Speck)
