@@ -39,10 +39,7 @@
 #include <Xm/TextF.h>
 #include <Xm/ArrowB.h>
 #include <Xm/Protocols.h>
-/* Use this for Irix 4.x and 5.1. */
-/* #include <X11/GLw/GLwMDrawA.h> */
-/* This is the directory (mistake) for Irix 5.2. */
-#include <GL/GLwMDrawA.h>
+#include <X11/GLw/GLwMDrawA.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include "viewer.h"
