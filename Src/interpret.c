@@ -1513,7 +1513,7 @@ Analysis *analy;
         else if ( token_cnt == 4 )
         {
             for ( i = 0; i < 3; i++ )
-                nodes[i] = atoi( tokens[i + 2] ) - 1;
+                nodes[i] = atoi( tokens[i + 1] ) - 1;
             for ( i = 0; i < 3; i++ )
                 pt[i] = analy->state_p->nodes->xyz[i][nodes[0]];
             for ( i = 0; i < 3; i++ )
@@ -1524,8 +1524,8 @@ Analysis *analy;
         else
         {
             popup_dialog( USAGE_POPUP, "%s\n%s\n%s",
-                          "coordxf <node 1> <node 2> <node 3>"
-                          "OR"
+                          "coordxf <node 1> <node 2> <node 3>",
+                          "OR",
                           "coordxf <x1> <y1> <z1> <x2> <y2> <z2> <x3> <y3> <z3>"
                         );
             setval = FALSE;
@@ -1551,13 +1551,8 @@ Analysis *analy;
             vec_norm( xfmat[0] );
             vec_norm( xfmat[1] );
             vec_norm( xfmat[2] );
-            
-            if ( analy->do_tensor_transform
-                 && (    analy->result_id >= VAL_SHARE_EPSX
-                         && analy->result_id <= VAL_SHARE_EPSZX
-                      || 
-                         analy->result_id >= VAL_SHARE_SIGX
-                         && analy->result_id <= VAL_SHARE_SIGZX ) )
+
+            if ( analy->do_tensor_transform )
             {
                 analy->result_mod = TRUE;
                 load_result( analy, TRUE );
