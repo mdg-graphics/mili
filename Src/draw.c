@@ -219,6 +219,8 @@ Analysis *analy;
     else
         glDisable( GL_DEPTH_TEST );
 
+/*
+glPolygonOffsetEXT( 0, .001 );*/
     /* Normalize normal vectors after transformation.  This is crucial. */
     if ( analy->dimension == 3 )
         glEnable( GL_NORMALIZE );
@@ -1486,6 +1488,10 @@ Analysis *analy;
     if ( v_win->lighting )
         glEnable( GL_LIGHTING );
 
+    /* Bias the depth-buffer if edges are on so they'll render in front. */
+    if ( analy->show_edges )
+        glDepthRange( analy->edge_zbias, 1 );
+
     /*
      * Draw iso-surfaces.
      */
@@ -1583,6 +1589,10 @@ Analysis *analy;
     /* Turn lighting off (back to the default). */
     if ( v_win->lighting )
         glDisable( GL_LIGHTING );
+
+    /* Remove depth-buffer bias applied to polygons. */
+    if ( analy->show_edges )
+        glDepthRange( 0, 1 );
 
     draw_beams( analy );
 
@@ -2101,6 +2111,7 @@ Analysis *analy;
     float verts[2][3];
     float pts[6];
     float threshold, val, rmin, rmax;
+    GLfloat nearfar[2];
     int matl, i, j, k;
 
     if ( analy->geom_p->beams == NULL )
@@ -2119,6 +2130,13 @@ Analysis *analy;
 
     antialias_lines( TRUE );
     glLineWidth( 3 );
+
+    /* Bias the depth-buffer so beams are in front. */
+    if ( analy->zbias_beams )
+    {
+	glGetFloatv( GL_DEPTH_RANGE, nearfar );
+        glDepthRange( 0, 1 - analy->beam_zbias );
+    }
 
     for ( i = 0; i < beams->cnt; i++ )
     {
@@ -2156,6 +2174,10 @@ Analysis *analy;
 
         draw_line( 2, pts, matl, analy, FALSE );
     }
+    
+    /* Remove depth bias. */
+    if ( analy->zbias_beams )
+        glDepthRange( nearfar[0], nearfar[1] );
 
     antialias_lines( FALSE );
     glLineWidth( 1.0 );
@@ -2454,6 +2476,9 @@ Analysis *analy;
 
     antialias_lines( TRUE );
 
+    /* Bias the depth buffer so edges are in front of polygons. */
+    glDepthRange( 0, 1 - analy->edge_zbias );
+
     glColor3fv( v_win->foregrnd_color  );
     for ( i = 0; i < analy->m_edges_cnt; i++ )
     {
@@ -2480,6 +2505,9 @@ Analysis *analy;
 
         draw_line( 2, pts, analy->m_edge_mtl[i], analy, FALSE );
     }
+
+    /* Remove depth bias. */
+    glDepthRange( 0, 1 );
 
     antialias_lines( FALSE );
 }
