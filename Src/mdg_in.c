@@ -41,6 +41,7 @@ typedef struct _Family
     int unpacked;
 
     /* Section offsets, section sizes, and result locations in sections. */
+    int node_nvar;
     int hex_offset;
     int hex_nvar;
     int shell_offset;
@@ -48,6 +49,12 @@ typedef struct _Family
     int beam_offset;
     int beam_nvar;
     int *result_offsets;
+    
+    /* Input buffers by mesh object type. */
+    Buffer_pool *node_input;
+    Buffer_pool *beam_input;
+    Buffer_pool *shell_input;
+    Buffer_pool *hex_input;
 
     /* Sleazy, for handling files with no position data at states. */
     Geom *geom_p;
@@ -83,6 +90,8 @@ Family *cur_family = NULL;
 
 
 /* Local routines. */
+static void init_buffer_pool();
+static void delete_buffer_pool();
 static void pf_name();
 static void set_fam_file();
 static void mdg_read();
@@ -149,6 +158,7 @@ char *root_name;
     int seg;
     char fname[50];
     int i;
+    Buffer_pool *p_bp;
 
     /*
      * Open the family, read in title and control data.
@@ -394,7 +404,10 @@ char *root_name;
 
     loc = (1 + nglbv)*sizeof(float);
     seg = numnp*sizeof(float);
-
+    
+    /* Nodal variable qty. */
+    fam->node_nvar = nvqty;
+    
     /* Nodal positions. */
     if ( iu )
     {
@@ -442,6 +455,11 @@ char *root_name;
 	    loc += seg;
 	}
     }
+    
+    /* Node input buffer pool. */
+    p_bp = NEW( Buffer_pool, "Node buffer pool" );
+    init_buffer_pool( p_bp, DFLT_BUFFER_POOL_SIZE, nvqty * numnp );
+    fam->node_input = p_bp;
 
     /* Brick data. */
     if ( nel8 > 0 )
@@ -457,6 +475,10 @@ char *root_name;
         fam->result_offsets[VAL_HEX_EPS_EFF] = 6;
         seg = nel8*sizeof(float);
         loc += nv3d*seg;
+	
+	p_bp = NEW( Buffer_pool, "Hex buffer pool" );
+        init_buffer_pool( p_bp, DFLT_BUFFER_POOL_SIZE, nel8 * nv3d );
+        fam->hex_input = p_bp;
     }
 
     /* Beam data. */
@@ -472,6 +494,10 @@ char *root_name;
         fam->result_offsets[VAL_BEAM_TOR_MOMENT] = 5;
         seg = nel2*sizeof(float);
         loc += nv1d*seg;
+	
+	p_bp = NEW( Buffer_pool, "Beam buffer pool" );
+        init_buffer_pool( p_bp, DFLT_BUFFER_POOL_SIZE, nel2 * nv1d );
+        fam->beam_input = p_bp;
     }
 
     /* Shell data. */
@@ -533,6 +559,10 @@ char *root_name;
         }
         seg = nel4*sizeof(float);
         loc += nv2d*seg;
+	
+	p_bp = NEW( Buffer_pool, "Shell buffer pool" );
+        init_buffer_pool( p_bp, DFLT_BUFFER_POOL_SIZE, nel4 * nv2d );
+        fam->shell_input = p_bp;
     }
 
     /* Activity data. */
@@ -561,6 +591,245 @@ char *root_name;
 
 
 /*****************************************************************
+ * TAG( set_input_buffer_qty )
+ *
+ * Reset the quantity of buffers used for data input.
+ */
+void
+set_input_buffer_qty( object_type, qty )
+int object_type;
+int qty;
+{
+    int nv1d, nv2d, nv3d, nvqty;
+    int nel2, nel4, nel8, numnp;
+    
+    if ( object_type == NODE_T || object_type == ALL_OBJECT_T )
+    {
+        numnp   = cur_family->ctl[ 1];
+        nvqty   = cur_family->node_nvar;
+	init_buffer_pool( cur_family->node_input, qty, nvqty * numnp );
+    }
+    
+    if ( object_type == BRICK_T || object_type == ALL_OBJECT_T )
+    {
+        nel8    = cur_family->ctl[ 8];
+        nv3d    = cur_family->ctl[12];
+	
+        if ( nel8 > 0 )
+            init_buffer_pool( cur_family->hex_input, qty, nv3d * nel8 );
+    }
+    
+    if ( object_type == SHELL_T || object_type == ALL_OBJECT_T )
+    {
+        nel4    = cur_family->ctl[16];
+        nv2d    = cur_family->ctl[18];
+	
+        if ( nel4 > 0 )
+            init_buffer_pool( cur_family->shell_input, qty, nv2d * nel4 );
+    }
+    
+    if ( object_type == BEAM_T || object_type == ALL_OBJECT_T )
+    {
+        nel2    = cur_family->ctl[13];
+        nv1d    = cur_family->ctl[15];
+	
+        if ( nel2 > 0 )
+            init_buffer_pool( cur_family->beam_input, qty, nv1d * nel2 );
+    }
+}
+
+
+/*****************************************************************
+ * TAG( init_buffer_pool )
+ *
+ * (Re-)Initialize a buffer pool.
+ */
+static void
+init_buffer_pool( p_bp, bufqty, bufsize )
+Buffer_pool *p_bp;
+int bufqty;
+int bufsize;
+{
+    float **p_tmp_dat, **p_swap_dat;
+    int *p_tmp_st;
+    int cnt;
+    int i, j;
+    Bool_type new_memory;
+    int save, gone;
+
+    /* 
+     * Attempt to allocate memory first if necessary to capture any 
+     * allocation failures before modifying existing structures.
+     * 
+     * Note that if changing a buffer size, this will result in both
+     * the old buffers and the new ones being allocated 
+     * simultaneously, and so could conceivably cause an alloc failure
+     * unnecessarily.
+     */
+    new_memory = FALSE;
+    if ( bufqty > p_bp->buffer_count || p_bp->buffer_size != bufsize )
+    {
+	cnt = bufqty - p_bp->buffer_count;
+	p_tmp_dat = NEW_N( float *, cnt, "Temp input buffer array" );
+	
+	for ( i = 0; i < cnt; i++ )
+	{
+	    p_tmp_dat[i] = NEW_N( float, bufsize, "Input buffer" );
+	    
+	    if ( p_tmp_dat[i] == NULL )
+	    {
+	        /* Failure - clean-up and return. */
+		
+		popup_dialog( WARNING_POPUP, 
+		              "Input buffer allocation failure;\n%s", 
+			      "buffer queue not modified." );
+		for ( j = 0; j < i; j++ )
+		    free( p_tmp_dat[j] );
+		free( p_tmp_dat );
+		return;
+	    }
+	}
+	
+	new_memory = TRUE;
+    }
+    
+    /* If buffer already used and buffer size changes or no buffering... */
+    if ( p_bp->buffer_count != 0 
+         && ( p_bp->buffer_size != bufsize || bufqty == 0 ) )
+    {
+	/* Free everything to start from scratch. */
+	
+	for ( i = 0; i < p_bp->buffer_count; i++ )
+	    free( p_bp->data_buffers[i] );
+	free( p_bp->data_buffers );
+	free( p_bp->state_numbers );
+	p_bp->buffer_count = 0;
+    }
+    
+    if ( p_bp->buffer_count == 0 )
+    {
+	/* A clean Buffer_pool - create the queue. */
+	
+	p_bp->data_buffers = NEW_N( float *, bufqty, "Input buffer queue" );
+	p_bp->state_numbers = NEW_N( int, bufqty, "Input queue states" );
+	for ( i = 0; i < bufqty; i++ )
+	{
+            p_bp->data_buffers[i] = p_tmp_dat[i];
+	    p_bp->state_numbers[i] = -1;
+	}
+	p_bp->new_count = bufqty;
+	p_bp->buffer_count = bufqty;
+	p_bp->buffer_size = bufsize;
+	p_bp->recent = -1;
+    }
+    else if ( p_bp->buffer_count > bufqty )
+    {
+	/* Shrink the queue */
+	
+	/* Free the excess data buffers. */
+	for ( i = 0, gone = p_bp->recent; i < p_bp->buffer_count - bufqty; i++ )
+	{
+	    gone = (gone + 1) % p_bp->buffer_count;
+	    free( p_bp->data_buffers[gone] );
+	    
+	    if ( p_bp->state_numbers[gone] == -1 )
+	        p_bp->new_count--;
+	}
+	
+	/* Migrate remaining buffers to low end of queue. */
+	
+	p_swap_dat = NEW_N( float *, bufqty, "Temp input buffer array" );
+	p_tmp_st = NEW_N( int, bufqty, "Temp buffer state array" );
+	
+	/* Move the keepers to temporary storage. */
+	for ( i = 0, save = gone; i < bufqty; i++ )
+	{
+	    save = (save + 1) % p_bp->buffer_count;
+	    
+	    p_swap_dat[i] = p_bp->data_buffers[save];
+	    p_tmp_st[i] = p_bp->state_numbers[save];
+	}
+	
+	/* Now move them back to the Buffer_pool. */
+	for ( i = 0; i < bufqty; i++ )
+	{
+	    p_bp->data_buffers[i] = p_swap_dat[i];
+	    p_bp->state_numbers[i] = p_tmp_st[i];
+	}
+	
+	free( p_swap_dat );
+	free( p_tmp_st );
+	
+	/* Free up unused ends of queue arrays. */
+	p_bp->data_buffers = RENEW_N( float *, p_bp->data_buffers, 
+	                              p_bp->buffer_count, 
+				      bufqty - p_bp->buffer_count, 
+				      "Reduced input buffer queue" );
+	p_bp->state_numbers = RENEW_N( int, p_bp->state_numbers, 
+	                               p_bp->buffer_count, 
+				       bufqty - p_bp->buffer_count, 
+				       "Reduced input queue states" );
+    }
+    else if ( p_bp->buffer_count < bufqty )
+    {
+	/* Extend the queue. */
+	
+	cnt = bufqty - p_bp->buffer_count;
+	
+	p_bp->data_buffers = RENEW_N( float *, p_bp->data_buffers, 
+	                              p_bp->buffer_count, cnt, 
+				      "Extended input buffer queue" );
+	p_bp->state_numbers = RENEW_N( int, p_bp->state_numbers, 
+	                               p_bp->buffer_count, cnt, 
+				       "Extended input queue states" );
+	
+	/* Move the previously allocated new buffers to the Buffer_pool. */
+	for ( i = p_bp->buffer_count; i < bufqty; i++ )
+	{
+	    p_bp->data_buffers[i] = p_tmp_dat[i - p_bp->buffer_count];
+	    p_bp->state_numbers[i] = -1;
+	}
+	
+	p_bp->buffer_count = bufqty;
+	p_bp->new_count = cnt;
+    }
+    else
+    {
+	popup_dialog( WARNING_POPUP, "Re-initializing with same buffer\n%s", 
+	              "size and quantity is not implemented." );
+    }
+    
+    if ( new_memory )
+        free( p_tmp_dat );
+}
+
+
+/*****************************************************************
+ * TAG( delete_buffer_pool )
+ *
+ * Free memory resources allocated to a Buffer_pool.
+ */
+static void
+delete_buffer_pool( p_bp )
+Buffer_pool *p_bp;
+{
+    int i;
+    
+    /* Sanity check. */
+    if ( p_bp == NULL )
+        return;
+
+    for ( i = 0; i < p_bp->buffer_count; i++ )
+	free( p_bp->data_buffers[i] );
+
+    free( p_bp->data_buffers );
+    free( p_bp->state_numbers );
+    
+    free( p_bp );
+}
+
+
+/*****************************************************************
  * TAG( close_family )
  *
  * Close the current family of MDG plot files.
@@ -577,6 +846,11 @@ close_family()
         free( cur_family->st_file_num );
         free( cur_family->st_file_loc );
         free( cur_family->result_offsets );
+	
+        delete_buffer_pool( cur_family->node_input );
+        delete_buffer_pool( cur_family->hex_input );
+        delete_buffer_pool( cur_family->shell_input );
+        delete_buffer_pool( cur_family->beam_input );
 
         DELETE( cur_family, family_list );
 
@@ -921,12 +1195,95 @@ int st_num;
 float *result_arr;
 {
     float *tmp_arr;
-    int ndim, sz, fnum, loc, jmp, i, stride, ixd;
+    int ndim, fnum, loc, jmp, i, stride, ixd;
+    Buffer_pool *p_bp;
+    int idx, next;
+    Bool_type buffered;
+    int offset, obj_qty, nvar;
 
     if ( cur_family->result_offsets[result_id] == -1 )
     {
         wrt_text( "Result (ID = %d) not in database.\n", result_id );
         return;
+    }
+    
+    if ( is_nodal_result( result_id ) )
+    {
+	p_bp = cur_family->node_input;
+	offset = (1 + cur_family->ctl[3]) * sizeof( float );
+	obj_qty = cur_family->ctl[1];
+    }
+    else if ( is_hex_result( result_id ) )
+    {
+	p_bp = cur_family->hex_input;
+	offset = cur_family->hex_offset;
+	obj_qty = cur_family->ctl[8];
+	nvar = cur_family->hex_nvar;
+    }
+    else if ( is_shell_result( result_id ) )
+    {
+	p_bp = cur_family->shell_input;
+	offset = cur_family->shell_offset;
+	obj_qty = cur_family->ctl[16];
+	nvar = cur_family->shell_nvar;
+    }
+    else if ( is_beam_result( result_id ) )
+    {
+	p_bp = cur_family->beam_input;
+	offset = cur_family->beam_offset;
+	obj_qty = cur_family->ctl[13];
+	nvar = cur_family->beam_nvar;
+    }
+    
+    buffered = FALSE;
+
+    if ( p_bp->buffer_count != 0 )
+    {
+        buffered = TRUE;
+	
+        /* Attempt to match requested state among buffered states. */
+	for ( i = 0; i < p_bp->buffer_count; i++ )
+            if ( p_bp->state_numbers[i] == st_num )
+		break;
+	    
+	if ( i == p_bp->buffer_count )
+	{
+            /* State not in memory - read it into next buffer in queue. */
+	    
+	    /* Check for unused buffers first. */
+            if ( p_bp->new_count > 0 )
+            {
+		/* Find an unused buffer. */
+		for ( i = 0; i < p_bp->buffer_count; i++ )
+		    if ( p_bp->state_numbers[i] == -1 )
+		        break;
+		    
+		next = i;
+		p_bp->new_count--;
+            }
+            else
+		/* No unused buffers, so overwrite the one after "recent". */
+		next = (p_bp->recent + 1) % p_bp->buffer_count;
+	
+	    /*
+	     * Calculate location of data for requested object type and
+	     * read into a buffer.
+	     */
+            fnum = cur_family->st_file_num[st_num];
+            loc = cur_family->st_file_loc[st_num] + offset;
+            mdg_read( fnum, loc, p_bp->buffer_size * sizeof( float ), 
+		      p_bp->data_buffers[next] );
+	    
+	    /* Update pool. */
+            p_bp->state_numbers[next] = st_num;
+            p_bp->recent = next;
+	    
+	    /* Save buffer index. */
+            idx = next;
+	}
+	else
+	    /* Found requested state in memory. */
+	    idx = i;
     }
 
     if ( result_id == VAL_NODE_TEMP )
@@ -935,20 +1292,32 @@ float *result_arr;
          * Temperature is a special case since it is currently
          * treated as a scalar, not a vector.  What a kluge.
          */
-        sz = cur_family->ctl[1];
-        fnum = cur_family->st_file_num[st_num];
+	
+	if ( buffered )
+	{
+	    /* Copy data from buffer into result array. */
+	    tmp_arr = p_bp->data_buffers[idx]
+	              + cur_family->result_offsets[VAL_NODE_TEMP]
+		        / sizeof( float );
+	    
+	    memcpy( result_arr, tmp_arr, obj_qty * sizeof( float ) );
+	}
+	else
+	{
+	    /* No buffering - do the old thing */
+            fnum = cur_family->st_file_num[st_num];
 
-        /* Get the proper offset from the X value identifier. */
-        loc = cur_family->st_file_loc[st_num] + 
-              cur_family->result_offsets[result_id];
+            /* Get the proper offset from the X value identifier. */
+            loc = cur_family->st_file_loc[st_num] + 
+                  cur_family->result_offsets[result_id];
 
-        mdg_read( fnum, loc, sz*sizeof(float), result_arr );
+            mdg_read( fnum, loc, obj_qty * sizeof(float), result_arr );
+	}
     }
     else if ( is_nodal_result( result_id ) )
     {
         /* Nodal results are interleaved by vectors. */
         ndim = cur_family->ctl[0];
-        sz = cur_family->ctl[1];
         fnum = cur_family->st_file_num[st_num];
 
         jmp = 0;
@@ -956,10 +1325,6 @@ float *result_arr;
             jmp = 1;
         else if ( cur_family->result_offsets[result_id] == -3 )
             jmp = 2;
-
-        /* Get the proper offset from the X value identifier. */
-        loc = cur_family->st_file_loc[st_num] + 
-              cur_family->result_offsets[result_id-jmp];
 	
 	/* For turbulence results, stride is not a function of dimensionality */
 	if ( result_id == VAL_NODE_K
@@ -972,50 +1337,53 @@ float *result_arr;
 	}
 	else
 	    stride = ndim;
+        
+	if ( buffered )
+	{
+	    tmp_arr = p_bp->data_buffers[idx]
+	              + cur_family->result_offsets[result_id - jmp]
+		        / sizeof( float );
+	}
+	else
+	{
+            /* Get the proper offset from the X value identifier. */
+            loc = cur_family->st_file_loc[st_num] + 
+                  cur_family->result_offsets[result_id-jmp];
 
-        tmp_arr = NEW_N( float, stride*sz, "Tmp read result arr" );
-        mdg_read( fnum, loc, stride*sz*sizeof(float), tmp_arr );
+            tmp_arr = NEW_N( float, stride * obj_qty, "Tmp read result arr" );
+            mdg_read( fnum, loc, stride * obj_qty * sizeof(float), tmp_arr );
+	}
 
-        for ( i = 0, loc = jmp; i < sz; i++, loc += stride )
+        /* Copy data into result array. */
+	for ( i = 0, loc = jmp; i < obj_qty; i++, loc += stride )
             result_arr[i] = tmp_arr[loc];
-        free( tmp_arr );
+        if ( !buffered )
+	    free( tmp_arr );
     }
     else
     {
         /* Element results are stored in element order, have to
          * to jump when reading.
          */
-        fnum = cur_family->st_file_num[st_num];
-        loc = cur_family->st_file_loc[st_num];
+        
+	if ( buffered )
+	    tmp_arr = p_bp->data_buffers[idx];
+	else
+	{
+            fnum = cur_family->st_file_num[st_num];
+            loc = cur_family->st_file_loc[st_num] + offset;
 
-        if ( is_hex_result( result_id ) )
-        {
-            sz = cur_family->ctl[8];
-            loc += cur_family->hex_offset;
-            jmp = cur_family->hex_nvar;
-        }
-        else if ( is_shell_result( result_id ) )
-        {
-            sz = cur_family->ctl[16];
-            loc += cur_family->shell_offset;
-            jmp = cur_family->shell_nvar;
-        }
-        else if ( is_beam_result( result_id ) )
-        {
-            sz = cur_family->ctl[13];
-            loc += cur_family->beam_offset;
-            jmp = cur_family->beam_nvar;
-        }
-
-        /* Read in whole data block, then extract the desired variable. */
-        tmp_arr = NEW_N( float, jmp*sz, "Tmp read result arr" );
-        mdg_read( fnum, loc, jmp*sz*sizeof(float), tmp_arr );
+            /* Read in whole data block, then extract the desired variable. */
+            tmp_arr = NEW_N( float, nvar * obj_qty, "Tmp read result arr" );
+            mdg_read( fnum, loc, nvar * obj_qty * sizeof(float), tmp_arr );
+	}
 
         loc = cur_family->result_offsets[result_id];
-        for ( i = 0; i < sz; i++, loc += jmp )
+        for ( i = 0; i < obj_qty; i++, loc += nvar )
             result_arr[i] = tmp_arr[loc];
 
-        free( tmp_arr );
+        if ( !buffered )
+            free( tmp_arr );
     }
 }
 
