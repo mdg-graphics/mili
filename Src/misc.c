@@ -54,6 +54,37 @@ char *descr;
 }
 
 
+/*****************************************************************
+ * TAG( verbose_realloc )
+ *
+ * Realloc if possible, else calloc and copy.  Warning - call 
+ * syntax enables caller to have a dangling reference if return
+ * value is not assigned to argument passed into "ptr".
+ */
+void *
+verbose_realloc( void *ptr, int size, int add, char *descr )
+{
+    void *new;
+    int new_size;
+    
+    new_size = size + add;
+    
+    new = realloc( ptr, new_size );
+    
+    if ( new == NULL )
+        popup_fatal( "Can't reallocate additional memory." );
+
+#ifdef DEBUG_MEM
+    _mem_total += add;
+    
+    fprintf( stderr, "Reallocating memory for %s: %d bytes, total %d K.\n",
+              descr, add, _mem_total / 1024 ); 
+#endif
+    
+    return new;
+}
+
+
 /************************************************************
  * TAG( timing_vals )
  *

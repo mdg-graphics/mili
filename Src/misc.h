@@ -33,6 +33,8 @@
 #ifndef DEBUG_MEM
 #define NEW(type,descr) ( (type *)calloc( 1, sizeof( type ) ) ) 
 #define NEW_N(type,cnt,descr) ( (type *)calloc( (cnt), sizeof( type ) ) ) 
+#define RENEW_N(type,old,cnt,add,descr)                                       \
+    ( (type *)realloc( (void *) (old), ((cnt) + (add)) * sizeof( type ) ) )
 #endif DEBUG_MEM
 
 #ifdef DEBUG_MEM
@@ -40,6 +42,12 @@ extern char *my_calloc();
 #define NEW(type,descr) ( (type *)my_calloc( 1, sizeof( type ), descr ) ) 
 #define NEW_N(type,cnt,descr) ( (type *)my_calloc( (cnt), sizeof( type ), \
                                 descr ) )
+extern void *verbose_realloc();
+#define RENEW_N(type,old,cnt,add,descr)                                       \
+    ( (type *)verbose_realloc( (void *) (old),                                \
+                               (cnt) * sizeof( type ),                        \
+			       (add) * sizeof( type ),                        \
+			       descr ) )
 #endif DEBUG_MEM
 
 /*****************************************************************
