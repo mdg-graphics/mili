@@ -1,10 +1,16 @@
 $Id$
 ************************************************************
-                      Updated: 10/24/96
+                      Updated: 10/28/96
 
                      WELCOME TO GRIZ 2.0
 
 New commands
+    conwid <width>
+        Set the line width for isocontours. <width> is a
+	floating point number greater than zero. Fractional
+	widths are allowable, but actual resolution is
+	platform dependent.  The default width is 1.0.
+	
     on/off zlines   (Default: on)
         This controls whether or not antialiased lines
 	(edge lines and beam elements) are depth-buffered
@@ -44,6 +50,8 @@ New functionality
     override any rmin or rmax values currently in effect.
 
 Bug fixes
+    Output from the "outobj" command has been corrected.
+    
     Errors which occur during rgb-file output (such as when
     attempting to overwrite an existing file) no longer 
     cause Griz to exit.

@@ -729,6 +729,13 @@ Bug fixes
 October 24 1996
 
 New commands
+    conwid <width>
+        Set the line width for isocontours. <width> is a
+	floating point number greater than zero. Fractional
+	widths are allowable, but actual resolution is
+	platform dependent.  The default width is 1.0.
+	(Speck)
+	
     on/off zlines   (Default: on)
         This controls whether or not antialiased lines
 	(edge lines and beam elements) are depth-buffered
@@ -770,6 +777,9 @@ New functionality
     (Speck)
 	
 Bug fixes
+    Output from the "outobj" command has been corrected.
+    (Speck)
+    
     Errors which occur during rgb-file output (such as when
     attempting to overwrite an existing file) no longer 
     cause Griz to exit. (Speck)
@@ -805,5 +815,24 @@ Bug fixes
     
     Meshes which contain both beam and shell elements now
     display the beams properly. (Speck)
+
+
+October 28 1996
+
+(These should have been documented with the October 24
+changes above, although they have actually been in the
+code for several weeks prior to the other 10/24 changes.)
+
+New commands
+    conwid <width>
+        Set the line width for isocontours. <width> is a
+	floating point number greater than zero. Fractional
+	widths are allowable, but actual resolution is
+	platform dependent.  The default width is 1.0.
+	(Speck)
+	
+Bug fixes
+    Output from the "outobj" command has been corrected.
+    (Speck)
 
 
