@@ -679,3 +679,49 @@ Bug fix
 Internal change
     Replaced bzero, bcopy calls with equivalent "mem..." calls.
     (Sanford)
+
+July 23, 1996
+
+New commands
+    fracsz <qty digits>
+        Set the number of digits to render after the decimal
+	point on the colormap scale, node/element min/max
+	values, result values on selected nodes/elements,
+	and on time-history plot axis scales.  This does
+	NOT override "on autosz" on time-history plots.
+	Set to two by default. (Speck)
+	
+    on/off autosz
+        With "autosz" on, Griz will automatically calculate
+	the number of decimal digits to render on time-
+	history plot axis scales so that numeric
+	differences between adjacent values will be 
+	resolved with a minimal number of digits.  The 
+	number of digits after the decimal point is bounded 
+	to [1,6].  This feature is on by default. (Speck)
+	
+    on/off bbmax
+        With "bbmax" on, Griz defines the mesh bounding box
+	by only the largest displacement magnitude values 
+	experienced across all invocations of the "bbox" 
+	command.  The intent of this is that, by invoking 
+	"bbox" at appropriate states, one can set the 
+	bounding box, and by derivation the mesh view, to a 
+	size that will encompass the mesh regardless of 
+	displacement.  However, if explicit box values are 
+	given with the "bbox" command, they will be used 
+	regardless of "bbmax" setting.  This feature is off
+	by default. (Speck)
+	
+New functionality
+    The Griz cursor changes shape to provide user feedback
+    during various operations.  This functionality can be
+    added to any Griz operation, and users are welcome to
+    make suggestions if they note a relatively slow
+    operation during which it would be appropriate to change
+    the cursor shape (to a watch, for example). (Speck)
+
+Bug fixes
+    Griz now recognizes and reads LLNL Topaz databases,
+    accessing nodal temperature correctly. (Speck)
+

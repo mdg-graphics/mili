@@ -1,35 +1,51 @@
 $Id$
 ************************************************************
-                      Updated: 6/25/96
+                      Updated: 7/23/96
 
                      WELCOME TO GRIZ 2.0
 
+New commands
+    fracsz <qty digits>
+        Set the number of digits to render after the decimal
+	point on the colormap scale, node/element min/max
+	values, result values on selected nodes/elements,
+	and on time-history plot axis scales.  This does
+	NOT override "on autosz" on time-history plots.
+	Set to two by default.
+	
+    on/off autosz
+        With "autosz" on, Griz will automatically calculate
+	the number of decimal digits to render on time-
+	history plot axis scales so that numeric
+	differences between adjacent values will be 
+	resolved with a minimal number of digits.  The 
+	number of digits after the decimal point is bounded 
+	to [1,6].  This feature is on by default.
+	
+    on/off bbmax
+        With "bbmax" on, Griz defines the mesh bounding box
+	by only the largest displacement magnitude values 
+	experienced across all invocations of the "bbox" 
+	command.  The intent of this is that, by invoking 
+	"bbox" at appropriate states, one can set the 
+	bounding box, and by derivation the mesh view, to a 
+	size that will encompass the mesh regardless of 
+	displacement.  However, if explicit box values are 
+	given with the "bbox" command, they will be used 
+	regardless of "bbmax" setting.  This feature is off
+	by default.
+	
 New functionality
-    Colormap value scale - The colormap now displays a
-    scale of values along its left side.  Scale values are
-    selected to fall on "round" values between the result
-    min and max (including zero, for example).  An
-    alternative implementation could always pick a set
-    number of scale values equally spaced between the min
-    and max and let the values fall where they may.  If
-    you have any feedback, please submit it to Doug Speck
-    or Larry Sanford.
-    
-    Rendered text is now anti-aliased.
-    
-    <Ctrl><mouse pick>
-        Picking an element while the Control key is 
-	depressed will select or deselect the element's
-	material in the Material Manager.  The element is 
-	not hilited or selected.  If the Material Manager
-	is not up, an information dialog pops up stating
-	this fact.  <Ctrl>-picking a node pops up a 
-	dialog telling the user to pick an element.
+    The Griz cursor changes shape to provide user feedback
+    during various operations.  This functionality can be
+    added to any Griz operation, and users are welcome to
+    make suggestions if they note a relatively slow
+    operation during which it would be appropriate to change
+    the cursor shape (to a watch, for example).
 
-    <Shift><mouse pick>
-        Picking a node or element while the Shift key is
-	depressed effects a "tellpos" query on the picked
-	object.  No hilite or selection occurs.
+Bug fixes
+    Griz now recognizes and reads LLNL Topaz databases,
+    accessing nodal temperature correctly.
 	    
 See the file /public/Griz/CHANGES_2.0 for an up-to-date list
 of GRIZ 2.0 changes.
