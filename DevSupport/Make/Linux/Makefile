@@ -16,6 +16,8 @@
 #
 SHELL = /bin/sh
 #
+CC = gcc
+#
 
 # Set name of griz binary appropriately. The name "griz" is used
 # for the Griz shell script make target, below.
@@ -124,6 +126,9 @@ shape.o:       	viewer.h misc.h list.h mdg.h results.h geometric.h
 flow.o:       	viewer.h misc.h list.h mdg.h results.h geometric.h draw.h
 poly.o:		viewer.h misc.h list.h mdg.h results.h geometric.h draw.h
 explode.o:	viewer.h misc.h list.h mdg.h results.h geometric.h
+
+image.h:
+		ln -s Include/image.h image.h
 
 clean:
 	rm *.o
