@@ -812,7 +812,13 @@ Analysis *analy;
             else if ( strcmp( tokens[i], "autosz" ) == 0 )
                 analy->auto_frac_size = setval;
             else if ( strcmp( tokens[i], "lighting" ) == 0 )
-                v_win->lighting = setval;
+	    {
+		if ( analy->dimension == 2 && setval == TRUE )
+		    popup_dialog( INFO_POPUP, 
+		                  "Lighting is not utilized for 2D meshes." );
+		else
+		    v_win->lighting = setval;
+	    }
             else
                 wrt_text( "On/Off command unrecognized: %s\n", tokens[i] );
         } 
