@@ -116,6 +116,30 @@ typedef struct
 
 
 /*****************************************************************
+ * TAG( Buffer_pool )
+ *
+ * Structure to maintain a circular queue of data input buffers.
+ */
+typedef struct _buffer_pool
+{
+    int buffer_size;
+    int buffer_count;
+    int new_count;
+    float **data_buffers;
+    int *state_numbers;
+    int recent;
+} Buffer_pool;
+
+
+/*****************************************************************
+ * TAG( DFLT_BUFFER_POOL_SIZE )
+ *
+ * Default size of Buffer_pool circular queue.
+ */
+#define DFLT_BUFFER_POOL_SIZE (1)
+
+
+/*****************************************************************
  * TAG( fc_nd_nums )
  *
  * Table which gives the nodes corresponding to each face of a
@@ -160,14 +184,15 @@ extern int edge_node_nums[12][2];
 
 
 /*****************************************************************
- * TAG( NODE_T BEAM_T SHELL_T BRICK_T )
+ * TAG( NODE_T BEAM_T SHELL_T BRICK_T ALL_OBJECT_T)
  *
- * Some useful defines for selecting element type.
+ * Some useful defines for selecting mesh object type.
  */
 #define NODE_T 0
 #define BEAM_T 1
 #define SHELL_T 2
 #define BRICK_T 3
+#define ALL_OBJECT_T 4
 
 
 /*****************************************************************
@@ -194,6 +219,7 @@ extern void debug_geom( /* Geom * */ );
  */
 extern int open_family( /* root_name */ );
 extern void set_family( /* root_name */ );
+extern void set_input_buffer_qty( /* object_type, qty */ );
 extern Geom *get_geom( /* Geom * */ );
 extern State *get_state( /* state_number, State * */ );
 extern int is_in_database( /* result_id */ );
