@@ -2181,6 +2181,9 @@ init_gui()
     GLXwinset( XtDisplay(w), XtWindow(w) );
 */
     init_mesh_window( env.curr_analy );
+    
+    /* Set error handler so that rgb dump errors don't cause an exit. */
+    i_seterror( do_nothing_stub );
 
     /*
      * Read in the start-up history file.  First check in current
@@ -2767,6 +2770,14 @@ XmToggleButtonCallbackStruct *call_data;
     }
     
     update_actions_sens();
+    
+#ifdef SUNOS5
+    /* 
+     * Motif libs on Solaris don't seem to update visual state of toggles
+     * immediately.  Get out the big gun...
+     */
+    XFlush( dpy );
+#endif
 }
 
 
@@ -3028,6 +3039,14 @@ XmPushButtonCallbackStruct call_data;
     }
     
     update_actions_sens();
+    
+#ifdef SUNOS5
+    /* 
+     * Motif libs on Solaris don't seem to update visual state of toggles
+     * immediately.  Get out the big gun...
+     */
+    XFlush( dpy );
+#endif
 }
 
 
@@ -3595,6 +3614,14 @@ XmToggleButtonCallbackStruct *call_data;
 	        parse_command( "sw picsh", env.curr_analy );
 	    break;
     }
+    
+#ifdef SUNOS5
+    /* 
+     * Motif libs on Solaris don't seem to update visual state of toggles
+     * immediately.  Get out the big gun...
+     */
+    XFlush( dpy );
+#endif
 }
 
 
@@ -3812,7 +3839,7 @@ Util_panel_button_type button;
 	    break;
 	case VIEW_EDGES:
 	    /* 
-	     * This called edge on/off is modified
+	     * This called when edge on/off is modified
 	     * to maintain consistency of "Edges Only" toggle with
 	     * the current state.
 	     */
@@ -3916,6 +3943,14 @@ Util_panel_button_type button;
 			       NULL );
 	    break;
     }
+    
+#ifdef SUNOS5
+    /* 
+     * Motif libs on Solaris don't seem to update visual state of toggles
+     * immediately.  Get out the big gun...
+     */
+    XFlush( dpy );
+#endif
 }
 
 
