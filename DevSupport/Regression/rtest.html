@@ -1,0 +1,481 @@
+<!-- this file was generated automatically by noweave; better not edit it-->
+<html><head><title>rtest.nw rtest_support.nw</title></head><body><!--*   ****************************************************************-->
+<!--*   * (c) Copyright 1997, 1998, 1999, 1900 The Regents of the      *-->
+<!--*   *     University  of California.  All Rights Reserved.         *-->
+<!--*   *                                                              *-->
+<!--*   *     This work was produced under the sponsorship of the      *-->
+<!--*   *     United States Department of Energy.  The Government      *-->
+<!--*   *     retains certain rights therein.                          *-->
+<!--*   ****************************************************************-->
+<!--*   -->
+<!--*   ****************************************************************-->
+<!--*   This file uses the noweb utilities to generate the source code-->
+<!--*   and documentation.-->
+<!--*   To generate the LaTex file use:-->
+<!--*   noweave -index rtest.nw rtest_support.nw > rtest.tex-->
+<!--*   latex rtest.tex; latex rtest.tex-->
+<!--*   To generate the PDF version use:-->
+<!--*   dvipdfm rtest.dvi-->
+<!--*   To generate the HTML file use:-->
+<!--*   noweave -filter l2h -index -autodefs c -html -->
+<!--*           rtest.nw rtest_support.nw > rtest.html-->
+<!--*   To produce the source code use:-->
+<!--*   notangle -L'%N' rtest.nw rtest_support.nw > rtest.py-->
+<!--*      note: the first empty line must be removed-->
+<!--*   notangle -L'%N' rtest_init.nw > rtest_init.py-->
+<!--*   ****************************************************************-->
+
+<h1>Specialized Regression Testing for Griz2(Taurus) verses 
+Griz4(Taurus and Mili) Codes</h1>
+<address>Victor M. Castillo<br>Methods Development Group</address>
+<!--title goes here--><p>
+<h2>Introduction</h2>
+The new version of GRIZ (GRIZ4) has the capability of reading the Mili
+database format. For backward compatability, it retains the ability to 
+read the Taurus database. 
+This specialized regression test is used to compare the results of GRIZ2
+and GRIZ4 using the Taurus database. A second comparison is then made 
+using GRIZ4 to compare the results of reading the Taurus and Mili databases.<br>
+<table border><!-- alignment is |p{1.5cm}|p{2.5cm}|p{1.5cm}|p{2.5cm}|p{1.5cm}|--><!-- 5 columns--><tr><td align=left valign=top>GRIZ2 (Taurus)</td><td align=left valign=top>--- compare --- </td><td align=left valign=top>GRIZ4 (Taurus)</td><td align=left valign=top>--- compare --- </td><td align=left valign=top>GRIZ4 (Mili)</td></tr>
+</table><br>
+Comparisons are made for a variety of historic sample cases,
+including those using the SAND model. The set of sample cases used
+in this test are referred to as 
+{<code>SAMP1</code>, <code>SAMP2</code>, <code>SAMP4</code>, <code>SAMP6</code>, <code>SAMP8</code>, 
+<code>SND1</code>, <code>SND2</code>, <code>SND3</code>}.
+For each of these sample cases, derived and primitive results are
+compared for each element type available. In addition, a time history
+of one of the results (preferably a derived result) is compared for
+each element type (see Table 1).
+<p>
+<!--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%-->
+<hr> <b>[</b>]Tested results for each element type
+<table border><!-- alignment is |p{2.5cm}|p{1.62cm}|p{1.5cm}|p{1.5cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|--><!-- 7 columns--><tr><td align=left valign=top>Result </td><td align=left valign=top>Nodal </td><td align=left valign=top>Shell </td><td align=left valign=top>Brick </td><td align=left valign=top>Shared or Global </td><td align=left valign=top>Material</td></tr>
+<tr><td align=left valign=top>Derived</td><td align=left valign=top>'dispx' 'dispy' 'dispz' 'dispmag' 'velx' 'vely' 'velz' 
+'velmag' 'accx' 'accy' 'accz' 'accmag' 'pvmag'
+</td><td align=left valign=top>'surf1' 'surf2' 'surf3' 'surf4' 'surf5' 'surf6'
+'eff1' 'eff2' 'effmax'
+</td><td align=left valign=top>'ex' 'ey' 'ez' 'exy' 'eyz' 'ezx' 'pdstrn1' 'pdstrn2' 
+'pdstrn3' 'pshrstr' 'pstrn1' 'pstrn2' 'pstrn3' 'relvol' 'evol'
+</td><td align=left valign=top>'sx' 'sy' 'sz' 'sxy' 'syz' 'szx' 'press' 'seff' 'pdev1' 'pdev2' 
+'pdev3' 'maxshr' 'prin1' 'prin2' 'prin3'
+</td><td align=left valign=top></td></tr>
+<tr><td align=left valign=top>Primal</td><td align=left valign=top>'nodpos[ux]'</td><td align=left valign=top>'eeff_mid'</td><td align=left valign=top>'eeff'</td><td align=left valign=top>'ke'</td><td align=left valign=top>'matpe'</td></tr>
+<tr><td align=left valign=top>Time History</td><td align=left valign=top>'dispmag'</td><td align=left valign=top>'effmax'</td><td align=left valign=top>'prin1'</td><td align=left valign=top>'ke'</td><td align=left valign=top>'matpe'</td></tr>
+</table>
+<hr>
+<!--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%-->
+<!--\bigskip-->
+<!--\newline-->
+<p>
+<h3>Using the regression test</h3>
+The operation of the regression test relies on a particular directory 
+structure and a set of particular filenames, most of which are created
+by the program if needed. For each sample case (listed in the <code>CASE</code> 
+dictionary), a directory must be created by the user which contains
+the Tuarus and Mili database for the <code>dyna3d</code> runs. 
+The subdirectories <code>G2T</code>, <code>G4T</code>, and <code>G4M</code> are created within each 
+of these case directories to store the results of the GRIZ2(Taurus), GRIZ4(Taurus), 
+and GRIZ4(Mili) runs. The results are written to a file with the name
+convention
+<blockquote>
+<code>casedir</code>+``/&quot;+<code>testdir</code>+``/&quot;+<code>result_type</code>+<code>elem_type</code>+<code>result</code>+``.his&quot;.
+</blockquote>
+For example, the derived result <code>velx</code> for the <code>Nodal</code> element
+types from GRIZ4 using the Taurus database from <code>SAMP1</code> is called 
+``SAMP1/G4T/DRNodalvelx.his&quot;.
+The Unix <code>diff</code> operation are done on comparable
+result files and stored in the common case directory. These <code>diff</code> 
+files are named by the convention:
+<blockquote>
+<code>casedir</code>+``/&quot;+<code>dir1</code>+<code>dir2</code>+<code>element_type</code> +``.&quot;+<code>result_type</code>.
+</blockquote>
+For example, the comparison between GRIZ2(Taurus) and GRIZ4(Taurus) 
+for <code>Brick</code> element type for all <code>derived results</code> of <code>SAMP1</code>is called 
+``SAMP1/G2TG4TBrick.dr&quot;.
+<p>
+Within each case directory, a <code>.info</code> file is used to indicate to
+the regression test what element types are available for testing. This 
+file is generated by a separate <code>Python</code> script, <code>rtest_init.py</code>
+(Generated by <code>rtest_init.nw</code> -- see <code>rtest_init.ps|pdf|html|dvi</code> for more
+documentation. If the <code>.info</code> the regression test will not continue.
+<p>
+The <code>Python</code> script can be modified to select the cases to be used
+and the result type(s). For development of the regression routines, 
+set <code>CASELIST=SHORTLIST</code>. For exhaustive testing, set <code>CASELIST=LONGLIST</code>.
+Also, for development, the time history (<code>TH</code>) comparisons are quickest.
+For more detailed testing uncomment the lines in <code>main</code> for the <code>DR</code> and
+<code><a name="NWD1">PR</a></code> result types.
+<p>
+<h3>Revision History</h3> 
+<em>Also see headers in individual functions.</em>
+<ul>
+<li>8-Jun-1999  Original version. (Victor M. Castillo)
+<li>14-Dec-1999 Converted to noweb form (This document) (VMC)
+</ul>
+<p>
+
+<h3><a name="NWD2">Program flow</a></h3>
+This section describes the flow of the program and is used by
+<code>NoWeb</code> to construct the source code.
+<p><pre><a name="NWrte8-*-1" href="#NWD2"><dfn>&lt;*&gt;=</dfn></a>
+#!/usr/bin/env /grdev/regrtest/bin/python
+   <a name="NWrte8-*-1-u1" href="#NWD4"><i>&lt;Define global variables and dictionaries&gt;</i></a>
+   <a name="NWrte8-*-1-u2" href="#NWD5"><i>&lt;Main&gt;</i></a>
+   <a name="NWrte8-*-1-u3" href="#NWD6"><i>&lt;Read info file&gt;</i></a>
+   <a name="NWrte8-*-1-u4" href="#NWD8"><i>&lt;Make grizinit file&gt;</i></a>
+   <a name="NWrte8-*-1-u5" href="#NWD7"><i>&lt;Griz it&gt;</i></a>
+   <a name="NWrte8-*-1-u6" href="#NWDB"><i>&lt;Onespace&gt;</i></a>
+   <a name="NWrte8-*-1-u7" href="#NWD9"><i>&lt;Diff it&gt;</i></a>
+   <a name="NWrte8-*-1-u8" href="#NWDA"><i>&lt;Rprint&gt;</i></a>
+   <a name="NWrte8-*-1-u9" href="#NWDC"><i>&lt;Exit code&gt;</i></a>
+
+</pre><p>
+<h2><a name="NWD3">Code listing and description</a></h2>
+Each code section is listed below with a brief description. 
+<p>
+
+<h3><a name="NWD4">Global variables and dictionaries</a></h3>
+Most of the global variables and dictionaries are defined in
+the file <code>rtest_support.py</code> (see Appendix). Here <code>CASELIST</code>
+and <code>verbose</code> are defined for development convenience.
+<p>
+<pre><a name="NWrte8-Defe-1" href="#NWD4"><dfn>&lt;Define global variables and dictionaries&gt;=</dfn></a> <b>(<a href="#NWD2">&lt;-U</a>)</b>
+<a name="NWrte8-Defe-1-u1" href="#NWDE"><i>&lt;rtest support&gt;</i></a>
+#from rtest_support import * #Not used for NoWeb version
+SHORTLIST=CASE['SAMP'][0],
+LONGLIST=CASE['SAMP']+CASE['SND']
+CASELIST=SHORTLIST
+verbose=1
+clean=0
+
+</pre><p>
+<h3><a name="NWD5">Main</a></h3>
+Function <code>main</code> calls the function <code>readlist</code> to get the element
+type list appropriate for each sample in <code>CASELIST</code>. For each
+result type, main calls <code>griz_it</code> to do the rest.
+<p>
+<pre><a name="NWrte8-Mai4-1" href="#NWD5"><dfn>&lt;Main&gt;=</dfn></a> <b>(<a href="#NWD2">&lt;-U</a>)</b>
+def main():
+   elem_type_list=[]
+   for sample in CASELIST:
+      os.chdir(RHOME+sample+&quot;/&quot;)
+      elem_type_list=read_info()
+      print sample,&quot;: &quot;,elem_type_list 
+      #ok=griz_it(sample,'DR',elem_type_list)
+      ok=griz_it(sample,'TH',elem_type_list)
+      #ok=griz_it(sample,'PR',elem_type_list)
+   return 0
+
+</pre><p>
+<h3><a name="NWD6">Parse the </a><code>.info</code> file</h3>
+The <code>.info</code> file, created by <code>rtest_init</code>, is parsed to determine
+what element type(s) are available for testing. 
+<p>
+<pre><a name="NWrte8-ReaE-1" href="#NWD6"><dfn>&lt;Read info file&gt;=</dfn></a> <b>(<a href="#NWD2">&lt;-U</a>)</b>
+def read_info(): 
+   &quot;Parse ./.info file to determine relevant element types&quot;
+   if not os.path.exists('.info'):
+      print(&quot;ERROR: No info file found. Run rtest_init.py.&quot;)
+      return -1
+   info=open('.info','r+')
+   raw = info.read() 
+   info.close()
+   keylist=[]
+   for key in IS.keys():
+      etest = re.compile(IS[key][0])
+      if etest.search(raw):
+         keylist.append(key)
+   return keylist
+
+</pre><p>
+<h3><a name="NWD7">Griz loop</a></h3>
+The function <code>griz_it</code> does the bulk of the work of the regression
+test. For each element type, <code>make_g_file</code> is called to generate 
+a grizinit file. The appropriate GRIZ binary is then executed, generating
+result data files. Care is taken to make sure that the GRIZ process is
+finished before comparing result data files by checking for the file 
+named &quot;<code>done</code>&quot; (created by GRIZ).
+The function <code>diff_it</code> is then called to compare the result data files.
+<p>
+<pre><a name="NWrte8-Gri7-1" href="#NWD7"><dfn>&lt;Griz it&gt;=</dfn></a> <b>(<a href="#NWD2">&lt;-U</a>)</b>
+def griz_it(sample,result_type,elem_type_list):
+   result_type_string=RS[result_type]
+   os.chdir(RHOME+sample)
+   for elem_type in elem_type_list:
+      rprint(&quot;Testing &quot;+elem_type+&quot; &quot;+result_type_string+&quot; with &quot;+sample)
+      for i in range(len(TEST['bin'])):
+         GRIZBIN=TEST['bin'][i]   #selects the binary, Griz2 or Griz4
+         DB=TEST['db'][i]         #selects the database, Taurus or Mili
+         DIR=TEST['dir'][i]       #selects the appropriate directory for results
+         if not os.path.exists(DIR):
+            # if appropriate directory does not exist, create it
+            if verbose:print &quot;creating directory: &quot;+DIR
+            os.mkdir(DIR)
+         os.chdir(DIR)              #change to appropriate directory
+         ok=make_g_file(result_type, elem_type)   #create grizinit file 
+         err=os.system(GRIZBIN+&quot; -i &quot;+DB)   #run griz with new grizinit file
+         os.chdir('..')
+      #force all runs to finish before comparing results
+      for i in [0,1,2]:
+         DIR=TEST['dir'][i]
+         if not os.path.exists(DIR):
+            print(&quot;ERROR: Directory &quot;+DIR+&quot;was not created&quot;)
+         if not os.path.exists(DIR+'/done'):
+            print(&quot;waiting for &quot;+DIR+&quot;...&quot;)
+         while not os.path.exists(DIR+'/done'):
+            pass
+      for i in [0,1,2]:
+         os.remove(TEST['dir'][i]+'/done')
+      ok=diff_it(result_type,elem_type)
+   rprint(&quot;fini&quot;)
+   return 1
+
+</pre><p>
+<h3><a name="NWD8">Make </a><code>grizinit</code> file</h3>
+Here the <code>grizinit</code> is created for each result type.
+Each <code>grizinit</code> file instructs GRIZ to run the sample case
+for all results associated with each element type available.
+A GRIZ history file of the name 
+<code>result_type</code>+<code>elem_type</code>+<code>result</code>+``.his&quot;
+is created by GRIZ for the result data.
+<p>
+<pre><a name="NWrte8-MakI-1" href="#NWD8"><dfn>&lt;Make grizinit file&gt;=</dfn></a> <b>(<a href="#NWD2">&lt;-U</a>)</b>
+def make_g_file(result_type,elem_type):
+   g=open('grizinit','w+')    #create grizinit file 
+   g.write(HEADER)
+   if result_type=='DR':
+      for result in DR[elem_type]: 
+         hisfile='DR'+elem_type+result+&quot;.his&quot;
+         g.write(&quot;show &quot;+result+&quot;\n&quot;)
+         g.write(&quot;savtxt &quot;+hisfile+&quot;\n&quot;)
+         g.write(&quot;tellmm\n&quot;)
+         g.write(&quot;endtxt\n&quot;)
+      g.write(&quot;savtxt done\n&quot;)
+      g.write(&quot;endtxt\n&quot;)
+   elif result_type=='PR':
+      for result in PR[elem_type]: 
+         hisfile='PR'+elem_type+result+&quot;.his&quot;
+         g.write(&quot;show &quot;+result+&quot;\n&quot;)
+         g.write(&quot;savtxt &quot;+hisfile+&quot;\n&quot;)
+         g.write(&quot;tellmm\n&quot;)
+         g.write(&quot;endtxt\n&quot;)
+      g.write(&quot;savtxt done\n&quot;)
+      g.write(&quot;endtxt\n&quot;)
+   elif result_type=='TH':
+      for result in TH[elem_type]: 
+         hisfile='TH'+elem_type+result+&quot;.his&quot;
+         g.write(&quot;select node 1\n&quot;)
+         g.write(&quot;select beam 1\n&quot;)
+         g.write(&quot;select shell 1\n&quot;)
+         g.write(&quot;select brick 1\n&quot;)
+         g.write(&quot;show &quot;+result+&quot;\n&quot;)
+         g.write(&quot;timhis \n&quot;)
+         g.write(&quot;outth &quot;+hisfile+&quot;\n&quot;)
+      g.write(&quot;savtxt done\n&quot;)
+      g.write(&quot;endtxt\n&quot;)
+   else:
+      g.write(&quot;quit\n&quot;)
+      g.close()
+      return 0
+   g.write(&quot;quit\n&quot;)
+   g.close()
+   return 1
+
+</pre><p>
+<h3><a name="NWD9">Compare the results</a></h3>
+This routine uses the Unix <code>diff</code> command to compare result files. 
+the difference is piped to a file in the sample case directory.
+<p>
+<pre><a name="NWrte8-Dif7-1" href="#NWD9"><dfn>&lt;Diff it&gt;=</dfn></a> <b>(<a href="#NWD2">&lt;-U</a>)</b>
+def diff_it(result_type,elem_type):
+   # compare results for G2T and G4T and G4M
+   for i in [0,1]:
+      DIR1=TEST['dir'][i]
+      DIR2=TEST['dir'][i+1]
+      rprint(&quot;Comparing results: &quot;+DIR1+&quot; and &quot;+DIR2)
+      ext=&quot;.&quot;+string.lower(result_type)
+      TEMP=DIR1+DIR2+elem_type+ext
+      err=os.system('echo  &gt;'+TEMP)
+      for result in eval(result_type)[elem_type]:
+         TARG1=DIR1+'/'+result_type+elem_type+result+&quot;.his&quot;
+         TARG2=DIR2+'/'+result_type+elem_type+result+&quot;.his&quot;
+         if result_type =='TH':
+            ok=onespace(TARG1)
+            ok=onespace(TARG2)
+         err=os.system('diff '+TARG1+' '+TARG2+'&gt;&gt;'+TEMP)
+   for i in [0,1,2]:
+      for result in eval(result_type)[elem_type]:
+         hisfile=TEST['dir'][i]+'/'+result_type+elem_type+result+&quot;.his&quot;
+         if not os.path.exists(hisfile):
+            msg=&quot;File not created: &quot;+hisfile
+            rprint(msg)
+            err=os.system('echo '+msg+' &gt;&gt;'+TEMP)
+         else:
+            if clean:
+               err=os.remove(hisfile)
+   return 1
+
+</pre><p>
+<h3><a name="NWDA">Rprint</a></h3>
+This routine sends messages to the log file and to the standard
+output if verbose. I might add a ranking to each message so that 
+it is printed to standard output only if it is below the &quot;verbosity&quot;
+number.
+<p>
+<pre><a name="NWrte8-Rpr6-1" href="#NWDA"><dfn>&lt;Rprint&gt;=</dfn></a> <b>(<a href="#NWD2">&lt;-U</a>)</b>
+def rprint(text):
+   &quot;Reports information to report file and console if verbose&quot;
+   # r.write(text+&quot;\n&quot;)
+   if verbose: print(text) 
+   return 0
+
+</pre><p>
+<h3><a name="NWDB">Onespace</a></h3>
+This routine takes the GRIZ result files and converts it
+to one where the data is delimited by a single space. This 
+is needed in cases where the versions have different formatting.
+<p>
+<pre><a name="NWrte8-One8-1" href="#NWDB"><dfn>&lt;Onespace&gt;=</dfn></a> <b>(<a href="#NWD2">&lt;-U</a>)</b>
+def onespace(filename):
+   tempfilename='tempfile'
+   tempfile=open(tempfilename,'w+')
+   datafile=open(filename,'r+')
+   datin=datafile.readlines()
+   for i in range(len(datin)):
+      j=string.join(string.split(datin[i]))
+      tempfile.write(j+&quot;\n&quot;)
+   datafile.close()
+   tempfile.close()
+   err=os.system('mv '+tempfilename+' '+filename)
+   return 1
+
+</pre><p>
+<h3><a name="NWDC">Exit</a></h3>
+Normal system exits come from Main.
+<p><pre><a name="NWrte8-Exi9-1" href="#NWDC"><dfn>&lt;Exit code&gt;=</dfn></a> <b>(<a href="#NWD2">&lt;-U</a>)</b>
+if __name__ == '__main__':
+   sys.exit(main())
+
+
+
+</pre><p><!--*   ****************************************************************-->
+<!--*   * (c) Copyright 1997, 1998, 1999, 1900 The Regents of the      *-->
+<!--*   *     University  of California.  All Rights Reserved.         *-->
+<!--*   *                                                              *-->
+<!--*   *     This work was produced under the sponsorship of the      *-->
+<!--*   *     United States Department of Energy.  The Government      *-->
+<!--*   *     retains certain rights therein.                          *-->
+<!--*   ****************************************************************-->
+<!--*   -->
+<!--*   ****************************************************************-->
+<!--*   This file uses the noweb utilities to generate the source code-->
+<!--*   and documentation.-->
+<!--*   To generate the LaTex file use:-->
+<!--*   noweave -index rtest_init.nw > <a name="NWDD">rtest_init.tex--></a>
+<!--*   To generate the HTML file use:-->
+<!--*   noweave -filter l2h -index -autodefs c -html -->
+<!--*           rtest_init.nw > rtest_init.html-->
+<!--*   ****************************************************************-->
+
+
+
+<h2><a name="NWDE">Appendix: </a><code>rtest_support</code></h2>
+This file defines all of the Python dictionaries used for the 
+regression testing. Dictionaries have an unordered set of 
+<em>key:value</em> pairs where the key can be a string.
+<p>
+<pre><a name="NWrteG-rteD-1" href="#NWDE"><dfn>&lt;rtest support&gt;=</dfn></a> <b>(<a href="#NWD4">&lt;-U</a>)</b>
+
+import os,sys,re,string
+
+verbose=1
+RHOME=&quot;/grdev/regrtest/&quot;
+GRIZ2=RHOME+&quot;bin/griz2&quot;
+GRIZ4=RHOME+&quot;bin/griz4&quot;
+TAURUS=&quot;../d3plot&quot;
+MILI=&quot;../m_plot&quot;
+H1=&quot;# This grizinit file was automatically generated\n&quot;
+H2=&quot;# by regrtest.py for regression testing of Griz4\n&quot;
+H3=&quot;# -Vic Castillo\n#\n&quot;
+HEADER=H1+H2+H3
+
+TEST={}
+TEST['bin']=GRIZ2,GRIZ4,GRIZ4
+TEST['db']=TAURUS,TAURUS,MILI
+TEST['dir']='G2T','G4T','G4M'
+
+CASE={}
+CASE['SAMP']='SAMP1','SAMP2','SAMP4','SAMP6','SAMP8'
+CASE['SND']='SND1','SND2','SND3'
+
+# Derived Results Dictionary
+DR={}
+drnd1='dispx','dispy','dispz','dispmag'
+drnd2='velx','vely','velz','velmag'
+drnd3='accx','accy','accz','accmag','pvmag'
+DR['Nodal']=drnd1+drnd2+drnd3
+drshr1='sx','sy','sz','sxy','syz','szx'
+drshr2='press','seff','pdev1','pdev2','pdev3'
+drshr3='maxshr','prin1','prin2','prin3'
+DR['Share']=drshr1+drshr2+drshr3
+drshl1='surf1','surf2','surf3','surf4','surf5','surf6'
+drshl2='eff1','eff2','effmax'
+DR['Shell']=drshl1+drshl2
+drbrk1='ex','ey','ez','exy','eyz','ezx'
+drbrk2='pdstrn1','pdstrn2','pdstrn3','pshrstr'
+drbrk3='pstrn1','pstrn2','pstrn3','relvol','evol'
+DR['Brick']=drbrk1+drbrk2+drbrk3
+
+# Primal Results Dictionary
+PR={}
+PR['Nodal']='nodpos[ux]',
+PR['Global']='ke',
+PR['Mat']='matpe',
+PR['Brick']='eeff',
+PR['Shell']='eeff_mid',
+
+# Time History Dictionary
+# These are the results selected for the time histories
+TH={}
+TH['Nodal']='dispmag',
+TH['Global']='ke',
+TH['Mat']='matpe',
+TH['Brick']='prin1',
+TH['Shell']='effmax',
+
+# Info String Dictionary
+# These are the string patterns from the griz 'info' command.
+# (Why does it not work without the commas?)
+IS={}
+IS['Nodal']='Nodes:',
+IS['Brick']='Hex elements:',
+IS['Shell']='Shell elements:',
+# IS['Beam']='Beam elements:',
+
+# These are the strings describing result types
+RS={}
+RS['DR']='Derived Results'
+RS['PR']='Primative Results'
+RS['TH']='Time History Results'
+
+
+</pre>
+
+<ul>
+<li><a href="#NWD2"><i>&lt;*&gt;</i></a>: <a href="#NWD2">D1</a>
+<li><a href="#NWD4"><i>&lt;Define global variables and dictionaries&gt;</i></a>: <a href="#NWD2">U1</a>, <a href="#NWD4">D2</a>
+<li><a href="#NWD9"><i>&lt;Diff it&gt;</i></a>: <a href="#NWD2">U1</a>, <a href="#NWD9">D2</a>
+<li><a href="#NWDC"><i>&lt;Exit code&gt;</i></a>: <a href="#NWD2">U1</a>, <a href="#NWDC">D2</a>
+<li><a href="#NWD7"><i>&lt;Griz it&gt;</i></a>: <a href="#NWD2">U1</a>, <a href="#NWD7">D2</a>
+<li><a href="#NWD5"><i>&lt;Main&gt;</i></a>: <a href="#NWD2">U1</a>, <a href="#NWD5">D2</a>
+<li><a href="#NWD8"><i>&lt;Make grizinit file&gt;</i></a>: <a href="#NWD2">U1</a>, <a href="#NWD8">D2</a>
+<li><a href="#NWDB"><i>&lt;Onespace&gt;</i></a>: <a href="#NWD2">U1</a>, <a href="#NWDB">D2</a>
+<li><a href="#NWD6"><i>&lt;Read info file&gt;</i></a>: <a href="#NWD2">U1</a>, <a href="#NWD6">D2</a>
+<li><a href="#NWDA"><i>&lt;Rprint&gt;</i></a>: <a href="#NWD2">U1</a>, <a href="#NWDA">D2</a>
+<li><a href="#NWDE"><i>&lt;rtest support&gt;</i></a>: <a href="#NWD4">U1</a>, <a href="#NWDE">D2</a>
+</ul>
+<ul>
+</ul>
+</body></html>
+
