@@ -27,7 +27,7 @@ static void shell_normals();
 static void get_brick_edges();
 static void get_shell_edges();
 static void edge_heapsort();
-static int edge_node_cmp();
+static int edge_compare();
 static void find_extents();
 
 /* Default crease threshold angle is 22 degrees.
@@ -1866,7 +1866,8 @@ Analysis *analy;
 
     /* Sort the edge table. */
     ord = NEW_N( int, ecnt, "Sort ordering table" );
-    edge_heapsort( ecnt, edge_tbl, ord );
+    edge_heapsort( ecnt, edge_tbl, ord, analy->face_el, bricks->mat, 
+                   analy->mtl_trans );
 
     /* Put boundary edges in the edge list. */
     m_edges[0] = NEW_N( int, ecnt, "Brick edges" );
@@ -1882,7 +1883,8 @@ Analysis *analy;
         el = analy->face_el[j];
         fc = analy->face_fc[j];
 
-        if ( edge_node_cmp( ord[i], ord[i+1], edge_tbl ) == 0 )
+        if ( edge_tbl[0][ord[i]] == edge_tbl[0][ord[i+1]]
+             && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
         {
             j = edge_tbl[2][ord[i+1]];
             el_next = analy->face_el[j];
@@ -2138,7 +2140,7 @@ Analysis *analy;
 
     /* Sort the edge table. */
     ord = NEW_N( int, ecnt, "Sort ordering table" );
-    edge_heapsort( ecnt, edge_tbl, ord );
+    edge_heapsort( ecnt, edge_tbl, ord, NULL, shells->mat, analy->mtl_trans );
 
     /* Put boundary edges in the edge list. */
     m_edges[0] = NEW_N( int, ecnt, "Shell edges" );
@@ -2155,7 +2157,8 @@ Analysis *analy;
 	     || analy->hide_material[mat[el_this]] )
             vis_this = FALSE;
 
-        if ( edge_node_cmp( ord[i], ord[i+1], edge_tbl ) == 0 )
+        if ( edge_tbl[0][ord[i]] == edge_tbl[0][ord[i+1]]
+             && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
         {
             el_next = edge_tbl[2][ord[i+1]];
             vis_next = TRUE;
@@ -2283,10 +2286,13 @@ Analysis *analy;
  * is arrin and the sorted ordering is returned in the indx array.
  */
 static void
-edge_heapsort( n, arrin, indx )
+edge_heapsort( n, arrin, indx, face_el, mat, mtl_trans )
 int n;
 int *arrin[3];
 int *indx;
+int *face_el;
+int *mat;
+float *mtl_trans[3];
 {
     int l, j, ir, indxt, i;
 
@@ -2319,9 +2325,14 @@ int *indx;
         j = 2*l + 1;
 	while ( j <= ir ) 
         {
-	    if ( j < ir && edge_node_cmp( indx[j], indx[j+1], arrin ) < 0 )
+	    if ( j < ir 
+                 && edge_compare( indx[j], indx[j+1], arrin, face_el, mat, 
+                                   mtl_trans ) 
+                    < 0 )
                 j++;
-	    if ( edge_node_cmp( indxt, indx[j], arrin ) < 0 )
+	    if ( edge_compare( indxt, indx[j], arrin, face_el, mat,
+                                mtl_trans ) 
+                 < 0 )
             {
 		indx[i] = indx[j];
                 i = j;
@@ -2336,18 +2347,28 @@ int *indx;
 
 
 /************************************************************
- * TAG( edge_node_cmp )
+ * TAG( edge_compare )
  *
- * Compare two sets of nodes in an array.  Called by the sorting
- * routine to sort shell edges.  Assumes that the node numbers
- * are stored in the first two entries of n_arr.
+ * Differentiates two edges on the basis of (1) defining nodes,
+ * (2) material inequality, or (3) material translation
+ * inequality.  Called by the sorting routine to sort shell 
+ * and element face edges.  Assumes that the node numbers are 
+ * stored in the first two entries of n_arr, and face or
+ * element number in the third entry.
  */
 static int
-edge_node_cmp( indx1, indx2, n_arr )
+edge_compare( indx1, indx2, n_arr, face_el, mat, mtl_trans )
 int indx1, indx2;
 int *n_arr[3];
+int *face_el;
+int *mat;
+float *mtl_trans[3];
 {
     int i;
+    int el1, el2;
+    int mat1, mat2;
+    Bool_type untranslated_1, untranslated_2;
+    float trans1x, trans1y, trans1z, trans2x, trans2y, trans2z;
 
     for ( i = 0; i < 2; i++ )
     {
@@ -2357,8 +2378,58 @@ int *n_arr[3];
             return 1;
     }
 
-    /* Entries match.
+    /* 
+     * Edge matches.  Sort further on material and  material translation
+     * distance to prevent equating different materials which have
+     * unequal translations.  Without this distinction, opposing faces
+     * of different materials (exposed through a material translation)
+     * which share an element edge can generate a visual edge even
+     * though they're translated apart and visually have no common edge.
      */
+
+    el1 = n_arr[2][indx1];
+    el2 = n_arr[2][indx2];
+
+    if ( face_el != NULL )
+    {
+        /* 
+         * For hexes, n_arr holds the face number; get the element id
+         * from face_el.
+         */
+        el1 = face_el[el1];
+        el2 = face_el[el2];
+    }
+
+    mat1 = mat[el1];
+    mat2 = mat[el2];
+
+    if ( mat1 != mat2 )
+    {
+        trans1x = mtl_trans[0][mat1];
+        trans2x = mtl_trans[0][mat2];
+
+        if ( trans1x < trans2x )
+            return -1;
+        else if ( trans1x > trans2x )
+            return 1;
+
+        trans1y = mtl_trans[1][mat1];
+        trans2y = mtl_trans[1][mat2];
+
+        if ( trans1y < trans2y )
+            return -1;
+        else if ( trans1y > trans2y )
+            return 1;
+        
+        trans1z = mtl_trans[2][mat1];
+        trans2z = mtl_trans[2][mat2];
+
+        if ( trans1z < trans2z )
+            return -1;
+        else if ( trans1z > trans2z )
+            return 1;
+    }
+
     return 0;
 }
 
