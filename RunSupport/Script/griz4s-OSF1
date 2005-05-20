@@ -20,30 +20,42 @@
 #   11-Dec-96  Added support for GLX/X distinction, Sun FFB, and
 #              OSF/Irix and OSF/Sun peculiarities
 #              (Doug Speck)
-
-#  04-Apr-05   Add support for beta release of Griz.
+#
+#  04-Apr-05   Add support for Beta release of Griz.
+#              (Bob Corey)
+#
+#  19-May-05   Add support for Alpha release of Griz.
 #              (Bob Corey)
 #*******************************************************************
 
 # Capture the batch flag and beta if they exist
 set batch = no
 set beta  = no
+set alpha = no
 
 foreach argument ($argv[*])
-    if (x$argument == "x-b")    set batch = yes
-    if (x$argument == "x-beta") set beta = yes
+    if (x$argument == "x-b")     set batch = yes
+    if (x$argument == "x-alpha") set alpha = yes
+    if (x$argument == "x-beta")  set beta  = yes
 end
 
-if ($beta == yes) then
-   setenv GRIZ4HOME /usr/gapps/mdg/tru64_5/archive/grizdir/beta/bin
-   setenv HFONTLIB  /usr/gapps/mdg/tru64_5/archive/grizdir/beta/Font
-   setenv LD_LIBRARY_PATH /usr/gapps/mdg/tru64_5/archive/grizdir/beta/bin
-else
+   setenv GRIZHOME  /usr/gapps/mdg/tru64_5/archive/grizdir/V4_04/bin
    setenv GRIZ4HOME /usr/gapps/mdg/tru64_5/archive/grizdir/V4_04/bin
    setenv HFONTLIB  /usr/gapps/mdg/tru64_5/archive/grizdir/V4_04/Font
    setenv LD_LIBRARY_PATH /usr/gapps/mdg/tru64_5/archive/grizdir/V4_04/bin
-endif
 
+if ($beta == yes) then
+   setenv GRIZHOME  /usr/gapps/mdg/tru64_5/archive/grizdir/beta/bin
+   setenv GRIZ4HOME /usr/gapps/mdg/tru64_5/archive/grizdir/beta/bin
+   setenv HFONTLIB  /usr/gapps/mdg/tru64_5/archive/grizdir/beta/Font
+   setenv LD_LIBRARY_PATH /usr/gapps/mdg/tru64_5/archive/grizdir/beta/bin
+endif
+if ($alpha == yes) then
+   setenv GRIZHOME  /usr/gapps/mdg/tru64_5/archive/grizdir/alpha/bin
+   setenv GRIZ4HOME /usr/gapps/mdg/tru64_5/archive/grizdir/alpha/bin
+   setenv HFONTLIB  /usr/gapps/mdg/tru64_5/archive/grizdir/alpha/Font
+   setenv LD_LIBRARY_PATH /usr/gapps/mdg/tru64_5/archive/grizdir/alpha/bin
+endif
 
 set system = `/bin/uname -s`
 set release = `/bin/uname -r`
