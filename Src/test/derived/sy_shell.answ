@@ -1,0 +1,35 @@
+# Time series data
+#
+#---------------------------------------------------------------------
+# Griz Version Info:
+#
+#	Griz4-V4_11
+# 	Built: 	Fri May 30 07:27:01 2008 on Linux #1 SMP Wed Oct 24 08:51:40 PDT 2007 2.6.9-74chaos x86_64 by (null)
+# 	Configure: configure --enable-jpeg --enable-png
+# 	Compile Options: pathcc  -g -O4 -DJPEG_SUPPORT -DPNG_SUPPORT  -DSERIAL_BATCH -I/usr/local/include -I/usr/include -I../include -I/usr/apps/mdg/include -I.. -I../HersheyLib/src -I../ImageLib -I/usr/X11R6/include -I../../ 
+# 		Mili Library Version (Griz Linked): 	V1_14_0
+#		Mili Database-Library Version: 		
+#		Mili Database-Host: 			
+#		Mili Database-Arch: 			
+#		Mili Database-Timestamp: 		
+#
+#---------------------------------------------------------------------
+# Database path/name: d3plot
+# Description:  <f8_i> 1-17-95
+# Output date: 05/30/08
+#
+# Shells 3547 Y Stress reference surface: middle
+# Shells 3547 Y Stress reference frame: global
+#
+#                Shells 3547
+#        Time       Y Stress
+ 0.000000e+00   0.000000e+00
+ 9.853253e-05   5.234129e-16
+ 1.985580e-04   4.663099e-15
+ 2.985834e-04  -1.221020e-16
+ 3.986089e-04   3.250345e-15
+ 4.986344e-04  -2.378041e-16
+ 5.986598e-04  -4.700934e-15
+ 6.986852e-04  -1.962493e-14
+ 7.001781e-04  -1.962493e-14
+
