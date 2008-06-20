@@ -1,0 +1,65 @@
+Following are options for configuring Griz for various
+platforms:
+
+
+tru64_5: 
+configure --enable-jpeg --enable-png
+--with-mesa=/usr/gapps/mdg/tru64_5/archive/mesadir
+--with-mili=/usr/gapps/mdg/tru64_5/archive/milidir/miliversion
+--with-mili=/g/g14/icorey/MDG/Mili/src
+
+configure --enable-mesa --enable-jpeg  --enable-png --with-mesa=/usr/gapps/mdg/tru64_5/archive/mesadir  --with-mili=/usr/gapps/mdg/tru64_5/archive/milidir/miliversion
+
+configure --enable-osmesa --enable-jpeg  --enable-png --with-mesa=/usr/gapps/mdg/tru64_5/archive/mesadir  --with-mili=/usr/gapps/mdg/tru64_5/archive/milidir/miliversion
+
+--enable-exodus --with-exodus=/usr/gapps/mdg/tru64_5/archive/exodusII
+--with-mili=/usr/gapps/mdg/tru64_5/archive/milidir/mili_1.08.00
+
+
+
+aix_5_ll: 
+configure --enable-mesa --enable-jpeg
+--with-mesa=/usr/gapps/mdg/aix_5_ll/archive/mesadir  --with-mili=/usr/gapps/mdg/aix_5_ll/archive/milidir/miliversion
+--with-mili=/usr/gapps/mdg/aix_5_ll/archive/milidir/mili_1.08.00
+
+Linux:
+(MCR,Pengra)
+configure --enable-mesa --enable-jpeg
+--with-mesa=/usr/gapps/mdg/chaos_2_ia32_elan3/archive/mesadir --with-mili=/usr/gapps/mdg/chaos_2_ia32_elan3/archive/milidir/miliversion
+--with-mili=/usr/gapps/mdg/chaos_2_ia32_elan3/archive/milidir/mili_1.08.00
+
+
+(ilx)
+configure --enable-mesa --enable-jpeg
+--with-mesa=/usr/gapps/mdg/chaos_2_ia32/archive/mesadir --with-mili=/usr/gapps/mdg/chaos_2_ia32archive/milidir/miliversion
+--with-mili=/usr/gapps/mdg/chaos_2_ia32/archive/milidir/mili_1.08.00
+
+(uv)
+configure --enable-mesa --enable-jpeg
+--with-mesa=/usr/gapps/mdg/aix_5_64_fed/archive/mesadir --with-mili=/usr/gapps/mdg/chaos_2_ia32/archive/milidir/miliversion
+--with-mili=/usr/gapps/mdg/aix_5_64_fed/archive/milidir/mili_1.08.00
+
+(sgi)
+configure --enable-mesa --enable-bits64 --enable-jpeg
+--with-mesa=/usr/people/corey/Mesa-3.5/Mesa-3.5
+--with-mili=/usr/people/corey/Mili
+
+(riptide)
+configure --enable-bits64 --enable-jpeg
+--with-mesa=/g/g14/icorey/MDG/Mesa/Mesa-3.5
+--with-mili=/usr/gapps/mdg/irix_6.5_64/archive/milidir
+
+configure --enable-bits64 --enable-jpeg
+--with-mesa=/g/g14/icorey/MDG/Mesa/Mesa-3.5 
+--with-jpeg=/g/g14/icorey/MDG/JPEG
+--with-mili=/g/g14/icorey/MDG/Mili-IRIX/src
+
+
+(sun-blade - chicago2)
+configure --enable-mesa --enable-jpeg
+--with-mesa=/home1/corey/Mesa-Sun/Mesa-3.5
+--with-mili=/home1/corey/Mili-Sun
+--OR--
+configure --enable-batch (for OSMesa) --enable-jpeg
+--with-mesa=/home1/corey/Mesa-Sun/Mesa-3.5
+--with-mili=/home1/corey/Mili-Sun

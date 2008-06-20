@@ -2,17 +2,59 @@
 /* 
  * show.c - Parser for 'show' command to display analysis results.
  * 
- * 	Donald J. Dovey
- * 	Lawrence Livermore National Laboratory
- * 	Aug 28 1992
+ *      Donald J. Dovey
+ *      Lawrence Livermore National Laboratory
+ *      Aug 28 1992
  *
- * Copyright (c) 1992 Regents of the University of California
+ * 
+ * This work was produced at the University of California, Lawrence 
+ * Livermore National Laboratory (UC LLNL) under contract no. 
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
+ * (DOE) and The Regents of the University of California (University) 
+ * for the operation of UC LLNL. Copyright is reserved to the University 
+ * for purposes of controlled dissemination, commercialization through 
+ * formal licensing, or other disposition under terms of Contract 48; 
+ * DOE policies, regulations and orders; and U.S. statutes. The rights 
+ * of the Federal Government are reserved under Contract 48 subject to 
+ * the restrictions agreed upon by the DOE and University as allowed 
+ * under DOE Acquisition Letter 97-1.
+ * 
+ * 
+ * DISCLAIMER
+ * 
+ * This work was prepared as an account of work sponsored by an agency 
+ * of the United States Government. Neither the United States Government 
+ * nor the University of California nor any of their employees, makes 
+ * any warranty, express or implied, or assumes any liability or 
+ * responsibility for the accuracy, completeness, or usefulness of any 
+ * information, apparatus, product, or process disclosed, or represents 
+ * that its use would not infringe privately-owned rights.  Reference 
+ * herein to any specific commercial products, process, or service by
+ * trade name, trademark, manufacturer or otherwise does not necessarily 
+ * constitute or imply its endorsement, recommendation, or favoring by 
+ * the United States Government or the University of California. The 
+ * views and opinions of authors expressed herein do not necessarily 
+ * state or reflect those of the United States Government or the 
+ * University of California, and shall not be used for advertising or 
+ * product endorsement purposes.
+ * 
+ ************************************************************************
+ *
+ * Modifications:
+ * 
+ *  I. R. Corey - Oct 25, 2007: TBD.
+ *                See SRC#---.
+ *
+ *************************************************************************
  */
 
+#include <stdlib.h>
 #include "viewer.h"
 
+static Result current_result, new_result;
+
 /* Local routines. */
-static void lookup_global_minmax();
+void lookup_global_minmax( Result *p_result, Analysis *analy );
 
 
 /*****************************************************************
@@ -22,135 +64,111 @@ static void lookup_global_minmax();
  * 1 if a valid command was given and 0 if the command was invalid.
  */
 int
-parse_show_command( token, analy )
-char *token;
-Analysis *analy;
+parse_show_command( char *token, Analysis *analy )
 {
-    char str[90];
-    int idx;
+    static char mat[] = "mat";
 
     /* Cache the current global min/max. */
-    cache_global_minmax( analy );
-
-    /* Get the result type. */
-    analy->result_id = (Result_type) lookup_result_id( token );
-
-    /* Error if no match in table. */
-    if ( analy->result_id < 0 )
+    if ( !analy->ei_result )
+         cache_global_minmax( analy );
+    
+    /* If request is for "mat", don't bother to look it up. */
+    if ( strcmp( token, mat ) == 0 )
     {
-        wrt_text( "Show command unrecognized: %s\n", token );
-        return( 0 );
+        analy->cur_result = NULL;
     }
-
-    /* Update the result title. */
-    idx = resultid_to_index[analy->result_id];
-    strcpy( analy->result_title, trans_result[idx][1] );
-
-    /* Check for valid result request and set display flags. */
-    analy->show_hex_result = FALSE;
-    analy->show_shell_result = FALSE;
-    if ( is_hex_result( analy->result_id ) )
+    else if ( find_result( analy, analy->result_source, TRUE, &new_result, 
+              token ) )
     {
-        if ( analy->geom_p->bricks == NULL )
+        if ( !new_result.single_valued )
         {
-            wrt_text( "No brick data present.\n" );
-            analy->result_id = VAL_NONE;
-            return( 0 );
+               popup_dialog( INFO_POPUP,
+			     "Result specification for \"show\" command\n"
+                 "must resolve to a scalar quantity for plotting." );
+               return( 0 );
         }
-        analy->show_hex_result = TRUE;
-    }
-    else if ( is_shell_result( analy->result_id ) )
-    {
-        if ( analy->geom_p->shells == NULL )
-        {
-            wrt_text( "No shell data present.\n" );
-            analy->result_id = VAL_NONE;
-            return( 0 );
-        }
-        analy->show_shell_result = TRUE;
-    }
-    else if ( is_shared_result( analy->result_id ) )
-    {
-        if ( (analy->geom_p->bricks == NULL) &&
-             (analy->geom_p->shells == NULL) )
-        {
-            wrt_text( "No shell or brick data present.\n" );
-            analy->result_id = VAL_NONE;
-            return( 0 );
-        }
-        if ( analy->geom_p->bricks != NULL )
-           analy->show_hex_result = TRUE;
-        if ( analy->geom_p->shells  != NULL )
-           analy->show_shell_result = TRUE;
-    }
-    else if ( is_beam_result( analy->result_id ) )
-    {
-        if ( analy->geom_p->beams == NULL )
-        {
-            wrt_text( "No beam data present.\n" );
-            analy->result_id = VAL_NONE;
-            return( 0 );
-        }
-    }
-    else if ( is_nodal_result( analy->result_id ) )
-    {
-	if ( ( analy->result_id == VAL_NODE_HELICITY 
-	       || analy->result_id == VAL_NODE_ENSTROPHY )
-	     && analy->dimension != 3 )
-	{
-	    wrt_text( "%s valid only for 3D data.\n", 
-	              ( analy->result_id == VAL_NODE_HELICITY ) ? "Helicity"
-		                                                : "Enstrophy" );
-	    analy->result_id = VAL_NONE;
-	    return( 0 );
-	}
-        else if ( analy->result_id == VAL_PROJECTED_VEC )
-        {
-            if ( analy->vec_id[0] == VAL_NONE
-                 && analy->vec_id[1] == VAL_NONE 
-                 && analy->vec_id[2] == VAL_NONE )
-            {
-                popup_dialog( INFO_POPUP, "%s\n%s",
-                              "Please define a vector quantity, then retry;",
-                              "(i.e., \"vec <x> <y> <z>\")." );
-                analy->result_id = VAL_NONE;
-                return( 0 );
-            }
-            else if ( analy->dir_vec[0] == 0.0
-                      && analy->dir_vec[1] == 0.0
-                      && analy->dir_vec[2] == 0.0 )
-            {
-                popup_dialog( INFO_POPUP, "%s\n%s",
-                              "Please define a direction, then retry;",
-                              "(i.e., \"dir3n\", \"dir3p\", or \"dirv\")." );
-                analy->result_id = VAL_NONE;
-                return( 0 );
-            }
-            
-            if ( analy->use_global_mm )
-                popup_dialog( WARNING_POPUP, "%s\n%s\n%s\n%s", 
-                              "Because min/max caching is not sensitive to",
-                              "changes in either the current direction vector",
-                              "or vector result, \"switch mstat\" should be",
-                              "in effect for the result \"pvmag\"." );
-        }
+        current_result = new_result;
+        init_result( &new_result );
 
-        analy->show_hex_result = TRUE;
-        analy->show_shell_result = TRUE;
+        analy->cur_result = &current_result;
+        analy->cur_result->reference_count++;
+    }
+    else
+    {
+           popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
+           return( 0 );
     }
 
-    load_result( analy, TRUE );
+    load_result( analy, TRUE, TRUE );
 
     /* 
      * Look up the global min/max for the new variable.  This must
      * be performed after load_result() is called.
      */
-    lookup_global_minmax( analy->result_id, analy );
+    lookup_global_minmax( analy->cur_result, analy );
 
     /* Update cut planes, isosurfs, contours. */
     update_vis( analy ); 
 
     return( 1 );
+}
+
+
+/*****************************************************************
+ * TAG( refresh_shown_result )
+ * 
+ * Re-generate the current result if the result table has changed.
+ */
+extern Bool_type
+refresh_shown_result( Analysis *analy )
+{
+    if ( analy->cur_result == NULL )
+        return FALSE;
+
+    if ( ( analy->cur_result->origin.is_derived 
+           && analy->result_source == PRIMAL )
+         || ( analy->cur_result->origin.is_primal 
+              && ( analy->result_source == DERIVED 
+                   || analy->result_source == ALL ) ) )
+    {
+        /* Potential change in result... */
+        if ( find_result( analy, analy->result_source, TRUE, &new_result, 
+                          analy->cur_result->original_name ) )
+        {
+            if ( new_result.original_result 
+                 == analy->cur_result->original_result )
+            {
+                /* No actual change in result. */
+                return FALSE;
+            }
+            else
+            {
+                if ( !new_result.single_valued )
+                {
+                    /* Actual result change but can't use new one. */
+                        popup_dialog( INFO_POPUP, "New result is not scalar." );
+                        return FALSE;
+                }
+
+                current_result = new_result;
+                init_result( &new_result );
+                analy->cur_result = &current_result;
+                analy->cur_result->reference_count++;
+
+                return TRUE;
+            }
+        }
+        else
+        {
+                popup_dialog( INFO_POPUP, "Result \"%s\" not found.", 
+                              analy->cur_result->original_name );
+                cleanse_result( analy->cur_result );
+                analy->cur_result = NULL;
+                return TRUE;
+        }
+    }
+
+    return FALSE;
 }
 
 
@@ -161,74 +179,94 @@ Analysis *analy;
  * stashes it in a list for later retrieval.
  */
 extern void
-cache_global_minmax( analy )
-Analysis *analy;
+cache_global_minmax( Analysis *analy )
 {
-    int result_id;
     float *test_mm;
     float *el_mm_vals;
+    int *el_mm_id;
+    char **el_mm_class;
+    int i;
+
     Minmax_obj *mm_list;
     int *mesh_object;
     Minmax_obj *mm;
-    
-    result_id = analy->result_id;
+    Result *result;
+
+    result = analy->cur_result;
     test_mm = analy->global_mm;
     mm_list = analy->result_mm_list;
     mesh_object = analy->global_mm_nodes;
 
-    if ( result_id == VAL_NONE )
+    if ( result == NULL )
         return;
 
-    /* See if it's already in the list.
-     */
+    if ( analy->ei_result )
+      i=0;
+
+
+    /* See if it's already in the list. */
     for ( mm = mm_list; mm != NULL; mm = mm->next )
-        if ( match_result( analy, analy->result_id, &mm->result ) )
+        if ( match_result( analy, result, &mm->result ) )
         {
-/* Why update unequivocally?
-            mm->minmax[0] = test_mm[0];
-            mm->minmax[1] = test_mm[1];
-*/
-            if ( test_mm[0] < mm->minmax[0] )
-	    {
-	        mm->minmax[0] = test_mm[0];
-		mm->mesh_object[0] = mesh_object[0];
-	    }
-            if ( test_mm[1] > mm->minmax[1] )
-	    {
-	        mm->minmax[1] = test_mm[1];
-		mm->mesh_object[1] = mesh_object[1];
-	    }
-	    
-	    /* 
-	     * If element result, update element minmax for use when
-	     * interpolation mode is "noterp".
-	     */
-	    if ( !is_nodal_result( result_id ) )
-	    {
-		el_mm_vals = analy->global_elem_mm;
-		
-		if ( el_mm_vals[0] < mm->el_minmax[0] )
-	            mm->el_minmax[0] = el_mm_vals[0];
-		if ( el_mm_vals[1] > mm->el_minmax[1] )
-	            mm->el_minmax[1] = el_mm_vals[1];
-	    }
+            if ( test_mm[0] < mm->interpolated_minmax[0] )
+            {
+                mm->interpolated_minmax[0] = test_mm[0];
+                mm->object_id[0] = mesh_object[0];
+            }
+            if ( test_mm[1] > mm->interpolated_minmax[1] )
+            {
+                mm->interpolated_minmax[1] = test_mm[1];
+                mm->object_id[1] = mesh_object[1];
+            }
+
+            
+            /* 
+             * If element result, update element minmax for use when
+             * interpolation mode is "noterp".
+             */
+            if ( result->origin.is_elem_result )
+            {
+                el_mm_vals  = analy->elem_global_mm.object_minmax;
+                el_mm_id    = analy->elem_global_mm.object_id;
+                el_mm_class = analy->elem_global_mm.class_name;
+                
+                if ( el_mm_vals[0] < mm->object_minmax[0] )
+                {
+                    mm->object_minmax[0] = el_mm_vals[0];
+                    mm->object_id[0]     = el_mm_id[0];
+                    mm->class_name[0]    = el_mm_class[0];
+                }
+                if ( el_mm_vals[1] > mm->object_minmax[1] )
+                {
+                    mm->object_minmax[1] = el_mm_vals[1];
+                    mm->object_id[1]     = el_mm_id[1];
+                    mm->class_name[1]    = el_mm_class[1];
+                }
+            }
             return;
         }
 
-    /* Isn't in the list yet, add it.
-     */
+    /* Isn't in the list yet, add it. */
+
     mm = NEW( Minmax_obj, "Minmax obj" );
-    mm->result.ident = (Result_type) result_id;
-    mm->minmax[0] = test_mm[0];
-    mm->minmax[1] = test_mm[1];
-    mm->mesh_object[0] = mesh_object[0];
-    mm->mesh_object[1] = mesh_object[1];
-    mm->el_minmax[0] = analy->elem_state_mm.el_minmax[0];
-    mm->el_minmax[1] = analy->elem_state_mm.el_minmax[1];
+    strcpy( mm->result.name, result->name );
+
+    mm->next = NULL;
+
+    mm->interpolated_minmax[0] = test_mm[0];
+    mm->interpolated_minmax[1] = test_mm[1];
+    mm->object_id[0] = mesh_object[0];
+    mm->object_id[1] = mesh_object[1];
+    mm->object_minmax[0] = analy->elem_state_mm.object_minmax[0];
+    mm->object_minmax[1] = analy->elem_state_mm.object_minmax[1];
+
+
     /* Save these regardless of result (cheaper than all the tests). */
+    mm->result.use_flags = result->modifiers.use_flags;
     mm->result.strain_variety = analy->strain_variety;
     mm->result.ref_frame = analy->ref_frame;
     mm->result.ref_surf = analy->ref_surf;
+    mm->result.ref_state = analy->reference_state;
     
     INSERT( mm, analy->result_mm_list );
 }
@@ -244,17 +282,21 @@ Analysis *analy;
  * NOTE:
  *     Assumes that the state min/max has already been computed.
  */
-static void
-lookup_global_minmax( result_id, analy )
-Result_type result_id;
-Analysis *analy;
+void
+lookup_global_minmax( Result *p_result, Analysis *analy )
 {
     Minmax_obj *mm;
     Bool_type found;
     int i;
     float *el_state_mm;
+    int *el_state_id;
+    char **el_state_class;
 
-    el_state_mm = analy->elem_state_mm.el_minmax;
+    el_state_mm    = analy->elem_state_mm.object_minmax;
+    el_state_id    = analy->elem_state_mm.object_id;
+    el_state_class = analy->elem_state_mm.class_name;
+
+
     
     /*
      * Lookup the global min/max for a result from the library.
@@ -263,22 +305,23 @@ Analysis *analy;
      * min/max must have already been computed!
      */
 
-    if ( result_id == VAL_NONE )
+    if ( p_result == NULL )
         return;
 
     found = FALSE;
     for ( mm = analy->result_mm_list; mm != NULL; mm = mm->next )
     {
-        if ( match_result( analy, result_id, &mm->result ) )
+        if ( match_result( analy, p_result, &mm->result ) )
         {
-            analy->global_mm[0] = mm->minmax[0];
-	    analy->global_mm_nodes[0] = mm->mesh_object[0];
-            analy->global_mm[1] = mm->minmax[1];
-	    analy->global_mm_nodes[1] = mm->mesh_object[1];
+            analy->global_mm[0] = mm->interpolated_minmax[0];
+            analy->global_mm_nodes[0] = mm->object_id[0];
+            analy->global_mm[1] = mm->interpolated_minmax[1];
+            analy->global_mm_nodes[1] = mm->object_id[1];
 
-	    analy->global_elem_mm[0] = mm->el_minmax[0];
-	    analy->global_elem_mm[1] = mm->el_minmax[1];
-	    
+            analy->elem_global_mm.object_minmax[0] = mm->object_minmax[0];
+            analy->elem_global_mm.object_minmax[1] = mm->object_minmax[1];
+
+
             found = TRUE;
             break;
         }
@@ -287,31 +330,46 @@ Analysis *analy;
     if ( found )
     {
         if ( analy->state_mm[0] < analy->global_mm[0] )
-	{
+        {
             analy->global_mm[0] = analy->state_mm[0];
-	    analy->global_mm_nodes[0] = analy->state_mm_nodes[0];
-	}
+            analy->global_mm_nodes[0] = analy->state_mm_nodes[0];
+        }
         if ( analy->state_mm[1] > analy->global_mm[1] )
-	{
+        {
             analy->global_mm[1] = analy->state_mm[1];
-	    analy->global_mm_nodes[1] = analy->state_mm_nodes[1];
-	}
+            analy->global_mm_nodes[1] = analy->state_mm_nodes[1];
+        }
     
-	/* Update the global minmax for element (pre-interpolated) results. */
-	if ( el_state_mm[0] < analy->global_elem_mm[0] )
-	    analy->global_elem_mm[0] = el_state_mm[0];
-	if ( el_state_mm[1] > analy->global_elem_mm[1] )
-	    analy->global_elem_mm[1] = el_state_mm[1];
+        /* Update the global minmax for element (pre-interpolated) results. */
+        if ( el_state_mm[0] < analy->elem_global_mm.object_minmax[0] )
+        {
+            analy->elem_global_mm.object_minmax[0] = el_state_mm[0];
+            analy->elem_global_mm.object_id[0]     = el_state_id[0];
+            analy->elem_global_mm.class_name[0]    = el_state_class[0];
+        }
+        if ( el_state_mm[1] > analy->elem_global_mm.object_minmax[1] )
+        {
+            analy->elem_global_mm.object_minmax[1] = el_state_mm[1];
+            analy->elem_global_mm.object_id[1]     = el_state_id[1];
+            analy->elem_global_mm.class_name[1]    = el_state_class[1];
+        }
     }
     else
     {
         /* Not found, initialize global min/max to state min/max. */
         analy->global_mm[0] = analy->state_mm[0];
-	analy->global_mm_nodes[0] = analy->state_mm_nodes[0];
+        analy->global_mm_nodes[0] = analy->state_mm_nodes[0];
         analy->global_mm[1] = analy->state_mm[1];
-	analy->global_mm_nodes[1] = analy->state_mm_nodes[1];
-        analy->global_elem_mm[0] = el_state_mm[0];
-        analy->global_elem_mm[1] = el_state_mm[1];
+        analy->global_mm_nodes[1] = analy->state_mm_nodes[1];
+
+        analy->elem_global_mm.object_minmax[0] = el_state_mm[0];
+        analy->elem_global_mm.object_minmax[1] = el_state_mm[1];
+
+        analy->elem_global_mm.object_id[0] = el_state_id[0];
+        analy->elem_global_mm.object_id[1] = el_state_id[1];
+
+        analy->elem_global_mm.class_name[0] = el_state_class[0];
+        analy->elem_global_mm.class_name[1] = el_state_class[1];
     }
 
     /* Update the current min/max. */
@@ -328,34 +386,35 @@ Analysis *analy;
 
 /*****************************************************************
  * TAG( reset_global_minmax )
- * 
+ *
  * Remove any cached global min/max value for a result.
  */
-extern Bool_type
-reset_global_minmax( analy )
-Analysis *analy;
+extern Redraw_mode_type
+reset_global_minmax( Analysis *analy )
 {
     Minmax_obj *mm;
-    Bool_type found;
-    int i;
 
-    if ( analy->result_id == VAL_NONE )
-        return FALSE;
+    if ( analy->cur_result == NULL )
+        return NO_VISUAL_CHANGE;
 
     /* If a cached min/max for the current result exists, delete it.  */
-    for ( mm = analy->result_mm_list; mm != NULL; mm = mm->next )
-        if ( match_result( analy, analy->result_id, &mm->result ) )
-            DELETE( mm, analy->result_mm_list );
-    
+    if ( analy->result_mm_list ) /* Added October 10, 2007: IRC - Check for a valid address */
+         for ( mm = analy->result_mm_list; mm != NULL; NEXT( mm ) )
+	   if ( mm ) 
+                if ( match_result( analy, analy->cur_result, &mm->result ) )
+                     DELETE( mm, analy->result_mm_list );
+
     /* Always reset the current global min/max from the current state. */
     analy->global_mm[0] = analy->state_mm[0];
     analy->global_mm_nodes[0] = analy->state_mm_nodes[0];
     analy->global_mm[1] = analy->state_mm[1];
     analy->global_mm_nodes[1] = analy->state_mm_nodes[1];
-    analy->global_elem_mm[0] = analy->elem_state_mm.el_minmax[0];
-    analy->global_elem_mm[1] = analy->elem_state_mm.el_minmax[1];
-    
-    return TRUE;
+    /*
+     * NOTE:  Update entire structure
+     */
+    analy->elem_global_mm = analy->elem_state_mm;
+
+    return redraw_for_render_mode( FALSE, RENDER_MESH_VIEW, analy );
 }
 
 
@@ -366,150 +425,88 @@ Analysis *analy;
  * result with modifiers.
  */
 Bool_type
-match_result( analy, result_id, test )
-Analysis *analy;
-Result_type result_id;
-Result_spec *test;
+match_result( Analysis *analy, Result *p_result, Result_spec *test )
 {
-    if ( result_id == test->ident )
+    /* First check result name. */
+    if ( strcmp( p_result->name, test->name ) == 0 )
     {
-        /* Special cases when shells present. */
-	if ( is_shared_result( result_id ) 
-	     && analy->geom_p->shells != NULL )
-	{
-	    /* Reference surface needed for all shared shell results. */
-	    if ( analy->ref_surf != test->ref_surf )
-	        return FALSE;
-	    /* 
-	     * Reference frame needed for shared stresses and strains;
-	     * for plastic strain, strain variety = RATE must match
-	     * or not match exclusively
-	     */
-	    if ( ( result_id >= VAL_SHARE_SIGX
-	           && result_id <= VAL_SHARE_SIGZX )
-		 || ( result_id >= VAL_SHARE_EPSX
-		      && result_id <= VAL_SHARE_EPSZX ) )
+        /* Check dependence on reference surface. */
+        if ( p_result->modifiers.use_flags.use_ref_surface )
+        {
+            if ( test->use_flags.use_ref_surface )
             {
-	        if ( analy->ref_frame != test->ref_frame )
-		    return FALSE;
-	    }
-	    else if ( result_id == VAL_SHARE_EPS_EFF )
-	    {
-	        if ( analy->strain_variety == RATE 
-		     && test->strain_variety != RATE )
-		    return FALSE;
-		else if ( analy->strain_variety != RATE 
-		          && test->strain_variety == RATE )
-		    return FALSE;
-	    }
-	}
-	
-	/* Special cases when bricks present. */
-	if ( analy->geom_p->bricks != NULL )
-	{
-	    /*
-	     * Strain variety needed for derived strains;
-	     * for plastic strain, strain variety = RATE must match
-	     * or not match exclusively
-	     */
-	    if ( ( result_id >= VAL_SHARE_EPSX
-	           && result_id <= VAL_SHARE_EPSZX )
-		 || ( result_id >= VAL_HEX_EPS_PD1
-		      && result_id <= VAL_HEX_EPS_P3 ) )
-	    {
+                if ( analy->ref_surf != test->ref_surf )
+                    return FALSE;
+            }
+            else
+                return FALSE;
+        }
+        else if ( test->use_flags.use_ref_surface )
+            return FALSE;
+                
+        /* Check dependence on reference frame. */
+        if ( p_result->modifiers.use_flags.use_ref_frame )
+        {
+            if ( test->use_flags.use_ref_frame )
+            {
+                if ( analy->ref_frame != test->ref_frame )
+                    return FALSE;
+            }
+            else
+                return FALSE;
+        }
+        else if ( test->use_flags.use_ref_frame )
+            return FALSE;
+                
+        /* Check dependence on strain variety. */
+        if ( p_result->modifiers.use_flags.use_strain_variety )
+        {
+            if ( test->use_flags.use_strain_variety )
+            {
                 if ( analy->strain_variety != test->strain_variety )
-		    return FALSE;
-	    }
-	    else if ( result_id == VAL_SHARE_EPS_EFF )
-	    {
-	        if ( analy->strain_variety == RATE 
-		     && test->strain_variety != RATE )
-		    return FALSE;
-		else if ( analy->strain_variety != RATE 
-		          && test->strain_variety == RATE )
-		    return FALSE;
-	    }
-	}
-	
-	return TRUE;
+                    return FALSE;
+            }
+            else
+                return FALSE;
+        }
+        else if ( test->use_flags.use_strain_variety )
+            return FALSE;
+                
+        /* Check for time derivative. */
+        if ( p_result->modifiers.use_flags.time_derivative )
+        {
+            if ( !test->use_flags.time_derivative )
+                return FALSE;
+        }
+        else if ( test->use_flags.time_derivative )
+            return FALSE;
+                
+        /* Check for global coordinate transformation. */
+        if ( p_result->modifiers.use_flags.coord_transform )
+        {
+            if ( !test->use_flags.coord_transform )
+                return FALSE;
+        }
+        else if ( test->use_flags.coord_transform )
+            return FALSE;
+                
+        /* Check dependence on reference state. */
+        if ( p_result->modifiers.use_flags.use_ref_state )
+        {
+            if ( test->use_flags.use_ref_state )
+            {
+                if ( analy->reference_state != test->ref_state )
+                    return FALSE;
+            }
+            else
+                return FALSE;
+        }
+        else if ( test->use_flags.use_ref_state )
+            return FALSE;
+        
+        return TRUE;
     }
     else
         return FALSE;
 }
-
-
-/*****************************************************************
- * TAG( compute_shell_in_data )
- *
- * Compute shell results which are already stored in the database.
- * (I.e., they don't need to be computed, just read in.)
- */
-void
-compute_shell_in_data( analy, result_arr )
-Analysis *analy;
-float *result_arr;
-{
-    if ( is_in_database( analy->result_id ) )
-    {
-        get_result( analy->result_id, analy->cur_state, analy->shell_result );
-        shell_to_nodal( analy->shell_result, result_arr, analy, FALSE );
-    }
-    else
-    {
-        wrt_text( "Shell result not found in database.\n" );
-        analy->result_id = VAL_NONE;
-        analy->show_shell_result = FALSE;
-        return;
-    }
-}
-
-
-/*****************************************************************
- * TAG( compute_beam_in_data )
- *
- * Compute beam results which are already stored in the database.
- * (I.e., they don't need to be computed, just read in.)
- */
-void
-compute_beam_in_data( analy, result_arr )
-Analysis *analy;
-float *result_arr;
-{
-    if ( is_in_database( analy->result_id ) )
-    {
-        get_result( analy->result_id, analy->cur_state, analy->beam_result );
-        beam_to_nodal( analy->beam_result, result_arr, analy );
-    }
-    else
-    {
-        wrt_text( "Beam result not found in database.\n" );
-        analy->result_id = VAL_NONE;
-        return;
-    }
-}
-
-
-/*****************************************************************
- * TAG( compute_node_in_data )
- *
- * Compute nodal results which are already stored in the database.
- * (I.e., they don't need to be computed, just read in.)
- */
-void
-compute_node_in_data( analy, result_arr )
-Analysis *analy;
-float *result_arr;
-{
-    if ( is_in_database( analy->result_id ) )
-        get_result( analy->result_id, analy->cur_state, result_arr );
-    else
-    {
-        wrt_text( "Nodal result not found in database.\n" );
-        analy->result_id = VAL_NONE;
-        analy->show_hex_result = FALSE;
-        analy->show_shell_result = FALSE;
-        return;
-    }
-}
-
 

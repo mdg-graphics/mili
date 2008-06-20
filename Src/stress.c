@@ -6,131 +6,181 @@
  *      Lawrence Livermore National Laboratory
  *      Jun 29 1992
  *
- * Copyright (c) 1992 Regents of the University of California
+ * 
+ * This work was produced at the University of California, Lawrence 
+ * Livermore National Laboratory (UC LLNL) under contract no. 
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
+ * (DOE) and The Regents of the University of California (University) 
+ * for the operation of UC LLNL. Copyright is reserved to the University 
+ * for purposes of controlled dissemination, commercialization through 
+ * formal licensing, or other disposition under terms of Contract 48; 
+ * DOE policies, regulations and orders; and U.S. statutes. The rights 
+ * of the Federal Government are reserved under Contract 48 subject to 
+ * the restrictions agreed upon by the DOE and University as allowed 
+ * under DOE Acquisition Letter 97-1.
+ * 
+ * 
+ * DISCLAIMER
+ * 
+ * This work was prepared as an account of work sponsored by an agency 
+ * of the United States Government. Neither the United States Government 
+ * nor the University of California nor any of their employees, makes 
+ * any warranty, express or implied, or assumes any liability or 
+ * responsibility for the accuracy, completeness, or usefulness of any 
+ * information, apparatus, product, or process disclosed, or represents 
+ * that its use would not infringe privately-owned rights.  Reference 
+ * herein to any specific commercial products, process, or service by 
+ * trade name, trademark, manufacturer or otherwise does not necessarily 
+ * constitute or imply its endorsement, recommendation, or favoring by 
+ * the United States Government or the University of California. The 
+ * views and opinions of authors expressed herein do not necessarily 
+ * state or reflect those of the United States Government or the 
+ * University of California, and shall not be used for advertising or 
+ * product endorsement purposes.
+ * 
  */
 
 #include "viewer.h"
 
-
-static void compute_hex_effstress();
-static void compute_hex_principal_stress();
-static void compute_shell_effstress();
-static void compute_hex_press();
-static void compute_shell_press();
-static void compute_shell_stress();
-static void compute_shell_principal_stress();
+#define STRESS_LEN 6
+#define ONETHIRD .333333333333333333333333333333333333333
+#define ONEHALF  .5
 
 
 /************************************************************
- * TAG( compute_share_press )
+ * TAG( compute_hex_stress )
  *
- * Computes the pressure at nodes for hex and shell elements.
- */
-void 
-compute_share_press( analy, resultArr )
-Analysis *analy;
-float *resultArr;
-{
-    if ( analy->geom_p->bricks != NULL )
-        compute_hex_press( analy, resultArr );
-    else
-        memset( resultArr, 0, analy->geom_p->nodes->cnt * sizeof(float) );
-
-    if ( analy->geom_p->shells != NULL )
-        compute_shell_press( analy, resultArr );
-}
-
-
-/************************************************************
- * TAG( compute_share_stress )
- *
- * Computes the stress at nodes for hex and shell elements.
+ * Computes the stress at nodes for hex elements.
  */
 void
-compute_share_stress( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+compute_hex_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
-    Bool_type no_transform;
+    Ref_frame_type ref_frame;
+    float *resultElem;
+    float localMat[3][3];
+    float (*sigma)[6];
+    int idx, i;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    char primal_spec[32];
+    char *primal_list[1];
+    MO_class_data *p_mo_class;
+    Subrec_obj *p_subrec;
+    int elem_idx;
+    int *object_ids;
 
-    if ( analy->geom_p->bricks != NULL )
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    p_mo_class = p_subrec->p_object_class;
+    primals = p_result->primals[index];
+    obj_qty = p_subrec->subrec.qty_objects;
+    object_ids = p_subrec->object_ids;
+    resultElem = p_subrec->p_object_class->data_buffer;
+
+    /*
+     * Hack to get an index on [0,5] from name,
+     * which is one of (in order): sx sy sz sxy syz szx.
+     */
+    idx = (int) p_result->name[1] - (int) 'x' + (( p_result->name[2] ) ? 3 : 0);    
+
+    /*
+     * The result_id is SIGX, SIGY, SIGZ, SIGXY, SIGYZ, or SIGZX.
+     * These can be loaded directly from the database.
+     */
+
+    ref_frame = analy->ref_frame;
+
+    /* 
+     * If re-ordering or frame transformation is necessary, read into
+     * a temp result buffer.
+     */
+    result_buf = ( ref_frame == LOCAL || object_ids )
+	                     ? analy->tmp_result[0] : resultElem;
+    
+    if ( ref_frame == GLOBAL )
     {
-        no_transform = TRUE;
-        
         if ( analy->do_tensor_transform )
         {
-            if ( analy->tensor_transform_matrix == NULL )
+            if ( !transform_stress_strain( p_result->primals[index], 0, analy,
+                                           analy->tensor_transform_matrix, 
+                                           result_buf ) )
             {
-                popup_dialog( INFO_POPUP, "%s\n%s",
-                              "No transformation coordinate system has",
-                              "been specified; results are not transformed." );
+                popup_dialog( WARNING_POPUP, 
+                              "Stress/strain coord transformation failed." );
+                return;
             }
-            else if ( !transform_primal_stress_strain( VAL_HEX_SIGX, TRUE, 
-                                                       analy ) )
-            {
-                popup_dialog( WARNING_POPUP, "%s\n%s",
-                              "Stress tensor coordinate transformation failed.",
-                              "Results are not transformed." );
-            }
-            else
-                no_transform = FALSE;
+
+            p_result->modifiers.use_flags.coord_transform = 1;
+        }
+        else
+        {
+            /* Build up component specification of vector result. */
+            strcpy( primal_spec, p_result->primals[index][0] );
+            sprintf( primal_spec + strlen( primal_spec ), "[%s]", 
+                     p_result->name );
+            primal_list[0] = primal_spec;
+        
+            /* Read the database. */
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1, 
+                                   subrec, 1, primal_list, 
+                                   (void *) result_buf );
         }
 
-        if ( no_transform )
-            get_result( VAL_HEX_SIGX + (analy->result_id - VAL_SHARE_SIGX),
-                        analy->cur_state, analy->hex_result );
-
-        hex_to_nodal( analy->hex_result, resultArr, analy );
+        /* Re-order data if subrecord is non-proper. */
+        if ( object_ids )
+        {
+            for ( i = 0; i < obj_qty; i++ )
+                resultElem[object_ids[i]] = result_buf[i];
+        }
     }
-    else
-        memset( resultArr, 0, analy->geom_p->nodes->cnt * sizeof(float) );
-
-    if ( analy->geom_p->shells != NULL )
-        compute_shell_stress( analy, resultArr );
-}
-
-
-/************************************************************
- * TAG( compute_share_effstress )
- *
- * Computes the stress at nodes for hex and shell elements.
- */
-void
-compute_share_effstress( analy, resultArr )
-Analysis *analy;
-float *resultArr;
-{
-    if ( analy->geom_p->bricks != NULL )
+    else if ( ref_frame == LOCAL )
     {
-        compute_hex_effstress( analy, resultArr );
+        /* Need to transform global quantities to local quantities.
+         * The full tensor must be transformed.
+         */
+
+        /* Load the tensors for the elements. */
+        analy->db_get_results( analy->db_ident, analy->cur_state + 1,
+                               subrec, 1, p_result->primals[index],
+                               (void *)result_buf );
+
+        sigma = (float (*)[6]) result_buf;
+        
+        if ( object_ids )
+        {
+            for ( i = 0; i < obj_qty; i++ )
+            {
+                elem_idx = object_ids[i];
+                hex_g2l_mtx( analy, p_mo_class, elem_idx, 0, 1, 3, localMat );
+                transform_tensors_1p( 1, sigma + i, localMat );
+                resultElem[elem_idx] = sigma[i][idx];
+            }
+        }
+        else
+        {
+            for ( i = 0; i < obj_qty; i++ )
+            {
+                hex_g2l_mtx( analy, p_mo_class, i, 0, 1, 3, localMat );
+                transform_tensors_1p( 1, sigma + i, localMat );
+                resultElem[i] = sigma[i][idx];
+            }
+        }
     }
-    else
-        memset( resultArr, 0, analy->geom_p->nodes->cnt * sizeof(float) );
 
-    if ( analy->geom_p->shells != NULL )
-        compute_shell_effstress( analy, resultArr );
-}
+    /* Update modifiers to indicate pertinent ones for this result. */              
+    p_result->modifiers.use_flags.use_ref_frame = 1;                                
+    p_result->modifiers.ref_frame = analy->ref_frame;                               
 
-
-/************************************************************
- * TAG( compute_share_prin_stress )
- *
- * Computes the stress at nodes for hex and shell elements.
- */
-void
-compute_share_prin_stress( analy, resultArr )
-Analysis *analy;
-float *resultArr;
-{
-    if ( analy->geom_p->bricks != NULL )
-    {
-        compute_hex_principal_stress( analy, resultArr );
-    }
-    else
-        memset( resultArr, 0, analy->geom_p->nodes->cnt * sizeof(float) );
-
-    if ( analy->geom_p->shells != NULL )
-        compute_shell_principal_stress( analy, resultArr );
+    if ( interpolate )
+        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty, 
+                      object_ids, analy );
 }
 
 
@@ -139,34 +189,58 @@ float *resultArr;
  *
  * Computes the pressure at nodes given the current stress
  * tensor for an element.
+ *
+ * Requires a primal vector result "stress[sx, sy, sz, sxy, syz, szx]", 
+ * but only uses the first three components.
  */
-static void 
-compute_hex_press( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+void 
+compute_hex_press( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
-    Hex_geom *bricks;
     float *resultElem;
-    float *hexPressure[3];
+    float (*stress)[6];
     int i;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
 
-    bricks = analy->geom_p->bricks;
-    resultElem = analy->hex_result;
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
 
-    for ( i = 0; i < 3; i++ )
-    {
-        get_result( VAL_HEX_SIGX+i, analy->cur_state, analy->tmp_result[i] ); 
-        hexPressure[i] = analy->tmp_result[i];
-    }
-
-    for ( i = 0; i < bricks->cnt; i++ )
-    {
-        resultElem[i] = -( hexPressure[0][i] +
-                           hexPressure[1][i] +
-                           hexPressure[2][i] ) / 3.0 ;
-    }
-
-    hex_to_nodal( resultElem, resultArr, analy );
+    /* Just use analy->tmp_result as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) result_buf );
+    
+    /* Compute pressure. */
+    stress = (float (*)[6]) result_buf;
+    
+    if ( object_ids )
+        for ( i = 0; i < obj_qty; i++ )
+            resultElem[object_ids[i]] = -( stress[i][0] + stress[i][1] 
+                                           + stress[i][2] ) 
+                                        * ONETHIRD ;
+    else
+        for ( i = 0; i < obj_qty; i++ )
+            resultElem[i] = -( stress[i][0] + stress[i][1] + stress[i][2] ) 
+                             * ONETHIRD ;
+    
+    if ( interpolate )
+        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty, 
+                      object_ids, analy );
 }
 
 
@@ -175,53 +249,71 @@ float *resultArr;
  *
  * Computes the effective stress at nodes.
  */
-static void 
-compute_hex_effstress( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+void 
+compute_hex_effstress( Analysis *analy, float *resultArr, 
+                       Bool_type interpolate )
 {
     float *resultElem;
-    float *hexStress[6];
+    /* float *hexStress[6]; */
+    float *hexStress;
     float devStress[3];
     float pressure;
-    int brick_cnt;
+    int obj_qty;
     int i,j;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int index, elem_idx;
+    int *object_ids;
+    Subrec_obj *p_subrec;
 
-    brick_cnt = analy->geom_p->bricks->cnt;
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
 
-    for ( i = 0; i < 6; i++ )
+    /* Just use analy->tmp_result as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) result_buf );
+    
+    for ( i = 0, hexStress = result_buf; i < obj_qty; i++, hexStress += 6 )
     {
-        get_result( VAL_HEX_SIGX+i, analy->cur_state, analy->tmp_result[i] ); 
-        hexStress[i] = analy->tmp_result[i];
-    }
-
-    resultElem = analy->hex_result;
-
-    for ( i = 0; i < brick_cnt; i++ )
-    {
-        pressure = -( hexStress[0][i] + 
-                      hexStress[1][i] +  
-                      hexStress[2][i] ) / 3.0;
+        pressure = -( hexStress[0] + 
+                      hexStress[1] +  
+                      hexStress[2] ) * ONETHIRD;
 
         for ( j = 0; j < 3; j++ )
-            devStress[j] = hexStress[j][i] + pressure;
+            devStress[j] = hexStress[j] + pressure;
+
+        elem_idx = ( object_ids ) ? object_ids[i] : i;
 
         /* 
-	 * Calculate effective stress from deviatoric components.
-	 * Updated derivation avoids negative square root operand
-	 * (UNICOS, of course).
-	 */
-        resultElem[i] = 0.5 * ( devStress[0]*devStress[0] +
-                                devStress[1]*devStress[1] +
-                                devStress[2]*devStress[2] ) +
-                        hexStress[3][i]*hexStress[3][i] +
-                        hexStress[4][i]*hexStress[4][i] +
-                        hexStress[5][i]*hexStress[5][i] ;
+         * Calculate effective stress from deviatoric components.
+         * Updated derivation avoids negative square root operand
+         * (UNICOS, of course).
+         */
+        resultElem[elem_idx] = 0.5 * ( devStress[0]*devStress[0]
+                                       + devStress[1]*devStress[1]
+                                       + devStress[2]*devStress[2] )
+                               + hexStress[3]*hexStress[3]
+                               + hexStress[4]*hexStress[4]
+                               + hexStress[5]*hexStress[5] ;
 
-       resultElem[i] = sqrt( (double)(3.0*resultElem[i]) );
+        resultElem[elem_idx] = sqrt( (double)(3.0*resultElem[elem_idx]) );
     }
 
-    hex_to_nodal( resultElem, resultArr, analy );
+    if ( interpolate )
+        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty, 
+                      object_ids, analy );
 }
 
 
@@ -231,56 +323,88 @@ float *resultArr;
  * Computes the principal deviatoric stresses and principal
  * stresses.
  */
-static void
-compute_hex_principal_stress( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+void
+compute_hex_principal_stress( Analysis *analy, float *resultArr, 
+                              Bool_type interpolate )
 {
-    Hex_geom *bricks;
     float *resultElem;               /* Element results vector. */
-    float *hexStress[6];             /* Ptr to element stresses. */
+    float *hexStress;                /* Ptr to element stresses. */
     float devStress[3];              /* Deviatoric stresses,
                                         only need diagonal terms. */
     float Invariant[3];              /* Invariants of tensor. */
     float princStress[3];            /* Principal values. */
     float pressure;
     float alpha, angle, value;
-    int i, j;
+    int i;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index, res_index, elem_idx;
+    Subrec_obj *p_subrec;
+    int *object_ids;
 
-    bricks = analy->geom_p->bricks;
-    for ( i = 0; i < 6; i++ )
-    {
-        get_result( VAL_HEX_SIGX+i, analy->cur_state, analy->tmp_result[i] ); 
-        hexStress[i] = analy->tmp_result[i];
-    }
-    resultElem = analy->hex_result;
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    resultElem = p_subrec->p_object_class->data_buffer;
+    
+    if ( strcmp( p_result->name, "pdev1" ) == 0 )
+        res_index = 0;
+    else if ( strcmp( p_result->name, "pdev2" ) == 0 )
+        res_index = 1;
+    else if ( strcmp( p_result->name, "pdev3" ) == 0 )
+        res_index = 2;
+    else if ( strcmp( p_result->name, "maxshr" ) == 0 )
+        res_index = 3;
+    else if ( strcmp( p_result->name, "prin1" ) == 0 )
+        res_index = 4;
+    else if ( strcmp( p_result->name, "prin2" ) == 0 )
+        res_index = 5;
+    else if ( strcmp( p_result->name, "prin3" ) == 0 )
+        res_index = 6;
+    
+    obj_qty = p_subrec->subrec.qty_objects;
+
+    /* Just use analy->tmp_result[0] as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) result_buf );
 
     /* Calculate deviatoric stresses. */
-    for ( i = 0; i < bricks->cnt; i++ )
+    for ( i = 0, hexStress = result_buf; i < obj_qty; i++, hexStress += 6 )
     {
         /* Calculate pressure. */
-        pressure =  - ( hexStress[0][i] +
-                        hexStress[1][i] + 
-                        hexStress[2][i] ) / 3.0;
+        pressure =  - ( hexStress[0] +
+                        hexStress[1] + 
+                        hexStress[2] ) * ONETHIRD;
 
-        devStress[0] = hexStress[0][i] + pressure;
-        devStress[1] = hexStress[1][i] + pressure;
-        devStress[2] = hexStress[2][i] + pressure;
+        devStress[0] = hexStress[0] + pressure;
+        devStress[1] = hexStress[1] + pressure;
+        devStress[2] = hexStress[2] + pressure;
 
         /* Calculate invariants of deviatoric tensor. */
         /* Invariant[0] = 0.0 */
         Invariant[0] = devStress[0] + devStress[1] + devStress[2];
-        Invariant[1] = 0.5 * ( devStress[0]*devStress[0] 
-                               + devStress[1]*devStress[1] 
-                               + devStress[2]*devStress[2] ) 
-                       + hexStress[3][i]*hexStress[3][i] 
-                       + hexStress[4][i]*hexStress[4][i] 
-                       + hexStress[5][i]*hexStress[5][i];
-        Invariant[2] = -devStress[0]*devStress[1]*devStress[2] -
-                       2.0*hexStress[3][i]*hexStress[4][i]*hexStress[5][i] +
-                       devStress[0]*hexStress[4][i]*hexStress[4][i] +
-                       devStress[1]*hexStress[5][i]*hexStress[5][i] +
-                       devStress[2]*hexStress[3][i]*hexStress[3][i];
+        Invariant[1] = 0.5 * ( devStress[0] * devStress[0] 
+                               + devStress[1] * devStress[1] 
+                               + devStress[2] * devStress[2] ) 
+                       + hexStress[3] * hexStress[3] 
+                       + hexStress[4] * hexStress[4] 
+                       + hexStress[5] * hexStress[5];
+        Invariant[2] = -devStress[0] * devStress[1] * devStress[2]
+                       - 2.0 * hexStress[3] * hexStress[4] 
+                         * hexStress[5] 
+                       + devStress[0] * hexStress[4] * hexStress[4]
+                       + devStress[1] * hexStress[5] * hexStress[5] 
+                       + devStress[2] * hexStress[3] * hexStress[3];
 
         /* Check to see if we can have non-zero divisor, if not 
          * set principal stress to 0.
@@ -293,12 +417,12 @@ float *resultArr;
                 alpha = MAX( alpha, -1.0 );
             else if ( alpha > 0 )
                 alpha = MIN( alpha, 1.0 );
-            angle = acos((double)alpha) / 3.0;
-            value = 2.0 * sqrt( (double)Invariant[1]/3.0);
+            angle = acos((double)alpha) * ONETHIRD;
+            value = 2.0 * sqrt( (double)Invariant[1] * ONETHIRD);
             princStress[0] = value*cos((double)angle);
-            angle = angle - 2.0*M_PI/3.0;
+            angle = angle - 2.0*PI * ONETHIRD ;
             princStress[1] = value*cos((double)angle);
-            angle = angle + 4.0*M_PI/3.0;
+            angle = angle + 4.0*PI * ONETHIRD;
             princStress[2] = value*cos((double)angle);
         }
         else
@@ -308,33 +432,40 @@ float *resultArr;
             princStress[2] = 0.0;
         }
 
-        switch ( analy->result_id )
+        elem_idx = ( object_ids ) ? object_ids[i] : i;
+
+        switch ( res_index )
         {
-            case VAL_SHARE_SIG_PD1 :
-                resultElem[i] = princStress[0];
+            case 0:
+                resultElem[elem_idx] = princStress[0];
                 break;
-            case VAL_SHARE_SIG_PD2 :
-                resultElem[i] = princStress[1];
+            case 1:
+                resultElem[elem_idx] = princStress[1];
                 break;
-            case VAL_SHARE_SIG_PD3 :
-                resultElem[i] = princStress[2];
+            case 2:
+                resultElem[elem_idx] = princStress[2];
                 break;
-            case VAL_SHARE_SIG_MAX_SHEAR :
-                resultElem[i] = (princStress[0] - princStress[2]) / 2.0;
+            case 3:
+                resultElem[elem_idx] = (princStress[0] - princStress[2])  * ONEHALF;
                 break;
-            case VAL_SHARE_SIG_P1 :
-                resultElem[i] = princStress[0] - pressure;
+            case 4:
+                resultElem[elem_idx] = princStress[0] - pressure;
                 break;
-            case VAL_SHARE_SIG_P2 :
-                resultElem[i] = princStress[1] - pressure;
+            case 5:
+                resultElem[elem_idx] = princStress[1] - pressure;
                 break;
-            case VAL_SHARE_SIG_P3 :
-                resultElem[i] = princStress[2] - pressure;
+            case 6:
+                resultElem[elem_idx] = princStress[2] - pressure;
                 break;
+            default:
+                popup_dialog( WARNING_POPUP,
+                              "Principal stress result index is invalid." );
         }
     }
 
-    hex_to_nodal( resultElem, resultArr, analy );
+    if ( interpolate )
+        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty, 
+                      object_ids, analy );
 }
 
 
@@ -344,20 +475,48 @@ float *resultArr;
  * Computes the shell stress given the INNER/MIDDLE/OUTER flag
  * and the GLOBAL/LOCAL flag.  Defaults: MIDDLE, GLOBAL.
  */
-static void
-compute_shell_stress( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+void
+compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
-    Result_type result_id;
     Ref_surf_type ref_surf;
     Ref_frame_type ref_frame;
     float *resultElem;
     float localMat[3][3];
-    float sigma[6];
-    int base, idx, shell_cnt, i, j;
-    Bool_type no_transform;
+    float (*sigma)[6];
+    int idx, i;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    char primal_spec[32];
+    char *primal_list[1];
+    MO_class_data *p_mo_class;
+    Subrec_obj *p_subrec;
+    int elem_idx;
+    int *object_ids;
 
+    Bool_type map_timehist_coords = FALSE;
+    GVec3D2P      *new_nodes      = NULL;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    p_mo_class = p_subrec->p_object_class;
+    primals = p_result->primals[index];
+    obj_qty = p_subrec->subrec.qty_objects;
+    object_ids = p_subrec->object_ids;
+    resultElem = p_subrec->p_object_class->data_buffer;
+    
+    /* 
+     * Hack to get an index on [0,5] from name,
+     * which is one of (in order): sx sy sz sxy syz szx. 
+     */
+    idx = (int) p_result->name[1] - (int) 'x' + (( p_result->name[2] ) ? 3 : 0);
+    
     /* 
      * The result_id is SIGX, SIGY, SIGZ, SIGXY, SIGYZ, or SIGZX.
      * These can be loaded directly from the database.
@@ -365,47 +524,69 @@ float *resultArr;
 
     ref_surf = analy->ref_surf;
     ref_frame = analy->ref_frame;
-    idx = analy->result_id - VAL_SHARE_SIGX;
 
+    /*
+     * Don't want to read in all the primals from the Result_candidate for
+     * this result, so build up a new primals array with just the right one.
+     */
     switch ( ref_surf )
     {
         case MIDDLE:
-            base = VAL_SHELL_SIGX_MID;
+            strcpy( primal_spec, primals[1] );
             break;
         case INNER:
-            base = VAL_SHELL_SIGX_IN;
+            strcpy( primal_spec, primals[0] );
             break;
         case OUTER:
-            base = VAL_SHELL_SIGX_OUT;
+            strcpy( primal_spec, primals[2] );
             break;
     }
-
-    resultElem = analy->shell_result;
+    primal_list[0] = primal_spec;
+    
+    /* Update the result to record modifier(s) that affected the calculation. */
+    p_result->modifiers.use_flags.use_ref_surface = 1;
+    p_result->modifiers.ref_surf = ref_surf;
+    
+    /* 
+     * If re-ordering or frame transformation is necessary, read into
+     * a temp result buffer.
+     */
+    result_buf = ( ref_frame == LOCAL || object_ids )
+                 ? analy->tmp_result[0] : resultElem;
 
     if ( ref_frame == GLOBAL )
     {
-        no_transform = TRUE;
-        
         if ( analy->do_tensor_transform )
         {
-            if ( analy->tensor_transform_matrix == NULL )
+            if ( !transform_stress_strain( primal_list, 0, analy, 
+                                           analy->tensor_transform_matrix, 
+                                           result_buf ) )
             {
-                popup_dialog( INFO_POPUP, "%s\n%s",
-                              "No transformation coordinate system has",
-                              "been specified; results are not transformed." );
+                popup_dialog( WARNING_POPUP, 
+                              "Stress/strain coordinate transform failed." );
+                return;
             }
-            else if ( !transform_primal_stress_strain( base, TRUE, analy ) )
-            {
-                popup_dialog( WARNING_POPUP, "%s\n%s",
-                              "Stress tensor coordinate transformation failed.",
-                              "Results are not transformed." );
-            }
-            else
-                no_transform = FALSE;
-        }
 
-        if ( no_transform )
-            get_result( base + idx, analy->cur_state, resultElem );
+            p_result->modifiers.use_flags.coord_transform = 1;
+        }
+        else
+        {
+            /* Augment primal vector name with component name. */
+            sprintf( primal_spec + strlen( primal_spec ), "[%s]", 
+                     p_result->name );
+            
+            /* Read the database. */
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1, 
+                                   subrec, 1, primal_list, 
+                                   (void *) result_buf );
+        }
+        
+        /* Re-order results if necessary. */
+        if ( object_ids )
+        {
+            for ( i = 0; i < obj_qty; i++ )
+                resultElem[object_ids[i]] = result_buf[i];
+        }
     }
     else if ( ref_frame == LOCAL )
     {
@@ -413,23 +594,50 @@ float *resultArr;
          * The full tensor must be transformed.
          */
 
-        for ( i = 0; i < 6; i++ )
-            get_result( base + i, analy->cur_state, analy->tmp_result[i] );
+        analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
+                               primal_list, (void *) result_buf );
 
-        shell_cnt = analy->geom_p->shells->cnt;
-
-        for ( i = 0; i < shell_cnt; i++ )
+        sigma = (float (*)[6]) result_buf;
+        
+        if ( object_ids )
         {
-            for ( j = 0; j < 6; j++ )
-               sigma[j] = analy->tmp_result[j][i];
-            global_to_local_mtx( analy, i, localMat );
-            transform_tensors( 1, sigma, localMat );
-
-            resultElem[i] = sigma[idx];
+            for ( i = 0; i < obj_qty; i++ )
+            {
+                elem_idx = object_ids[i];
+                global_to_local_mtx( analy, p_mo_class, elem_idx, 
+				     map_timehist_coords, new_nodes,
+				     localMat );
+                
+                /*
+                 * Corrects a bug in pre-merge MGriz which used elem_idx to
+                 * index sigma array.
+                 */
+                transform_tensors_1p( 1, sigma + i, localMat );
+                resultElem[elem_idx] = sigma[i][idx];
+            }
+        }
+        else
+        {
+            for ( i = 0; i < obj_qty; i++ )
+            {
+                global_to_local_mtx( analy, p_mo_class, i, 
+				     map_timehist_coords, new_nodes,
+				     localMat );
+                transform_tensors_1p( 1, sigma + i, localMat );
+                resultElem[i] = sigma[i][idx];
+            }
         }
     }
+    
+    /* Update modifiers to indicate pertinent ones for this result. */
+    p_result->modifiers.use_flags.use_ref_frame = 1;
+    p_result->modifiers.ref_frame = analy->ref_frame;
+    p_result->modifiers.use_flags.use_ref_surface = 1;
+    p_result->modifiers.ref_surf = analy->ref_surf;
 
-    shell_to_nodal( resultElem, resultArr, analy, TRUE );
+    if ( interpolate )
+        quad_to_nodal( resultElem, resultArr, p_mo_class, obj_qty, object_ids, 
+                       analy, TRUE );
 }
 
 
@@ -438,51 +646,88 @@ float *resultArr;
  *
  * Computes the pressure at nodes.
  */
-static void
-compute_shell_press( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+void
+compute_shell_press( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     Ref_surf_type ref_surf;
     float *resultElem;
-    float *shellPressure[3];
-    int shell_cnt, i;
+    float (*shellPressure)[6];
+    int i;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    char *primal_list[1];
 
-    shell_cnt = analy->geom_p->shells->cnt;
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
+
     ref_surf = analy->ref_surf;
 
-    /* Load pointers to the original component arrays. */
-    for ( i = 0; i < 3; i++ )
+    /*
+     * Don't want to read in all the primals from the Result_candidate for
+     * this result, so build up a new primals array with just the right one.
+     */
+    switch ( ref_surf )
     {
-        switch ( ref_surf )
-        {
-            case MIDDLE:
-                get_result( VAL_SHELL_SIGX_MID + i,
-                            analy->cur_state, analy->tmp_result[i] );
-                break;
-            case INNER:
-                get_result( VAL_SHELL_SIGX_IN + i,
-                            analy->cur_state, analy->tmp_result[i] );
-                break;
-            case OUTER:
-                get_result( VAL_SHELL_SIGX_OUT + i,
-                            analy->cur_state, analy->tmp_result[i] );
-                break;
-        }
-        shellPressure[i] = analy->tmp_result[i];
+        case MIDDLE:
+            primal_list[0] = primals[1];
+            break;
+        case INNER:
+            primal_list[0] = primals[0];
+            break;
+        case OUTER:
+            primal_list[0] = primals[2];
+            break;
     }
 
-    resultElem = analy->shell_result;
+    /* Just use analy->tmp_result as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primal_list, (void *) result_buf );
+    
+    shellPressure = (float (*)[6]) result_buf;
 
     /* Compute pressure. */
-    for ( i = 0; i < shell_cnt; i++ )
+    if ( object_ids )
     {
-        resultElem[i] = -( shellPressure[0][i] +
-                           shellPressure[1][i] +
-                           shellPressure[2][i] ) / 3.0 ;
+        for ( i = 0; i < obj_qty; i++ )
+        {
+            resultElem[object_ids[i]] = -( shellPressure[i][0]
+                                           + shellPressure[i][1]
+                                           + shellPressure[i][2] ) * ONETHIRD ;
+        }
     }
+    else
+    {
+        for ( i = 0; i < obj_qty; i++ )
+        {
+            resultElem[i] = -( shellPressure[i][0]
+                               + shellPressure[i][1]
+                               + shellPressure[i][2] ) * ONETHIRD ;
+        }
+    }
+    
+    /* Update result to indicate that reference surface matters. */
+    p_result->modifiers.use_flags.use_ref_surface = 1;
+    p_result->modifiers.ref_surf = analy->ref_surf;
 
-    shell_to_nodal( resultElem, resultArr, analy, TRUE );
+    if ( interpolate )
+        quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                       object_ids, analy, TRUE );
 }
 
 
@@ -491,74 +736,99 @@ float *resultArr;
  *
  * Computes the effective stress at nodes.
  */
-static void
-compute_shell_effstress( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+void
+compute_shell_effstress( Analysis *analy, float *resultArr, 
+                         Bool_type interpolate )
 {
-    Shell_state *shells;
     float *resultElem;
-    float *shellStress[6];
     float devStress[3];
     float pressure;
-    int shell_cnt, i, j;
+    Ref_surf_type ref_surf;
+    float *shellStress;
+    int i, j;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty, out_idx;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    char *primal_list[1];
+    double interm_result;
 
-    if ( analy->state_p->activity_present )
-        shell_cnt = analy->state_p->shells->cnt;
-    else
-	shell_cnt = analy->geom_p->shells->cnt;
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
 
-    /* Load the pointers to the component arrays. */
-    for ( i = 0; i < 6; i++ )
+    ref_surf = analy->ref_surf;
+
+    /*
+     * Don't want to read in all the primals from the Result_candidate for
+     * this result, so build up a new primals array with just the right one.
+     */
+    switch ( ref_surf )
     {
-        switch ( analy->ref_surf )
-        {
-            case MIDDLE:
-                get_result( VAL_SHELL_SIGX_MID + i,
-                            analy->cur_state, analy->tmp_result[i] );
-                break;
-            case INNER:
-                get_result( VAL_SHELL_SIGX_IN + i,
-                            analy->cur_state, analy->tmp_result[i] );
-                break;
-            case OUTER:
-                get_result( VAL_SHELL_SIGX_OUT + i,
-                            analy->cur_state, analy->tmp_result[i] );
-                break;
-        }
-        shellStress[i] = analy->tmp_result[i];
+        case MIDDLE:
+            primal_list[0] = primals[1];
+            break;
+        case INNER:
+            primal_list[0] = primals[0];
+            break;
+        case OUTER:
+            primal_list[0] = primals[2];
+            break;
     }
 
-    resultElem = analy->shell_result;
+    /* Just use analy->tmp_result as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primal_list, (void *) result_buf );
 
     /* Calculate pressure as intermediate variable needed for
      * determining deviatoric components.
+     *
+     * Since there's already a lot of computation inside the
+     * loop, we'll allow the repeated determination of out_idx
+     * source rather than having separate loops.
      */
-    for ( i = 0; i < shell_cnt; i++ )
+    for ( i = 0, shellStress = result_buf; i < obj_qty; i++, shellStress += 6 )
     {
-        pressure = -( shellStress[0][i] +
-                      shellStress[1][i] +
-                      shellStress[2][i] ) / 3.0;
+        pressure = -( shellStress[0] +
+                      shellStress[1] +
+                      shellStress[2] ) * ONETHIRD;
 
         /* Calculate deviatoric components of stress tensor. */
         for ( j = 0; j < 3; j++ )
-            devStress[j] = shellStress[j][i] + pressure;
+            devStress[j] = shellStress[j] + pressure;
 
-        /* 
-	 * Calculate effective stress from deviatoric components.
-	 * Updated derivation avoids negative square root operand
-	 * (UNICOS, of course).
-	 */
-        resultElem[i] = 0.5 * ( devStress[0]*devStress[0] +
-                                devStress[1]*devStress[1] +
-                                devStress[2]*devStress[2] ) +
-                        shellStress[3][i]*shellStress[3][i] +
-                        shellStress[4][i]*shellStress[4][i] +
-                        shellStress[5][i]*shellStress[5][i] ;
-        resultElem[i] = sqrt( (double)(3.0*resultElem[i]) );
+        /* Calculate effective stress from deviatoric components. */
+        interm_result = 0.5 * ( devStress[0]*devStress[0]
+                                + devStress[1]*devStress[1]
+                                + devStress[2]*devStress[2] )
+                        + shellStress[3] * shellStress[3]
+                        + shellStress[4] * shellStress[4]
+                        + shellStress[5] * shellStress[5];
+
+        out_idx = ( object_ids == NULL ) ? i : object_ids[i];
+        resultElem[out_idx] = sqrt( 3.0 * interm_result );
     }
     
-    shell_to_nodal( resultElem, resultArr, analy, TRUE );
+    /* Update result to indicate that reference surface matters. */
+    p_result->modifiers.use_flags.use_ref_surface = 1;
+    p_result->modifiers.ref_surf = analy->ref_surf;
+    
+    if ( interpolate )
+        quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                       object_ids, analy, TRUE );
 }
 
 
@@ -568,65 +838,96 @@ float *resultArr;
  * Computes the principal deviatoric stresses and principal
  * stresses.
  */
-static void
-compute_shell_principal_stress( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+void
+compute_shell_principal_stress( Analysis *analy, float *resultArr, 
+                                Bool_type interpolate )
 {
-    Shell_geom *shells;
     float *resultElem;               /* Element results vector. */
-    float *shellStress[6];           /* Ptr to element stresses. */
+    float *shellStress;              /* Ptr to element stresses. */
     float devStress[3];              /* Deviatoric stresses,
                                         only need diagonal terms. */
     float Invariant[3];              /* Invariants of tensor. */
     float princStress[3];            /* Principal values. */
     float pressure;
     float alpha, angle, value;
+    char *primal_list[1];
+    Ref_surf_type ref_surf;
     int i, j;
-    int shell_cnt;
+    int obj_qty;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int index, res_index, elem_idx;
+    Subrec_obj *p_subrec;
+    int *object_ids;
 
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
 
-    if ( analy->state_p->activity_present )
-        shell_cnt = analy->state_p->shells->cnt;
-    else
-	shell_cnt = analy->geom_p->shells->cnt;
+    ref_surf = analy->ref_surf;
 
-    /* Load the pointers to the component arrays. */
-    for ( i = 0; i < 6; i++ )
+    /*
+     * Don't want to read in all the primals from the Result_candidate for
+     * this result, so build up a new primals array with just the right one.
+     */
+    switch ( ref_surf )
     {
-        switch ( analy->ref_surf )
-        {
-            case MIDDLE:
-                get_result( VAL_SHELL_SIGX_MID + i,
-                            analy->cur_state, analy->tmp_result[i] );
-                break;
-            case INNER:
-                get_result( VAL_SHELL_SIGX_IN + i,
-                            analy->cur_state, analy->tmp_result[i] );
-                break;
-            case OUTER:
-                get_result( VAL_SHELL_SIGX_OUT + i,
-                            analy->cur_state, analy->tmp_result[i] );
-                break;
-        }
-        shellStress[i] = analy->tmp_result[i];
+        case MIDDLE:
+            primal_list[0] = primals[1];
+            break;
+        case INNER:
+            primal_list[0] = primals[0];
+            break;
+        case OUTER:
+            primal_list[0] = primals[2];
+            break;
     }
+    
 
-    resultElem = analy->shell_result;
+    /* Just use analy->tmp_result[0] as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primal_list, (void *) result_buf );
+    
+    /* Map result onto a numeric index. */
+    if ( strcmp( p_result->name, "pdev1" ) == 0 )
+        res_index = 0;
+    else if ( strcmp( p_result->name, "pdev2" ) == 0 )
+        res_index = 1;
+    else if ( strcmp( p_result->name, "pdev3" ) == 0 )
+        res_index = 2;
+    else if ( strcmp( p_result->name, "maxshr" ) == 0 )
+        res_index = 3;
+    else if ( strcmp( p_result->name, "prin1" ) == 0 )
+        res_index = 4;
+    else if ( strcmp( p_result->name, "prin2" ) == 0 )
+        res_index = 5;
+    else if ( strcmp( p_result->name, "prin3" ) == 0 )
+        res_index = 6;
 
     /* Calculate deviatoric stresses. */
-    for ( i = 0; i < shell_cnt; i++ )
+    for ( i = 0, shellStress = result_buf; i < obj_qty; i++, shellStress += 6 )
     {
         /* Calculate pressure as intermediate variable needed for
          * determining deviatoric components.
          */
-        pressure = -( shellStress[0][i] +
-                      shellStress[1][i] +
-                      shellStress[2][i] ) / 3.0;
+        pressure = -( shellStress[0] +
+                      shellStress[1] +
+                      shellStress[2] ) * ONETHIRD;
 
         /* Calculate deviatoric components of stress tensor. */
         for ( j = 0; j < 3; j++ )
-            devStress[j] = shellStress[j][i] + pressure;
+            devStress[j] = shellStress[j] + pressure;
 
         /* Calculate invariants of deviatoric tensor. */
         /* Invariant[0] = 0.0 */
@@ -634,32 +935,32 @@ float *resultArr;
         Invariant[1] = 0.5 * ( devStress[0] * devStress[0]
                                + devStress[1] * devStress[1]
                                + devStress[2] * devStress[2] )
-                       + shellStress[3][i] * shellStress[3][i]
-                       + shellStress[4][i] * shellStress[4][i]
-                       + shellStress[5][i] * shellStress[5][i];
+                       + shellStress[3] * shellStress[3]
+                       + shellStress[4] * shellStress[4]
+                       + shellStress[5] * shellStress[5];
         Invariant[2] = -devStress[0] * devStress[1] * devStress[2]
-                       - 2.0 * shellStress[3][i] * shellStress[4][i] * shellStress[5][i]
-                       + devStress[0] * shellStress[4][i] * shellStress[4][i]
-                       + devStress[1] * shellStress[5][i] * shellStress[5][i]
-                       + devStress[2] * shellStress[3][i] * shellStress[3][i];
+                       - 2.0 * shellStress[3] * shellStress[4] * shellStress[5]
+                       + devStress[0] * shellStress[4] * shellStress[4]
+                       + devStress[1] * shellStress[5] * shellStress[5]
+                       + devStress[2] * shellStress[3] * shellStress[3];
 
         /* Check to see if we can have non-zero divisor, if not 
          * set principal stress to 0.
          */
         if ( Invariant[1] >= 1e-7 )
         {
-            alpha = -0.5*sqrt( (double)27.0/Invariant[1])*
-                              Invariant[2]/Invariant[1];
+            alpha = -0.5 * sqrt( (double) 27.0 / Invariant[1] )
+                    * Invariant[2]/Invariant[1];
             if ( alpha < 0 ) 
                 alpha = MAX( alpha, -1.0 );
             else if ( alpha > 0 )
                 alpha = MIN( alpha, 1.0 );
-            angle = acos((double)alpha) / 3.0;
-            value = 2.0 * sqrt( (double)Invariant[1]/3.0);
+            angle = acos((double)alpha) * ONETHIRD;
+            value = 2.0 * sqrt( (double)Invariant[1] * ONETHIRD);
             princStress[0] = value*cos((double)angle);
-            angle = angle - 2.0*M_PI/3.0;
+            angle = angle - 2.0*PI * ONETHIRD ;
             princStress[1] = value*cos((double)angle);
-            angle = angle + 4.0*M_PI/3.0;
+            angle = angle + 4.0*PI * ONETHIRD;
             princStress[2] = value*cos((double)angle);
         }
         else
@@ -669,33 +970,41 @@ float *resultArr;
             princStress[2] = 0.0;
         }
 
-        switch ( analy->result_id )
+        elem_idx = ( object_ids ) ? object_ids[i] : i;
+
+        switch ( res_index )
         {
-            case VAL_SHARE_SIG_PD1 :
-                resultElem[i] = princStress[0];
+            case 0:
+                resultElem[elem_idx] = princStress[0];
                 break;
-            case VAL_SHARE_SIG_PD2 :
-                resultElem[i] = princStress[1];
+            case 1:
+                resultElem[elem_idx] = princStress[1];
                 break;
-            case VAL_SHARE_SIG_PD3 :
-                resultElem[i] = princStress[2];
+            case 2:
+                resultElem[elem_idx] = princStress[2];
                 break;
-            case VAL_SHARE_SIG_MAX_SHEAR :
-                resultElem[i] = (princStress[0] - princStress[2]) / 2.0;
+            case 3:
+                resultElem[elem_idx] = (princStress[0] - princStress[2]) * ONEHALF;
                 break;
-            case VAL_SHARE_SIG_P1 :
-                resultElem[i] = princStress[0] - pressure;
+            case 4:
+                resultElem[elem_idx] = princStress[0] - pressure;
                 break;
-            case VAL_SHARE_SIG_P2 :
-                resultElem[i] = princStress[1] - pressure;
+            case 5:
+                resultElem[elem_idx] = princStress[1] - pressure;
                 break;
-            case VAL_SHARE_SIG_P3 :
-                resultElem[i] = princStress[2] - pressure;
+            case 6:
+                resultElem[elem_idx] = princStress[2] - pressure;
                 break;
         }
     }
+    
+    /* Update result to indicate that reference surface matters. */
+    p_result->modifiers.use_flags.use_ref_surface = 1;
+    p_result->modifiers.ref_surf = analy->ref_surf;
 
-    shell_to_nodal( resultElem, resultArr, analy, TRUE );
+    if ( interpolate )
+        quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                       object_ids, analy, TRUE );
 }
 
 
@@ -705,142 +1014,162 @@ float *resultArr;
  * Computes shell surface stresses at nodes.
  */
 void
-compute_shell_surface_stress( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+compute_shell_surface_stress( Analysis *analy, float *resultArr, 
+                              Bool_type interpolate )
 {
-    float *tmp_result[6];
     float *resultElem;
-    float *bending_resultant[3];      /* Three slots for eff stress calc. */
-    float *normal_resultant[3];
     float *thickness;
     float one_over_t, one_over_t2;
     float sx, sy, sxy, sigef[2];      /* Vars for eff surface stress. */
-    int shell_cnt, i;
+    int obj_qty, i;
+    int out, index, nidx, bidx, res_index;
+    char *primal_list[3];
+    GVec3D *bending_resultant, *normal_resultant;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    Subrec_obj *p_subrec;
+    int *object_ids;
 
-    shell_cnt = analy->geom_p->shells->cnt;
-    for ( i = 0; i < 6; i++ )
-        tmp_result[i] = analy->tmp_result[i];
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
+    
+    /* Map result onto a numeric index. */
+    if ( strcmp( p_result->name, "surf1" ) == 0 )
+        res_index = 0;
+    else if ( strcmp( p_result->name, "surf2" ) == 0 )
+        res_index = 1;
+    else if ( strcmp( p_result->name, "surf3" ) == 0 )
+        res_index = 2;
+    else if ( strcmp( p_result->name, "surf4" ) == 0 )
+        res_index = 3;
+    else if ( strcmp( p_result->name, "surf5" ) == 0 )
+        res_index = 4;
+    else if ( strcmp( p_result->name, "surf6" ) == 0 )
+        res_index = 5;
+    else if ( strcmp( p_result->name, "eff1" ) == 0 )
+        res_index = 6;
+    else if ( strcmp( p_result->name, "eff2" ) == 0 )
+        res_index = 7;
+    else if ( strcmp( p_result->name, "effmax" ) == 0 )
+        res_index = 8;
 
-    /* Set up the pointers to the individual component arrays. */
-    switch ( analy->result_id )
+    /* Initialize primal results request list. */
+    primal_list[0] = primals[0];
+    primal_list[1] = primals[2];
+    primal_list[2] = primals[3];
+    
+    /* Initialize access pointers. */
+    bending_resultant = (GVec3D *) analy->tmp_result[0];
+    normal_resultant = bending_resultant + obj_qty;
+    thickness = (float *) (normal_resultant + obj_qty);
+
+    /* Initialize normal and bending result component indices. */
+    switch ( res_index )
     {
-        case VAL_SHELL_SURF1:
-        case VAL_SHELL_SURF2:
-            get_result( VAL_SHELL_RES6, analy->cur_state, tmp_result[0] );
-            get_result( VAL_SHELL_RES1, analy->cur_state, tmp_result[1] );
-            normal_resultant[0] = tmp_result[0];
-            bending_resultant[0]= tmp_result[1];
+        case 0:
+        case 1:
+            bidx = 0;
+            nidx = 0;
             break;
-        case VAL_SHELL_SURF3:
-        case VAL_SHELL_SURF4:
-            get_result( VAL_SHELL_RES7, analy->cur_state, tmp_result[0] );
-            get_result( VAL_SHELL_RES2, analy->cur_state, tmp_result[1] );
-            normal_resultant[0] = tmp_result[0];
-            bending_resultant[0]= tmp_result[1];
+        case 2:
+        case 3:
+            bidx = 1;
+            nidx = 1;
             break;
-        case VAL_SHELL_SURF5:
-        case VAL_SHELL_SURF6:
-            get_result( VAL_SHELL_RES8, analy->cur_state, tmp_result[0] );
-            get_result( VAL_SHELL_RES3, analy->cur_state, tmp_result[1] );
-            normal_resultant[0] = tmp_result[0];
-            bending_resultant[0]= tmp_result[1];
-            break;
-        case VAL_SHELL_EFF1:
-        case VAL_SHELL_EFF2:
-        case VAL_SHELL_EFF3:
-            get_result( VAL_SHELL_RES6, analy->cur_state, tmp_result[0] );
-            get_result( VAL_SHELL_RES1, analy->cur_state, tmp_result[1] );
-            get_result( VAL_SHELL_RES7, analy->cur_state, tmp_result[2] );
-            get_result( VAL_SHELL_RES2, analy->cur_state, tmp_result[3] );
-            get_result( VAL_SHELL_RES8, analy->cur_state, tmp_result[4] );
-            get_result( VAL_SHELL_RES3, analy->cur_state, tmp_result[5] );
-            normal_resultant[0] = tmp_result[0];
-            bending_resultant[0]= tmp_result[1];
-            normal_resultant[1] = tmp_result[2];
-            bending_resultant[1]= tmp_result[3];
-            normal_resultant[2] = tmp_result[4];
-            bending_resultant[2]= tmp_result[5];
+        case 4:
+        case 5:
+            bidx = 2;
+            nidx = 2;
             break;
     }
-    thickness = NEW_N( float, shell_cnt, "Tmp shell thickness" );
-    get_result( VAL_SHELL_THICKNESS, analy->cur_state, thickness );
-
-    resultElem = analy->shell_result;
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 3, 
+                           primal_list, (void *) analy->tmp_result[0] );
 
     /* Calculate the value given the normal and bending components
      * and the element thickness.
      */
-    for ( i = 0; i < shell_cnt; i++ )
+    for ( i = 0; i < obj_qty; i++ )
     {
         one_over_t = 1.0 / thickness[i];
         one_over_t2 = one_over_t / thickness[i];
-        switch ( analy->result_id )
+        
+        out = ( object_ids == NULL ) ? i : object_ids[i];
+
+        switch ( res_index )
         {
-            case VAL_SHELL_SURF1:
-            case VAL_SHELL_SURF3:
-            case VAL_SHELL_SURF5:
-                resultElem[i] = normal_resultant[0][i]*one_over_t +
-                                6.0*bending_resultant[0][i]*one_over_t2;
+            case 0:
+            case 2:
+            case 4:
+                resultElem[out] = normal_resultant[i][nidx]*one_over_t +
+                                  6.0*bending_resultant[i][bidx]*one_over_t2;
                 break;
-            case VAL_SHELL_SURF2:
-            case VAL_SHELL_SURF4:
-            case VAL_SHELL_SURF6:
-                resultElem[i] = normal_resultant[0][i]*one_over_t -
-                                6.0*bending_resultant[0][i]*one_over_t2;
+            case 1:
+            case 3:
+            case 5:
+                resultElem[out] = normal_resultant[i][nidx]*one_over_t -
+                                  6.0*bending_resultant[i][bidx]*one_over_t2;
                 break;
-            case VAL_SHELL_EFF1:
+            case 6:
                 /* These are the upper surface values. */
-                sx = normal_resultant[0][i]*one_over_t +
-                     6.0*bending_resultant[0][i]*one_over_t2 ;
-                sy = normal_resultant[1][i]*one_over_t +
-                     6.0*bending_resultant[1][i]*one_over_t2 ;
-                sxy = normal_resultant[2][i]*one_over_t +
-                      6.0*bending_resultant[2][i]*one_over_t2 ;
-                resultElem[i] = sqrt( (double)
-                                     (sx*sx - sx*sy + sy*sy + 3.0*sxy*sxy));
+                sx = normal_resultant[i][0]*one_over_t +
+                     6.0*bending_resultant[i][0]*one_over_t2 ;
+                sy = normal_resultant[i][1]*one_over_t +
+                     6.0*bending_resultant[i][1]*one_over_t2 ;
+                sxy = normal_resultant[i][2]*one_over_t +
+                      6.0*bending_resultant[i][2]*one_over_t2 ;
+                resultElem[out] = sqrt( (double)
+                                        (sx*sx - sx*sy + sy*sy + 3.0*sxy*sxy));
                 break;
-            case VAL_SHELL_EFF2:
+            case 7:
                 /* These are the lower surface values. */
-                sx = normal_resultant[0][i]*one_over_t -
-                     6.0*bending_resultant[0][i]*one_over_t2 ;
-                sy = normal_resultant[1][i]*one_over_t -
-                     6.0*bending_resultant[1][i]*one_over_t2 ;
-                sxy = normal_resultant[2][i]*one_over_t -
-                      6.0*bending_resultant[2][i]*one_over_t2 ;
-                resultElem[i] = sqrt( (double)
-                                     (sx*sx - sx*sy + sy*sy + 3.0*sxy*sxy));
+                sx = normal_resultant[i][0]*one_over_t -
+                     6.0*bending_resultant[i][0]*one_over_t2 ;
+                sy = normal_resultant[i][1]*one_over_t -
+                     6.0*bending_resultant[i][1]*one_over_t2 ;
+                sxy = normal_resultant[i][2]*one_over_t -
+                      6.0*bending_resultant[i][2]*one_over_t2 ;
+                resultElem[out] = sqrt( (double)
+                                        (sx*sx - sx*sy + sy*sy + 3.0*sxy*sxy));
                 break;
-            case VAL_SHELL_EFF3:
+            case 8:
                 /* Calc upper surface first. */
-                sx = normal_resultant[0][i]*one_over_t +
-                     6.0*bending_resultant[0][i]*one_over_t2 ;
-                sy = normal_resultant[1][i]*one_over_t +
-                     6.0*bending_resultant[1][i]*one_over_t2 ;
-                sxy = normal_resultant[2][i]*one_over_t +
-                      6.0*bending_resultant[2][i]*one_over_t2 ;
+                sx = normal_resultant[i][0]*one_over_t +
+                     6.0*bending_resultant[i][0]*one_over_t2 ;
+                sy = normal_resultant[i][1]*one_over_t +
+                     6.0*bending_resultant[i][1]*one_over_t2 ;
+                sxy = normal_resultant[i][2]*one_over_t +
+                      6.0*bending_resultant[i][2]*one_over_t2 ;
                 sigef[0] = sqrt( (double)
                                 (sx*sx - sx*sy + sy*sy + 3.0*sxy*sxy));
 
                 /* Now calc lower surface. */
-                sx = normal_resultant[0][i]*one_over_t -
-                     6.0*bending_resultant[0][i]*one_over_t2 ;
-                sy = normal_resultant[1][i]*one_over_t -
-                     6.0*bending_resultant[1][i]*one_over_t2 ;
-                sxy = normal_resultant[2][i]*one_over_t -
-                      6.0*bending_resultant[2][i]*one_over_t2 ;
+                sx = normal_resultant[i][0]*one_over_t -
+                     6.0*bending_resultant[i][0]*one_over_t2 ;
+                sy = normal_resultant[i][1]*one_over_t -
+                     6.0*bending_resultant[i][1]*one_over_t2 ;
+                sxy = normal_resultant[i][2]*one_over_t -
+                      6.0*bending_resultant[i][2]*one_over_t2 ;
                 sigef[1] = sqrt( (double)
                                 (sx*sx - sx*sy + sy*sy + 3.0*sxy*sxy));
 
                 /* Return maximum value. */
-                resultElem[i] = MAX( sigef[0], sigef[1] );
+                resultElem[out] = MAX( sigef[0], sigef[1] );
                 break;
        }
     }
 
-    shell_to_nodal( resultElem, resultArr, analy, FALSE );
-
-    free( thickness );
+    if ( interpolate )
+        quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                       object_ids, analy, FALSE );
 }
-
 

@@ -6,20 +6,3318 @@
  *      Lawrence Livermore National Laboratory
  *      Mar 19 1992
  *
- * Copyright (c) 1992 Regents of the University of California
+ * 
+ * This work was produced at the University of California, Lawrence 
+ * Livermore National Laboratory (UC LLNL) under contract no. 
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
+ * (DOE) and The Regents of the University of California (University) 
+ * for the operation of UC LLNL. Copyright is reserved to the University 
+ * for purposes of controlled dissemination, commercialization through 
+ * formal licensing, or other disposition under terms of Contract 48; 
+ * DOE policies, regulations and orders; and U.S. statutes. The rights 
+ * of the Federal Government are reserved under Contract 48 subject to 
+ * the restrictions agreed upon by the DOE and University as allowed 
+ * under DOE Acquisition Letter 97-1.
+ * 
+ * 
+ * DISCLAIMER
+ * 
+ * This work was prepared as an account of work sponsored by an agency 
+ * of the United States Government. Neither the United States Government 
+ * nor the University of California nor any of their employees, makes 
+ * any warranty, express or implied, or assumes any liability or 
+ * responsibility for the accuracy, completeness, or usefulness of any 
+ * information, apparatus, product, or process disclosed, or represents 
+ * that its use would not infringe privately-owned rights.  Reference 
+ * herein to any specific commercial products, process, or service by 
+ * trade name, trademark, manufacturer or otherwise does not necessarily 
+ * constitute or imply its endorsement, recommendation, or favoring by 
+ * the United States Government or the University of California. The 
+ * views and opinions of authors expressed herein do not necessarily 
+ * state or reflect those of the United States Government or the 
+ * University of California, and shall not be used for advertising or 
+ * product endorsement purposes.
+ * 
+ ************************************************************************
+ * Modifications:
+ *  I. R. Corey - Aug 26, 2005: Add option to hide result from pull-down 
+ *                list.
+ *                See SRC# 339.
+ *
+ *  I. R. Corey - Oct 1, 2005: Added two new derived results: fnmass &
+ *                fnvol.
+ *                See SRC# 365.
+ *
+ *  I. R. Corey - Jan 31, 2007: Added capability for Griz to display int
+ *                and long results.
+ *                See SRC# 434.
+ *
+ *  I.R. Corey -  May 1, 2008:  Added new derived nodal result = dispr,
+ *                radial nodal displacement. 
+ *                See SRC#: 532
+ ************************************************************************
  */
 
-#include <values.h>
+#include <stdlib.h>
 #include "viewer.h"
 
+#define OK 0
 
-static Bool_type is_rate_enabled();
-static void update_min_max();
-static void load_hex_result();
-static void load_shell_result();
-static void load_nodal_result();
+static Bool_type
+mod_required( Result *, Result_modifier_type, int, int );
 
 
+static char *node_disp_shorts_xy[] = 
+{
+    "dispx", "dispy", NULL 
+};
+static char *node_disp_longs_xy[] = 
+{
+    "X Displacement", "Y Displacement", NULL
+};
+
+static char *node_disp_longs_r[] = 
+{
+    "XY Radial Displacement", NULL
+};
+
+static char *node_disp_shorts_z[] = 
+{
+    "dispz", NULL 
+};
+static char *node_disp_shorts_r[] = 
+{
+    "dispr", NULL 
+};
+static char *node_disp_longs_z[] = 
+{
+    "Z Displacement", NULL
+};
+
+static char *node_disp_mag_shorts[] = 
+{
+    "dispmag", NULL 
+};
+static char *node_disp_mag_longs[] = 
+{
+    "Displacement Magnitude", NULL
+};
+
+static char *node_disp_primals[] = 
+{
+    "nodpos", NULL
+};
+
+static int node_disp_primal_sclasses[] = 
+{
+    G_NODE
+};
+
+
+static char *node_vel_shorts_xy[] = 
+{
+    "velx", "vely", NULL 
+};
+static char *node_vel_longs_xy[] = 
+{
+    "X Velocity", "Y Velocity", NULL
+};
+
+static char *node_vel_shorts_z[] = 
+{
+    "velz", NULL 
+};
+static char *node_vel_longs_z[] = 
+{
+    "Z Velocity", NULL
+};
+
+static char *node_vel_mag_shorts[] = 
+{
+    "velmag", NULL 
+};
+static char *node_vel_mag_longs[] = 
+{
+    "Velocity Magnitude", NULL
+};
+
+static char *node_vel_primals1[] = 
+{
+    "nodvel", NULL
+};
+
+static char *node_vel_primals2[] = 
+{
+    "nodpos", NULL
+};
+
+static int node_vel_primal_sclasses[] = 
+{
+    G_NODE
+};
+
+
+static char *node_acc_shorts_xy[] = 
+{
+    "accx", "accy", NULL 
+};
+static char *node_acc_longs_xy[] = 
+{
+    "X Acceleration", "Y Acceleration", NULL
+};
+
+static char *node_acc_shorts_z[] = 
+{
+    "accz", NULL 
+};
+static char *node_acc_longs_z[] = 
+{
+    "Z Acceleration", NULL
+};
+
+static char *node_acc_mag_shorts[] = 
+{
+    "accmag", NULL 
+};
+static char *node_acc_mag_longs[] = 
+{
+    "Acceleration Magnitude", NULL
+};
+
+static char *node_acc_primals1[] = 
+{
+    "nodacc", NULL
+};
+static char *node_acc_primals2[] = 
+{
+    "nodpos", NULL
+};
+
+static int node_acc_primal_sclasses[] = 
+{
+    G_NODE
+};
+
+
+static char *node_temp_short[] = 
+{
+    "temp", NULL 
+};
+static char *node_temp_long[] = 
+{
+    "Temperature", NULL
+};
+static char *node_temp_primal[] =
+{
+    "temp", NULL 
+};
+static int node_temp_primal_sclasses[] = 
+{
+    G_NODE
+};
+
+
+static char *node_pint_short[] = 
+{
+    "pint", NULL 
+};
+static char *node_pint_long[] = 
+{
+    "Pressure Intensity", NULL
+};
+static char *node_pint_primal[] =
+{
+    "press", NULL 
+};
+static int node_pint_primal_sclasses[] = 
+{
+    G_NODE
+};
+
+
+static char *node_helicity_short[] = 
+{
+    "hel", NULL
+};
+static char *node_helicity_long[] = 
+{
+    "Helicity", NULL
+};
+static char *node_helicity_primal[] = 
+{
+    "nodvel", "nodvort", NULL
+};
+static int node_helicity_primal_sclasses[] = 
+{
+    G_NODE, G_NODE
+};
+
+
+static char *node_enstrophy_short[] =
+{
+    "ens", NULL
+};
+static char *node_enstrophy_long[] =
+{
+    "Enstrophy", NULL
+};
+static char *node_enstrophy_primal[] =
+{
+    "nodvort", NULL
+};
+static int node_enstrophy_primal_sclasses[] = 
+{
+    G_NODE
+};
+
+
+static char *node_pvmag_short[] = 
+{
+    "pvmag", NULL
+};
+static char *node_pvmag_long[] =
+{
+    "Projected Vector Magnitude", NULL
+};
+static char *node_pvmag_primal[] = 
+{
+    NULL
+};
+static int node_pvmag_primal_sclasses[] = 
+{
+    0
+};
+
+
+
+static char *beam_axfor_short[] = 
+{
+    "axfor", NULL
+};
+static char *beam_axfor_long[] = 
+{
+    "Axial Force", NULL
+};
+static char *beam_axfor_primal[] = 
+{
+    "axfor", NULL
+};
+static int beam_axfor_primal_sclasses[] = 
+{
+    G_BEAM
+};
+
+
+static char *beam_sshear_short[] = 
+{
+    "sshear", NULL
+};
+static char *beam_sshear_long[] = 
+{
+    "S Shear Resultant", NULL
+};
+static char *beam_sshear_primal[] = 
+{
+    "sshear", NULL
+};
+static int beam_sshear_primal_sclasses[] = 
+{
+    G_BEAM
+};
+
+
+static char *beam_tshear_short[] = 
+{
+    "tshear", NULL
+};
+static char *beam_tshear_long[] = 
+{
+    "T Shear Resultant", NULL
+};
+static char *beam_tshear_primal[] = 
+{
+    "tshear", NULL
+};
+static int beam_tshear_primal_sclasses[] = 
+{
+    G_BEAM
+};
+
+
+static char *beam_smom_short[] = 
+{
+    "smom", NULL
+};
+static char *beam_smom_long[] = 
+{
+    "S Moment", NULL
+};
+static char *beam_smom_primal[] = 
+{
+    "smom", NULL
+};
+static int beam_smom_primal_sclasses[] = 
+{
+    G_BEAM
+};
+
+
+static char *beam_tmom_short[] = 
+{
+    "tmom", NULL
+};
+static char *beam_tmom_long[] = 
+{
+    "T Moment", NULL
+};
+static char *beam_tmom_primal[] = 
+{
+    "tmom", NULL
+};
+static int beam_tmom_primal_sclasses[] = 
+{
+    G_BEAM
+};
+
+
+static char *beam_tor_short[] = 
+{
+    "tor", NULL
+};
+static char *beam_tor_long[] = 
+{
+    "Torsional Resultant", NULL
+};
+static char *beam_tor_primal[] = 
+{
+    "tor", NULL
+};
+static int beam_tor_primal_sclasses[] = 
+{
+    G_BEAM
+};
+
+
+static char *beam_sae_short[] = 
+{
+    "saep", "saem", NULL
+};
+static char *beam_sae_long[] = 
+{
+    "S Axial Strian (+)", "S Axial Strain (-)", NULL 
+};
+static char *beam_sae_primal[] = 
+{
+    "axfor", "smom", NULL
+};
+static int beam_sae_primal_sclasses[] = 
+{
+    G_BEAM, G_BEAM
+};
+
+
+static char *beam_tae_short[] = 
+{
+    "taep", "taem", NULL
+};
+static char *beam_tae_long[] = 
+{
+    "T Axial Strain (+)", "T Axial Strain (-)", NULL
+};
+static char *beam_tae_primal[] = 
+{
+    "axfor", "tmom", NULL
+};
+static int beam_tae_primal_sclasses[] = 
+{
+    G_BEAM, G_BEAM
+};
+
+
+
+static char *shell_stress_shorts[] = 
+{
+    "sx", "sy", "sz", "sxy", "syz", "szx", NULL 
+};
+static char *shell_stress_longs[] = 
+{
+    "X Stress", "Y Stress", "Z Stress", "XY Stress", "YZ Stress", "ZX Stress", 
+    NULL 
+}; 
+static char *shell_stress_primals[] = 
+{
+    "stress_in", "stress_mid", "stress_out", NULL 
+};
+static int shell_stress_primal_sclasses[] = 
+{
+    G_QUAD, G_QUAD, G_QUAD
+};
+
+
+static char *shell_press_shorts[] =  
+{
+    "press", NULL 
+}; 
+static char *shell_press_longs[] = 
+{
+    "Pressure", NULL 
+}; 
+static char *shell_press_primals[] = 
+{
+    "stress_in", "stress_mid", "stress_out", NULL 
+};
+static int shell_press_primal_sclasses[] = 
+{
+    G_QUAD, G_QUAD, G_QUAD
+};
+
+
+static char *shell_effs_shorts[] = 
+{
+   "seff", NULL 
+}; 
+static char *shell_effs_longs[] = 
+{
+    "Effective Stress", NULL 
+}; 
+static char *shell_effs_primals[] = 
+{
+    "stress_in", "stress_mid", "stress_out", NULL 
+};
+static int shell_effs_primal_sclasses[] = 
+{
+    G_QUAD, G_QUAD, G_QUAD
+};
+
+
+static char *shell_prin_shorts[] = 
+{
+    "pdev1", "pdev2", "pdev3", "maxshr", "prin1", "prin2", "prin3", NULL 
+}; 
+static char *shell_prin_longs[] = 
+{
+    "Prin Dev Stress 1", "Prin Dev Stress 2", "Prin Dev Stress 3", 
+    "Maximum Shear Stress", "Principal Stress 1", "Principal Stress 2", 
+    "Principal Stress 3", NULL 
+}; 
+static char *shell_prin_primals[] = 
+{
+    "stress_in", "stress_mid", "stress_out", NULL 
+};
+static int shell_prin_primal_sclasses[] = 
+{
+    G_QUAD, G_QUAD, G_QUAD
+};
+
+
+static char *shell_surf_shorts[] = 
+{
+    "surf1", "surf2", "surf3", "surf4", "surf5", "surf6", "eff1", "eff2", 
+    "effmax", NULL 
+}; 
+static char *shell_surf_longs[] = 
+{
+    "Surface Stress 1", "Surface Stress 2", "Surface Stress 3", 
+    "Surface Stress 4", "Surface Stress 5", "Surface Stress 6", 
+    "Effective Upper Surface Stress", "Effective Lower Surface Stress", 
+    "Maximum Effective Surface Stress", NULL 
+}; 
+static char *shell_surf_primals[] = 
+{
+    "bend", "shear", "normal", "thick", NULL 
+};
+static int shell_surf_primal_sclasses[] = 
+{
+    G_QUAD, G_QUAD, G_QUAD, G_QUAD
+};
+
+
+static char *shell_strain_shorts[] = 
+{
+    "ex", "ey", "ez", "exy", "eyz", "ezx", "gamxy", "gamyz", "gamzx", NULL 
+}; 
+static char *shell_strain_longs[] = 
+{
+    "X Strain", "Y Strain", "Z Strain", "XY Strain", "YZ Strain", "ZX Strain", 
+    "XY Engr Strain", "YZ Engr Strain", "ZX Engr Strain", NULL 
+}; 
+static char *shell_strain_primals[] = 
+{
+    "strain_in", "strain_out", NULL 
+};
+static int shell_strain_primal_sclasses[] = 
+{
+    G_QUAD, G_QUAD
+};
+
+
+static char *shell_eeff_shorts[] = 
+{
+    "eeff", NULL 
+}; 
+static char *shell_eeff_longs[] = 
+{
+    "Eff Plastic Strain", NULL 
+}; 
+/*
+ * With all three primals listed here, if we don't have them all, "eeff" won't
+ * show up as a derived result.  This is probably OK, since historically it's
+ * always been all-or-nothing anyway.  If we broke this into three 
+ * Result_candidate entries, we could avoid the all-or-nothing issue, but
+ * then compute_shell_eff_strain() would always have to check the
+ * Result_candidate primal against the current setting of analy->ref_surf
+ * (the new check_func function could be used for this).  Another alternative 
+ * would be to have surface-specific short names (i.e., "eeff_mid", etc.), 
+ * but then we'd lose "eeff" result sharing on meshes with both hex's and 
+ * shells generating "eeff" data.
+ */
+static char *shell_eeff_primals[] = 
+{
+    "eeff_mid", "eeff_in", "eeff_out", NULL 
+};
+static int shell_eeff_primal_sclasses[] = 
+{
+    G_QUAD, G_QUAD, G_QUAD
+};
+
+
+
+static char *hex_stress_shorts[] = 
+{
+    "sx", "sy", "sz", "sxy", "syz", "szx", NULL 
+};
+static char *hex_stress_longs[] = 
+{
+    "X Stress", "Y Stress", "Z Stress", "XY Stress", "YZ Stress", "ZX Stress", 
+    NULL
+};
+static char *hex_stress_primals[] = 
+{
+    "stress", NULL
+};
+static int hex_stress_primal_sclasses[] = 
+{
+    G_HEX
+};
+
+
+static char *hex_press_shorts[] = 
+{
+    "press", NULL 
+};
+static char *hex_press_longs[] = 
+{
+    "Pressure", NULL
+};
+static char *hex_press_primals[] = 
+{
+    "stress", NULL 
+};
+static int hex_press_primal_sclasses[] = 
+{
+    G_HEX
+};
+
+
+static char *hex_effs_shorts[] = 
+{
+    "seff", NULL 
+};
+static char *hex_effs_longs[] = 
+{
+    "Effective Stress", NULL 
+};
+static char *hex_effs_primals[] = 
+{
+    "stress", NULL 
+};
+static int hex_effs_primal_sclasses[] = 
+{
+    G_HEX
+};
+
+
+static char *hex_prin_shorts[] = 
+{
+    "pdev1", "pdev2", "pdev3", "maxshr", "prin1", "prin2", "prin3", NULL 
+};
+static char *hex_prin_longs[] = 
+{
+    "Prin Dev Stress 1", "Prin Dev Stress 2", "Prin Dev Stress 3", 
+    "Maximum Shear Stress", "Principal Stress 1", "Principal Stress 2", 
+    "Principal Stress 3", NULL 
+};
+static char *hex_prin_primals[] = 
+{
+    "stress", NULL 
+};
+static int hex_prin_primal_sclasses[] = 
+{
+    G_HEX
+};
+
+
+static char *hex_strain_shorts[] = 
+{
+    "ex", "ey", "ez", "exy", "eyz", "ezx", "pdstrn1", "pdstrn2", "pdstrn3", 
+    "pshrstr", "pstrn1", "pstrn2", "pstrn3", "gamxy", "gamyz", "gamzx", NULL 
+};
+static char *hex_strain_longs[] = 
+{
+    "X Strain", "Y Strain", "Z Strain", "XY Strain", "YZ Strain", "ZX Strain", 
+    "Prin Dev Strain 1", "Prin Dev Strain 2", "Prin Dev Strain 3", 
+    "Max Tensor Shear Strain", "Principal Strain 1", "Principal Strain 2", 
+    "Principal Strain 3", "XY Engr Strain", "YZ Engr Strain", "ZX Engr Strain",
+    NULL 
+};
+/*
+ * Problem - If strain type is "RATE", compute_hex_strain() attempts to read
+ * node velocities.  The current design/use of the Result_candidate does not
+ * permit encoding a dependency like this.  If "nodvel" were included in
+ * hex_strain_primals below, we would lose all the strain results when/if
+ * nodal velocities weren't available.  So, we're ignoring the dependency
+ * on velocity here and adding checks for it in compute_hex_strain() to
+ * err off with an INFO_DIALOG if strain type is "RATE" and nodal velocity
+ * isn't available.  If we had explicit strain rate derived results, we
+ * could put the rate calc in its own derived result routine with its own
+ * Result_candidate entry here, but this would this bypass the "switch
+ * <strain type>" model in Griz.
+ */ 
+static char *hex_strain_th_primals[] = 
+{
+  "hx", NULL 
+};
+
+static char *hex_strain_primals[] = 
+{
+  "nodpos", NULL 
+};
+
+static int hex_strain_primal_sclasses[] = 
+{
+    G_NODE
+};
+
+
+static char *hex_eeff_shorts[] = 
+{
+    "eeff", NULL 
+}; 
+static char *hex_eeff_longs[] = 
+{
+    "Eff Plastic Strain", NULL 
+}; 
+static char *hex_eeff_primals[] = 
+{
+    "eeff", NULL 
+};
+static int hex_eeff_primal_sclasses[] = 
+{
+    G_HEX
+};
+
+
+static char *hex_vol_shorts[] = 
+{
+    "relvol", "evol", NULL 
+}; 
+static char *hex_vol_longs[] = 
+{
+    "Relative Volume", "Volumetric Strain", NULL 
+}; 
+static char *hex_vol_primals[] = 
+{
+    "nodpos", NULL 
+};
+static int hex_vol_primal_sclasses[] = 
+{
+    G_NODE
+};
+
+
+static char *hex_damage_shorts[] = 
+{
+    "damage", NULL 
+}; 
+static char *hex_damage_longs[] = 
+{
+    "Damage", NULL 
+}; 
+static char *hex_damage_primals[] = 
+{
+   "nplot", NULL 
+};
+static char *hex_damage_primals1[] = 
+{
+   "eeff", NULL 
+};
+static int hex_damage_primal_sclasses[] = 
+{
+   G_HEX
+};
+
+
+/* Free-Node Mass Show variables */
+static char *fnmass_shorts[] = 
+{
+    "fnmass", NULL 
+}; 
+static char *fnmass_longs[] = 
+{
+    "Free Node Mass", NULL 
+};
+
+
+static char *anmass_shorts[] = 
+{
+    "anmass", NULL 
+}; 
+static char *anmass_longs[] = 
+{
+    "Nodal Mass", NULL 
+};
+
+
+static char *fnmom_shorts[] = 
+{
+    "fnmom", NULL 
+}; 
+static char *fnmom_longs[] = 
+{
+    "Nodal Momemtum", NULL 
+};
+
+
+static char *fnvol_shorts[] = 
+{
+    "fnvol", NULL 
+}; 
+static char *fnvol_longs[] = 
+{
+    "Free Node Volume", NULL 
+};
+static char *fnmass_primals[] = 
+{
+    "nodpos", NULL 
+};
+static int fnmass_primal_sclasses[] = 
+{
+    G_NODE
+};
+
+
+Result_candidate possible_results[] = 
+{
+    /*
+     * For nodal displacement, velocity, and acceleration, the 
+     * z-components have separate Result_candidate's which are 
+     * initialized as 3D quantities only.  This organization precludes 
+     * their occurrence for 2D datasets, whereas the x- and y-components 
+     * are allowed for both 2D and 3D datasets.
+     */
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 }, 
+        FALSE, 
+        FALSE, 
+        compute_node_displacement, 
+        NULL, 
+        node_disp_shorts_xy, 
+        node_disp_longs_xy, 
+        node_disp_primals,
+        node_disp_primal_sclasses
+    }, 
+    
+    {
+        G_NODE, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },   
+        FALSE, 
+        FALSE,
+        compute_node_displacement,  
+        NULL, 
+        node_disp_shorts_z, 
+        node_disp_longs_z, 
+        node_disp_primals, 
+        node_disp_primal_sclasses
+    },
+
+    {
+        G_NODE, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },   
+        FALSE, 
+        FALSE,
+        compute_node_radial_displacement,  
+        NULL, 
+        node_disp_shorts_r, 
+        node_disp_longs_r, 
+        node_disp_primals, 
+        node_disp_primal_sclasses
+    },
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        FALSE, 
+        FALSE,
+        compute_node_displacement_mag,   
+        NULL,
+        node_disp_mag_shorts, 
+        node_disp_mag_longs, 
+        node_disp_primals,
+        node_disp_primal_sclasses
+    }, 
+
+    /*
+     * Node velocity can occur explicitly in the data or be derived from
+     * displacements, so there are two sets of Result_candidate's for it.
+     * The logic in io_wrappers.c which evaluates the candidates (see
+     * create_derived_results()) will only allow a derived result to be 
+     * created once per subrecord, taking the first occurrence found here
+     * which is supported by the subrecord over any subsequent ones.  
+     * The organization here will favor velocity as an explicit primal 
+     * result but will allow it to occur as derived from displacements 
+     * if velocities don't exist.
+     */
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_velocity,   
+        NULL,
+        node_vel_shorts_xy, 
+        node_vel_longs_xy, 
+        node_vel_primals1,
+        node_vel_primal_sclasses
+    }, 
+    
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_velocity,   
+        NULL,
+        node_vel_shorts_xy, 
+        node_vel_longs_xy, 
+        node_vel_primals2,
+        node_vel_primal_sclasses
+    }, 
+
+    {
+        G_NODE, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_velocity,   
+        NULL,
+        node_vel_shorts_z, 
+        node_vel_longs_z, 
+        node_vel_primals1,
+        node_vel_primal_sclasses
+    }, 
+    
+    {
+        G_NODE, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_velocity,   
+        NULL,
+        node_vel_shorts_z, 
+        node_vel_longs_z, 
+        node_vel_primals2,
+        node_vel_primal_sclasses
+    }, 
+
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_velocity,   
+        NULL,
+        node_vel_mag_shorts, 
+        node_vel_mag_longs, 
+        node_vel_primals1,
+        node_vel_primal_sclasses
+    }, 
+
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_velocity,   
+        NULL,
+        node_vel_mag_shorts, 
+        node_vel_mag_longs, 
+        node_vel_primals2,
+        node_vel_primal_sclasses
+    }, 
+
+    /*
+     * Ditto the comment above about velocities for accelerations.
+     */
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_acceleration,   
+        NULL,
+        node_acc_shorts_xy, 
+        node_acc_longs_xy, 
+        node_acc_primals1,
+        node_acc_primal_sclasses
+    }, 
+    
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_acceleration,   
+        NULL,
+        node_acc_shorts_xy, 
+        node_acc_longs_xy, 
+        node_acc_primals2,
+        node_acc_primal_sclasses
+    }, 
+
+    {
+        G_NODE, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_acceleration,   
+        NULL,
+        node_acc_shorts_z, 
+        node_acc_longs_z, 
+        node_acc_primals1,
+        node_acc_primal_sclasses
+    }, 
+    
+    {
+        G_NODE, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_acceleration,   
+        NULL,
+        node_acc_shorts_z, 
+        node_acc_longs_z, 
+        node_acc_primals2,
+        node_acc_primal_sclasses
+    }, 
+
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_acceleration,   
+        NULL,
+        node_acc_mag_shorts, 
+        node_acc_mag_longs, 
+        node_acc_primals1,
+        node_acc_primal_sclasses
+    }, 
+
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_acceleration,   
+        NULL,
+        node_acc_mag_shorts, 
+        node_acc_mag_longs, 
+        node_acc_primals2,
+        node_acc_primal_sclasses
+    }, 
+
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        node_temp_short, 
+        node_temp_long, 
+        node_temp_primal,
+        node_temp_primal_sclasses
+    }, 
+
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_pr_intense,   
+        NULL,
+        node_pint_short, 
+        node_pint_long, 
+        node_pint_primal,
+        node_pint_primal_sclasses
+    }, 
+
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_node_helicity,   
+        NULL,
+        node_helicity_short, 
+        node_helicity_long, 
+        node_helicity_primal,
+        node_helicity_primal_sclasses
+    }, 
+
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        TRUE, 
+        compute_node_enstrophy,   
+        NULL,
+        node_enstrophy_short, 
+        node_enstrophy_long, 
+        node_enstrophy_primal,
+        node_enstrophy_primal_sclasses
+    }, 
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_vector_component,   
+        check_compute_vector_component,
+        node_pvmag_short, 
+        node_pvmag_long, 
+        node_pvmag_primal,
+        node_pvmag_primal_sclasses
+    }, 
+
+    {
+        G_BEAM, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        beam_axfor_short, 
+        beam_axfor_long, 
+        beam_axfor_primal,
+        beam_axfor_primal_sclasses
+    }, 
+
+    {
+        G_BEAM, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        beam_sshear_short, 
+        beam_sshear_long, 
+        beam_sshear_primal,
+        beam_sshear_primal_sclasses
+    }, 
+
+    {
+        G_BEAM, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        TRUE,
+        load_primal_result,   
+        NULL,
+        beam_tshear_short, 
+        beam_tshear_long, 
+        beam_tshear_primal,
+        beam_tshear_primal_sclasses
+    }, 
+
+    {
+        G_BEAM, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        beam_smom_short, 
+        beam_smom_long, 
+        beam_smom_primal,
+        beam_smom_primal_sclasses
+    }, 
+
+    {
+        G_BEAM, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        beam_tmom_short, 
+        beam_tmom_long, 
+        beam_tmom_primal,
+        beam_tmom_primal_sclasses
+    }, 
+
+    {
+        G_BEAM, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        beam_tor_short, 
+        beam_tor_long, 
+        beam_tor_primal,
+        beam_tor_primal_sclasses
+    }, 
+
+    {
+        G_BEAM, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_beam_axial_strain,   
+        NULL,
+        beam_sae_short, 
+        beam_sae_long, 
+        beam_sae_primal,
+        beam_sae_primal_sclasses
+    }, 
+
+    {
+        G_BEAM, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_beam_axial_strain,   
+        NULL,
+        beam_tae_short, 
+        beam_tae_long, 
+        beam_tae_primal,
+        beam_tae_primal_sclasses
+    }, 
+
+    {
+        G_TRUSS, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        beam_axfor_short, 
+        beam_axfor_long, 
+        beam_axfor_primal,
+        beam_axfor_primal_sclasses
+    }, 
+
+    {
+        G_TRUSS, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        beam_sshear_short, 
+        beam_sshear_long, 
+        beam_sshear_primal,
+        beam_sshear_primal_sclasses
+    }, 
+
+    {
+        G_TRUSS, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        beam_tshear_short, 
+        beam_tshear_long, 
+        beam_tshear_primal,
+        beam_tshear_primal_sclasses
+    }, 
+
+    {
+        G_TRUSS, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        beam_smom_short, 
+        beam_smom_long, 
+        beam_smom_primal,
+        beam_smom_primal_sclasses
+    }, 
+
+    {
+        G_TRUSS, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        beam_tmom_short, 
+        beam_tmom_long, 
+        beam_tmom_primal,
+        beam_tmom_primal_sclasses
+    }, 
+
+    {
+        G_TRUSS, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        load_primal_result,   
+        NULL,
+        beam_tor_short, 
+        beam_tor_long, 
+        beam_tor_primal,
+        beam_tor_primal_sclasses
+    }, 
+
+    {
+        G_TRUSS, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_beam_axial_strain,   
+        NULL,
+        beam_sae_short, 
+        beam_sae_long, 
+        beam_sae_primal,
+        beam_sae_primal_sclasses
+    }, 
+
+    {
+        G_TRUSS, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        TRUE,
+        compute_beam_axial_strain,   
+        NULL,
+        beam_tae_short, 
+        beam_tae_long, 
+        beam_tae_primal,
+        beam_tae_primal_sclasses
+    }, 
+
+    {
+        G_QUAD, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_stress,   
+        NULL,
+        shell_stress_shorts,
+        shell_stress_longs,
+        shell_stress_primals,
+        shell_stress_primal_sclasses
+    }, 
+    
+    {
+        G_QUAD, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_press,   
+        NULL,
+        shell_press_shorts,
+        shell_press_longs,
+        shell_press_primals,
+        shell_press_primal_sclasses
+    }, 
+
+    {
+        G_QUAD, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_effstress,   
+        NULL,
+        shell_effs_shorts,
+        shell_effs_longs,
+        shell_effs_primals,
+        shell_effs_primal_sclasses
+    }, 
+
+    {
+        G_QUAD, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_principal_stress,   
+        NULL,
+        shell_prin_shorts,
+        shell_prin_longs,
+        shell_prin_primals,
+        shell_prin_primal_sclasses
+    }, 
+     
+    {
+        G_QUAD, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_surface_stress,   
+        NULL,
+        shell_surf_shorts,
+        shell_surf_longs,
+        shell_surf_primals,
+        shell_surf_primal_sclasses
+    }, 
+
+    {
+        G_QUAD, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_strain,   
+        NULL,
+        shell_strain_shorts,
+        shell_strain_longs,
+        shell_strain_primals,
+        shell_strain_primal_sclasses
+    }, 
+
+    {
+        G_QUAD, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_eff_strain,   
+        NULL,
+        shell_eeff_shorts,
+        shell_eeff_longs,
+        shell_eeff_primals,
+        shell_eeff_primal_sclasses
+    }, 
+
+    {
+        G_HEX, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_hex_stress,   
+        NULL,
+        hex_stress_shorts, 
+        hex_stress_longs, 
+        hex_stress_primals,
+        hex_stress_primal_sclasses
+    }, 
+    
+    {
+        G_HEX, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_hex_press,   
+        NULL,
+        hex_press_shorts, 
+        hex_press_longs, 
+        hex_press_primals,
+        hex_press_primal_sclasses
+    }, 
+    
+    {
+        G_HEX, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_hex_effstress,   
+        NULL,
+        hex_effs_shorts, 
+        hex_effs_longs, 
+        hex_effs_primals,
+        hex_effs_primal_sclasses
+    }, 
+    
+    {
+        G_HEX, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_hex_principal_stress,   
+        NULL,
+        hex_prin_shorts, 
+        hex_prin_longs, 
+        hex_prin_primals,
+        hex_prin_primal_sclasses
+    }, 
+    
+    {
+        G_HEX, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_hex_strain,   
+        NULL,
+        hex_strain_shorts, 
+        hex_strain_longs, 
+        hex_strain_primals,
+        hex_strain_primal_sclasses
+    }, 
+
+    {
+        G_HEX, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_hex_strain,   
+        NULL,
+        hex_strain_shorts, 
+        hex_strain_longs, 
+        hex_strain_th_primals,
+        hex_strain_primal_sclasses
+    }, 
+
+    {
+        G_HEX, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_hex_eff_strain,   
+        NULL,
+        hex_eeff_shorts, 
+        hex_eeff_longs, 
+        hex_eeff_primals,
+        hex_eeff_primal_sclasses
+    }, 
+    
+    {
+        G_HEX, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        FALSE, 
+        FALSE,
+        compute_hex_relative_volume,   
+        NULL,
+        hex_vol_shorts, 
+        hex_vol_longs, 
+        hex_vol_primals,
+        hex_vol_primal_sclasses
+    }, 
+
+    {
+        G_HEX,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        FALSE,
+        FALSE,
+        compute_hex_damage,
+        NULL,
+        hex_damage_shorts,
+        hex_damage_longs,
+        hex_damage_primals,
+        hex_damage_primal_sclasses
+    },
+
+    {
+        G_HEX,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        FALSE,
+        FALSE,
+        compute_hex_damage,
+        NULL,
+        hex_damage_shorts,
+        hex_damage_longs,
+        hex_damage_primals1,
+        hex_damage_primal_sclasses
+    },
+
+    /* Free Node results */ 
+    {
+        G_MESH,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        FALSE,
+        TRUE,
+        compute_fnmass,
+        NULL,
+        fnmass_shorts,
+        fnmass_longs,
+        fnmass_primals,
+        fnmass_primal_sclasses
+    },
+
+    {
+       G_MESH,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        FALSE,
+        TRUE,
+        compute_anmass,
+        NULL,
+        anmass_shorts,
+        anmass_longs,
+        fnmass_primals,
+        fnmass_primal_sclasses
+    },
+
+    {
+        G_MESH,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        FALSE,
+        TRUE,
+        compute_fnmoment,
+        NULL,
+        fnmom_shorts,
+        fnmom_longs,
+        fnmass_primals,
+        fnmass_primal_sclasses
+    },
+ 
+    {
+        G_MESH,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        FALSE,
+        TRUE,
+        compute_fnvol,
+        NULL,
+        fnvol_shorts,
+        fnvol_longs,
+        fnmass_primals,
+        fnmass_primal_sclasses
+    },
+
+    {   /* Array terminator */
+        QTY_SCLASS, 
+        { 0, 0 }, 
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        NULL,   
+        NULL,
+        NULL,
+        NULL,
+        NULL
+    }
+};
+
+
+static Result empty_result = 
+{
+    NULL,                       /* next in list */
+    NULL,                       /* previous in list */
+    { '\0' },                   /* Root */
+    { '\0' },                   /* Name */
+    { '\0' },                   /* Title */
+    { '\0' },                   /* Original Name */
+    0,                          /* Quantity of supporting subrecords */
+    NULL,                       /* Subrecord id array */
+    NULL,                       /* Superclass array */
+    NULL,                       /* Indirect result compuatation flags*/
+    NULL,                       /* Computation function array */  
+    0,                          /* Mesh identifier */
+    0,                          /* State record format identifier */
+    NULL,                       /* Supporting primal results */
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, /* Result origin flags */
+    {                           /* Result specification */
+        { '\0' },                   /* Name */
+        INFINITESIMAL,              /* Strain type */
+        MIDDLE,                     /* Reference surface */
+        GLOBAL,                     /* Reference frame */
+        0,                          /* Reference state */
+        { 0, 0, 0, 0, 0, 0 }        /* Modifier use flags */
+    },
+    1,                          /* Logical - result spec is singly-valued */
+    NULL,                       /* Ref to original derived or primal result */
+    0                           /* Set to TRUE if the result must be recalaulcated */
+};
+
+
+/*****************************************************************
+ * TAG( update_result )
+ * 
+ * Update state record format-dependent data in current result.
+ */
+void
+update_result( Analysis *analy, Result *p_result )
+{
+    int srec_id, mesh_id;
+    int qty;
+    Subrecord_result *p_sr;
+    int i;
+    List_head *srec_map;
+    int *p_i;
+    Subrecord *p_s;
+    int st;
+
+    /* Get srec format for current state. */
+    st = analy->cur_state + 1;
+    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, 
+                     (void *) &st, NULL, (void *) &srec_id );
+    
+    /* Update necessary only if state rec format has changed. */
+    if ( srec_id != p_result->srec_id )
+    {
+        analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id, 
+                         NULL, &mesh_id );
+        p_result->mesh_id = mesh_id;
+
+        /* Clean up shared allocations for previous srec format. */
+        free( p_result->subrecs );
+        free( p_result->superclasses );
+        free( p_result->indirect_flags );
+        free( p_result->result_funcs );
+
+        if ( p_result->origin.is_derived )
+        {
+            /* Derived result-specific initializations. */
+
+            free( p_result->primals );
+
+            srec_map = ((Derived_result *) p_result->original_result)->srec_map;
+            qty = srec_map[srec_id].qty;
+        
+            p_sr = (Subrecord_result *) srec_map[srec_id].list;
+            
+            /*
+             * Not re-testing check functions here (they are originally called 
+             * by find_requested_result()) under assumption that a format
+             * change won't affect anything a check function would evaluate.
+             */
+    
+            if ( qty != 0 )
+            {
+                /* Arrays for results supported on one or more classes. */
+                p_result->superclasses = NEW_N( int, qty, 
+                                                "Result sclass array" );
+                p_result->subrecs = NEW_N( int, qty, "Result subrec array" );
+                p_result->indirect_flags = NEW_N( Bool_type, qty, 
+                                                  "Result indirect flags" );
+                
+                /* Type incompatible with cast syntax of NEW_N.
+                p_result->result_funcs = NEW_N( void (*)(), qty, 
+                                                     "Result func array" );
+                */
+                p_result->result_funcs = (void (**)()) calloc( qty,
+                                                       sizeof( void (**)() ) );
+                p_result->primals = NEW_N( char **, qty, 
+                                           "Result primals array" );
+            }
+            
+            for ( i = 0; i < qty; i++ )
+            {
+                p_result->subrecs[i] = p_sr[i].subrec_id;
+                p_result->superclasses[i] = p_sr[i].candidate->superclass;
+                p_result->indirect_flags[i] = p_sr[i].indirect;
+                p_result->result_funcs[i] = p_sr[i].candidate->compute_func;
+                p_result->primals[i] = p_sr[i].candidate->primals;
+            }
+        }
+        else if ( p_result->origin.is_primal )
+        {
+            /* Primal result-specific initializations. */
+
+            srec_map = ((Primal_result *) p_result->original_result)->srec_map;
+            qty = srec_map[srec_id].qty;
+    
+            if ( qty != 0 )
+            {
+                /* Arrays for results supported on one or more classes. */
+                p_result->superclasses = NEW_N( int, qty, 
+                                                "Result sclass array" );
+                p_result->subrecs = NEW_N( int, qty, "Result subrec array" );
+                p_result->indirect_flags = NEW_N( Bool_type, qty, 
+                                                  "Result indirect flags" );
+                p_result->result_funcs = (void (**)()) calloc( qty,
+                                                       sizeof( void (**)() ) );
+            }
+        
+            p_i = (int *) srec_map[srec_id].list;
+            for ( i = 0; i < qty; i++ )
+            {
+                p_result->subrecs[i] = p_i[i];
+                p_s = &(analy->srec_tree[srec_id].subrecs[p_i[i]].subrec);
+                p_result->indirect_flags[i] = FALSE;
+                analy->db_query( analy->db_ident, QRY_CLASS_SUPERCLASS, NULL, 
+                                 p_s->class_name, 
+                                 (void *) (p_result->superclasses + i) );
+                p_result->result_funcs[i] = load_primal_result;
+            }
+        }
+        
+        if ( qty == 0 )
+        {
+            p_result->subrecs = NULL;
+            p_result->superclasses = NULL;
+            p_result->indirect_flags = NULL;
+            p_result->result_funcs = NULL;
+            p_result->primals = NULL;
+        }
+   
+        p_result->qty = qty;
+    }
+        
+    /* Always reset the modifiers. */
+    p_result->modifiers = empty_result.modifiers;
+}
+
+
+/*****************************************************************
+ * TAG( parse_result_spec )
+ * 
+ * Parses a result specification string into its component parts.
+ */
+Bool_type
+parse_result_spec( char *res_spec, char *root, int *p_qty_indices,
+                   int index_array[], char *component )
+{
+    char spec[512];
+    char *p_name;
+    char *p_c_idx;
+    char comp_str[G_MAX_NAME_LEN + 1];
+    int indices[G_MAX_ARRAY_DIMS];
+    int index_qty, i, last;
+    char *delimiters = ", ]";
+    
+    strcpy( spec, res_spec );
+    p_name = strtok( spec, "[" );
+
+    /* Trim any trailing blanks. */
+    last = strlen( p_name ) - 1;
+    while ( p_name[last] == ' ' && last > -1 )
+        last--;
+    p_name[last + 1] = '\0';
+    
+    index_qty = 0;
+    comp_str[0] = '\0';
+    
+    /* Parse to extract subset specification of aggregate svar. */
+    p_c_idx = strtok( NULL, delimiters );
+    while ( p_c_idx != NULL )
+    {
+        if ( is_numeric_token( p_c_idx ) )
+        {
+            indices[index_qty] = atoi( p_c_idx );
+            index_qty++;
+        }
+        else /* Must be a vector comp_str short name. */
+        {
+            strcpy( comp_str, p_c_idx );
+        
+            /* Shouldn't be anything left after a comp_str name. */
+            if ( strtok( NULL, delimiters ) != NULL )
+                return FALSE;
+        }
+    
+        p_c_idx = strtok( NULL, delimiters );
+    }
+    
+    /*
+     * Reverse the order of the indices from Griz interface's row-major
+     * order to internal (i.e., Mili's) column-major order.
+     */
+    *p_qty_indices = index_qty;
+    for ( i = 0, last = index_qty - 1; i < index_qty; i++ )
+        index_array[last - i] = indices[i];
+    strcpy( component, comp_str );
+    strcpy( root, p_name );
+    
+    return TRUE;
+}
+ 
+
+
+/*****************************************************************
+ * TAG( find_result )
+ * 
+ * Parses a result specification string and loads a Result struct.  
+ * Parameter "table" determines if result is searched for in
+ * Derived result table, Primal result table, or both.
+ */
+int
+find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only, 
+             Result *p_result, char *name )
+{
+    int rval;
+    Htable_entry *p_hte;
+    char root[G_MAX_NAME_LEN + 1] = { '\0' };
+    char component[G_MAX_NAME_LEN + 1] = { '\0' };
+    char str[16];
+    char col_major_name[128];
+    Bool_type scalar = FALSE;
+    Derived_result *p_dr;
+    Primal_result *p_pr;
+    State_variable *p_sv;
+    int qty;
+    int index_qty = 0;
+    int indices[G_MAX_ARRAY_DIMS] = { 0 };
+    int srec_id = 0;
+    int mesh_id; 
+    Subrecord_result *p_sr;
+    int *p_i;
+    List_head *srec_map;
+    Subrecord *p_s;
+    int i;
+        p_dr = NULL;
+        p_pr = NULL;
+
+
+	analy->result_active = FALSE; /* Used for error indicator which is only implemented
+				       * for hexes currently. Set to false insure that
+				       * that the EI message will not appear in the
+				       * render window.
+				       */
+
+
+        rval = search_result_tables( analy, table, name, 
+                                     root, &index_qty, indices, component, 
+                                     &srec_id, &scalar, &p_dr, &p_pr, 
+                                     &srec_map);
+        if ( !rval )
+            return 0;
+
+        /* Check for existence in current srec format. */
+        if ( cur_srec_only && srec_map[srec_id].qty == 0 )
+            return 0;
+        else
+            qty = srec_map[srec_id].qty;
+        
+        /* Clean up result struct. */
+        cleanse_result( p_result );
+    
+        /* Initialize new result. */
+    
+        strcpy( p_result->original_name, name );
+        strcpy( p_result->root, root );
+        
+        /* 
+         * Array and Vector-array names must be in column-major format
+         * for database requests. 
+         */
+        if ( index_qty > 0 )
+        {
+            sprintf( col_major_name, "%s[", root );
+            if ( component[0] != '\0' )
+                sprintf( col_major_name + strlen( col_major_name ), 
+                         "%s,", component );
+            for ( i = 0; i < index_qty - 1; i++ )
+                sprintf( col_major_name + strlen( col_major_name ),
+                         "%d,", indices[i] );
+            sprintf( col_major_name + strlen( col_major_name ), "%d]",
+                     indices[index_qty - 1] );
+
+            strcpy( p_result->name, col_major_name );
+        }
+        else
+            strcpy( p_result->name, name );
+
+        analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id, 
+                         NULL, (void *) &mesh_id );
+        p_result->mesh_id = mesh_id;
+        p_result->srec_id = srec_id;
+
+        p_result->qty = qty;
+    
+        p_result->single_valued = scalar;
+
+        if ( qty > 0 )
+        {
+            /* Parallel arrays for descriptors across multiple classes. */
+            p_result->superclasses = NEW_N( int, qty, "Result sclass array" );
+            p_result->subrecs = NEW_N( int, qty, "Result subrec array" );
+            p_result->indirect_flags = NEW_N( Bool_type, qty, 
+                                              "Result indirect flags" );
+            p_result->result_funcs = (void (**)()) 
+                                     calloc( qty, sizeof( void (**)() ) );
+        }
+    
+        /*
+         * Derived- and primal-specific initializations.
+         *
+         * Note that p_result->modifiers fields are set by the actual result
+         * derivation routines that are invoked.  That way, if a shared result
+         * has a modifier evaluated for a only a subset of all the classes that 
+         * support the result, the value of the modifier (such as "reference 
+         * frame") can be displayed only if an actual calculation occurred that
+         * depended on modifier.
+         */
+
+        /*
+         * Exception to above:  We need to init coord transform from the 
+         * current logical state (analy->do_tensor_transform) in order to
+         * accommodate all the logic cases for detecting change and properly
+         * updating derived results (see match_spec_with_analy()).  
+         */
+        p_result->modifiers.use_flags.coord_transform = 
+            analy->do_tensor_transform;
+
+        if ( p_dr != NULL )
+        {
+            /* Derived_result-specific initializations. */
+        
+            p_sr = (Subrecord_result *) srec_map[srec_id].list;
+        
+            /* Derived results need reference to supporting primals. */
+            if ( qty > 0 )
+                p_result->primals = NEW_N( char **, qty, 
+                                           "Result primals array" );
+        
+            for ( i = 0; i < qty; i++ )
+            {
+                p_result->subrecs[i] = p_sr[i].subrec_id;
+                p_result->superclasses[i] = p_sr[i].candidate->superclass;
+                p_result->indirect_flags[i] = p_sr[i].indirect;
+                p_result->result_funcs[i] = p_sr[i].candidate->compute_func;
+                p_result->primals[i] = p_sr[i].candidate->primals;
+            }
+
+            p_result->origin = p_dr->origin;
+            p_result->original_result = (void *) p_dr;
+            strcpy( p_result->title, 
+                    p_sr[0].candidate->long_names[p_sr[0].index] );
+
+            p_result->hide_in_menu = p_sr[0].candidate->hide_in_menu ;
+        }
+        else
+        {
+            /* Primal_result-specific initializations. */
+        
+            p_i = (int *) srec_map[srec_id].list;
+            for ( i = 0; i < qty; i++ )
+            {
+                p_result->subrecs[i] = p_i[i];
+                p_s = &(analy->srec_tree[srec_id].subrecs[p_i[i]].subrec);
+                analy->db_query( analy->db_ident, QRY_CLASS_SUPERCLASS, 
+                                 (void *) &mesh_id, p_s->class_name, 
+                                 (void *) (p_result->superclasses + i) );
+                p_result->indirect_flags[i] = FALSE;
+                p_result->result_funcs[i] = ( p_pr->var->num_type == G_FLOAT8 )
+                                            ? load_primal_result_double
+                                            : load_primal_result;
+
+		if ( p_pr->var->num_type == M_INT ||  p_pr->var->num_type == M_INT4 )
+	 	     p_result->result_funcs[i] = load_primal_result_int;
+
+		if ( p_pr->var->num_type == M_INT8 )
+	 	     p_result->result_funcs[i] = load_primal_result_long;
+            }
+
+            p_result->origin = p_pr->origin;
+            p_result->original_result = (void *) p_pr;
+            strcpy( p_result->title, p_pr->long_name );
+
+            if ( index_qty > 0 || *component != '\0' )
+            {
+                /* 
+                 * Append additional specifying text onto title.  Note that
+                 * this string is composed in Griz's UI standard row-major
+                 * format, unlike p_result->name, which is used to make
+                 * db requests.
+                 */
+                strcat( p_result->title, "[" );
+            
+                if ( index_qty > 0 )
+                {
+                    sprintf( str, "%d", indices[index_qty - 1] );
+                    strcat( p_result->title, str );
+                }
+                for ( i = index_qty - 2; i >= 0; i-- )
+                {
+                    sprintf( str, ", %d", indices[i] );
+                    strcat( p_result->title, str );
+                }
+            
+                if ( *component != '\0' )
+                {
+                    /* Find the component's State_variable to get title. */
+                    rval = htable_search( analy->st_var_table, component, 
+                                          FIND_ENTRY, &p_hte );
+                    if ( rval != 0 )
+                    {
+                        popup_dialog( WARNING_POPUP,
+                                      "Vector primal component svar missing." );
+                        cleanse_result( p_result );
+                        return 0;
+                    }
+                
+                    p_sv = (State_variable *) p_hte->data;
+                
+                    if ( index_qty > 0 )
+                        sprintf( str, ", %s", p_sv->long_name );
+                    else
+                        strcpy( str, p_sv->long_name );
+                
+                    strcat( p_result->title, str );
+                }
+            
+                strcat( p_result->title, "]" );
+            }
+        }
+    
+    return 1;
+}
+
+
+/*****************************************************************
+ * TAG( search_result_tables )
+ * 
+ * Search the result tables for a specified result.
+ */
+extern Bool_type
+search_result_tables( Analysis *analy, Result_table_type table, char *name,
+                      char *p_root, int *p_index_qty, int p_indices[], 
+                      char *p_component, int *p_srec_id, Bool_type *p_scalar,
+                      Derived_result **pp_dr, Primal_result **pp_pr,
+                      List_head **p_srec_map )
+{
+    int i;
+    int qty_states, qty, index_qty;
+    int srec_id, mesh_id;
+    int st;
+    Bool_type found, scalar;
+    Htable_entry *p_hte;
+    int rval;
+    Subrecord_result *p_sr;
+    char **comp_names;
+    int comp_qty;
+    char root[G_MAX_NAME_LEN + 1];
+    char component[G_MAX_NAME_LEN + 1];
+    int indices[G_MAX_ARRAY_DIMS];
+    Derived_result *p_dr;
+    Primal_result *p_pr;
+    Bool_type (*check_func)( Analysis * );
+    List_head *srec_map;
+
+    /* No results if no results. */
+    if ( analy->primal_results == NULL && analy->derived_results == NULL )
+        return FALSE;
+
+    /* Sanity check. */
+    if ( name == NULL || name[0] == '\0' )
+        return FALSE;
+
+    /* No results if no states in db... */
+    analy->db_query( analy->db_ident, QRY_QTY_STATES, 
+                     NULL, NULL, (void *) &qty_states );
+    if ( qty_states == 0 )
+        return FALSE;
+
+    /* Divide the specification into its component parts. */
+    if ( !parse_result_spec( name, root, &index_qty, indices, component ) )
+        return FALSE;
+
+    if ( table == DERIVED 
+         && ( index_qty > 0 || component[0] != '\0' ) )
+        return FALSE; /* There are no _derived_ vector or array results. */
+
+    /* Get srec format and mesh ident for current state. */
+    st = analy->cur_state + 1;
+    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, 
+                     (void *) &st, NULL, (void *) &srec_id );
+    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id, 
+                     NULL, (void *) &mesh_id );
+
+    found = FALSE;
+    scalar = TRUE;
+    p_pr = NULL;
+    p_dr = NULL;
+
+    /*
+     * Search tables indicated for specified result.  If all tables
+     * are to be searched, look for a derived result first.
+     */
+
+    if ( table == DERIVED || table == ALL )
+    {
+        rval = htable_search( analy->derived_results, root, FIND_ENTRY, 
+                              &p_hte );
+
+        if ( rval != OK && table == DERIVED )
+            return FALSE; /* Unable to match requested result. */
+        else if ( rval == OK )
+        {
+            /* Found Derived result matching name. */
+            p_dr = (Derived_result *) p_hte->data;
+
+            /* Call check functions if extant to verify derivability. */
+            srec_map = p_dr->srec_map;
+            p_sr = (Subrecord_result *) srec_map[srec_id].list;
+            qty = srec_map[srec_id].qty;
+        
+            for ( i = 0; i < qty; i++ )
+            {
+                check_func = p_sr[i].candidate->check_compute_func;
+                if ( check_func != NULL && !check_func( analy ) )
+                    return FALSE;
+            }
+        
+            found = TRUE;
+            
+            /* Assign return parameters for derived results. */
+            if ( pp_dr != NULL )
+                *pp_dr = p_dr;
+            if ( p_srec_map != NULL )
+                *p_srec_map = srec_map;
+        }
+    }
+ 
+    if ( !found 
+         && ( table == PRIMAL || table == ALL ) )
+    {
+        rval = htable_search( analy->primal_results, root, FIND_ENTRY, 
+                              &p_hte );
+
+        if ( rval != OK )
+            return FALSE; /* Unable to match requested result. */
+        else if ( component[0] != '\0' )
+        {
+            /* Search for specified vector component. */
+            comp_names = ((Primal_result *) p_hte->data)->var->components;
+            comp_qty = ((Primal_result *) p_hte->data)->var->vec_size;
+            for ( i = 0; i < comp_qty; i++ )
+                if ( strcmp( comp_names[i], component ) == 0 )
+                    break;
+            if ( i == comp_qty )
+                return FALSE; /* Unable to match vector component. */
+        }
+
+        /* Found Primal result matching name. */
+        p_pr = (Primal_result *) p_hte->data;
+    
+        /* 
+         * Additional checks for specification errors.
+         */
+        switch ( p_pr->var->agg_type )
+        {
+            case SCALAR:
+                if ( index_qty > 0 || component[0] != '\0' )
+                    return FALSE;
+                break;
+
+            case VECTOR:
+                if ( index_qty > 0 )
+                    return FALSE;
+                break;
+
+            case ARRAY:
+                if ( component[0] != '\0' )
+                    return FALSE;
+                else if ( index_qty > p_pr->var->rank )
+                    return FALSE;
+                else
+                {
+                    for ( i = 0; i < index_qty; i++ )
+                        if ( indices[i] > p_pr->var->dims[i] )
+                            break;
+                    if ( i < index_qty )
+                        return FALSE;
+                }
+                break;
+
+            case VEC_ARRAY:
+                if ( index_qty > p_pr->var->rank )
+                    return FALSE;
+                else
+                {
+                    for ( i = 0; i < index_qty; i++ )
+                        if ( indices[i] > p_pr->var->dims[i] || indices[i] < 1 )
+                            break;
+                    if ( i < index_qty )
+                        return FALSE;
+                }
+                break;
+        }
+ 
+        /* 
+         * Determine if the specified request is ultimately scalar,
+         * i.e., either the result is scalar or the result modified
+         * by a subset specification results in a singly-valued quantity.
+         */
+        switch( p_pr->var->agg_type )
+        {
+            case VECTOR:
+                if ( *component == '\0' )
+                    scalar = FALSE;
+                break;
+            case ARRAY:
+                if ( index_qty < p_pr->var->rank )
+                    scalar = FALSE;
+                break;
+            case VEC_ARRAY:
+                if ( *component == '\0' )
+                    scalar = FALSE;
+                else if ( index_qty < p_pr->var->rank )
+                    scalar = FALSE;
+                break;
+        }
+    
+        /* Assign return parameters for primal results. */
+        if ( p_srec_map != NULL )
+            *p_srec_map = p_pr->srec_map;
+        if ( pp_pr != NULL )
+            *pp_pr = p_pr;
+        if ( p_component != NULL )
+            strcpy( p_component, component );
+        if ( p_index_qty != NULL )
+            *p_index_qty = index_qty;
+        if ( p_indices != NULL )
+            for ( i = 0; i < index_qty; i++ )
+                p_indices[i] = indices[i];
+    }
+    
+    /* Assign remaining return parameters. */
+    if ( p_root != NULL )
+        strcpy( p_root, root );
+    if ( p_srec_id != NULL )
+        *p_srec_id = srec_id;
+    if ( p_scalar != NULL )
+        *p_scalar = scalar;
+    
+    return TRUE;
+}
+
+
+/*****************************************************************
+ * TAG( init_result )
+ * 
+ * Overwrite a Result struct with empty fields.
+ */
+void
+init_result( Result *p_r )
+{
+    *p_r = empty_result;
+}
+
+
+/*****************************************************************
+ * TAG( cleanse_result )
+ * 
+ * Clean up a Result struct.
+ */
+void
+cleanse_result( Result *p_r )
+{
+    if ( p_r->superclasses != NULL )
+        free( p_r->superclasses );
+
+    if ( p_r->indirect_flags != NULL )
+        free( p_r->indirect_flags );
+
+    if ( p_r->result_funcs != NULL )
+        free( p_r->result_funcs );
+
+    if ( p_r->subrecs != NULL )
+        free( p_r->subrecs );
+        
+    if ( p_r->primals != NULL )
+        free( p_r->primals );
+    
+    init_result( p_r );
+}
+
+
+/*****************************************************************
+ * TAG( delete_result )
+ * 
+ * Destroy a Result struct.
+ */
+void
+delete_result( Result **pp_r )
+{
+    /* Sanity check. */
+    if ( *pp_r == NULL )
+        return;
+
+    cleanse_result( *pp_r );
+
+    free( *pp_r );
+
+    *pp_r = NULL;
+}
+
+
+/*****************************************************************
+ * TAG( duplicate_result )
+ * 
+ * Duplicate a Result struct, including allocations.
+ */
+Result *
+duplicate_result( Analysis *analy, Result *p_res, Bool_type update_modifiers )
+{
+    int qty;
+    Result *p_new;
+    
+    if ( p_res == NULL )
+        return NULL;
+
+    p_new = NEW( Result, "Duplicated result" );
+    
+    *p_new = *p_res;
+
+    p_new->reference_count = 0;
+    
+    qty = p_res->qty;
+    
+    if ( qty > 0 )
+    {
+        p_new->subrecs = NEW_N( int, qty, "Dup Result subrecs" );
+        memcpy( (void *) p_new->subrecs, (void *) p_res->subrecs,
+                qty * sizeof( int ) );
+
+        p_new->superclasses = NEW_N( int, qty, "Dup Result superclasses" );
+        memcpy( (void *) p_new->superclasses, (void *) p_res->superclasses,
+                qty * sizeof( int ) );
+
+        p_new->indirect_flags = NEW_N( Bool_type, qty, 
+                                       "Dup Result indirect flags" );
+        memcpy( (void *) p_new->indirect_flags, (void *) p_res->indirect_flags,
+                qty * sizeof( Bool_type ) );
+
+        p_new->result_funcs = (void (**)()) 
+                              calloc( qty, sizeof( void (**)() ) );
+        memcpy( (void *) p_new->result_funcs, (void *) p_res->result_funcs,
+                qty * sizeof( (void *) NULL ) );
+
+        if ( p_res->primals != NULL )
+        {
+            p_new->primals = NEW_N( char **, qty, "Dup Result primals" );
+            memcpy( (void *) p_new->primals, (void *) p_res->primals,
+                    qty * sizeof( (char *) NULL ) );
+        }
+    }
+
+    if ( update_modifiers )
+    {
+        Result_spec *p_rs = &p_new->modifiers;
+
+        if ( p_rs->use_flags.use_ref_surface )
+            p_rs->ref_surf = analy->ref_surf;
+
+        if ( p_rs->use_flags.use_ref_frame )
+            p_rs->ref_frame = analy->ref_frame;
+
+        if ( p_rs->use_flags.use_strain_variety )
+            p_rs->strain_variety = analy->strain_variety;
+
+        if ( p_rs->use_flags.use_ref_state )
+            p_rs->ref_state = analy->reference_state;
+
+        /*
+         * We need to init coord transform from the current logical state 
+         * (analy->do_tensor_transform) in order to accommodate all the 
+         * logic cases for detecting change and properly updating derived 
+         * results (see match_spec_with_analy()).  Since the user's
+         * dynamic preference determines whether or not this is set, we
+         * don't copy it from an old Result but set it directly as we set
+         * the _value_ of the other flags (we don't store the value of the
+         * transformation matrix with the Result, just whether or not it's
+         * used in result derivation).
+         */
+        p_rs->use_flags.coord_transform = analy->do_tensor_transform;
+    }
+    
+    return p_new;
+}
+
+
+/*****************************************************************
+ * TAG( result_has_class )
+ * 
+ * Tests to see if a result exists on a particular class.
+ */
+Bool_type
+result_has_class( Result *p_result, MO_class_data *p_mo_class, Analysis *analy )
+{
+    Derived_result *p_dr;
+    Primal_result *p_pr;
+    Subrecord_result *p_sr;
+    int *p_i;
+    int i, j;
+    Subrec_obj *p_subr;
+    int qty;
+    
+    if ( p_result == NULL )
+        return FALSE;
+
+    if ( p_result->origin.is_derived )
+    {
+        p_dr = (Derived_result *) p_result->original_result;
+        
+        for ( i = 0; i < analy->qty_srec_fmts; i++ )
+        {
+            if ( (qty = p_dr->srec_map[i].qty) > 0 )
+            {
+                p_sr = (Subrecord_result *) p_dr->srec_map[i].list;
+                p_subr = analy->srec_tree[i].subrecs;
+                
+                for ( j = 0; j < qty; j++ )
+                {
+                    if ( !p_sr[j].indirect )
+                    {
+                        if ( p_subr[p_sr[j].subrec_id].p_object_class 
+                             == p_mo_class )
+                            /* Found class match. */
+                            return TRUE;
+                    }
+                    else
+                    {
+                        /* 
+                         * For "indirect" destination classes, just see if
+                         * the test class superclass matches the subrecord
+                         * candidate superclass.
+                         */
+                        if ( p_mo_class->superclass 
+                             == p_sr[j].candidate->superclass )
+                            return TRUE;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        p_pr = (Primal_result *) p_result->original_result;
+        
+        for ( i = 0; i < analy->qty_srec_fmts; i++ )
+        {
+            if ( (qty = p_pr->srec_map[i].qty) > 0 )
+            {
+                p_i = (int *) p_pr->srec_map[i].list;
+                p_subr = analy->srec_tree[i].subrecs;
+                
+                for ( j = 0; j < qty; j++ )
+                    if ( p_subr[p_i[j]].p_object_class == p_mo_class )
+                        /* Found class match. */
+                        return TRUE;
+            }
+        }
+    }
+    
+    return FALSE;
+}
+ 
+
+/*****************************************************************
+ * TAG( result_has_superclass )
+ * 
+ * Tests to see if a result exists on a particular superclass.
+ */
+Bool_type
+result_has_superclass( Result *p_result, int superclass, Analysis *analy )
+{
+    Derived_result *p_dr;
+    Primal_result *p_pr;
+    Subrecord_result *p_sr;
+    int *p_i;
+    int i, j;
+    Subrec_obj *p_subr;
+    int qty;
+    
+    if ( p_result == NULL )
+        return FALSE;
+
+    if ( p_result->origin.is_derived )
+    {
+        p_dr = (Derived_result *) p_result->original_result;
+        
+        for ( i = 0; i < analy->qty_srec_fmts; i++ )
+        {
+            if ( (qty = p_dr->srec_map[i].qty) > 0 )
+            {
+                p_sr = (Subrecord_result *) p_dr->srec_map[i].list;
+                
+                for ( j = 0; j < qty; j++ )
+                    if ( p_sr[j].candidate->superclass == superclass )
+                        /* Found superclass match. */
+                        return TRUE;
+            }
+        }
+    }
+    else
+    {
+        p_pr = (Primal_result *) p_result->original_result;
+        
+        for ( i = 0; i < analy->qty_srec_fmts; i++ )
+        {
+            if ( (qty = p_pr->srec_map[i].qty) > 0 )
+            {
+                p_i = (int *) p_pr->srec_map[i].list;
+                p_subr = analy->srec_tree[i].subrecs;
+                
+                for ( j = 0; j < qty; j++ )
+                    if ( p_subr[p_i[j]].p_object_class->superclass 
+                         == superclass )
+                        /* Found superclass match. */
+                        return TRUE;
+            }
+        }
+    }
+    
+    return FALSE;
+}
+    
+
+/*****************************************************************
+ * TAG( mod_required_plot_mode )
+ *
+ * Determine if current plot time series' are sensitive to a 
+ * transition in a result modifier.
+ *
+ * Note that TIME_DERIVATIVE is a "pseudo" modifier which will 
+ * never be passed in but occurs if strain variety is RATE and
+ * the current result implements a simple history variable
+ * rate calculation (initially only "eeff" implements this).
+ *
+ * Note that result->modifiers.use_flags.coord_transform is not
+ * checked here.
+ */
+extern Bool_type
+mod_required_plot_mode( Analysis *analy, Result_modifier_type modifier, 
+                        int old, int new )
+{
+    Result *p_res;
+    Plot_obj *p_po;
+    Time_series_obj *p_tso;
+    
+    for ( p_po = analy->current_plots; p_po != NULL; NEXT( p_po ) )
+    {
+        p_tso = p_po->ordinate;
+
+        /* Check the time series' result. */
+        p_res = p_tso->result;
+        if ( mod_required( p_res, modifier, old, new ) )
+            return TRUE;
+
+        /* 
+         * Check operation plot operand results (technically, either
+         * these will be non-NULL or the result above will be non-NULL). 
+         */
+        if ( p_tso->operand1 != NULL )
+        {
+            p_res = p_tso->operand1->result;
+            if ( mod_required( p_res, modifier, old, new ) )
+                return TRUE;
+        }
+
+        if ( p_tso->operand2 != NULL )
+        {
+            p_res = p_tso->operand2->result;
+            if ( mod_required( p_res, modifier, old, new ) )
+                return TRUE;
+        }
+
+        /* Check abscissa change. */
+        if ( p_po->abscissa->mo_class == NULL )
+            continue;
+        p_res = p_po->abscissa->result;
+        if ( mod_required( p_res, modifier, old, new ) )
+            return TRUE;
+    }
+    
+    return FALSE;
+}
+    
+
+/*****************************************************************
+ * TAG( mod_required_mesh_mode )
+ *
+ * Determine if current result is sensitive to a transition in a 
+ * result modifier.
+ *
+ * This is just a stub to provide the same interface as
+ * mod_required_plot_mode().
+ */
+extern Bool_type
+mod_required_mesh_mode( Analysis *analy, Result_modifier_type modifier, 
+                        int old, int new )
+{
+    return mod_required( analy->cur_result, modifier, old, new );
+}
+    
+
+/*****************************************************************
+ * TAG( mod_required )
+ *
+ * Determine if current result is sensitive to a transition in a 
+ * result modifier.
+ *
+ * Note that TIME_DERIVATIVE is a "pseudo" modifier which will 
+ * never be passed in but occurs if strain variety is RATE and
+ * the current result implements a simple history variable
+ * rate calculation (initially only "eeff" implements this).
+ *
+ * Note that result->modifiers.use_flags.coord_transform is not
+ * checked here.
+ */
+static Bool_type
+mod_required( Result *p_res, Result_modifier_type modifier, int old, int new )
+{
+    /* Sanity checks. */
+    if ( old == new 
+         || p_res == NULL )
+        return FALSE;
+    
+    switch ( modifier )
+    {
+        case STRAIN_TYPE:
+            if ( p_res->modifiers.use_flags.use_strain_variety )
+                return TRUE;
+            else if ( p_res->modifiers.use_flags.time_derivative
+                      && old == RATE || new == RATE )
+                return TRUE;
+            break;
+        case REFERENCE_SURFACE:
+            if ( p_res->modifiers.use_flags.use_ref_surface )
+                return TRUE;
+            break;
+        case REFERENCE_FRAME:
+            if ( p_res->modifiers.use_flags.use_ref_frame )
+                return TRUE;
+            break;
+        case REFERENCE_STATE:
+            if ( p_res->modifiers.use_flags.use_ref_state )
+                return TRUE;
+            break;
+        case COORD_TRANSFORM:
+            /* Do nothing - placeholder. */
+            break;
+    }
+    
+    return FALSE;
+}
+
+
+/*****************************************************************
+ * TAG( load_primal_result )
+ * 
+ * Load a scalar result from a subrecord without performing any 
+ * derivation.  This function can be used to provide "derived" 
+ * result entries from what is actually a _scalar_ primal result, 
+ * but as configured will load a non-scalar primal into 
+ * analy->tmp_result[0] (which could overflow).
+ */
+void
+load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
+{
+    float *resultElem;
+    int i;
+    float *result_buf;
+    Result *p_result;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    char *primals[2];
+    char primal_spec[32];
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    
+    strcpy( primal_spec, p_result->name );
+    primals[0] = primal_spec;
+    primals[1] = NULL;
+
+    analy->result_active = FALSE; /* Used for error indicator which is only implemented
+				   * for hexes currently. Set to false insure that
+				   * that the EI message will not appear in the
+				   * render window.
+				   */
+
+    /*   if ( !strcmp(p_subrec->p_object_class->short_name, "particle")  )
+	 interpolate = FALSE; */
+
+   if ( !analy->free_particles && !strcmp(p_subrec->p_object_class->short_name, "particle") )
+        return;
+
+   if ( object_ids )
+   {
+        /*
+         * Assign result_buf to a temp array for db read below, and assign
+         * resultElem to put the sorted data into the correct array by
+         * superclass.  This will leave non-interpolated data in the
+         * correct location to support such needs as time-history extraction.
+         */
+        result_buf = analy->tmp_result[1];
+
+        if ( p_result->origin.is_node_result )
+            resultElem = resultArr;  /* hack - resultElem is misleading. */
+        else
+            resultElem = p_subrec->p_object_class->data_buffer;
+    }
+    else if ( p_result->origin.is_node_result )
+        result_buf = resultArr;
+    else if ( p_result->single_valued )
+        result_buf = p_subrec->p_object_class->data_buffer;
+    else
+        result_buf = analy->tmp_result[0];
+
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) result_buf );
+
+    /* Re-order data if necessary. */
+    if ( object_ids )
+    {
+         /* If we ge a particle object and we do not have particles on, then set value to zero */
+ 	 for ( i = 0; i < obj_qty; i++ )
+	 {
+   	       resultElem[object_ids[i]] = result_buf[i];
+	 }
+
+
+        /* 
+         * Re-assign result_buf with data now sorted in class-sized arrays
+         * to support interpolation and/or min/max extraction below.
+         */
+        result_buf = resultElem;
+    }
+
+    /* 
+     * Interpolate element results back to the nodes and/or
+     * extract object data min/max. 
+     */
+    if ( p_result->origin.is_elem_result )
+    {
+         if ( interpolate )
+         {
+            switch ( p_result->superclasses[index] )
+            {
+                case G_TRUSS:
+                    truss_to_nodal( result_buf, resultArr, 
+                                    p_subrec->p_object_class, obj_qty, 
+                                    object_ids, analy );
+                    break;
+                case G_BEAM:
+                    beam_to_nodal( result_buf, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy );
+                    break;
+                case G_TRI:
+                    tri_to_nodal( result_buf, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy, TRUE );
+                    break;
+                case G_QUAD:
+		    if (is_primal_quad_strain_result( p_result->name ))  
+		    {
+		        rotate_quad_result( analy, p_result->name, -1, result_buf );
+		    }                  
+                    quad_to_nodal( result_buf, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy, TRUE );
+		    break;
+                case G_TET:
+                    tet_to_nodal( result_buf, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy );
+                    break;
+                case G_HEX:
+                    hex_to_nodal( result_buf, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy );
+                    break;
+                case G_SURFACE:
+                    surf_to_nodal( result_buf, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy, TRUE );
+                    break;
+            }
+        }
+        else
+        {
+            if(  p_result->superclasses[index] != G_SURFACE )
+                elem_get_minmax( result_buf, analy );
+
+	    if ( p_result->superclasses[index] == G_QUAD )
+	    {
+	         if (is_primal_quad_strain_result( p_result->name ))  
+		 {
+		     i=0;
+		 }                  
+	    }
+        }
+    }
+    else if ( !p_result->origin.is_node_result )
+    {
+        switch ( p_result->superclasses[index] )
+        {
+            case G_UNIT:
+                unit_get_minmax( result_buf, analy );
+                break;
+            case G_MAT:
+                mat_get_minmax( result_buf, analy );
+                break;
+            case G_MESH:
+                mesh_get_minmax( result_buf, analy );
+                break;
+        }
+    }
+}
+
+
+/*****************************************************************
+ * TAG( load_primal_result_double )
+ * 
+ * Load a scalar double precision result from a subrecord, 
+ * converting it to single precision.  
+ */
+void
+load_primal_result_double( Analysis *analy, float *resultArr, 
+                           Bool_type interpolate )
+{
+    float *resultElem;
+    int i;
+    Result *p_result;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    char *primals[2];
+    char primal_spec[32];
+    double *dbuffer;
+
+    analy->result_active = FALSE; /* Used for error indicator which is only implemented
+				   * for hexes currently. Set to false insure that
+				   * that the EI message will not appear in the
+				   * render window.
+				   */
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+
+    dbuffer = NEW_N( double, obj_qty, "Double precision input buffer" );
+    
+    strcpy( primal_spec, p_result->name );
+    primals[0] = primal_spec;
+    primals[1] = NULL;
+        
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) dbuffer );
+
+    if ( p_result->origin.is_node_result )
+        resultElem = resultArr;  /* hack - resultElem is misleading. */
+    else
+        resultElem = p_subrec->p_object_class->data_buffer;
+
+    /* Re-order data if necessary. */
+    if ( object_ids )
+    {
+        for ( i = 0; i < obj_qty; i++ )
+            resultElem[object_ids[i]] = (float) dbuffer[i];
+    }
+    else
+    {
+        for ( i = 0; i < obj_qty; i++ )
+            resultElem[i] = (float) dbuffer[i];
+    }
+        
+    free( dbuffer );
+   
+    /* 
+     * Interpolate element results back to the nodes and/or
+     * extract object data min/max. 
+     */
+    if ( p_result->origin.is_elem_result )
+    {
+        if ( interpolate )
+        {
+            switch ( p_result->superclasses[index] )
+            {
+                case G_TRUSS:
+                    truss_to_nodal( resultElem, resultArr, 
+                                    p_subrec->p_object_class, obj_qty, 
+                                    object_ids, analy );
+                    break;
+                case G_BEAM:
+                    beam_to_nodal( resultElem, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy );
+                    break;
+                case G_TRI:
+                    tri_to_nodal( resultElem, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy, TRUE );
+                    break;
+                case G_QUAD:
+                    quad_to_nodal( resultElem, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy, TRUE );
+                    break;
+                case G_TET:
+                    tet_to_nodal( resultElem, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy );
+                    break;
+                case G_HEX:
+                    hex_to_nodal( resultElem, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy );
+                    break;
+                case G_SURFACE:
+                    surf_to_nodal( resultElem, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy, TRUE );
+                    break;
+            }
+        }
+        else
+        {
+            elem_get_minmax( resultElem, analy );
+        }
+    }
+    else if ( !p_result->origin.is_node_result )
+    {
+        switch ( p_result->superclasses[index] )
+        {
+            case G_UNIT:
+                unit_get_minmax( resultElem, analy );
+                break;
+            case G_MAT:
+                mat_get_minmax( resultElem, analy );
+                break;
+            case G_MESH:
+                mesh_get_minmax( resultElem, analy );
+                break;
+        }
+    }
+}
+
+
+/*****************************************************************
+ * TAG( load_primal_result_int )
+ * 
+ * Load a scalar int result from a subrecord, 
+ * converting it to single precision.  
+ */
+void
+load_primal_result_int( Analysis *analy, float *resultArr, 
+			Bool_type interpolate )
+{
+    float *resultElem;
+    int i;
+    Result *p_result;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    char *primals[2];
+    char primal_spec[32];
+    int *ibuffer;
+
+    analy->result_active = FALSE; /* Used for error indicator which is only implemented
+				   * for hexes currently. Set to false insure that
+				   * that the EI message will not appear in the
+				   * render window.
+				   */
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+
+    ibuffer = NEW_N( int, obj_qty, "integer single precision input buffer" );
+    
+    strcpy( primal_spec, p_result->name );
+    primals[0] = primal_spec;
+    primals[1] = NULL;
+        
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) ibuffer );
+
+    if ( p_result->origin.is_node_result )
+        resultElem = resultArr;  /* hack - resultElem is misleading. */
+    else
+        resultElem = p_subrec->p_object_class->data_buffer;
+
+    /* Re-order data if necessary. */
+    if ( object_ids )
+    {
+        for ( i = 0; i < obj_qty; i++ )
+              resultElem[object_ids[i]] = (float) ibuffer[i];
+    }
+    else
+    {
+        for ( i = 0; i < obj_qty; i++ )
+              resultElem[i] = (float) ibuffer[i];
+    }
+        
+    free( ibuffer );
+   
+    /* 
+     * Interpolate element results back to the nodes and/or
+     * extract object data min/max. 
+     */
+    if ( p_result->origin.is_elem_result )
+    {
+        if ( interpolate )
+        {
+            switch ( p_result->superclasses[index] )
+            {
+                case G_TRUSS:
+                    truss_to_nodal( resultElem, resultArr, 
+                                    p_subrec->p_object_class, obj_qty, 
+                                    object_ids, analy );
+                    break;
+                case G_BEAM:
+                    beam_to_nodal( resultElem, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy );
+                    break;
+                case G_TRI:
+                    tri_to_nodal( resultElem, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy, TRUE );
+                    break;
+                case G_QUAD:
+                    quad_to_nodal( resultElem, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy, TRUE );
+                    break;
+                case G_TET:
+                    tet_to_nodal( resultElem, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy );
+                    break;
+                case G_HEX:
+                    hex_to_nodal( resultElem, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy );
+                    break;
+                case G_SURFACE:
+                    surf_to_nodal( resultElem, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy, TRUE );
+                    break;
+            }
+        }
+        else
+        {
+            elem_get_minmax( resultElem, analy );
+        }
+    }
+    else if ( !p_result->origin.is_node_result )
+    {
+        switch ( p_result->superclasses[index] )
+        {
+            case G_UNIT:
+                unit_get_minmax( resultElem, analy );
+                break;
+            case G_MAT:
+                mat_get_minmax( resultElem, analy );
+                break;
+            case G_MESH:
+                mesh_get_minmax( resultElem, analy );
+                break;
+        }
+    }
+}
+
+
+/*****************************************************************
+ * TAG( load_primal_result_long )
+ * 
+ * Load a scalar long result from a subrecord, 
+ * converting it to single precision.  
+ */
+void
+load_primal_result_long( Analysis *analy, float *resultArr, 
+			 Bool_type interpolate )
+{
+    float *resultElem;
+    int i;
+    Result *p_result;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    char *primals[2];
+    char primal_spec[32];
+    long *ibuffer;
+
+    analy->result_active = FALSE; /* Used for error indicator which is only implemented
+				   * for hexes currently. Set to false insure that
+				   * that the EI message will not appear in the
+				   * render window.
+				   */
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+
+    ibuffer = NEW_N( long, obj_qty, "integer single precision input buffer" );
+    
+    strcpy( primal_spec, p_result->name );
+    primals[0] = primal_spec;
+    primals[1] = NULL;
+        
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) ibuffer );
+
+    if ( p_result->origin.is_node_result )
+        resultElem = resultArr;  /* hack - resultElem is misleading. */
+    else
+        resultElem = p_subrec->p_object_class->data_buffer;
+
+    /* Re-order data if necessary. */
+    if ( object_ids )
+    {
+        for ( i = 0; i < obj_qty; i++ )
+              resultElem[object_ids[i]] = (float) ibuffer[i];
+    }
+    else
+    {
+        for ( i = 0; i < obj_qty; i++ )
+              resultElem[i] = (float) ibuffer[i];
+    }
+        
+    free( ibuffer );
+   
+    /* 
+     * Interpolate element results back to the nodes and/or
+     * extract object data min/max. 
+     */
+    if ( p_result->origin.is_elem_result )
+    {
+        if ( interpolate )
+        {
+            switch ( p_result->superclasses[index] )
+            {
+                case G_TRUSS:
+                    truss_to_nodal( resultElem, resultArr, 
+                                    p_subrec->p_object_class, obj_qty, 
+                                    object_ids, analy );
+                    break;
+                case G_BEAM:
+                    beam_to_nodal( resultElem, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy );
+                    break;
+                case G_TRI:
+                    tri_to_nodal( resultElem, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy, TRUE );
+                    break;
+                case G_QUAD:
+                    quad_to_nodal( resultElem, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy, TRUE );
+                    break;
+                case G_TET:
+                    tet_to_nodal( resultElem, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy );
+                    break;
+                case G_HEX:
+                    hex_to_nodal( resultElem, resultArr, 
+                                  p_subrec->p_object_class, obj_qty, 
+                                  object_ids, analy );
+                    break;
+                case G_SURFACE:
+                    surf_to_nodal( resultElem, resultArr, 
+                                   p_subrec->p_object_class, obj_qty, 
+                                   object_ids, analy, TRUE );
+                    break;
+            }
+        }
+        else
+        {
+            elem_get_minmax( resultElem, analy );
+        }
+    }
+    else if ( !p_result->origin.is_node_result )
+    {
+        switch ( p_result->superclasses[index] )
+        {
+            case G_UNIT:
+                unit_get_minmax( resultElem, analy );
+                break;
+            case G_MAT:
+                mat_get_minmax( resultElem, analy );
+                break;
+            case G_MESH:
+                mesh_get_minmax( resultElem, analy );
+                break;
+        }
+    }
+}
+
+
+#ifdef HAVE_TRANS_RES
 /*****************************************************************
  * TAG( trans_result )
  *
@@ -45,6 +3343,8 @@ char *trans_result[][4] =
       (char *) compute_node_displacement,       "dispy" },
     { (char *) VAL_NODE_DISPZ,                  "Z Displacement",
       (char *) compute_node_displacement,       "dispz" },
+    { (char *) VAL_NODE_DISPR,                  "XY Radial Displacement",
+      (char *) compute_node_radial_displacement,"dispr" },
     { (char *) VAL_NODE_DISPMAG,                "Displacement Magnitude",
       (char *) compute_node_displacement,       "dispmag" },
     { (char *) VAL_NODE_VELX,                   "X Velocity",
@@ -67,18 +3367,18 @@ char *trans_result[][4] =
       (char *) compute_node_temperature,        "temp" },
     { (char *) VAL_NODE_PINTENSE,               "Pressure Intensity",
       (char *) compute_node_pr_intense,         "pint" },
-    { (char *) VAL_NODE_HELICITY,		"Helicity",
-      (char *) compute_node_helicity,		"hel" },
-    { (char *) VAL_NODE_ENSTROPHY,		"Enstrophy",
-      (char *) compute_node_enstrophy,		"ens" },
-    { (char *) VAL_NODE_K,			"k",
-      (char *) compute_node_in_data,		"k" },
-    { (char *) VAL_NODE_EPSILON,		"Epsilon",
-      (char *) compute_node_in_data,		"eps" },
-    { (char *) VAL_NODE_A2,			"A2",
-      (char *) compute_node_in_data,		"a2" },
-    { (char *) VAL_PROJECTED_VEC,		"Projected Vector Magnitude",
-      (char *) compute_vector_component,	"pvmag" },
+    { (char *) VAL_NODE_HELICITY,               "Helicity",
+      (char *) compute_node_helicity,           "hel" },
+    { (char *) VAL_NODE_ENSTROPHY,              "Enstrophy",
+      (char *) compute_node_enstrophy,          "ens" },
+    { (char *) VAL_NODE_K,                      "k",
+      (char *) compute_node_in_data,            "k" },
+    { (char *) VAL_NODE_EPSILON,                "Epsilon",
+      (char *) compute_node_in_data,            "eps" },
+    { (char *) VAL_NODE_A2,                     "A2",
+      (char *) compute_node_in_data,            "a2" },
+    { (char *) VAL_PROJECTED_VEC,               "Projected Vector Magnitude",
+      (char *) compute_vector_component,        "pvmag" },
 
     { (char *) VAL_HEX_EPS_PD1,                 "Prin Dev Strain 1",
       (char *) compute_hex_strain,              "pdstrn1" },
@@ -201,49 +3501,39 @@ char *trans_result[][4] =
       (char *) compute_beam_in_data,            "tmom" },
     { (char *) VAL_BEAM_TOR_MOMENT,             "Torsional Resultant",
       (char *) compute_beam_in_data,            "tor" },
-    { (char *) VAL_BEAM_S_AX_STRN_P,		"S Axial Strain (+)",
-      (char *) compute_beam_axial_strain,	"saep"},
-    { (char *) VAL_BEAM_S_AX_STRN_M,		"S Axial Strain (-)",
-      (char *) compute_beam_axial_strain,	"saem"},
-    { (char *) VAL_BEAM_T_AX_STRN_P,		"T Axial Strain (+)",
-      (char *) compute_beam_axial_strain,	"taep"},
-    { (char *) VAL_BEAM_T_AX_STRN_M,		"T Axial Strain (-)",
-      (char *) compute_beam_axial_strain,	"taem"},
+    { (char *) VAL_BEAM_S_AX_STRN_P,            "S Axial Strain (+)",
+      (char *) compute_beam_axial_strain,       "saep"},
+    { (char *) VAL_BEAM_S_AX_STRN_M,            "S Axial Strain (-)",
+      (char *) compute_beam_axial_strain,       "saem"},
+    { (char *) VAL_BEAM_T_AX_STRN_P,            "T Axial Strain (+)",
+      (char *) compute_beam_axial_strain,       "taep"},
+    { (char *) VAL_BEAM_T_AX_STRN_M,            "T Axial Strain (-)",
+      (char *) compute_beam_axial_strain,       "taem"},
+
+    { (char *) VAL_TRUSS_AX_FORCE,               "Axial Force",
+      (char *) compute_truss_in_data,            "axfor" },
+    { (char *) VAL_TRUSS_S_SHEAR,                "S Shear Resultant",
+      (char *) compute_truss_in_data,            "sshear" },
+    { (char *) VAL_TRUSS_T_SHEAR,                "T Shear Resultant",
+      (char *) compute_truss_in_data,            "tshear" },
+    { (char *) VAL_TRUSS_S_MOMENT,               "S Moment",
+      (char *) compute_truss_in_data,            "smom" },
+    { (char *) VAL_TRUSS_T_MOMENT,               "T Moment",
+      (char *) compute_truss_in_data,            "tmom" },
+    { (char *) VAL_TRUSS_TOR_MOMENT,             "Torsional Resultant",
+      (char *) compute_truss_in_data,            "tor" },
+    { (char *) VAL_TRUSS_S_AX_STRN_P,            "S Axial Strain (+)",
+      (char *) compute_truss_axial_strain,       "saep"},
+    { (char *) VAL_TRUSS_S_AX_STRN_M,            "S Axial Strain (-)",
+      (char *) compute_truss_axial_strain,       "saem"},
+    { (char *) VAL_TRUSS_T_AX_STRN_P,            "T Axial Strain (+)",
+      (char *) compute_truss_axial_strain,       "taep"},
+    { (char *) VAL_TRUSS_T_AX_STRN_M,            "T Axial Strain (-)",
+      (char *) compute_truss_axial_strain,       "taem"},
 
     { (char *) NULL,                    NULL,
       (char *) NULL,                    NULL }   /* Dummy to signal end. */
 };
-
-
-/*****************************************************************
- * TAG( rate_enabled )
- *
- * Table of results for which rate calculation may be performed.
- */
-static int 
-rate_enabled[] = 
-{
-    VAL_SHARE_EPS_EFF
-};
-
-
-/*****************************************************************
- * TAG( is_rate_enabled )
- *
- * Tests a result for membership in the rate_enabled table.
- */
-static Bool_type
-is_rate_enabled( result_id )
-int result_id;
-{
-    int i;
-    
-    for ( i = 0; i < sizeof( rate_enabled ) / sizeof( rate_enabled[0] ); i++ )
-        if ( rate_enabled[i] == result_id )
-	    return TRUE;
-    
-    return FALSE;
-}
 
 
 /*****************************************************************
@@ -284,8 +3574,7 @@ init_resultid_table()
  * routine returns -1.
  */
 int
-lookup_result_id( com_name )
-char *com_name;
+lookup_result_id( char *com_name )
 {
     int i;
 
@@ -311,8 +3600,7 @@ char *com_name;
  * the variables in the plotfile database, otherwise FALSE.
  */
 int
-is_derived( result_id )
-Result_type result_id;
+is_derived( Result_type result_id )
 {
     if ( resultid_to_index[result_id] < 0 )
         return FALSE;
@@ -328,8 +3616,7 @@ Result_type result_id;
  * elements.
  */
 int
-is_hex_result( result_id )
-Result_type result_id;
+is_hex_result( Result_type result_id )
 {
     if ( result_id > VAL_HEX_BEGIN && result_id < VAL_HEX_END )
         return TRUE;
@@ -345,8 +3632,7 @@ Result_type result_id;
  * elements.
  */
 int
-is_shell_result( result_id )
-Result_type result_id;
+is_shell_result( Result_type result_id )
 {
     if ( result_id > VAL_SHELL_BEGIN && result_id < VAL_SHELL_END )
         return TRUE;
@@ -362,8 +3648,7 @@ Result_type result_id;
  * shell elements.
  */
 int
-is_shared_result( result_id )
-Result_type result_id;
+is_shared_result( Result_type result_id )
 {
     if ( result_id > VAL_SHARE_BEGIN && result_id < VAL_SHARE_END )
         return TRUE;
@@ -379,8 +3664,7 @@ Result_type result_id;
  * elements.
  */
 int
-is_beam_result( result_id )
-Result_type result_id;
+is_beam_result( Result_type result_id )
 {
     if ( result_id > VAL_BEAM_BEGIN && result_id < VAL_BEAM_END )
         return TRUE;
@@ -395,8 +3679,7 @@ Result_type result_id;
  * Returns TRUE if the specified result type is nodal data.
  */
 int
-is_nodal_result( result_id )
-Result_type result_id;
+is_nodal_result( Result_type result_id )
 {
     if ( result_id > VAL_NODE_BEGIN && result_id < VAL_NODE_END )
         return TRUE;
@@ -404,637 +3687,30 @@ Result_type result_id;
         return FALSE;
 }
 
-
-/*****************************************************************
- * TAG( mod_required )
- *
- * Determine if current result is sensitive to a transition in a 
- * result modifier.
- *
- * Note that TIME_DERIVATIVE is a "pseudo" modifier which will 
- * never be passed in but occurs if strain variety is RATE and
- * the current result implements a simple history variable
- * rate calculation (initially only "eeff" implements this).
- */
-Bool_type
-mod_required( analy, modifier, old, new )
-Analysis *analy;
-Result_modifier_type modifier;
-int old;
-int new;
-{
-    int i, cnt;
-    Result_modifier_type mods[QTY_RESULT_MODIFIER_TYPES];
-    
-    /* Sanity check. */
-    if ( old == new )
-        return FALSE;
-
-    cnt = get_result_modifiers( analy, mods );
-    
-    for ( i = 0; i < cnt; i++ )
-        if ( mods[i] == modifier )
-	    return TRUE;
-    /*
-     * Above test won't reveal transitions both into and out of
-     * "TIME_DERIVATIVE" applicability, since depending on when
-     * this function is called get_result_modifiers() won't
-     * detect it.  The test below will catch both.
-     */
-    if ( is_rate_enabled( analy->result_id ) 
-         && modifier == STRAIN_TYPE
-	 && ( old == RATE || new == RATE ) )
-        return TRUE;
-    
-    return FALSE;
-}
+#endif
 
 
 /*****************************************************************
- * TAG( get_result_modifiers )
+ * TAG( check_nodal_result )
  *
- * Determine which possible result modifiers affect the
- * current result.
+ * Used for debugging updates to the nodal result buffer.
  */
 int
-get_result_modifiers( analy, modifiers )
-Analysis *analy;
-Result_modifier_type modifiers[];
-{
-    Result_type res_id;
-    int cnt;
-
-    res_id = analy->result_id;
-    cnt = 0;
-	
-    /*
-     * Strain variety needed for shared strains and principal strains
-     * on hex elements.
-     */
-    if ( analy->geom_p->bricks != NULL )
-    {
-        if ( ( res_id >= VAL_SHARE_EPSX && res_id <= VAL_SHARE_EPSZX )
-             || ( res_id >= VAL_HEX_EPS_PD1 && res_id <= VAL_HEX_EPS_P3 ) )
-            modifiers[cnt++] = STRAIN_TYPE;
-    }
-    
-    if ( is_shared_result( res_id ) && analy->geom_p->shells != NULL )
-    {
-        /* Reference surface needed for all shared shell results. */
-        modifiers[cnt++] = REFERENCE_SURFACE;
-	
-        /* 
-         * Reference frame needed for shared stresses and strains.
-         */
-        if ( ( res_id >= VAL_SHARE_SIGX && res_id <= VAL_SHARE_SIGZX )
-             || ( res_id >= VAL_SHARE_EPSX && res_id <= VAL_SHARE_EPSZX ) )
-	    modifiers[cnt++] = REFERENCE_FRAME;
-    }
-    
-    /* Plastic strain with strain type = RATE causes derivative of "eeff". */
-    if ( res_id == VAL_SHARE_EPS_EFF
-         && analy->strain_variety == RATE
-         && ( analy->geom_p->bricks != NULL || analy->geom_p->shells != NULL ) )
-        modifiers[cnt++] = TIME_DERIVATIVE;
-    
-    return cnt;
-}
-
-
-/*****************************************************************
- * TAG( update_min_max )
- *
- * Update the state and global min/max for the current result
- * data.
- */
-static void
-update_min_max( analy )
-Analysis *analy;
-{
-    float *state_mm, *result, *el_state_mm;
-    int cnt, i;
-    int *mm_nodes;
-
-    state_mm = analy->state_mm;
-    el_state_mm = analy->elem_state_mm.el_minmax;
-    mm_nodes = analy->state_mm_nodes;
-    result = analy->result;
-    cnt = analy->geom_p->nodes->cnt;
-
-    /* Update the state min/max for nodal/interpolated data. */
-    state_mm[0] = result[0];
-    mm_nodes[0] = 1;
-    state_mm[1] = result[0];
-    mm_nodes[1] = 1;
-
-    for ( i = 1; i < cnt; i++ )
-    {
-        if ( result[i] < state_mm[0] )
-	{
-            state_mm[0] = result[i];
-	    mm_nodes[0] = i + 1;
-	}
-        else if ( result[i] > state_mm[1] )
-	{
-            state_mm[1] = result[i];
-	    mm_nodes[1] = i + 1;
-	}
-    }
-    
-    /* Update the state min/max for element/non-interpolated data. */
-    analy->elem_state_mm = analy->tmp_elem_mm;
-
-    /* Update the global min/max. */
-    if ( analy->result_mod )
-    {
-        /* For a new result, always init the global mm from the state mm. */
-        analy->global_mm[0] = state_mm[0];
-	analy->global_mm_nodes[0] = mm_nodes[0];
-        analy->global_mm[1] = state_mm[1];
-	analy->global_mm_nodes[1] = mm_nodes[1];
-        analy->global_elem_mm[0] = el_state_mm[0];
-        analy->global_elem_mm[1] = el_state_mm[1];
-    }
-    else
-    {
-        /* Same result - only update global if state has new extreme(s). */
-        if ( state_mm[0] < analy->global_mm[0] )
-	{
-            analy->global_mm[0] = state_mm[0];
-	    analy->global_mm_nodes[0] = mm_nodes[0];
-	}
-        if ( state_mm[1] > analy->global_mm[1] )
-	{
-            analy->global_mm[1] = state_mm[1];
-	    analy->global_mm_nodes[1] = mm_nodes[1];
-	}
-    
-	/* Update the global minmax for element (pre-interpolated) results. */
-	if ( el_state_mm[0] < analy->global_elem_mm[0] )
-	    analy->global_elem_mm[0] = el_state_mm[0];
-	if ( el_state_mm[1] > analy->global_elem_mm[1] )
-	    analy->global_elem_mm[1] = el_state_mm[1];
-    }
-
-    /* Update the current min/max. */
-    for ( i = 0; i < 2; i++ )
-        if ( !analy->mm_result_set[i] )
-        {
-            if ( analy->use_global_mm )
-                analy->result_mm[i] = analy->global_mm[i];
-            else
-                analy->result_mm[i] = analy->state_mm[i];
-        }
-}
-
-
-/*****************************************************************
- * TAG( hex_vol )
- *
- * Compute the approximate volume of a hex element using 1-point
- * integration.  (Taken from DYNA code, subroutine vlmass().)
- */
-float
-hex_vol( x, y, z )
-float x[8];
-float y[8];
-float z[8];
-{
-    float aj[9], vol;
-
-    /*
-     * Jacobian matrix.
-     */
-    aj[0] = -x[0]-x[1]+x[2]+x[3]-x[4]-x[5]+x[6]+x[7];
-    aj[3] = -x[0]-x[1]-x[2]-x[3]+x[4]+x[5]+x[6]+x[7];
-    aj[6] = -x[0]+x[1]+x[2]-x[3]-x[4]+x[5]+x[6]-x[7];
-    aj[1] = -y[0]-y[1]+y[2]+y[3]-y[4]-y[5]+y[6]+y[7];
-    aj[4] = -y[0]-y[1]-y[2]-y[3]+y[4]+y[5]+y[6]+y[7];
-    aj[7] = -y[0]+y[1]+y[2]-y[3]-y[4]+y[5]+y[6]-y[7];
-    aj[2] = -z[0]-z[1]+z[2]+z[3]-z[4]-z[5]+z[6]+z[7];
-    aj[5] = -z[0]-z[1]-z[2]-z[3]+z[4]+z[5]+z[6]+z[7];
-    aj[8] = -z[0]+z[1]+z[2]-z[3]-z[4]+z[5]+z[6]-z[7];
-
-    /*
-     * Jacobian.
-     */
-    vol = aj[0]*aj[4]*aj[8]+aj[1]*aj[5]*aj[6]+aj[2]*aj[3]*aj[7]-
-          aj[2]*aj[4]*aj[6]-aj[1]*aj[3]*aj[8]-aj[0]*aj[5]*aj[7];
-    vol = 0.0156250 * vol;
-
-    return vol;
-}
- 
- 
-/***************************************************************** 
- * TAG( hex_vol_exact ) 
- *
- * Compute the exact volume of a hex element using 2-point integration.
- * (Taken from DYNA code, subroutine vlmffb().)
- */ 
-float 
-hex_vol_exact( x, y, z )
-float x[8];
-float y[8];
-float z[8];
+check_nodal_result( Analysis *a )
 { 
-    float a45, a24, a52, a16, a31, a63, a27, a74, a38, a81, a86, a57;
-    float a6345, a5238, a8624, a7416, a5731, a8127;
-    float px1, px2, px3, px4, px5, px6, px7, px8;
-    float vol;
+  float *data;
+  int i, qty;
+  double sum=0.0;
 
-    a45 = z[3]-z[4];
-    a24 = z[1]-z[3];
-    a52 = z[4]-z[1];
-    a16 = z[0]-z[5];
-    a31 = z[2]-z[0];
-    a63 = z[5]-z[2];
-    a27 = z[1]-z[6];
-    a74 = z[6]-z[3];
-    a38 = z[2]-z[7];
-    a81 = z[7]-z[0];
-    a86 = z[7]-z[5];
-    a57 = z[4]-z[6];
-    a6345 = a63-a45;
-    a5238 = a52-a38;
-    a8624 = a86-a24;
-    a7416 = a74-a16;
-    a5731 = a57-a31;
-    a8127 = a81-a27;
-    px1 = y[1]*a6345+y[2]*a24-y[3]*a5238+y[4]*a8624+y[5]*a52+y[7]*a45;
-    px2 = y[2]*a7416+y[3]*a31-y[0]*a6345+y[5]*a5731+y[6]*a63+y[4]*a16;
-    px3 = y[3]*a8127-y[0]*a24-y[1]*a7416-y[6]*a8624+y[7]*a74+y[5]*a27;
-    px4 = y[0]*a5238-y[1]*a31-y[2]*a8127-y[7]*a5731+y[4]*a81+y[6]*a38;
-    px5 = -y[7]*a7416+y[6]*a86+y[5]*a8127-y[0]*a8624-y[3]*a81-y[1]*a16;
-    px6 = -y[4]*a8127+y[7]*a57+y[6]*a5238-y[1]*a5731-y[0]*a52-y[2]*a27;
-    px7 = -y[5]*a5238-y[4]*a86+y[7]*a6345+y[2]*a8624-y[1]*a63-y[3]*a38;
-    px8 = -y[6]*a6345-y[5]*a57+y[4]*a7416+y[3]*a5731-y[2]*a74-y[0]*a45;
-    vol = (px1*x[0]+px2*x[1]+px3*x[2]+px4*x[3]+px5*x[4]+
-          px6*x[5]+px7*x[6]+px8*x[7])/12.0;
- 
-    return vol;
+  return; /* Remove when debugging */
+
+  qty = a->mesh_table[a->cur_mesh_id].node_geom->qty ;
+  data = a->mesh_table[a->cur_mesh_id].node_geom->data_buffer;
+
+  for (i=0;
+       i<qty;
+       i++)
+       sum += data[i];
+  
+  return 0;
 }
-
-
-/*****************************************************************
- * TAG( hex_to_nodal )
- *
- * Convert brick element result data to nodal data.
- */
-void
-hex_to_nodal( val_hex, val_nodal, analy )
-float *val_hex;
-float *val_nodal;
-Analysis *analy;
-{
-    Hex_geom *bricks;
-    Nodal *nodes;
-    float xx[8], yy[8], zz[8];
-    float *hex_vols, *vol_sums, *activity, *mm_val, *obj_mm;
-    Bool_type volume_average;
-    int i, j, nd;
-    int *el_type, *el_id;
-
-    /* Set the next line to FALSE to compare with TAURUS output. */
-    volume_average = TRUE;
-    bricks = analy->geom_p->bricks;
-    nodes = analy->state_p->nodes;
-    activity = analy->state_p->activity_present ?
-               analy->state_p->bricks->activity : NULL;
-
-    memset( val_nodal, 0, nodes->cnt * sizeof( float ) );
-    hex_vols = NEW_N( float, bricks->cnt, "Hex volumes" );
-    vol_sums = NEW_N( float, nodes->cnt, "Volume sums" );
-
-    /*
-     * Each node result is a volume-weighted average of the neighboring
-     * element results.  The proper way to do this would be to interpolate
-     * using the shape functions.
-     */
-
-    /* First loop to get the summed volumes. */
-    for ( i = 0; i < bricks->cnt; i++ )
-    {
-        /* Ignore inactive elements. */
-        if ( activity && activity[i] == 0.0 )
-            continue;
-
-        /* Ignore disabled materials. */
-        if ( analy->disable_material[ bricks->mat[i] ] )
-            continue;
-
-        for ( j = 0; j < 8; j++ )
-        {
-            nd = bricks->nodes[j][i];
-            xx[j] = nodes->xyz[0][nd];
-            yy[j] = nodes->xyz[1][nd];
-            zz[j] = nodes->xyz[2][nd];
-        }
-
-        hex_vols[i] = hex_vol( xx, yy, zz );
-
-        if ( hex_vols[i] <= 0.0 )
-            wrt_text( "Warning: element volume is zero or negative!\n");
-
-        for ( j = 0; j < 8; j++ )
-        {
-            nd = bricks->nodes[j][i];
-
-            if ( volume_average )
-                vol_sums[nd] += hex_vols[i];
-            else
-                vol_sums[nd] += 1.0;
-        }
-    }
-    
-    /* Prepare to extract element min/max (values init'd in load_result()). */
-    mm_val = analy->tmp_elem_mm.el_minmax;
-    el_type = analy->tmp_elem_mm.el_type;
-    el_id = analy->tmp_elem_mm.mesh_object;
-
-    /* Loop to get the averaged values and extract state element min/max. */
-    for ( i = 0; i < bricks->cnt; i++ )
-    {
-        /* Ignore inactive elements. */
-        if ( activity && activity[i] == 0.0 )
-            continue;
-
-        /* Ignore disabled materials. */
-        if ( analy->disable_material[ bricks->mat[i] ] )
-            continue;
-
-	/* Test for new min or max. */
-	if ( val_hex[i] < mm_val[0] )
-	{
-	    mm_val[0] = val_hex[i];
-	    el_id[0] = i + 1;
-            el_type[0] = BRICK_T;
-	}
-	
-	if ( val_hex[i] > mm_val[1] )
-	{
-	    mm_val[1] = val_hex[i];
-	    el_id[1] = i + 1;
-            el_type[1] = BRICK_T;
-	}
-
-        for ( j = 0; j < 8; j++ )
-        {
-            nd = bricks->nodes[j][i];
-
-            /*
-             * Divide hex_vol by vol_sum first to avoid precision errors
-             * for models with very small dimensions.
-             */
-            if ( volume_average )
-                val_nodal[nd] += val_hex[i] * ( hex_vols[i] / vol_sums[nd] );
-            else
-                val_nodal[nd] += val_hex[i] / vol_sums[nd];
-        }
-    }
-
-    free( hex_vols );
-    free( vol_sums );
-}
-
-
-/*****************************************************************
- * TAG( shell_to_nodal )
- *
- * Convert shell element result data to nodal data.  If the merge
- * flag is TRUE, nodes that don't belong to shell elements aren't
- * zeroed.
- */
-void
-shell_to_nodal( val_shell, val_nodal, analy, merge )
-float *val_shell;
-float *val_nodal;
-Analysis *analy;
-Bool_type merge;
-{
-    Shell_geom *shells;
-    Nodal *nodes;
-    float *activity, *mm_val;
-    int *adj_cnt;
-    int i, j, nd;
-    int *el_type, *el_id;
-
-    shells = analy->geom_p->shells;
-    nodes = analy->state_p->nodes;
-    activity = analy->state_p->activity_present ?
-               analy->state_p->shells->activity : NULL;
-
-    adj_cnt = NEW_N( int, nodes->cnt, "Tmp shell result cnts" );
-
-    if ( merge )
-    {
-        /* Zero selectively. */
-        for ( i = 0; i < shells->cnt; i++ )
-        {
-            if ( (activity && activity[i] == 0.0) ||
-                 analy->disable_material[ shells->mat[i] ] )
-                continue;
-
-            for ( j = 0; j < 4; j++ )
-                val_nodal[shells->nodes[j][i]] = 0.0;
-        }
-    }
-    else
-        memset( val_nodal, 0, nodes->cnt * sizeof( float ) );
-    
-    /* Prepare to extract element min/max (values init'd in load_result()). */
-    mm_val = analy->tmp_elem_mm.el_minmax;
-    el_type = analy->tmp_elem_mm.el_type;
-    el_id = analy->tmp_elem_mm.mesh_object;
-
-    /*
-     * Each node result is an average of the neighboring
-     * element results.  Extract element min/max.
-     */
-    for ( i = 0; i < shells->cnt; i++ )
-    {
-        /* Ignore inactive elements. */
-        if ( activity && activity[i] == 0.0 )
-            continue;
-
-        /* Ignore disabled materials. */
-        if ( analy->disable_material[ shells->mat[i] ] )
-            continue;
-
-	/* Test for new min or max. */
-	if ( val_shell[i] < mm_val[0] )
-	{
-	    mm_val[0] = val_shell[i];
-	    el_id[0] = i + 1;
-            el_type[0] = SHELL_T;
-	}
-	
-	if ( val_shell[i] > mm_val[1] )
-	{
-	    mm_val[1] = val_shell[i];
-	    el_id[1] = i + 1;
-            el_type[1] = SHELL_T;
-	}
-
-        for ( j = 0; j < 4; j++ )
-        {
-            nd = shells->nodes[j][i];
-            val_nodal[nd] += val_shell[i];
-            adj_cnt[nd]++;
-        }
-    }
-
-    for ( i = 0; i < nodes->cnt; i++ )
-        if ( adj_cnt[i] != 0 )
-            val_nodal[i] = val_nodal[i] / adj_cnt[i];
-
-    free( adj_cnt );
-}
-
-
-/*****************************************************************
- * TAG( beam_to_nodal )
- *
- * Convert beam element result data to nodal data.
- */
-void
-beam_to_nodal( val_beam, val_nodal, analy )
-float *val_beam;
-float *val_nodal;
-Analysis *analy;
-{
-    Beam_geom *beams;
-    Nodal *nodes;
-    float *activity, *mm_val;
-    int *adj_cnt;
-    int i, j, nd;
-    int *el_type, *el_id;
-
-    beams = analy->geom_p->beams;
-    nodes = analy->state_p->nodes;
-    activity = analy->state_p->activity_present ?
-               analy->state_p->beams->activity : NULL;
-
-    adj_cnt = NEW_N( int, nodes->cnt, "Tmp beam result cnts" );
-
-    memset( val_nodal, 0, nodes->cnt * sizeof( float ) );
-    
-    /* Prepare to extract element min/max (values init'd in load_result()). */
-    mm_val = analy->tmp_elem_mm.el_minmax;
-    el_type = analy->tmp_elem_mm.el_type;
-    el_id = analy->tmp_elem_mm.mesh_object;
-
-    /*
-     * Each node result is an average of the neighboring
-     * element results.
-     */
-    for ( i = 0; i < beams->cnt; i++ )
-    {
-        /* Ignore inactive elements. */
-        if ( activity && activity[i] == 0.0 )
-            continue;
-
-        /* Ignore disabled materials. */
-        if ( analy->disable_material[ beams->mat[i] ] )
-            continue;
-
-	/* Test for new min or max. */
-	if ( val_beam[i] < mm_val[0] )
-	{
-	    mm_val[0] = val_beam[i];
-	    el_id[0] = i + 1;
-            el_type[0] = BEAM_T;
-	}
-	
-	if ( val_beam[i] > mm_val[1] )
-	{
-	    mm_val[1] = val_beam[i];
-	    el_id[1] = i + 1;
-            el_type[1] = BEAM_T;
-	}
-
-        for ( j = 0; j < 2; j++ )
-        {
-            nd = beams->nodes[j][i];
-            val_nodal[nd] += val_beam[i];
-            adj_cnt[nd]++;
-        }
-    }
-
-    for ( i = 0; i < nodes->cnt; i++ )
-        if ( adj_cnt[i] != 0 )
-            val_nodal[i] = val_nodal[i] / adj_cnt[i];
-
-    free( adj_cnt );
-}
-
-
-/*****************************************************************
- * TAG( init_mm_obj )
- *
- * Initialize an Minmax_obj.
- */
-void
-init_mm_obj( p_mmo )
-Minmax_obj *p_mmo;
-{
-    static Minmax_obj mm_init = 
-    { 
-        NULL, 
-	NULL, 
-	{ 0, 0, 0, 0 }, 
-	MAXFLOAT, 
-	-MAXFLOAT, 
-	MAXFLOAT, 
-	-MAXFLOAT, 
-	0, 
-	0, 
-	0, 
-	0 
-    };
-
-    *p_mmo = mm_init;
-}
-
-
-/*****************************************************************
- * TAG( load_result )
- *
- * Load the result variable for display.  The update parameter
- * should be TRUE if result min/max is to be updated, FALSE if
- * not.
- */
-void
-load_result( analy, update )
-Analysis *analy;
-Bool_type update;
-{
-    void (*compute_func)();
-    int r_idx;
-
-    if ( analy->result_id != VAL_NONE )
-    {
-
-        if ( env.result_timing && !env.timing )
-        {
-            wrt_text( "\nTiming for result computation...\n" );
-            check_timing( 0 );
-        }
-	
-        /* Initialize temporary element min/max values. */
-	init_mm_obj( &analy->tmp_elem_mm );
-	
-        /* Get the compute function from the result table and call it. */
-        r_idx = resultid_to_index[analy->result_id];
-        compute_func = (void (*)()) trans_result[r_idx][2];
-        compute_func( analy, analy->result );
-    
-        if ( env.result_timing && !env.timing )
-            check_timing( 1 );
-    }
-
-    if ( update && analy->result_id != VAL_NONE )
-        update_min_max( analy );
-}
-
-

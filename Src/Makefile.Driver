@@ -1,0 +1,209 @@
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+#                                                               #
+#                      Copyright (c) 2004                       #
+#         The Regents of the University of California           #
+#                     All Rights Reserved                       #
+#                                                               #
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+#
+# The Regents of the University of California.  
+# All rights reserved.
+# 
+# This work was produced at the University of California, 
+# Lawrence Livermore National Laboratory (UC LLNL) under 
+# contract no. W-7405-ENG-48 between the U.S. Department of 
+# Energy (DOE) and The Regents of the University of California
+# (University) for   the operation of UC LLNL. Copyright is 
+# reserved to the University for purposes of controlled dis-
+# semination, commercialization through formal licensing, or 
+# other disposition under terms of Contract 48; DOE policies, 
+# regulations and orders; and U.S. statutes.
+# 
+# DISCLAIMER OF LIABILITY
+# 
+# This document was prepared as an account of work sponsored 
+# by an agency of the United States Government.  Neither the 
+# United States Government nor the University of California 
+# nor any of their employees, makes any warranty, express
+# or implied, including the warranties of merchantability
+# and fitness for a particular purpose, or assumes any legal
+# liability or responsibility for the accuracy, completeness,
+# or usefulness of any information, apparatus, product, or 
+# process disclosed, or represents that its use would not 
+# infringe privately-owned rights.
+# 
+# DISCLAIMER OF ENDORSEMENT
+# 
+# Reference herein to any specific commercial products,
+# process, or service by trade name, trademark, manufacturer,
+# or otherwise, does not necessarily constitute or imply its
+# endorsement, recommendation, or favoring by the United States
+# Government or the University of California.  The views and 
+# opinions of authors expressed herein do not necessarily state
+# or reflect those of the United States Government or the 
+# University of California, and shall not be used for advertising
+# or product endorsement purposes.
+#
+#################################################################
+#								#
+#	           Griz4 Driver Makefile	                #
+#								#
+#################################################################
+#
+#################################################################
+#  Revision History                                             #
+#  ----------------                                             #
+#  20-Feb-2004  IRC  Created.                                   #
+#################################################################
+
+OS_NAME         =       @OS_NAME@
+
+SRC_DIRS	    =	@SRC_DIRS@
+ROOT_DIR        = 	@ROOT_DIR@
+INSTALL_DIR     = 	@INSTALL_DIR@
+SRC              = 	@SRC@
+TASKS_DEFAULT   =	16
+
+ifndef TASKS
+TASKS=$(TASKS_DEFAULT)
+endif
+
+ifdef VERBOSE
+MAKE		=	@GMAKE_HOME@gmake -j $(TASKS) --debug=v
+else
+MAKE		=	@GMAKE_HOME@gmake -j $(TASKS)
+endif
+
+help:
+ifdef VERBOSE
+		@ echo "\nVerbose Mode"
+endif
+		@ echo "\n            *************************"
+		@ echo "            *                       *"
+		@ echo "            *     Griz4 Makefile   *"
+		@ echo "            *                       *"
+		@ echo "            *************************\n\n"
+		@ echo "                Available Targets"
+		@ echo "                -----------------\n"
+		@ echo "      all:  Build the libraries and codes."
+		@ echo "      opt:  Build optimized Code."
+		@ echo "    debug:  Build debug Code.\n"
+		@ echo "    batch_opt:  Build optimized batch Code."
+		@ echo "    batch_debug:  Build debug batch Code.\n"
+		@ echo " "
+		@ echo "    clean:      Remove object, core and library files for this build.\n"
+		@ echo "    distclean:  Restore build environment back to distribution state.\n"
+		@ echo "    clobber:    Remove everything in lib_ and bin_ directories.\n"
+		@ echo " "
+		@ echo "    installdirs: Create the public installation directories.\n"
+		@ echo "    install:     Put new code and documentation in public.\n"
+		@ echo "  "
+		@ echo "    install-initversion: Create publ;ic directories for new Griz Version.\n"
+		@ echo "    install-chmod: Change file permissions in public.\n"
+		@ echo "    install-startmsg: Put new startup message in public.\n"
+		@ echo "    install-setversion: Define version link (grizversion) in public.\n"
+		@ echo "    install-updateFont: Put new font files in public.\n"
+		@ echo "  "
+		@ echo "    uninstall:   Remove code from public.\n"
+		@ echo "  "
+		@ echo "                Available Options"
+		@ echo "                -----------------\n"
+		@ echo "    TASKS:  Number of processes for parallel builds."
+		@ echo "  VERBOSE:  Verbose mode for echoing of build steps.\n"
+
+all:
+		@ for src_dir in $(SRC_DIRS) $(SRC); do \
+			cd $(ROOT_DIR); \
+			cd $$src_dir; \
+			$(MAKE) all SYS_NAME=$(OS_NAME); \
+		done
+
+opt:
+		@ for src_dir in $(SRC_DIRS) $(SRC); do \
+			cd $(ROOT_DIR); \
+			cd $$src_dir; \
+			$(MAKE) opt SYS_NAME=$(OS_NAME); \
+		done
+
+batch_opt:
+		@ for src_dir in $(SRC_DIRS); do \
+			cd $(ROOT_DIR); \
+			cd $$src_dir; \
+			$(MAKE) opt SYS_NAME=$(OS_NAME); \
+		done
+		@ cd $(ROOT_DIR); \
+            cd $(SRC); \
+		  $(MAKE) batch_opt SYS_NAME=$(OS_NAME);
+
+batch_debug:
+		@ for src_dir in $(SRC_DIRS); do \
+			cd $(ROOT_DIR); \
+			cd $$src_dir; \
+			$(MAKE) opt SYS_NAME=$(OS_NAME); \
+		done
+		@ cd $(ROOT_DIR); \
+            cd $(SRC); \
+		  $(MAKE) batch_debug SYS_NAME=$(OS_NAME);
+
+
+debug:
+		@ for src_dir in $(SRC_DIRS) $(SRC); do \
+			cd $(ROOT_DIR); \
+			cd $$src_dir; \
+			$(MAKE) debug SYS_NAME=$(OS_NAME); \
+		done
+
+clean:
+		@ for src_dir in $(SRC_DIRS); do \
+			cd $(ROOT_DIR); \
+			cd $$src_dir; \
+			$(MAKE) clean SYS_NAME=$(OS_NAME); \
+		done
+
+clobber:
+		@ for src_dir in $(SRC_DIRS); do \
+			cd $(ROOT_DIR); \
+			cd $$src_dir; \
+			$(MAKE) clobber; \
+		done
+
+distclean:
+		@ for src_dir in $(SRC_DIRS); do \
+			cd $(ROOT_DIR); \
+			cd $$src_dir; \
+			$(MAKE) distclean SYS_NAME=$(OS_NAME); \
+		done
+
+
+
+install:
+		@ cd $(INSTALL_DIR); \
+	        $(MAKE) install;
+
+
+install-initversion:
+		@ cd $(INSTALL_DIR); \
+	        $(MAKE) install-initversion;
+
+install-chmod:
+		@ cd $(INSTALL_DIR); \
+	        $(MAKE) install-chmod;
+
+install-updateFont:
+		@ cd $(INSTALL_DIR); \
+	        $(MAKE) install-updateFont;
+
+install-setversion:
+		@ cd $(INSTALL_DIR); \
+	        $(MAKE) install-setversion;
+
+install-startmsg:
+		@ cd $(INSTALL_DIR); \
+	        $(MAKE) install-startmsg;
+
+uninstall:
+		@ for src_dir in $(SRC_DIRS); do \
+			cd $(ROOT_DIR); \
+			cd $$src_dir; \
+			$(MAKE) uninstall; \
+		done

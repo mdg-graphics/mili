@@ -2,25 +2,74 @@
 /* 
  * poly.c - Read in and write out polygon data.
  * 
- * 	Donald J. Dovey
- * 	Lawrence Livermore National Laboratory
- * 	Jan 2 1992
+ *      Donald J. Dovey
+ *      Lawrence Livermore National Laboratory
+ *      Jan 2 1992
  *
- * Copyright (c) 1992 Regents of the University of California
+ * 
+ * This work was produced at the University of California, Lawrence 
+ * Livermore National Laboratory (UC LLNL) under contract no. 
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
+ * (DOE) and The Regents of the University of California (University) 
+ * for the operation of UC LLNL. Copyright is reserved to the University 
+ * for purposes of controlled dissemination, commercialization through 
+ * formal licensing, or other disposition under terms of Contract 48; 
+ * DOE policies, regulations and orders; and U.S. statutes. The rights 
+ * of the Federal Government are reserved under Contract 48 subject to 
+ * the restrictions agreed upon by the DOE and University as allowed 
+ * under DOE Acquisition Letter 97-1.
+ * 
+ * 
+ * DISCLAIMER
+ * 
+ * This work was prepared as an account of work sponsored by an agency 
+ * of the United States Government. Neither the United States Government 
+ * nor the University of California nor any of their employees, makes 
+ * any warranty, express or implied, or assumes any liability or 
+ * responsibility for the accuracy, completeness, or usefulness of any 
+ * information, apparatus, product, or process disclosed, or represents 
+ * that its use would not infringe privately-owned rights.  Reference 
+ * herein to any specific commercial products, process, or service by 
+ * trade name, trademark, manufacturer or otherwise does not necessarily 
+ * constitute or imply its endorsement, recommendation, or favoring by 
+ * the United States Government or the University of California. The 
+ * views and opinions of authors expressed herein do not necessarily 
+ * state or reflect those of the United States Government or the 
+ * University of California, and shall not be used for advertising or 
+ * product endorsement purposes.
+ * 
  */
 
 
+#include <stdlib.h>
 #include "viewer.h"
 #include "draw.h"
-
+#include "mdg.h"
 
 /* Local routines. */
-static float obj_color_lookup();
-static void output_obj_vertex();
-static void output_obj_face();
-static void output_hid_vertex();
-static void output_hid_face();
-static void output_hid_beam();
+static float obj_color_lookup( float, float, float, float, Bool_type );
+static void output_obj_hex_class( int, Bool_type *, int *, int *, 
+                                  MO_class_data *, Mesh_data *, Analysis *, 
+                                  FILE * );
+static void output_obj_tet_class( int, Bool_type *, int *, int *, 
+                                  MO_class_data *, Mesh_data *, Analysis *, 
+                                  FILE * );
+static void output_obj_quad_class( int, Bool_type *, int *, int *, 
+                                   MO_class_data *, Mesh_data *, Analysis *, 
+                                   FILE * );
+static void output_obj_tri_class( int, Bool_type *, int *, int *, 
+                                  MO_class_data *, Mesh_data *, Analysis *, 
+                                  FILE * );
+static void output_obj_vertex( int, float [3], Bool_type, int, FILE *, 
+                               Analysis * );
+static void output_obj_face( Bool_type, int [], int, Bool_type *, FILE * );
+static void output_obj_face_with_texture( Bool_type, int [], int, Bool_type *, 
+                                          FILE * );
+static void output_hid_vertex( float [3], int, FILE *, Analysis * );
+static void output_hid_face( int [4], int, Bool_type *, Bool_type, FILE * );
+static void output_hid_beam( int [4], int, FILE * );
+static void mark_class_nodes( Analysis *, Mesh_data *, Bool_type [QTY_SCLASS], 
+                              int * );
 
 
 /************************************************************
@@ -29,9 +78,7 @@ static void output_hid_beam();
  * Read in polygons from an slp file.
  */
 void
-read_slp_file( fname, analy )
-char *fname;
-Analysis *analy;
+read_slp_file( char *fname, Analysis *analy )
 {
     FILE *infile;
     Surf_poly *poly;
@@ -68,11 +115,9 @@ Analysis *analy;
 
     if ( ( infile = fopen(fname, "r") ) == NULL )
     {
-        wrt_text( "Couldn't open file %s.\n", fname );
+        popup_dialog( INFO_POPUP, "Unable to open file %s", fname );
         return;
     }
-
-    wrt_text( "\n" );
 
     obj_cnt = 0;
     poly_cnt = 0;
@@ -147,8 +192,6 @@ Analysis *analy;
                 INSERT( poly, analy->extern_polys );
 
                 poly_cnt++;
-                if ( poly_cnt % 500 == 0 )
-                    wrt_text( "." );
             }
 
             read_token( infile, token, 80 );
@@ -161,8 +204,7 @@ Analysis *analy;
         read_token( infile, token, 80 );
     }
 
-    wrt_text( "\n\n" );
-    wrt_text( "Read %d polygons from SLP file.\n", poly_cnt );
+    wrt_text( "Read %d polygons from SLP file\n\n", poly_cnt );
 
     fclose( infile );
 }
@@ -174,9 +216,7 @@ Analysis *analy;
  * Read in a reference surface file.
  */
 void
-read_ref_file( fname, analy )
-char *fname;
-Analysis *analy;
+read_ref_file( char *fname, Analysis *analy )
 {
     FILE *infile;
     Ref_poly *poly;
@@ -244,6 +284,7 @@ Analysis *analy;
 }
 
 
+#ifdef HAVE_REF_STUFF
 /************************************************************
  * TAG( gen_ref_from_coord )
  *
@@ -251,10 +292,7 @@ Analysis *analy;
  * that lie in a particular axis-aligned plane.
  */
 void
-gen_ref_from_coord( analy, axis, coord )
-Analysis *analy;
-int axis;
-float coord;
+gen_ref_from_coord( Analysis *analy, int axis, float coord )
 {
     Hex_geom *bricks;
     Nodal *nodes;
@@ -311,8 +349,7 @@ float coord;
  * Returns the average area of the reference surface faces.
  */
 float
-get_ref_average_area( analy )
-Analysis *analy;
+get_ref_average_area( Analysis *analy )
 {
     Nodal *nodes;
     Ref_poly *poly;
@@ -340,6 +377,7 @@ Analysis *analy;
 
     return ( area / cnt );
 }
+#endif
 
 
 /* Wavefront .obj format output routines. */
@@ -352,13 +390,14 @@ Analysis *analy;
  * value is a real number in the range [0.0, 1.0].
  */
 static float
-obj_color_lookup( val, result_min, result_max, threshold )
-float val;
-float result_min;
-float result_max;
-float threshold;
+obj_color_lookup( float val, float result_min, float result_max, 
+                  float threshold, Bool_type logscale)
 {
-    int idx;
+    int idx, idx_new;
+
+    double new_val,     new_result_min,     new_result_max,     new_result_shift;
+    double new_result_mult;
+    double new_val_log, new_result_min_log, new_result_max_log;
 
     /* If result is near zero, use the default material color.
      * Otherwise, do the color table lookup.
@@ -381,7 +420,28 @@ float threshold;
     }
     else
     {
-        idx = (int)( 253.99*(val-result_min)/(result_max-result_min) ) + 1;
+       if (logscale)
+       {
+          idx = (int)( 253.99*(val-result_min)/(result_max-result_min) ) + 1;
+
+          /* Shift data to positive range */
+          log_scale_data_shift( val,      result_min, result_max, 
+                                &new_val, &new_result_min,
+                                &new_result_max, &new_result_shift,
+                                &new_result_mult);
+
+          new_val_log        = log10(new_val);
+          new_result_min_log = log10(new_result_min);
+          new_result_max_log = log10(new_result_max);
+
+          idx_new = (int)( 253.99 * ((new_val_log-new_result_min_log)/
+                           (new_result_max_log-new_result_min_log)) ) + 1;
+          idx = idx_new;
+       }
+       else
+       {
+          idx = (int)( 253.99*(val-result_min)/(result_max-result_min) ) + 1;
+       }
     }
 
     return( idx / 255.01 );
@@ -395,9 +455,233 @@ float threshold;
  * Wavefront .obj file.
  */
 void
-write_obj_file( fname, analy )
-char *fname;
-Analysis *analy;
+write_obj_file( char *fname, Analysis *analy )
+{
+    FILE *outfile;
+    Refl_plane_obj *plane;
+    Bool_type *reverse_order;
+    float orig;
+    float vert[3];
+    int num_instances;
+    int num_matls, *matl_cnts;
+    int *node_nums;
+    int i, j, cnt;
+    Mesh_data *p_mesh;
+    MO_class_data *p_node_geom;
+    MO_class_data **mo_classes;
+    int class_qty, node_qty;
+    GVec3D *nodes3d, *onodes3d;
+    GVec2D *nodes2d, *onodes2d;
+    Bool_type superclasses[QTY_SCLASS] = 
+    {
+        FALSE, FALSE, FALSE, FALSE,     /* G_UNIT, G_NODE, G_TRUSS, G_BEAM */
+        TRUE, TRUE, TRUE,               /* G_TRI, G_QUAD, G_TET */ 
+        FALSE, FALSE,                   /* G_PYRAMID, G_WEDGE */
+        TRUE,                           /* G_HEX */
+        FALSE, FALSE                    /* G_MAT, G_MESH */
+    };
+    Bool_type output_result;
+
+    if ( ( outfile = fopen(fname, "w") ) == NULL )
+    {
+        popup_dialog( INFO_POPUP, "Unable to open file %s", fname );
+        return;
+    }
+    
+    p_mesh = MESH_P( analy );
+    p_node_geom = p_mesh->node_geom;
+    node_qty = p_node_geom->qty;
+    num_matls = p_mesh->material_qty;
+    matl_cnts = NEW_N( int, num_matls, "Wavefront output tmp array" );
+
+    /* See if we need to do reflections. */
+    if ( analy->reflect && analy->refl_planes != NULL )
+    {
+        /* Count total number of instances, including all reflections. */
+        num_instances = 1;
+        for ( plane = analy->refl_planes; plane != NULL; plane = plane->next )
+        {
+            if ( analy->refl_orig_only )
+                num_instances++;
+            else
+                num_instances *= 2;
+        }
+
+        /* Mark which faces need to have their node order reversed. */
+        reverse_order = NEW_N( int, num_instances, "Wavefront out tmp array" );
+        reverse_order[0] = FALSE;
+        if ( analy->refl_orig_only )
+        {
+            for ( i = 1; i < num_instances; i++ )
+                reverse_order[i] = TRUE;
+        }
+        else
+        {
+            for ( j = 1, plane = analy->refl_planes;
+                  plane != NULL;
+                  plane = plane->next )
+            {
+                for ( i = 0; i < j; i++ )
+                    reverse_order[j+i] = !reverse_order[i];
+                j *= 2;
+            }
+        }
+    }
+    else
+        num_instances = 1;
+
+
+    /*
+     * Mark all the nodes that need to be output.
+     */
+    node_nums = NEW_N( int, node_qty, "Wavefront output tmp array" );
+
+    mark_class_nodes( analy, p_mesh, superclasses, node_nums );
+
+    output_result = ( analy->cur_result != NULL );
+
+    /*
+     * Output the nodes.
+     */
+    if ( analy->dimension == 3 )
+    {
+        nodes3d = analy->state_p->nodes.nodes3d;
+        onodes3d = (GVec3D *) analy->cur_ref_state_data;
+
+        for ( i = 0, cnt = 1; i < node_qty; i++ )
+        {
+            if ( node_nums[i] == 1 )
+            {
+                if ( analy->displace_exag )
+                {
+                    /* Scale the node displacements. */
+                    for ( j = 0; j < 3; j++ )
+                    {
+                        orig = onodes3d[i][j];
+                        vert[j] = orig + analy->displace_scale[j]
+                                         * (nodes3d[i][j] - orig);
+                    }
+                }
+                else
+                {
+                    for ( j = 0; j < 3; j++ )
+                        vert[j] = nodes3d[i][j];
+                }
+
+                output_obj_vertex( i, vert, output_result, num_instances, 
+                                   outfile, analy );
+
+                node_nums[i] = cnt;
+                cnt += num_instances;
+            }
+        }
+    }
+    else
+    {
+        nodes2d = analy->state_p->nodes.nodes2d;
+        onodes2d = (GVec2D *) analy->cur_ref_state_data;
+        vert[2] = 0.0;
+
+        for ( i = 0, cnt = 1; i < node_qty; i++ )
+        {
+            if ( node_nums[i] == 1 )
+            {
+                if ( analy->displace_exag )
+                {
+                    /* Scale the node displacements. */
+                    for ( j = 0; j < 2; j++ )
+                    {
+                        orig = onodes2d[i][j];
+                        vert[j] = orig + analy->displace_scale[j]
+                                         * (nodes2d[i][j] - orig);
+                    }
+                }
+                else
+                {
+                    for ( j = 0; j < 2; j++ )
+                        vert[j] = nodes2d[i][j];
+                }
+
+                output_obj_vertex( i, vert, output_result, num_instances, 
+                                   outfile, analy );
+
+                node_nums[i] = cnt;
+                cnt += num_instances;
+            }
+        }
+    }
+
+
+    if ( p_mesh->classes_by_sclass[G_HEX].qty != 0 )
+    {
+        mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_HEX].list;
+        class_qty = p_mesh->classes_by_sclass[G_HEX].qty;
+        
+        for ( i = 0; i < class_qty; i++ )
+            output_obj_hex_class( num_instances, reverse_order, matl_cnts,
+                                  node_nums, mo_classes[i], p_mesh, analy, 
+                                  outfile );
+    }
+
+    if ( p_mesh->classes_by_sclass[G_TET].qty != 0 )
+    {
+        mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TET].list;
+        class_qty = p_mesh->classes_by_sclass[G_TET].qty;
+        
+        for ( i = 0; i < class_qty; i++ )
+            output_obj_tet_class( num_instances, reverse_order, matl_cnts,
+                                  node_nums, mo_classes[i], p_mesh, analy, 
+                                  outfile );
+    }
+
+    if ( p_mesh->classes_by_sclass[G_QUAD].qty != 0 )
+    {
+        mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
+        class_qty = p_mesh->classes_by_sclass[G_QUAD].qty;
+        
+        for ( i = 0; i < class_qty; i++ )
+            output_obj_quad_class( num_instances, reverse_order, matl_cnts,
+                                   node_nums, mo_classes[i], p_mesh, analy, 
+                                   outfile );
+    }
+
+    if ( p_mesh->classes_by_sclass[G_TRI].qty != 0 )
+    {
+        mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRI].list;
+        class_qty = p_mesh->classes_by_sclass[G_TRI].qty;
+        
+        for ( i = 0; i < class_qty; i++ )
+            output_obj_tri_class( num_instances, reverse_order, matl_cnts,
+                                  node_nums, mo_classes[i], p_mesh, analy, 
+                                  outfile );
+    }
+
+    /* If zero-thresholding is active, print out the zero slot. */
+    if ( analy->zero_result > 0.0 )
+    {
+        i = (int)( 253.99*(0.0 - analy->result_mm[0])/
+                   (analy->result_mm[1] - analy->result_mm[0]) ) + 1;
+        wrt_text( "Material color in colormap entry #%d\n\n", i+1 );
+    }
+
+    free( matl_cnts );
+    free( node_nums );
+    if ( num_instances > 1 )
+        free( reverse_order );
+
+    fclose( outfile );
+}
+
+
+#ifdef OLD_WRT_OBJ_FILE
+/************************************************************
+ * TAG( write_obj_file )
+ *
+ * Write the current surface geometry as polygons to a
+ * Wavefront .obj file.
+ */
+void
+write_obj_file( char *fname, Analysis *analy )
 {
     FILE *outfile;
     Hex_geom *bricks;
@@ -491,7 +775,8 @@ Analysis *analy;
         for ( j = 0; j < shells->cnt; j++ )
         {
             /* Skip if this material is invisible. */
-            if ( analy->hide_material[shells->mat[j]] )
+            if ( analy->hide_material[shells->mat[j]] 
+		 || hide_by_object_type( BRICK_T, shells->mat[j], j, analy, NULL ) )
                  continue;
 
             for ( k = 0; k < 4; k++ )
@@ -610,7 +895,8 @@ Analysis *analy;
                 continue;
 
             /* Skip if this material is invisible. */
-            if ( analy->hide_material[shells->mat[i]] )
+            if ( analy->hide_material[shells->mat[i]] 
+                 || hide_by_object_type( BRICK_T, shells->mat[i], i, analy, NULL ) )
                  continue;
 
             matl_cnts[shells->mat[i]]++;
@@ -636,7 +922,8 @@ Analysis *analy;
                         continue;
 
                     /* Skip if this material is invisible. */
-                    if ( analy->hide_material[shells->mat[j]] )
+                    if ( analy->hide_material[shells->mat[j]] 
+			 || hide_by_object_type( BRICK_T, shells->mat[j], j, analy, NULL ) )
                          continue;
 
                     for ( k = 0; k < 4; k++ )
@@ -667,6 +954,374 @@ Analysis *analy;
 
     fclose( outfile );
 }
+#endif
+
+
+/************************************************************
+ * TAG( output_obj_hex_class )
+ *
+ * Output faces from a hex class to an .obj file.
+ */
+static void
+output_obj_hex_class( int num_instances, Bool_type *reverse_order, 
+                      int *matl_cnts, int *node_nums, 
+                      MO_class_data *p_hex_class, Mesh_data *p_mesh, 
+                      Analysis *analy, FILE *outfile )
+{
+    int (*connects8)[8];
+    int *mat;
+    int vert_idx[4];
+    Visibility_data *p_vd;
+    int face_cnt;
+    int *face_el, *face_fc;
+    int i, j, k, el, fc, nd; 
+    int num_matls;
+    void (*output_face)( Bool_type, int [], int, Bool_type *, FILE* );
+
+    num_matls = p_mesh->material_qty;
+    connects8 = (int (*)[8]) p_hex_class->objects.elems->nodes;
+    mat = p_hex_class->objects.elems->mat;
+    p_vd = p_hex_class->p_vis_data;
+    face_cnt = p_vd->face_cnt;
+    face_el = p_vd->face_el;
+    face_fc = p_vd->face_fc;
+
+    memset( matl_cnts, 0, num_matls*sizeof( int ) );
+    
+    for ( j = 0; j < face_cnt; j++ )
+    {
+        el = face_el[j];
+        fc = face_fc[j];
+
+        /*
+         * Remove faces that are shared with shell elements, so
+         * the polygons are not drawn twice.
+         */
+        if ( analy->shared_faces 
+             && p_mesh->classes_by_sclass[G_QUAD].qty != 0 
+             && face_matches_quad( el, fc, p_hex_class, p_mesh, analy ) )
+            continue;
+
+        matl_cnts[mat[el]]++;
+    }
+
+    output_face = ( analy->cur_result != NULL )
+                  ? output_obj_face_with_texture
+                  : output_obj_face;
+
+    /*
+     * Output hex faces.
+     */
+    for ( i = 0; i < num_matls; i++ )
+    {
+        if ( matl_cnts[i] > 0 )
+        {
+            fprintf( outfile, "#\n# Hex Group (Material %d)\n#\n", 
+                     i + 1 );
+            fprintf( outfile, "g mat%d whole\n", i + 1 );
+
+
+            for ( j = 0; j < face_cnt; j++ )
+            {
+                el = face_el[j];
+                fc = face_fc[j];
+
+                if ( mat[el] == i )
+                {
+                    /*
+                     * Remove faces that are shared with shell elements.
+                     */
+                    if ( analy->shared_faces
+                         && p_mesh->classes_by_sclass[G_QUAD].qty != 0 
+                         && face_matches_quad( el, fc, p_hex_class, p_mesh,
+                                               analy ) )
+                        continue;
+
+                    for ( k = 0; k < 4; k++ )
+                    {
+                        nd = connects8[el][ fc_nd_nums[fc][k] ];
+                        vert_idx[k] = node_nums[nd];
+                    }
+
+                    output_face( TRUE, vert_idx, num_instances, reverse_order, 
+                                 outfile );
+                }
+            }
+        }
+    }
+}
+
+
+/************************************************************
+ * TAG( output_obj_tet_class )
+ *
+ * Output faces from a tet class to an .obj file.
+ */
+static void
+output_obj_tet_class( int num_instances, Bool_type *reverse_order, 
+                      int *matl_cnts, int *node_nums, 
+                      MO_class_data *p_tet_class, Mesh_data *p_mesh, 
+                      Analysis *analy, FILE *outfile )
+{
+    int (*connects4)[4];
+    int *mat;
+    int vert_idx[3];
+    Visibility_data *p_vd;
+    int face_cnt;
+    int *face_el, *face_fc;
+    int i, j, k, el, fc, nd, num_matls;
+    void (*output_face)( Bool_type, int [], int, Bool_type *, FILE* );
+
+    num_matls = p_mesh->material_qty;
+    connects4 = (int (*)[4]) p_tet_class->objects.elems->nodes;
+    mat = p_tet_class->objects.elems->mat;
+    p_vd = p_tet_class->p_vis_data;
+    face_cnt = p_vd->face_cnt;
+    face_el = p_vd->face_el;
+    face_fc = p_vd->face_fc;
+
+    memset( matl_cnts, 0, num_matls*sizeof( int ) );
+    
+    for ( j = 0; j < face_cnt; j++ )
+    {
+        el = face_el[j];
+        fc = face_fc[j];
+
+        /*
+         * Remove faces that are shared with shell elements, so
+         * the polygons are not drawn twice.
+         */
+        if ( analy->shared_faces 
+             && p_mesh->classes_by_sclass[G_TRI].qty != 0 
+             && face_matches_tri( el, fc, p_tet_class, p_mesh, analy ) )
+            continue;
+
+        matl_cnts[mat[el]]++;
+    }
+
+    output_face = ( analy->cur_result != NULL )
+                  ? output_obj_face_with_texture
+                  : output_obj_face;
+
+    /*
+     * Output tet faces.
+     */
+    for ( i = 0; i < num_matls; i++ )
+    {
+        if ( matl_cnts[i] > 0 )
+        {
+            fprintf( outfile, "#\n# Tet Group (Material %d)\n#\n", 
+                     i + 1 );
+            fprintf( outfile, "g mat%d whole\n", i + 1 );
+
+
+            for ( j = 0; j < face_cnt; j++ )
+            {
+                el = face_el[j];
+                fc = face_fc[j];
+
+                if ( mat[el] == i )
+                {
+                    /*
+                     * Remove faces that are shared with tri elements.
+                     */
+                    if ( analy->shared_faces
+                         && p_mesh->classes_by_sclass[G_TRI].qty != 0 
+                         && face_matches_tri( el, fc, p_tet_class, p_mesh,
+                                               analy ) )
+                        continue;
+
+                    for ( k = 0; k < 3; k++ )
+                    {
+                        nd = connects4[el][ tet_fc_nd_nums[fc][k] ];
+                        vert_idx[k] = node_nums[nd];
+                    }
+
+                    output_face( FALSE, vert_idx, num_instances, reverse_order,
+                                 outfile );
+                }
+            }
+        }
+    }
+}
+
+
+/************************************************************
+ * TAG( output_obj_quad_class )
+ *
+ * Output faces from a quad class to an .obj file.
+ */
+static void
+output_obj_quad_class( int num_instances, Bool_type *reverse_order, 
+                       int *matl_cnts, int *node_nums, 
+                       MO_class_data *p_quad_class, Mesh_data *p_mesh, 
+                       Analysis *analy, FILE *outfile )
+{   int (*connects4)[4];
+    int *mat;
+    int vert_idx[4];
+    int quad_qty;
+    int i, j, k, nd, num_matls;
+    float *activity;
+    unsigned char *hide_mtl;
+    void (*output_face)( Bool_type, int [], int, Bool_type *, FILE* );
+
+    num_matls = p_mesh->material_qty;
+    hide_mtl = p_mesh->hide_material;
+    connects4 = (int (*)[4]) p_quad_class->objects.elems->nodes;
+    mat = p_quad_class->objects.elems->mat;
+    quad_qty = p_quad_class->qty;
+
+    activity = analy->state_p->sand_present
+               ? analy->state_p->elem_class_sand[p_quad_class->elem_class_index]
+               : NULL;
+
+    memset( matl_cnts, 0, num_matls*sizeof( int ) );
+
+    /*
+     * Check which materials need to be output.
+     */
+    for ( i = 0; i < quad_qty; i++ )
+    {
+        /* Check for inactive elements. */
+        if ( activity && activity[i] == 0.0 )
+            continue;
+
+        /* Skip if this material is invisible. */
+        if ( hide_mtl[mat[i]] 
+	     || hide_by_object_type( BRICK_T, mat[i], i, analy, NULL ) )
+             continue;
+
+        matl_cnts[mat[i]]++;
+    }
+
+    output_face = ( analy->cur_result != NULL )
+                  ? output_obj_face_with_texture
+                  : output_obj_face;
+
+    /*
+     * Output quad faces.
+     */
+    for ( i = 0; i < num_matls; i++ )
+    {
+        if ( matl_cnts[i] > 0 )
+        {
+            fprintf( outfile, "#\n# Quad Group (Material %d)\n#\n", i+1 );
+            fprintf( outfile, "g mat%d whole\n", i+1 );
+
+            for ( j = 0; j < quad_qty; j++ )
+            {
+                if ( mat[j] != i )
+                    continue;
+             
+                /* Check for inactive elements. */
+                if ( activity && activity[j] == 0.0 )
+                    continue;
+
+                /* Skip if this material is invisible. */
+                if ( hide_mtl[mat[j]] 
+		     || hide_by_object_type( BRICK_T, mat[j], j, analy, NULL ) )
+                     continue;
+
+                for ( k = 0; k < 4; k++ )
+                {
+                    nd = connects4[j][k];
+                    vert_idx[k] = node_nums[nd];
+                }
+
+                output_face( TRUE, vert_idx, num_instances, reverse_order, 
+                             outfile );
+            }
+        }
+    }
+}
+
+
+/************************************************************
+ * TAG( output_obj_tri_class )
+ *
+ * Output faces from a tri class to an .obj file.
+ */
+static void
+output_obj_tri_class( int num_instances, Bool_type *reverse_order, 
+                      int *matl_cnts, int *node_nums, 
+                      MO_class_data *p_tri_class, Mesh_data *p_mesh, 
+                      Analysis *analy, FILE *outfile )
+{   int (*connects3)[3];
+    int *mat;
+    int vert_idx[3];
+    int tri_qty;
+    int i, j, k, nd, num_matls;
+    float *activity;
+    unsigned char *hide_mtl;
+    void (*output_face)( Bool_type, int [], int, Bool_type *, FILE* );
+
+    num_matls = p_mesh->material_qty;
+    hide_mtl = p_mesh->hide_material;
+    connects3 = (int (*)[3]) p_tri_class->objects.elems->nodes;
+    mat = p_tri_class->objects.elems->mat;
+    tri_qty = p_tri_class->qty;
+
+    activity = analy->state_p->sand_present
+               ? analy->state_p->elem_class_sand[p_tri_class->elem_class_index] 
+               : NULL;
+
+    memset( matl_cnts, 0, num_matls*sizeof( int ) );
+
+    /*
+     * Check which materials need to be output.
+     */
+    for ( i = 0; i < tri_qty; i++ )
+    {
+        /* Check for inactive elements. */
+        if ( activity && activity[i] == 0.0 )
+            continue;
+
+        /* Skip if this material is invisible. */
+        if ( hide_mtl[mat[i]] )
+             continue;
+
+        matl_cnts[mat[i]]++;
+    }
+
+    output_face = ( analy->cur_result != NULL )
+                  ? output_obj_face_with_texture
+                  : output_obj_face;
+
+    /*
+     * Output tri faces.
+     */
+    for ( i = 0; i < num_matls; i++ )
+    {
+        if ( matl_cnts[i] > 0 )
+        {
+            fprintf( outfile, "#\n# Tri Group (Material %d)\n#\n", i+1 );
+            fprintf( outfile, "g mat%d whole\n", i+1 );
+
+            for ( j = 0; j < tri_qty; j++ )
+            {
+                if ( mat[j] != i )
+                    continue;
+             
+                /* Check for inactive elements. */
+                if ( activity && activity[j] == 0.0 )
+                    continue;
+
+                /* Skip if this material is invisible. */
+                if ( hide_mtl[mat[j]] )
+                     continue;
+
+                for ( k = 0; k < 3; k++ )
+                {
+                    nd = connects3[j][k];
+                    vert_idx[k] = node_nums[nd];
+                }
+
+                output_face( FALSE, vert_idx, num_instances, reverse_order, 
+                             outfile );
+            }
+        }
+    }
+}
 
 
 /************************************************************
@@ -676,12 +1331,8 @@ Analysis *analy;
  * any reflections required by reflection planes.
  */
 static void
-output_obj_vertex( nd, nd_pos, num_instances, outfile, analy )
-int nd;
-float nd_pos[3];
-int num_instances;
-FILE *outfile;
-Analysis *analy;
+output_obj_vertex( int nd, float nd_pos[3], Bool_type output_res, 
+                   int num_instances, FILE *outfile, Analysis *analy )
 {
     Refl_plane_obj *plane;
     float inst_pos[64][3];
@@ -691,10 +1342,11 @@ Analysis *analy;
     /* Output the original vertex. */
     fprintf( outfile, "v %f %f %f\n", nd_pos[0], nd_pos[1], nd_pos[2] );
 
-    if ( analy->show_hex_result || analy->show_shell_result )
+    if ( output_res )
     {
-        cmap_idx = obj_color_lookup( analy->result[nd], analy->result_mm[0],
-                                     analy->result_mm[1], analy->zero_result );
+        cmap_idx = obj_color_lookup( NODAL_RESULT_BUFFER( analy )[nd], 
+                                     analy->result_mm[0], analy->result_mm[1], 
+                                     analy->zero_result, analy->logscale);
         fprintf( outfile, "vt %f %f %f\n", cmap_idx, cmap_idx, cmap_idx );
     }
 
@@ -728,7 +1380,7 @@ Analysis *analy;
         fprintf( outfile, "v %f %f %f\n", inst_pos[i][0],
                  inst_pos[i][1], inst_pos[i][2] );
 
-        if ( analy->show_hex_result || analy->show_shell_result )
+        if ( output_res )
             fprintf( outfile, "vt %f %f %f\n", cmap_idx, cmap_idx, cmap_idx );
     }
 }
@@ -737,40 +1389,120 @@ Analysis *analy;
 /************************************************************
  * TAG( output_obj_face )
  *
- * Output a face to an .obj file.  This routine performs
- * any reflections required by reflection planes.
+ * Output a quad or tri face to an .obj file.  This routine
+ * performs any reflections required by reflection planes.
  */
 static void
-output_obj_face( vert_nums, num_instances, reverse_order, outfile )
-int vert_nums[4];
-int num_instances;
-Bool_type *reverse_order;
-FILE *outfile;
+output_obj_face( Bool_type quad, int vert_nums[], int num_instances, 
+                 Bool_type *reverse_order, FILE *outfile )
 {
     int i;
 
     /* Output the original face. */
-    fprintf( outfile, "f %d/%d %d/%d %d/%d %d/%d\n",
-             vert_nums[0], vert_nums[0],
-             vert_nums[1], vert_nums[1],
-             vert_nums[2], vert_nums[2],
-             vert_nums[3], vert_nums[3] );
+    fprintf( outfile, "f %d %d %d",
+             vert_nums[0], vert_nums[1], vert_nums[2] );
+    if ( quad )
+        fprintf( outfile, " %d\n", vert_nums[3] );
+    else
+        fprintf( outfile, "\n" );
 
     /* We need to reverse node ordering for each reflection. */
-    for ( i = 1; i < num_instances; i++ )
+    if ( quad )
     {
-        if ( reverse_order[i] )
-            fprintf( outfile, "f %d/%d %d/%d %d/%d %d/%d\n",
-                     vert_nums[3]+i, vert_nums[3]+i,
-                     vert_nums[2]+i, vert_nums[2]+i,
-                     vert_nums[1]+i, vert_nums[1]+i,
-                     vert_nums[0]+i, vert_nums[0]+i );
-        else
-            fprintf( outfile, "f %d/%d %d/%d %d/%d %d/%d\n",
-                     vert_nums[0]+i, vert_nums[0]+i,
-                     vert_nums[1]+i, vert_nums[1]+i,
-                     vert_nums[2]+i, vert_nums[2]+i,
-                     vert_nums[3]+i, vert_nums[3]+i );
+        for ( i = 1; i < num_instances; i++ )
+        {
+            if ( reverse_order[i] )
+                fprintf( outfile, "f %d %d %d %d\n",
+                         vert_nums[3]+i,
+                         vert_nums[2]+i,
+                         vert_nums[1]+i,
+                         vert_nums[0]+i );
+            else
+                fprintf( outfile, "f %d %d %d %d\n",
+                         vert_nums[0]+i,
+                         vert_nums[1]+i,
+                         vert_nums[2]+i,
+                         vert_nums[3]+i );
+        }
+    }
+    else /* triangle */
+    {
+        for ( i = 1; i < num_instances; i++ )
+        {
+            if ( reverse_order[i] )
+                fprintf( outfile, "f %d %d %d\n",
+                         vert_nums[2]+i,
+                         vert_nums[1]+i,
+                         vert_nums[0]+i );
+            else
+                fprintf( outfile, "f %d %d %d\n",
+                         vert_nums[0]+i,
+                         vert_nums[1]+i,
+                         vert_nums[2]+i );
+        }
+    }
+}
+
+
+/************************************************************
+ * TAG( output_obj_face_with_texture )
+ *
+ * Output a quad or tri face to an .obj file, including the
+ * texture vertex reference.  This routine performs any 
+ * reflections required by reflection planes.
+ */
+static void
+output_obj_face_with_texture( Bool_type quad, int vert_nums[], 
+                              int num_instances, Bool_type *reverse_order, 
+                              FILE *outfile )
+{
+    int i;
+
+    /* Output the original face. */
+    fprintf( outfile, "f %d/%d %d/%d %d/%d",
+             vert_nums[0], vert_nums[0],
+             vert_nums[1], vert_nums[1],
+             vert_nums[2], vert_nums[2] );
+    if ( quad )
+        fprintf( outfile, " %d/%d\n",
+                 vert_nums[3], vert_nums[3] );
+    else
+        fprintf( outfile, "\n" );
+
+    /* We need to reverse node ordering for each reflection. */
+    if ( quad )
+    {
+        for ( i = 1; i < num_instances; i++ )
+        {
+            if ( reverse_order[i] )
+                fprintf( outfile, "f %d/%d %d/%d %d/%d %d/%d\n",
+                         vert_nums[3]+i, vert_nums[3]+i,
+                         vert_nums[2]+i, vert_nums[2]+i,
+                         vert_nums[1]+i, vert_nums[1]+i,
+                         vert_nums[0]+i, vert_nums[0]+i );
+            else
+                fprintf( outfile, "f %d/%d %d/%d %d/%d %d/%d\n",
+                         vert_nums[0]+i, vert_nums[0]+i,
+                         vert_nums[1]+i, vert_nums[1]+i,
+                         vert_nums[2]+i, vert_nums[2]+i,
+                         vert_nums[3]+i, vert_nums[3]+i );
+        }
+    }
+    else /* triangle */
+    {
+        for ( i = 1; i < num_instances; i++ )
+        {
+            if ( reverse_order[i] )
+                fprintf( outfile, "f %d/%d %d/%d %d/%d\n",
+                         vert_nums[2]+i, vert_nums[2]+i,
+                         vert_nums[1]+i, vert_nums[1]+i,
+                         vert_nums[0]+i, vert_nums[0]+i );
+            else
+                fprintf( outfile, "f %d/%d %d/%d %d/%d\n",
+                         vert_nums[0]+i, vert_nums[0]+i,
+                         vert_nums[1]+i, vert_nums[1]+i,
+                         vert_nums[2]+i, vert_nums[2]+i );
+        }
     }
 }
 
@@ -783,9 +1515,7 @@ FILE *outfile;
  * Write the current view parameters to a .hid file.
  */
 static void
-output_hid_view( outfile, analy )
-FILE *outfile;
-Analysis *analy;
+output_hid_view( FILE *outfile, Analysis *analy )
 {
     Transf_mat view_trans;
     float vpaspect;
@@ -840,34 +1570,47 @@ Analysis *analy;
  * hidden line program.  Note that node numbering starts at
  * zero in a hidden file!
  */
-void
-write_hid_file( fname, analy )
-char *fname;
-Analysis *analy;
+extern void
+write_hid_file( char *fname, Analysis *analy )
 {
     FILE *outfile;
-    Hex_geom *bricks;
-    Shell_geom *shells;
-    Beam_geom *beams;
-    Nodal *nodes, *onodes;
     Refl_plane_obj *plane;
-    char str[80];
     Bool_type *reverse_order;
     float *activity;
     float orig;
     float vert[3];
     int vert_idx[4];
-    int node_cnt, face_cnt, shell_cnt, beam_cnt;
     int num_instances;
-    int *node_nums;
-    int i, j, el, fc, nd, cnt;
+    int *node_nums, *face_el, *face_fc, *mat;
+    int i, j, k, el, fc, nd, cnt, node_cnt;
+    Mesh_data *p_mesh;
+    unsigned char *hide_material;
+    GVec3D *nodes, *onodes;
+    MO_class_data *p_class, *p_node_geom;
+    MO_class_data **mo_classes;
+    Visibility_data *p_vd;
+    int (*connects8)[8];
+    int (*connects4)[4];
+    int (*connects3)[3];
+    int (*connects2)[2];
+    int face_cnt, class_qty, node_qty, elem_qty;
+    Bool_type quad_shared, tri_shared;
+    int superclasses[QTY_SCLASS] = 
+    {
+        0, 0,           /* G_UNIT, G_NODE */
+        1, 1, 1, 1, 1,  /* G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET */ 
+        0, 0,           /* G_PYRAMID, G_WEDGE */
+        1,              /* G_HEX */
+        0, 0            /* G_MAT, G_MESH */
+    };
 
     /*
      * Open the output file.
      */
     if ( ( outfile = fopen(fname, "w") ) == NULL )
     {
-        wrt_text( "Couldn't open file %s.\n", fname );
+        popup_dialog( WARNING_POPUP, "Couldn't open file %s; aborted.\n", 
+                      fname );
         return;
     }
 
@@ -880,12 +1623,13 @@ Analysis *analy;
     /*
      * Output nodes, faces, shells, beams.
      */
-
-    nodes = analy->state_p->nodes;
-    onodes = analy->geom_p->nodes;
-    bricks = analy->geom_p->bricks;
-    shells = analy->geom_p->shells;
-    beams = analy->geom_p->beams;
+    
+    p_mesh = MESH_P( analy );
+    hide_material = p_mesh->hide_material;
+    p_node_geom = p_mesh->node_geom;
+    node_qty = p_node_geom->qty;
+    nodes = analy->state_p->nodes.nodes3d;
+    onodes = (GVec3D *) analy->cur_ref_state_data;
 
     /* See if we need to do reflections. */
     if ( analy->reflect && analy->refl_planes != NULL )
@@ -927,75 +1671,14 @@ Analysis *analy;
     /*
      * Mark all the nodes that need to be output.
      */
-    node_nums = NEW_N( int, nodes->cnt, "Hidden output tmp array" );
+    node_nums = NEW_N( int, node_qty, "Hidden output tmp array" );
 
-    face_cnt = analy->face_cnt;
-    if ( bricks != NULL )
-    {
-        for ( i = 0; i < face_cnt; i++ )
-        {
-            el = analy->face_el[i];
-            fc = analy->face_fc[i];
-
-            for ( j = 0; j < 4; j++ )
-            {
-                nd = bricks->nodes[ fc_nd_nums[fc][j] ][el];
-                node_nums[nd] = 1;
-            }
-        }
-    }
-
-    shell_cnt = 0;
-    if ( shells != NULL )
-    {
-        activity = analy->state_p->activity_present ?
-                   analy->state_p->shells->activity : NULL;
-
-        for ( i = 0; i < shells->cnt; i++ )
-        {
-            /* Skip if this material is invisible. */
-            if ( analy->hide_material[shells->mat[i]] )
-                 continue;
-
-            if ( activity && activity[i] == 0.0 )
-                continue;
-
-            shell_cnt++;
-
-            for ( j = 0; j < 4; j++ )
-            {
-                nd = shells->nodes[j][i];
-                node_nums[nd] = 1;
-            }
-        }
-    }
-
-    beam_cnt = 0;
-    if ( beams != NULL )
-    {
-        activity = analy->state_p->activity_present ?
-                   analy->state_p->beams->activity : NULL;
-
-        for ( i = 0; i < beams->cnt; i++ )
-        {
-            /* Skip if this material is invisible. */
-            if ( analy->hide_material[beams->mat[i]] )
-                 continue;
-
-            if ( activity && activity[i] == 0.0 )
-                continue;
-
-            beam_cnt++;
-
-            node_nums[ beams->nodes[0][i] ] = 1;
-            node_nums[ beams->nodes[1][i] ] = 1;
-        }
-    }
+    mark_class_nodes( analy, p_mesh, superclasses, node_nums );
 
     /*
      * Count the nodes.
      */
-    for ( node_cnt = 0, i = 0; i < nodes->cnt; i++ )
+    for ( node_cnt = 0, i = 0; i < node_qty; i++ )
     {
         if ( node_nums[i] == 1 )
             node_cnt++;
@@ -1004,9 +1687,9 @@ Analysis *analy;
     /*
      * Output the nodes.
      */
-    fprintf( outfile, "NODES %d\n", node_cnt*num_instances );
+    fprintf( outfile, "NODES %d\n", node_cnt * num_instances );
 
-    for ( i = 0, cnt = 0; i < nodes->cnt; i++ )
+    for ( i = 0, cnt = 0; i < node_qty; i++ )
     {
         if ( node_nums[i] == 1 )
         {
@@ -1015,15 +1698,15 @@ Analysis *analy;
                 /* Scale the node displacements. */
                 for ( j = 0; j < 3; j++ )
                 {
-                    orig = onodes->xyz[j][i];
+                    orig = onodes[i][j];
                     vert[j] = orig + analy->displace_scale[j]*
-                                  (nodes->xyz[j][i] - orig);
+                                  (nodes[i][j] - orig);
                 }
             }
             else
             {
                 for ( j = 0; j < 3; j++ )
-                    vert[j] = nodes->xyz[j][i];
+                    vert[j] = nodes[i][j];
             }
 
             output_hid_vertex( vert, num_instances, outfile, analy );
@@ -1034,93 +1717,254 @@ Analysis *analy;
     }
 
     /*
-     * Output brick faces.
+     * Output hex faces.
      */
-    fprintf( outfile, "ONE_SIDED_POLYS %d\n", face_cnt*num_instances );
+    
+    quad_shared = analy->shared_faces
+                  && p_mesh->classes_by_sclass[G_QUAD].qty != 0;
 
-    if ( bricks != NULL )
+    fprintf( outfile, "ONE_SIDED_POLYS %d\n", 
+             superclasses[G_HEX] * num_instances );
+
+    if ( p_mesh->classes_by_sclass[G_HEX].qty != 0 )
     {
-        for ( i = 0; i < face_cnt; i++ )
+        mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_HEX].list;
+        class_qty = p_mesh->classes_by_sclass[G_HEX].qty;
+        
+        for ( i = 0; i < class_qty; i++ )
         {
-            el = analy->face_el[i];
-            fc = analy->face_fc[i];
-
-            /*
-             * Remove faces that are shared with shell elements, so
-             * the polygons are not drawn twice.
-             */
-            if ( analy->shared_faces && analy->geom_p->shells != NULL &&
-                 face_matches_shell( el, fc, analy ) )
-                continue;
-
-            for ( j = 0; j < 4; j++ )
+            p_class = mo_classes[i];
+            connects8 = (int (*)[8]) p_class->objects.elems->nodes;
+            p_vd = p_class->p_vis_data;
+            face_cnt = p_vd->face_cnt;
+            face_el = p_vd->face_el;
+            face_fc = p_vd->face_fc;
+            
+            for ( j = 0; j < face_cnt; j++ )
             {
-                nd = bricks->nodes[ fc_nd_nums[fc][j] ][el];
-                vert_idx[j] = node_nums[nd];
-            }
+                el = face_el[j];
+                fc = face_fc[j];
 
-            output_hid_face( vert_idx, num_instances,
-                             reverse_order, outfile );
+                /*
+                 * Remove faces that are shared with quad elements, so
+                 * the polygons are not drawn twice.
+                 */
+                if ( quad_shared && face_matches_quad( el, fc, p_class, p_mesh, 
+                                                       analy ) )
+                    continue;
+
+                for ( k = 0; k < 4; k++ )
+                {
+                    nd = connects8[el][ fc_nd_nums[fc][k] ];
+                    vert_idx[k] = node_nums[nd];
+                }
+
+                output_hid_face( vert_idx, num_instances, reverse_order, 
+                                 TRUE, outfile );
+            }
         }
     }
 
     /*
-     * Output shell faces.
+     * Output tet faces.
      */
-    fprintf( outfile, "TWO_SIDED_POLYS %d\n", shell_cnt*num_instances );
 
-    if ( shells != NULL )
+/**/
+/* Need to add this capability to hidden program.  Should change above
+ * key to ONE_SIDED_QUADS.
+ */
+    
+    tri_shared = analy->shared_faces
+                 && p_mesh->classes_by_sclass[G_TRI].qty != 0;
+
+    fprintf( outfile, "ONE_SIDED_TRIANGLES %d\n", 
+             superclasses[G_TET] * num_instances );
+
+    if ( p_mesh->classes_by_sclass[G_TET].qty != 0 )
     {
-        activity = analy->state_p->activity_present ?
-                   analy->state_p->shells->activity : NULL;
-
-        for ( i = 0; i < shells->cnt; i++ )
+        mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TET].list;
+        class_qty = p_mesh->classes_by_sclass[G_TET].qty;
+        
+        for ( i = 0; i < class_qty; i++ )
         {
-            /* Check for inactive elements. */
-            if ( activity && activity[i] == 0.0 )
-                continue;
-
-            /* Skip if this material is invisible. */
-            if ( analy->hide_material[shells->mat[i]] )
-                 continue;
-
-            for ( j = 0; j < 4; j++ )
+            p_class = mo_classes[i];
+            connects4 = (int (*)[4]) p_class->objects.elems->nodes;
+            p_vd = p_class->p_vis_data;
+            face_cnt = p_vd->face_cnt;
+            face_el = p_vd->face_el;
+            face_fc = p_vd->face_fc;
+            
+            for ( j = 0; j < face_cnt; j++ )
             {
-                nd = shells->nodes[j][i];
-                vert_idx[j] = node_nums[nd];
-            }
+                el = face_el[j];
+                fc = face_fc[j];
 
-            output_hid_face( vert_idx, num_instances, reverse_order, outfile );
+                /*
+                 * Remove faces that are shared with tri elements, so
+                 * the polygons are not drawn twice.
+                 */
+                if ( tri_shared && face_matches_tri( el, fc, p_class, p_mesh, 
+                                                     analy ) )
+                    continue;
+
+                for ( k = 0; k < 3; k++ )
+                {
+                    nd = connects4[el][ tet_fc_nd_nums[fc][k] ];
+                    vert_idx[k] = node_nums[nd];
+                }
+
+                output_hid_face( vert_idx, num_instances, reverse_order, 
+                                 FALSE, outfile );
+            }
         }
     }
 
     /*
-     * Output beams.
+     * Output quad elements.
      */
-    fprintf( outfile, "LINES %d\n", beam_cnt*num_instances );
+    fprintf( outfile, "TWO_SIDED_POLYS %d\n", 
+             superclasses[G_QUAD] * num_instances );
 
-    if ( beams != NULL )
+    if ( p_mesh->classes_by_sclass[G_QUAD].qty != 0 )
     {
-        activity = analy->state_p->activity_present ?
-                   analy->state_p->beams->activity : NULL;
-
-        for ( i = 0; i < beams->cnt; i++ )
+        mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
+        class_qty = p_mesh->classes_by_sclass[G_QUAD].qty;
+        
+        for ( i = 0; i < class_qty; i++ )
         {
-            /* Check for inactive elements. */
-            if ( activity && activity[i] == 0.0 )
-                continue;
-
-            /* Skip if this material is invisible. */
-            if ( analy->hide_material[beams->mat[i]] )
-                 continue;
-
-            for ( j = 0; j < 2; j++ )
+            p_class = mo_classes[i];
+            connects4 = (int (*)[4]) p_class->objects.elems->nodes;
+            elem_qty = p_class->qty;
+            mat = p_class->objects.elems->mat;
+            activity = analy->state_p->sand_present
+                ? analy->state_p->elem_class_sand[p_class->elem_class_index]
+                : NULL;
+        
+            for ( j = 0; j < elem_qty; j++ )
             {
-                nd = beams->nodes[j][i];
-                vert_idx[j] = node_nums[nd];
-            }
+                /* Skip if invisible material or element inactive. */
+                if ( hide_material[mat[j]]
+                     || ( activity && activity[j] ) 
+                     ||   hide_by_object_type( BRICK_T, mat[j], j, analy, NULL ) )
+                    continue;
 
-            output_hid_beam( vert_idx, num_instances, outfile );
+                for ( k = 0; k < 4; k++ )
+                    vert_idx[k] = node_nums[ connects4[j][k] ];
+
+                output_hid_face( vert_idx, num_instances, reverse_order, TRUE,
+                                 outfile );
+            }
+        }
+    }
+
+/**/
+/* Need to add this capability to hidden program.  Should change above
+ * key to TWO_SIDED_QUADS.
+ */
+
+    /*
+     * Output tri elements.
+     */
+    fprintf( outfile, "TWO_SIDED_TRIANGLES %d\n", 
+             superclasses[G_TRI] * num_instances );
+
+    if ( p_mesh->classes_by_sclass[G_TRI].qty != 0 )
+    {
+        mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRI].list;
+        class_qty = p_mesh->classes_by_sclass[G_TRI].qty;
+        
+        for ( i = 0; i < class_qty; i++ )
+        {
+            p_class = mo_classes[i];
+            connects3 = (int (*)[3]) p_class->objects.elems->nodes;
+            elem_qty = p_class->qty;
+            mat = p_class->objects.elems->mat;
+            activity = analy->state_p->sand_present
+                ? analy->state_p->elem_class_sand[p_class->elem_class_index]
+                : NULL;
+        
+            for ( j = 0; j < elem_qty; j++ )
+            {
+                /* Skip if invisible material or element inactive. */
+                if ( hide_material[mat[j]]
+                     || ( activity && activity[j] ) 
+                     || hide_by_object_type( BRICK_T, mat[j], j, analy, NULL ) )
+                    continue;
+
+                for ( k = 0; k < 3; k++ )
+                    vert_idx[k] = node_nums[ connects3[j][k] ];
+
+                output_hid_face( vert_idx, num_instances, reverse_order, FALSE,
+                                 outfile );
+            }
+        }
+    }
+
+    /*
+     * Output beams and trusses.
+     */
+    fprintf( outfile, "LINES %d\n", 
+             (superclasses[G_BEAM] + superclasses[G_TRUSS]) * num_instances );
+
+    if ( p_mesh->classes_by_sclass[G_BEAM].qty != 0 )
+    {
+        mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
+        class_qty = p_mesh->classes_by_sclass[G_BEAM].qty;
+        
+        for ( i = 0; i < class_qty; i++ )
+        {
+            p_class = mo_classes[i];
+            connects3 = (int (*)[3]) p_class->objects.elems->nodes;
+            elem_qty = p_class->qty;
+            mat = p_class->objects.elems->mat;
+            activity = analy->state_p->sand_present
+                ? analy->state_p->elem_class_sand[p_class->elem_class_index]
+                : NULL;
+        
+            for ( j = 0; j < elem_qty; j++ )
+            {
+                /* Skip if invisible material or element inactive. */
+                if ( hide_material[mat[j]]
+                     || ( activity && activity[j] ) 
+                     ||   hide_by_object_type( BRICK_T, mat[j], j, analy, NULL ) )
+                    continue;
+
+                vert_idx[0] = node_nums[ connects3[j][0] ];
+                vert_idx[1] = node_nums[ connects3[j][1] ];
+
+                output_hid_beam( vert_idx, num_instances, outfile );
+            }
+        }
+    }
+
+    if ( p_mesh->classes_by_sclass[G_TRUSS].qty != 0 )
+    {
+        mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRUSS].list;
+        class_qty = p_mesh->classes_by_sclass[G_TRUSS].qty;
+        
+        for ( i = 0; i < class_qty; i++ )
+        {
+            p_class = mo_classes[i];
+            connects2 = (int (*)[2]) p_class->objects.elems->nodes;
+            elem_qty = p_class->qty;
+            mat = p_class->objects.elems->mat;
+            activity = analy->state_p->sand_present
+                ? analy->state_p->elem_class_sand[p_class->elem_class_index]
+                : NULL;
+        
+            for ( j = 0; j < elem_qty; j++ )
+            {
+                /* Skip if invisible material or element inactive. */
+                if ( hide_material[mat[j]]
+                     || ( activity && activity[j] )
+                     ||   hide_by_object_type( BRICK_T, mat[j], j, analy, NULL ) )
+                    continue;
+
+                vert_idx[0] = node_nums[ connects2[j][0] ];
+                vert_idx[1] = node_nums[ connects2[j][1] ];
+
+                output_hid_beam( vert_idx, num_instances, outfile );
+            }
         }
     }
 
@@ -1139,11 +1983,8 @@ Analysis *analy;
  * any reflections required by reflection planes.
  */
 static void
-output_hid_vertex( nd_pos, num_instances, outfile, analy )
-float nd_pos[3];
-int num_instances;
-FILE *outfile;
-Analysis *analy;
+output_hid_vertex( float nd_pos[3], int num_instances, FILE *outfile, 
+                   Analysis *analy )
 {
     Refl_plane_obj *plane;
     float inst_pos[64][3];
@@ -1192,29 +2033,42 @@ Analysis *analy;
  * any reflections required by reflection planes.
  */
 static void
-output_hid_face( vert_nums, num_instances, reverse_order, outfile )
-int vert_nums[4];
-int num_instances;
-Bool_type *reverse_order;
-FILE *outfile;
+output_hid_face( int vert_nums[4], int num_instances, Bool_type *reverse_order, 
+                 Bool_type quad_flag, FILE *outfile )
 {
     int i;
 
     /* Output the original face. */
-    fprintf( outfile, "f %d %d %d %d\n",
-             vert_nums[0], vert_nums[1], vert_nums[2], vert_nums[3] );
+    if ( quad_flag )
+        fprintf( outfile, "f %d %d %d %d\n",
+                 vert_nums[0], vert_nums[1], vert_nums[2], vert_nums[3] );
+    else
+        fprintf( outfile, "f %d %d %d\n",
+                 vert_nums[0], vert_nums[1], vert_nums[2] );
 
     /* We need to reverse node ordering for each reflection. */
     for ( i = 1; i < num_instances; i++ )
     {
-        if ( reverse_order[i] )
-            fprintf( outfile, "f %d %d %d %d\n",
-                     vert_nums[3]+i, vert_nums[2]+i,
-                     vert_nums[1]+i, vert_nums[0]+i );
+        if ( quad_flag )
+        {
+            if ( reverse_order[i] )
+                fprintf( outfile, "f %d %d %d %d\n",
+                         vert_nums[3]+i, vert_nums[2]+i,
+                         vert_nums[1]+i, vert_nums[0]+i );
+            else
+                fprintf( outfile, "f %d %d %d %d\n",
+                         vert_nums[0]+i, vert_nums[1]+i,
+                         vert_nums[2]+i, vert_nums[3]+i );
+        }
         else
-            fprintf( outfile, "f %d %d %d %d\n",
-                     vert_nums[0]+i, vert_nums[1]+i,
-                     vert_nums[2]+i, vert_nums[3]+i );
+        {
+            if ( reverse_order[i] )
+                fprintf( outfile, "f %d %d %d\n",
+                         vert_nums[2]+i, vert_nums[1]+i, vert_nums[0]+i );
+            else
+                fprintf( outfile, "f %d %d %d\n",
+                         vert_nums[0]+i, vert_nums[1]+i, vert_nums[2]+i );
+        }
     }
 }
 
@@ -1226,10 +2080,7 @@ FILE *outfile;
  * any reflections required by reflection planes.
  */
 static void
-output_hid_beam( vert_nums, num_instances, outfile )
-int vert_nums[4];
-int num_instances;
-FILE *outfile;
+output_hid_beam( int vert_nums[4], int num_instances, FILE *outfile )
 {
     int i;
 
@@ -1242,6 +2093,196 @@ FILE *outfile;
 }
 
 
+/************************************************************
+ * TAG( mark_class_nodes )
+ *
+ * Traverse element classes selected by their superclass and mark
+ * all nodes touched by visible elements in the classes.  The count 
+ * of elements/faces generating touched nodes per superclass is 
+ * passed back in array superclasses.
+ */
+static void
+mark_class_nodes( Analysis *analy, Mesh_data *p_mesh, 
+                  int superclasses[QTY_SCLASS], int *node_nums )
+{
+    int i, j, k, l, el, fc, nd;
+    int obj_qty, class_qty, obj_cnt;
+    MO_class_data **p_mo_classes;
+    MO_class_data *p_class;
+    int (*connects8)[8];
+    int (*connects4)[4];
+    int (*connects3)[3];
+    int (*connects2)[2];
+    int *face_el, *face_fc;
+    Visibility_data *p_vd;
+    int *mat; 
+    unsigned char *hide_mtl;
+    State2 *p_state;
+    float **class_activ;
+    float *activ;
+
+    hide_mtl = p_mesh->hide_material;
+    p_state = analy->state_p;
+    class_activ = p_state->elem_class_sand;
+    
+    for ( i = 0; i < QTY_SCLASS; i++ )
+    {
+        if ( superclasses[i] != 1 )
+            continue;
+        
+        class_qty = p_mesh->classes_by_sclass[i].qty;
+        p_mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[i].list;
+        
+        obj_cnt = 0;
+        
+        for ( j = 0; j < class_qty; j++ )
+        {
+            switch ( i )
+            {
+                case G_TRUSS:
+                    p_class = p_mo_classes[j];
+                    activ = p_state->sand_present
+                            ? class_activ[p_class->elem_class_index] : NULL;
+                    connects2 = (int (*)[2]) p_class->objects.elems->nodes;
+                    mat = p_class->objects.elems->mat;
+                    obj_qty = p_class->qty;
+                    
+                    for ( k = 0; k < obj_qty; k++ )
+                    {
+                        /* Skip if invisible material or element deleted. */
+                        if ( hide_mtl[mat[k]]
+                             || ( activ && activ[k] == 0.0 )
+                             ||   hide_by_object_type( BRICK_T, mat[k], k, analy, NULL ) )
+                            continue;
+                        
+                        obj_cnt++;
+
+                        node_nums[ connects2[k][0] ] = 1;
+                        node_nums[ connects2[k][1] ] = 1;
+                    }
+                    break;
+                    
+                case G_BEAM:
+                    p_class = p_mo_classes[j];
+                    activ = p_state->sand_present
+                            ? class_activ[p_class->elem_class_index] : NULL;
+                    connects3 = (int (*)[3]) p_class->objects.elems->nodes;
+                    mat = p_class->objects.elems->mat;
+                    obj_qty = p_class->qty;
+                    
+                    for ( k = 0; k < obj_qty; k++ )
+                    {
+                        /* Skip if invisible material or element deleted. */
+                        if ( hide_mtl[mat[k]]
+                             || ( activ && activ[k] == 0.0 ) 
+                             ||   hide_by_object_type( BRICK_T, mat[k], k, analy, NULL ))
+                            continue;
+                        
+                        obj_cnt++;
+
+                        node_nums[ connects3[k][0] ] = 1;
+                        node_nums[ connects3[k][1] ] = 1;
+                    }
+                    break;
+                    
+                case G_TRI:
+                    p_class = p_mo_classes[j];
+                    activ = p_state->sand_present
+                            ? class_activ[p_class->elem_class_index] : NULL;
+                    connects3 = (int (*)[3]) p_class->objects.elems->nodes;
+                    mat = p_class->objects.elems->mat;
+                    obj_qty = p_class->qty;
+                    
+                    for ( k = 0; k < obj_qty; k++ )
+                    {
+                        /* Skip if invisible material or element deleted. */
+                        if ( hide_mtl[mat[k]]
+                             || ( activ && activ[k] == 0.0 ) 
+                             ||   hide_by_object_type( BRICK_T, mat[k], k, analy, NULL ) )
+                            continue;
+                        
+                        obj_cnt++;
+
+                        for ( l = 0; l < 3; l++ )
+                            node_nums[ connects3[k][l] ] = 1;
+                    }
+                    break;
+                    
+                case G_QUAD:
+                    p_class = p_mo_classes[j];
+                    activ = p_state->sand_present
+                            ? class_activ[p_class->elem_class_index] : NULL;
+                    connects4 = (int (*)[4]) p_class->objects.elems->nodes;
+                    mat = p_class->objects.elems->mat;
+                    obj_qty = p_class->qty;
+                    
+                    for ( k = 0; k < obj_qty; k++ )
+                    {
+                        /* Skip if invisible material or element deleted. */
+                        if ( hide_mtl[mat[k]]
+                             || ( activ && activ[k] == 0.0 )
+                             ||   hide_by_object_type( BRICK_T, mat[k], k, analy, NULL ) )
+                            continue;
+                        
+                        obj_cnt++;
+
+                        for ( l = 0; l < 4; l++ )
+                            node_nums[ connects4[k][l] ] = 1;
+                    }
+                    break;
+                    
+                case G_TET:
+                    p_class = p_mo_classes[j];
+                    connects4 = (int (*)[4]) p_class->objects.elems->nodes;
+                    p_vd = p_class->p_vis_data;
+                    obj_qty = p_vd->face_cnt;
+                    obj_cnt += obj_qty;
+                    face_el = p_vd->face_el;
+                    face_fc = p_vd->face_fc;
+                    
+                    for ( k = 0; k < obj_qty; k++ )
+                    {
+                        el = face_el[k];
+                        fc = face_fc[k];
+
+                        for ( l = 0; l < 3; l++ )
+                        {
+                            nd = connects4[el][ tet_fc_nd_nums[fc][l] ];
+                            node_nums[nd] = 1;
+                        }
+                    }
+                    break;
+                    
+                case G_HEX:
+                    p_class = p_mo_classes[j];
+                    connects8 = (int (*)[8]) p_class->objects.elems->nodes;
+                    p_vd = p_class->p_vis_data;
+                    obj_qty = p_vd->face_cnt;
+                    obj_cnt += obj_qty;
+                    face_el = p_vd->face_el;
+                    face_fc = p_vd->face_fc;
+                    
+                    for ( k = 0; k < obj_qty; k++ )
+                    {
+                        el = face_el[k];
+                        fc = face_fc[k];
+
+                        for ( l = 0; l < 4; l++ )
+                        {
+                            nd = connects8[el][ fc_nd_nums[fc][l] ];
+                            node_nums[nd] = 1;
+                        }
+                    }
+                    break;
+            }
+        }
+        
+        superclasses[i] = obj_cnt;
+    }
+}
+
+
+#ifdef OLD_BECKER_VV
 /* Barry Becker's volume visualization output routines. */
 
 
@@ -1252,9 +2293,7 @@ FILE *outfile;
  * volume visualization code.
  */
 void
-write_vv_connectivity_file( fname, analy )
-char *fname;
-Analysis *analy;
+write_vv_connectivity_file( char *fname, Analysis *analy )
 {
     FILE *outfile;
     Hex_geom *bricks;
@@ -1268,7 +2307,7 @@ Analysis *analy;
 
     if ( ( outfile = fopen(fname, "wb") ) == NULL )
     {
-        wrt_text( "Couldn't open file %s.\n", fname );
+        popup_dialog( INFO_POPUP, "Unable to open file %s", fname );
         return;
     }
 
@@ -1321,9 +2360,7 @@ Analysis *analy;
  * a file for use in Barry Becker's volume visualization code.
  */
 void
-write_vv_state_file( fname, analy )
-char *fname;
-Analysis *analy;
+write_vv_state_file( char *fname, Analysis *analy )
 {
     FILE *outfile;
     Nodal *nodes;
@@ -1336,7 +2373,7 @@ Analysis *analy;
 
     if ( ( outfile = fopen(fname, "wb") ) == NULL )
     {
-        wrt_text( "Couldn't open file %s.\n", fname );
+        popup_dialog( INFO_POPUP, "Unable to open file %s", fname );
         return;
     }
 
@@ -1385,5 +2422,6 @@ get_result( VAL_NODE_VELZ, analy->cur_state, analy->tmp_result[2] );
 
     fclose( outfile );
 }
+#endif
 
 

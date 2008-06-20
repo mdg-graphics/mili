@@ -61,12 +61,16 @@
 #define VEC_COPY(B, A)     { (B)[0] = (A)[0]; \
                              (B)[1] = (A)[1]; \
                              (B)[2] = (A)[2]; }
+#define VEC_COPY_2D(B, A)  { (B)[0] = (A)[0]; \
+                             (B)[1] = (A)[1]; }
 #define VEC_NEGATE(A)      { (A)[0] = -(A)[0]; \
                              (A)[1] = -(A)[1]; \
                              (A)[2] = -(A)[2]; }
 #define VEC_ADD(C, A, B)   { (C)[0] = (A)[0] + (B)[0]; \
                              (C)[1] = (A)[1] + (B)[1]; \
                              (C)[2] = (A)[2] + (B)[2]; }
+#define VEC_ADD_2D(C, A, B) { (C)[0] = (A)[0] + (B)[0]; \
+                              (C)[1] = (A)[1] + (B)[1]; }
 #define VEC_SUB(C, A, B)   { (C)[0] = (A)[0] - (B)[0]; \
                              (C)[1] = (A)[1] - (B)[1]; \
                              (C)[2] = (A)[2] - (B)[2]; }
@@ -78,12 +82,12 @@
 #define VEC_CROSS(C, A, B)   { (C)[0] = (A)[1]*(B)[2] - (A)[2]*(B)[1]; \
                                (C)[1] = (A)[2]*(B)[0] - (A)[0]*(B)[2]; \
                                (C)[2] = (A)[0]*(B)[1] - (A)[1]*(B)[0]; }
-#define VEC_ADDS(C, a, A, B)	 { (C)[0] = (a)*(A)[0] + (B)[0]; \
-				   (C)[1] = (a)*(A)[1] + (B)[1]; \
-				   (C)[2] = (a)*(A)[2] + (B)[2]; }
-#define VEC_AVER(C, a, A, b, B)	 { (C)[0] = (a)*(A)[0] + (b)*(B)[0]; \
-				   (C)[1] = (a)*(A)[1] + (b)*(B)[1]; \
-			 	   (C)[2] = (a)*(A)[2] + (b)*(B)[2]; }
+#define VEC_ADDS(C, a, A, B)     { (C)[0] = (a)*(A)[0] + (B)[0]; \
+                                   (C)[1] = (a)*(A)[1] + (B)[1]; \
+                                   (C)[2] = (a)*(A)[2] + (B)[2]; }
+#define VEC_AVER(C, a, A, b, B)  { (C)[0] = (a)*(A)[0] + (b)*(B)[0]; \
+                                   (C)[1] = (a)*(A)[1] + (b)*(B)[1]; \
+                                   (C)[2] = (a)*(A)[2] + (b)*(B)[2]; }
 
 
 /*****************************************************************
@@ -92,9 +96,9 @@
  * Linear interpolation between two points.  Notice that t = 0
  * gives point A and t = 1 gives point B.
  */
-#define L_INTERP(C, t, A, B)	 { (C)[0] = (1.0-(t))*(A)[0] + (t)*(B)[0]; \
-				   (C)[1] = (1.0-(t))*(A)[1] + (t)*(B)[1]; \
-			 	   (C)[2] = (1.0-(t))*(A)[2] + (t)*(B)[2]; }
+#define L_INTERP(C, t, A, B)     { (C)[0] = (1.0-(t))*(A)[0] + (t)*(B)[0]; \
+                                   (C)[1] = (1.0-(t))*(A)[1] + (t)*(B)[1]; \
+                                   (C)[2] = (1.0-(t))*(A)[2] + (t)*(B)[2]; }
 
 
 /*****************************************************************
@@ -102,7 +106,7 @@
  *
  * Normalize a vector.
  */
-extern void vec_norm( /* Vector */ );
+extern void vec_norm( float * );
 
 
 /*****************************************************************
@@ -111,7 +115,7 @@ extern void vec_norm( /* Vector */ );
  * Compute a normal vector to a plane from three points in the
  * plane.  norm = cross( P3 - P2, P1 - P2 ).
  */
-extern void norm_three_pts( /* norm, pt1, pt2, pt3 */ );
+extern void norm_three_pts( float [3], float [3], float [3], float [3] );
 
 
 /*****************************************************************
@@ -122,7 +126,7 @@ extern void norm_three_pts( /* norm, pt1, pt2, pt3 */ );
  * specified by a point and a direction vector.
  */
 extern float
-sqr_dist_seg_to_line( /* seg_pt1, seg_pt2, line_pt, line_dir */ );
+sqr_dist_seg_to_line( float [3], float [3], float [3], float [3] );
 
 
 /*****************************************************************
@@ -132,7 +136,7 @@ sqr_dist_seg_to_line( /* seg_pt1, seg_pt2, line_pt, line_dir */ );
  * The line is specified by a point on the line and a direction
  * vector.  The result is returned in near_pt.
  */
-extern void near_pt_on_line( /* pt, line_pt, line_dir, near_pt */ );
+extern void near_pt_on_line( float [3], float [3], float [3], float [3] );
 
 /*****************************************************************
  * TAG( intersect_line_plane )
@@ -142,7 +146,7 @@ extern void near_pt_on_line( /* pt, line_pt, line_dir, near_pt */ );
  * returned in the last argument.
  */
 extern int
-intersect_line_plane( /* line_pt, line_dir, pl_pt, pl_norm, isect_pt */ );
+intersect_line_plane( float [3], float [3], float [3], float [3], float [3] );
 
 
 /*****************************************************************
@@ -152,7 +156,7 @@ intersect_line_plane( /* line_pt, line_dir, pl_pt, pl_norm, isect_pt */ );
  * 1 if the line intersects and 0 if not.  The intersection point
  * is returned in the last parameter.
  */
-extern int intersect_ray_tri( /* verts, line_pt, line_dir, isect_pt */ );
+extern int intersect_line_tri( float [3][3], float [3], float [3], float [3] );
 
 
 /*****************************************************************
@@ -162,7 +166,7 @@ extern int intersect_ray_tri( /* verts, line_pt, line_dir, isect_pt */ );
  * 1 if the line intersects and 0 if not.  The intersection point
  * is returned in the last parameter.
  */
-extern int intersect_line_quad( /* verts, line_pt, line_dir, isect_pt */ );
+extern int intersect_line_quad( float [4][3], float [3], float [3], float [3] );
 
 
 /*****************************************************************
@@ -170,7 +174,7 @@ extern int intersect_line_quad( /* verts, line_pt, line_dir, isect_pt */ );
  *
  * Returns the area of a triangular polygon.
  */
-extern float area_of_triangle( /* verts */ );
+extern float area_of_triangle( float [3][3] );
 
 
 /*****************************************************************
@@ -178,7 +182,7 @@ extern float area_of_triangle( /* verts */ );
  *
  * Returns the area of a quadrilateral polygon.
  */
-extern float area_of_quad( /* verts */ );
+extern float area_of_quad( float [4][3] );
 
 
 /*
@@ -216,27 +220,31 @@ extern Transf_mat ident_matrix;
  *
  * A = B
  */
-extern void mat_copy( /* A, B */ );
+extern void mat_copy( Transf_mat *, Transf_mat * );
 
 
 /*
  * Function declarations for the functions in geometric.c
  */
-extern Transf_mat  * transf_mat_create(/* Matrix * */);
-extern void          mat_translate(/* Matrix *, float, float, float */);
-extern void          mat_rot(/* Matrix *, float angle, int axis */);
-extern void          mat_rotate_x(/* Matrix *, float */);
-extern void          mat_rotate_y(/* Matrix *, float */);
-extern void          mat_rotate_z(/* Matrix *, float */);
-extern void          mat_rotate(/* Matrix *, Vector, Vector, float */);
-extern void          mat_rotate_axis_vec(/* Matrix *, int, Vector, Bool */);
-extern void          mat_rotate_vec_vec(/* Matrix *, Vector, Vector */);
-extern void          invert_rot_mat(/* Matrix *, Matrix * */);
-extern void          mat_scale(/* Matrix *, float, float, float */);
-extern void          mat_mirror_plane(/* Matrix *, Vector, Vector */);
-extern void          mat_mul(/* Matrix *, Matrix *, Matrix * */);
-extern void          mat_to_angles(/* Matrix *, Vector */);
-extern void          point_transform(/* Vector, Vector, Matrix * */);
-extern void          mat_to_array( /* Matrix *, float * */);
+extern Transf_mat *transf_mat_create( Transf_mat * );
+extern void transf_mat_destruct( Transf_mat * );
+extern void mat_translate( Transf_mat *, float, float, float );
+extern void mat_trans( Transf_mat *, float, float, float );
+extern void mat_rot( Transf_mat *, float, int );
+extern void mat_rotate_x( Transf_mat *, float );
+extern void mat_rotate_y( Transf_mat *, float );
+extern void mat_rotate_z( Transf_mat *, float );
+extern void mat_rotate( Transf_mat *, float *, float *, float );
+extern void mat_rotate_axis_vec( Transf_mat *, int, float *, Bool_type );
+extern void mat_rotate_vec_vec( Transf_mat *, float *, float * );
+extern void invert_rot_mat( Transf_mat *, Transf_mat * );
+extern void mat_scale( Transf_mat *, float, float, float );
+extern void mat_mirror_plane( Transf_mat *, float *, float * );
+extern void mat_mul( Transf_mat *, Transf_mat *, Transf_mat * );
+extern void mat_to_angles( Transf_mat *, float * );
+extern void point_transform( float *, float *, Transf_mat * );
+extern void mat_to_array( Transf_mat *, float [16] );
+extern void plane_three_pts( float [4], float [3], float [3], float [3] );
+extern void line_two_pts( float [3], float [2], float [2] );
 
-#endif GEOMETRIC_H
+#endif

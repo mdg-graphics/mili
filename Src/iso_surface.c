@@ -6,24 +6,62 @@
  *      Lawrence Livermore National Laboratory
  *      Mar 25 1992
  *
- * Copyright (c) 1992 Regents of the University of California
+ * 
+ * This work was produced at the University of California, Lawrence 
+ * Livermore National Laboratory (UC LLNL) under contract no. 
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
+ * (DOE) and The Regents of the University of California (University) 
+ * for the operation of UC LLNL. Copyright is reserved to the University 
+ * for purposes of controlled dissemination, commercialization through 
+ * formal licensing, or other disposition under terms of Contract 48; 
+ * DOE policies, regulations and orders; and U.S. statutes. The rights 
+ * of the Federal Government are reserved under Contract 48 subject to 
+ * the restrictions agreed upon by the DOE and University as allowed 
+ * under DOE Acquisition Letter 97-1.
+ * 
+ * 
+ * DISCLAIMER
+ * 
+ * This work was prepared as an account of work sponsored by an agency 
+ * of the United States Government. Neither the United States Government 
+ * nor the University of California nor any of their employees, makes 
+ * any warranty, express or implied, or assumes any liability or 
+ * responsibility for the accuracy, completeness, or usefulness of any 
+ * information, apparatus, product, or process disclosed, or represents 
+ * that its use would not infringe privately-owned rights.  Reference 
+ * herein to any specific commercial products, process, or service by 
+ * trade name, trademark, manufacturer or otherwise does not necessarily 
+ * constitute or imply its endorsement, recommendation, or favoring by 
+ * the United States Government or the University of California. The 
+ * views and opinions of authors expressed herein do not necessarily 
+ * state or reflect those of the United States Government or the 
+ * University of California, and shall not be used for advertising or 
+ * product endorsement purposes.
+ * 
  */
 
 /*
  * This code is derived from software authored by
  *
- *      Author		 : Brian Cabral
- *      Date created	 : November 17, 1988
- *      Algorithm	 : see "Marching Cubes" 1987 SIGGRAPH proceedings
- *      Copyright	 : Lawrence Livermore National Laboratory (c) 1988
+ *      Author           : Brian Cabral
+ *      Date created     : November 17, 1988
+ *      Algorithm        : see "Marching Cubes" 1987 SIGGRAPH proceedings
+ *      Copyright        : Lawrence Livermore National Laboratory (c) 1988
  */
 
+#include <stdlib.h>
 #include "viewer.h"
 #include "cell_cases.h"
 
-static Bool_type is_degen_triangle();
-static void iso_surface();
-static void fine_cut();
+static Bool_type is_degen_triangle( Triangle_poly *tri );
+static void hex_isosurface( float isoval, Subrec_obj *p_so, 
+                            MO_class_data *p_hex_class, Analysis * analy );
+static void hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
+                          float plane_pt[3], float plane_norm[3] );
+/*
+static void tet_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
+                          float plane_pt[3], float plane_norm[3] );
+*/
 
 
 /*****************************************************************
@@ -33,8 +71,7 @@ static void fine_cut();
  * vertices.)
  */
 static Bool_type
-is_degen_triangle( tri )
-Triangle_poly *tri;
+is_degen_triangle( Triangle_poly *tri )
 {
     int i;
 
@@ -53,70 +90,198 @@ Triangle_poly *tri;
 /*****************************************************************
  * TAG( gen_isosurfs )
  *
- * Generate all isosurfaces.
+ * Generate isosurface for a hex class result.
  */
 void
-gen_isosurfs( analy )
-Analysis *analy;
+gen_isosurfs( Analysis *analy )
 {
     float iso_val, diff, base;
-    int i;
+    int i, j, k, l, c_qty;
+    Result *p_result;
+    int subrec_id, sclass;
+    Subrec_obj *p_so;
+    Mesh_data *p_mesh;
+    MO_class_data **p_mo_classes;
+    void (*iso_funcs[])( float, Subrec_obj *, MO_class_data *, Analysis * ) = 
+    {
+        NULL,       /* G_UNIT */
+        NULL,       /* G_NODE */
+        NULL,       /* G_TRUSS */
+        NULL,       /* G_BEAM */
+        NULL,       /* G_TRI */
+        NULL,       /* G_QUAD */
+        NULL,       /* tet_isosurface */
+        NULL,       /* G_PYRAMID */
+        NULL,       /* G_WEDGE */
+        hex_isosurface,
+        NULL,       /* G_MAT */
+        NULL,       /* G_MESH */
+        NULL,       /* G_SURFACE */
+    };
+    
+    p_result = analy->cur_result;
+    if ( p_result == NULL )
+        return;
  
     DELETE_LIST( analy->isosurf_poly );
 
-    if ( analy->geom_p->bricks != NULL && analy->show_hex_result &&
-         analy->show_isosurfs && analy->contour_cnt > 0 )
+    if ( analy->show_isosurfs 
+         && analy->contour_cnt > 0 
+         && ( p_result->origin.is_node_result 
+              || p_result->origin.is_elem_result ) )
     {
         check_interp_mode( analy );
-	
+        
+        p_mesh = MESH_P( analy );
+        
         /* Convert from percentages to actual contour values. */
         diff = analy->result_mm[1] - analy->result_mm[0];
         base = analy->result_mm[0];
+
         for ( i = 0; i < analy->contour_cnt; i++ )
         {
             iso_val = diff*analy->contour_vals[i] + base;
-            iso_surface( iso_val, analy );
+            
+            /*
+             * Take a peek at the first superclass to see if it's a
+             * nodal result.  If it is, there's no point in looping
+             * over the supporting subrecords as we just want to go
+             * ahead and hit all volume element classes once.
+             */
+
+            sclass = p_result->superclasses[0];
+            
+            if ( sclass == G_NODE )
+            {
+                /*
+                 * Generate isosurfaces from nodal data on all volume
+                 * element classes.
+                 *
+                 * This could lead to problems if a database has nodal
+                 * classes which don't bind all nodes referenced by the
+                 * volume element classes in the mesh.
+                 */
+                for ( k = 0; k < QTY_SCLASS; k++ )
+                {
+                    if ( iso_funcs[k] != NULL )
+                    {
+                        c_qty = p_mesh->classes_by_sclass[k].qty;
+                        p_mo_classes = (MO_class_data **) 
+                                       p_mesh->classes_by_sclass[k].list;
+                        
+                        for ( l = 0; l < c_qty; l++ )
+                            iso_funcs[k]( iso_val, NULL, p_mo_classes[l], 
+                                          analy );
+                    }
+                }
+            }
+            else
+            {
+                for ( j = 0; j < p_result->qty; j++ )
+                {
+                    sclass = p_result->superclasses[j];
+
+                    if ( iso_funcs[sclass] == NULL )
+                        continue;
+
+                    subrec_id = p_result->subrecs[j];
+                    
+                    if ( p_result->indirect_flags[j] )
+                    {
+                        /* 
+                         * For indirect results, generate isosurfaces on all
+                         * classes with correct superclass.
+                         */
+                        c_qty = p_mesh->classes_by_sclass[sclass].qty;
+                        p_mo_classes = (MO_class_data **) 
+                                       p_mesh->classes_by_sclass[sclass].list;
+                        
+                        for ( k = 0; k < c_qty; k++ )
+                            iso_funcs[sclass]( iso_val, NULL, p_mo_classes[k],
+                                               analy );
+                    }
+                    else
+                    {
+                        /*
+                         * For direct results, generate isosurfaces
+                         * on volumetric elements bound to the j'th 
+                         * supporting subrecord. 
+                         */
+                        p_so = analy->srec_tree[p_result->srec_id].subrecs 
+                               + subrec_id;
+                        iso_funcs[sclass]( iso_val, p_so, 
+                                           p_so->p_object_class, analy );
+                    }
+                }
+            }
         }
     }
 }
 
 
 /*****************************************************************
- * TAG( iso_surface )
+ * TAG( hex_isosurface )
  *
  * Generate triangles approximating the isosurface for the given
  * isovalue and the currently displayed variable.
  */
-static void
-iso_surface( isoval, analy )
-float isoval;
-Analysis *analy;
+static void 
+hex_isosurface( float isoval, Subrec_obj *p_so, MO_class_data *p_hex_class, 
+                Analysis * analy )
 {
-    Hex_geom *bricks;
-    Nodal *nodes;
     float *activ;
     unsigned char vertex_mask; 
     float v0, v1, v2, v3, v4, v5, v6, v7;
     float interp;
     float xyz[8][3];
+    float *data_buffer;
     Triangle_poly *tri;
     int fcnt;
     int isocnt, el, fc, nd;
     int i, j, k, t, v;
+    int (*connects)[8];
+    GVec3D *coords;
+    int hex_qty;
+    Result *p_result;
+    int hex_id;
+    Visibility_data *p_vd;
+    int *object_ids;
+    
+    p_result = analy->cur_result;
+    if ( p_result == NULL )
+        return;
 
-    bricks = analy->geom_p->bricks;
-    nodes = analy->state_p->nodes;
-    activ = analy->state_p->activity_present ?
-            analy->state_p->bricks->activity : NULL;
+    if ( p_so == NULL )
+    {
+        /* No subrec specified, so render over entire class. */
+        hex_qty = p_hex_class->qty;
+        object_ids = NULL;
+    }
+    else
+    {
+        /* Subrec is specified, so only render over its bound elements. */
+        hex_qty = p_so->subrec.qty_objects;
+        object_ids = p_so->object_ids;
+    }
+
+    connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
+    coords = analy->state_p->nodes.nodes3d;
+    p_vd = p_hex_class->p_vis_data;
+    activ = analy->state_p->sand_present
+            ? analy->state_p->elem_class_sand[p_hex_class->elem_class_index] 
+              : NULL;
+    data_buffer = NODAL_RESULT_BUFFER( analy );
 
     /*
      * Visit each hexahedral element in the data set.  For now we
      * assume the element is not degenerate.
      */
-    for ( i = 0; i < bricks->cnt; i++ )
+    for ( i = 0; i < hex_qty; i++ )
     {
+        hex_id = object_ids ? object_ids[i] : i;
+
         /* Skip inactive elements. */
-        if ( activ && activ[i] == 0.0 )
+        if ( activ && activ[hex_id] == 0.0 )
             continue;
 
         /*
@@ -175,14 +340,14 @@ Analysis *analy;
          *    e2 = v2 - v3     e6 = v6 - v7     e10 = v2 - v6
          *    e3 = v3 - v0     e7 = v7 - v4     e11 = v3 - v7
          */
-        v0 = analy->result[ bricks->nodes[0][i] ];
-        v1 = analy->result[ bricks->nodes[1][i] ];
-        v2 = analy->result[ bricks->nodes[2][i] ];
-        v3 = analy->result[ bricks->nodes[3][i] ];
-        v4 = analy->result[ bricks->nodes[4][i] ];
-        v5 = analy->result[ bricks->nodes[5][i] ];
-        v6 = analy->result[ bricks->nodes[6][i] ];
-        v7 = analy->result[ bricks->nodes[7][i] ];
+        v0 = data_buffer[ connects[hex_id][0] ];
+        v1 = data_buffer[ connects[hex_id][1] ];
+        v2 = data_buffer[ connects[hex_id][2] ];
+        v3 = data_buffer[ connects[hex_id][3] ];
+        v4 = data_buffer[ connects[hex_id][4] ];
+        v5 = data_buffer[ connects[hex_id][5] ];
+        v6 = data_buffer[ connects[hex_id][6] ];
+        v7 = data_buffer[ connects[hex_id][7] ];
 
         if ( v0 <= isoval )
             vertex_mask |= 1;
@@ -204,7 +369,7 @@ Analysis *analy;
         if ( triangle_cases_count[vertex_mask] > 0 )
             for ( j = 0; j < 8; j++ )
                 for ( k = 0; k < 3; k++ )
-                    xyz[j][k] = nodes->xyz[k][ bricks->nodes[j][i] ];
+                    xyz[j][k] = coords[ connects[hex_id][j] ][k];
 
         /*
          * Compute the polygon(s) which approximate the iso-surface in
@@ -403,14 +568,15 @@ Analysis *analy;
             } /* End for v */
 
             /* Handle degenerate elements. */
-            if ( bricks->degen_elems && is_degen_triangle( tri ) )
+            if ( p_hex_class->objects.elems->has_degen 
+                 && is_degen_triangle( tri ) )
             {
                 free( tri );
                 continue;
             }
 
             /* Flag element the triangle came from for use in carpets. */
-            tri->elem = i;
+            tri->elem = hex_id;
 
             /* Assign the vertex values for display. */
             for ( k = 0; k < 3; k++ )
@@ -435,17 +601,17 @@ Analysis *analy;
      * isosurf value.  If so, a piece or all of the external face
      * becomes part of the isosurface.
      */
-    fcnt = analy->face_cnt;
+    fcnt = p_vd->face_cnt;
 
     for ( i = 0; i < fcnt; i++ )
     {
-        el = analy->face_el[i];
-        fc = analy->face_fc[i];
+        el = p_vd->face_el[i];
+        fc = p_vd->face_fc[i];
 
         for ( isocnt = 0, j = 0; j < 4; j++ )
         {
-            nd = bricks->nodes[ fc_nd_nums[fc][j] ][el];
-            if ( analy->result[nd] == isoval )
+            nd = connects[el][ fc_nd_nums[fc][j] ];
+            if ( data_buffer[nd] == isoval )
                 isocnt++; 
         }
 
@@ -457,9 +623,9 @@ Analysis *analy;
                 tri = NEW( Triangle_poly, "Triangle polygon" );
                 for ( j = 0; j < 3; j++ )
                 {
-                    nd = bricks->nodes[ fc_nd_nums[fc][j] ][el];
+                    nd = connects[el][ fc_nd_nums[fc][j] ];
                     for ( k = 0; k < 3; k++ )
-                        tri->vtx[j][k] = nodes->xyz[k][nd];
+                        tri->vtx[j][k] = coords[nd][k];
                     tri->result[j] = isoval;
                 }
                 norm_three_pts( tri->norm, tri->vtx[0],
@@ -474,8 +640,8 @@ Analysis *analy;
                 /* Isocnt = 3, find the first vertex of the triangle. */
                 for ( j = 0; j < 4; j++ )
                 {
-                    nd = bricks->nodes[ fc_nd_nums[fc][j] ][el];
-                    if ( analy->result[nd] != isoval )
+                    nd = connects[el][ fc_nd_nums[fc][j] ];
+                    if ( data_buffer[nd] != isoval )
                         break;
                 }
                 v = j + 1;
@@ -484,16 +650,17 @@ Analysis *analy;
             tri = NEW( Triangle_poly, "Triangle polygon" );
             for ( j = 0; j < 3; j++ )
             {
-                nd = bricks->nodes[ fc_nd_nums[fc][(v+j)%4] ][el];
+                nd = connects[el][ fc_nd_nums[fc][(v+j)%4] ];
                 for ( k = 0; k < 3; k++ )
-                    tri->vtx[(v+j)%4][k] = nodes->xyz[k][nd];
+                    tri->vtx[(v+j)%4][k] = coords[nd][k];
                 tri->result[(v+j)%4] = isoval;
             }
             norm_three_pts( tri->norm, tri->vtx[0],
                             tri->vtx[1], tri->vtx[2] );
 
             /* Handle degenerate elements. */
-            if ( bricks->degen_elems && is_degen_triangle( tri ) )
+            if ( p_hex_class->objects.elems->has_degen 
+                 && is_degen_triangle( tri ) )
                 free( tri );
             else
             {
@@ -510,57 +677,171 @@ Analysis *analy;
  * Generate the fine cut plane facets for all cut planes.
  */
 void
-gen_cuts( analy )
-Analysis *analy;
+gen_cuts( Analysis *analy )
 {
+    int srec_id, mesh_id;
+    Mesh_data *p_mesh;
+    static MO_class_data **mo_classes = NULL;
+    static int class_qty = 0;
+    static int prev_mesh_id = -1;
+    static int prev_db_ident = 0;
     Plane_obj *plane;
- 
-    DELETE_LIST( analy->cut_poly ); 
-
-    if ( analy->geom_p->bricks != NULL && analy->show_cut )
+    int i;
+    int st_num;
+    static Bool_type warn_once = TRUE;
+    Classed_list *p_cl;
+    Triangle_poly *p_tp;
+    
+    for ( p_cl = analy->cut_poly_lists; p_cl != NULL; NEXT( p_cl ) )
     {
-        for ( plane = analy->cut_planes; plane != NULL; plane = plane->next )
-            fine_cut( analy, plane->pt, plane->norm );
+        p_tp = (Triangle_poly *) p_cl->list;
+        DELETE_LIST( p_tp );
     }
+    DELETE_LIST( analy->cut_poly_lists ); 
+
+    if ( analy->show_cut )
+    {
+        
+        /* Get the current state record format and its mesh. */
+        st_num = analy->cur_state + 1;
+        analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &st_num, NULL, 
+                         &srec_id );
+        mesh_id = analy->srec_tree[srec_id].subrecs[0].p_object_class->mesh_id;
+
+        /* Update references to mesh classes if necessary. */
+        if ( analy->db_ident != prev_db_ident || mesh_id != prev_mesh_id )
+        {
+            prev_db_ident = analy->db_ident;
+            prev_mesh_id = mesh_id;
+           
+            p_mesh = analy->mesh_table + mesh_id;
+
+            if ( mo_classes != NULL )
+                free( mo_classes );
+            class_qty = htable_get_data( p_mesh->class_table, 
+                                         (void ***) &mo_classes );
+        }
+        
+        for ( plane = analy->cut_planes; plane != NULL; plane = plane->next )
+        {
+            /* Generate cut planes where volume element types exist in mesh. */
+            for ( i = 0; i < class_qty; i++ )
+            {
+                switch ( mo_classes[i]->superclass )
+                {
+                    case G_HEX:
+                        hex_fine_cut( analy, mo_classes[i], plane->pt, 
+                                      plane->norm );
+                        break;
+                    case G_TET:
+/*
+                        tet_fine_cut( analy, mo_classes[i], plane->pt, 
+                                      plane->norm );
+                        break;
+*/
+                    case G_PYRAMID:
+                    case G_WEDGE:
+                        /* not implemented */
+                        if ( warn_once )
+                        {
+                            popup_dialog( INFO_POPUP, "%s\n%s%s", 
+                                          "Cut planes are not implemented on",
+                                          "tetrahedral, pyramid or wedge ",
+                                          "element types." );
+                            warn_once = FALSE;
+                        }
+                        break;
+                    default:
+                        ;/* Do nothing for non-volumetric mesh object types. */
+                }
+            }   /* for each class in mesh */
+        }   /* for each cut plane */
+    }   /* if show_cut */
 }
 
 
 /*****************************************************************
- * TAG( fine_cut )
+ * TAG( hex_fine_cut )
  *
  * Uses the Marching Cubes algorithm to generate a cutting
  * plane through the mesh.  The result value is displayed
  * on the intersection of the plane and the mesh.
  */
 static void
-fine_cut( analy, plane_pt, plane_norm )
-Analysis *analy;
-float plane_pt[3];
-float plane_norm[3];
+hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
+              float plane_pt[3], float plane_norm[3] )
 {
-    Hex_geom *bricks;
-    Nodal *nodes;
     float *activ;
     unsigned char vertex_mask; 
     float v0, v1, v2, v3, v4, v5, v6, v7;
-    float interp, leng;
+    float interp;
     float xyz[8][3];
     float tmp[3], val;
     float *result;
-    Triangle_poly *tri;
+    Triangle_poly *tri, *p_tp;
     int i, j, k, t, v;
+    int (*connects)[8];
+    GVec3D *coords;
+    int *mats;
+    int hex_qty;
+    Classed_list *p_cl;
+    int matl, mesh_idx;
+    int *p_source_index;
+    Bool_type do_result_interpolation;
+    Mesh_data *p_mesh;
 
-    bricks = analy->geom_p->bricks;
-    nodes = analy->state_p->nodes;
-    result = analy->result;
-    activ = analy->state_p->activity_present ?
-            analy->state_p->bricks->activity : NULL;
+    hex_qty = p_elem_class->qty;
+    connects = (int (*)[8]) p_elem_class->objects.elems->nodes;
+    mats = p_elem_class->objects.elems->mat;
+    coords = analy->state_p->nodes.nodes3d;
+    p_mesh = MESH_P( analy );
+    
+    if ( result_has_superclass( analy->cur_result, G_MAT, analy ) )
+    {
+#ifdef OLD_RES_BUFFERS
+        result = analy->mat_result;
+#endif
+        result = ((MO_class_data **) 
+                  p_mesh->classes_by_sclass[G_MAT].list)[0]->data_buffer;
+        p_source_index = &matl;
+        do_result_interpolation = FALSE;
+    }
+    else if ( result_has_superclass( analy->cur_result, G_MESH, analy ) )
+    {
+#ifdef OLD_RES_BUFFERS
+        result = &analy->mesh_result;
+#endif
+        result = ((MO_class_data **) 
+                  p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
+        mesh_idx = 0;
+        p_source_index = &mesh_idx;
+        do_result_interpolation = FALSE;
+    }
+    else
+    {
+        result = NODAL_RESULT_BUFFER( analy );
+        do_result_interpolation = TRUE;
+    }
+
+    activ = analy->state_p->sand_present
+            ? analy->state_p->elem_class_sand[p_elem_class->elem_class_index] 
+              : NULL;
+    
+    for ( p_cl = analy->cut_poly_lists; p_cl != NULL; NEXT( p_cl ) )
+        if ( p_cl->mo_class == p_elem_class )
+            break;
+    if ( p_cl == NULL )
+    {
+        p_cl = NEW( Classed_list, "New cut class list" );
+        INSERT( p_cl, analy->cut_poly_lists );
+    }
+    p_tp = (Triangle_poly *) p_cl->list;
 
     /*
      * Visit each hexahedral element in the data set.  For now we
      * assume the element is not degenerate.
      */
-    for ( i = 0; i < bricks->cnt; i++ )
+    for ( i = 0; i < hex_qty; i++ )
     {
         /* Skip inactive elements. */
         if ( activ && activ[i] == 0.0 )
@@ -573,7 +854,7 @@ float plane_norm[3];
 
         for ( j = 0; j < 8; j++ )
             for ( k = 0; k < 3; k++ )
-                xyz[j][k] = nodes->xyz[k][ bricks->nodes[j][i] ];
+                xyz[j][k] = coords[ connects[i][j] ][k];
 
         /*
          * Calculate the distance between each node point and the cutting
@@ -620,125 +901,218 @@ float plane_norm[3];
         v6 = v6 < 0.0 ? -v6 : v6;
         v7 = v7 < 0.0 ? -v7 : v7;
 
+        matl = mats[i];
+
+        if ( !do_result_interpolation )
+            val = result[*p_source_index];
+
         /* For each triangle in the triangle list for this case 
          * (i.e. vertex_mask) compute each vertex.
          */
+
         for ( t = 0; t < triangle_cases_count[vertex_mask]; t++ )
         {
             tri = NEW( Triangle_poly, "Triangle polygon" );
             VEC_SET( tri->norm, plane_norm[0], plane_norm[1], plane_norm[2] );
-            tri->mat = bricks->mat[i];
+            tri->mat = matl;
 
             /* Flag element the triangle came from for use in carpets. */
             tri->elem = i;
 
-            /* For each vertex of the triangle compute its value.
-             */
-            for ( v = 0; v < 3; v++ )
+            if ( do_result_interpolation )
             {
-                switch ( triangle_cases[vertex_mask][t][v] )
+                /* For each vertex of the triangle compute its value.  */
+
+                for ( v = 0; v < 3; v++ )
                 {
-                    case 0: 
-                        interp = v1 / ( v1 + v0 );
-                        L_INTERP( tri->vtx[v], interp, xyz[1], xyz[0] );
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[1][i] ] +
-                               interp*result[ bricks->nodes[0][i] ];
-                        break;
+                    switch ( triangle_cases[vertex_mask][t][v] )
+                    {
+                        case 0: 
+                            interp = v1 / ( v1 + v0 );
+                            L_INTERP( tri->vtx[v], interp, xyz[1], xyz[0] );
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][1] ] +
+                                   interp*result[ connects[i][0] ];
+                            break;
 
-                    case 1:
-                        interp = v2 / (v2 + v1 );
-                        L_INTERP( tri->vtx[v], interp, xyz[2], xyz[1] );
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[2][i] ] +
-                               interp*result[ bricks->nodes[1][i] ];
-                        break;
+                        case 1:
+                            interp = v2 / (v2 + v1 );
+                            L_INTERP( tri->vtx[v], interp, xyz[2], xyz[1] );
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][2] ] +
+                                   interp*result[ connects[i][1] ];
+                            break;
 
-                    case 2:
-                        interp = v3 / (v3 + v2 );
-                        L_INTERP( tri->vtx[v], interp, xyz[3], xyz[2] );
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[3][i] ] +
-                               interp*result[ bricks->nodes[2][i] ];
-                        break;
+                        case 2:
+                            interp = v3 / (v3 + v2 );
+                            L_INTERP( tri->vtx[v], interp, xyz[3], xyz[2] );
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][3] ] +
+                                   interp*result[ connects[i][2] ];
+                            break;
 
-                    case 3:
-                        interp = v0 / (v0 + v3 );
-                        L_INTERP( tri->vtx[v], interp, xyz[0], xyz[3] );
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[0][i] ] +
-                               interp*result[ bricks->nodes[3][i] ];
-                        break;
+                        case 3:
+                            interp = v0 / (v0 + v3 );
+                            L_INTERP( tri->vtx[v], interp, xyz[0], xyz[3] );
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][0] ] +
+                                   interp*result[ connects[i][3] ];
+                            break;
 
-                    case 4:
-                        interp = v5 / ( v5 + v4 );
-                        L_INTERP( tri->vtx[v], interp, xyz[5], xyz[4] );
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[5][i] ] +
-                               interp*result[ bricks->nodes[4][i] ];
-                        break;
+                        case 4:
+                            interp = v5 / ( v5 + v4 );
+                            L_INTERP( tri->vtx[v], interp, xyz[5], xyz[4] );
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][5] ] +
+                                   interp*result[ connects[i][4] ];
+                            break;
 
-                    case 5:
-                        interp = v6 / ( v6 + v5 );
-                        L_INTERP( tri->vtx[v], interp, xyz[6], xyz[5] );
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[6][i] ] +
-                               interp*result[ bricks->nodes[5][i] ];
-                        break;
+                        case 5:
+                            interp = v6 / ( v6 + v5 );
+                            L_INTERP( tri->vtx[v], interp, xyz[6], xyz[5] );
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][6] ] +
+                                   interp*result[ connects[i][5] ];
+                            break;
 
-                    case 6:
-                        interp = v7 / ( v7 + v6 );
-                        L_INTERP( tri->vtx[v], interp, xyz[7], xyz[6] );
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[7][i] ] +
-                               interp*result[ bricks->nodes[6][i] ];
-                        break;
+                        case 6:
+                            interp = v7 / ( v7 + v6 );
+                            L_INTERP( tri->vtx[v], interp, xyz[7], xyz[6] );
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][7] ] +
+                                   interp*result[ connects[i][6] ];
+                            break;
 
-                    case 7:
-                        interp = v4 / ( v4 + v7 );
-                        L_INTERP( tri->vtx[v], interp, xyz[4], xyz[7]);
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[4][i] ] +
-                               interp*result[ bricks->nodes[7][i] ];
-                        break;
+                        case 7:
+                            interp = v4 / ( v4 + v7 );
+                            L_INTERP( tri->vtx[v], interp, xyz[4], xyz[7]);
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][4] ] +
+                                   interp*result[ connects[i][7] ];
+                            break;
 
-                    case 8:
-                        interp = v4 / ( v4 + v0 );
-                        L_INTERP( tri->vtx[v], interp, xyz[4], xyz[0]);
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[4][i] ] +
-                               interp*result[ bricks->nodes[0][i] ];
-                        break;
+                        case 8:
+                            interp = v4 / ( v4 + v0 );
+                            L_INTERP( tri->vtx[v], interp, xyz[4], xyz[0]);
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][4] ] +
+                                   interp*result[ connects[i][0] ];
+                            break;
 
-                    case 9:
-                        interp = v5 / ( v5 + v1 );
-                        L_INTERP( tri->vtx[v], interp, xyz[5], xyz[1]);
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[5][i] ] +
-                               interp*result[ bricks->nodes[1][i] ];
-                        break;
+                        case 9:
+                            interp = v5 / ( v5 + v1 );
+                            L_INTERP( tri->vtx[v], interp, xyz[5], xyz[1]);
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][5] ] +
+                                   interp*result[ connects[i][1] ];
+                            break;
 
-                    case 10:
-                        interp = v6 / ( v6 + v2 );
-                        L_INTERP( tri->vtx[v], interp, xyz[6], xyz[2]);
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[6][i] ] +
-                               interp*result[ bricks->nodes[2][i] ];
-                        break;
+                        case 10:
+                            interp = v6 / ( v6 + v2 );
+                            L_INTERP( tri->vtx[v], interp, xyz[6], xyz[2]);
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][6] ] +
+                                   interp*result[ connects[i][2] ];
+                            break;
 
-                    case 11:
-                        interp = v7 / ( v7 + v3 );
-                        L_INTERP( tri->vtx[v], interp, xyz[7], xyz[3]);
-                        tri->result[v] =
-                               (1.0-interp)*result[ bricks->nodes[7][i] ] +
-                               interp*result[ bricks->nodes[3][i] ];
-                        break;
+                        case 11:
+                            interp = v7 / ( v7 + v3 );
+                            L_INTERP( tri->vtx[v], interp, xyz[7], xyz[3]);
+                            tri->result[v] =
+                                   (1.0-interp)*result[ connects[i][7] ] +
+                                   interp*result[ connects[i][3] ];
+                            break;
 
-                } /* End case */
-            } /* End for v */
+                    } /* End case */
+                } /* End for v */
+            }
+            else
+            {
+                /* For each vertex of the triangle assign its value.  */
+
+                for ( v = 0; v < 3; v++ )
+                {
+                    switch ( triangle_cases[vertex_mask][t][v] )
+                    {
+                        case 0: 
+                            interp = v1 / ( v1 + v0 );
+                            L_INTERP( tri->vtx[v], interp, xyz[1], xyz[0] );
+                            tri->result[v] = val;
+                            break;
+
+                        case 1:
+                            interp = v2 / (v2 + v1 );
+                            L_INTERP( tri->vtx[v], interp, xyz[2], xyz[1] );
+                            tri->result[v] = val;
+                            break;
+
+                        case 2:
+                            interp = v3 / (v3 + v2 );
+                            L_INTERP( tri->vtx[v], interp, xyz[3], xyz[2] );
+                            tri->result[v] = val;
+                            break;
+
+                        case 3:
+                            interp = v0 / (v0 + v3 );
+                            L_INTERP( tri->vtx[v], interp, xyz[0], xyz[3] );
+                            tri->result[v] = val;
+                            break;
+
+                        case 4:
+                            interp = v5 / ( v5 + v4 );
+                            L_INTERP( tri->vtx[v], interp, xyz[5], xyz[4] );
+                            tri->result[v] = val;
+                            break;
+
+                        case 5:
+                            interp = v6 / ( v6 + v5 );
+                            L_INTERP( tri->vtx[v], interp, xyz[6], xyz[5] );
+                            tri->result[v] = val;
+                            break;
+
+                        case 6:
+                            interp = v7 / ( v7 + v6 );
+                            L_INTERP( tri->vtx[v], interp, xyz[7], xyz[6] );
+                            tri->result[v] = val;
+                            break;
+
+                        case 7:
+                            interp = v4 / ( v4 + v7 );
+                            L_INTERP( tri->vtx[v], interp, xyz[4], xyz[7]);
+                            tri->result[v] = val;
+                            break;
+
+                        case 8:
+                            interp = v4 / ( v4 + v0 );
+                            L_INTERP( tri->vtx[v], interp, xyz[4], xyz[0]);
+                            tri->result[v] = val;
+                            break;
+
+                        case 9:
+                            interp = v5 / ( v5 + v1 );
+                            L_INTERP( tri->vtx[v], interp, xyz[5], xyz[1]);
+                            tri->result[v] = val;
+                            break;
+
+                        case 10:
+                            interp = v6 / ( v6 + v2 );
+                            L_INTERP( tri->vtx[v], interp, xyz[6], xyz[2]);
+                            tri->result[v] = val;
+                            break;
+
+                        case 11:
+                            interp = v7 / ( v7 + v3 );
+                            L_INTERP( tri->vtx[v], interp, xyz[7], xyz[3]);
+                            tri->result[v] = val;
+                            break;
+
+                    } /* End case */
+                } /* End for v */
+            }
 
             /* Handle degenerate elements. */
-            if ( bricks->degen_elems && is_degen_triangle( tri ) )
+            if ( p_elem_class->objects.elems->has_degen 
+                 && is_degen_triangle( tri ) )
             {
                 free( tri );
                 continue;
@@ -762,10 +1136,18 @@ float plane_norm[3];
             /*
              * Throw the triangle onto the cutting plane polygon list.
              */
-            INSERT( tri, analy->cut_poly );
+            INSERT( tri, p_tp );
 
         } /* End for t */
     } /* End for i */
+    
+    if ( p_tp != NULL )
+    {
+        p_cl->mo_class = p_elem_class;
+        p_cl->list = (void *) p_tp;
+    }
+    else
+        DELETE( p_cl, analy->cut_poly_lists );
 }
 
 
@@ -782,13 +1164,16 @@ Analysis *analy;
     Triangle_poly *tri;
     float area;
     int cnt;
+    Classed_list *p_cl;
 
     area = 0.0;
     cnt = 0;
     for ( tri = analy->isosurf_poly; tri != NULL; tri = tri->next, cnt++ )
         area += area_of_triangle( tri->vtx );
-    for ( tri = analy->cut_poly; tri != NULL; tri = tri->next, cnt++ )
-        area += area_of_triangle( tri->vtx );
+    for ( p_cl = analy->cut_poly_lists; p_cl != NULL; NEXT( p_cl ) )
+        for ( tri = (Triangle_poly *) p_cl->list; tri != NULL; 
+              NEXT( tri ), cnt++ )
+            area += area_of_triangle( tri->vtx );
 
     if ( cnt > 0 )
         return ( area / cnt );

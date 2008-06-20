@@ -6,15 +6,68 @@
  *      Lawrence Livermore National Laboratory
  *      Jun 25 1992
  *
- * Copyright (c) 1992 Regents of the University of California
+ * 
+ * This work was produced at the University of California, Lawrence 
+ * Livermore National Laboratory (UC LLNL) under contract no. 
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
+ * (DOE) and The Regents of the University of California (University) 
+ * for the operation of UC LLNL. Copyright is reserved to the University 
+ * for purposes of controlled dissemination, commercialization through 
+ * formal licensing, or other disposition under terms of Contract 48; 
+ * DOE policies, regulations and orders; and U.S. statutes. The rights 
+ * of the Federal Government are reserved under Contract 48 subject to 
+ * the restrictions agreed upon by the DOE and University as allowed 
+ * under DOE Acquisition Letter 97-1.
+ * 
+ * 
+ * DISCLAIMER
+ * 
+ * This work was prepared as an account of work sponsored by an agency 
+ * of the United States Government. Neither the United States Government 
+ * nor the University of California nor any of their employees, makes 
+ * any warranty, express or implied, or assumes any liability or 
+ * responsibility for the accuracy, completeness, or usefulness of any 
+ * information, apparatus, product, or process disclosed, or represents 
+ * that its use would not infringe privately-owned rights.  Reference 
+ * herein to any specific commercial products, process, or service by 
+ * trade name, trademark, manufacturer or otherwise does not necessarily 
+ * constitute or imply its endorsement, recommendation, or favoring by 
+ * the United States Government or the University of California. The 
+ * views and opinions of authors expressed herein do not necessarily 
+ * state or reflect those of the United States Government or the 
+ * University of California, and shall not be used for advertising or 
+ * product endorsement purposes.
+ * 
+ *************************************************************************
+ *
+ * Modification History
+ *
+ * Date        By Whom      Description
+ * ==========  ===========  ==============================================
+ * 05/23/2005  I. R. Corey  Added variable to identify results that must be
+ *                          recalculated.
+ *                          See SRC#: 316
+ *
+ * 07/19/2005  E. M. Pierce Changed nodal displacement algorithm to work 
+ *                          with TH databases.
+ *                          See SRC#: 329
+ *
+ * 04/30/2008  I.R. Corey   Added new derived nodal result = dispr, radial
+ *                          nodal displacement. 
+ *                          See SRC#: 532
+ *************************************************************************
  */
 
+#include <stdlib.h>
 #include "viewer.h"
 
+#define INFINITY        4.2535295865117308e37   /* (2^125) */
+                                                                                     
 /* Reference pressure intensity for PING. */
 static float ping_pr_ref = 1.0;
 
 
+/* ARGSUSED 2 */
 /************************************************************
  * TAG( compute_node_displacement )
  *
@@ -22,53 +75,275 @@ static float ping_pr_ref = 1.0;
  * and initial configuration.
  */
 void
-compute_node_displacement( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+compute_node_displacement( Analysis *analy, float *resultArr,
+                           Bool_type interpolate )
 {
-    Nodal *initGeom, *currentGeom;
-    int i;
+    int i, node_qty;
+    GVec3D *nodes3d, *onodes3d;
+    GVec2D *nodes2d, *onodes2d;
+    int coord;
 
-    initGeom = analy->geom_p->nodes;
-    currentGeom = analy->state_p->nodes;
-    
-    if ( analy->result_id != VAL_NODE_DISPX
-         && analy->result_id != VAL_NODE_DISPY
-         && analy->result_id != VAL_NODE_DISPZ
-         && analy->result_id != VAL_NODE_DISPMAG )
+    /* EMP: Added July 19, 2005 - Support
+     *      for timehistory databases
+     */
+    Result *p_result;
+    State_rec_obj *p_sro;
+    Subrec_obj *p_subrec;
+    int obj_qty;
+    int index;
+    int subrec, srec;
+    int *object_ids;
+    int  node_idx;
+    Bool_type single_prec_pos;
+    Bool_type map_timehist_coords = FALSE;
+    int       elem_index;
+    int       obj_cnt, obj_num, *obj_ids;
+                                                                              
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    node_qty = p_subrec->subrec.qty_objects;
+    object_ids = p_subrec->object_ids;
+
+    if (analy->stateDB)
     {
-        popup_dialog( WARNING_POPUP, 
-		      "Unknown nodal displacement type requested!" );
-	return;
+        node_qty = MESH( analy ).node_geom->qty;
+
+        if( analy->dimension == 3 )
+            nodes3d = analy->state_p->nodes.nodes3d;
+        else
+            nodes2d = analy->state_p->nodes.nodes2d;
     }
-    
-    for ( i = 0; i < initGeom->cnt; i++ )
+    else
     {
-        switch ( analy->result_id )
+        p_sro = analy->srec_tree + analy->state_p->srec_id;
+
+        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                     analy->cur_state + 1, TRUE,
+                     (void *) analy->tmp_result[0] );
+                                                                                 
+        if( analy->dimension == 3 )
+            nodes3d = (GVec3D *) analy->tmp_result[0];
+        else
+            nodes2d = (GVec2D *) analy->tmp_result[0];
+    }
+
+    coord = (int) (analy->cur_result->name[4] - 'x'); /* 0, 1, or 2 */
+
+    if ( analy->dimension == 3 )
+    {
+        onodes3d = (GVec3D *) analy->cur_ref_state_data;
+        for ( i = 0; i < node_qty; i++ )
         {
-            case VAL_NODE_DISPX:
-                resultArr[i] = currentGeom->xyz[0][i] - initGeom->xyz[0][i];
-                break;
-            case VAL_NODE_DISPY:
-                resultArr[i] = currentGeom->xyz[1][i] - initGeom->xyz[1][i];
-                break;
-            case VAL_NODE_DISPZ:
-                resultArr[i] = currentGeom->xyz[2][i] - initGeom->xyz[2][i];
-                break;
-            case VAL_NODE_DISPMAG:
-                resultArr[i] = sqrt ( (double)
-                    ( (currentGeom->xyz[0][i] - initGeom->xyz[0][i]) *
-                      (currentGeom->xyz[0][i] - initGeom->xyz[0][i])
-                    + (currentGeom->xyz[1][i] - initGeom->xyz[1][i]) *
-                      (currentGeom->xyz[1][i] - initGeom->xyz[1][i])
-                    + (currentGeom->xyz[2][i] - initGeom->xyz[2][i]) *
-                      (currentGeom->xyz[2][i] - initGeom->xyz[2][i]) ) );
-                break;
+            node_idx = ( object_ids ) ? object_ids[i] : i;
+            resultArr[node_idx] = nodes3d[i][coord] - onodes3d[node_idx][coord];
         }
     }
+    else
+    {
+        onodes2d = (GVec2D *) analy->cur_ref_state_data;
+        
+        for ( i = 0; i < node_qty; i++ )
+        {
+            node_idx = ( object_ids ) ? object_ids[i] : i;
+            resultArr[node_idx] = nodes2d[i][coord] - onodes2d[node_idx][coord];
+        }
+    }
+
+    analy->cur_result->modifiers.use_flags.use_ref_state = 1;
+    analy->cur_result->modifiers.ref_state = analy->reference_state;
 }
 
 
+/************************************************************
+ * TAG( compute_node_radial_displacement )
+ *
+ * Computes the radial displacement at nodes given the current
+ * geometry and initial configuration.
+ */
+void
+compute_node_radial_displacement( Analysis *analy, float *resultArr,
+                                  Bool_type interpolate )
+{
+    int i, node_qty;
+    GVec3D *nodes3d, *onodes3d;
+    GVec2D *nodes2d, *onodes2d;
+
+    double dx, dy, dr;
+
+    int coord_x, coord_y;
+
+    Result *p_result;
+    State_rec_obj *p_sro;
+    Subrec_obj *p_subrec;
+    int obj_qty;
+    int index;
+    int subrec, srec;
+    int *object_ids;
+    int  node_idx;
+    Bool_type single_prec_pos;
+    Bool_type map_timehist_coords = FALSE;
+    int       elem_index;
+    int       obj_cnt, obj_num, *obj_ids;
+                                                                              
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    node_qty = p_subrec->subrec.qty_objects;
+    object_ids = p_subrec->object_ids;
+
+    if (analy->stateDB)
+    {
+        node_qty = MESH( analy ).node_geom->qty;
+
+        if( analy->dimension == 3 )
+            nodes3d = analy->state_p->nodes.nodes3d;
+        else
+            nodes2d = analy->state_p->nodes.nodes2d;
+    }
+    else
+    {
+        p_sro = analy->srec_tree + analy->state_p->srec_id;
+
+        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                     analy->cur_state + 1, TRUE,
+                     (void *) analy->tmp_result[0] );
+                                                                                 
+        if( analy->dimension == 3 )
+            nodes3d = (GVec3D *) analy->tmp_result[0];
+        else
+            nodes2d = (GVec2D *) analy->tmp_result[0];
+    }
+
+    coord_x = 0;
+    coord_y = 1;
+
+    if ( analy->dimension == 3 )
+    {
+        onodes3d = (GVec3D *) analy->cur_ref_state_data;
+        for ( i = 0; i < node_qty; i++ )
+        {
+            node_idx = ( object_ids ) ? object_ids[i] : i;
+            dx = nodes3d[i][coord_x] - onodes3d[node_idx][coord_x];
+            dy = nodes3d[i][coord_y] - onodes3d[node_idx][coord_y];
+	    dr = sqrt( (dx*dx)+(dy*dy) );
+            resultArr[node_idx] = dr;
+        }
+    }
+    else
+    {
+        onodes2d = (GVec2D *) analy->cur_ref_state_data;
+        
+        for ( i = 0; i < node_qty; i++ )
+        {
+            node_idx = ( object_ids ) ? object_ids[i] : i;
+
+            dx = nodes2d[i][coord_x] - onodes2d[node_idx][coord_x];
+            dy = nodes2d[i][coord_y] - onodes2d[node_idx][coord_y];
+	    dr = sqrt( (dx*dx)+(dy*dy) );
+            resultArr[node_idx] = dr;
+        }
+    }
+
+    analy->cur_result->modifiers.use_flags.use_ref_state = 1;
+    analy->cur_result->modifiers.ref_state = analy->reference_state;
+}
+
+
+/* ARGSUSED 2 */
+/************************************************************
+ * TAG( compute_node_displacement_mag )
+ *
+ * Computes the magnitude of the displacement at nodes given the 
+ * current geometry and initial configuration.
+ */
+void
+compute_node_displacement_mag( Analysis *analy, float *resultArr,
+                               Bool_type interpolate )
+{
+    int i, node_qty;
+    GVec3D *nodes3d, *onodes3d;
+    GVec2D *nodes2d, *onodes2d;
+    float dx, dy, dz;
+
+    /* EMP: Added July 19, 2005 - Support
+     *      for timehistory databases
+     */
+    Result *p_result;
+    State_rec_obj *p_sro;
+    Subrec_obj *p_subrec;
+    int obj_qty;
+    int index;
+    int subrec, srec;
+    int *object_ids;
+    int  node_idx;
+                                                                                
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    node_qty = p_subrec->subrec.qty_objects;
+    object_ids = p_subrec->object_ids;
+                                                                                
+    if (analy->stateDB)
+    {
+        node_qty = MESH( analy ).node_geom->qty;
+                                                                                
+        if( analy->dimension == 3 )
+            nodes3d = analy->state_p->nodes.nodes3d;
+        else
+            nodes2d = analy->state_p->nodes.nodes2d;
+    }
+    else
+    {
+        p_sro = analy->srec_tree + analy->state_p->srec_id;
+        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                     analy->cur_state + 1, TRUE,
+                     (void *) analy->tmp_result[0] );
+                                                                                
+        if( analy->dimension == 3 )
+            nodes3d = (GVec3D *) analy->tmp_result[0];
+        else
+            nodes2d = (GVec2D *) analy->tmp_result[0];
+    }
+
+    if ( analy->dimension == 3 )
+    {
+        onodes3d = (GVec3D *) analy->cur_ref_state_data;
+        
+        for ( i = 0; i < node_qty; i++ )
+        {
+            node_idx = ( object_ids ) ? object_ids[i] : i;
+            dx = nodes3d[i][0] - onodes3d[node_idx][0];
+            dy = nodes3d[i][1] - onodes3d[node_idx][1];
+            dz = nodes3d[i][2] - onodes3d[node_idx][2];
+            resultArr[node_idx] = sqrt( (double) dx * dx + dy * dy + dz * dz );
+        }
+    }
+    else
+    {
+        onodes2d = (GVec2D *) analy->cur_ref_state_data;
+        
+        for ( i = 0; i < node_qty; i++ )
+        {
+            node_idx = ( object_ids ) ? object_ids[i] : i;
+            dx = nodes2d[i][0] - onodes2d[node_idx][0];
+            dy = nodes2d[i][1] - onodes2d[node_idx][1];
+            resultArr[node_idx] = sqrt( (double) dx * dx + dy * dy );
+        }
+    }
+
+    analy->cur_result->modifiers.use_flags.use_ref_state = 1;
+    analy->cur_result->modifiers.ref_state = analy->reference_state;
+}
+
+
+/* ARGSUSED 2 */
 /************************************************************
  * TAG( compute_node_velocity )
  *
@@ -76,97 +351,189 @@ float *resultArr;
  * (unless the velocities are contained in the data).
  */
 void
-compute_node_velocity( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+compute_node_velocity( Analysis *analy, float *resultArr,
+                       Bool_type interpolate )
 {
-    Nodal *initGeom, *currentGeom;
-    State *state_prev;
+    State2 *state_prev;
     float delta_t;
     float tmp[3];
     int i;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    float *result_buf;
+    char *vcomps[] = { "vx", "vy", "vz" };
+    char nbuf[16];
+    char *new_primals[1];
+    int coord, dim;
+    GVec2D *vels2d, *pos2d_0, *pos2d_1;
+    GVec3D *vels3d, *pos3d_0, *pos3d_1;
     
-    if ( analy->result_id != VAL_NODE_VELX
-         && analy->result_id != VAL_NODE_VELY
-         && analy->result_id != VAL_NODE_VELZ
-         && analy->result_id != VAL_NODE_VELMAG )
+    dim = analy->dimension;
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    
+    /* Determine if result is actually primal or derived from displacements. */
+    if ( strcmp( primals[0], "nodvel" ) == 0 )
     {
-        popup_dialog( WARNING_POPUP, 
-		      "Unknown nodal velocity type requested!" );
-	return;
-    }
-
-    initGeom = analy->geom_p->nodes;
-    currentGeom = analy->state_p->nodes;
-
-    if ( is_in_database( VAL_NODE_VELX ) )
-    {
-        /* Velocities are stored in the data.
+        /* Velocities are stored in the data. */
+    
+        subrec = p_result->subrecs[index];
+        srec = p_result->srec_id;
+        p_subrec = analy->srec_tree[srec].subrecs + subrec;
+        obj_qty = p_subrec->subrec.qty_objects;
+        object_ids = p_subrec->object_ids;
+        
+        /*
+         * If request is not for magnitude, augment primal spec with the 
+         * component and let I/O code extract it from the vector array in the 
+         * database.
          */
-        switch ( analy->result_id )
+        if ( p_result->name[3] != 'm' ) /* velmag vs. velx, vely, or velz */
         {
-            case VAL_NODE_VELX:
-            case VAL_NODE_VELY:
-            case VAL_NODE_VELZ:
-                get_result( analy->result_id, analy->cur_state, resultArr );
-                break;
-            case VAL_NODE_VELMAG:
-                get_vec_result( VAL_NODE_VELX, analy->cur_state,
-                                analy->tmp_result[0], analy->tmp_result[1],
-                                analy->tmp_result[2] );
+            coord = (int) (p_result->name[3] - 'x');
+            sprintf( nbuf, "%s[%s]", primals[0], vcomps[coord] );
+            new_primals[0] = nbuf;
+            primals = (char **) new_primals;
+            result_buf = ( object_ids == NULL ) ? resultArr 
+                                                : analy->tmp_result[0];
+        }
+        else
+            result_buf = analy->tmp_result[0];
+    
+        /* Read the database. */
+        analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
+                               primals, (void *) result_buf );
 
-                for ( i = 0; i < initGeom->cnt; i++ )
-                    resultArr[i] = sqrt((double)
-                       ( (analy->tmp_result[0][i]*analy->tmp_result[0][i])
-                       + (analy->tmp_result[1][i]*analy->tmp_result[1][i])
-                       + (analy->tmp_result[2][i]*analy->tmp_result[2][i]) ));
+        if ( p_result->name[3] == 'm' )
+        {
+            /* Calculate magnitude. */
+            if ( dim == 2 )
+            {
+                vels2d = (float (*)[2]) result_buf;
+
+                if ( object_ids == NULL )
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultArr[i] = sqrt( (double)
+                                             (vels2d[i][0] * vels2d[i][0]
+                                              + vels2d[i][1] * vels2d[i][1]) );
+                }
+                else
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultArr[object_ids[i]] = sqrt( (double)
+                                             (vels2d[i][0] * vels2d[i][0]
+                                              + vels2d[i][1] * vels2d[i][1]) );
+                }
+            }
+            else
+            {
+                vels3d = (float (*)[3]) result_buf;
+
+                if ( object_ids == NULL )
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultArr[i] = sqrt( (double)
+                                             (vels3d[i][0] * vels3d[i][0]
+                                              + vels3d[i][1] * vels3d[i][1]
+                                              + vels3d[i][2] * vels3d[i][2]) );
+                }
+                else
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultArr[object_ids[i]] = sqrt( (double)
+                                             (vels3d[i][0] * vels3d[i][0]
+                                              + vels3d[i][1] * vels3d[i][1]
+                                              + vels3d[i][2] * vels3d[i][2]) );
+                }
+            }
+        }
+        else if ( object_ids != NULL )
+        {
+            /* Not magnitude result, but data needs reordering. */
+            reorder_float_array( obj_qty, object_ids, 1, result_buf, 
+                                 resultArr );
         }
     }
     else
     {
         /* Read the previous coords in and calculate the velocities
-         * using simple differences.
+         * using simple differences.  Reordering, if necessary, is
+         * handled in db_get_state().
          */
         if ( analy->cur_state == 0 )
         {
-            wrt_text( "Can't calculate velocity for time 0.0\n" );
+            popup_dialog( INFO_POPUP, 
+                          "Can't calculate velocity for first state" );
             return;
         }
+        
+        obj_qty = MESH_P( analy )->node_geom->qty;
 
-        state_prev = get_state( analy->cur_state-1, NULL );
+        analy->db_get_state( analy, analy->cur_state - 1, NULL, &state_prev, 
+                             NULL );
         delta_t = analy->state_p->time - state_prev->time;
 
-        for ( i = 0; i < initGeom->cnt; i++ )
+        if ( dim == 2 )
         {
-            switch ( analy->result_id )
+            pos2d_0 = state_prev->nodes.nodes2d;
+            pos2d_1 = analy->state_p->nodes.nodes2d;
+            
+            if ( p_result->name[3] != 'm' ) /* velmag vs. velx, vely, or velz */
             {
-                case VAL_NODE_VELX:
-                    resultArr[i] = (currentGeom->xyz[0][i] -
-                                    state_prev->nodes->xyz[0][i]) / delta_t;
-                    break;
-                case VAL_NODE_VELY:
-                    resultArr[i] = (currentGeom->xyz[1][i] -
-                                    state_prev->nodes->xyz[1][i]) / delta_t;
-                    break;
-                case VAL_NODE_VELZ:
-                    resultArr[i] = (currentGeom->xyz[2][i] -
-                                    state_prev->nodes->xyz[2][i]) / delta_t;
-                    break;
-                case VAL_NODE_VELMAG:
-                    tmp[0] = currentGeom->xyz[0][i] -
-                             state_prev->nodes->xyz[0][i];
-                    tmp[1] = currentGeom->xyz[1][i] -
-                             state_prev->nodes->xyz[1][i];
-                    tmp[2] = currentGeom->xyz[2][i] -
-                             state_prev->nodes->xyz[2][i];
-                    resultArr[i] = VEC_LENGTH( tmp ) / delta_t;
+                coord = (int) (p_result->name[3] - 'x');
+                
+                for ( i = 0; i < obj_qty; i++ )
+                    resultArr[i] = (pos2d_1[i][coord] - pos2d_0[i][coord]) 
+                                   / delta_t;
+            }
+            else
+            {
+                for ( i = 0; i < obj_qty; i++ )
+                {
+                    tmp[0] = pos2d_1[i][0] - pos2d_0[i][0];
+                    tmp[1] = pos2d_1[i][1] - pos2d_0[i][1];
+                    resultArr[i] = VEC_LENGTH_2D( tmp ) / delta_t;
+                }
             }
         }
-        fr_state( state_prev );
+        else
+        {
+            pos3d_0 = state_prev->nodes.nodes3d;
+            pos3d_1 = analy->state_p->nodes.nodes3d;
+            
+            if ( p_result->name[3] != 'm' ) /* velmag vs. velx, vely, or velz */
+            {
+                coord = (int) (p_result->name[3] - 'x');
+                
+                for ( i = 0; i < obj_qty; i++ )
+                    resultArr[i] = (pos3d_1[i][coord] - pos3d_0[i][coord]) 
+                                   / delta_t;
+            }
+            else
+            {
+                for ( i = 0; i < obj_qty; i++ )
+                {
+                    tmp[0] = pos3d_1[i][0] - pos3d_0[i][0];
+                    tmp[1] = pos3d_1[i][1] - pos3d_0[i][1];
+                    tmp[2] = pos3d_1[i][1] - pos3d_0[i][1];
+                    resultArr[i] = VEC_LENGTH( tmp ) / delta_t;
+                }
+            }
+        }
+
+        fr_state2( state_prev, analy );
     }
 }
 
 
+/* ARGSUSED 2 */
 /************************************************************
  * TAG( compute_node_acceleration )
  *
@@ -174,203 +541,412 @@ float *resultArr;
  * (unless the accelerations are contained in the data).
  */
 void
-compute_node_acceleration( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+compute_node_acceleration( Analysis *analy, float *resultArr,
+                           Bool_type interpolate )
 {
-    Nodal *nodes, *nodes_p, *nodes_n;
-    State *state_prev, *state_next;
+    State2 *state_prev, *state_next;
     float delta_t, one_over_tsqr;
     float disp, dispf, dispb, disp_inc;
-    int dir, i;
+    int i, max_state;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int dim;
+    int coord;
+    char nbuf[16];
+    char *new_primals[1];
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    float *result_buf;
+    char *acomps[] = { "ax", "ay", "az" };
+    GVec2D *acc2d, *pos2d_0, *pos2d_1, *pos2d_2;
+    GVec3D *acc3d, *pos3d_0, *pos3d_1, *pos3d_2;
     
-    if ( analy->result_id != VAL_NODE_ACCX
-         && analy->result_id != VAL_NODE_ACCY
-         && analy->result_id != VAL_NODE_ACCZ
-         && analy->result_id != VAL_NODE_ACCMAG )
+    dim = analy->dimension;
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+   
+    /* Determine if result is actually primal or derived from displacements. */
+    if ( strcmp( primals[0], "nodacc" ) == 0 )
     {
-        popup_dialog( WARNING_POPUP, 
-		      "Unknown acceleration component requested!" );
-	return;
-    }
-
-    nodes = analy->state_p->nodes;
-
-    if ( is_in_database( VAL_NODE_ACCX ) )
-    {
-        /* Load accelerations straight from the database. */
-
-        switch ( analy->result_id )
+        /* Accelerations are stored in the data. */
+    
+        subrec = p_result->subrecs[index];
+        srec = p_result->srec_id;
+        p_subrec = analy->srec_tree[srec].subrecs + subrec;
+        obj_qty = p_subrec->subrec.qty_objects;
+        object_ids = p_subrec->object_ids;
+        
+        /*
+         * If request is not for magnitude, augment primal spec with the 
+         * component and let I/O code extract it from the vector array in the 
+         * database.
+         */
+        if ( p_result->name[3] != 'm' ) /* accmag vs. accx, accy, or accz */
         {
-            case VAL_NODE_ACCX:
-            case VAL_NODE_ACCY:
-            case VAL_NODE_ACCZ:
-                get_result( analy->result_id, analy->cur_state, resultArr );
-                break;
-            case VAL_NODE_ACCMAG:
-                get_result( VAL_NODE_ACCX, analy->cur_state,
-                            analy->tmp_result[0] );
-                get_result( VAL_NODE_ACCY, analy->cur_state,
-                            analy->tmp_result[1] );
-                get_result( VAL_NODE_ACCZ, analy->cur_state,
-                            analy->tmp_result[2] );
-                for ( i = 0; i < nodes->cnt; i++ )
-                    resultArr[i] = sqrt((double)
-                       ( (analy->tmp_result[0][i]*analy->tmp_result[0][i])
-                       + (analy->tmp_result[1][i]*analy->tmp_result[1][i])
-                       + (analy->tmp_result[2][i]*analy->tmp_result[2][i]) ));
-                break;
+            coord = (int) (p_result->name[3] - 'x');
+            sprintf( nbuf, "%s[%s]", primals[0], acomps[coord] );
+            new_primals[0] = nbuf;
+            primals = (char **) new_primals;
+            result_buf = ( object_ids == NULL ) ? resultArr 
+                                                : analy->tmp_result[0];
+        }
+        else
+            result_buf = analy->tmp_result[0];
+    
+        /* Read the database. */
+        analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
+                               primals, (void *) result_buf );
+
+        if ( p_result->name[3] == 'm' )
+        {
+            /* Calculate magnitude. */
+            if ( dim == 2 )
+            {
+                acc2d = (float (*)[2]) result_buf;
+                
+                if ( object_ids == NULL )
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultArr[i] = sqrt( (double)
+                                             (acc2d[i][0] * acc2d[i][0]
+                                              + acc2d[i][1] * acc2d[i][1]) );
+                }
+                else
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultArr[object_ids[i]] = sqrt( (double)
+                                             (acc2d[i][0] * acc2d[i][0]
+                                              + acc2d[i][1] * acc2d[i][1]) );
+                }
+            }
+            else
+            {
+                acc3d = (float (*)[3]) result_buf;
+                
+                if ( object_ids == NULL )
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultArr[i] = sqrt( (double)
+                                             (acc3d[i][0] * acc3d[i][0]
+                                              + acc3d[i][1] * acc3d[i][1]
+                                              + acc3d[i][2] * acc3d[i][2]) );
+                }
+                else
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultArr[object_ids[i]] = sqrt( (double)
+                                             (acc3d[i][0] * acc3d[i][0]
+                                              + acc3d[i][1] * acc3d[i][1]
+                                              + acc3d[i][2] * acc3d[i][2]) );
+                }
+            }
+        }
+        else if ( object_ids != NULL )
+        {
+            /* Not magnitude result, but data needs reordering. */
+            reorder_float_array( obj_qty, object_ids, 1, result_buf, 
+                                 resultArr );
         }
     }
     else
     {
-        /* Calculate accelerations using central differences. */
-
-        switch ( analy->result_id )
-        {
-            case VAL_NODE_ACCX:
-                dir = 0;
-                break;
-            case VAL_NODE_ACCY:
-                dir = 1;
-                break;
-            case VAL_NODE_ACCZ:
-                dir = 2;
-                break;
-            case VAL_NODE_ACCMAG:
-                dir = 3;
-                break;
-        }
+        /* Calculate accelerations using differences. */
 
         if ( analy->cur_state == 0 )
             state_prev = NULL;
         else
-            state_prev = get_state( analy->cur_state-1, NULL );
+            analy->db_get_state( analy, analy->cur_state - 1, NULL, &state_prev,
+                                 NULL );
 
-        if ( analy->cur_state + 1 >= analy->num_states )
+        max_state = get_max_state( analy );
+        if ( analy->cur_state + 1 > max_state )
             state_next = NULL;
         else
-            state_next = get_state( analy->cur_state+1, NULL );
+            analy->db_get_state( analy, analy->cur_state + 1, NULL, &state_next,
+                                 NULL );
 
-        if ( state_prev == NULL )
+        
+        obj_qty = MESH_P( analy )->node_geom->qty;
+
+        if ( dim == 2 )
         {
-            /* No prev -- use forward difference. */
-            delta_t = state_next->time - analy->state_p->time;
-            one_over_tsqr = 1.0 / ( delta_t * delta_t );
-            nodes_n = state_next->nodes;
+            pos2d_1 = analy->state_p->nodes.nodes2d;
 
-            for ( i = 0; i < nodes->cnt; i++ )
+            if ( state_prev == NULL )
             {
-                if ( dir < 3 )
+                /* No prev -- use forward difference. */
+                delta_t = state_next->time - analy->state_p->time;
+                one_over_tsqr = 1.0 / ( delta_t * delta_t );
+                
+                pos2d_2 = state_next->nodes.nodes2d;
+
+                if ( p_result->name[3] != 'm' ) /* accmag vs acc[x,y, or z] */
                 {
-                    disp_inc = nodes->xyz[dir][i] - nodes_n->xyz[dir][i];
-                    disp = nodes->xyz[dir][i];
-                    dispf = nodes_n->xyz[dir][i];
+                    /* 2D acceleration x or y component. */
+
+                    coord = (int) (p_result->name[3] - 'x');
+                    
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp_inc = pos2d_1[i][coord] - pos2d_2[i][coord];
+                        disp = pos2d_1[i][coord];
+                        dispf = pos2d_2[i][coord];
+                        resultArr[i] = (dispf - disp + disp_inc) 
+                                       * one_over_tsqr;
+                    }
                 }
                 else
                 {
-                    disp_inc = sqrt( (double)
-                                SQR(nodes->xyz[0][i] - nodes_n->xyz[0][i]) +
-                                SQR(nodes->xyz[1][i] - nodes_n->xyz[1][i]) +
-                                SQR(nodes->xyz[2][i] - nodes_n->xyz[2][i]) );
-                    disp = sqrt( (double) SQR(nodes->xyz[0][i]) +
-                                          SQR(nodes->xyz[1][i]) +
-                                          SQR(nodes->xyz[2][i]) );
-                    dispf = sqrt( (double) SQR(nodes_n->xyz[0][i]) +
-                                           SQR(nodes_n->xyz[1][i]) +
-                                           SQR(nodes_n->xyz[2][i]) );
+                    /* 2D acceleration magnitude */
+
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp_inc = sqrt( (double)
+                                         SQR(pos2d_1[i][0] - pos2d_2[i][0])
+                                         + SQR(pos2d_1[i][1] - pos2d_2[i][1]) );
+                        disp = sqrt( (double) SQR(pos2d_1[i][0])
+                                              + SQR(pos2d_1[i][1]) );
+                        dispf = sqrt( (double) SQR(pos2d_2[i][0])
+                                               + SQR(pos2d_2[i][1]) );
+                        resultArr[i] = (dispf - disp + disp_inc) 
+                                       * one_over_tsqr;
+                    }
                 }
-                resultArr[i] = (dispf - disp + disp_inc) * one_over_tsqr;
             }
-        }
-        else if ( state_next == NULL )
-        {
-            /* No next -- use backward difference. */
-            delta_t = analy->state_p->time - state_prev->time;
-            one_over_tsqr = 1.0 / ( delta_t * delta_t );
-            nodes_p = state_prev->nodes;
-
-            for ( i = 0; i < nodes->cnt; i++ )
+            else if ( state_next == NULL )
             {
-                if ( dir < 3 )
+                /* No next -- use backward difference. */
+
+                delta_t = analy->state_p->time - state_prev->time;
+                one_over_tsqr = 1.0 / ( delta_t * delta_t );
+                
+                pos2d_0 = state_prev->nodes.nodes2d;
+
+                if ( p_result->name[3] != 'm' ) /* accmag vs acc[x,y, or z] */
                 {
-                    disp_inc = nodes_p->xyz[dir][i] - nodes->xyz[dir][i];
-                    disp = nodes->xyz[dir][i];
-                    dispb = nodes_p->xyz[dir][i];
+                    /* 2D acceleration x or y component. */
+
+                    coord = (int) (p_result->name[3] - 'x');
+                    
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp_inc = pos2d_0[i][coord] - pos2d_1[i][coord];
+                        disp = pos2d_1[i][coord];
+                        dispb = pos2d_0[i][coord];
+                        resultArr[i] = (disp_inc - disp + dispb) 
+                                       * one_over_tsqr;
+                    }
                 }
                 else
                 {
-                    disp_inc = sqrt( (double)
-                                SQR(nodes_p->xyz[0][i] - nodes->xyz[0][i]) +
-                                SQR(nodes_p->xyz[1][i] - nodes->xyz[1][i]) +
-                                SQR(nodes_p->xyz[2][i] - nodes->xyz[2][i]) );
-                    disp = sqrt( (double) SQR(nodes->xyz[0][i]) +
-                                          SQR(nodes->xyz[1][i]) +
-                                          SQR(nodes->xyz[2][i]) );
-                    dispb = sqrt( (double) SQR(nodes_p->xyz[0][i]) +
-                                           SQR(nodes_p->xyz[1][i]) +
-                                           SQR(nodes_p->xyz[2][i]) );
+                    /* 2D acceleration magnitude */
+
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp_inc = sqrt( (double)
+                                         SQR(pos2d_0[i][0] - pos2d_1[i][0])
+                                         + SQR(pos2d_0[i][1] - pos2d_1[i][1]) );
+                        disp = sqrt( (double) SQR(pos2d_1[i][0])
+                                              + SQR(pos2d_1[i][1]) );
+                        dispb = sqrt( (double) SQR(pos2d_0[i][0])
+                                               + SQR(pos2d_0[i][1]) );
+                        resultArr[i] = (disp_inc - disp + dispb) 
+                                       * one_over_tsqr;
+                    }
                 }
-                resultArr[i] = (disp_inc - disp + dispb) * one_over_tsqr;
+            }
+            else
+            {
+                /* Default -- use central difference. */
+                delta_t = 0.5 * (state_next->time - state_prev->time);
+                one_over_tsqr = 1.0 / ( delta_t * delta_t );
+
+                pos2d_2 = state_next->nodes.nodes2d;
+                pos2d_0 = state_prev->nodes.nodes2d;
+
+                if ( p_result->name[3] != 'm' ) /* accmag vs acc[x,y, or z] */
+                {
+                    /* 2D acceleration x or y component. */
+
+                    coord = (int) (p_result->name[3] - 'x');
+
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp = pos2d_1[i][coord];
+                        dispf = pos2d_2[i][coord];
+                        dispb = pos2d_0[i][coord];
+                        resultArr[i] = (dispf - 2.0*disp + dispb) 
+                                       * one_over_tsqr;
+                    }
+                }
+                else
+                {
+                    /* 2D acceleration magnitude. */
+
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp = sqrt( (double) SQR(pos2d_1[i][0])
+                                              + SQR(pos2d_1[i][1]) );
+                        dispf = sqrt( (double) SQR(pos2d_2[i][0])
+                                               + SQR(pos2d_2[i][1]) );
+                        dispb = sqrt( (double) SQR(pos2d_0[i][0])
+                                               + SQR(pos2d_0[i][1]) );
+                        resultArr[i] = (dispf - 2.0*disp + dispb) 
+                                       * one_over_tsqr;
+                    }
+                }
             }
         }
         else
         {
-            /* Default -- use central difference. */
-            delta_t = 0.5*(state_next->time - state_prev->time);
-            one_over_tsqr = 1.0 / ( delta_t * delta_t );
-            nodes_n = state_next->nodes;
-            nodes_p = state_prev->nodes;
+            /*
+             * 3D database.
+             */
 
-            for ( i = 0; i < nodes->cnt; i++ )
+            pos3d_1 = analy->state_p->nodes.nodes3d;
+
+            if ( state_prev == NULL )
             {
-                if ( dir < 3 )
+                /* No prev -- use forward difference. */
+                delta_t = state_next->time - analy->state_p->time;
+                one_over_tsqr = 1.0 / ( delta_t * delta_t );
+                
+                pos3d_2 = state_next->nodes.nodes3d;
+
+                if ( p_result->name[3] != 'm' ) /* accmag vs acc[x,y, or z] */
                 {
-                    disp = nodes->xyz[dir][i];
-                    dispf = nodes_n->xyz[dir][i];
-                    dispb = nodes_p->xyz[dir][i];
+                    /* 3D acceleration x, y, or z component. */
+
+                    coord = (int) (p_result->name[3] - 'x');
+                    
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp_inc = pos3d_1[i][coord] - pos3d_2[i][coord];
+                        disp = pos3d_1[i][coord];
+                        dispf = pos3d_2[i][coord];
+                        resultArr[i] = (dispf - disp + disp_inc) 
+                                       * one_over_tsqr;
+                    }
                 }
                 else
                 {
-                    disp = sqrt( (double) SQR(nodes->xyz[0][i]) +
-                                          SQR(nodes->xyz[1][i]) +
-                                          SQR(nodes->xyz[2][i]) );
-                    dispf = sqrt( (double) SQR(nodes_n->xyz[0][i]) +
-                                           SQR(nodes_n->xyz[1][i]) +
-                                           SQR(nodes_n->xyz[2][i]) );
-                    dispb = sqrt( (double) SQR(nodes_p->xyz[0][i]) +
-                                           SQR(nodes_p->xyz[1][i]) +
-                                           SQR(nodes_p->xyz[2][i]) );
+                    /* 3D acceleration magnitude */
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp_inc = sqrt( (double)
+                                         SQR(pos3d_1[i][0] - pos3d_2[i][0])
+                                         + SQR(pos3d_1[i][1] - pos3d_2[i][1])
+                                         + SQR(pos3d_1[i][2] - pos3d_2[i][2]) );
+                        disp = sqrt( (double) SQR(pos3d_1[i][0])
+                                              + SQR(pos3d_1[i][1])
+                                              + SQR(pos3d_1[i][2]) );
+                        dispf = sqrt( (double) SQR(pos3d_2[i][0])
+                                               + SQR(pos3d_2[i][1])
+                                               + SQR(pos3d_2[i][2]) );
+                        resultArr[i] = (dispf - disp + disp_inc) 
+                                       * one_over_tsqr;
+                    }
                 }
-                resultArr[i] = (dispf - 2.0*disp + dispb) * one_over_tsqr;
+            }
+            else if ( state_next == NULL )
+            {
+                /* No next -- use backward difference. */
+
+                delta_t = analy->state_p->time - state_prev->time;
+                one_over_tsqr = 1.0 / ( delta_t * delta_t );
+                
+                pos3d_0 = state_prev->nodes.nodes3d;
+
+                if ( p_result->name[3] != 'm' ) /* accmag vs acc[x,y, or z] */
+                {
+                    /* 3D acceleration x, y, or z component. */
+
+                    coord = (int) (p_result->name[3] - 'x');
+                    
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp_inc = pos3d_0[i][coord] - pos3d_1[i][coord];
+                        disp = pos3d_1[i][coord];
+                        dispb = pos3d_0[i][coord];
+                        resultArr[i] = (disp_inc - disp + dispb) 
+                                       * one_over_tsqr;
+                    }
+                }
+                else
+                {
+                    /* 3D acceleration magnitude */
+
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp_inc = sqrt( (double)
+                                         SQR(pos3d_0[i][0] - pos3d_1[i][0])
+                                         + SQR(pos3d_0[i][1] - pos3d_1[i][1])
+                                         + SQR(pos3d_0[i][1] - pos3d_1[i][2]) );
+                        disp = sqrt( (double) SQR(pos3d_1[i][0])
+                                              + SQR(pos3d_1[i][1])
+                                              + SQR(pos3d_1[i][2]) );
+                        dispb = sqrt( (double) SQR(pos3d_0[i][0])
+                                               + SQR(pos3d_0[i][1])
+                                               + SQR(pos3d_0[i][2]) );
+                        resultArr[i] = (disp_inc - disp + dispb) 
+                                       * one_over_tsqr;
+                    }
+                }
+            }
+            else
+            {
+                /* Default -- use central difference. */
+                delta_t = 0.5 * (state_next->time - state_prev->time);
+                one_over_tsqr = 1.0 / ( delta_t * delta_t );
+
+                pos3d_2 = state_next->nodes.nodes3d;
+                pos3d_0 = state_prev->nodes.nodes3d;
+
+                if ( p_result->name[3] != 'm' ) /* accmag vs acc[x,y, or z] */
+                {
+                    /* 3D acceleration x, y, or z component. */
+
+                    coord = (int) (p_result->name[3] - 'x');
+
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp = pos3d_1[i][coord];
+                        dispf = pos3d_2[i][coord];
+                        dispb = pos3d_0[i][coord];
+                        resultArr[i] = (dispf - 2.0*disp + dispb) 
+                                       * one_over_tsqr;
+                    }
+                }
+                else
+                {
+                    /* 3D acceleration magnitude */
+
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        disp = sqrt( (double) SQR(pos3d_1[i][0])
+                                              + SQR(pos3d_1[i][1])
+                                              + SQR(pos3d_1[i][2]) );
+                        dispf = sqrt( (double) SQR(pos3d_2[i][0])
+                                               + SQR(pos3d_2[i][1])
+                                               + SQR(pos3d_2[i][2]) );
+                        dispb = sqrt( (double) SQR(pos3d_0[i][0])
+                                               + SQR(pos3d_0[i][1])
+                                               + SQR(pos3d_0[i][2]) );
+                        resultArr[i] = (dispf - 2.0*disp + dispb) 
+                                       * one_over_tsqr;
+                    }
+                }
             }
         }
 
-        fr_state( state_prev );
-        fr_state( state_next );
-    }
-}
-
-
-/************************************************************
- * TAG( compute_node_temperature )
- *
- * Compute temperature results at nodes. 
- */
-void
-compute_node_temperature( analy, resultArr )
-Analysis *analy;
-float *resultArr;
-{
-    if ( is_in_database( analy->result_id ) )
-        get_result( analy->result_id, analy->cur_state, resultArr );
-    else
-    {
-        wrt_text( "No temperature data present.\n" );
-        analy->result_id = VAL_NONE;
-        analy->show_hex_result = FALSE;
-        analy->show_shell_result = FALSE;
-        return;
+        if ( state_prev != NULL )
+            fr_state2( state_prev, analy );
+        if ( state_next != NULL )
+            fr_state2( state_next, analy );
     }
 }
 
@@ -388,26 +964,58 @@ float *resultArr;
  *     where p_ref is a constant to be input by the user.
  */
 void
-compute_node_pr_intense( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+compute_node_pr_intense( Analysis *analy, float *resultArr, 
+                         Bool_type interpolate )
 {
     double psr;
-    int cnt, i;
+    int obj_qty, i;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    float *result_buf;
+    
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    obj_qty = p_subrec->subrec.qty_objects;
+    object_ids = p_subrec->object_ids;
+    
+    result_buf = ( object_ids == NULL ) ? resultArr : analy->tmp_result[0];
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) result_buf );
 
-    cnt = analy->geom_p->nodes->cnt;
-
-    /* Pressure is actually stored in Velocity Y for PING. */
-    get_result( VAL_NODE_VELY, analy->cur_state, resultArr );
-
-    for ( i = 0; i < cnt; i++ )
+    if ( object_ids == NULL )
     {
-        if ( resultArr[i] == 0.0 )
-            resultArr[i] = -INFINITY;
-        else
+        for ( i = 0; i < obj_qty; i++ )
         {
-            psr = resultArr[i] / ping_pr_ref;
-            resultArr[i] = 10.0 * log10( psr * psr );
+            if ( resultArr[i] == 0.0 )
+                resultArr[i] = -INFINITY;
+            else
+            {
+                psr = resultArr[i] / ping_pr_ref;
+                resultArr[i] = 10.0 * log10( psr * psr );
+            }
+        }
+    }
+    else
+    {
+        for ( i = 0; i < obj_qty; i++ )
+        {
+            if ( result_buf[i] == 0.0 )
+                resultArr[object_ids[i]] = -INFINITY;
+            else
+            {
+                psr = result_buf[i] / ping_pr_ref;
+                resultArr[object_ids[i]] = 10.0 * log10( psr * psr );
+            }
         }
     }
 }
@@ -420,47 +1028,84 @@ float *resultArr;
  * computation.
  */
 void
-set_pr_ref( pr_ref )
-float pr_ref;
+set_pr_ref( float pr_ref )
 {
     ping_pr_ref = pr_ref;
 }
 
+
+/*
+   This demonstrates new conditions which must be dealt with under MGriz.
+
+   First, it requires a result which may be derived or primal.  The initial
+   set_results logic only allows for dependencies upon primal results,
+   meaning this calculation can only occur if nodal velocities are primal.
+   In fact, this calculation shouldn't care how velocities are
+   arrived at and show should be enabled even if nodal velocities are
+   not primal but are derived from displacements.
+
+   Second, when/if it calls a result which is itself derived (although in the
+   implementation shown below we only allow for a primal acceleration
+   result), and both use analy->tmp_results, and in particular if this
+   calculation calls multiple derivable results, intermediate results
+   stored in analy->tmp_results could be overwritten, corrupting the
+   calculation.  Solution - implement tmp_results management as a
+   specialized memory manager which ensures a buffer can only be assigned
+   once and performs allocation if required.
+   
+   Note this calculation also requires a primal result (vorticity)
+   which is "silently" being written by the analysis code into the hard-coded
+   acceleration entry of the Taurus db.  Under MGriz, vorticity will be
+   assumed to exist as the vector variable "nodvort".
+*/
 
 /************************************************************
  * TAG( compute_node_helicity )
  *
  * Computes helicity at the nodes.  This 3D-only scalar is the
  * dot-product of the vorticity and the velocity.
+ *
+ * Assumes vector primals for both velocity and vorticity.
  */
 void
-compute_node_helicity( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+compute_node_helicity( Analysis *analy, float *resultArr, 
+                       Bool_type interpolate )
 {
-    int cnt, i;
-    float *u, *v, *w, *vort_x, *vort_y, *vort_z;
+    int obj_qty, i;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    float (*vel)[3], (*vort)[3];
+    
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    obj_qty = p_subrec->subrec.qty_objects;
+    object_ids = p_subrec->object_ids;
+    
+    vel = (float (*)[3]) analy->tmp_result[0];
+    vort = vel + obj_qty;
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 2, 
+                           primals, (void *) analy->tmp_result[0] );
 
-    cnt = analy->geom_p->nodes->cnt;
-    u = analy->tmp_result[0];
-    v = analy->tmp_result[1];
-    w = analy->tmp_result[2];
-    vort_x = analy->tmp_result[3];
-    vort_y = analy->tmp_result[4];
-    vort_z = analy->tmp_result[5];
-
-    get_result( VAL_NODE_VELX, analy->cur_state, u );
-    get_result( VAL_NODE_VELY, analy->cur_state, v );
-    get_result( VAL_NODE_VELZ, analy->cur_state, w );
-    get_result( VAL_NODE_ACCX, analy->cur_state, vort_x );
-    get_result( VAL_NODE_ACCY, analy->cur_state, vort_y );
-    get_result( VAL_NODE_ACCZ, analy->cur_state, vort_z );
-
-    for ( i = 0; i < cnt; i++ )
+    /* Calculate helicity. */
+    if ( object_ids == NULL )
     {
-        resultArr[i] = u[i] * vort_x[i]
-		       + v[i] * vort_y[i]
-		       + w[i] * vort_z[i];
+        for ( i = 0; i < obj_qty; i++ )
+            resultArr[i] = VEC_DOT( vel[i], vort[i] );
+    }
+    else
+    {
+        for ( i = 0; i < obj_qty; i++ )
+            resultArr[object_ids[i]] = VEC_DOT( vel[i], vort[i] );
     }
 }
 
@@ -472,27 +1117,97 @@ float *resultArr;
  * one-half the square of the vorticity.
  */
 void
-compute_node_enstrophy( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+compute_node_enstrophy( Analysis *analy, float *resultArr, 
+                        Bool_type interpolate )
 {
-    int cnt, i;
-    float *vort_x, *vort_y, *vort_z;
+    int obj_qty, i;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    float (*vort)[3];
+    
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    obj_qty = p_subrec->subrec.qty_objects;
+    object_ids = p_subrec->object_ids;
+    
+    vort = (float (*)[3]) analy->tmp_result[0];
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) vort );
 
-    cnt = analy->geom_p->nodes->cnt;
-    vort_x = analy->tmp_result[0];
-    vort_y = analy->tmp_result[1];
-    vort_z = analy->tmp_result[2];
-
-    get_result( VAL_NODE_ACCX, analy->cur_state, vort_x );
-    get_result( VAL_NODE_ACCY, analy->cur_state, vort_y );
-    get_result( VAL_NODE_ACCZ, analy->cur_state, vort_z );
-
-    for ( i = 0; i < cnt; i++ )
+    /* Calculate enstrophy. */
+    if ( object_ids == NULL )
     {
-        resultArr[i] = (SQR( vort_x[i] ) + SQR( vort_y[i] ) + SQR( vort_z[i] ))
-	               / 2.0;
+        for ( i = 0; i < obj_qty; i++ )
+            resultArr[i] = VEC_DOT( vort[i], vort[i] ) / 2.0;
     }
+    else
+    {
+        for ( i = 0; i < obj_qty; i++ )
+            resultArr[object_ids[i]] = VEC_DOT( vort[i], vort[i] ) / 2.0;;
+    }
+}
+
+
+/************************************************************
+ * TAG( check_compute_vector_component )
+ *
+ * Verifies that conditions necessary for 
+ * compute_vector_component() are set appropriately.
+ */
+Bool_type
+check_compute_vector_component( Analysis *analy )
+{
+    int i;
+    Bool_type need_vector, need_direction;
+    static Bool_type warn_once_mm_source = TRUE;
+    
+    /* Verify that a vector result is defined. */
+    for ( i = 0; i < analy->dimension; i++ )
+        if ( analy->vector_result[i] != NULL )
+            break;
+    
+    need_vector = ( i == analy->dimension );
+    
+    /* Verify that a direction vector is defined. */
+    for ( i = 0; i < analy->dimension; i++ )
+        if ( analy->dir_vec[i] != 0.0 )
+            break;
+    
+    need_direction = ( i == analy->dimension );
+    
+    if ( need_vector || need_direction )
+    {
+        popup_dialog( INFO_POPUP, "%s\n%s\n%s\n%s", 
+                      "Result \"Projected Vector Magnitude\" (pvmag)",
+                      "requires both a vector quantity (\"vec <x> <y> [<z>]\")",
+                      "and a direction (\"dir3n\", \"dir3p\", or \"dirv\").",
+                      "to be defined." );
+        return FALSE;
+    }
+
+    /* Check and warn about min/max source. */
+    if ( analy->use_global_mm && warn_once_mm_source )
+    {
+        popup_dialog( WARNING_POPUP, "%s\n%s\n%s\n%s\n\n%s", 
+                      "Because min/max caching is not sensitive to",
+                      "changes in either the current direction vector",
+                      "or vector result, \"switch mstat\" should be",
+                      "in effect for the result \"pvmag\".", 
+                      "This notice will not repeat." );
+        warn_once_mm_source = FALSE;
+    }
+
+    return TRUE;
 }
 
 
@@ -504,66 +1219,116 @@ float *resultArr;
  * node.
  */
 void
-compute_vector_component( analy, resultArr )
-Analysis *analy;
-float *resultArr;
+compute_vector_component( Analysis *analy, float *resultArr, 
+                          Bool_type interpolate )
 {
+    int obj_qty, node_qty, i, j;
+    Result *p_result, *p_temp_res;
+    int subrec, srec;
+    int index, dim, node_idx;
+    int *object_ids, *node_ids;
+    Subrec_obj *p_subrec;
+    float *result_buf;
+    int *vec_subrecs;
+    int vec_subrec_qty;
     float *vec_comp[3];
+    Bool_type direct;
     float vec[3];
-    float *tmp_res;
-    int i, j, tmp_id, node_qty, dim;
+    MO_class_data *p_node_class;
     
-    tmp_id = analy->result_id;
-    tmp_res = analy->result;
-    node_qty = analy->geom_p->nodes->cnt;
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    obj_qty = p_subrec->subrec.qty_objects;
+    object_ids = p_subrec->object_ids;
     dim = analy->dimension;
-    
-    /* Read in the vector components. */
-    for ( i = 0; i < dim; i++ )
-    {
-        vec_comp[i] = analy->tmp_result[i];
-
-        if ( analy->vec_id[i] != VAL_NONE )
-        {
-            analy->result_id = analy->vec_id[i];
-            analy->result = vec_comp[i];
-            
-            /* 
-             * Recursively call load_result() so that element-based
-             * components will be interpolated back to nodes.
-             */
-            load_result( analy, FALSE );
-        }
-        else
-            memset( vec_comp[i], 0, node_qty * sizeof( float ) );
-    }
-    analy->result_id = tmp_id;
-    analy->result = tmp_res;
+    p_node_class = MESH_P( analy )->node_geom;
     
     /* 
+     * Check the vector availability map to see if the defined vector
+     * is available on the current subrecord.
+     */
+    vec_subrecs = (int *) analy->vector_srec_map[srec].list;
+    vec_subrec_qty = analy->vector_srec_map[srec].qty;
+    for ( i = 0; i < vec_subrec_qty; i++ )
+        if ( vec_subrecs[i] == subrec )
+            break;
+    
+    if ( i == vec_subrec_qty )
+        return;
+ 
+    /* Verify that this result can be computed (need node or elem data). */   
+    direct = TRUE;
+    node_qty = p_node_class->qty;
+    if ( p_result->origin.is_node_result )
+    {
+        if ( object_ids != NULL )
+        {
+            /* 
+             * Non-proper nodal subrecord - just use object_ids as
+             * referenced nodes list.
+             */
+            direct = FALSE;
+            node_ids = p_subrec->object_ids;
+            node_qty = obj_qty;
+        }
+    }
+    else if ( p_subrec->referenced_nodes != NULL )
+    {
+        direct = FALSE;
+        node_ids = p_subrec->referenced_nodes;
+        node_qty = p_subrec->ref_node_qty;
+    }
+    
+    /* Save current result and data array prior to loading components. */
+    result_buf = p_node_class->data_buffer;
+    p_temp_res = analy->cur_result;
+
+/**/
+    /* 
+     * Allocate data arrays and load vector component arrays.  Need results
+     * interpolated back to nodes, so these must be Nodal-class-sized
+     * arrays.
+     *
+     * This is a good reason to implement memory management of 
+     * analy->tmp_result buffers to minimize allocations.
+     */
+    for ( i = 0; i < dim; i++ )
+    {
+        vec_comp[i] = NEW_N( float, node_qty, "Vector component array" );
+        p_node_class->data_buffer = vec_comp[i];
+        analy->cur_result = analy->vector_result[i];
+        
+        load_subrecord_result( analy, subrec, FALSE, TRUE );
+    }
+    
+    p_node_class->data_buffer = result_buf;
+    analy->cur_result = p_temp_res;
+
+    /* 
+     * Here at last is the actual measly calculation.
+     *
      * Dot each nodal vector with the direction unit vector to
      * generate the magnitude of its component in that direction.
      */
-    if ( dim == 3 )
+    for ( i = 0; i < node_qty; i++ )
     {
-        for ( i = 0; i < node_qty; i++ )
-        {
-            for ( j = 0; j < 3; j++ )
-                vec[j] = vec_comp[j][i];
-            
-            resultArr[i] = VEC_DOT( vec, analy->dir_vec );
-        }
+        node_idx = direct ? i : node_ids[i];
+
+        for ( j = 0; j < dim; j++ )
+            vec[j] = vec_comp[j][node_idx];
+        
+        resultArr[node_idx] = ( dim == 3 )
+                              ? VEC_DOT( vec, analy->dir_vec )
+                              : VEC_DOT_2D( vec, analy->dir_vec );
     }
-    else
-    {
-        for ( i = 0; i < node_qty; i++ )
-        {
-            for ( j = 0; j < 2; j++ )
-                vec[j] = vec_comp[j][i];
-            
-            resultArr[i] = VEC_DOT_2D( vec, analy->dir_vec );
-        }
-    }
+    
+    for ( i = 0; i < dim; i++ )
+        free( vec_comp[i] );
+
+    analy->cur_result->must_recompute = TRUE;
 }
 
 

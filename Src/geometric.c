@@ -6,6 +6,8 @@
  *      Lawrence Livermore National Laboratory
  *      Jan 28 1992
  *
+ *      plane_three_pts() added 10/97 by Doug Speck, LLNL
+ *
  */
 
 
@@ -29,6 +31,8 @@
  **/
 
 
+#include <math.h>
+#include <stdlib.h>
 #include "misc.h"
 #include "geometric.h"
 
@@ -38,8 +42,7 @@
  * 
  * Normalize a vector.
  */
-void vec_norm( vec )
-float *vec;
+void vec_norm( float *vec )
 {
     float len;
 
@@ -47,7 +50,7 @@ float *vec;
     if ( len == 0.0 )
 /*
 #ifdef DEBUG
-	fprintf( stderr, "vec_norm(): Vector has length 0!\n" );
+        fprintf( stderr, "vec_norm(): Vector has length 0!\n" );
 #else
 */
         return;
@@ -55,7 +58,7 @@ float *vec;
 #endif DEBUG
 */
     else
-	VEC_SCALE( vec, 1.0/len, vec );
+        VEC_SCALE( vec, 1.0/len, vec );
 }
 
 
@@ -65,11 +68,7 @@ float *vec;
  * Compute a normal vector to a plane from three points in the
  * plane.  norm = cross( P3 - P2, P1 - P2 ).
  */
-void norm_three_pts( norm, pt1, pt2, pt3 )
-float norm[3];
-float pt1[3];
-float pt2[3];
-float pt3[3];
+void norm_three_pts( float norm[3], float pt1[3], float pt2[3], float pt3[3] )
 {
     float v1[3], v2[3];
 
@@ -81,6 +80,51 @@ float pt3[3];
 
 
 /*****************************************************************
+ * TAG( plane_three_pts )
+ * 
+ * Compute A, B, C, and D coefficients for a plane from three
+ * points in the plane.
+ */
+void plane_three_pts( float plane[4], float pt1[3], float pt2[3], float pt3[3] )
+{
+    float v1[3], v2[3];
+
+    VEC_SUB( v1, pt3, pt2 );
+    VEC_SUB( v2, pt1, pt2 );
+    VEC_CROSS( plane, v1, v2 );
+    vec_norm( plane );
+    plane[3] = -VEC_DOT( pt1, plane );
+}
+
+
+/*****************************************************************
+ * TAG( line_two_pts )
+ * 
+ * Compute A, B, and C coefficients for a normalized 2D line from
+ * two points on the line.
+ */
+void
+line_two_pts( float line[3], float pt1[2], float pt2[2] )
+{
+    double len_inv, len;
+    float perp_vec[2];
+
+    perp_vec[0] = pt1[1] - pt2[1];
+    perp_vec[1] = pt2[0] - pt1[0];
+    
+    len = VEC_LENGTH_2D( perp_vec );
+    if ( len == 0.0 )
+        return;
+    
+    len_inv = 1.0 / len;
+    
+    line[0] = len_inv * perp_vec[0];
+    line[1] = len_inv * perp_vec[1];
+    line[2] = -VEC_DOT_2D( pt1, line );
+}
+
+
+/*****************************************************************
  * TAG( sqr_dist_seg_to_line )
  *
  * Returns the square of the distance between a line segment and a line.
@@ -88,11 +132,8 @@ float pt3[3];
  * specified by a point and a direction vector.
  */
 float
-sqr_dist_seg_to_line( seg_pt1, seg_pt2, line_pt, line_dir )
-float seg_pt1[3];
-float seg_pt2[3];
-float line_pt[3];
-float line_dir[3];
+sqr_dist_seg_to_line( float seg_pt1[3], float seg_pt2[3], float line_pt[3], 
+                      float line_dir[3] )
 {
     float v1[3], v2[3], pta[3], ptb[3];
     float v1p1, v2p2, v2p1, v1p2, v1v1, v2v2, v1v2, denom, s;
@@ -172,11 +213,8 @@ float line_dir[3];
  * vector.  The result is returned in near_pt.
  */
 void
-near_pt_on_line( pt, line_pt, line_dir, near_pt )
-float pt[3];
-float line_pt[3];
-float line_dir[3];
-float near_pt[3];
+near_pt_on_line( float pt[3], float line_pt[3], float line_dir[3], 
+                 float near_pt[3] )
 {
     float v1[3], v2[3], v3[3];
 
@@ -203,12 +241,8 @@ float near_pt[3];
  * returned in the last argument.
  */
 int
-intersect_line_plane( line_pt, line_dir, plane_pt, plane_norm, isect_pt )
-float line_pt[3];
-float line_dir[3];
-float plane_pt[3];
-float plane_norm[3];
-float isect_pt[3];
+intersect_line_plane( float line_pt[3], float line_dir[3], float plane_pt[3], 
+                      float plane_norm[3], float isect_pt[3] )
 {
     float d1, d2, p1, p2, con1, con2, t;
     int i, i1, i2;
@@ -251,11 +285,8 @@ float isect_pt[3];
  * is returned in the last parameter.
  */
 int
-intersect_line_tri( verts, line_pt, line_dir, isect_pt )
-float verts[3][3];
-float line_pt[3];
-float line_dir[3];
-float isect_pt[3];
+intersect_line_tri( float verts[3][3], float line_pt[3], float line_dir[3], 
+                    float isect_pt[3] )
 {
     float norm[3];
     float v1[3], v2[3], v3[3];
@@ -289,11 +320,8 @@ float isect_pt[3];
  * is returned in the last parameter.
  */
 int
-intersect_line_quad( verts, line_pt, line_dir, isect_pt )
-float verts[4][3];
-float line_pt[3];
-float line_dir[3];
-float isect_pt[3];
+intersect_line_quad( float verts[4][3], float line_pt[3], float line_dir[3], 
+                     float isect_pt[3] )
 {
     float tverts[3][3];
     int i, j, ii;
@@ -321,8 +349,7 @@ float isect_pt[3];
  * Returns the area of a triangular polygon.
  */
 float
-area_of_triangle( verts )
-float verts[3][3];
+area_of_triangle( float verts[3][3] )
 {
     float v1[3], v2[3], vc[3];
     float area;
@@ -342,8 +369,7 @@ float verts[3][3];
  * Returns the area of a quadrilateral polygon.
  */
 float
-area_of_quad( verts )
-float verts[4][3];
+area_of_quad( float verts[4][3] )
 {
     float v1[3], v2[3], vc[3];
     float area;
@@ -385,16 +411,15 @@ Transf_mat   ident_matrix = {{        /* Unit tranfs. matrix */
  * to the new matrix.
  */
 Transf_mat *
-transf_mat_create( initmat )
-Transf_mat *initmat;
+transf_mat_create( Transf_mat *initmat )
 {
     Transf_mat  *mat;
 
     mat = (Transf_mat *) malloc(sizeof(Transf_mat));
     if (initmat != NULL)
-	mat_copy( mat, initmat );
+        mat_copy( mat, initmat );
     else
-	mat_copy( mat, &ident_matrix );
+        mat_copy( mat, &ident_matrix );
 
     return mat;
 }
@@ -405,8 +430,7 @@ Transf_mat *initmat;
  *
  */ 
 void
-transf_mat_destruct( mat )
-Transf_mat *mat;
+transf_mat_destruct( Transf_mat *mat )
 {
     free( mat );
 }
@@ -418,9 +442,7 @@ Transf_mat *mat;
  * Copy matrix b into matrix a.
  */
 void
-mat_copy( a, b )
-Transf_mat *a;
-Transf_mat *b;
+mat_copy( Transf_mat *a, Transf_mat *b )
 {
     int i, j;
 
@@ -436,9 +458,7 @@ Transf_mat *b;
  * Copy matrix into a 1D array in row-major order.
  */
 void
-mat_to_array( mat, array )
-Transf_mat *mat;
-float array[16];
+mat_to_array( Transf_mat *mat, float array[16] )
 {
     int i, j;
 
@@ -461,11 +481,7 @@ float array[16];
  * [j  k  l  1]   [Tx Ty Tz  1]     [j+Tx  k+Ty  l+Tz  1]
  */
 void
-mat_translate(mat,  dx,  dy,  dz)
-Transf_mat  * mat;
-float        dx;
-float        dy; 
-float        dz;
+mat_translate( Transf_mat *mat,  float dx,  float dy,  float dz )
 {
     mat->mat[3][0] += dx;
     mat->mat[3][1] += dy;
@@ -484,11 +500,7 @@ float        dz;
  * [          ]   [j  k  l  1]   [            ] 
  */
 void
-mat_trans(mat,  dx,  dy,  dz)
-Transf_mat  * mat;
-float        dx;
-float        dy; 
-float        dz;
+mat_trans( Transf_mat *mat,  float dx,  float dy,  float dz )
 {
     mat->mat[3][0] += dx*mat->mat[0][0]+dy*mat->mat[1][0]+dz*mat->mat[2][0];
     mat->mat[3][1] += dx*mat->mat[0][1]+dy*mat->mat[1][1]+dz*mat->mat[2][1];
@@ -508,10 +520,7 @@ float        dz;
  * [          ]   [j  k  l  1]   [            ] 
  */
 void
-mat_rot(mat, ang, axis)
-    Transf_mat  * mat;
-    float        ang;
-    int axis;
+mat_rot( Transf_mat *mat, float ang, int axis )
 {
     Transf_mat rmat;
     float   cosang;
@@ -536,24 +545,24 @@ mat_rot(mat, ang, axis)
 
     if ( axis == 0 )
     {
-	rmat.mat[1][1] = cosang;
-	rmat.mat[1][2] = sinang;
-	rmat.mat[2][1] = -sinang;
-	rmat.mat[2][2] = cosang;
+        rmat.mat[1][1] = cosang;
+        rmat.mat[1][2] = sinang;
+        rmat.mat[2][1] = -sinang;
+        rmat.mat[2][2] = cosang;
     }
     else if ( axis == 1 )
     {
-	rmat.mat[0][0] = cosang;
-	rmat.mat[0][2] = -sinang;
-	rmat.mat[2][0] = sinang;
-	rmat.mat[2][2] = cosang;
+        rmat.mat[0][0] = cosang;
+        rmat.mat[0][2] = -sinang;
+        rmat.mat[2][0] = sinang;
+        rmat.mat[2][2] = cosang;
     }
     else
     {
-	rmat.mat[0][0] = cosang;
-	rmat.mat[0][1] = sinang;
-	rmat.mat[1][0] = -sinang;
-	rmat.mat[1][1] = cosang;
+        rmat.mat[0][0] = cosang;
+        rmat.mat[0][1] = sinang;
+        rmat.mat[1][0] = -sinang;
+        rmat.mat[1][1] = cosang;
     }
 
     mat_mul( mat, &rmat, mat );
@@ -573,9 +582,7 @@ mat_rot(mat, ang, axis)
  * [j  k  l  1]   [0   0   0  1]     [j  k*Ca-l*Sa  k*Se+l*Ca  1]
  */
 void
-mat_rotate_x(mat, ang)
-    Transf_mat  * mat;
-    float        ang;
+mat_rotate_x( Transf_mat *mat, float ang )
 {
     float   cosang;
     float   sinang;
@@ -591,10 +598,10 @@ mat_rotate_x(mat, ang)
         sinang = 0.0;
     }
     for (i = 0; i < 4; ++i) {
-	tmp = mat->mat[i][1];
-	mat->mat[i][1] = mat->mat[i][1] * cosang
-	               - mat->mat[i][2] * sinang;
-	mat->mat[i][2] = tmp * sinang + mat->mat[i][2] * cosang;
+        tmp = mat->mat[i][1];
+        mat->mat[i][1] = mat->mat[i][1] * cosang
+                       - mat->mat[i][2] * sinang;
+        mat->mat[i][2] = tmp * sinang + mat->mat[i][2] * cosang;
     }
 }
 
@@ -613,9 +620,7 @@ mat_rotate_x(mat, ang)
  */
 
 void
-mat_rotate_y(mat, ang)
-    Transf_mat  * mat;
-    float        ang;
+mat_rotate_y( Transf_mat *mat, float ang )
 {
     float   cosang;
     float   sinang;
@@ -631,10 +636,10 @@ mat_rotate_y(mat, ang)
         sinang = 0.0;
     }
     for (i = 0; i < 4; ++i) {
-	tmp = mat->mat[i][0];
-	mat->mat[i][0] = mat->mat[i][0] * cosang
-	               + mat->mat[i][2] * sinang;
-	mat->mat[i][2] = -tmp * sinang + mat->mat[i][2] * cosang;
+        tmp = mat->mat[i][0];
+        mat->mat[i][0] = mat->mat[i][0] * cosang
+                       + mat->mat[i][2] * sinang;
+        mat->mat[i][2] = -tmp * sinang + mat->mat[i][2] * cosang;
     }
 }
 
@@ -652,9 +657,7 @@ mat_rotate_y(mat, ang)
  * [j  k  l  1]   [  0   0   0  1]     [j*Ca-k*Sa  j*Sa+k*Ca  l  0]
  */
 void
-mat_rotate_z(mat, ang)
-    Transf_mat  * mat;
-    float        ang;
+mat_rotate_z( Transf_mat *mat, float ang )
 {
     float   cosang;
     float   sinang;
@@ -670,10 +673,10 @@ mat_rotate_z(mat, ang)
         sinang = 0.0;
     }
     for (i = 0; i < 4; ++i) {
-	tmp = mat->mat[i][0];
-	mat->mat[i][0] = mat->mat[i][0] * cosang
-	               - mat->mat[i][1] * sinang;
-	mat->mat[i][1] = tmp * sinang + mat->mat[i][1] * cosang;
+        tmp = mat->mat[i][0];
+        mat->mat[i][0] = mat->mat[i][0] * cosang
+                       - mat->mat[i][1] * sinang;
+        mat->mat[i][1] = tmp * sinang + mat->mat[i][1] * cosang;
     }
 }
 
@@ -687,12 +690,10 @@ mat_rotate_z(mat, ang)
  * by the point POINT and the vector VECTOR.
  */
 void
-mat_rotate(mat, point, vector, ang)
-    Transf_mat  * mat;
-    float       * point;
-    float       * vector;
-    float        ang;
+mat_rotate( Transf_mat *mat, float *point, float *vector, float ang )
 {
+    extern double hypot( double, double ); /* Have the #include, but still
+                                              get a warning without this. */
     float   ang2;
     float   ang3;
     float   hyp;
@@ -731,11 +732,8 @@ mat_rotate(mat, point, vector, ang)
  *                  rotating vector to axis.
  */
 void
-mat_rotate_axis_vec( mat, axis, vec, axis_to_vec )
-Transf_mat *mat;
-int axis;
-float *vec;
-Bool_type axis_to_vec;
+mat_rotate_axis_vec( Transf_mat *mat, int axis, float *vec, 
+                     Bool_type axis_to_vec )
 {    
     Transf_mat tmat;
     float min_val;
@@ -823,10 +821,7 @@ Bool_type axis_to_vec;
  * and a rotation of vector 1 into vector 2.
  */
 void
-mat_rotate_vec_vec( mat, vec1, vec2 )
-Transf_mat *mat;
-float *vec1;
-float *vec2;
+mat_rotate_vec_vec( Transf_mat *mat, float *vec1, float *vec2 )
 {    
     /* Rotate vec 1 to the X axis, then rotate X axis to vec 2. */
     mat_rotate_axis_vec( mat, 0, vec1, FALSE );
@@ -840,9 +835,7 @@ float *vec2;
  * Invert a rotation matrix.  Simply need to transpose it.
  */
 void
-invert_rot_mat( inv_mat, rot_mat )
-Transf_mat *inv_mat;
-Transf_mat *rot_mat;
+invert_rot_mat( Transf_mat *inv_mat, Transf_mat *rot_mat )
 {
     int i, j;
 
@@ -865,18 +858,14 @@ Transf_mat *rot_mat;
  * [j  k  l  1]   [ 0  0  0  1]     [j*Sx  k*Sy  l*Sz  1]
  */
 void
-mat_scale(mat, xscale, yscale, zscale)
-    Transf_mat  * mat;
-    float        xscale;
-    float        yscale;
-    float        zscale;
+mat_scale( Transf_mat *mat, float xscale, float yscale, float zscale )
 {
     int   i;
 
     for (i = 0; i < 4; ++i) {
-	mat->mat[i][0] *= xscale;
-	mat->mat[i][1] *= yscale;
-	mat->mat[i][2] *= zscale;
+        mat->mat[i][0] *= xscale;
+        mat->mat[i][1] *= yscale;
+        mat->mat[i][2] *= zscale;
     }
 }
 
@@ -890,10 +879,7 @@ mat_scale(mat, xscale, yscale, zscale)
  * and the normal vector NORM.
  */
 void
-mat_mirror_plane(mat, point, norm)
-    Transf_mat  * mat;
-    float       * point;
-    float       * norm;
+mat_mirror_plane( Transf_mat *mat, float *point, float *norm )
 {
     Transf_mat   tmp;
     float   factor;
@@ -902,7 +888,7 @@ mat_mirror_plane(mat, point, norm)
     /* for mirroring through a plane with the same normal vector */
     /* as our, but through the origin instead. */
     factor = 2.0 / (norm[0] * norm[0] + norm[1] * norm[1] 
-		    + norm[2] * norm[2]);
+                    + norm[2] * norm[2]);
     
     /* The diagonal elements. */
     tmp.mat[0][0] = 1 - factor * norm[0] * norm[0];
@@ -939,24 +925,21 @@ mat_mirror_plane(mat, point, norm)
  * [j k l 1]  [J K L 1]     [jA+kD+lG+J  jB+kE+lH+K  jC+kF+lI+L  1]
  */
 void
-mat_mul(res, a, b)
-    Transf_mat  * res;
-    Transf_mat  * a;
-    Transf_mat  * b;
+mat_mul( Transf_mat *res, Transf_mat *a, Transf_mat *b )
 {
     Transf_mat   tmp;
     int      i;
 
     for (i = 0; i < 4; ++i) {
-	tmp.mat[i][0] = a->mat[i][0] * b->mat[0][0]
-	              + a->mat[i][1] * b->mat[1][0] 
-	              + a->mat[i][2] * b->mat[2][0];
-	tmp.mat[i][1] = a->mat[i][0] * b->mat[0][1]
-  	              + a->mat[i][1] * b->mat[1][1] 
-	              + a->mat[i][2] * b->mat[2][1];
-	tmp.mat[i][2] = a->mat[i][0] * b->mat[0][2]
- 	              + a->mat[i][1] * b->mat[1][2]
-	              + a->mat[i][2] * b->mat[2][2];
+        tmp.mat[i][0] = a->mat[i][0] * b->mat[0][0]
+                      + a->mat[i][1] * b->mat[1][0] 
+                      + a->mat[i][2] * b->mat[2][0];
+        tmp.mat[i][1] = a->mat[i][0] * b->mat[0][1]
+                      + a->mat[i][1] * b->mat[1][1] 
+                      + a->mat[i][2] * b->mat[2][1];
+        tmp.mat[i][2] = a->mat[i][0] * b->mat[0][2]
+                      + a->mat[i][1] * b->mat[1][2]
+                      + a->mat[i][2] * b->mat[2][2];
     }
 
     tmp.mat[3][0] += b->mat[3][0];
@@ -979,17 +962,20 @@ mat_mul(res, a, b)
  *               [j  k  l  1]
  */
 void
-point_transform(res, vec, mat)
-    float       * res;
-    float       * vec;
-    Transf_mat  * mat;
+point_transform( float *res, float *vec, Transf_mat *mat)
 {
-    res[0] = mat->mat[0][0] * vec[0] + mat->mat[1][0] * vec[1] 
-        + mat->mat[2][0] * vec[2] + mat->mat[3][0];
-    res[1] = mat->mat[0][1] * vec[0] + mat->mat[1][1] * vec[1] 
-        + mat->mat[2][1] * vec[2] + mat->mat[3][1];
-    res[2] = mat->mat[0][2] * vec[0] + mat->mat[1][2] * vec[1] 
-        + mat->mat[2][2] * vec[2] + mat->mat[3][2];
+    res[0] = (double) mat->mat[0][0] * vec[0] 
+             + (double) mat->mat[1][0] * vec[1] 
+             + (double) mat->mat[2][0] * vec[2] 
+             + (double) mat->mat[3][0];
+    res[1] = (double) mat->mat[0][1] * vec[0] 
+             + (double) mat->mat[1][1] * vec[1] 
+             + (double) mat->mat[2][1] * vec[2] 
+             + (double) mat->mat[3][1];
+    res[2] = (double) mat->mat[0][2] * vec[0] 
+             + (double) mat->mat[1][2] * vec[1] 
+             + (double) mat->mat[2][2] * vec[2] 
+             + (double) mat->mat[3][2];
 }
 
 
@@ -1004,9 +990,7 @@ point_transform(res, vec, mat)
  * is a multiple of PI radians.
  */
 void
-mat_to_angles( mat, angles )
-Transf_mat *mat;
-float *angles;
+mat_to_angles( Transf_mat *mat, float *angles )
 {
     float cy, tmp;
 

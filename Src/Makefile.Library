@@ -1,0 +1,520 @@
+# $Id$
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+#                                                               #
+#                      Copyright (c) 2004                       #
+#         The Regents of the University of California           #
+#                     All Rights Reserved                       #
+#                                                               #
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+#
+# The Regents of the University of California.
+# All rights reserved.
+# 
+# This work was produced at the University of California, 
+# Lawrence Livermore National Laboratory (UC LLNL) under 
+# contract no. W-7405-ENG-48 between the U.S. Department of 
+# Energy (DOE) and The Regents of the University of California
+# (University) for   the operation of UC LLNL. Copyright is 
+# reserved to the University for purposes of controlled dis-
+# semination, commercialization through formal licensing, or 
+# other disposition under terms of Contract 48; DOE policies, 
+# regulations and orders; and U.S. statutes.
+# 
+# DISCLAIMER OF LIABILITY
+# 
+# This document was prepared as an account of work sponsored 
+# by an agency of the United States Government.  Neither the 
+# United States Government nor the University of California 
+# nor any of their employees, makes any warranty, express
+# or implied, including the warranties of merchantability
+# and fitness for a particular purpose, or assumes any legal
+# liability or responsibility for the accuracy, completeness,
+# or usefulness of any information, apparatus, product, or 
+# process disclosed, or represents that its use would not 
+# infringe privately-owned rights.
+# 
+# DISCLAIMER OF ENDORSEMENT
+# 
+# Reference herein to any specific commercial products,
+# process, or service by trade name, trademark, manufacturer,
+# or otherwise, does not necessarily constitute or imply its
+# endorsement, recommendation, or favoring by the United States
+# Government or the University of California.  The views and 
+# opinions of authors expressed herein do not necessarily state
+# or reflect those of the United States Government or the 
+# University of California, and shall not be used for advertising
+# or product endorsement purposes.
+#
+#################################################################
+#								#
+#	           Griz4 Driver Makefile	                #
+#								#
+#################################################################
+#
+#################################################################
+#  Revision History                                             #
+#  ----------------                                             #
+#  20-Feb-2004  IRC  Rewritten to work with Autoconf.           #
+#  24-Nov-2004  trt  Added logic for VersionInfo option.        #
+#  15-Feb-2007  IRC  Added batch run support. 		        #
+#################################################################
+#
+# Makefile - This is the makefile for GRIZ
+#
+# Author:	Don Dovey
+#               Lawrence Livermore National Laboratory
+#               Jan 3 1992
+#
+# V2.0 update:	Doug Speck
+#               Lawrence Livermore National Laboratory
+#               March 11, 1996
+#
+# V4.0 update:  Doug Speck
+#               Lawrence Livermore National Laboratory
+#               February 9, 1999
+#
+# V4.1 update:  Bob Corey
+#               Lawrence Livermore National Laboratory
+#               March 20, 2004
+#
+# V4.2 update:  Bob Corey
+#               Lawrence Livermore National Laboratory
+#               January 31, 2005
+#               Changes to support Intel Opteron processor.
+#
+#       02-Oct-07 IRC: Updated
+#                      Add support for KlockWorks build - Re: Bill Oliver.
+#		       SCR # 429
+
+# Note: Updated Makefile for Griz sources. Made more general
+#       so that it can be used for any platform. This Makefile
+#       is called from a driver Makefile (Makefile.Driver).
+#
+# Copyright (c) 1992, Regents of the University of California
+# Copyright (c) 1996, Regents of the University of California
+# Copyright (c) 2004, Regents of the University of California
+#
+srcdir= @srcdir@
+abs_srcdir= @abs_srcdir@
+top_srcdir= @top_srcdir@
+abs_top_srcdir= @abs_top_srcdir@
+builddir= @builddir@
+abs_builddir= @abs_builddir@
+top_builddir= @top_builddir@
+abs_top_builddir= @abs_top_builddir@
+VPATH = @srcdir@
+
+GRIZ_VERSION = @GRIZ_VERSION@
+MILI_VERSION = @MILI_VERSION@
+
+OS_NAME    = @OS_NAME@
+SHELL      = @SHELL@
+SHELL_ARGS = @SHELL_ARGS@
+#
+
+ifdef VERBOSE
+CC  = @MY_CC@ 
+FC  = @MY_FC@ 
+else
+CC  = @MY_CC@ 
+FC  = @MY_FC@ 
+endif
+
+CONFIG_STRING=@CONFIG_OPTIONS@
+
+INCLUDE_PATHS = @CC_INCLUDE_PATHS_GRIZ@
+
+CC_FLAGS_DEBUG= @CC_FLAGS_DEBUG@
+CC_FLAGS_OPT  = @CC_FLAGS_OPT@
+CC_DEPEND     = @CC_DEPEND@ 
+BASELIBS          = @GRIZLIBS@
+LDLIBPATH     = @LDLIBPATH@
+LDFLAGS_EXTRA = @LDFLAGS_EXTRA@
+LD            = @MY_CC@
+OSMESA_LIBS = @OSMESA_LIBRARY_PATHS@ @OSMESA_LIBRARY@
+# For UV add the following to the Load Line
+# -blpdata
+# LDFLAGS_EXTRA = -blpdata
+
+EXOLIBPATH    = @EXODUS_LIBRARY_PATH@
+EXOLIB        = @EXODUS_LIBRARY@
+
+MILIHOME      = @MILI_HOME@
+MILIINC       = @MILI_INCLUDE_PATHS@
+MILILIB       = @MILI_LIBRARY@
+
+NETCDFLIBPATH = @NETCDF_LIBRARY_PATH@
+NETCDFLIB     = @NETCDF_LIBRARY@
+
+ROOT_DIR      = @ROOT_DIR@
+
+# Set a pointer to the path for the Hershey fonts
+HFONTLOC      = @HERSHEY_FONTLIB@
+
+INSTALL_HOME  = @INSTALL_HOME@
+PLATFORM_DIRS = @PLATFORM_DIRS@
+
+
+#
+# KlocWorks Build Option - Added 10/06/2007: IRC
+#
+ifeq (@KW_ENABLE@,True)
+KW_CMD=kwwrap -o @KW_HOME@griz.trace
+CC=$(KW_CMD) gcc
+endif
+
+
+# Suffix rule to create the object files.
+# rules to automatically generate dependency makefiles
+.SUFFIXES :
+
+%.o: %.c
+	$(PURIFY_CMD) $(CC) $(CC_FLAGS) $(CPPFLAGS) -c $<
+
+ifneq ($(OS_NAME),Linux)
+%.d: %.c
+	@echo ... Generating dependencies for $< ...
+	@$(SHELL) -ec '$(CC) -c $(CC_DEPEND) $(CC_FLAGS) $(CPPFLAGS) $< \
+                        | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@
+endif
+
+# Set name of griz binary appropriately. The name "griz4s" is used
+# for the Griz shell script make target, below.
+GRIZ_EXE_DEBUG = @GRIZ_EXE@_debug
+GRIZ_EXE_OPT   = @GRIZ_EXE@_opt
+
+# Set to location of GRIZ source. Use an absolute path if GRIZHOME
+# is used to define GRIZBINLOC and HFONTLOC, below.
+GRIZHOME = @GRIZ_HOME@
+
+EXO_TARGET = @EXO_TARGET@
+
+PURIFY := @PURIFY@
+
+# Griz4s and griz4 common objects
+
+OBJS = \
+	versioninfo.o \
+	viewer.o \
+	faces.o \
+	geometric.o \
+	misc.o \
+	interpret.o \
+	time.o \
+	show.o \
+	draw.o \
+	results.o \
+	iso_surface.o \
+	gui.o \
+	contour.o \
+	stress.o \
+	strain.o \
+	node.o \
+	frame.o \
+	time_hist.o \
+	shape.o \
+	flow.o \
+	poly.o \
+	explode.o \
+	init_io.o \
+	io_wrappers.o \
+	result_data.o \
+	tell.o \
+	traction_force.o \
+	minmax.o \
+	damage.o \
+	offscreen.o \
+	hidden_inline.o \
+	free_nodes.o
+
+
+OBJS_DEBUG = $(addprefix $(ROOT_DIR)/objs_debug/, $(OBJS)) 
+OBJS_OPT   = $(addprefix $(ROOT_DIR)/objs_opt/,   $(OBJS)) 
+
+# ExodusII GIO driver (libgex.so) objects
+GEX_OBJS = exo_driver.o
+
+
+# Finally, targets...
+all: 		
+	$(MAKE) debug; 
+	$(MAKE) batch_debug; 
+	$(MAKE) opt;
+	$(MAKE) batch_opt; 
+
+mililibcheck.o:	mililibcheck.c
+		$(CC) $(CC_FLAGS) $(CPPFLAGS) \
+	        -DGRIZ_VERSION="\"$(GRIZ_VERSION)\"" \
+	        -DMILI_VERSION="\"$(MILI_VERSION)\"" \
+	        -c mililibcheck.c
+
+mililibcheck:	mililibcheck.o
+		$(LD) $(CC_FLAGS) $? -o $@ $(LDFLAGS_EXTRA) $(MILILIBPATH) -L$(MILIHOME)/lib $(MILILIB)
+
+mililibcheck.txt:   mililibcheck
+		$(RM) temp
+		./mililibcheck > temp
+		$(RM) mililibcheck
+		@ if `grep MILI_LIB_OK temp >/dev/null 2>&1` ; then \
+	              echo "\n\n Mili Library check passed = OK\n\n"; \
+	              mv temp $@; \
+	          else \
+	              echo "\n *** Fatal Error ****"; \
+	              echo "\n Build aborting - Outdated Mili Library referenced"; \
+	              echo "\n *** Fatal Error ****\n\n"; \
+	              exit 1; \
+	        fi
+error_batch:
+	@ echo "Unable to build batch GRIZ"
+
+mk_dirs:
+	@echo ... $(EXEC_PATH) $(LIB_PATH) $(OBJS_PATH) ....
+	@ -mkdir -p $(EXEC_PATH)
+	@ -mkdir -p $(OBJS_PATH)
+
+ifeq (@BATCH_ENABLE@,True)
+# Build Batch Optimized Griz
+batch_debug:      LIBS = $(BASELIBS) $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
+batch_debug:		LDFLAGS_EXTRA += $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
+batch_debug:		CC_FLAGS  = $(CC_FLAGS_DEBUG)
+batch_debug:      EXEC_PATH = $(ROOT_DIR)/bin_batch_debug
+batch_debug:      LIB_PATH  = $(ROOT_DIR)/lib_batch_debug
+batch_debug:      OBJS_PATH = $(ROOT_DIR)/objs_batch_debug
+batch_debug:		LDFLAGS  += $(OSMESA_LIBS)
+batch_debug:      GRIZ_EXE = $(GRIZ_EXE_DEBUG)_batch
+batch_debug:      GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
+batch_debug:      GRIZ_BATCH_EXE = $(GRIZ_EXE)
+batch_debug:	     MILILIBPATH = @MILI_LIBRARY_PATHS@
+batch_debug:		CPPFLAGS = "@BATCH_DEFINES@ $(CPPFLAGS)"
+batch_debug: 		DEFINES       = @CC_DEFINES_GRIZ@ @BATCH_DEFINES@
+batch_debug: 		CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ @CC_INCLUDE_PATHS_GRIZ@ -I$(top_builddir)
+batch_debug:	 	mk_dirs buildinfo.h build griz4s $(EXO_TARGET)
+
+# Build Optimized Griz
+batch_opt:      	LIBS = $(BASELIBS) $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
+batch_opt:		LDFLAGS_EXTRA += $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
+batch_opt:		CC_FLAGS  = $(CC_FLAGS_OPT)
+batch_opt:         EXEC_PATH = $(ROOT_DIR)/bin_batch_opt
+batch_opt:         LIB_PATH  = $(ROOT_DIR)/lib_batch_opt
+batch_opt:         OBJS_PATH = $(ROOT_DIR)/objs_batch_opt
+batch_opt:		LDFLAGS  += $(OSMESA_LIBS)
+batch_opt:         GRIZ_EXE = $(GRIZ_EXE_OPT)_batch
+batch_opt:         GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
+batch_opt:         GRIZ_BATCH_EXE = $(GRIZ_EXE)
+batch_opt:         MILILIBPATH = @MILI_LIBRARY_PATHS@
+batch_opt:		CPPFLAGS = "@BATCH_DEFINES@ $(CPPFLAGS)"
+batch_opt: 		DEFINES += @CC_DEFINES_GRIZ@ @BATCH_DEFINES@
+batch_opt: 		CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ @CC_INCLUDE_PATHS_GRIZ@ -I$(top_builddir)
+batch_opt:		mk_dirs buildinfo.h build griz4s $(EXO_TARGET)
+else
+batch_opt: error_batch
+endif
+# Build Optimized Griz
+opt:      LIBS = $(BASELIBS) @X11_LIBRARY_PATHS@ @X11_LIBS@
+opt:		CC_FLAGS  = $(CC_FLAGS_OPT)
+opt:      EXEC_PATH = $(ROOT_DIR)/bin_opt
+opt:      LIB_PATH  = $(ROOT_DIR)/lib_opt
+opt:      OBJS_PATH = $(ROOT_DIR)/objs_opt
+opt:		LDFLAGS  += -L../lib_opt
+opt:      GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
+opt:      GRIZ_EXE = $(GRIZ_EXE_OPT)
+opt:      GRIZ_BATCH_EXE = $(GRIZ_EXE_OPT)
+opt: 		DEFINES += @CC_DEFINES_GRIZ@ 
+opt: 		CPPFLAGS  = @CC_DEFINES_GRIZ@  @CC_INCLUDE_PATHS_GRIZ@ -I$(top_builddir)
+opt:	     MILILIBPATH = @MILI_LIBRARY_PATHS@
+opt:		mk_dirs  buildinfo.h build griz4s $(EXO_TARGET)
+
+# Build Debug Griz
+debug:      LIBS = $(BASELIBS) @X11_LIBRARY_PATHS@ @X11_LIBS@
+debug:	CC_FLAGS  = $(CC_FLAGS_DEBUG)
+debug:	EXEC_PATH = $(ROOT_DIR)/bin_debug
+debug:	LIB_PATH  = $(ROOT_DIR)/lib_debug
+debug:	OBJS_PATH = $(ROOT_DIR)/objs_debug
+debug:	LDFLAGS  += -L../lib_debug
+debug:	GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
+debug:	GRIZ_EXE = $(GRIZ_EXE_DEBUG)
+debug: 	DEFINES += @CC_DEFINES_GRIZ@ 
+debug: 	CPPFLAGS  = @CC_DEFINES_GRIZ@  @CC_INCLUDE_PATHS_GRIZ@ -I$(top_builddir)
+debug:	GRIZ_BATCH_EXE = $(GRIZ_EXE_DEBUG)_batch
+debug:	MILILIBPATH = @MILI_LIBRARY_PATHS@
+debug:	mk_dirs alpha beta buildinfo.h build griz4s $(EXO_TARGET)
+
+purify:		LIBS = $(BASELIBS) @X11_LIBRARY_PATHS@ @X11_LIBS@
+purify:		CC_FLAGS = $(CC_FLAGS_DEBUG)
+purify:        EXEC_PATH = $(ROOT_DIR)/bin_debug
+purify:		LDFLAGS += -L../lib_opt
+purify:        OBJS_PATH := $(ROOT_DIR)/objs_debug
+purify:        GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
+purify:        GRIZ_EXE = $(GRIZ_EXE_DEBUG)
+purify:		mk_dirs $(GRIZ_EXE_DEBUG) buildinfo.h griz4s $(EXO_TARGET)
+
+alpha: 
+	ln -sf $(EXEC_PATH) $(ROOT_DIR)/alpha;
+
+beta:
+	ln -sf $(EXEC_PATH) $(ROOT_DIR)/beta;
+
+# The objects for the versions of Griz are stored
+# off in seperate directories after compilation. They are moved
+# back into the src directory before we do another build.
+build:  mililibcheck.txt update_objects $(OBJS)
+		@echo ... New Build ...
+		@echo ... $(CONFIG_STRING) ...
+		$(LD) $(CC_FLAGS) $(LDFLAGS_EXTRA) -o $(GRIZ_EXE) $(OBJS) $(MILILIBPATH) -L$(MILIHOME)/lib $(MILILIB) $(LIBS)
+		@ -mv $(ROOT_DIR)/src/*.o $(OBJS_PATH)
+		 -mv $(ROOT_DIR)/src/*.d $(OBJS_PATH)
+		mv $(GRIZ_EXE) $(EXEC_PATH)/$(GRIZ_EXE)
+		cp ../Doc/griz_start_text $(EXEC_PATH)/.
+		-cp ../Doc/Griz4-Manual/griz_manual.pdf $(EXEC_PATH)/.
+	
+
+# Move objects for appropriate code (opt or debug) back into src
+# directory where build take place. 
+update_objects:
+		-mv $(OBJS_PATH)/*.o $(ROOT_DIR)/src
+		-mv $(OBJS_PATH)/*.d $(ROOT_DIR)/src
+
+#
+# The griz shell script will always rebuild when the "griz4s" make
+# target is evaluated.  It's cheap, and any changes to GRIZBINLOC,
+# HFONTLOC, or GRIZ_SERIAL will then always be reflected in the script. 
+# To eliminate this behavior, delete "force_rebuild" from the "griz4s"
+# dependencies.
+#
+griz4s:	mililibcheck.txt griz.in
+	sed '/_grizhome_/ s/_grizhome_/'`echo $(EXEC_PATH) | sed 's/\\//\\\\\//g'`'/' \
+		griz.in \
+	| sed '/_hfontlib_/ s/_hfontlib_/'`echo $(HFONTLOC) | sed 's/\\//\\\\\//g'`'/' \
+	| sed '/_grizbin_/ s/_grizbin_/$(GRIZ_EXE)/' \
+	| sed '/_grizbinbatch_/ s/_grizbinbatch_/$(GRIZ_BATCH_EXE)/' \
+	| sed '/_ldlibpath_/ s/_ldlibpath_/'`echo $(LDLIBPATH) | sed 's/\\//\\\\\//g'`'/' \
+	> $@;
+	chmod 755 $@;
+	mv $@ $(EXEC_PATH);
+
+libgex.so:  $(GEX_OBJS)
+		ld -shared -all $(GEX_OBJS) -lc \
+        -L$(EXOLIBPATH) $(EXOLIB) \
+        -L$(NETCDFLIBPATH) $(NETCDFLIB)\
+        -o $@; 
+	mkdir $$(LIB_PATH);
+	mv $@ $(LIB_PATH);
+
+versioninfo.o:  buildinfo.h
+
+buildinfo.h:    buildinfo
+		$(RM) t.h
+		./buildinfo > t.h
+		mv t.h $@
+
+buildinfo.o:	buildinfo.c
+		$(CC) $(CC_FLAGS) $(CPPFLAGS) \
+	            -DGRIZ_VERSION="\"$(GRIZ_VERSION)\"" \
+	            -DMILI_VERSION="\"$(MILI_VERSION)\"" \
+		    -DCOMPILE_CMD="\"$(CC) $(CC_FLAGS) $(CPPFLAGS) \"" \
+		    -DLINK_CMD="\"$(CC) $(CC_FLAGS) $(LDFLAGS_EXTRA) $(LIBS)\"" \
+		    -DMAKE_CMD="\"$(MAKECMDGOALS)\"" \
+		   -c buildinfo.c
+
+buildinfo:	buildinfo.o
+		$(LD) $(CC_FLAGS) $? -o $@ $(LDFLAGS_EXTRA)
+
+clean:
+	rm -f *.o *.so so_locations; \
+	rm -f buildinfo buildinfo.h; \
+	rm $(ROOT_DIR)/bin_debug/$(GRIZ_SERIAL) $(ROOT_DIR)/bin_debug/griz4s; \
+	rm $(ROOT_DIR)/bin_opt/$(GRIZ_SERIAL) $(ROOT_DIR)/bin_opt/griz4s; \
+	rm $(ROOT_DIR)/objs_debug/* $(ROOT_DIR)/objs_opt/*; \
+	rm $(ROOT_DIR)/src/$(GRIZ_SERIAL) $(ROOT_DIR)/src/griz4s; \
+	rm -f $(ROOT_DIR)/lib_debug/* $(ROOT_DIR)/lib_opt/*
+
+clobber: clean
+	rm -f *.o *.so so_locations; \
+	rm -f buildinfo buildinfo.h; \
+	rm $(ROOT_DIR)/bin_debug/* $(ROOT_DIR)/bin_opt/*; \
+	rm $(ROOT_DIR)/lib_debug/* $(ROOT_DIR)/lib_opt/*; \
+	rm $(ROOT_DIR)/objs_debug/* $(ROOT_DIR)/objs_opt/*;
+
+distclean:
+
+
+##################
+# INSTALL TARGETS
+# All of the targets below are used for installing the code in public
+##################
+
+install: install-initversion install-startmsg install-updatefont install-chmod install-setversion
+
+install-initversion:
+	@ for dir in $(PLATFORM_DIRS); do \
+		echo " "; \
+		cd $(INSTALL_HOME)/$$dir/archive/grizdir; \
+	if test -d $(GRIZ_VERSION); \
+	           then \
+		   echo "[$$dir] \t\t Griz directory exists for version $(GRIZ_VERSION)"; \
+		   else \
+		   echo "[$$dir] \t\t Creating Griz directory for version $(GRIZ_VERSION)"; \
+	           mkdir $(GRIZ_VERSION); \
+	           cd $(GRIZ_VERSION); \
+		   mkdir Font bin; \
+	        fi; \
+	done
+
+install-setversion:
+	@ for dir in $(PLATFORM_DIRS); do \
+		echo " "; \
+		echo "[$$dir] \t\t Setting new Griz Version to : $(GRIZ_VERSION)"; \
+		cd $(INSTALL_HOME)/$$dir/archive/grizdir/; \
+		ln -sf $(GRIZ_VERSION) grizversion; \
+		ls -l  $(GRIZ_VERSION) grizversion; \
+	done
+
+install-startmsg:
+	@ for dir in $(PLATFORM_DIRS); do \
+		echo " "; \
+		echo "[$$dir] \t\t Updating Griz Startup message"; \
+	        cd $(INSTALL_HOME)/$$dir/archive/grizdir/; \
+		if test -d $(GRIZ_VERSION); \
+		   then \
+	           cd $(INSTALL_HOME)/$$dir/archive/grizdir/$(GRIZ_VERSION)/bin; \
+		   cp $(ROOT_DIR)/Doc/griz4_start_text-$(GRIZ_VERSION) griz4_start_text; \
+	           else \
+	           echo "[$$dir] \t\t Griz version $(GRIZ_VERSION) is missing"; \
+	        fi; \
+	done
+
+install-chmod:
+	@ for dir in $(PLATFORM_DIRS); do \
+		echo " "; \
+		echo "[$$dir] \t\t Setting Griz permissions"; \
+		cd $(INSTALL_HOME)/$$dir/archive/grizdir; \
+		if test -d $(GRIZ_VERSION); \
+	           then \
+	           chmod 770 $(GRIZ_VERSION); \
+		   chmod -R 750 $(GRIZ_VERSION); \
+		   chgrp -R mdgusers $(GRIZ_VERSION); \
+	           else \
+	           echo "[$$dir] \t\t Griz version $(GRIZ_VERSION) is missing"; \
+	        fi; \
+	done
+
+install-updateFont:
+	@ for dir in $(PLATFORM_DIRS); do \
+		echo " "; \
+		echo "[$$dir] \t\t Installing font files"; \
+		cd $(INSTALL_HOME)/$$dir/archive/grizdir; \
+		if test -d $(GRIZ_VERSION); \
+	           then \
+		   cp $(ROOT_DIR)/HersheyLib/hfonts/futura.l $(INSTALL_HOME)/$$dir/archive/grizdir/$(GRIZ_VERSION)/Font; \
+	           else \
+	           echo "[$$dir] \t\t Griz version $(GRIZ_VERSION) is missing"; \
+	        fi; \
+	done
+
+
+uninstall:
+
+ifneq ($(OS_NAME),Linux)
+include $(OBJS:.o=.d)
+endif
+

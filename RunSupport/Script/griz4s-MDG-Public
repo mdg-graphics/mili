@@ -1,0 +1,166 @@
+#
+# $Id$
+#
+#   ****************************************************************
+#   * (c) Copyright 1996 The Regents of the University of          *
+#   *     California.  All Rights Reserved.                        *
+#   *                                                              *
+#   *     This work was produced under the sponsorship of the      *
+#   *     United States Department of Energy.  The Government      *
+#   *     retains certain rights therein.                          *
+#   ****************************************************************
+#
+#*******************************************************************
+#  Revision History:
+#   22-Aug-96  Original version.
+#              (Robert J. Sherwood)
+#
+#   11-Dec-96  Added support for GLX/X distinction, Sun FFB, and
+#              OSF/Irix and OSF/Sun peculiarities
+#              (Doug Speck)
+#
+#   14-Nov-06  Updated to match script on LC and new dir
+#              structure for exe.
+#              (Bob Corey)
+#*******************************************************************
+
+# set echo
+setenv PATH ${PATH}:/usr/bin/X11
+
+# Use GRIZ4HOME rather than GRIZHOME to avoid picking up GRIZ2 griz_start_text
+setenv GRIZ4HOME /usr/gapps/mdg/bin/grizversion/bin
+setenv GRIZHOME  /usr/gapps/mdg/bin/grizversion/bin
+
+# Good for all except OSF; reset under OSF block below
+setenv HFONTLIB /usr/gapps/mdg/lib/font/Hershey/sgi_sun_ibm_hp
+
+# Capture the batch flag if it exists
+set batch = no
+foreach argument ($argv[*])
+    if (x$argument == x-b)    set batch = yes
+
+    if (x$argument == x-alpha) then
+        setenv GRIZ4HOME /usr/gapps/mdg/bin/grizalpha/bin
+        setenv GRIZHOME  /usr/gapps/mdg/bin/grizalpha/bin
+        echo "** Loading Alpha version of Griz **"
+    endif
+
+    if (x$argument == x-beta) then
+        setenv GRIZ4HOME /usr/gapps/mdg/bin/grizbeta/bin
+        setenv GRIZHOME  /usr/gapps/mdg/bin/grizbeta/bin
+        echo "** Loading Beta version of Griz **"
+    endif
+end
+
+set system = `/bin/uname -s`
+set release = `/bin/uname -r`
+set majorrelease = $release:r
+
+# Get the first digit of the release
+
+while ($majorrelease != $release)
+  set release = $majorrelease
+  set majorrelease = $release:r
+end
+
+# Capture display host information
+
+set glx = `xdpyinfo | awk '/^ *GLX/ {print $1}'`
+set vendor = `xdpyinfo | awk '/vendor string/ {print $3}'`
+set x_release = `xdpyinfo | awk '/vendor release number/ {print $4}'`
+
+# Generate correct binary extension
+
+if (($system == IRIX) || ($system == IRIX64)) then
+
+  if ($batch == yes) then
+    set extension = sgi.osmesa
+  else if ($glx == GLX) then
+    set extension = sgi
+  else
+    set extension = sgi.mesa
+  endif
+
+  unsetenv LD_LIBRARY_PATH
+  setenv LD_LIBRARY_PATH /usr/gapps/mdg/lib/irix
+
+else if ($system == SunOS) then
+
+  if ($majorrelease == 5) then
+
+#   Capture whether this is a SunBlade
+    set blade = `uname -a | awk -F- '/Blade/ {print $3}'`
+
+    unsetenv LD_LIBRARY_PATH
+
+    if ($batch == yes) then
+#
+# Batch execution.  SunBlade or other Sun platform?
+#
+      setenv LD_LIBRARY_PATH /usr/gapps/mdg/lib/solaris:/usr/openwin/lib:/usr/dt/lib/:/usr/lib
+
+      if ($blade == Blade) then
+        set extension = sol.blade.osmesa
+#       Want to find libgex.so in lib/solarisBlade before lib/solaris
+        setenv LD_LIBRARY_PATH /usr/gapps/mdg/lib/solarisBlade:${LD_LIBRARY_PATH}
+      else
+        set extension = sol.osmesa
+      endif
+
+    else if ($glx == GLX) then
+#
+# Regular interactive execution.  SunBlade or other Sun platform?
+#
+      if ($blade == Blade) then
+        set extension = sol.blade
+#       Add lib/solarisBlade so Griz will find the right SunBlade libgex.so for Exodus db's
+        setenv LD_LIBRARY_PATH /usr/openwin/lib:/usr/dt/lib/:/usr/lib:/usr/gapps/mdg/lib/solarisBlade
+      else
+        set extension = sol
+#       Add lib/solaris last so it won't find Mesa OpenGL before Sun's OpenGL but
+#       it will still find libgex.so for Exodus db's
+        setenv LD_LIBRARY_PATH /usr/openwin/lib:/usr/dt/lib/:/usr/lib:/usr/gapps/mdg/lib/solaris
+      endif
+
+    else if ($blade == Blade) then
+#
+# Interactive execution but no GLX so use Mesa versions. SunBlade or other Sun platform?
+#
+      set extension = sol.blade.mesa
+      setenv LD_LIBRARY_PATH /usr/gapps/mdg/lib/solarisBlade:/usr/openwin/lib:/usr/dt/lib/:/usr/lib
+
+    else
+
+      set extension = sol.mesa
+      setenv LD_LIBRARY_PATH /usr/gapps/mdg/lib/solaris:/usr/openwin/lib:/usr/dt/lib/:/usr/lib
+
+    endif
+
+  else
+
+    echo "ERROR: You are trying to run GRIZ4 on a $system release $majorrelease system."
+    echo "GRIZ4 is not currently available for that release of $system."
+    goto contactmdg          # Print contact info and take error exit.
+
+  endif
+
+else
+  echo "ERROR:  You are trying to run GRIZ4 on a $system system."
+  echo "GRIZ4 is not currently available for $system systems."
+  goto contactmdg            # Print contact info and take error exit.
+endif
+
+# echo "system=${system} release=$release majorrelease=$majorrelease."
+# echo "Extension=$extension."
+
+# Execute the appropriate executable, and return its exit status
+
+$GRIZ4HOME/griz4s.$extension $*
+exit
+
+# Error exit
+
+contactmdg:
+echo "Please contact the Methods Development Group."
+echo "ABORTING."
+exit -1

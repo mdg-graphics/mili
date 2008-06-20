@@ -1,0 +1,30 @@
+		  Installation Instructions for Griz4s
+
+			  ** Version 4.10 **
+
+			Updated March 18, 2007
+
+
+******************************************************************************************
+Griz requires Mili version 1.11 or later. The following gnu tools are also
+requited:  gmake
+
+Once the Griz tarfile has been extracted, execute the following steps in this order:
+
+
+(1) cd to the directory GrizDist
+
+(2) Enter the command: ./configure --enable-png --with-mili= ** directory 
+								path for mili you built **
+
+(3) A new directory will be created - it with start with "GRIZ4", 
+    for example: GRIZ4-chaos_3_x86_64-YANA/
+
+    cd to this directory
+
+(4) Enter the command: gmake opt
+
+(5) The Griz execution script called "griz4s" can be found in the directory
+    /bin_opt
+
+(6) To run Griz, enter the command:  griz4s -i input_file
