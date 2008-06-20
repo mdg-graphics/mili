@@ -481,7 +481,7 @@ mystr "some string"
 
 	sprintf(walltime_str," -W %d.%03d ", (int) st, (int) mt ); 
 	strcpy( version, " -v " );
-	strcat( version, GRIZ_VERSION_NUMBER );
+	strcat( version, GRIZ_VERSION );
 	strcat( version, " " );
 	
 	strcpy( problem_str, " -I ");
