@@ -1886,7 +1886,6 @@ get_extreme_minmax( Analysis *analy, int minmax,
     /* Free up temporary storage */
     free(minmax_nodal);
     free(minmax_sclass);
-    free(minmax_sclass);
     free(minmax_obj_index);
 
     analy->cur_result = p_result;

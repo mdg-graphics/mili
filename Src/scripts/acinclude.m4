@@ -788,7 +788,10 @@ AC_DEFUN([CONFIGURE_OSMESA],
 		]
 	)
 	suffix="a"
+
 	# lets check the usual suspects for Mesa libraries
+	# Lastly check in VisIt directories - AIX only
+
 	if test "$PATH_SET" = "false"; then
 		AC_CHECK_FILE([$X11_PATH/libOSMesa.a],
 			[
@@ -840,7 +843,19 @@ AC_DEFUN([CONFIGURE_OSMESA],
 														PATH_SET="true"
 														suffix="so"
 														break
-													]
+													
+													],
+													[
+														AC_CHECK_FILE([/usr/gapps/visit/mesa/4.1/aix/lib/libOSMesa.so],
+															[
+															       OSMESA_HOME=/usr/gapps/visit/mesa/4.1/aix
+															       OSMESA_LIBRARY_PATHS=$OSMESA_HOME/lib
+															       PATH_SET="true"
+															       suffix="so"
+															       break
+														        ]
+														]
+													)	
 												)
 											]
 										)

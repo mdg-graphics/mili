@@ -2349,8 +2349,12 @@ draw_grid( Analysis *analy )
     if ( analy->edge_zbias == (float) DFLT_ZBIAS && env.win32 )
     {
          glEnable(GL_POLYGON_OFFSET_FILL);
-         glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+         /* glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
          glPolygonOffset( 2.0, 100 );
+	 */
+
+	 analy->edge_zbias = 20;
+	 glDepthRange( 0, 1 - analy->edge_zbias );
     }
 
     /* IRC: Added Oct 17, 2006. Offset Polygon lines so that lines do not
@@ -11906,7 +11910,7 @@ draw_locref_hex( Analysis *analy )
 
 
 /************************************************************
- * TAG( draw_free_nodes )
+ * TAG( get_free_nodes )
  *
  * This function will return the value of a free-node for
  * a specified node number.
@@ -12070,7 +12074,6 @@ draw_free_nodes( Analysis *analy )
       free_nodes_list[i] = -1;
       temp_activity[i]   = 1;
     }
-
 
     /* If mass scaling option is enabled, then look for the nodal masses */
 
@@ -12322,8 +12325,9 @@ draw_free_nodes( Analysis *analy )
          * polygons are drawn in the material color.
          */
         colorflag = TRUE;
-        if ( analy->cur_result==NULL )
-             colorflag = 0;
+
+        if ( analy->cur_result==NULL || disable_mtl[mat_num] )
+             colorflag = FALSE;
 
         get_node_vert_2d_3d( node_index, NULL, analy, verts );
 

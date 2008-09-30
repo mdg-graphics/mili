@@ -209,6 +209,9 @@ Bool_type new_window_behavior   = FALSE;
 /* Griz name & version for window titles. */
 static char *griz_name;
 
+/* Set to TRUE if the material Color-Mode is active */
+Bool_type mtl_color_active=FALSE;
+
 /* Time series plotting window bounds. */
 static float win_xmin;
 static float win_ymin;
@@ -443,12 +446,17 @@ static void init_alt_cursors( void );
 void get_window_attributes( void );
 void put_window_attributes( void );
 
-void
+MO_class_data *
 assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_name,
 		   int *qty_objects, int *label_block_qty,
 		   int *num_blocks, int *blocks, int *blocks_labels );
 
-int 
+MO_class_data *
+get_blocking_info( Analysis *analy,  int sclass,
+		   int *class_size,  char *class_name,
+		   int *qty_objects, int *label_block_qty );
+
+int  
 assemble_compare_blocks( int *blockl1, int *block2 );
 
 
@@ -2932,7 +2940,7 @@ create_ti_res_menu( Widget parent )
      * to get (potential) Ti_results in a reasonable order.
      */
     
-    add_ti_result_button( parent, p_pr );
+    /* add_ti_result_button( parent, p_pr ); */
 }
 
 
@@ -2965,12 +2973,12 @@ regenerate_result_menus( void )
     }
 
     /* Create new result menus. */
-    create_derived_res_menu( menu_widg );
+    create_derived_res_menu( menu_widg ); 
     create_primal_res_menu( menu_widg );
 
     /* Bring up TI menus if TI data is found */
     if ( analy->ti_data_found )
-         create_ti_res_menu( menu_widg ); 
+	 create_ti_res_menu( menu_widg );
 
     /* Reference the new menus in the appropriate cascade buttons. */
     find_labelled_child( menu_widg, derived_menu_name, &child, &position );
@@ -2981,9 +2989,9 @@ regenerate_result_menus( void )
 
     if ( analy->ti_data_found )
     {
-         find_labelled_child( menu_widg, ti_menu_name, &child, &position );
-         XtVaSetValues( child, XmNsubMenuId, ti_menu_widg, NULL );
-    }
+         find_labelled_child(  menu_widg, ti_menu_name, &child, &position );
+         /* XtVaSetValues( child, XmNsubMenuId, ti_menu_widg, NULL ); */
+	 }
 }
 
 
@@ -3043,13 +3051,12 @@ create_mtl_manager( Widget main_widg )
     mtl_shell = XtAppCreateShell( "GRIZ", "mtl_shell",
                                 topLevelShellWidgetClass,
                                 XtDisplay( main_widg ), args, n );
-/*****
+
     XtAddCallback( mtl_shell, XmNdestroyCallback,
                    destroy_mtl_mgr_CB, (XtPointer) NULL );
 
     XtAddEventHandler( mtl_shell, EnterWindowMask | LeaveWindowMask, False,
                        gress_mtl_mgr_EH, NULL );
-*****/
 
     /* Use a Form widget to manage everything else. */
     mtl_base = XtVaCreateManagedWidget( 
@@ -3057,7 +3064,7 @@ create_mtl_manager( Widget main_widg )
         NULL );
 
     XtAddCallback( mtl_base, XmNdestroyCallback,
-                   destroy_mtl_mgr_CB, (XtPointer) NULL );
+	  destroy_mtl_mgr_CB, (XtPointer) NULL );
 
     widg = XtVaCreateManagedWidget( 
         "Function", xmLabelGadgetClass, mtl_base, 
@@ -5830,6 +5837,19 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
     /* IRC: May 11, 2007.  Raise Utility and Control windows to the top (SCR #456) */
  
 
+    /* IRC: September 6, 2008. This code allows operations in the render window if we are using
+     * the material manager color editor.
+     */
+    if (mtl_color_active)
+    {
+        mtl_color_active=FALSE;
+        switch_opengl_win( MESH_VIEW );
+        XtUnmanageChild( swatch_frame );
+        XtUnmapWidget( swatch_label );
+        XtSetSensitive( color_editor, False );
+    }
+
+
     switch( cb_data->event->type )
     {
         case ButtonPress:
@@ -6239,6 +6259,7 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
         XmListSetBottomPos( hist_list, 0 );
         XmStringFree( text );
     }
+
 }
 
 
@@ -6601,6 +6622,8 @@ mtl_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     {
         if ( cb_data->set )
         {
+	    mtl_color_active=TRUE;
+
             /* Exclude other functions while color is selected. */
             XtVaGetValues( function_toggles[VIS], XmNset, &set, NULL );
             XtVaGetValues( function_toggles[INVIS], XmNset, &comp_set, NULL );
@@ -6628,7 +6651,9 @@ mtl_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
         }
         else
         {
-            switch_opengl_win( MESH_VIEW );
+ 	    mtl_color_active=FALSE;
+
+	    switch_opengl_win( MESH_VIEW );
             XtUnmanageChild( swatch_frame );
             XtUnmapWidget( swatch_label );
             XtSetSensitive( color_editor, False );
@@ -7324,7 +7349,7 @@ mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
     update_actions_sens();
     
     if ( XtIsSensitive( color_editor ) )
-        switch_opengl_win( SWATCH );
+       switch_opengl_win( SWATCH );
 }
 
 
@@ -7339,9 +7364,12 @@ static void
 destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     Material_property_type i;
-    
+
     switch_opengl_win( MESH_VIEW );
     
+    if (!mtl_mgr_widg)
+        return;
+
     if ( preview_set )
         send_mtl_cmd( "mtl cancel", 2 );
 
@@ -7374,9 +7402,7 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     session->win_mtl_active = 0; 
 
-/*****
     destroy_mtl_mgr();
-*****/
 }
 
 
@@ -8595,15 +8621,15 @@ destroy_mtl_mgr( void )
     Window my_win;
     
     if ( mtl_base == NULL )
-        return;
-/*****
+         return;
+
     my_win = XtWindow( mtl_base );
     XDestroyWindow( dpy, my_win );
     my_win = 0;
 
     XtDestroyWidget( mtl_base );
     mtl_base = NULL;
-*****/
+
     mtl_mgr_top_win = 0;
     mtl_base = NULL;
 
@@ -9776,7 +9802,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     int cnt, first, qty_states;
     float start_t, end_t;
     int db_ident;
-    MO_class_data *class_ptr;
+    MO_class_data *class_ptr=NULL;
     char class_name[128];
 
     int block_label_start, block_label_end;
@@ -9937,164 +9963,182 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 	   for ( i=0;
 		 i<1000;
 		 i++ )
-	     {
+	   {
 	         blocks[i]        = 0;
 	         blocks_labels[i] = 0;
-	     }
+	   }
 
-	   assemble_blocking ( analy, sclass, &class_size, class_name,
-			       &qty_objects, 
-			       &label_block_qty, &num_blocks, 
-			       blocks, blocks_labels );
+	   class_ptr = get_blocking_info( analy,  sclass, 
+					  &class_size, class_name,
+					  &qty_objects, &label_block_qty );
+
+	   if ( qty_objects==0 )
+ 	        continue;
+
+	   if ( !analy->stateDB )
+	   {
+	        class_ptr = assemble_blocking ( analy, sclass, &class_size, class_name,
+						&qty_objects, 
+						&label_block_qty, &num_blocks, 
+						blocks, blocks_labels );
 
 	   if ( num_blocks==0 )
 	        continue;
-
-           if ( qty_objects != class_size 
-                || ( class_size > 1
-                     && num_blocks > 0 ))
-          {
+	   }
+	   else
+	        class_ptr = get_blocking_info( analy,  sclass, 
+					       &class_size, class_name,
+					       &qty_objects, &label_block_qty );
+	   
+	   if ( class_size > 1 )
+           {
                 block_index = 0;
 
 	        sprintf( temp_text,"\nClass: %s \t\t\t\t(Total %ss=%d)\n", class_name, class_name, class_size );  
 	        start_text[cnt++] = (char *) strdup(temp_text) ;
 
-	        if ( !analy->stateDB && label_block_qty==0 ) 
-	              if ( num_blocks==0 ) 
-		           sprintf( temp_text, 
-				    "\tblock[%d]: %d-%d\n", 1, 
-				    1, 
-				    qty_objects);
-	       else
-	           for ( i = 0;
-			 i< num_blocks; 
-			 i++ )
-		   {
-		         /* Check for overflow of text buffer */
-		         if ( cnt >= MAX_DBTEXT_LINES )
-			 {
-			      sprintf( temp_text, "Error - text length exceeded (length=%d)\n", cnt);	
-			      start_text[cnt++] = (char *) strdup(temp_text) ;
-			      i=num_blocks;
-			      break;
-			 }
-		       
-		         block_label_start = blocks[block_index] ;
-			 block_label_end   = blocks[block_index+1] ;
-			
-		         if ( block_label_start!=block_end )
+	        /************/
+		/* State DB */
+		/************/
+	        if ( analy->stateDB )
+		{
+		     /******************/
+		     /* Without Labels */
+		     /******************/
+		     /* Case 1 - State DB and no labels */
+		     if ( label_block_qty==0 )
+		     {
+		         block_start = 1;
+			 block_end   = class_size;
+			 
+			 if ( block_start!=block_end )
 			      sprintf( temp_text, 
-				       "\tblock[%d]: %d-%d\n", i+1, 
-				       block_label_start,
-				       block_label_end );
+				       "\tblock[%d]: %d-%d\n", 1, 
+				       block_start,
+				       block_end );
 			 else
 			      sprintf( temp_text, 
-				       "\tblock[%d]: %d\n", i+1, 
-				       block_label_start);
-
+				       "\tblock[%d]: %d\n", 1, 
+				       block_start);
 			 start_text[cnt++] = (char *) strdup(temp_text) ;
-			 block_index+=2;
-		   } /* end for-i */
+		     }
+		     else
+		     {
+		         /***************/
+		         /* With Labels */
+		         /***************/
+		         /* Case 2 - State DB with labels */
+		         block_label_start = get_class_label( class_ptr, 1 );
+			 block_label_end   = get_class_label( class_ptr, class_size );
+			      
+			 if ( block_start!=block_end )
+			      sprintf( temp_text, 
+				       "\tblock[%d]: %d-%d (Labels: %d-%d)\n", 1, 
+				       1,
+				       class_size,
+				       block_label_start,
+				       block_label_end);
+			 else
+			      sprintf( temp_text, 
+				       "\tblock[%d]: %d\n", 1, 
+				       block_start);
+			 start_text[cnt++] = (char *) strdup(temp_text) ;
+		     }
+		}
+		
+	        /*********/
+		/* TH DB */
+		/*********/
+	        if ( !analy->stateDB )
+		{
+		     /******************/
+		     /* Without Labels */
+		     /******************/
+		     /* Case 3 - TH DB and no labels */
+		     if ( label_block_qty==0 )
+		     {
+		          block_count = 1;
+			  block_index = 0;
+			  for ( i = 0;
+				i< num_blocks; 
+				i++ )
+			    {
+			        /* Check for overflow of text buffer */
+			        if ( cnt >= MAX_DBTEXT_LINES )
+				{
+				     sprintf( temp_text, "Error - text length exceeded (length=%d)\n", cnt);	
+				     start_text[cnt++] = (char *) strdup(temp_text) ;
+				     i=num_blocks;
+				     break;
+				}
+			      
+				block_start       = blocks[block_index] ;
+				block_end         = blocks[block_index+1] ;
+				
+				sprintf( temp_text, 
+					 "\tblock[%d]: %d-%d\n", block_count++, 
+					 block_start,
+					 block_end );
+				
+				start_text[cnt++] = (char *) strdup(temp_text) ;
+				block_index+=2;
+			    } /* end for-i */
 
+			    if ( cnt >= MAX_DBTEXT_LINES-5 )
+			    {
+			         start_text[cnt] = (char *) strdup("** Error Max lines exceeded!");
+				 p_state_rec->qty;
+				 break;
+			    }
 
-	     /******************/
-	     /* Without Labels */
-	     /******************/
-	     /* Case 1 - State DB and no labels */
-	     if ( analy->stateDB && 
-		  label_block_qty==0 )
-	     {
-		   block_start = 1;
-		   block_end   = class_size;
-		  
-		   if ( block_start!=block_end )
-		        sprintf( temp_text, 
-				 "\tblock[%d]: %d-%d\n", 1, 
-				 block_start,
-				 block_end );
-		   else
-		        sprintf( temp_text, 
-				 "\tblock[%d]: %d\n", 1, 
-				 block_start),
-		     
-		   start_text[cnt++] = (char *) strdup(temp_text) ;
-	     }
+		     }
+		     else
+		     {
+		         /***************/
+		         /* With Labels */
+		         /***************/
+		        /* Case 4 - TH DB with labels */
+		          block_count = 1;
+			  block_index = 0;
+			  for ( i = 0;
+				i< num_blocks; 
+				i++ )
+			    {
+			        /* Check for overflow of text buffer */
+			        if ( cnt >= MAX_DBTEXT_LINES )
+				{
+				     sprintf( temp_text, "Error - text length exceeded (length=%d)\n", cnt);	
+				     start_text[cnt++] = (char *) strdup(temp_text) ;
+				     i=num_blocks;
+				     break;
+				}
+			      
+				block_start       = blocks[block_index] ;
+				block_end         = blocks[block_index+1] ;
+				block_label_start = blocks_labels[block_index] ;
+				block_label_end   = blocks_labels[block_index+1] ;
+				
+				sprintf( temp_text, 
+					 "\tblock[%d]: %d-%d (Labels: %d-%d)\n", block_count++, 
+					 block_start,
+					 block_end,
+					 block_label_start,
+					 block_label_end);
+				
+				start_text[cnt++] = (char *) strdup(temp_text) ;
+				block_index+=2;
+			    } /* end for-i */
 
+			    if ( cnt >= MAX_DBTEXT_LINES-5 )
+			    {
+			         start_text[cnt] = (char *) strdup("** Error Max lines exceeded!");
+				 p_state_rec->qty;
+				 break;
+			    }
 
-	     /***************/
-	     /* With Labels */
-	     /***************/
-	     if ( label_block_qty>0 )
-	     {
-	          /* Get labels Min and Max */
-	          labels_min = MAXINT;
-		  labels_max = MININT;
-		  
-		  block_index=0;
-		  for ( k=0;
-			k<num_blocks;
-			k++ )
-		  {
-		        block_label_start = blocks_labels[block_index];
-		        block_label_end   = blocks_labels[block_index+1];
-		      
-		        if ( block_label_start<labels_min )
-		  	     labels_min = block_label_start;
-		        if ( block_label_end>labels_max )
-			     labels_max = block_label_end;
-			block_index+=2;
-		  }
-		  
-		  /* Not all classes have material blocks */
-		  if ( analy->stateDB )
-		  {
-		        sprintf( temp_text, 
-				 "\tblock[%d]: %d-%d  (Labels: %d-%d)\n", 1, 
-				 1, 
-				 class_size,
-				 labels_min, labels_max );
-			start_text[cnt++] = (char *) strdup(temp_text) ;
-		  }
-		  else
-		  {		    
-		         block_count = 1;
-			 block_index = 0;
-	                 for ( i = 0;
-			       i< num_blocks; 
-			       i++ )
-		         {
-			       /* Check for overflow of text buffer */
-			       if ( cnt >= MAX_DBTEXT_LINES )
-			       {
-			            sprintf( temp_text, "Error - text length exceeded (length=%d)\n", cnt);	
-				    start_text[cnt++] = (char *) strdup(temp_text) ;
-				    i=num_blocks;
-				    break;
-			       }
-			   
-			       block_start       = blocks[block_index] ;
-			       block_end         = blocks[block_index+1] ;
-			       block_label_start = blocks_labels[block_index] ;
-			       block_label_end   = blocks_labels[block_index+1] ;
+		     }
+		}
 
-			       sprintf( temp_text, 
-					"\tblock[%d]: %d-%d (Labels: %d-%d)\n", block_count++, 
-					block_start,
-					block_end,
-					block_label_start,
-					block_label_end);
-
-			   start_text[cnt++] = (char *) strdup(temp_text) ;
-			   block_index+=2;
-			 } /* end for-i */
-		  }
-		  if (cnt >= MAX_DBTEXT_LINES-5 )
-		  {
-		      start_text[cnt] = (char *) strdup("** Error Max lines exceeded!");
-		      p_state_rec->qty;
-		      break;
-		  }
-	     }
 	  }	
       }
       }
@@ -10137,7 +10181,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
  *
  * Construct an array of the blocking for an sclass type.
  */
-void
+MO_class_data *
 assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_name,
 		   int *qty_objects, int *label_block_qty,
 		   int *total_blocks, int *blocks, int *blocks_labels )
@@ -10148,7 +10192,6 @@ assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_nam
     State_rec_obj *p_state_rec;
     Subrecord     *p_subr;
     Subrec_obj    *p_subr_obj;
-    Famid fid;
 
     int block_index=0, mo_id_index=0, num_blocks=0, new_blocks=0;
     int block_start, block_end, block_count=0;
@@ -10165,7 +10208,11 @@ assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_nam
     if (p_state_rec != NULL) 
        if(p_state_rec->qty <=0 )
        {
-	  return;
+	 *class_size      = 0;
+	 *label_block_qty = 0;
+	 *qty_objects     = 0;
+	 *total_blocks    = 0;
+	 return NULL;
        }
     
     analy->cur_state = 0;
@@ -10181,15 +10228,15 @@ assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_nam
  	  if ( sclass != superclass )
 	       continue;
 
-	  p_subr = &p_state_rec->subrecs[j].subrec;
-	  qty_objects = p_subr->qty_objects;
+	  p_subr       = &p_state_rec->subrecs[j].subrec;
+	  *qty_objects = p_subr->qty_objects;
 
 	  *class_size      = p_state_rec->subrecs[j].p_object_class->qty;
 	  strcpy( class_name, p_subr->class_name );
 	  class_ptr        = mili_get_class_ptr( analy, superclass, p_subr->class_name );
 	  *label_block_qty = class_ptr->label_blocking.block_qty;
 
-  	  if ( *label_block_qty==0 )
+  	  if ( *label_block_qty==0 || !analy->stateDB )
 	       num_blocks = p_subr->qty_blocks;
           else	  
 	       num_blocks = *label_block_qty;
@@ -10206,7 +10253,7 @@ assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_nam
 	  {
 	        new_blocks++;
 
-		if ( *label_block_qty==0 )
+		if ( *label_block_qty==0 || !analy->stateDB )
 		{
 		     block_start = p_subr->mo_blocks[mo_id_index];
 		     block_end   = p_subr->mo_blocks[mo_id_index+1];
@@ -10215,13 +10262,12 @@ assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_nam
 		{
 		     block_start = class_ptr->label_blocking.block_objects[i].label_start;
 		     block_end   = class_ptr->label_blocking.block_objects[i].label_stop;
- 
 		}
 
 	        /* Make sure that this id is not already in list */
 	        id_found = FALSE;
 	        for ( k = 0;
-		      k < num_blocks; 
+		      k < block_index; 
 	    	      k+=2 )
 		      if ( blocks[k] == block_start )
 			{
@@ -10245,7 +10291,72 @@ assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_nam
 	  }
     *total_blocks+= new_blocks; 
     }
-    return;
+    return class_ptr;
+}
+ 
+
+/*****************************************************************
+ * TAG( get_blocking_info )
+ *
+ * Get basic info for object blocking.
+ */
+MO_class_data *
+get_blocking_info( Analysis *analy,  int sclass, 
+		   int *class_size, char *class_name,
+		   int *qty_objects, int *label_block_qty )
+{
+    int st_qty;
+
+    MO_class_data *class_ptr;
+    State_rec_obj *p_state_rec;
+    Subrecord     *p_subr;
+    Subrec_obj    *p_subr_obj;
+
+    int block_index=0, mo_id_index=0, num_blocks=0, new_blocks=0;
+    int block_start, block_end, block_count=0;
+
+    int i,j, k;
+
+    int superclass=0;
+    
+    *qty_objects     = 0;
+    *label_block_qty = 0;
+
+    p_state_rec   = analy->srec_tree;
+    
+    if (p_state_rec != NULL) 
+       if(p_state_rec->qty <=0 )
+       {
+	 *class_size      = 0;
+	 *label_block_qty = 0;
+	 *qty_objects     = 0;
+	 return NULL;
+       }
+    
+    analy->cur_state = 0;
+    
+    analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, 
+			 &st_qty );
+    for ( j = 0; 
+	  j < p_state_rec->qty; 
+	  j++ )
+    {
+          superclass = p_state_rec->subrecs[j].p_object_class->superclass;
+
+ 	  if ( sclass != superclass )
+	       continue;
+
+	  p_subr           = &p_state_rec->subrecs[j].subrec;
+	  *qty_objects     = p_subr->qty_objects;
+
+	  class_ptr        = mili_get_class_ptr( analy, superclass, p_subr->class_name );
+	  *class_size      = p_state_rec->subrecs[j].p_object_class->qty;
+	  strcpy( class_name, p_subr->class_name );
+	  *label_block_qty = class_ptr->label_blocking.block_qty;
+
+	  j = p_state_rec->qty;
+    }
+    return class_ptr;
 }
  
 

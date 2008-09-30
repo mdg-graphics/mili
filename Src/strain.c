@@ -68,6 +68,11 @@
  *                          TH databases - need to get c ooords from TH 
  *                          nodes.
  *                          See SRC#: 523
+ *
+ * 08/27/2008 I. R. Corey   Strain rotations not computed correctly for
+ *                          data organized by object ids in rotate_quad_
+ *                          strain. 
+ *                          See SRC#: 546
  *************************************************************************
  *
  */
@@ -337,7 +342,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                 }
 
                 for ( i = 0; i < 3; i++ )
-                    cleanse_result( velx + i );
+                      cleanse_result( velx + i );
                 free( velx );
                 velx = vely = velz = NULL;
 
@@ -716,9 +721,6 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                             }
                         }
                     }
-
-		    if (i==1296 || i==1295)
-			       nd = connects[i][j];
 
                     memset( F, 0, sizeof(double)*9 );
 
@@ -2192,7 +2194,7 @@ rotate_quad_result( Analysis *analy, char *primal,
     int srec, subrec;
     int i, j, index;
     Ref_frame_type ref_frame;
-    int obj_id, obj_qty, *obj_ids=NULL;
+    int obj_id, obj_qty, *object_ids=NULL;
     float eps[6];                   /* Calculated strain. */
     int comp_idx;
     float localMat[3][3];
@@ -2205,14 +2207,21 @@ rotate_quad_result( Analysis *analy, char *primal,
     Bool_type single_prec_pos;
     int status;
 
+    ref_frame = analy->ref_frame;
+
+    /* Exit if we are not looging a local reference frame */
+    if ( ref_frame == GLOBAL )
+         return;
+
     if (!analy->stateDB)
         map_timehist_coords = TRUE;
 
-   p_result     = analy->cur_result;
+    p_result     = analy->cur_result;
     index        = analy->result_index;
     subrec       = p_result->subrecs[index];
     srec         = p_result->srec_id;
     p_subrec     = analy->srec_tree[srec].subrecs + subrec;
+    object_ids   = p_subrec->object_ids;
     p_quad_class = p_subrec->p_object_class;
 
     if (map_timehist_coords)
@@ -2224,194 +2233,163 @@ rotate_quad_result( Analysis *analy, char *primal,
         p_result = analy->cur_result;
 
         load_quad_nodpos_timehist( analy, analy->cur_state+1, single_prec_pos, 
-				   &obj_qty, &obj_ids, &new_nodes);
+				   &obj_qty, &object_ids, &new_nodes);
 
         analy->cur_result = p_result;
     }  
 
-    if ( !obj_ids )
-         obj_qty = p_subrec->subrec.qty_objects;
+    obj_qty = p_subrec->subrec.qty_objects;
 
     p_result->modifiers.use_flags.use_strain_variety = 0;
     p_result->modifiers.ref_frame                    = analy->ref_frame;
     p_result->modifiers.use_flags.use_ref_frame      = 1;
 
-    ref_frame = analy->ref_frame;
-
-    if ( ref_frame == GLOBAL )
+    strcpy( primal_main, p_result->name );
+    
+    /* Strip off the sub-name [name] to form the primal name */
+    for ( i=0;
+	  i<strlen(primal_main);
+	  i++)
+          if ( primal_main[i]=='[' )
+	       primal_main[i]='\0';
+    
+    comp_names[0] = (char *) strdup("ex");
+    comp_names[1] = (char *) strdup("ey");
+    comp_names[2] = (char *) strdup("ez");
+    comp_names[3] = (char *) strdup("exy");
+    comp_names[4] = (char *) strdup("eyz");
+    comp_names[5] = (char *) strdup("ezx");
+    
+    /* Determine a result index. */
+    if ( strstr( p_result->name, "[ex]" ) )
     {
-         primals[0] = (char *) strdup(primal);
-         primals[1] = (char *) strdup(primal);
-
-         if ( analy->do_tensor_transform )
-	 {
-	   temp_result = NEW_N( float, obj_qty, "Temp shell stress" );
-	   transform_stress_strain( primals, 0, analy, 
-				    analy->tensor_transform_matrix,
-				    result );
-	   if ( obj_ids == NULL )
-	        for ( i = 0; 
-		      i < obj_qty;
-		      i++ )
-	              result[i] = temp_result[i];
-	   else
-	   {
-	           for ( i = 0; 
-			 i < obj_qty;
-			 i++ )
-		         result[obj_ids[i]] = temp_result[i];
-	   }
-	   free( temp_result );
-         }
+	 comp_idx = 0;
+	 engr_strain = FALSE;
     }
-    else
+    else if ( strcmp( p_result->name, "[ey]" ) )
     {
-      strcpy( primal_main, p_result->name );
-      
-      /* Strip off the sub-name [name] to form the primal name */
-      for ( i=0;
-	    i<strlen(primal_main);
-	    i++)
-	if ( primal_main[i]=='[' )
-	     primal_main[i]='\0';
-      
-      comp_names[0] = (char *) strdup("ex");
-      comp_names[1] = (char *) strdup("ey");
-      comp_names[2] = (char *) strdup("ez");
-      comp_names[3] = (char *) strdup("exy");
-      comp_names[4] = (char *) strdup("eyz");
-      comp_names[5] = (char *) strdup("ezx");
-      
-      /* Determine a result index. */
-      if ( strstr( p_result->name, "[ex]" ) )
+	      comp_idx = 1;
+	      engr_strain = FALSE;
+    }
+    else if ( strstr( p_result->name, "[ez]" )  )
+    {
+              comp_idx = 2;
+	      engr_strain = FALSE;
+    }
+    else if ( strstr( p_result->name, "[exy]" )  )
+    {
+	      comp_idx = 3;
+	      engr_strain = FALSE;
+    }
+    else if ( strstr( p_result->name, "[eyz]" ) )
+    {
+	      comp_idx = 4;
+	      engr_strain = FALSE;
+    }
+    else if ( strstr( p_result->name, "[ezx]" ) )
+    {
+	      comp_idx = 5;
+	      engr_strain = FALSE;
+    }
+    else if ( strstr( p_result->name, "[gamxy]" ) )
+    {
+	      comp_idx = 3;
+	      engr_strain = TRUE;
+    }
+    else if ( strstr( p_result->name, "[gamyz]" ) )
       {
-	  comp_idx = 0;
-	  engr_strain = FALSE;
+	comp_idx = 4;
+	engr_strain = TRUE;
       }
-      else if ( strcmp( p_result->name, "[ey]" ) )
+    else if ( strstr( p_result->name, "[gamzx]" ) )
       {
-	  comp_idx = 1;
-	  engr_strain = FALSE;
+	comp_idx = 5;
+	engr_strain = TRUE;
       }
-      else if ( strstr( p_result->name, "[ez]" )  )
-      {
-	  comp_idx = 2;
-	  engr_strain = FALSE;
+    
+    if ( engr_strain )
+    {
+	 free (comp_names[3]);
+	 comp_names[3] = (char *) strdup("gamxy");
+	 
+	 free (comp_names[4]);
+	 comp_names[4] = (char *) strdup("gamyz");
+	 
+	 free (comp_names[5]);
+	 comp_names[5] = (char *) strdup("gamzx");
+    }
+    
+    primals[0]     = (char *) strdup(primal);
+    primal_list[0] = primal1;
+    primal_list[1] = primal1;
+    
+    for ( i = 0; 
+	  i < 6; 
+	  i++ )
+    {
+ 	  sprintf( primal1, "%s[%s]", primal_main, comp_names[i] );
+	
+	  res1[i] = analy->tmp_result[i];
+	  analy->db_get_results( analy->db_ident, 
+				 analy->cur_state + 1, subrec, 
+				 1, primal_list, res1[i] );
+	  
+	  /* Map object data into full result array */
+	  if ( object_ids )
+	  {
+	       temp_result = NEW_N( float, obj_qty, "Temp shell stress" );
+	       for ( j = 0; 
+		     j < obj_qty;
+		     j++ )
+	       {
+		     temp_result[j]         = res1[i][j];
+		     res1[i][object_ids[j]] = temp_result[j];
+	       }
+	       free( temp_result );
+	  }
+    }
+    
+    if ( single_obj_id>=0 )
+    {
+	for ( j = 0; 
+	      j < 6; 
+	      j++ )
+	      eps[j] = res1[j][single_obj_id];
+	
+	if ( analy->cur_state == 500 || analy->cur_state == 40  )
+	{
+	     primal_list[0] = primal1;
+	}
+	
+	global_to_local_mtx( analy, p_quad_class, single_obj_id, 
+			     map_timehist_coords, new_nodes,
+			     localMat );
+	transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
+	
+	*result = eps[comp_idx];
+	if ( engr_strain )
+	     *result*=2.0;
       }
-      else if ( strstr( p_result->name, "[exy]" )  )
+    else
+      for (i=0;	   
+	   i < obj_qty; 
+	   i++ )
       {
-	  comp_idx = 3;
-	  engr_strain = FALSE;
-      }
-      else if ( strstr( p_result->name, "[eyz]" ) )
-      {
-	  comp_idx = 4;
-	  engr_strain = FALSE;
-      }
-      else if ( strstr( p_result->name, "[ezx]" ) )
-      {
-	  comp_idx = 5;
-	  engr_strain = FALSE;
-      }
-      else if ( strstr( p_result->name, "[gamxy]" ) )
-      {
-	  comp_idx = 3;
-	  engr_strain = TRUE;
-      }
-      else if ( strstr( p_result->name, "[gamyz]" ) )
-      {
-	  comp_idx = 4;
-	  engr_strain = TRUE;
-      }
-      else if ( strstr( p_result->name, "[gamzx]" ) )
-      {
-	  comp_idx = 5;
-	  engr_strain = TRUE;
-      }
-      
-      if ( engr_strain )
-      {
-	   free (comp_names[3]);
-           comp_names[3] = (char *) strdup("gamxy");
-
-	   free (comp_names[4]);
-	   comp_names[4] = (char *) strdup("gamyz");
-
-	   free (comp_names[5]);
-	   comp_names[5] = (char *) strdup("gamzx");
-      }
-
-      primals[0]     = (char *) strdup(primal);
-      primal_list[0] = primal1;
-      primal_list[1] = primal1;
-
-      for ( i = 0; 
-	    i < 6; 
-	    i++ )
-      {
-            sprintf( primal1, "%s[%s]", primal_main, comp_names[i] );
-      
-            res1[i] = analy->tmp_result[i];
-	    analy->db_get_results( analy->db_ident, 
-				   analy->cur_state + 1, subrec, 
-				   1, primal_list, res1[i] );
-
-	    /* Map object data into full result array */
-	    if ( obj_ids )
-	    {
-	         temp_result = NEW_N( float, obj_qty, "Temp shell stress" );
-		 for ( j = 0; 
-		       j < obj_qty;
-		       j++ )
-		 {
-		       temp_result[j]         = res1[i][j];
-		       res1[i][obj_ids[j]] = temp_result[j];
-		 }
-		 free( temp_result );
-	    }
-      }
-
-      if ( single_obj_id>=0 )
-      {
+	   obj_id = ( object_ids == NULL ) ? i : object_ids[i];
+	  
 	   for ( j = 0; 
 		 j < 6; 
 		 j++ )
-	         eps[j] = res1[j][single_obj_id];
-
-       if ( analy->cur_state == 500 || analy->cur_state == 40  )
-	{
-	   primal_list[0] = primal1;
-	}
-
-           global_to_local_mtx( analy, p_quad_class, single_obj_id, 
+	         eps[j] = res1[j][obj_id];
+	   
+	   global_to_local_mtx( analy, p_quad_class, obj_id, 
 				map_timehist_coords, new_nodes,
 				localMat );
-	   transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
 
-	   *result = eps[comp_idx];
+	   transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
+	   
+	   result[obj_id] = eps[comp_idx]; 
 	   if ( engr_strain )
-	        *result*=2.0;
+	        result[obj_id]*=2.0;
       }
-      else
-            for (i=0;	   
-	         i < obj_qty; 
-	         i++ )
-            {
-	         obj_id = ( obj_ids == NULL ) ? i : obj_ids[i];
-	  
-	         for ( j = 0; 
-		       j < 6; 
-		       j++ )
-		       eps[j] = res1[j][obj_id];
-	  
-		 global_to_local_mtx( analy, p_quad_class, obj_id, 
-				      map_timehist_coords, new_nodes,
-				      localMat );
-		 transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
-		 
-		 result[obj_id] = eps[comp_idx]; 
-		 if ( engr_strain )
-		      result[obj_id]*=2.0;
-	    }
-  }
 }

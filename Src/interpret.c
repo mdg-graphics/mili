@@ -538,11 +538,11 @@ tokenize_line( char *buf, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt )
 void
 parse_command( char *buf, Analysis *analy )
 {
-  char command_buf[1000];
+  char command_buf[2000];
   int  i, j;
   int  len_buf;
   int  num_cmds = 1;
-  int  next_cmd_index[1000];
+  int  next_cmd_index[2000];
 
   int  first_nonspace=0, start_of_cmd=0;
 
@@ -649,7 +649,7 @@ parse_single_command( char *buf, Analysis *analy )
     float (*xfmat)[3];
     char *p_string;
     char *tellmm_usage = "tellmm [<result> [<first state> [<last state>]]]";
-    char line_buf[80];
+    char line_buf[2000];
 
     FILE *fp_outview_file;
     FILE *select_file;
@@ -1158,7 +1158,7 @@ parse_single_command( char *buf, Analysis *analy )
                 qty = 0;
                 while ( !feof( select_file ) )
                 {
-                    if( fgets( line_buf, 80, select_file ) != NULL )
+                    if( fgets( line_buf, 2000, select_file ) != NULL )
                     {
                     tokenize_line( line_buf, tokens, &token_cnt );
                     rval = htable_search( MESH( analy ).class_table, tokens[0],

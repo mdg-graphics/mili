@@ -57,7 +57,8 @@
 #include <limits.h>
 
 #ifndef GRIZ_VERSION
-#define GRIZ_VERSION "V8.1.03(06-11-30)"
+#define GRIZ_VERSION        "V8.1.08(09-02-08)"
+#define GRIZ_VERSION_NUMBER "V8.1.08"
 #endif
 
 #ifndef MILI_VERSION

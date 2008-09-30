@@ -132,6 +132,8 @@ LDLIBPATH     = @LDLIBPATH@
 LDFLAGS_EXTRA = @LDFLAGS_EXTRA@
 LD            = @MY_CC@
 OSMESA_LIBS = @OSMESA_LIBRARY_PATHS@ @OSMESA_LIBRARY@
+OSMESA_HOME = @OSMESA_HOME@
+
 # For UV add the following to the Load Line
 # -blpdata
 # LDFLAGS_EXTRA = -blpdata
@@ -287,7 +289,7 @@ batch_debug:      GRIZ_BATCH_EXE = $(GRIZ_EXE)
 batch_debug:	     MILILIBPATH = @MILI_LIBRARY_PATHS@
 batch_debug:		CPPFLAGS = "@BATCH_DEFINES@ $(CPPFLAGS)"
 batch_debug: 		DEFINES       = @CC_DEFINES_GRIZ@ @BATCH_DEFINES@
-batch_debug: 		CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ @CC_INCLUDE_PATHS_GRIZ@ -I$(top_builddir)
+batch_debug: 		CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ @CC_INCLUDE_PATHS_GRIZ@ -I$(OSMESA_HOME)/include -I$(top_builddir)
 batch_debug:	 	mk_dirs buildinfo.h build griz4s $(EXO_TARGET)
 
 # Build Optimized Griz

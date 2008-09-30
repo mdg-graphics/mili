@@ -321,7 +321,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS GRIZ_VERSION MILI_VERSION CONFIG_CMD CONFIG_OPTIONS build build_cpu build_vendor build_os host host_cpu host_vendor host_os PACKAGE_DATETIME OS_NAME PROCESSOR_TYPE HOSTDIR HOSTNAME 64bit_ENABLE WORD_SIZE EXE_SUFFIX MY_CC CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA AWK CPP LN_S SET_MAKE AR AR_FLAGS RANLIB MY_FC SHELL_ARGS GRIZ_EXE CC_DEPEND CC_FLAGS_DEBUG CC_FLAGS_OPT LDFLAGS_EXTRA EGREP ARFLAGS CC_INCLUDE_PATHS CC_DEFINES LOADER LD_FLAGS_DEBUG LD_FLAGS_OPT LIB_SUFFIX LIBRARY_PATHS OTHER_LIBS GRIZ_VERBOSE MILI_HOME MILI_INCLUDE_PATHS MILI_LIBRARY_PATHS MILI_DEFINES MILI_LIBRARY GMAKE_HOME TASKS BITMAPS_HOME BITMAPS_INCLUDE_PATHS IMAGE_HOME IMAGE_LIBRARY IMAGE_LIBRARY_PATHS IMAGE_INCLUDE_PATHS JPEG_HOME CONFIG_JPEG JPEG_DEFINES JPEG_LIBRARY JPEG_LIBRARY_PATHS X11_LIBRARY_PATHS X11_INCLUDE_PATHS X11_LIBS CONFIG_MESA MESA_ENABLE MESA_HOME MESA_LIBRARY MESA_LIBRARY_PATHS MESA_INCLUDE_PATHS OSMESA_ENABLE OSMESA_HOME OSMESA_LIBRARY OSMESA_LIBRARY_PATHS OSMESA_INCLUDE_PATHS BATCH_ENABLE BATCH_DEFINES NO_MESA_X11_LIBS HERSHEY_FONTS_PATH HERSHEY_HOME HERSHEY_LIBRARY HERSHEY_LIBRARY_PATHS HERSHEY_INCLUDE_PATHS EXO_ENABLE EXO_HOME EXO_DEFINES EXO_LIBRARY EXO_LIBRARY_PATH EXO_INCLUDE_PATH EXO_TARGET NETCDF_ENABLE NETCDF_HOME NETCDF_LIBRARY NETCDF_LIBRARY_PATHS NETCDF_INCLUDE_PATHS CONFIG_PNG CONFIG_ZLIB PNG_ENABLE PNG_HOME ZLIB_HOME PNG_DEFINES ZLIB_LIBRARY ZLIB_INCLUDE_PATHS ZLIB_LIBRARY_PATHS PNG_LIBRARY PNG_INCLUDE_PATHS PNG_LIBRARY_PATHS KW_HOME KW_ENABLE GRIZ_HOME TOP_DIR BIN_DIRS LIB_DIRS SRC_DIRS SRC INC_DIRS INSTALL_DIRS EXT_BUILDS EXT_DIRS BASE_DIR ROOT_DIR PNG_SUBDIRS INSTALL_HOME INSTALL_DIR PLATFORM_DIRS CC_DEFINES_GRIZ CC_INCLUDE_PATHS_GRIZ GRIZLIBS LDLIBPATH HERSHEY_FONTLIB CC_DEFINES_HERSHEYLIB CC_INCLUDE_PATHS_HERSHEYLIB CC_DEFINES_IMAGELIB CC_INCLUDE_PATHS_IMAGELIB LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS GRIZ_VERSION MILI_VERSION CONFIG_CMD CONFIG_OPTIONS build build_cpu build_vendor build_os host host_cpu host_vendor host_os PACKAGE_DATETIME OS_NAME PROCESSOR_TYPE HOSTDIR HOSTNAME 64bit_ENABLE WORD_SIZE EXE_SUFFIX MY_CC CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA AWK CPP LN_S SET_MAKE AR AR_FLAGS RANLIB MY_FC SHELL_ARGS GRIZ_EXE CC_DEPEND CC_FLAGS_DEBUG CC_FLAGS_OPT LDFLAGS_EXTRA EGREP ARFLAGS CC_INCLUDE_PATHS CC_DEFINES LOADER LD_FLAGS_DEBUG LD_FLAGS_OPT LIB_SUFFIX LIBRARY_PATHS OTHER_LIBS GRIZ_VERBOSE MILI_HOME MILI_INCLUDE_PATHS MILI_LIBRARY_PATHS MILI_DEFINES MILI_LIBRARY GMAKE_HOME TASKS BITMAPS_HOME BITMAPS_INCLUDE_PATHS IMAGE_HOME IMAGE_LIBRARY IMAGE_LIBRARY_PATHS IMAGE_INCLUDE_PATHS JPEG_HOME CONFIG_JPEG JPEG_DEFINES JPEG_LIBRARY JPEG_LIBRARY_PATHS CONFIG_MESA MESA_ENABLE MESA_HOME MESA_LIBRARY MESA_LIBRARY_PATHS MESA_INCLUDE_PATHS OSMESA_ENABLE OSMESA_HOME OSMESA_LIBRARY OSMESA_LIBRARY_PATHS OSMESA_INCLUDE_PATHS BATCH_ENABLE BATCH_DEFINES NO_MESA_X11_LIBS HERSHEY_FONTS_PATH HERSHEY_HOME HERSHEY_LIBRARY HERSHEY_LIBRARY_PATHS HERSHEY_INCLUDE_PATHS EXO_ENABLE EXO_HOME EXO_DEFINES EXO_LIBRARY EXO_LIBRARY_PATH EXO_INCLUDE_PATH EXO_TARGET NETCDF_ENABLE NETCDF_HOME NETCDF_LIBRARY NETCDF_LIBRARY_PATHS NETCDF_INCLUDE_PATHS X11_LIBRARY_PATHS X11_INCLUDE_PATHS X11_LIBS CONFIG_PNG CONFIG_ZLIB PNG_ENABLE PNG_HOME ZLIB_HOME PNG_DEFINES ZLIB_LIBRARY ZLIB_INCLUDE_PATHS ZLIB_LIBRARY_PATHS PNG_LIBRARY PNG_INCLUDE_PATHS PNG_LIBRARY_PATHS KW_HOME KW_ENABLE GRIZ_HOME TOP_DIR BIN_DIRS LIB_DIRS SRC_DIRS SRC INC_DIRS INSTALL_DIRS EXT_BUILDS EXT_DIRS BASE_DIR ROOT_DIR PNG_SUBDIRS INSTALL_HOME INSTALL_DIR PLATFORM_DIRS CC_DEFINES_GRIZ CC_INCLUDE_PATHS_GRIZ GRIZLIBS LDLIBPATH HERSHEY_FONTLIB CC_DEFINES_HERSHEYLIB CC_INCLUDE_PATHS_HERSHEYLIB CC_DEFINES_IMAGELIB CC_INCLUDE_PATHS_IMAGELIB LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1795,7 +1795,7 @@ done
                 SHELL_ARGS=" "
 
                 CC_FLAGS_DEBUG="-g"
-                CC_FLAGS_OPT="-g -O4"
+                CC_FLAGS_OPT="-g -O3"
                 CC_DEPEND="-M"
 
 	        AR="ar"
@@ -4814,7 +4814,6 @@ fi;
 
 
 
-
         #
         # Set options for Bitmaps
         #
@@ -4935,223 +4934,6 @@ _ACEOF
 
 	#  JPEG Library Options
 
-
-
-
-
-
-
-
-        #
-        # Set options for X11 Libraries
-        # -lGLw -lXm -lXt -lX11 -lGLU -lGL -lm
-	paths="/usr/X11R6 /usr"
-	X11_INCLUDE_PATHS=""
-	X11_LIBRARY_PATHS=""
-	X11_LIBS=" "
-	X11_PATH=""
-	X11_HOME=""
-	allfound="true"
-
-
-	required_files="libX11.a libXm.a libXt.a libGL.a libGLU.a libGLw.a"
-	for path in $paths; do
-		allfound="true"
-		for file in $required_files; do
-			as_ac_File=`echo "ac_cv_file_$path/lib64/$file" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $path/lib64/$file" >&5
-echo $ECHO_N "checking for $path/lib64/$file... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
-   { (exit 1); exit 1; }; }
-if test -r "$path/lib64/$file"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
-
-					X11_INCLUDE_PATHS="-I$path/include "
-					X11_LIBRARY_PATHS="-L$path/lib64 "
-					LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.a||'`
-					X11_LIBS="$X11_LIBS -l$LIBNAME "
-					X11_PATH="$path/lib64"
-					X11_HOME="$path"
-
-else
-
-					allfound="false"
-					X11_LIBS=" "
-					break
-
-
-fi
-
-		done
-		if test "$allfound" = "false";then
-			allfound="true"
-			for file in $required_files; do
-				as_ac_File=`echo "ac_cv_file_$path/lib/$file" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $path/lib/$file" >&5
-echo $ECHO_N "checking for $path/lib/$file... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
-   { (exit 1); exit 1; }; }
-if test -r "$path/lib/$file"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
-
-						X11_INCLUDE_PATHS="-I$path/include "
-						X11_LIBRARY_PATHS="-L$path/lib "
-						LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.a||'`
-						X11_LIBS="$X11_LIBS -l$LIBNAME "
-						X11_PATH="$path/lib"
-						X11_HOME="$path"
-
-else
-
-						allfound="false"
-						X11_LIBS=" "
-						break
-
-
-fi
-
-			done
-			if test "$allfound" = "false";then
-				X11_INCLUDE_PATHS=""
-	   		X11_LIBRARY_PATHS=""
-	   		X11_PATH=""
-				X11_HOME=""
-			else
-				break
-			fi
-		else
-			break
-		fi
-	done
-
-
-	if test "$allfound" = "false";then
-		for path in $paths; do
-			required_files="libX11.so libXm.so libXt.so libGL.so libGLU.so libGLw.so"
-			allfound="true"
-			for file in $required_files; do
-				as_ac_File=`echo "ac_cv_file_$path/lib64/$file" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $path/lib64/$file" >&5
-echo $ECHO_N "checking for $path/lib64/$file... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
-   { (exit 1); exit 1; }; }
-if test -r "$path/lib64/$file"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
-
-						X11_INCLUDE_PATHS="-I$path/include "
-						X11_LIBRARY_PATHS="-L$path/lib64 "
-						LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.so||'`
-						X11_LIBS="$X11_LIBS -l$LIBNAME "
-						X11_PATH="$path/lib64"
-						X11_HOME="$path"
-
-else
-
-						allfound="false"
-						X11_LIBS=" "
-						break
-
-
-fi
-
-			done
-			if test "$allfound" = "false";then
-				allfound="true"
-				for file in $required_files; do
-					as_ac_File=`echo "ac_cv_file_$path/lib/$file" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $path/lib/$file" >&5
-echo $ECHO_N "checking for $path/lib/$file... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
-   { (exit 1); exit 1; }; }
-if test -r "$path/lib/$file"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
-
-							X11_INCLUDE_PATHS="-I$path/include "
-							X11_LIBRARY_PATHS="-L$path/lib "
-							LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.a||'`
-							X11_LIBS="$X11_LIBS -l$LIBNAME "
-							X11_PATH="$path/lib"
-							X11_HOME="$path"
-
-else
-
-							allfound="false"
-							X11_LIBS=" "
-							break
-
-
-fi
-
-				done
-				if test "$allfound" = "false";then
-					X11_INCLUDE_PATHS=""
-	   			X11_LIBRARY_PATHS=""
-	   			X11_PATH=""
-					X11_HOME=""
-				else
-					break
-				fi
-			else
-				break
-			fi
-		done
-	fi
-	   if test "$allfound" = "false"; then
-		{ { echo "$as_me:$LINENO: error: Could not locate X11 libraries in $paths" >&5
-echo "$as_me: error: Could not locate X11 libraries in $paths" >&2;}
-   { (exit 1); exit 1; }; }
-	   else
-		echo "$as_me:$LINENO: result: X11 libraries validated at $X11_HOME" >&5
-echo "${ECHO_T}X11 libraries validated at $X11_HOME" >&6
-	   fi
 
 
 
@@ -5296,19 +5078,19 @@ fi;
 		MESA_LIBRARY="-lMesaGLU -lMesaGL -lGLw -lOSMesa -lXm -lXt -lX11 "
 
 		if test "$OS_NAME" = "Linux" -o \
-	    		"$OS_NAME" = "HPUX"; then
-	     	MESA_LIBRARY_PATHS="-L/usr/X11R6/lib64 "
-			MESA_LIBRARY="-lXm -lXt -lX11 -lm -lGLU -lOSMesa -lMesaGL -lGLw "
+		        "$OS_NAME" = "HPUX"; then
+		        MESA_LIBRARY_PATHS="-L/usr/X11R6/lib64 "
+			MESA_LIBRARY="-lXm -lXt -lX11 -lm -lGLU -lOSMesa -lGLw "
 		fi
 
 		if test "$OS_NAME" = "AIX"; then
-			MESA_LIBRARY_PATHS="-L/usr/X11R6/lib "
-			MESA_LIBRARY=" -lOSMesa -lGL -lGLU -lGLw -lOSMesa -lMesaGL -lXm -lXt -lX11 "
+		        MESA_LIBRARY_PATHS="-L/usr/X11R6/lib "
+			MESA_LIBRARY=" -lOSMesa -lGL -lGLU -lGLw -lOSMesa -lXm -lXt -lX11 "
 		fi
 
 		if test "$OS_NAME" = "IRIX64" -o "$OS_NAME" = "IRIX"; then
-			MESA_LIBRARY="-lMesaGLU -lMesaGL -lGLw -lMesaGLwM -lOSMesa -lXm -lXt -lX11 "
-		fi
+                  	MESA_LIBRARY="-lMesaGLU -lGLw -lMesaGLwM -lOSMesa -lXm -lXt -lX11 "
+	        fi
 
 		CONFIG_OPTIONS="$CONFIG_OPTIONS --enable-mesa --with-mesa=$MESA_HOME "
 
@@ -5548,7 +5330,10 @@ echo "${ECHO_T}Using MESA Path : $OSMESA_LIBRARY_PATHS" >&6
 
 fi;
 	suffix="a"
+
 	# lets check the usual suspects for Mesa libraries
+	# Lastly check in VisIt directories - AIX only
+
 	if test "$PATH_SET" = "false"; then
 		as_ac_File=`echo "ac_cv_file_$X11_PATH/libOSMesa.a" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $X11_PATH/libOSMesa.a" >&5
@@ -5712,6 +5497,38 @@ if test `eval echo '${'$as_ac_File'}'` = yes; then
 														PATH_SET="true"
 														suffix="so"
 														break
+
+
+else
+
+														echo "$as_me:$LINENO: checking for /usr/gapps/visit/mesa/4.1/aix/lib/libOSMesa.so" >&5
+echo $ECHO_N "checking for /usr/gapps/visit/mesa/4.1/aix/lib/libOSMesa.so... $ECHO_C" >&6
+if test "${ac_cv_file__usr_gapps_visit_mesa_4_1_aix_lib_libOSMesa_so+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "/usr/gapps/visit/mesa/4.1/aix/lib/libOSMesa.so"; then
+  ac_cv_file__usr_gapps_visit_mesa_4_1_aix_lib_libOSMesa_so=yes
+else
+  ac_cv_file__usr_gapps_visit_mesa_4_1_aix_lib_libOSMesa_so=no
+fi
+fi
+echo "$as_me:$LINENO: result: $ac_cv_file__usr_gapps_visit_mesa_4_1_aix_lib_libOSMesa_so" >&5
+echo "${ECHO_T}$ac_cv_file__usr_gapps_visit_mesa_4_1_aix_lib_libOSMesa_so" >&6
+if test $ac_cv_file__usr_gapps_visit_mesa_4_1_aix_lib_libOSMesa_so = yes; then
+
+															       OSMESA_HOME=/usr/gapps/visit/mesa/4.1/aix
+															       OSMESA_LIBRARY_PATHS=$OSMESA_HOME/lib
+															       PATH_SET="true"
+															       suffix="so"
+															       break
+
+
+
+fi
 
 
 fi
@@ -6070,6 +5887,223 @@ _ACEOF
 
 
 
+        #
+        # Set options for X11 Libraries
+        # -lGLw -lXm -lXt -lX11 -lGLU -lGL -lm
+	paths="/usr/X11R6 /usr"
+	X11_INCLUDE_PATHS=""
+	X11_LIBRARY_PATHS=""
+	X11_LIBS=" "
+	X11_PATH=""
+	X11_HOME=""
+	allfound="true"
+
+
+	required_files="libX11.a libXm.a libXt.a libGL.a libGLU.a libGLw.a"
+	for path in $paths; do
+		allfound="true"
+		for file in $required_files; do
+			as_ac_File=`echo "ac_cv_file_$path/lib64/$file" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $path/lib64/$file" >&5
+echo $ECHO_N "checking for $path/lib64/$file... $ECHO_C" >&6
+if eval "test \"\${$as_ac_File+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$path/lib64/$file"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+
+					X11_INCLUDE_PATHS="-I$path/include "
+					X11_LIBRARY_PATHS="-L$path/lib64 "
+					LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.a||'`
+					X11_LIBS="$X11_LIBS -l$LIBNAME "
+					X11_PATH="$path/lib64"
+					X11_HOME="$path"
+
+else
+
+					allfound="false"
+					X11_LIBS=" "
+					break
+
+
+fi
+
+		done
+		if test "$allfound" = "false";then
+			allfound="true"
+			for file in $required_files; do
+				as_ac_File=`echo "ac_cv_file_$path/lib/$file" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $path/lib/$file" >&5
+echo $ECHO_N "checking for $path/lib/$file... $ECHO_C" >&6
+if eval "test \"\${$as_ac_File+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$path/lib/$file"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+
+						X11_INCLUDE_PATHS="-I$path/include "
+						X11_LIBRARY_PATHS="-L$path/lib "
+						LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.a||'`
+						X11_LIBS="$X11_LIBS -l$LIBNAME "
+						X11_PATH="$path/lib"
+						X11_HOME="$path"
+
+else
+
+						allfound="false"
+						X11_LIBS=" "
+						break
+
+
+fi
+
+			done
+			if test "$allfound" = "false";then
+				X11_INCLUDE_PATHS=""
+	   		X11_LIBRARY_PATHS=""
+	   		X11_PATH=""
+				X11_HOME=""
+			else
+				break
+			fi
+		else
+			break
+		fi
+	done
+
+
+	if test "$allfound" = "false";then
+		for path in $paths; do
+			required_files="libX11.so libXm.so libXt.so libGL.so libGLU.so libGLw.so"
+			allfound="true"
+			for file in $required_files; do
+				as_ac_File=`echo "ac_cv_file_$path/lib64/$file" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $path/lib64/$file" >&5
+echo $ECHO_N "checking for $path/lib64/$file... $ECHO_C" >&6
+if eval "test \"\${$as_ac_File+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$path/lib64/$file"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+
+						X11_INCLUDE_PATHS="-I$path/include "
+						X11_LIBRARY_PATHS="-L$path/lib64 "
+						LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.so||'`
+						X11_LIBS="$X11_LIBS -l$LIBNAME "
+						X11_PATH="$path/lib64"
+						X11_HOME="$path"
+
+else
+
+						allfound="false"
+						X11_LIBS=" "
+						break
+
+
+fi
+
+			done
+			if test "$allfound" = "false";then
+				allfound="true"
+				for file in $required_files; do
+					as_ac_File=`echo "ac_cv_file_$path/lib/$file" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $path/lib/$file" >&5
+echo $ECHO_N "checking for $path/lib/$file... $ECHO_C" >&6
+if eval "test \"\${$as_ac_File+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$path/lib/$file"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+
+							X11_INCLUDE_PATHS="-I$path/include "
+							X11_LIBRARY_PATHS="-L$path/lib "
+							LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.a||'`
+							X11_LIBS="$X11_LIBS -l$LIBNAME "
+							X11_PATH="$path/lib"
+							X11_HOME="$path"
+
+else
+
+							allfound="false"
+							X11_LIBS=" "
+							break
+
+
+fi
+
+				done
+				if test "$allfound" = "false";then
+					X11_INCLUDE_PATHS=""
+	   			X11_LIBRARY_PATHS=""
+	   			X11_PATH=""
+					X11_HOME=""
+				else
+					break
+				fi
+			else
+				break
+			fi
+		done
+	fi
+	   if test "$allfound" = "false"; then
+		{ { echo "$as_me:$LINENO: error: Could not locate X11 libraries in $paths" >&5
+echo "$as_me: error: Could not locate X11 libraries in $paths" >&2;}
+   { (exit 1); exit 1; }; }
+	   else
+		echo "$as_me:$LINENO: result: X11 libraries validated at $X11_HOME" >&5
+echo "${ECHO_T}X11 libraries validated at $X11_HOME" >&6
+	   fi
+
+
+
+
+
+
+
         PNG_ENABLE="False"
         #
         # Set options for running with PNG support
@@ -6374,11 +6408,19 @@ echo "$as_me: WARNING: \"****  Error creating directory:  $PATH_NAME\"" >&2;}
         cd src
         ln -sf $TOP_DIR/*.c .     > /dev/null 2>&1
         ln -sf $TOP_DIR/griz.in . > /dev/null 2>&1
+        if test ! -e "GL"; then
+                mkdir GL
+        fi
+
 
         cd ..
         cd include
         ln -sf $TOP_DIR/*.h .     > /dev/null 2>&1
-
+        if test ! -e "GL"; then
+                mkdir GL
+        fi
+	cd GL
+        ln -sf $TOP_DIR/osmesa.h . > /dev/null 2>&1
 
         # Set up links for Doc files
         cd $ROOT_DIR
@@ -7607,9 +7649,6 @@ s,@CONFIG_JPEG@,$CONFIG_JPEG,;t t
 s,@JPEG_DEFINES@,$JPEG_DEFINES,;t t
 s,@JPEG_LIBRARY@,$JPEG_LIBRARY,;t t
 s,@JPEG_LIBRARY_PATHS@,$JPEG_LIBRARY_PATHS,;t t
-s,@X11_LIBRARY_PATHS@,$X11_LIBRARY_PATHS,;t t
-s,@X11_INCLUDE_PATHS@,$X11_INCLUDE_PATHS,;t t
-s,@X11_LIBS@,$X11_LIBS,;t t
 s,@CONFIG_MESA@,$CONFIG_MESA,;t t
 s,@MESA_ENABLE@,$MESA_ENABLE,;t t
 s,@MESA_HOME@,$MESA_HOME,;t t
@@ -7641,6 +7680,9 @@ s,@NETCDF_HOME@,$NETCDF_HOME,;t t
 s,@NETCDF_LIBRARY@,$NETCDF_LIBRARY,;t t
 s,@NETCDF_LIBRARY_PATHS@,$NETCDF_LIBRARY_PATHS,;t t
 s,@NETCDF_INCLUDE_PATHS@,$NETCDF_INCLUDE_PATHS,;t t
+s,@X11_LIBRARY_PATHS@,$X11_LIBRARY_PATHS,;t t
+s,@X11_INCLUDE_PATHS@,$X11_INCLUDE_PATHS,;t t
+s,@X11_LIBS@,$X11_LIBS,;t t
 s,@CONFIG_PNG@,$CONFIG_PNG,;t t
 s,@CONFIG_ZLIB@,$CONFIG_ZLIB,;t t
 s,@PNG_ENABLE@,$PNG_ENABLE,;t t
