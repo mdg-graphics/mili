@@ -1,0 +1,73 @@
+# bending-71
+# Title: Basic problem using only HL beams, differenet quadrature rules
+# Material Model: 71
+# Units: gm-cm-ms
+# End Time: 0.3
+# Griz Script File: bending-71_th.gsf
+
+# Setup
+alias chgst f;n;n;l
+alias min 1
+alias max 11
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+minst 1
+maxst 11
+chgst
+on thsinglecol
+fracsz 8
+switch mglob 
+
+# Append output to TH file
+on tha
+
+#  Plot for variable nodepos[uy]
+clrsel 
+select node 2 5 8 11 14
+plot nodpos[uy]
+outth bending-71_th.jansw cur
+
+#  Plot for variable rotdis[rux]
+plot rotdis[rux]
+outth bending-71_th.jansw cur
+
+#  Plot for variable rotdis[ruz]
+plot rotdis[ruz]
+outth bending-71_th.jansw cur 
+
+#  Plot for variable nodacc[ay]
+plot nodacc[ay]
+outth bending-71_th.jansw cur
+
+clrsel
+select beam 1 2 3 4 5
+#  Plot for variable svec[svec_x]
+plot svec[svec_x]
+outth bending-71_th.jansw cur
+
+#  Plot for variable svec[svec_z]
+plot svec[svec_z]
+outth bending-71_th.jansw cur
+
+#  Plot for variable sand
+plot sand
+outth bending-71_th.jansw cur
+
+#  Plot for variable axf
+plot axf
+outth bending-71_th.jansw cur
+
+disable 2
+#  Plot for variable axf
+plot axf
+outth bending-71_th.jansw cur
+
+sw mstat
+#  Plot for variable mt
+plot mt
+outth bending-71_th.jansw cur
+
+echo "Writing TH data to file bending-71_th.jansw"
+
+# EndCase 

@@ -1,0 +1,54 @@
+# bending-71
+# Title: Basic problem using only HL beams, differenet quadrature rules
+# Material Model: 71
+# Units: gm-cm-ms
+# End Time: 0.3
+# Griz Script File: bending-71.gsf
+# XY Plot File Prefix: plot_bending-71_
+# XY Data File Prefix: xy_bending-71_
+# Image File Prefix: image_bending-71_
+# Min/Max Switch: global
+# Verbatim To Griz: off all; on cmap; on title; on time; on coord
+off all; on cmap; on title; on time; on coord
+switch mglob
+#  Plot for variable nodepos[uy]
+clrsel 
+minst 1
+maxst 11
+select node 2 5 8 11 14
+plot nodepos[uy]
+outjpeg plot_bending-71_nodepos[uy].jpg
+outth xy_bending-71_nodepos[uy] cur
+#  Plot for variable rotdis[ruz]
+clrsel 
+minst 1
+maxst 11
+select node 2 5 8 11 14
+plot rotdis[ruz]
+outjpeg plot_bending-71_rotdis[ruz].jpg
+outth xy_bending-71_rotdis[ruz] cur
+#  Plot for variable sft
+clrsel 
+select beam 1 2 3 4 5
+minst 1
+maxst 11
+plot sft
+outjpeg plot_bending-71_sft.jpg
+outth xy_bending-71_sft cur
+#  Plot for variable mt
+clrsel 
+select beam 1 2 3 4 5
+minst 1
+maxst 11
+plot mt
+outjpeg plot_bending-71_mt.jpg
+outth xy_bending-71_mt cur
+#  Image for variable mt
+clrsel 
+time 0.3
+select beam 1 2 3 4 5
+rview; ry 90; rx 45; ry -35.26; rz -30
+exclude all; include 1 2 3 4 5
+show mt
+outjpeg image_bending-71_mt.jpg
+# EndCase 

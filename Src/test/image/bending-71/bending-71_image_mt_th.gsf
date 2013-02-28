@@ -1,0 +1,33 @@
+# bending-71
+# Title: Basic problem using only HL beams, differenet quadrature rules
+# Material Model: 71
+# Units: gm-cm-ms
+# End Time: 0.3
+# Griz Script File: bending-71_image_mt_plot.gsf
+
+# Setup
+alias chgst f;n;n;l
+alias min 1
+alias max 11
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+staterange
+minst 1
+maxst 11
+chgst
+on thsinglecol
+fracsz 8
+
+# Object selection 
+select beam all
+select mat 1
+disable 2
+
+# Images for variable mt (TH Plot)
+rmin 2.;tmin .02
+plot mt
+outjpeg bending-71_image_mt_th.answ.jpg
+
+# EndCase 
+
