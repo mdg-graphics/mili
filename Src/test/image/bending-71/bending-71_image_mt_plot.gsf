@@ -12,7 +12,7 @@ alias max 11
 alias staterange minst min; maxst max
 clrsel 
 switch mglob
-staterange
+# staterange // Add to test after Release 13.1
 minst 1
 maxst 11
 chgst
@@ -29,7 +29,7 @@ ty .2
 # Test save view function
 outview bending-71.V1
 rdhis bending-71.V1
-tx -.25
+tx -.1; ty -.15; zf 1.25
 
 # Object selection 
 select beam all
