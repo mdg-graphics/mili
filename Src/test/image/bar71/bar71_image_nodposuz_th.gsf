@@ -7,17 +7,9 @@
 # Min/Max Switch: global
 
 # Setup
-alias chgst f;n;n;l
-alias min 1
-alias max 81
-alias staterange minst min; maxst max
-clrsel 
 switch mglob
-staterange
-minst 1
+minst 10
 maxst 81
-chgst
-on thsinglecol
 fracsz 8
 jpegqual 100
 
@@ -33,7 +25,7 @@ select mat 1
 # Plots & Images for variable uz
 show nodpos[uz]
 plot nodpos[uz]
-outjpeg bar71_image_uz_th.answ.jpg
+outjpeg bar71_image_nodposuz_th.answ.jpg
 
 # EndCase 
 

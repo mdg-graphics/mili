@@ -3,7 +3,7 @@
 # Material Model: 71
 # Units: gm-cm-ms
 # End Time: 80
-# Griz Script File: bar71_image_szx_cutpln2_plot.gsf
+# Griz Script File: bar71_image_nodposuz_plot.gsf
 # Min/Max Switch: global
 
 # Setup
@@ -24,35 +24,26 @@ jpegqual 100
 # Set viewing 
 off all; on cmap; on title; on time; on coord; on box; on minmax
 off path
-rview; ry -50; rz -190
-zf 2.75
-ty .4; tx -.25
-edgwid 2.0
-dscalz 1.4
-off box
-rnf
+rview; ry -140; rz -145
+zf 2
+ty .2
+
+# Test save view function
+outview bar71.V1
+rdhis bar71.V1
+posmap .91 -.77 .07 .5
+sw flat
 
 # Object selection 
-select brick 1 331 42 100 879
+select node 1 741 777-778 1369
 select mat 1
 
-# Images for variable szx
-sw mstat
-show szx
+# Images for variable nodposuz
+show nodpos[ux]
 state 20
 state 75
 sw noterp
-cutrpln .25 .25 .5 1 0 0
-on cut
-rnf
-rx 40
-clrcut
-cutrpln .25 .5 .5 1 0 0
-cutrpln .25 .5 .05 0 0 1
-cutrpln .25 .5 .45 0 0 1
-cutrpln .25 .5 .5 0 1 0
-hilite node 467
-vcent hi
-outjpeg bar71_image_szx_cutpln2_plot.answ.jpg
+outjpeg bar71_image_nodposuz_plot.answ.jpg
+
 # EndCase 
 

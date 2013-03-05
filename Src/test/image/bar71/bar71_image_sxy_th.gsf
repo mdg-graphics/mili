@@ -7,26 +7,10 @@
 # Min/Max Switch: global
 
 # Setup
-alias chgst f;n;n;l
-alias min 1
-alias max 81
-alias staterange minst min; maxst max
-clrsel 
-switch mglob
-staterange
 minst 1
 maxst 81
-chgst
-on thsinglecol
 fracsz 8
 jpegqual 100
-
-# Set viewing 
-off all; on cmap; on title; on time; on coord; on box; on minmax
-off path
-rview; ry -140; rz -140
-zf 2
-ty .2
 
 # Object selection 
 select brick 1 331 40 42 100 879 307 

@@ -7,32 +7,10 @@
 # Min/Max Switch: global
 
 # Setup
-alias chgst f;n;n;l
 alias min 1
-alias max 81
-alias staterange minst 1; maxst 70
-clrsel 
-switch mglob
-staterange
-minst 1
-maxst 81
-chgst
-on thsinglecol
+alias max 70
 fracsz 8
 jpegqual 100
-
-# Set viewing 
-off all; on cmap; on title; on time; on coord; on box; on minmax
-off path
-rview; ry -140; rz -145
-zf 2
-ty .2
-
-# Test save view function
-outview bar71.V1
-rdhis bar71.V1
-posmap .91 -.77 .07 .5
-sw flat
 
 # Object selection 
 select node 1 741 777-778 482 1259 1369

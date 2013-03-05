@@ -7,30 +7,11 @@
 # Min/Max Switch: global
 
 # Setup
-alias chgst f;n;n;l
-alias min 1
-alias max 81
-alias staterange minst min; maxst max
-clrsel 
 switch mglob
-staterange
 minst 1
 maxst 81
-chgst
-on thsinglecol
 fracsz 8
 jpegqual 100
-
-# Set viewing 
-off all; on cmap; on title; on time; on coord; on box; on minmax
-off path
-rview; ry -150; rz -150
-zf 2.8
-ty .5; tx .28
-on edges
-edgwid 1.8
-setcol select .1 .1 1
-rnf
 
 # Try another colormap
 posmap .91 -.77 .07 .5

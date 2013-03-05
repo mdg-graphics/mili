@@ -13,10 +13,12 @@ alias max 81
 alias staterange minst 1; maxst 70
 clrsel 
 switch mglob
-staterange
+
+# staterange // Multi command alias in newer releases 
+# chgst      // - Enable this after 13.1 release
+
 minst 1
 maxst 81
-chgst
 on thsinglecol
 fracsz 8
 jpegqual 100
@@ -25,13 +27,13 @@ jpegqual 100
 off all; on cmap; on title; on time; on coord; on box; on minmax
 off path
 rview; ry -140; rz -145
-zf 2
-ty .2
+zf 2.25
+ty .25
 
 # Test save view function
 outview bar71.V1
 rdhis bar71.V1
-posmap .91 -.77 .07 .5
+posmap .91 -.75 .07 .5
 sw ortho
 sw noterp
 
@@ -40,11 +42,10 @@ select node 1 741 777-778 1369
 select mat 1
 
 # Images for variable nodposux
-show dispmag
+show dispmag 
 state 20
 state 78
-sw noterp
 outjpeg bar71_image_dispmag_plot.answ.jpg
 
-# EndCase 
+# EndCase  
 
