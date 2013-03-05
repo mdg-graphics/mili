@@ -14,7 +14,7 @@ clrsel
 switch mglob
 minst 1
 maxst 11
-chgst
+# chgst // Milti-command alias is new command. Test after 13.1 release
 on thsinglecol
 fracsz 8
 switch mglob 
@@ -40,14 +40,17 @@ outth bending-71_th.jansw cur
 plot nodacc[ay]
 outth bending-71_th.jansw cur
 
-clrsel
 select beam 1 2 3 4 5
+#  Plot for variable tor
+plot tor
+outth bending-71_th.jansw cur
+
 #  Plot for variable svec[svec_x]
 plot svec[svec_x]
 outth bending-71_th.jansw cur
 
 #  Plot for variable svec[svec_z]
-plot svec[svec_z]
+plot svec[svec_z] 
 outth bending-71_th.jansw cur
 
 #  Plot for variable sand
@@ -55,7 +58,7 @@ plot sand
 outth bending-71_th.jansw cur
 
 #  Plot for variable axf
-plot axf
+plot axf 
 outth bending-71_th.jansw cur
 
 disable 2
@@ -65,9 +68,30 @@ outth bending-71_th.jansw cur
 
 sw mstat
 #  Plot for variable mt
-plot mt
+show mt; plot
+outth bending-71_th.jansw cur
+echo "BP 1"
+
+show mat
+#  Plot for variable dispx
+show dispx; plot
+echo "BP 2"
+outth bending-71_th.jansw cur
+
+#  Plot for variable dispy
+show dispy; plot
+outth bending-71_th.jansw cur
+
+#  Plot for variable dispx
+refstate 5
+plot dispx node 1 4 12 14
+outth bending-71_th.jansw cur
+
+#  Plot for variable accmag
+plot accmag node 2-4
 outth bending-71_th.jansw cur
 
 echo "Writing TH data to file bending-71_th.jansw"
 
 # EndCase 
+ 
