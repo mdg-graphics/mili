@@ -1,0 +1,56 @@
+# ml40
+# Title: Simple meshless particle example of bar impact (same problem as bar71)
+# Material Model: 3
+# Units: gm-cm-ms
+# End Time: 80
+# Griz Script File: ml40.gsf
+# Min/Max Switch: global
+
+switch mglob
+# alias FNAME ml40_th.jansw
+alias OUTPUT ml40_th.jansw cur
+on thsinglecol
+on tha
+
+# Plot for variable eps
+clrsel 
+select ml 1 667 963 1010
+select node 1 777 814 557 1258 1369
+minst 1
+maxst 81
+plot eps
+OUTPUT
+
+# Plot for variable nodpos[uz]
+plot nodpos[uz]
+OUTPUT
+
+# Plot for variable nodacc[ay]
+minst 1
+maxst 81
+plot nodacc[ay]
+OUTPUT
+
+# Plot for variable sx
+state 70
+plot sx
+OUTPUT
+
+# Plot for variable sz
+plot sz
+OUTPUT
+
+# Plot for variable szx
+time 70
+show szx
+plot
+OUTPUT
+
+# Plot for variable eps
+show eps
+plot
+OUTPUT
+
+echo "Writing TH data to file ml40_th.jansw"
+
+# EndCase 
