@@ -4,25 +4,27 @@
 # Units: gm-cm-ms
 # End Time: 80
 # Griz Script File: ml40_sx_plot.gsf
-# Min/Max Switch: global
+# Min/Max Switch: mstat
 
-off all; on cmap; on title; on time; on coord; on box; on minmax
+off all; on cmap; on title; on time; on coord; off box; on minmax
 off path
 switch mglob
 fracsz 8
-alias s80 state 80
+alias s70 state 70
 on thsinglecol
 jpegqual 100
-alias selml select ml 1 667 963 1010
+alias selml select ml 1 667 963 1010 200
 
 # Set the view
-hinclude ml40_V1.gsf
+hinclude ml40_V2.gsf
+tx -.22; ty -.15, rx 45
 
 # Image for variable sx
+sw mstat
 clrsel 
-s80
+s70
 selml
-select ml 1000 1369
+select ml 1000 1012 1369 200-201
 show "stress[sx]"
 outjpeg image_ml40_sx.answ.jpg
 

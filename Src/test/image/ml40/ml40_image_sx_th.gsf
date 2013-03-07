@@ -3,7 +3,7 @@
 # Material Model: 3
 # Units: gm-cm-ms
 # End Time: 80
-# Griz Script File: ml40_sz_plot.gsf
+# Griz Script File: ml40_image_sx_th.gsf
 # Min/Max Switch: global
 
 off all; on cmap; on title; on time; on coord; on box; on minmax
@@ -13,21 +13,12 @@ fracsz 8
 alias s80 state 80
 on thsinglecol
 jpegqual 100
-alias selml select ml 1 15 667 963 1010
-anim
+alias selml select ml 1 667 963 1010 200-204
 
-# Set the view
-hinclude ml40_V2.gsf
-psize .75
-zb 1.45;tx .31
-
-# Image for variable sz
+# Image for variable sx
 clrsel 
-s80; state 50
 selml
-select ml 1369
-show "stress[sz]"
-disable 1; invis 2
-outjpeg image_ml40_sz.answ.jpg
+plot sx
+outjpeg image_ml40_sx_th.answ.jpg
 
 # EndCase 
