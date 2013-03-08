@@ -1,0 +1,23 @@
+# bolt
+# Title: bolt
+# Min/Max Switch: Global
+
+# Setup
+
+clrsel 
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Object selection 
+select brick 1-4 757 6049 13483 14134 106425 51912 10824 11656 11842 106824
+select nike all
+select nike 6
+select mat 1
+
+# Images for variable gamxy
+show  		gamxy; plot
+outjpeg bolt_image_gamxy_th.answ.jpg
+
+# EndCase 
+

@@ -25,14 +25,16 @@ rdhis bolt.V1
 
 # Object selection 
 select brick 1-2 757 6049 13483 14134 106425 51912 10824 11656 11842 106824
+select nike all
+select nike 6
 select mat 1
 
 # Images for variable sz
-show sz
+show  slide
 state 4
 state 5
-sw gterp
-outjpeg bolt_image_sz_plot.answ.jpg
+sw noterp
+outjpeg bolt_image_slide_plot.answ.jpg
 
 # EndCase 
 

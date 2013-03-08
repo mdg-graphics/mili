@@ -21,18 +21,28 @@ jpegqual 100
 off all; on cmap; on title; on time; on coord
 off box; on minmax
 off path
-rdhis bolt.V1
+rdhis bolt.V2
+sw hidden
 
 # Object selection 
 select brick 1-2 757 6049 13483 14134 106425 51912 10824 11656 11842 106824
 select mat 1
 
-# Images for variable sz
-show sz
+# Images for variable press
+show press
 state 4
 state 5
+anim
 sw gterp
-outjpeg bolt_image_sz_plot.answ.jpg
+cutrpln .1 .9 .1 1 0 0
+cutrpln .1 .1 .9 0 1 0
+cutrpln .1 .05 .9 0 1 0
+cutrpln .9 .9 .1 0 0 1
+rx 15
+ty .2
+zf 1.25
+
+outjpeg bolt_image_press_plot.answ.jpg
 
 # EndCase 
 

@@ -21,18 +21,19 @@ jpegqual 100
 off all; on cmap; on title; on time; on coord
 off box; on minmax
 off path
-rdhis bolt.V1
+rdhis bolt.V2
 
 # Object selection 
 select brick 1-2 757 6049 13483 14134 106425 51912 10824 11656 11842 106824
 select mat 1
+select brick 2
 
-# Images for variable sz
-show sz
+# Images for variable gamxy
+show gamxy
 state 4
 state 5
-sw gterp
-outjpeg bolt_image_sz_plot.answ.jpg
+sw interp
+outjpeg bolt_image_gamxy_plot.answ.jpg
 
 # EndCase 
 
