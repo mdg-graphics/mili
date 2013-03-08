@@ -1,0 +1,24 @@
+# bolt
+# Title: bolt
+# Min/Max Switch: Global
+
+# Setup
+alias chgst f;n;n;l
+clrsel 
+switch mglob
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Object selection 
+select node 1-4 334 703 741 777 1369 117467
+select nike all
+select nike 6
+select mat 1
+
+# Images for variable nodpos[uy]
+show  nodpos[uy]; plot
+outjpeg bolt_image_nodposuy_th.answ.jpg
+
+# EndCase 
+

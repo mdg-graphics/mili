@@ -1,0 +1,40 @@
+# bolt
+# Title: bolt
+# Min/Max Switch: Global
+
+# Setup
+alias chgst f;n;n;l
+alias min 1
+alias max 5
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+# staterange // Enable in release 13.1
+minst 1
+maxst 5
+# chgst // Enable in release 13.1
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+vcent node 14691
+rdhis bolt.V1
+
+# Object selection 
+select node 1 334 703 741 777 1369 117467
+select nike all
+select nike 6
+select mat 1
+
+# Images for variable nodpos[uy]
+sw hidden
+show  nodpos[uy]
+state 5
+sw noterp
+outjpeg bolt_image_nodposuy_plot.answ.jpg
+
+# EndCase 
+
