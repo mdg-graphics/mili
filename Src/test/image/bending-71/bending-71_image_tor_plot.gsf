@@ -1,0 +1,34 @@
+# bending-71
+# Title: Basic problem using only HL beams, differenet quadrature rules
+# Material Model: 71
+# Units: gm-cm-ms
+# End Time: 0.3
+# Griz Script File: bending-71_image_tor_plot.gsf
+
+# Setup
+alias chgst f;n;n;l
+alias min 1
+alias max 11
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+off all; on cmap; on title; on time; on coord; on box; on minmax
+# staterange // Enable after Release 13.1
+minst 1
+maxst 11
+# chgst // Enable after Release 13.1
+on thsinglecol
+fracsz 8
+
+# Object selection 
+select beam all
+select mat 1
+disable 2-3
+
+# Images for variable tor
+echo "1"
+show tor
+outjpeg bending-71_image_tor_plot.answ.jpg
+
+# EndCase 
+

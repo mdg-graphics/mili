@@ -15,16 +15,10 @@ switch mglob
 # staterange // Add to test after Release 13.1
 minst 1
 maxst 11
-chgst
+# chgst // Add to test after Release 13.1
 on thsinglecol
 fracsz 8
 jpegqual 100
-
-# Set viewing 
-off all; on cmap; on title; on time; on coord; on minmax
-off path
-rview; ry -140; rz -145
-ty .2
 
 # Test save view function
 outview bending-71.V1
@@ -32,11 +26,11 @@ rdhis bending-71.V1
 tx -.1; ty -.15; zf 1.25
 
 # Object selection 
-select beam all
+select node all
 select mat 1
-disable 2
+disable 2 8
 
-# Images for variable nodpos vectors
+# Images for variable mt vectors
 state 8
 show mt
 outjpeg bending-71_image_mt_plot.answ.jpg
