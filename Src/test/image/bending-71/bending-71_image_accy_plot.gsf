@@ -1,0 +1,41 @@
+# bending-71
+# Title: Basic problem using only HL beams, differenet quadrature rules
+# Material Model: 71
+# Units: gm-cm-ms
+# End Time: 0.3
+# Griz Script File: bending-71_image_accy_plot.gsf
+
+# Setup
+off all; on cmap; on title; on time; on coord; on box; on minmax
+alias chgst f;n;n;l
+alias min 1
+alias max 11
+alias staterange minst min; maxst max
+clrsel 
+switch mstat
+# staterange // Add to test after Release 13.1
+minst 1
+maxst 11
+# chgst // Add to test after Release 13.1
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Test load view function
+rdhis bending-71.V1
+zf 1.25
+ty -.25; tx -.225; tz .01
+
+# Object selection 
+select node all
+select node 1 4-5 15 
+select mat 1
+disable 1
+
+# Images for variable mt vectors
+state 9
+show accy
+outjpeg bending-71_image_accy_plot.answ.jpg
+
+# EndCase 
+
