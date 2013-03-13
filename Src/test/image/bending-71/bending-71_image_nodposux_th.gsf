@@ -1,0 +1,29 @@
+# bending-71
+# Title: Basic problem using only HL beams, differenet quadrature rules
+# Material Model: 71
+# Units: gm-cm-ms
+# End Time: 0.3
+# Griz Script File: bending-71_image_nodposux_th.gsf
+
+# Setup
+clrsel 
+switch mstat
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Object selection 
+select node all
+select node 2 8
+
+setcol plot1 0.25 .8 .4
+setcol plot2 0.25 .8 1
+
+tmin .00455
+
+# Images for variable mt vectors
+plot nodpos[ux] node 2 8
+outjpeg bending-71_image_nodposux_th.answ.jpg
+
+# EndCase 
+
