@@ -13,10 +13,10 @@ alias max 81
 alias staterange minst min; maxst max
 clrsel 
 switch mglob
-staterange
-minst 1
+# staterange; chgst // Enable after Release 13.1
+minst 20
 maxst 81
-chgst
+
 on thsinglecol
 fracsz 8
 jpegqual 100
@@ -39,6 +39,7 @@ select node 1 741 777-778 1369
 select mat 1
 
 # Images for variable nodposux
+anim
 show nodpos[ux]
 state 20
 state 75

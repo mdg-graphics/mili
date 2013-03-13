@@ -13,10 +13,10 @@ alias max 81
 alias staterange minst min; maxst max
 clrsel 
 switch mglob
-staterange
+staterange; chgst // Enable after Release 13.1
 minst 1
 maxst 81
-chgst
+
 on thsinglecol
 fracsz 8
 jpegqual 100

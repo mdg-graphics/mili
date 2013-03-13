@@ -3,13 +3,12 @@
 # Material Model: 71
 # Units: gm-cm-ms
 # End Time: 80
-# Griz Script File: bar71_image_eps_plot.gsf
+# Griz Script File: bar71_image_eps_th.gsf
 # Min/Max Switch: global
 
 # Setup
 minst 1
 maxst 80
-chgst
 on thsinglecol
 fracsz 8
 jpegqual 100

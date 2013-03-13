@@ -3,7 +3,7 @@
 # Material Model: 71
 # Units: gm-cm-ms
 # End Time: 80
-# Griz Script File: bar71_image_press_plot.gsf
+# Griz Script File: bar71_image_press_rmin_plot.gsf
 # Min/Max Switch: global
 
 # Setup
@@ -13,10 +13,10 @@ alias max 81
 alias staterange minst min; maxst max
 clrsel 
 switch mglob
-staterange
+# staterange; chgst // Enable after Release 13.1
 minst 1
 maxst 81
-chgst
+
 on thsinglecol
 fracsz 8
 jpegqual 100
@@ -46,7 +46,7 @@ state 20
 state 75
 sw noterp
 
-# Test rmin/tmin & tmin/tmax
+# Test rmin/tmin & tmin/tmax with variable press
 clrsel
 select brick 972 783 331 244
 show press

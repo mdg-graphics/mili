@@ -13,10 +13,9 @@ alias max 81
 alias staterange minst min; maxst max
 clrsel 
 switch mglob
-staterange
+# staterange; chgst // Enable after Release 13.1
 minst 1
 maxst 81
-chgst
 on thsinglecol
 fracsz 8
 jpegqual 100
@@ -30,8 +29,7 @@ ty .2
 refstate 10
 dscal 1.5
 
-# Test save view function
-outview bar71.V1
+# Test loading view function
 rdhis bar71.V1
 
 # Object selection 

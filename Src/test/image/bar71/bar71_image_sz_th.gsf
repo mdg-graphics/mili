@@ -16,7 +16,7 @@ jpegqual 100
 select brick 1 331 40 42-50 100 879 307 
 select mat 1
 
-# Images for variable sx
+# Images for variable sz
 state 20
 state 75
 sw noterp

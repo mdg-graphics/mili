@@ -13,10 +13,10 @@ alias max 81
 alias staterange minst min; maxst max
 clrsel 
 switch mglob
-staterange
+# staterange // Enable after Release 13.1
+# chgst // Enable after Release 13.1
 minst 1
 maxst 81
-chgst
 on thsinglecol
 fracsz 8
 jpegqual 100
@@ -36,7 +36,7 @@ rnf
 select brick 1 331 40 42 100 879 307 
 select mat 1
 
-# Images for variable szx
+# Images for variable szx with a cutting plane
 sw mstat
 show szx
 state 20

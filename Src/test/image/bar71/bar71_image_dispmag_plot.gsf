@@ -15,7 +15,7 @@ clrsel
 switch mglob
 
 # staterange // Multi command alias in newer releases 
-# chgst      // - Enable this after 13.1 release
+# chgst      // Enable this after 13.1 release
 
 minst 1
 maxst 81
