@@ -1,0 +1,51 @@
+# bar71
+# Title: Dynamic bar impact against rigid wall, quarter symmetry
+# Material Model: 71
+# Units: gm-cm-ms
+# End Time: 80
+# Griz Script File: bar71_image_svecz_plot.gsf
+# Min/Max Switch: global
+
+# Setup
+# alias chgst f;n;n;l
+alias min 1
+alias max 81
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+# staterange; chgst // Enable in Release 13.1
+minst 1
+maxst 11
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; off box; on minmax
+off path
+rview; ry -140; rz -140
+zf 1.25
+ty .2
+refstate 10
+dscal 1.5
+
+# Test save view function
+rdhis bar71.V1
+
+# Object selection 
+select beam all
+select beam 3
+select mat 1
+
+# Color Selections
+setcol select 0 .8 1
+
+# Images for variable svecz
+show svec[svec_z]
+anim
+state 5
+sw noterp
+outjpeg bending-71_image_svecz_plot.answ.jpg
+
+# EndCase 
+

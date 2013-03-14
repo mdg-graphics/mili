@@ -32,7 +32,7 @@ select node 1 4-5 15 13
 select mat 1
 disable 1
 
-# Images for variable mt vectors
+# Images for variable velmag
 maxst 11
 l
 show velmag

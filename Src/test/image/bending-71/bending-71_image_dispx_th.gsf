@@ -3,7 +3,7 @@
 # Material Model: 71
 # Units: gm-cm-ms
 # End Time: 0.3
-# Griz Script File: bending-71_image_velmag_th.gsf
+# Griz Script File: bending-71_image_dispx_th.gsf
 
 # Setup
 clrsel 
@@ -14,13 +14,17 @@ jpegqual 100
 
 # Object selection 
 select node all
-select node 1 4-5 15 13 
-select mat 1
-disable 1
+select node 2 8
 
-# Images for variable velmag
-show velmag; plot 
-outjpeg bending-71_image_velmag_th.answ.jpg
+setcol plot1 0.25 .8 .4
+setcol plot2 0.25 .8 1
+
+tmin .00455
+rmax -.0022
+
+# Images for variable mt vectors
+plot dispx node 2 8 15 4 10
+outjpeg bending-71_image_dispx_th.answ.jpg
 
 # EndCase 
 

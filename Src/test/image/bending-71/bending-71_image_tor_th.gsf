@@ -6,7 +6,7 @@
 # Griz Script File: bending-71_image_tor_th.gsf
 
 # Setup
-switch mglob
+switch mstat
 on thsinglecol
 fracsz 8
 
