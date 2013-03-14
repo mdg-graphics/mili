@@ -26,6 +26,6 @@ select ml 1369 1000
 show "ml_ellipse[elp1_x]"
 invis all
 plot
-outjpg image_ml40_epl1x_th.answ.jpg
+outjpg ml40_image_epl1x_th.answ.jpg
 
 # EndCase 

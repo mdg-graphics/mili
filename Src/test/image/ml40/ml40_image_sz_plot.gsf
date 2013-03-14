@@ -28,6 +28,6 @@ selml
 select ml 1369
 show "stress[sz]"
 disable 1; invis 2
-outjpeg image_ml40_sz.answ.jpg
+outjpg ml40_image_sz_plot.answ.jpg
 
 # EndCase 

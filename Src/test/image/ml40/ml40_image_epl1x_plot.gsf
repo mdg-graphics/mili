@@ -20,11 +20,11 @@ hinclude ml40_V1.gsf
 
 # Image for variable eps
 clrsel 
-s80
+s80 
 selml
 select ml 1369 1000
 show "ml_ellipse[elp1_x]"
 invis all
-outjpeg image_ml40_epl1x.answ.jpg
+outjpeg ml40_image_epl1x_plot.answ.jpg
 
 # EndCase 

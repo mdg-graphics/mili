@@ -26,6 +26,6 @@ s70
 selml
 select ml 1000 1012 1369 200-201
 show "stress[sx]"
-outjpeg image_ml40_sx.answ.jpg
+outjpg ml40_image_sx_plot.answ.jpg
 
 # EndCase 

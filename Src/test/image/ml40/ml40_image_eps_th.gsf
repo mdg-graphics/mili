@@ -22,6 +22,6 @@ hinclude ml40_V1.gsf
 clrsel 
 selml
 plot eps
-outjpeg image_ml40_eps_th.answ.jpg
+outjpg ml40_image_eps_th.answ.jpg
 
 # EndCase 

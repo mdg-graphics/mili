@@ -19,6 +19,6 @@ alias selml select ml 1 667 963 1010 200-204
 clrsel 
 selml
 plot sx
-outjpeg image_ml40_sx_th.answ.jpg
+outjpg ml40_image_sx_th.answ.jpg
 
 # EndCase 

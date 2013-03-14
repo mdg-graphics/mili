@@ -26,6 +26,6 @@ s80
 selml
 select ml 1369 1000
 show eps
-outjpeg image_ml40_eps.answ.jpg
+outjpg ml40_image_eps_plot.answ.jpg
 
 # EndCase 
