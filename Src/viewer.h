@@ -2199,7 +2199,7 @@ extern Bool_type mod_required_plot_mode( Analysis *, Result_modifier_type, int,
 extern int get_element_set_id( char * );
 extern int get_element_set_index( Analysis *, int );
 extern int get_intpoint_index ( int, int, int * );
-extern void set_default_intpoints ( int, int, int, int );
+extern void set_default_intpoints ( int, int, int *, int * );
 
 /* show.c */
 extern int parse_show_command( char *, Analysis * );

@@ -2671,13 +2671,24 @@ static void
 add_derived_result_button( Derived_result *p_dr )
 {
     Widget submenu_cascade, submenu, cascade, button;
-    int i, n;
+    int i, j, k, n;
     int idx, position;
     char cbuf[M_MAX_NAME_LEN], nambuf[M_MAX_NAME_LEN];
     Bool_type make_submenu;
     Arg args[10];
     Analysis *analy;
     Subrecord_result *p_subr_res;
+    
+    /* Vars added to add element set derived results */
+    Bool_type es_found=FALSE;
+    Subrecord subrec;
+    Hash_table *p_pr_ht;
+    Htable_entry *p_hte;
+    Primal_result *p_pr;
+    char **svar_names;
+    int dbid=0, srec_qty=0;
+    int subrec_qty=0;
+    int rval=0;
     
     analy = env.curr_analy;
 
@@ -2720,8 +2731,82 @@ add_derived_result_button( Derived_result *p_dr )
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, res_menu_CB, 
                    p_subr_res->candidate->short_names[idx] );
-}
 
+    /* If we have element set derived results then add them now */
+
+    p_pr_ht = env.curr_analy->primal_results;
+
+    if ( analy->es_cnt>0 && p_pr_ht != NULL ) {
+
+         /* Get state record format count for this database. */
+         dbid = env.curr_analy->db_ident;
+	 srec_qty = 0;
+	 env.curr_analy->db_query( dbid, QRY_QTY_SREC_FMTS, NULL, NULL, 
+				   (void *) &srec_qty );
+	 
+	 /* Loop over srecs */
+	 for ( i = 0; 
+	       i < srec_qty; 
+	       i++ )
+	 {
+	     /* Get subrecord count for this state record. */
+	     rval = env.curr_analy->db_query( dbid, QRY_QTY_SUBRECS, (void *) &i, 
+					      NULL, (void *) &subrec_qty );
+	     if ( rval != OK )
+	          continue;
+	     
+	     /* Loop over subrecs */
+	     for ( j = 0; 
+		   j < subrec_qty;
+		   j++ )
+	       {
+		   /* Get binding */
+		   rval = env.curr_analy->db_get_subrec_def( dbid, i, j, &subrec );
+		   if ( rval != OK )
+		        continue;
+		 
+		   /* Look for element set svars to add to sub-menu */
+
+		   if ( subrec.qty_svars==1 && strstr( cbuf, subrec.class_name) 
+			&& !strncmp( subrec.svar_names[0], "es_", 3 ) ) 
+		   {
+
+		        /* Use bound state vars as keys into Primal_result hash table.
+			 */
+			  svar_names = subrec.svar_names;
+			  
+			  rval = htable_search( p_pr_ht, svar_names[k], FIND_ENTRY, &p_hte );
+			  if ( rval == OK )
+			    {
+			      p_pr = (Primal_result *) p_hte->data;
+
+			      n = 0;
+			      XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
+			      submenu = XmCreatePulldownMenu( derived_menu_widg, "es_submenu_pane", 
+							      args, n );
+			      strcpy( cbuf, "test");
+			      
+			      n = 0;
+			      XtSetArg( args[n], XmNsubMenuId, submenu ); n++;
+			      cascade = XmCreateCascadeButton( derived_menu_widg, cbuf, args, n );
+			      XtManageChild( cascade );
+			      
+			      if ( p_pr->var->num_type == M_STRING )
+			  	   continue;
+			      
+			      /* if ( !p_pr->in_menu )
+				 {
+				 add_primal_result_button( parent, p_pr );
+				 } */
+			    } 
+		   } /* es variable test */
+		   
+		   /* Don't care about return value for this. */
+		   env.curr_analy->db_cleanse_subrec( &subrec );
+	       } /* for on j */
+	 }
+    }
+}
 
 /*****************************************************************
  * TAG( get_result_submenu_name )
@@ -3009,6 +3094,7 @@ create_primal_res_menu( Widget parent )
     /* Get state record format count for this database. */
     dbid = env.curr_analy->db_ident;
     srec_qty = 0;
+ 
     /* Don't care about return value for this. */
     env.curr_analy->db_query( dbid, QRY_QTY_SREC_FMTS, NULL, NULL, 
                               (void *) &srec_qty );
