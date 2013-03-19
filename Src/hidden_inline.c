@@ -23,6 +23,7 @@
  */
 
 #include <time.h>
+#include <stdlib.h>
 #include "misc.h"
 #include "list.h"
 #include "geometric.h"
@@ -96,7 +97,7 @@ static void gen_hidden();
 static void output_hidden( char *outfile );
 static void hidden_vec_norm( Real_type *vec );
 static void hidden_point_transform( Real_type *res, Real_type *vec, Transf_mat *mat);
-static void heapsort( int n, int *arrin[2], int *indx );
+static void griz_heapsort( int n, int *arrin[2], int *indx );
 static int node_cmp( int indx1, int indx2, int *n_arr[2] );
 static Real_type par_test_pt_plane( Real_type plane_pt[3], 
                                     Real_type plane_norm[3], 
@@ -501,8 +502,8 @@ create_edge_table()
             SWAP( tmp, or_edge[0][i], or_edge[1][i] );
     }
 
-    ord = NEW_N( int, or_edge_cnt, "Heapsort ordering table" );
-    heapsort( or_edge_cnt, or_edge, ord );
+    ord = NEW_N( int, or_edge_cnt, "Griz_Heapsort ordering table" );
+    griz_heapsort( or_edge_cnt, or_edge, ord );
 
 
     /*
@@ -545,13 +546,13 @@ create_edge_table()
 
 
 /*************************************************************
- * TAG( heapsort )
+ * TAG( griz_heapsort )
  *
  * Heap sort, from Numerical_Recipes_in_C.  The node list array
  * arrin and the sorted ordering is returned in the indx array.
  */
 static void
-heapsort( int n, int *arrin[2], int *indx )
+griz_heapsort( int n, int *arrin[2], int *indx )
 {
     int l, j, ir, indxt, i;
 

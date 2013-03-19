@@ -6,43 +6,15 @@
  *      Bob Corey
  *      Lawrence Livermore National Laboratory
  *      June 22, 2004
- *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
  * 
  ************************************************************************
  * Modifications:
  *  I. R. Corey - Sept 13, 2004: Add new option "damage_hide" which 
  *   controls if damaged elements are displayed.
+ *
+ *  I. R. Corey - Nov 1, 2012: Changed cutoff variables from int to
+ *    float.
+ *
  ************************************************************************
  */
 
@@ -77,17 +49,16 @@ compute_hex_damage( Analysis *analy, float *resultArr,
     int nplot_rval, eeff_rval;
     int nrvol_rval;
     int x_rval, y_rval, z_rval;
-    int vel_cutoff, relVol_cutoff, eeff_cutoff;
+    float vel_cutoff, relVol_cutoff, eeff_cutoff;
     int hex_qty, hex_id;
     int *hex_ids, *object_ids;
-    int class_qty, mat_qty, active_qty, elem_block_qty, qty;
+    int class_qty, mat_qty, active_qty, elem_block_qty, node_qty;
     int index, start, stop;
     int subrec, srec;
-    float *resultElem;               /* Array for the element data. */
-    float *val_hex1;
-    float *val_hex2;
-    float *tmp_data;
-    float *vel_sums, *mm_val;
+    float *resultElem; /* Array for the element data. */
+    float *val_hex1=NULL;
+    float *val_hex2=NULL;
+    float *vel_sums=NULL;
     float localMat[3][3];
     float *vel_1p = NULL;
     double *vel_2p = NULL;
@@ -104,15 +75,14 @@ compute_hex_damage( Analysis *analy, float *resultArr,
     Subrec_obj *p_subrec;
 
     Visibility_data *p_vd;
-
-    int damage_count = 0;
    
     p_result = analy->cur_result;
 
-    vdir = analy->damage_params.vel_dir;
-    vel_cutoff = analy->damage_params.cut_off[0];
+    vdir          = analy->damage_params.vel_dir;
+    vel_cutoff    = analy->damage_params.cut_off[0];
     relVol_cutoff = analy->damage_params.cut_off[1];
-    eeff_cutoff = analy->damage_params.cut_off[2];
+    eeff_cutoff   = analy->damage_params.cut_off[2];
+    node_qty = MESH_P( analy )->node_geom->qty;
 
     /* Get nodal velocities. */
     if ( velx == NULL )
@@ -151,7 +121,6 @@ compute_hex_damage( Analysis *analy, float *resultArr,
         update_result( analy, velz );
     }
         
-        
     /* Load nodal velocities for current state. */
 
     if( strcmp( vdir, "vx")==0 )
@@ -182,17 +151,15 @@ compute_hex_damage( Analysis *analy, float *resultArr,
     {
         vel_1p = analy->tmp_result[0];
         NODAL_RESULT_BUFFER( analy ) = vel_1p;
-        load_result( analy, FALSE, FALSE );
+        load_result( analy, FALSE, FALSE, FALSE );
         
     }
     else
     {
-        qty = MESH_P( analy )->node_geom->qty;
-
         if ( vel_2p == NULL )
         {
             /* Allocate arrays for velocities into a static pointer. */
-            vel_2p = NEW_N( double, qty, "Temp node vel buffers" );
+            vel_2p = NEW_N( double, node_qty, "Temp node vel buffers" );
             if ( vel_2p == NULL )
             {
                 popup_dialog( WARNING_POPUP, "Array allocation failed; "
@@ -202,68 +169,7 @@ compute_hex_damage( Analysis *analy, float *resultArr,
         }
 
         NODAL_RESULT_BUFFER( analy ) = (float *) vel_2p;
-        load_result( analy, FALSE, FALSE );
-    }
-
-    p_hex_class = ((MO_class_data **)
-                   MESH( analy ).classes_by_sclass[G_HEX].list)[0];
-
-    val_hex1 = analy->tmp_result[1];
-    p_hex_class->data_buffer = val_hex1;
-    NODAL_RESULT_BUFFER( analy ) = val_hex1;
-    nplot = NEW_N( Result, 1, "nplot Results for damage composite" );
-    nplot_rval = find_result( analy, PRIMAL, TRUE, nplot, "nplot" );
-    if ( nplot_rval )
-    {
-
-        analy->cur_result = nplot;
-        load_result( analy, FALSE, FALSE );
-    }
-    else
-    {
-        cleanse_result( nplot );
-        free(nplot);
-        nplot = NULL;
-        eeff = NEW_N( Result, 1, "eeff Results for damage composite" );
-        eeff_rval = find_result( analy, PRIMAL, TRUE, eeff, "eeff" );
-
-        analy->cur_result = eeff;
-        load_result( analy, FALSE, FALSE );
-
-    }
-
-    val_hex2 = analy->tmp_result[2];
-    p_hex_class->data_buffer = val_hex2;
-    NODAL_RESULT_BUFFER( analy ) = val_hex2;
-    nrvol = NEW_N( Result, 1, "nrvol Results for damage composite" );
-    nrvol_rval = find_result( analy, DERIVED, TRUE, nrvol, "relvol" );
-    if ( nrvol_rval )
-    {
-        analy->cur_result = nrvol;
-        load_result( analy, FALSE, FALSE );
-    }
-    else
-    {
-        popup_dialog( INFO_POPUP, "%s\n%s",
-                      "Relative Volume not available for damage calculation",
-                      "calculation; aborted." );
-        cleanse_result( nrvol );
-        free( nrvol );
-        nrvol = NULL;
-
-        if ( nplot_rval )
-        {
-            cleanse_result( nplot );
-            free( nplot );
-            nplot = NULL;
-        }
-        else
-        {
-            cleanse_result( eeff );
-            free( eeff );
-            eeff = NULL;
-        }
-        return;
+        load_result( analy, FALSE, FALSE, FALSE );
     }
 
     vel_sums = analy->tmp_result[3];
@@ -279,12 +185,81 @@ compute_hex_damage( Analysis *analy, float *resultArr,
     /* Loop over all hex classes to generate results for enabled materials. */
     class_qty = MESH( analy ).classes_by_sclass[G_HEX].qty;
 
-    for ( l = 0; l < class_qty; l++ )
+    for ( l = 0; 
+	  l < class_qty; 
+	  l++ )
     {
-        p_hex_class = ((MO_class_data **)
-                       MESH( analy ).classes_by_sclass[G_HEX].list)[l];
-        connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
-        hex_qty = p_hex_class->qty;
+          p_hex_class = ((MO_class_data **)
+			 MESH( analy ).classes_by_sclass[G_HEX].list)[l];
+	  hex_qty = p_hex_class->qty;
+
+	  val_hex1 = NEW_N( float, node_qty, "Temp node vel buffers" );
+	  NODAL_RESULT_BUFFER( analy ) = val_hex1;
+	  
+	  nplot = NEW_N( Result, 1, "nplot Results for damage composite" );
+	  nplot_rval = find_result( analy, PRIMAL, TRUE, nplot, "nplot" );
+	  if ( nplot_rval )
+	  {
+	      analy->cur_result = nplot;
+	      load_result( analy, FALSE, FALSE, FALSE );
+	      for ( i=0;
+		    i<hex_qty;
+		    i++ )
+		    val_hex1[i] = p_hex_class->data_buffer[i];
+	  }
+	  else
+	      {
+	      cleanse_result( nplot );
+	      free(nplot);
+	      nplot = NULL;
+	      eeff = NEW_N( Result, 1, "eeff Results for damage composite" );
+	      eeff_rval = find_result( analy, PRIMAL, TRUE, eeff, "eeff" );
+	      
+	      analy->cur_result = eeff;
+	      load_result( analy, FALSE, FALSE, FALSE );
+	      for ( i=0;
+		    i<hex_qty;
+		    i++ )
+		    val_hex1[i] = p_hex_class->data_buffer[i];
+	      }
+	  
+	  val_hex2 = NEW_N( float, node_qty, "Temp node vel buffers" );
+	  NODAL_RESULT_BUFFER( analy ) = val_hex2;
+	  nrvol = NEW_N( Result, 1, "nrvol Results for damage composite" );
+	  nrvol_rval = find_result( analy, DERIVED, TRUE, nrvol, "relvol" );
+	  if ( nrvol_rval )
+	    {
+	      analy->cur_result = nrvol;
+	      load_result( analy, FALSE, FALSE, FALSE );
+	      for ( i=0;
+		    i<hex_qty;
+		    i++ )
+		    val_hex2[i] = p_hex_class->data_buffer[i];
+	    }
+	  else
+	    {
+	      popup_dialog( INFO_POPUP, "%s\n%s",
+			    "Relative Volume not available for damage calculation",
+			    "calculation; aborted." );
+	      cleanse_result( nrvol );
+	      free( nrvol );
+	      nrvol = NULL;
+	      
+	      if ( nplot_rval )
+		{
+		  cleanse_result( nplot );
+		  free( nplot );
+		  nplot = NULL;
+		}
+	      else
+		{
+		  cleanse_result( eeff );
+		  free( eeff );
+		  eeff = NULL;
+		}
+	      return;
+	    }
+	  connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
 
         /* Generate the list of valid, enabled materials in this class. */
         active_qty = 0;
@@ -292,7 +267,7 @@ compute_hex_damage( Analysis *analy, float *resultArr,
         {
             /* If the material is of the hex class and it's enabled, save it. */
             if ( p_mats[m].elem_class == p_hex_class && !disable_mat[m] )
-                active_mats[active_qty++] = m;
+                 active_mats[active_qty++] = m;
         }
 
         /* Loop over the active materials. */
@@ -335,14 +310,22 @@ compute_hex_damage( Analysis *analy, float *resultArr,
                 }
             }
         }
-
         
         resultElem = compute_damage(hex_qty, vel_cutoff, relVol_cutoff, eeff_cutoff,
                                     val_hex1, vel_sums, val_hex2);
 
+	/* Update the classes data buffer */
+	for ( i=0;
+	      i<hex_qty;
+	      i++ )
+              p_hex_class->data_buffer[i] = resultElem[i];
+	
         p_vd = p_hex_class->p_vis_data;
 
+#ifdef DISABLE_DAMAGE_HISTORY
         /* Retain damage history from previous time steps */
+	/* Disable for now */
+
         for ( i=0;
               i<hex_qty;
               i++)
@@ -356,50 +339,42 @@ compute_hex_damage( Analysis *analy, float *resultArr,
                p_vd->visib_damage[i] = FALSE;
 
             if (!resultElem[i])
-               resultElem[i] = p_vd->visib_damage[i];
+                resultElem[i] = p_vd->visib_damage[i];
         }
+#endif
 
-        for ( i=0;
-              i<hex_qty;
-              i++)
-        {
-
-          /* If user has requested that the damaged elements be disabled,
-           * then set position in array visib_damage to FALSE for this
-           * element so that it will not be rendered.
-           */
-          if (resultElem[i])
-             p_vd->visib_damage[i] = TRUE;
-
-          if ( p_vd->visib_damage )
-             damage_count++;
-        }
-        
-        if (analy->reset_damage_hide)
-           analy->reset_damage_hide = FALSE;
+        if ( analy->reset_damage_hide )
+             analy->reset_damage_hide = FALSE;
         
         if ( interpolate )
             /* Interpolate to the nodes by class and active materials. */
             hex_to_nodal_by_mat( resultElem, resultArr, p_hex_class,
                                  active_qty, active_mats, p_mats, analy );
+        /*
+	 * Set the visibility for damaged elements.
+	 */
+	
+	/* Added 09/15/04: IRC - The field visib_damage is used to control the 
+	 * display of damaged elements. 
+	 */
+#ifdef DISABLE_DAMAGE_HISTORY
+	if (analy->damage_hide)
+	{
+	    for ( i = 0; 
+		  i < hex_qty; 
+		  i++ )
+	          if ( resultElem[i] )
+	  	  {
+		       p_vd->visib_damage[i] = TRUE;
+		  }
+		  else  
+		       p_vd->visib_damage[i] = FALSE;
+	 }
+#endif
     }
 
-    /*
-     * Set the visibility for damaged elements.
-     */
-
-    /* Added 09/15/04: IRC - The field visib_damage is used to control the 
-     * display of damaged elements. 
-     */
     if (analy->damage_hide)
-      {
-        for ( i = 0; i < hex_qty; i++ )
-          if ( p_vd->visib_damage[i] )
-             {
-             p_vd->visib[i] = FALSE;
-             damage_count++;
-             }
-
+    {
         /* We need to redefine the faces that are visible here
          * since this function is usually called before the load
          * function.
@@ -409,15 +384,19 @@ compute_hex_damage( Analysis *analy, float *resultArr,
            compute_normals( analy );
       }
 
-
     NODAL_RESULT_BUFFER( analy ) = resultArr;
     analy->cur_result = p_result;
 
     /* Initialize temporary element min/max values. */
     init_mm_obj( &analy->tmp_elem_mm );
-    elem_get_minmax( resultElem, analy );
+    elem_get_minmax( resultElem, 0, analy );
+    update_min_max( analy );
 
     /* Releases nodal velocity component Result structs. */
+    if ( val_hex1) 
+         free( val_hex1 );
+    if ( val_hex2 )
+         free( val_hex2 );
 
     if ( velx != NULL )
     {
@@ -438,7 +417,7 @@ compute_hex_damage( Analysis *analy, float *resultArr,
         cleanse_result( nrvol );
 
     if ( vel_2p != NULL )
-        free( vel_2p );
+         free( vel_2p );
 
     free( active_mats );
 
@@ -473,7 +452,7 @@ float *compute_damage(int   qty,
 
       /* Initialize with no damage */
       damage[i] = 0.;
-      
+	
       if (eeff_cutoff    < eeff[i] &&
           vel_cutoff    < vel[i] &&
           relVol_cutoff < relVol[i])

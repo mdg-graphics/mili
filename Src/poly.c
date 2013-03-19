@@ -6,40 +6,13 @@
  *      Lawrence Livermore National Laboratory
  *      Jan 2 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
+ ************************************************************************
+ * Modifications:
+ *  I. R. Corey - Nov 29, 2012: Fixed problem with writing double 
+ *                geometry nodal data.
+ *
+ ************************************************************************
  */
-
 
 #include <stdlib.h>
 #include "viewer.h"
@@ -70,7 +43,7 @@ static void output_hid_face( int [4], int, Bool_type *, Bool_type, FILE * );
 static void output_hid_beam( int [4], int, FILE * );
 static void mark_class_nodes( Analysis *, Mesh_data *, Bool_type [QTY_SCLASS], 
                               int * );
-
+void write_geom_file( char *, Analysis *, Bool_type );
 
 /************************************************************
  * TAG( read_slp_file )
@@ -695,7 +668,7 @@ write_obj_file( char *fname, Analysis *analy )
     float vert[3];
     int vert_idx[4];
     int num_instances;
-    int num_matls, *matl_cnts;
+    int num_matls, *matl_cnts, *mats;
     int *node_nums;
     int i, j, k, el, fc, nd, cnt;
 
@@ -775,8 +748,7 @@ write_obj_file( char *fname, Analysis *analy )
         for ( j = 0; j < shells->cnt; j++ )
         {
             /* Skip if this material is invisible. */
-            if ( analy->hide_material[shells->mat[j]] 
-		 || hide_by_object_type( BRICK_T, shells->mat[j], j, analy, NULL ) )
+	    if ( analy->hide_material[shells->mat[j]] )
                  continue;
 
             for ( k = 0; k < 4; k++ )
@@ -895,8 +867,7 @@ write_obj_file( char *fname, Analysis *analy )
                 continue;
 
             /* Skip if this material is invisible. */
-            if ( analy->hide_material[shells->mat[i]] 
-                 || hide_by_object_type( BRICK_T, shells->mat[i], i, analy, NULL ) )
+            if ( analy->hide_material[shells->mat[i]] )
                  continue;
 
             matl_cnts[shells->mat[i]]++;
@@ -922,8 +893,7 @@ write_obj_file( char *fname, Analysis *analy )
                         continue;
 
                     /* Skip if this material is invisible. */
-                    if ( analy->hide_material[shells->mat[j]] 
-			 || hide_by_object_type( BRICK_T, shells->mat[j], j, analy, NULL ) )
+                    if ( analy->hide_material[shells->mat[j]] )
                          continue;
 
                     for ( k = 0; k < 4; k++ )
@@ -1188,7 +1158,7 @@ output_obj_quad_class( int num_instances, Bool_type *reverse_order,
 
         /* Skip if this material is invisible. */
         if ( hide_mtl[mat[i]] 
-	     || hide_by_object_type( BRICK_T, mat[i], i, analy, NULL ) )
+	     || hide_by_object_type( p_quad_class, mat[i], i, analy, NULL ) )
              continue;
 
         matl_cnts[mat[i]]++;
@@ -1219,7 +1189,7 @@ output_obj_quad_class( int num_instances, Bool_type *reverse_order,
 
                 /* Skip if this material is invisible. */
                 if ( hide_mtl[mat[j]] 
-		     || hide_by_object_type( BRICK_T, mat[j], j, analy, NULL ) )
+		     || hide_by_object_type( p_quad_class, mat[j], j, analy, NULL ) )
                      continue;
 
                 for ( k = 0; k < 4; k++ )
@@ -1845,7 +1815,7 @@ write_hid_file( char *fname, Analysis *analy )
                 /* Skip if invisible material or element inactive. */
                 if ( hide_material[mat[j]]
                      || ( activity && activity[j] ) 
-                     ||   hide_by_object_type( BRICK_T, mat[j], j, analy, NULL ) )
+                     ||   hide_by_object_type( p_class, mat[j], j, analy, NULL ) )
                     continue;
 
                 for ( k = 0; k < 4; k++ )
@@ -1858,7 +1828,7 @@ write_hid_file( char *fname, Analysis *analy )
     }
 
 /**/
-/* Need to add this capability to hidden program.  Should change above
+/* Need to add this capability to hidden program. Should change above
  * key to TWO_SIDED_QUADS.
  */
 
@@ -1888,7 +1858,7 @@ write_hid_file( char *fname, Analysis *analy )
                 /* Skip if invisible material or element inactive. */
                 if ( hide_material[mat[j]]
                      || ( activity && activity[j] ) 
-                     || hide_by_object_type( BRICK_T, mat[j], j, analy, NULL ) )
+                     || hide_by_object_type( p_class, mat[j], j, analy, NULL ) )
                     continue;
 
                 for ( k = 0; k < 3; k++ )
@@ -1926,7 +1896,7 @@ write_hid_file( char *fname, Analysis *analy )
                 /* Skip if invisible material or element inactive. */
                 if ( hide_material[mat[j]]
                      || ( activity && activity[j] ) 
-                     ||   hide_by_object_type( BRICK_T, mat[j], j, analy, NULL ) )
+                     ||   hide_by_object_type( p_class, mat[j], j, analy, NULL ) )
                     continue;
 
                 vert_idx[0] = node_nums[ connects3[j][0] ];
@@ -1957,7 +1927,7 @@ write_hid_file( char *fname, Analysis *analy )
                 /* Skip if invisible material or element inactive. */
                 if ( hide_material[mat[j]]
                      || ( activity && activity[j] )
-                     ||   hide_by_object_type( BRICK_T, mat[j], j, analy, NULL ) )
+                     ||   hide_by_object_type( p_class, mat[j], j, analy, NULL ) )
                     continue;
 
                 vert_idx[0] = node_nums[ connects2[j][0] ];
@@ -2152,7 +2122,7 @@ mark_class_nodes( Analysis *analy, Mesh_data *p_mesh,
                         /* Skip if invisible material or element deleted. */
                         if ( hide_mtl[mat[k]]
                              || ( activ && activ[k] == 0.0 )
-                             ||   hide_by_object_type( BRICK_T, mat[k], k, analy, NULL ) )
+                             ||   hide_by_object_type( p_class, mat[k], k, analy, NULL ) )
                             continue;
                         
                         obj_cnt++;
@@ -2175,7 +2145,7 @@ mark_class_nodes( Analysis *analy, Mesh_data *p_mesh,
                         /* Skip if invisible material or element deleted. */
                         if ( hide_mtl[mat[k]]
                              || ( activ && activ[k] == 0.0 ) 
-                             ||   hide_by_object_type( BRICK_T, mat[k], k, analy, NULL ))
+                             ||   hide_by_object_type( p_class, mat[k], k, analy, NULL ))
                             continue;
                         
                         obj_cnt++;
@@ -2198,7 +2168,7 @@ mark_class_nodes( Analysis *analy, Mesh_data *p_mesh,
                         /* Skip if invisible material or element deleted. */
                         if ( hide_mtl[mat[k]]
                              || ( activ && activ[k] == 0.0 ) 
-                             ||   hide_by_object_type( BRICK_T, mat[k], k, analy, NULL ) )
+                             ||   hide_by_object_type( p_class, mat[k], k, analy, NULL ) )
                             continue;
                         
                         obj_cnt++;
@@ -2221,7 +2191,7 @@ mark_class_nodes( Analysis *analy, Mesh_data *p_mesh,
                         /* Skip if invisible material or element deleted. */
                         if ( hide_mtl[mat[k]]
                              || ( activ && activ[k] == 0.0 )
-                             ||   hide_by_object_type( BRICK_T, mat[k], k, analy, NULL ) )
+                             ||   hide_by_object_type( p_class, mat[k], k, analy, NULL ) )
                             continue;
                         
                         obj_cnt++;
@@ -2419,9 +2389,504 @@ get_result( VAL_NODE_VELZ, analy->cur_state, analy->tmp_result[2] );
         fwrite( val, sizeof(float), 4, outfile );
 */
     }
-
     fclose( outfile );
 }
 #endif
 
+
+/************************************************************
+ * TAG( write_geom_file )
+ *
+ * Write the current mesh (node & element, or surface
+ * geometry) to a Nike/Dyna input file.
+ */
+void
+write_geom_file( char *fname, Analysis *analy, Bool_type surface_only )
+{
+    FILE *fp;
+    MO_class_data *p_class, *p_node_class, **mo_classes;
+    Mesh_data *p_mesh;
+    int *nodeNums, nodeNum, *mats, elemId=0;
+    int el, fc;
+    int labelNum;
+    int i, j, k;
+
+    unsigned char *hide_material; 
+    float *nodes3dsp=NULL;
+    double *nodes3d2p=NULL;
+    State_rec_obj *p_sro;
+
+    int dummyInt=0;
+
+    int qty_mat_classes=0;
+    int qty_hex_classes=0, qty_shell_classes=0, qty_beam_classes=0, qty_truss_classes=0;
+    int qty_hex_elems=0, qty_shell_elems=0, qty_beam_elems=0, qty_truss_elems=0;
+
+    Bool_type *nodesUsed; /* A list of active nodes */
+    int qty_nodes=0, nodeIndex=0, nodes_used_cnt=0;
+    int qty_mats=0;
+
+    float verts[4][3];
+    double nodePos=0.0;
+
+    /* Face variables */
+    Visibility_data *p_vd;
+    int face_qty=0, face_list_qty=0, face_list_index=0, face_list_cnt=0, *face_el, *face_fc;
+    int faceNodes[4], *faceNodeList, *faceMatList;
+    char lineOut[100];
+
+    int tempCnt=0;
+
+    if (MESH_P( analy )->double_precision_nodpos)
+    {
+        p_sro = analy->srec_tree + analy->state_p->srec_id;
+        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension, 
+                     analy->cur_state + 1, FALSE, 
+                     (void *)  analy->tmp_result[0] );
+        nodes3d2p = (double *) analy->tmp_result[0];
+    }
+    else
+         nodes3dsp = analy->state_p->nodes.nodes;
+
+    p_mesh        = MESH_P( analy );
+    hide_material = p_mesh->hide_material;
+    p_node_class  = p_mesh->node_geom;
+    qty_nodes     = p_node_class->qty;
+
+    if ( ( fp = fopen(fname, "w") ) == NULL )
+    {
+        popup_dialog( INFO_POPUP, "Unable to open file for outgeom: %s", fname );
+        return;
+    }
+
+    if ( analy->dimension != 3 )
+    {
+         popup_dialog( INFO_POPUP, "This function only processes 3D models - this model is 2D" );
+         return;
+    }
+
+    /* Get mat, node, and element counts */
+
+    qty_mat_classes   = p_mesh->classes_by_sclass[G_MAT].qty;
+    qty_hex_classes   = p_mesh->classes_by_sclass[G_HEX].qty;
+    qty_shell_classes = p_mesh->classes_by_sclass[G_QUAD].qty;
+    qty_beam_classes  = p_mesh->classes_by_sclass[G_BEAM].qty;
+    qty_truss_classes = p_mesh->classes_by_sclass[G_TRUSS].qty;
+
+    nodesUsed = NEW_N( Bool_type, qty_nodes, "Node output tmp array" );
+    for ( i= 0; 
+	  i < qty_nodes; 
+	  i++ )
+          nodesUsed[i] = FALSE;
+
+    /* Get number of materials */
+
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_MAT].list;
+    for ( i=0;
+	  i<qty_mat_classes;
+	  i++ ) {
+          qty_mats += mo_classes[i]->qty;
+    }
+
+    /* Go through all the elements and mark the nodes used */
+
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_HEX].list;
+    for ( i=0;
+	  i<qty_hex_classes;
+	  i++ ) {
+          p_class = mo_classes[i];
+          if ( is_particle_class( analy, p_class->superclass, p_class->short_name ) ) 
+	       continue;
+
+          qty_hex_elems += p_class->qty;
+          nodeNums = p_class->objects.elems->nodes;
+          mats     = p_class->objects.elems->mat;
+
+          if ( surface_only ) {
+               p_vd     = p_class->p_vis_data;
+	       face_qty = p_vd->face_cnt;
+	       face_el  = p_vd->face_el;
+	       face_fc  = p_vd->face_fc;
+
+	       nodeIndex=0; 
+	       for ( j = 0; 
+		     j < face_qty;
+		     j++ )
+	       {
+		     el = face_el[j];
+		     fc = face_fc[j];
+		   
+		     /*
+		      * Remove faces that are shared with quad elements, so
+		      * the polygons are not drawn twice.
+		      */
+		     if ( hide_material[mats[el]] )
+		          continue;
+		     if ( analy->shared_faces 
+			  && p_mesh->classes_by_sclass[G_QUAD].qty > 0 
+			  && face_matches_quad( el, fc, p_class, p_mesh, analy ) )
+		          continue;
+
+		     face_list_qty++;
+		     get_hex_face_nodes( el, fc, p_class, analy, faceNodes );
+		     for ( k=0;
+			   k<4;
+			   k++ ) {
+			   if ( !nodesUsed[faceNodes[k]] ) {
+			         nodes_used_cnt++;
+			         nodesUsed[faceNodes[k]]=TRUE;
+			   }
+			   nodeIndex++;
+		     }		     
+
+	       }
+	  }
+	  else {
+	       nodeIndex=0; 
+	       for ( j=0;
+		     j<p_class->qty;
+		     j++ ) {
+		     if ( !hide_material[mats[j]] )
+		       for ( k=0;
+			     k<8;
+			     k++ ) {
+			     if ( !nodesUsed[nodeNums[nodeIndex]] ) {
+			          nodes_used_cnt++;
+			          nodesUsed[nodeNums[nodeIndex]]=TRUE;
+			     }
+			     nodeIndex++;
+		   }
+	       }
+	  }
+    }
+
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
+    for ( i=0;
+	  i<qty_shell_classes;
+	  i++ ) {
+
+          p_class = mo_classes[i];
+          qty_shell_elems += p_class->qty;
+          nodeNums = p_class->objects.elems->nodes;
+          mats      = p_class->objects.elems->mat;
+
+	  /* All Quads by definition are on the surface */
+
+	  nodeIndex=0;
+	  for ( j=0;
+		j<p_class->qty;
+		j++ ) {
+   	        if ( !hide_material[mats[j]] )
+		     for ( k=0;
+			   k<4;
+			   k++ ) {
+			   if ( !nodesUsed[nodeNums[nodeIndex]] ) {
+			        nodes_used_cnt++;
+			        nodesUsed[nodeNums[nodeIndex]]=TRUE;
+			   }
+			   nodeIndex++;
+		  }
+	  }
+    }
+
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
+    for ( i=0;
+	  i<qty_beam_classes;
+	  i++ ) {
+
+          p_class = mo_classes[i];
+          qty_beam_elems += p_class->qty;
+          nodeNums  = p_class->objects.elems->nodes;
+          mats      = p_class->objects.elems->mat;
+
+	  nodeIndex=0;
+	  for ( j=0;
+		j<p_class->qty;
+		j++ ) {
+	        if ( !hide_material[mats[j]] )
+		     for ( k=0;
+			   k<3;
+			   k++ ) {
+			   if ( !nodesUsed[nodeNums[nodeIndex]] ) {
+			        nodes_used_cnt++;
+			        nodesUsed[nodeNums[nodeIndex]]=TRUE;
+			   }
+			   nodeIndex++;
+		  }
+	  }
+    }
+
+    /* Write header data */
+
+    fprintf( fp, "\n*--------------------- ANALYSIS OUTPUT DATA FROM GRIZ ------------------*\n" ); 
+    fprintf( fp, "* Griz Version: \t%s\n", GRIZ_VERSION );
+    fprintf( fp, "* Generated on: \t%s\n", env.date ); 
+    fprintf( fp, "*\n" );
+    fprintf( fp, "* Plotfile name: \t%s\n", env.plotfile_name );
+    fprintf( fp, "* Plotfile title: \t%s\n", analy->title );
+    fprintf( fp, "*\n" );
+
+    /* Write summary data */
+
+    fprintf( fp, "**-------------------------- CONTROL CARD #2 ---------------------------*\n" );
+    fprintf( fp, "**\n" );
+    fprintf( fp, "* number of materials[1] nodal points[2] solid hexahedron elements[3] beam\n" );
+    fprintf( fp, "* elements[4] 4-node shell elements[5] 8-node solid shell elements[6]\n" );
+    fprintf( fp, "* interface segments[7] interface interval[8] min. shell time step[9]\n" );
+
+    if ( !surface_only )
+         fprintf( fp, "%5d%10d%10d%10d%10d%10d 0.000E+00  0.0\n", 
+	     qty_mats, nodes_used_cnt, qty_hex_elems, qty_beam_elems, qty_shell_elems,
+	     dummyInt );
+    else
+         fprintf( fp, "%5d%10d%10d%10d%10d%10d 0.000E+00  0.0\n", 
+	     qty_mats, nodes_used_cnt, 0, 0, face_list_qty,
+	     dummyInt );
+
+    if ( nodes_used_cnt==0 )
+    {
+         popup_dialog( INFO_POPUP, "There were no nodes visible to output." );
+         return;
+    }
+
+    /* Write place holder for material cards */
+    fprintf( fp, "*\n" );
+    fprintf( fp, "*--------------------------- MATERIAL CARDS ---------------------------*\n" );
+    fprintf( fp, "*\n" );
+
+    /* Write the nodes */
+    fprintf( fp, "*\n" );
+    fprintf( fp, "*-------------------------- NODE DEFINITIONS --------------------------*\n" );
+    fprintf( fp, "*\n" );
+
+    nodeIndex=0;
+    for ( i= 0; 
+	  i < qty_nodes; 
+	  i++ ) {
+          if ( !nodesUsed[i] )
+	       continue;
+
+	  tempCnt++;
+
+	  if ( p_node_class->labels_found ) 
+	       labelNum = get_class_label( p_node_class, i+1 );
+	  else
+	       labelNum = i+1;
+          fprintf( fp, "%8d    0 ", labelNum );
+ 
+          for ( j = 0; 
+	 	j < 3; 
+		j++ ) { 
+	        if ( !MESH_P( analy )->double_precision_nodpos ||  nodes3d2p==NULL )
+	             nodePos = (double) nodes3dsp[nodeIndex];
+	        else
+	             nodePos = (double) nodes3d2p[nodeIndex];
+		nodeIndex++;
+                sprintf( lineOut, "%+15.13e ", nodePos );
+		if ( lineOut[0]=='+' )
+		     lineOut[0]=' ';
+                fprintf( fp, "%s", lineOut );
+	  }
+          fprintf( fp, "     0\n" );
+    }
+
+    free( nodesUsed );
+
+    /* Write Hex Connectivity  */
+    fprintf( fp, "*\n" );
+    fprintf( fp, "*------------------ ELEMENT CARDS FOR SOLID ELEMENTS ------------------*\n" );
+    fprintf( fp, "*\n" );
+
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_HEX].list;
+    for ( i=0;
+	  i<qty_hex_classes;
+	  i++ ) {
+
+          p_class = mo_classes[i]; 
+          if ( is_particle_class( analy, p_class->superclass, p_class->short_name ) ) 
+	       continue;
+          nodeNums = p_class->objects.elems->nodes;
+          mats     = p_class->objects.elems->mat;
+
+          if ( surface_only ) {
+	       p_vd     = p_class->p_vis_data;
+	       face_qty = p_vd->face_cnt;
+	       face_el  = p_vd->face_el;
+	       face_fc  = p_vd->face_fc;
+
+	       faceNodeList = NEW_N( int, face_list_qty*4, "Node list for all surface faces" );
+	       faceMatList = NEW_N( int, face_list_qty, "Material list for all surface faces" );
+	       for ( j = 0; 
+		     j < face_qty;
+		     j++ )
+	       {
+		     el = face_el[j];
+		     fc = face_fc[j];
+		   
+		     /*
+		      * Remove faces that are shared with quad elements, so
+		      * the polygons are not drawn twice.
+		      */
+		     if ( hide_material[mats[el]] )
+		          continue;
+
+		     faceMatList[face_list_cnt++] = mats[el];
+
+		     if ( analy->shared_faces 
+			  && p_mesh->classes_by_sclass[G_QUAD].qty > 0 
+			  && face_matches_quad( el, fc, p_class, p_mesh, analy ) )
+		          continue;
+		     
+		     get_hex_face_nodes( el, fc, p_class, analy, faceNodes );
+		     for ( k=0;
+			   k<4;
+			   k++ )
+                           faceNodeList[face_list_index++] = faceNodes[k];		     
+	       }
+          }
+          else {
+	  nodeIndex=0;
+	  elemId=1;
+	  for ( j=0;
+		j<p_class->qty;
+		j++ ) {
+
+ 	        /* Exclude hidden materials */
+	        if ( hide_material[mats[j]] ) {
+		     elemId++;
+		     continue;
+	        }
+
+		if ( p_class->labels_found ) 
+		     labelNum = get_class_label( p_class, elemId );
+		else
+		     labelNum = elemId;
+
+		fprintf( fp, "%8d%5d ", labelNum, mats[j]+1 );
+			 
+	        for ( k=0;
+		      k<8;
+		      k++ ) {
+		      nodeNum = nodeNums[nodeIndex++];
+		      fprintf( fp, "%8d", nodeNum+1 );
+		}
+		fprintf( fp, "\n" );
+		elemId++;
+	  }
+    }
+    }
+
+    /* Write Shell Connectivity  */
+    fprintf( fp, "*\n" );
+    fprintf( fp, "*------------------ ELEMENT CARDS FOR SHELL ELEMENTS ------------------*\n" );
+    fprintf( fp, "*\n" );
+
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
+    for ( i=0;
+	  i<qty_shell_classes;
+	  i++ ) {
+
+          p_class  = mo_classes[i]; 
+	  nodeNums = p_class->objects.elems->nodes;
+          mats     = p_class->objects.elems->mat;
+
+	  nodeIndex=0;
+	  elemId=1;
+	  for ( j=0;
+		j<p_class->qty;
+		j++ ) {
+
+ 	        /* Exclude hidden materials */
+	        if ( hide_material[mats[j]] ) {
+		     elemId++;
+		     continue;
+	        }
+
+		if ( p_class->labels_found ) 
+		     labelNum = get_class_label( p_class, elemId );
+		else
+		     labelNum = elemId;
+
+		fprintf( fp, "%8d%5d ", labelNum, mats[j]+1 );
+			 
+	        for ( k=0;
+		      k<4;
+		      k++ ) {
+		      nodeNum = nodeNums[nodeIndex++];
+		      fprintf( fp, "%8d", nodeNum+1 );
+		}
+		fprintf( fp, "\n" );
+		elemId++;
+	  }
+    }
+
+    /* Write out surface faces if we are generating surface geometry */
+    face_list_index=0;
+    if ( elemId==0 )
+         elemId=1;
+    for ( i=0;
+	  i<face_list_qty;
+	  i++) {
+		fprintf( fp, "%8d%5d ", elemId++, faceMatList[i]+1 );
+			 
+	        for ( k=0;
+		      k<4;
+		      k++ ) {
+		      nodeNum = faceNodeList[face_list_index++];
+		      fprintf( fp, "%8d", nodeNum+1 );
+		}
+		fprintf( fp, "\n" );
+    }
+
+    if ( face_list_qty>0 ) {
+         free( faceNodeList );
+         free( faceMatList );
+    }
+
+   /* Write Beam Connectivity  */
+    fprintf( fp, "*\n" );
+    fprintf( fp, "*------------------ ELEMENT CARDS FOR BEAM ELEMENTS ------------------*\n" );
+    fprintf( fp, "*\n" );
+
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
+    for ( i=0;
+	  i<qty_beam_classes;
+	  i++ ) {
+
+          p_class  = mo_classes[i]; 
+	  nodeNums = p_class->objects.elems->nodes;
+          mats     = p_class->objects.elems->mat;
+
+	  nodeIndex=0;
+	  elemId=1;
+	  for ( j=0;
+		j<p_class->qty;
+		j++ ) {
+
+	       /* Exclude hidden materials */
+	        if ( hide_material[mats[j]] ) {
+		     elemId++;
+		     continue; 
+	        }
+
+		if ( p_class->labels_found ) 
+		     labelNum = get_class_label( p_class, elemId );
+		else
+		     labelNum = elemId;
+
+		fprintf( fp, "%8d%5d ", labelNum, mats[j]+1 );
+			 
+	        for ( k=0;
+		      k<3;
+		      k++ ) {
+		      nodeNum = nodeNums[nodeIndex++];
+		      fprintf( fp, "%8d", nodeNum+1 );
+		}
+		fprintf( fp, "\n" );
+		elemId++;
+	  }
+    }
+    fflush( fp );
+    fclose( fp );
+}
 

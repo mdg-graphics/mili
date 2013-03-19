@@ -6,38 +6,6 @@
  *      Lawrence Livermore National Laboratory
  *      Dec 27 1991
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
  ************************************************************************
  * Modifications:
  *  I. R. Corey - Sept 15, 2004: Added new option "damage_hide" which 
@@ -51,14 +19,18 @@
  *                See SRC#: 286
  *                
  *  I. R. Corey - Aug  14, 2007: Added call to re-compute idx (pointer 
- *                into the face table).
- *                See SRC#: ???
+ *
+ *  I. R. Corey - April 23, 2009: Fixed problem with qty not being inc-
+ *                creased when the first set of edges is largest.
+ *                See SRC#: 599
+ *                
+ *  I. R. Corey - Dec 28, 2009: Fixed several problems releated to drawing
+ *                ML particles.
+ *                See SRC#648
  ************************************************************************
  */
 
-
 #include <stdlib.h>
-#include <values.h>
 #include "viewer.h"
 #include "mdg.h"
 
@@ -96,6 +68,15 @@ static void tri_normals( Mesh_data *, Analysis * );
 static void select_hex( Analysis *analy, Mesh_data *p_mesh, 
                         MO_class_data *p_mo_class, float line_pt[3], 
                         float line_dir[3], int *p_near );
+void
+select_meshless_elem( Analysis *analy, Mesh_data *p_mesh, 
+		      MO_class_data *p_ml_class, int near_node, 
+		      int *p_near );
+void
+select_meshless_node( Analysis *analy, Mesh_data *p_mesh, 
+		      MO_class_data *p_ml_class, int elem_id, 
+		      int *p_near );
+
 static void select_tet( Analysis *analy, Mesh_data *p_mesh, 
                         MO_class_data *p_mo_class, float line_pt[3], 
                         float line_dir[3], int *p_near );
@@ -108,11 +89,15 @@ static void select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
 static void select_linear( Analysis *analy, Mesh_data *p_mesh, 
                            MO_class_data *p_mo_class, float line_pt[3], 
                            float line_dir[3], int *p_near );
-static void select_node( Analysis *analy, Mesh_data *p_mesh, float line_pt[3],
+
+static void select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
+			 float line_pt[3],
                          float line_dir[3], int *p_near );
+
 static void select_particle( Analysis *analy, Mesh_data *p_mesh, 
                              MO_class_data *p_mo_class, float line_pt[3], 
                              float line_dir[3], int *p_near );
+
 static void edge_heapsort( int n, int *arrin[3], int *indx, int *face_el, 
                            int *mat, float *mtl_trans[3] );
 static int edge_compare( int, int, int *[3], int *, int *, float *[3] );
@@ -129,6 +114,8 @@ static Edge_list_obj * merge_and_free_edge_lists( Edge_list_obj *,
                                                 Edge_list_obj * );
 static void find_extents( MO_class_data *, int, float *, Bool_type [],
                           unsigned char *, float [], float [] );
+
+extern float calc_particle_radius( Analysis *analy, float scale_factor_input );
 
 /* Default crease threshold angle is 22 degrees.
  * (This is the angle between the face normal and the _average_ node normal.)
@@ -1298,7 +1285,7 @@ double_table_size( int *tbl_sz, int **face_tbl, int *free_ptr, int row_qty )
 static int *
 check_match( int *face_entry, int *node_tbl, int **face_tbl )
 {
-  int *idx, i;
+  int *idx;
 
     idx = &node_tbl[face_entry[0]];
     while ( *idx >= 0 )
@@ -1314,9 +1301,6 @@ check_match( int *face_entry, int *node_tbl, int **face_tbl )
 
     /* No match. */
 
-  if (face_entry[0]==22728)
-      i = face_entry[0];
-    i = *idx;
     return idx;
 }
 
@@ -1473,9 +1457,14 @@ set_tet_visibility( MO_class_data *p_tet_class, Analysis *analy )
      */
     if ( activity )
     {
-        for ( i = 0; i < tet_qty; i++ )
-            if ( activity[i] == 0.0 )
-                tet_visib[i] = FALSE;
+         for ( i = 0; i < tet_qty; i++ ) { 
+	       if ( activity[i] == 0.0 )
+                    tet_visib[i] = FALSE;
+	       if ( activity[i] == 0.0 && (analy->show_deleted_elements || analy->show_only_deleted_elements) )
+	            tet_visib[i] = TRUE; 
+	       if ( activity[i] != 0.0 && analy->show_only_deleted_elements )
+	            tet_visib[i] = FALSE;
+      }
     }
 
     /*
@@ -1527,6 +1516,37 @@ init_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
         hex_visib_damage[i] = FALSE;
 }
 
+
+ /************************************************************
+ * TAG( init_particle_visibility )
+ *
+ * Set the visibility flag for each particle.  
+ */
+void
+init_particle_visibility( MO_class_data *p_particle_class, Analysis *analy ) 
+{
+    int particle_qty;
+    int mat, *all_mats;
+    int i;
+    unsigned char *particle_visib;
+    Bool_type     *p_mats;
+    Mesh_data     *p_mesh;
+
+    p_mesh             = MESH_P( analy );
+    p_mats             = p_mesh->particle_mats;
+
+    particle_visib     = p_particle_class->p_vis_data->visib;
+    particle_qty       = p_particle_class->qty;
+    all_mats           = p_particle_class->objects.elems->mat;
+
+    /* Initialize all elements to be visible. */
+    for ( i = 0; i < particle_qty; i++ ) {
+          particle_visib[i]     = TRUE;
+	  mat                   = all_mats[i];
+          p_mats[mat]           = TRUE; 
+    }
+}
+
  
  /************************************************************
  * TAG( set_hex_visibility )
@@ -1551,6 +1571,9 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
     int hide_qty = 0;
     int damage_count = 0;
    
+    hex_visib        = p_hex_class->p_vis_data->visib;
+    hex_visib_damage = p_hex_class->p_vis_data->visib_damage;
+
     hide_qty = analy->mesh_table[p_hex_class->mesh_id].hide_brick_elem_qty +
                analy->mesh_table[p_hex_class->mesh_id].hide_shell_elem_qty +
                analy->mesh_table[p_hex_class->mesh_id].hide_truss_elem_qty +
@@ -1559,9 +1582,6 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
     if ( hide_qty>0 )
          hide_obj=TRUE;
     
-    hex_visib        = p_hex_class->p_vis_data->visib;
-    hex_visib_damage = p_hex_class->p_vis_data->visib_damage;
-
     hide_mtl = analy->mesh_table[p_hex_class->mesh_id].hide_material;
     materials = p_hex_class->objects.elems->mat;
     hex_qty = p_hex_class->qty;
@@ -1581,9 +1601,14 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
      */
     if ( activity )
     {
-        for ( i = 0; i < hex_qty; i++ )
-            if ( activity[i] == 0.0 )
-                 hex_visib[i] = FALSE;
+         for ( i = 0; i < hex_qty; i++ ) {
+               if ( activity[i] == 0.0 )
+                    hex_visib[i] = FALSE;
+	       if ( activity[i] == 0.0 && (analy->show_deleted_elements || analy->show_only_deleted_elements) )
+	            hex_visib[i] = TRUE; 
+	       if ( activity[i] != 0.0 && analy->show_only_deleted_elements )
+	            hex_visib[i] = FALSE;
+	 }
     }
 
     /*
@@ -1599,7 +1624,7 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
     {
         for ( i = 0; i < hex_qty; i++ )
             if ( hide_mtl[materials[i]] 
-		 || hide_by_object_type( BRICK_T, materials[i], i, analy, NULL ) )
+		 || hide_by_object_type( p_hex_class, materials[i], i, analy, NULL ) )
                     hex_visib[i] = FALSE;
     }
 
@@ -1620,7 +1645,7 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
     /* Added 09/15/04: IRC - The field visib_damage is used to control the 
      * display of damaged elements. 
      */
-    if (analy->damage_hide)
+    if (analy->damage_hide && analy->damage_result)
       {
         hex_visib_damage = p_hex_class->p_vis_data->visib_damage;
         for ( i = 0; i < hex_qty; i++ )
@@ -1668,6 +1693,117 @@ hex_rough_cut( float *ppt, float *norm, MO_class_data *p_hex_class,
     }
 }
 
+/************************************************************
+ * TAG( particle_rough_cut )
+ *
+ * Display just the particles that are intersected by the
+ * cutting plane.
+ *
+ * norm             | Normal vector of plane.  Elements on the normal
+ *                  | side of the plane are not shown.
+ * p_particle_class | Particle class element data
+ * nodes            | Node data
+ * particle_visib   | particle element visibility
+ */
+void
+particle_rough_cut( Analysis *analy, float *plane_ppt, float *norm, MO_class_data *p_particle_class, 
+                    GVec3D *nodes, unsigned char *particle_visib )
+{
+  int i, j;
+    int node, particle_qty;
+    int (*connects)[8];
+    float node_radius=0.0, ppt[3];
+    double distance=0.0, distance_abs=0.0;
+    Bool_type set_cut_width=FALSE;
+
+    analy->show_particle_cut = TRUE; 
+
+    node_radius = calc_particle_radius( analy, 0.0 );
+    if ( analy->free_nodes_cut_width>0. ) {
+         node_radius = calc_particle_radius( analy, analy->free_nodes_cut_width );
+	 set_cut_width = TRUE;
+    }
+ 
+    particle_qty = p_particle_class->qty;
+    connects     = (int (*)[8]) p_particle_class->objects.elems->nodes;
+
+    for ( i = 0; i < particle_qty; i++ )
+    {
+          node = connects[i][0]; /* All nodes at same point for particles so
+				  * just need to consider 1 node.
+				  */
+
+	  /* Get position of the node */
+	  get_node_vert_2d_3d( node, NULL, analy, ppt );
+
+	  ppt[0] = ppt[0] - plane_ppt[0]; 
+	  ppt[1] = ppt[1] - plane_ppt[1];
+ 	  ppt[2] = ppt[2] - plane_ppt[2]; 
+
+	  distance     = VEC_DOT( norm, ppt );
+	  distance_abs = fabs( distance );
+
+	  /* If particle intersects plane then mark it as invisible.
+	   */ 
+	  if ( distance<=0 )
+	       if ( set_cut_width ) {
+	            if ( distance_abs<=node_radius ) {
+		         particle_visib[i]     = TRUE;
+		    }
+	    }
+	    else {
+	         particle_visib[i]     = TRUE;
+	    }
+    }
+}
+
+ /************************************************************
+ * TAG( set_particle_visibility )
+ *
+ * Set the visibility flag for each particle.  Takes into
+ * account element activity, invisible materials and roughcut
+ * planes.
+ */
+void
+set_particle_visibility( MO_class_data *p_part_class, Analysis *analy ) 
+{
+    Plane_obj *plane;
+    unsigned char *part_visib, *hide_mtl;
+    int *materials;
+    float *activity;
+    Bool_type hidden_matls;
+    int part_qty, mtl_qty, plane_qty=0;
+    int i;
+    
+    Bool_type hide_obj=FALSE;
+
+    int hide_qty = 0;
+    int damage_count = 0;
+   
+    part_visib = p_part_class->p_vis_data->visib;
+       
+    part_qty = p_part_class->qty;
+
+    /* Initialize all elements to be visible. */
+    for ( i = 0; i < part_qty; i++ )
+          part_visib[i] = TRUE;
+
+    /*
+     * Perform the cuts.
+     */
+    if ( analy->show_roughcut || analy->show_cut )
+    {
+      for ( plane = analy->cut_planes; plane != NULL; plane = plane->next ) {
+	    if ( plane_qty==0 )
+	         for ( i = 0; i < part_qty; i++ )
+		       part_visib[i] = FALSE;
+
+	         particle_rough_cut( analy, plane->pt, plane->norm, p_part_class,
+				     analy->state_p->nodes.nodes3d, part_visib );
+		 plane_qty++;
+      }
+    }
+}
 
 /************************************************************
  * TAG( tet_rough_cut )
@@ -2022,17 +2158,31 @@ reset_face_visibility( Analysis *analy )
                      &srec_id );
 
     p_mesh = MESH_P( analy );
-    class_qty = htable_get_data( p_mesh->class_table, (void ***) &mo_classes );
-    
+
+#ifdef NEWMILI
+    htable_get_data( p_mesh->class_table, (void ***) &mo_classes , &class_qty);
+#else
+    class_qty = htable_get_data( p_mesh->class_table, (void ***) &mo_classes);
+#endif
+   
     /* Manage visibility for volumetric element classes. */
     for ( i = 0; i < class_qty; i++ )
     {
         switch ( mo_classes[i]->superclass )
         {
-            case G_HEX:
-                set_hex_visibility( mo_classes[i], analy );
-                get_hex_faces( mo_classes[i], analy );
+	    case G_HEX:
+	      if ( !is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) ) {
+                     set_hex_visibility( mo_classes[i], analy );
+                     get_hex_faces( mo_classes[i], analy );
+		}
+		if ( (analy->particle_nodes_enabled || analy->free_nodes_enabled) &&
+		     is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) ) {
+		     set_particle_visibility( mo_classes[i], analy );
+		}
                 break;
+            case G_PARTICLE:
+	        set_particle_visibility( mo_classes[i], analy );
+	        break;
             case G_TET:
                 set_tet_visibility( mo_classes[i], analy );
                 get_tet_faces( mo_classes[i], analy );
@@ -2094,7 +2244,7 @@ get_tet_face_verts( int elem, int face, MO_class_data *p_tet_class,
 /************************************************************
  * TAG( get_hex_face_verts )
  *
- * Return the vertices of a tet element face.
+ * Return the vertices of a hex element face.
  */
 void
 get_hex_face_verts( int elem, int face, MO_class_data *p_hex_class, 
@@ -2131,6 +2281,31 @@ get_hex_face_verts( int elem, int face, MO_class_data *p_hex_class,
     }
 }
 
+/************************************************************
+ * TAG( get_hex_face_nodes )
+ *
+ * Return the  of a hex element face.
+ */
+void
+get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class, 
+                    Analysis *analy, int *faceNodes )
+{
+    float orig;
+    int nd, i;
+    int (*connects)[8];
+    GVec3D *nodes, *onodes;
+    
+    connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
+    nodes = analy->state_p->nodes.nodes3d;
+    onodes = (GVec3D *) analy->cur_ref_state_data;
+   
+    for ( i = 0; 
+	  i < 4;
+	  i++ )
+    {
+          faceNodes[i] = connects[elem][ fc_nd_nums[face][i] ];
+    } 
+}
 
 /************************************************************
  * TAG( get_hex_verts )
@@ -2172,6 +2347,29 @@ get_hex_verts( int elem, MO_class_data *p_hex_class, Analysis *analy,
     }
 }
 
+
+/************************************************************
+ * TAG( get_particle_verts )
+ *
+ * Return the vertices of a hex element.
+ */
+void
+get_particle_verts( int elem, MO_class_data *p_class, Analysis *analy, 
+		    float verts[][3] )
+{
+    GVec3D *nodes, *onodes;
+    int (*connects)[1];
+    float orig;
+    int nd, i, j;
+
+    nodes    = analy->state_p->nodes.nodes3d;
+    onodes   = (GVec3D *) analy->cur_ref_state_data;
+    connects = (int (*)[1]) p_class->objects.elems->nodes;
+
+    nd = connects[elem][0];
+    for ( j = 0; j < 3; j++ )
+          verts[0][j] = nodes[nd][j];
+}
 
 /************************************************************
  * TAG( get_tet_verts )
@@ -2525,7 +2723,6 @@ get_beam_verts_2d_3d( int elem, MO_class_data *p_beam_class, Analysis *analy,
                 verts[i][j] = nodes[nd * dim + j];
         }
     }
-    
     return TRUE;
 }
 
@@ -3856,6 +4053,7 @@ bbox_nodes( Analysis *analy, MO_class_data **src_classes, Bool_type use_geom,
         switch ( src_classes[i]->superclass )
         {
             case G_NODE:
+ 	    case G_PARTICLE:
                 for ( j = 0; j < node_qty; j++ )
                     for ( k = 0; k < dim; k++ )
                     {
@@ -3956,6 +4154,80 @@ find_extents( MO_class_data *p_mo_class, int dim, float *coords,
 }
 
 
+/************************************************************
+ * TAG( get_extents )
+ *
+ * Find geometric extents of all nodes in the mesh. Only
+ * visible materials are counted in finding the extents
+ * if hide_mats is TRUE.
+ * 
+ */
+void
+get_extents(  Analysis *analy,
+	      Bool_type use_geom, Bool_type hide_mats,
+	      float vert_lo[], float vert_hi[] )
+{
+    int i, j;
+    int           dim=3, node_qty=0;
+    float         *nodes;
+    Mesh_data     *p_mesh;
+    MO_class_data  **mo_classes, *p_mo_class, *p_node_class;
+    List_head     *p_lh;
+
+    Bool_type     *tested=NULL;
+    unsigned char *hide_mat;
+    
+    dim          = analy->dimension;
+    p_mesh       = MESH_P( analy );
+    p_node_class = MESH( analy ).node_geom;
+    p_node_class = MESH( analy ).node_geom;
+    node_qty = p_node_class->qty;
+    
+    nodes = ( use_geom ) ? p_node_class->objects.nodes
+                           : analy->state_p->nodes.nodes;
+    node_qty     = p_node_class->qty;
+    tested       = NEW_N( Bool_type, node_qty, "Node visit flags" );
+
+    if ( hide_mats )
+        hide_mat     = MESH_P( analy )->hide_material;
+    else
+        hide_mat = NULL;
+    
+    for ( i = 0; i < dim; i++ )
+    {
+        vert_lo[i] = MAXFLOAT;    
+        vert_hi[i] = -MAXFLOAT;    
+    }
+
+    for ( i = 0; i < QTY_SCLASS; i++ )
+    {
+        if ( !IS_ELEMENT_SCLASS( i ) )
+             continue;
+        
+        p_lh = p_mesh->classes_by_sclass + i;
+        
+        /* If classes exist from current superclass... */
+        if ( p_lh->qty > 0 )
+        {
+            mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[i].list;
+            
+            /* Loop over each class. */
+            for ( j = 0; 
+                  j < p_lh->qty; 
+                  j++ )
+            {
+                p_mo_class = mo_classes[j];
+
+                find_extents( p_mo_class, dim, nodes, tested, hide_mat, 
+                              vert_lo, vert_hi );
+
+	    }
+	}
+    }
+    free ( tested );
+}
+
+ 
 #ifdef OLD_MAT_COUNT
 /************************************************************
  * TAG( count_materials )
@@ -4229,7 +4501,9 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
 {
     float line_pt[3], line_dir[3];
     char comstr[80];
-    int near_num;
+    int near_num, node_near_num, p_near;
+    int i;
+    Mesh_data *p_mesh;
 
     /* Get a ray in the scene from the pick point. */
     if ( analy->dimension == 3 )
@@ -4246,7 +4520,7 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
     switch ( p_mo_class->superclass )
     {
         case G_NODE:
-            select_node( analy, MESH_P( analy ), line_pt, line_dir, &near_num );
+	    select_node( analy, MESH_P( analy ), FALSE, line_pt, line_dir, &near_num );
             break;
         case G_TRUSS:
             select_linear( analy, MESH_P( analy ), p_mo_class , line_pt, 
@@ -4268,12 +4542,17 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
             select_tet( analy, MESH_P( analy ), p_mo_class, line_pt, line_dir, 
                         &near_num );
             break;
-        case G_HEX:
-	    if ( !strcmp(p_mo_class->short_name, "particle") )
-	         select_node( analy, MESH_P( analy ), line_pt, line_dir, &near_num );
+        case G_PARTICLE:
+	  select_node( analy, MESH_P( analy ), TRUE, line_pt, line_dir, &near_num );
+            break;
+    case G_HEX:
+	  if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) && analy->particle_nodes_enabled ) {
+	       select_node( analy, MESH_P( analy ), TRUE, line_pt, line_dir, &near_num );
+	    break;
+	  }
 	    else
-	         select_hex( analy, MESH_P( analy ), p_mo_class, line_pt, line_dir, 
-                             &near_num );
+	       select_hex( analy, MESH_P( analy ), p_mo_class, line_pt, line_dir, 
+			   &near_num );
             break;
         case G_SURFACE:
             select_surf_planar( analy, MESH_P( analy ), p_mo_class, line_pt, 
@@ -4281,8 +4560,8 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
             break;
         case G_UNIT:
             if ( strcmp( p_mo_class->short_name, "part" ) == 0 )
-                select_particle( analy, MESH_P( analy ), p_mo_class, line_pt, 
-                                 line_dir, &near_num );
+                 select_particle( analy, MESH_P( analy ), p_mo_class, line_pt, 
+				  line_dir, &near_num );
             break;
         default:
             popup_dialog( INFO_POPUP, "Unknown object type for pick." );
@@ -4290,12 +4569,34 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
 
     if ( !find_only && near_num != 0 ) 
     {
-
         /* Translate index into a label number */
-        near_num = get_class_label( p_mo_class, near_num );
+        node_near_num = near_num;
+	near_num = get_class_label( p_mo_class, near_num );
 
-        /* Hilite or select the picked element or node. */
-        if ( analy->mouse_mode == MOUSE_HILITE )
+	if ( is_particle_class( analy, p_mo_class->superclass,  p_mo_class->short_name ) && p_mo_class->labels_found &&
+	     analy->particle_nodes_enabled ) {
+	     p_mesh = MESH_P( analy );
+	     select_meshless_elem( analy, p_mesh, 
+				   p_mo_class, node_near_num,
+				   &p_near );
+	     near_num = p_near;
+
+	     if ( p_near<=0 )
+	          return p_near;
+
+	     near_num = get_class_label( p_mo_class, p_near );
+
+	     analy->hilite_ml_node = node_near_num;
+	}
+
+    }  
+
+    if ( near_num<=0 )
+         return near_num;
+
+    /* Hilite or select the picked element or node. */
+  
+    if ( analy->mouse_mode == MOUSE_HILITE )
         {
             sprintf( comstr, "hilite %s %d", p_mo_class->short_name, near_num );
         }
@@ -4305,9 +4606,8 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
         }
 
         parse_command( comstr, env.curr_analy );
-    }
     
-    return near_num;
+    return near_num; 
 }
 
 
@@ -5124,7 +5424,8 @@ select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
  * Select a node from a screen pick.
  */
 static void
-select_node( Analysis *analy, Mesh_data *p_mesh, float line_pt[3], 
+select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
+	     float line_pt[3], 
              float line_dir[3], int *p_near )
 {
     float pt[3], near_pt[3], vec[3];
@@ -5149,6 +5450,8 @@ select_node( Analysis *analy, Mesh_data *p_mesh, float line_pt[3],
     
     int *free_nodes; 
 
+    Bool_type ml_found=FALSE;
+
     p_node_class = p_mesh->node_geom;
     node_qty = p_node_class->qty;
    
@@ -5157,8 +5460,12 @@ select_node( Analysis *analy, Mesh_data *p_mesh, float line_pt[3],
 
     /* Mark all nodes that are on the surface of the mesh. */
     onsurf = analy->tmp_result[0];
-    for ( i = 0; i < node_qty; i++ )
-        onsurf[i] = 0.0;
+
+    for ( i = 0; i < node_qty; i++ ) {
+          onsurf[i] = 0.0;
+	  if ( ml_node )
+	    onsurf[i] = 1.0;
+    }
     
     dims = analy->dimension;
     
@@ -5175,8 +5482,11 @@ select_node( Analysis *analy, Mesh_data *p_mesh, float line_pt[3],
             face_fc = mo_classes[i]->p_vis_data->face_fc;
             face_cnt = mo_classes[i]->p_vis_data->face_cnt;
             connects8 = (int (*)[8]) mo_classes[i]->objects.elems->nodes;
-            
-            for ( j = 0; j < face_cnt; j++ )
+  
+	    if ( is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) )
+	         ml_found = TRUE;
+
+	    for ( j = 0; j < face_cnt; j++ )
             {
                 el = face_el[j];
                 fc = face_fc[j];
@@ -5194,6 +5504,10 @@ select_node( Analysis *analy, Mesh_data *p_mesh, float line_pt[3],
                 }
             }
         }
+
+	if ( ml_found ) /* Consider all nodes */
+             for ( i = 0; i < node_qty; i++ )
+	     onsurf[i] = 1.0; 
 
         /* Mark nodes shared by visible tet faces. */
 
@@ -5317,16 +5631,16 @@ select_node( Analysis *analy, Mesh_data *p_mesh, float line_pt[3],
     /* If free nodes are enabled - then allow user to 
      * select them.
      */
-    if ( analy->free_nodes )
+    if ( analy->free_nodes_enabled ||  analy->particle_nodes_enabled )
     {
        free_nodes = get_free_nodes( analy );
        if (free_nodes!=NULL)
        {
           for ( i = 0; 
-              i < node_qty; 
-              i++ )
-              if (free_nodes[i] > 0)
-                 onsurf[i] = 1.0;
+                i < node_qty; 
+                i++ )
+	    if (free_nodes[i] > 0 || analy->particle_nodes_enabled )
+                    onsurf[i] = 1.0;
           free(free_nodes);
        }
     }
@@ -5587,6 +5901,167 @@ select_particle( Analysis *analy, Mesh_data *p_mesh,
     *p_near = near_num + 1;
 }
 
+
+/************************************************************
+ * TAG( select_meshless_elem )
+ *
+ * Select a meshless object element from a screen pick.
+ */
+void
+select_meshless_elem( Analysis *analy, Mesh_data *p_mesh, 
+		      MO_class_data *p_ml_class, int near_node, 
+		      int *p_near )
+{
+    int ml_qty;
+    int i, j, near_num;
+    GVec3D *nodes3d;
+
+    int num_ml, num_nodes, ml_node;
+
+    int (*connects_ml)[8];
+    int (*connects_particle)[1];
+
+    MO_class_data *p_nodes;
+
+    p_nodes = p_mesh->node_geom;
+   
+    num_ml    = p_ml_class->qty;
+    num_nodes = p_nodes->qty;
+
+    if ( p_ml_class->superclass==G_PARTICLE ) 
+         connects_particle = (int (*)[1]) p_ml_class->objects.elems->nodes;
+    else
+         connects_ml = (int (*)[8]) p_ml_class->objects.elems->nodes;
+
+    nodes3d     = analy->state_p->nodes.nodes3d;
+
+    /* Choose node whose distance from line is smallest. */
+
+    for ( i = 0; 
+	  i < num_ml; 
+	  i++ )
+    {
+          if ( p_ml_class->superclass==G_PARTICLE )
+	       ml_node = connects_particle[i][0];
+	  else
+               ml_node = connects_ml[i][0];
+	  if ( ml_node == near_node-1 ) {
+	       *p_near = i+1;
+	       return;
+	  }
+    }
+
+   *p_near = -1;
+}
+
+/************************************************************
+ * TAG( select_meshless_node )
+ *
+ * Select a meshless object element from a screen pick.
+ */
+void
+select_meshless_node( Analysis *analy, Mesh_data *p_mesh, 
+		      MO_class_data *p_ml_class, int elem_id, 
+		      int *p_near )
+{
+    int ml_qty;
+    int i, j, near_num;
+    GVec3D *nodes3d;
+
+    int num_ml, num_nodes, ml_node;
+
+    int (*connects_ml)[8];
+    int (*connects_particle)[1];
+
+    MO_class_data *p_nodes;
+
+    p_nodes = p_mesh->node_geom;
+   
+    num_ml    = p_ml_class->qty;
+    num_nodes = p_nodes->qty;
+
+    if ( p_ml_class->superclass==G_PARTICLE )
+         connects_particle = (int (*)[1]) p_ml_class->objects.elems->nodes;
+    else
+         connects_ml = (int (*)[8]) p_ml_class->objects.elems->nodes;
+    nodes3d     = analy->state_p->nodes.nodes3d;
+
+    /* Choose node whose distance from line is smallest. */
+
+    if ( elem_id>=num_ml )
+         *p_near = 0;
+    else 
+         if ( p_ml_class->superclass==G_PARTICLE )
+	      *p_near = connects_particle[elem_id][0];
+	 else      
+              *p_near = connects_ml[elem_id][0];
+
+    return;
+}
+
+#ifdef OLD_SELECT_ML
+/************************************************************
+ * TAG( select_meshless_point )
+ *
+ * Select a meshless object from a screen pick.
+ */
+static void
+select_meshless( Analysis *analy, Mesh_data *p_mesh, 
+                 MO_class_data *p_ml_class, float line_pt[3], 
+                 float line_dir[3], int *p_near )
+{
+    float pt[3], pt_near[3], near_pt[3], vec[3];
+    float near_dist, dist;
+    int ml_qty;
+    int i, j, near_num;
+    GVec3D *nodes3d;
+
+    int num_ml, num_nodes, ml_node;
+
+    int (*connects_brick)[8];
+    int (*connects_ml)[8];
+    MO_class_data *p_ml, *p_nodes;
+
+    p_ml    = p_mesh->p_ml_class;
+    p_nodes = p_mesh->node_geom;
+   
+    num_ml    = p_ml->qty;
+    num_nodes = p_nodes->qty;
+
+    connects_ml = (int (*)[8]) p_ml->objects.elems->nodes;
+    nodes3d     = analy->state_p->nodes.nodes3d;
+
+    /* Init to ensure update. */ 
+    near_dist = MAXFLOAT;
+    
+    /* Choose node whose distance from line is smallest. */
+
+    for ( i = 0; 
+	  i < num_ml; 
+	  i++ )
+    {
+          ml_node = connects_ml[i][0];
+
+	  for ( j = 0; j < 3; j++ )
+	        pt[j] = nodes3d[ml_node][j];
+	
+	near_pt_on_line( pt, line_pt, line_dir, near_pt );
+	
+	VEC_SUB( vec, pt, near_pt );
+	dist = VEC_DOT( vec, vec );     /* Skip the sqrt. */
+	
+	if ( dist < near_dist )
+	{
+	    near_num = i;
+	    near_dist = dist;
+	    pt_near[0] = pt[0];
+	    pt_near[1] = pt[1];
+	    pt_near[2] = pt[2];
+	}
+    }
+    *p_near = near_num + 1;
+}
+#endif
 
 /************************************************************
  * TAG( get_mesh_edges )
@@ -6067,7 +6542,7 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
     Edge_obj *p_eo1, *p_eo2, *p_eo, *bound1, *bound2;
     int qty, oqty, offset;
     Int_2tuple *p_i2t, *src_q, *add_q, *add_bound;
-    
+
     p_elo = NEW( Edge_list_obj, "Merged edge list obj" );
     p_elo->list = NEW_N( Edge_obj, p_elo1->size + p_elo2->size,
                          "Merged edge list" );
@@ -6238,7 +6713,9 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
      * maxed out, so no merge required). 
      */
 
-    for ( ; p_eo1 < bound1; *p_eo++ = *p_eo1++ );
+    for ( ; p_eo1 < bound1; *p_eo++ = *p_eo1++ ) {
+          qty++;
+    }
     
     for ( ; p_eo2 < bound2; p_eo2++ )
     {
@@ -6248,7 +6725,7 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
         p_eo++;
         qty++;
     }
-   
+    
     p_elo->size = qty;
     
     if ( p_elo2->overflow != NULL )
@@ -7079,9 +7556,6 @@ create_elem_blocks( Analysis *analy )
             }
         }
     }
-/*
-fprintf( stderr, "\nNumber of blocks: %d\n\n", analy->num_blocks );
-*/
 }
 #endif
 
@@ -7663,6 +8137,4 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
     
     fclose( ofile );
 }
-
-
 

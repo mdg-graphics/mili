@@ -6,39 +6,21 @@
  *  Lawrence Livermore National Laboratory
  *  20 Sep 2000
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
- */
+ ************************************************************************
+ *
+ * Modifications:
+ *  I. R. Corey - Sept 12th, 2012: Added new option to tellpos to select
+ *  'all' idents.
+ *  See TeamForge#????
+ *
+ *  I. R. Corey - November 25th, 2012: Added fracsz argument to print-width 
+ *  specification for coordinates.
+ *
+ *  I. R. Corey - November 30th, 2012: Added loading of DP nodal coords
+ *  for tell pos commands if DP data is available.
+ *
+ ************************************************************************
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -57,7 +39,7 @@ static void parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH],
                                    Redraw_mode_type *p_redraw );
 static void tell_coordinates( char class[], int id, Analysis *analy );
 static void tell_element_coords( int el_ident, MO_class_data *p_mo_class, 
-                                 State2 *state_p, int dimension );
+                                 State2 *state_p, int dimension, Analysis *analy );
 static void tell_mesh_classes( Analysis *analy );
 static void tell_results( Analysis *analy );
 static int max_id_string_width( int *connects, int node_cnt );
@@ -278,6 +260,7 @@ parse_tell_pos_command( Analysis *analy, char tokens[][TOKENLENGTH],
 {
     int object_id, pos_addl_tokens;
     Bool_type parse_failure;
+    int i=0;
     
     pos_addl_tokens = 0;
 
@@ -300,7 +283,15 @@ parse_tell_pos_command( Analysis *analy, char tokens[][TOKENLENGTH],
                 tell_coordinates( tokens[1], object_id, analy );
             }
             else
-                parse_failure = TRUE;
+	      if ( !strcmp( "all", tokens[2] ) ) {
+                   pos_addl_tokens++;
+		   for ( i=0;
+			 i<p_mo_class->qty;
+			 i++ )
+		         tell_coordinates( tokens[1], i+1, analy );
+	      }
+	      else
+		   parse_failure = TRUE;
         }
         else
             parse_failure = TRUE;
@@ -324,7 +315,7 @@ parse_tell_pos_command( Analysis *analy, char tokens[][TOKENLENGTH],
 static void
 tell_results( Analysis *analy )
 {
-    int i, j, k, idx;
+    int i, j, k, idx,arrsize;
     int superclass;
     int res_qty, srec_qty, subrec_qty, c_qty;
     int rval;
@@ -342,7 +333,7 @@ tell_results( Analysis *analy )
     char *sclass_names[QTY_SCLASS] = 
     {
         "G_UNIT", "G_NODE", "G_TRUSS", "G_BEAM", "G_TRI", "G_QUAD", "G_TET",
-        "G_PRISM", "G_WEDGE", "G_HEX", "G_SURFACE", "G_MAT", "G_MESH"
+        "G_PRISM", "G_WEDGE", "G_HEX", "G_SURFACE", "G_MAT", "G_MESH", "G_PARTICLE"
     };
     char *p_short, *p_long;
     Bool_type have_result;
@@ -364,7 +355,11 @@ tell_results( Analysis *analy )
      * Derived results. 
      */
 
-    res_qty = htable_get_data( analy->derived_results, (void ***) &pp_dr );
+#ifdef NEWMILI
+     htable_get_data( analy->derived_results, (void ***) &pp_dr ,&res_qty);
+#else
+     res_qty = htable_get_data( analy->derived_results, (void ***) &pp_dr);
+#endif
     
     /* Sort result names into StringArray's by superclass. */
     for ( i = 0; i < res_qty; i++ )
@@ -393,7 +388,11 @@ tell_results( Analysis *analy )
                     max_len = tmp_len;
                 
                 /* Insert the string into the StringArray. */
-                rval = SAADD( sa_arr[superclass], names );
+#ifdef NEWMILI
+                rval = sa_add( &sa_arr[superclass], names , &arrsize);
+#else
+                rval = SAADD( sa_arr[superclass], names);
+#endif
                 
                 if ( rval < 0 )
                     /* String insertion failed - warn but continue. */
@@ -461,8 +460,11 @@ tell_results( Analysis *analy )
     /* 
      * Primal results. 
      */
-
-    res_qty = htable_get_data( analy->primal_results, (void ***) &pp_pr );
+#ifdef NEWMILI
+    htable_get_data( analy->primal_results, (void ***) &pp_pr, &res_qty );
+#else
+    res_qty = htable_get_data( analy->primal_results, (void ***) &pp_pr);
+#endif
     
     if ( have_result )
         wrt_text( "\n" );
@@ -519,7 +521,11 @@ tell_results( Analysis *analy )
                 sprintf( names + strlen( names ), "|%s", p_sv->long_name );
                 
                 /* Insert the string into the StringArray. */
+#ifdef NEWMILI
+                rval = sa_add( &sa, names, &arrsize );
+#else
                 rval = SAADD( sa, names );
+#endif
                 
                 if ( rval < 0 )
                     /* String insertion failed - warn but continue. */
@@ -654,12 +660,13 @@ tell_mesh_classes( Analysis *analy )
 {
     MO_class_data **mo_classes;
     int i, j;
-    int qty_classes;
+    int qty_classes; 
     char *sclass_types[] = 
     {
         "object(s)", "node(s)", "element(s)", "element(s)", "element(s)", 
         "element(s)", "element(s)", "element(s)", "element(s)", "element(s)", 
-        "material(s)", "mesh(es)"
+        "material(s)", "mesh(es)", "surface(s)", "particle(s)" 
+
     };
 
     wrt_text( "Classes in current mesh:\n" );
@@ -796,6 +803,31 @@ tell_coordinates( char class[], int id, Analysis *analy )
     MO_class_data *p_mo_class;
     GVec3D *nodes3d;
     GVec2D *nodes2d;
+    GVec3D2P *nodes3d2p;
+    GVec2D2P *nodes2d2p;
+    int frac_size = 6;
+    State_rec_obj *p_sro;
+    
+    if (MESH_P( analy )->double_precision_nodpos)
+    {
+        p_sro = analy->srec_tree + analy->state_p->srec_id;
+        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension, 
+                     analy->cur_state + 1, FALSE, 
+                     (void *)  analy->tmp_result[0] );
+	if ( analy->dimension == 3 )
+             nodes3d2p = ( GVec3D2P *) analy->tmp_result[0];
+	else
+             nodes2d2p = ( GVec2D2P *) analy->tmp_result[0];
+    }
+    else {
+	 if ( analy->dimension == 3 )
+               nodes3d = analy->state_p->nodes.nodes3d;
+	 else
+               nodes2d = analy->state_p->nodes.nodes2d;
+    }
+
+    if ( (int) analy->float_frac_size>frac_size )
+         frac_size = (int) analy->float_frac_size;
     
     rval = htable_search( MESH( analy ).class_table, class, FIND_ENTRY, 
                           &p_hte );
@@ -815,26 +847,42 @@ tell_coordinates( char class[], int id, Analysis *analy )
 
     if ( p_mo_class->superclass == G_NODE )
     {
+        
         if ( analy->dimension == 3 )
         {
-            nodes3d = analy->state_p->nodes.nodes3d;
-            wrt_text( "%s %d  x: % 9.6e  y: % 9.6e  z: % 9.6e\n", 
-                      p_mo_class->long_name, id, nodes3d[id - 1][0], 
-                      nodes3d[id - 1][1], nodes3d[id - 1][2] );
+             if (MESH_P( analy )->double_precision_nodpos)
+	         wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n", 
+			   p_mo_class->long_name, id, 
+			   frac_size, nodes3d2p[id - 1][0], 
+			   frac_size, nodes3d2p[id - 1][1], 
+			   frac_size, nodes3d2p[id - 1][2] );
+	     else
+	         wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n", 
+			   p_mo_class->long_name, id, 
+			   frac_size, nodes3d[id - 1][0], 
+			   frac_size, nodes3d[id - 1][1], 
+			   frac_size, nodes3d[id - 1][2] );
+
         }
         else
         {
-            nodes2d = analy->state_p->nodes.nodes2d;
-            wrt_text( "%s %d  x: % 9.6e  y: % 9.6e\n", 
-                      p_mo_class->long_name, id, nodes2d[id - 1][0], 
-                      nodes2d[id - 1][1] );
+	    if (MESH_P( analy )->double_precision_nodpos)
+   	        wrt_text( "%s %d  x: %.*e  y: %.*e\n", 
+			  p_mo_class->long_name, id, 
+			  frac_size, nodes2d2p[id - 1][0], 
+			  frac_size, nodes2d2p[id - 1][1] );
+	    else
+   	        wrt_text( "%s %d  x: %.*e  y: %.*e\n", 
+			  p_mo_class->long_name, id, 
+			  frac_size, nodes2d[id - 1][0], 
+			  frac_size, nodes2d[id - 1][1] );
         }
 
         wrt_text( "\n" );
     }
     else if ( IS_ELEMENT_SCLASS( p_mo_class->superclass ) )
     {
-        tell_element_coords( id, p_mo_class, analy->state_p, analy->dimension );
+        tell_element_coords( id, p_mo_class, analy->state_p, analy->dimension, analy );
 
         wrt_text( "\n" );
     }
@@ -855,7 +903,7 @@ tell_coordinates( char class[], int id, Analysis *analy )
  */
 static void
 tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p, 
-                     int dimension )
+                     int dimension, Analysis *analy )
 {
     int i;
     int node_idx, node_id;
@@ -865,9 +913,16 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
     int *el_conns;
     GVec3D *nodes3d;
     GVec2D *nodes2d;
+    GVec3D2P *nodes3d2p;
+    GVec2D2P *nodes2d2p;
+    int frac_size = 6;
     float *activity;
     int el_idx;
+    State_rec_obj *p_sro;
     
+    if ( (int)analy->float_frac_size>frac_size )
+         frac_size = (int) analy->float_frac_size;
+
     el_idx = el_ident - 1;
     conn_qty = qty_connects[p_mo_class->superclass];
     el_conns = p_mo_class->objects.elems->nodes + el_idx * conn_qty;
@@ -882,12 +937,25 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
     el_buf_width = strlen( el_buf );
     
     /* Assign appropriate pointer to nodal coordinates. */
-    if ( dimension == 3 )
-        nodes3d = state_p->nodes.nodes3d;
-    else
-        nodes2d = state_p->nodes.nodes2d;
+    if (MESH_P( analy )->double_precision_nodpos)
+    {
+        p_sro = analy->srec_tree + analy->state_p->srec_id;
+        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension, 
+                     analy->cur_state + 1, FALSE, 
+                     (void *)  analy->tmp_result[0] );
+	if ( dimension == 3 )
+             nodes3d2p = ( GVec3D2P *) analy->tmp_result[0];
+	else
+             nodes2d2p = ( GVec2D2P *) analy->tmp_result[0];
+    }
+    else {
+	 if ( dimension == 3 )
+	      nodes3d = state_p->nodes.nodes3d;
+	 else
+	      nodes2d = state_p->nodes.nodes2d;
+    }
 
-    /* For each node referenced by element... */
+   /* For each node referenced by element... */
     for ( i = 0; i < conn_qty; i++ )
     {
         /* Get node ident and its coordinates. */
@@ -899,18 +967,33 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
             if ( i == 0 )
             {
                 if ( activity && activity[el_idx] == 0.0 )
-                    wrt_text( "\n%s is inactive.\n", el_buf );
-
-                wrt_text( "%.*s  node %*d  x: % 9.6e  y: % 9.6e  z: % 9.6e\n", 
-                          el_buf_width, el_buf, width, node_id, 
-                          nodes3d[node_idx][0], nodes3d[node_idx][1], 
-                          nodes3d[node_idx][2] );
+                    wrt_text( "\n%s is inactive.\n", el_buf ); 
+		    if (MESH_P( analy )->double_precision_nodpos)
+		                wrt_text( "%*.s  node %*d  x: %.*e  y: %.*e  z: %.*e\n", /* Format changed from e9.6 */
+					  el_buf_width, el_buf, width, node_id, 
+					  frac_size, nodes3d2p[node_idx][0], 
+					  frac_size, nodes3d2p[node_idx][1], 
+					  frac_size, nodes3d2p[node_idx][2] );
+		    else
+		                wrt_text( "%*.s  node %*d  x: %.*e  y: %.*e  z: %.*e\n", /* Format changed from e9.6 */
+					  el_buf_width, el_buf, width, node_id, 
+					  frac_size, nodes3d[node_idx][0], 
+					  frac_size, nodes3d[node_idx][1], 
+					  frac_size, nodes3d[node_idx][2] );
             }
             else
-                wrt_text( "%.*s  node %*d  x: % 9.6e  y: % 9.6e  z: % 9.6e\n", 
-                          el_buf_width, blanks, width, node_id, 
-                          nodes3d[node_idx][0], nodes3d[node_idx][1], 
-                          nodes3d[node_idx][2] );
+		    if (MESH_P( analy )->double_precision_nodpos)
+		        wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e  z: %.*e\n", 
+				  el_buf_width, blanks, width, node_id, 
+				  frac_size, nodes3d2p[node_idx][0], 
+				  frac_size, nodes3d2p[node_idx][1], 
+				  frac_size, nodes3d2p[node_idx][2] );
+		    else
+		        wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e  z: %.*e\n", 
+				  el_buf_width, blanks, width, node_id, 
+				  frac_size, nodes3d[node_idx][0], 
+				  frac_size, nodes3d[node_idx][1], 
+				  frac_size, nodes3d[node_idx][2] );
         }
         else
         {
@@ -919,17 +1002,30 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
                 if ( activity && activity[node_idx] == 0.0 )
                     wrt_text( "\n%s is inactive.\n", el_buf );
 
-                wrt_text( "%s  node %*d  x: % 9.6e  y: % 9.6e\n", 
-                          el_buf, width, node_id, nodes2d[node_idx][0], 
-                          nodes2d[node_idx][1] );
+		    if (MESH_P( analy )->double_precision_nodpos)
+                        wrt_text( "%s  node %*d  x: %.*e  y: %.*e\n", 
+				  el_buf, width, node_id, 
+				  frac_size, nodes2d2p[node_idx][0], 
+				  frac_size, nodes2d2p[node_idx][1] );
+		    else
+                        wrt_text( "%s  node %*d  x: %.*e  y: %.*e\n", 
+				  el_buf, width, node_id, 
+				  frac_size, nodes2d[node_idx][0], 
+				  frac_size, nodes2d[node_idx][1] );
             }
             else
-                wrt_text( "%.*s  node %*d  x: % 9.6e  y: % 9.6e\n", 
-                          el_buf_width, blanks, width, node_id, 
-                          nodes2d[node_idx][0], nodes2d[node_idx][1] );
+		    if (MESH_P( analy )->double_precision_nodpos)
+                        wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e\n", 
+				  el_buf_width, blanks, width, node_id, 
+				  frac_size, nodes2d2p[node_idx][0], 
+				  frac_size, nodes2d2p[node_idx][1] );
+		    else
+                        wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e\n", 
+				  el_buf_width, blanks, width, node_id, 
+				  frac_size, nodes2d[node_idx][0], 
+				  frac_size, nodes2d[node_idx][1] );
         }
     }
-
     return;
 }
 
@@ -957,4 +1053,3 @@ max_id_string_width( int *connects, int node_cnt )
     
     return width;
 }
-

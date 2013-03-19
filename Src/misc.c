@@ -36,46 +36,24 @@
  *                the AX tracker tool.
  *                See SRC#533.
  *
- ************************************************************************
- * ---------------------------------------------------------------------
+ * 12/05/2008 I. R. Corey   Add DP calculations for all derived nodal 
+ *                          results. See mili_db_set_results().
+ *                          See SRC#: 556
  *
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
+ * 12/05/2010 I. R. Corey   Add DP calculations for all derived nodal 
+ *                          results. See mili_db_set_results().
+ *                          See SRC#: 556
+ *
+ * 12/05/2010 I. R. Corey   Add DP calculations for all derived nodal 
+ *                          results. See mili_db_set_results().
+ *                          See SRC#: 556
+ ************************************************************************
  */
 
 #include <stdlib.h>
 #include <stdarg.h>
-#include <values.h>
 #include <ctype.h>
+#include <stdio.h>
 
 #ifdef __hpux
 #define NO_GETRUSAGE
@@ -93,6 +71,7 @@
 #include "viewer.h"
 #include "draw.h"
 #include "misc.h"
+#include "mdg.h"
 
 extern Bool_type include_util_panel, include_mtl_panel, include_utilmtl_panel;
 
@@ -114,7 +93,6 @@ static int autoimg_frame_count = 1;
 
 static int temp_mem_ptr = 0;
 
-
 /*****************************************************************
  * TAG( qty_connects )
  * 
@@ -122,9 +100,8 @@ static int temp_mem_ptr = 0;
  */
 int qty_connects[QTY_SCLASS] = 
 {
-    0, 1, 2, 3, 3, 4, 4, 5, 6, 8, 0, 0, 4
+  0, 1, 2, 3, 3, 4, 4, 5, 6, 8, 0, 0, 4, 1
 };
-
 
 /*****************************************************************
  * TAG( griz_my_calloc )
@@ -353,8 +330,8 @@ manage_timer( int timer, int end_flag )
 #endif
     time_t mt, st;
 
-    char tracker_str[100], walltime_str[20], version[64], 
-         problem_str[64];
+    char tracker_str[1000], walltime_str[20], version[64], 
+         problem_str[512];
       
 #ifdef NO_GETRUSAGE
     return;
@@ -379,7 +356,7 @@ manage_timer( int timer, int end_flag )
     }
     else
     {
-        struct timeb *p_tb, *p_te;
+	struct timeb *p_tb, *p_te;
         struct rusage *p_rb, *p_re;
         TimerData *p_td;
         
@@ -477,6 +454,37 @@ hydro true
 sn false
 count 3
 mystr "some string"
+
+Usage: tracker-code-report [options]
+
+    -h  --help                print this help screen
+    -c  --codeName CODE_NAME  name of code to report or all (required)
+    -C  --includeCodeVersion  include code version in report (default is not)
+    -m  --month n             month (numerical index) (default is current)
+    -d  --day n               day
+    -y  --year n              year
+    -b  --beginReport DATE    begin date for report (e.g. 2008-06-08)
+    -e  --endReport DATE      end date for report (e.g. 20008-06-12)
+    -H  --hostName HOST_NAME  name of host for report (default is all)
+    -u  --user USER_NAME      name of user for report (default is all)
+    -l  --longReport          include detailed run report
+    -B  --database DB_NAME    name of tracker database (default is tracker)
+    -p  --property PROP_NAME  get values of property name
+    -q  --quiet               reduce amount of output printed
+    -V  --verbose             print tracker's status information
+    -T  --timeout             set timeout in (integer) seconds; default = 120
+
+Examples:
+
+tracker-code-report -c mycode         | tee report
+tracker-code-report -c mycode -H yana | tee report
+tracker-code-report -c mycode -m 12   | tee report
+
+Defaults:
+- When no time specifier is used, give monthly report.
+- When a day is specified, give day report.
+- When only a year specified, give yearly report.
+
 ************************************************************************************************/
 
 	sprintf(walltime_str," -W %d.%03d ", (int) st, (int) mt ); 
@@ -489,7 +497,7 @@ mystr "some string"
 	strcat( version, " " );
 
 	/* Construct the tracker execute line */
-	strcpy( tracker_str, "/usr/apps/tracker/bin/tracker -n Griz " );
+	strcpy( tracker_str, "/usr/apps/tracker/bin/tracker -q -n Griz " );
 	strcat( tracker_str, version ); 
 	strcat( tracker_str, walltime_str ); 
 	strcat( tracker_str, problem_str );  
@@ -1068,6 +1076,9 @@ get_max_state( Analysis *analy )
     rval = analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL, 
                             &qty_states );
     
+    if ( qty_states <= 0 )
+         return 0;
+        
     /*
      * Since this func returns the desired information and not status,
      * pop a diagnostic if there's an error.
@@ -1628,7 +1639,7 @@ gen_component_results( Analysis *analy, Primal_result *p_src, int *p_dest_idx,
     State_variable *p_sv = p_src->var;
     int idx = *p_dest_idx;
     int j;
-    char resnam[64];
+    char resnam[M_MAX_NAME_LEN];
 
     switch ( p_src->var->agg_type )
     {
@@ -1983,9 +1994,17 @@ void fr_state2( State2 *p_state, Analysis *analy )
 extern void
 set_ref_state( Analysis *analy, int new_ref_state )
 {
-    int qty, srec_id, mesh_id, rval;
+    int qty, srec_id, mesh_id, rval, first_state=1;
     State_rec_obj *p_sro;
+
+    int       num_nodes=0;
     Mesh_data *p_md;
+    MO_class_data *p_node_class;
+
+    double *tmp_nodesDp;
+
+    p_node_class = MESH_P( analy )->node_geom;
+    num_nodes    = p_node_class->qty;
 
     /* 
      * If new reference state indicates mesh geom data, always make the
@@ -1995,7 +2014,35 @@ set_ref_state( Analysis *analy, int new_ref_state )
     {
         /* Use initial nodal coordinates for reference. */
         analy->cur_ref_state_data = MESH( analy ).node_geom->objects.nodes;
-        analy->reference_state = 0;
+        analy->reference_state    = 0;
+
+        if (MESH_P( analy )->double_precision_nodpos)
+	{
+	    /* Init arguments needed for load_nodpos(). */
+
+            /* Get the state rec format of the requested state. */
+	    rval = analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, 
+				    (void *) &first_state, NULL, 
+				    (void *) &srec_id );
+	    if ( rval != 0 )
+	         return;
+
+	    p_sro = analy->srec_tree + srec_id;
+	    mesh_id = p_sro->subrecs[0].p_object_class->mesh_id;
+	    p_md = analy->mesh_table + mesh_id;
+
+	    if (analy->cur_ref_state_dataDp)
+	        free(analy->cur_ref_state_dataDp);
+	        
+	    tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
+			       "Tmp DP node cache" );
+
+            load_nodpos( analy, p_sro, p_md, analy->dimension, 1,
+			 FALSE, (void *) tmp_nodesDp );
+	    
+	    /* Assign the reference pointer to the data that was just read in. */
+	    analy->cur_ref_state_dataDp = tmp_nodesDp;
+	}
     }
     else if ( new_ref_state == analy->reference_state )
     {
@@ -2042,13 +2089,34 @@ set_ref_state( Analysis *analy, int new_ref_state )
             return;
         }
 
-        /* Go get it... */
-        load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
-                     TRUE, analy->ref_state_data );
+	/* Go get it... */
+	analy->reference_state = new_ref_state;
+        if (!MESH_P( analy )->double_precision_nodpos)
+	{
+            load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
+			 TRUE, analy->ref_state_data );
+	    
+	    /* Assign the reference pointer to the data that was just read in. */
+	    analy->cur_ref_state_data = analy->ref_state_data;
+	}
+	else
+	{
+	    if ( analy->cur_ref_state_dataDp )
+ 	         free (analy->cur_ref_state_dataDp);
+	    if ( analy->ref_state_dataDp )
+ 	         free (analy->ref_state_dataDp);
 
-        /* Assign the reference pointer to the data that was just read in. */
-        analy->cur_ref_state_data = analy->ref_state_data;
-        analy->reference_state = new_ref_state;
+	    tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
+			       "Tmp DP node cache" );
+
+            load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
+			 FALSE, tmp_nodesDp );
+	    
+	    /* Assign the reference pointer to the data that was just read in. */
+	    analy->cur_ref_state_dataDp = tmp_nodesDp;;
+	    analy->cur_ref_state_dataDp = analy->ref_state_dataDp;
+	}
+
     }
 }
 
@@ -2855,8 +2923,6 @@ init_temp_mem_ptr( )
     temp_mem_ptr = 0;
 }
 
-
-
 /*****************************************************************
  * TAG( string_to_upper )
  *
@@ -2911,9 +2977,10 @@ write_log_message( void )
 
 	 fp = fopen(logFileName, "a" );
 
-	 fprintf(fp, "\nUSER=[%s] DATE=[%s] HOST=[%s] MACHINE=[%s] OS=[%s] TIME(sec)=[%7.0f] CMD=[%s] VERSION=[%s/Mili=%s]",
+	 fprintf(fp, "\nUSER=[%s] DATE=[%s] TIME=[%s] HOST=[%s] MACHINE=[%s] OS=[%s] ELAPSED_TIME(sec)=[%7.0f] CMD=[%s] VERSION=[%s/Mili=%s]",
 		 env.user_name,
 		 env.date,
+		 env.time,
 		 env.host,
 		 env.arch,
 		 env.systype,
@@ -2936,19 +3003,8 @@ write_log_message( void )
 void
 get_griz_session( Analysis *analy,  Session *session )
 {
-	
-  session->zbias_beams  = analy->zbias_beams;
-  session->beam_zbias   = analy->beam_zbias;
-  session->interp_mode  = analy->interp_mode;
 
-  session->show_bbox     = analy->show_bbox;
-  session->show_coord    = analy->show_coord;
-  session->show_time     = analy->show_time;
-  session->show_title    = analy->show_title;
-  session->show_colormap = analy->show_colormap;
-  session->show_minmax   = analy->show_minmax;
-  session->show_scale    = analy->show_scale;
- 
+  update_session( GET, NULL );
   get_window_attributes();
 }
 
@@ -2962,19 +3018,7 @@ get_griz_session( Analysis *analy,  Session *session )
 void
 put_griz_session( Analysis *analy,  Session *session )
 {
-	
-  analy->zbias_beams     = session->zbias_beams;
-  session->beam_zbias    = analy->beam_zbias;
-  session->interp_mode   = analy->interp_mode;
-
-  session->show_bbox     = analy->show_bbox;
-  session->show_coord    = analy->show_coord;
-  session->show_time     = analy->show_time;
-  session->show_title    = analy->show_title;
-  session->show_colormap = analy->show_colormap;
-  session->show_minmax   = analy->show_minmax;
-  session->show_scale    = analy->show_scale;
- 
+  update_session( PUT, NULL );
   put_window_attributes();
 }
 
@@ -2986,36 +3030,32 @@ put_griz_session( Analysis *analy,  Session *session )
  */
 void
 write_griz_session_file( Analysis *analy, Session *session, char *sessionFileName, 
-			 Bool_type global )
+			 int session_id, Bool_type global )
 {
     FILE *fp;
-    char fullpath[100];
+    char fullpath[M_MAX_NAME_LEN], session_id_string[16];
     
-    get_griz_session( analy, session );
+    if ( session_id>0 ) {
+         sprintf( session_id_string, "%d", session_id );
+    }
 
+    get_griz_session( analy, session );
     
     if ( global )
-      {
+    {
 	/* Open the Global session file */
 	strcpy(fullpath, getenv("HOME"));
 	strcat(fullpath, "/");
 	strcat(fullpath,sessionFileName);
+ 
+	if ( session_id>0 ) {
+	     strcat( fullpath, session_id_string );
+	}
+
 	fp = fopen(fullpath, "w" );
 	
 	fprintf(fp, "* Griz session file [global variables] written on: %s\n", env.date);
 	fprintf(fp, "*\n");
-
-	fprintf(fp, "zbias-beams\t\t%d\n", (int)   session->zbias_beams);
-	fprintf(fp, "beam_zbias\t\t%f\n",  (float) session->beam_zbias);
-	fprintf(fp, "interp_mode\t\t%d\n\n", (int) session->interp_mode);
-
-	fprintf(fp, "show_bbox\t\t%d\n\n",  (int)  session->show_bbox);
-	fprintf(fp, "show_coord\t\t%d\n\n", (int)  session->show_coord);
-	fprintf(fp, "show_time\t\t%d\n\n",  (int)  session->show_time);
-	fprintf(fp, "show_title\t\t%d\n\n", (int)  session->show_title);
-	fprintf(fp, "show_colormap\t\t%d\n\n", (int)  session->show_colormap);
-	fprintf(fp, "show_minmax\t\t%d\n\n", (int)  session->show_minmax);
-	fprintf(fp, "show_scale\t\t%d\n\n",  (int)  session->show_scale);
 
 	fprintf(fp, "Win-Render-Height\t%d\n",   (int) session->win_render_size[0]);
 	fprintf(fp, "Win-Render-Length\t%d\n",   (int) session->win_render_size[1]);
@@ -3028,44 +3068,51 @@ write_griz_session_file( Analysis *analy, Session *session, char *sessionFileNam
 	fprintf(fp, "Win-Ctl-PosY\t\t%d\n\n", (int) session->win_ctl_pos[1]);
 
 	/* Material Panel Window */
-        if ( session->win_mtl_active != 0 )
+        if ( session->win_mtl_active != 0 ) {
 	     fprintf(fp, "Win-Mtl-Active\n");
-	fprintf(fp, "Win-Mtl-Height\t\t%d\n", (int) session->win_mtl_size[0]);
-	fprintf(fp, "Win-Mtl-Length\t\t%d\n", (int) session->win_mtl_size[1]);
-	fprintf(fp, "Win-Mtl-PosX\t\t%d\n",   (int) session->win_mtl_pos[0]);
-	fprintf(fp, "Win-Mtl-PosY\t\t%d\n\n", (int) session->win_mtl_pos[1]);
+   	     fprintf(fp, "Win-Mtl-Height\t\t%d\n", (int) session->win_mtl_size[0]);
+	     fprintf(fp, "Win-Mtl-Length\t\t%d\n", (int) session->win_mtl_size[1]);
+	     fprintf(fp, "Win-Mtl-PosX\t\t%d\n",   (int) session->win_mtl_pos[0]);
+	     fprintf(fp, "Win-Mtl-PosY\t\t%d\n\n", (int) session->win_mtl_pos[1]);
+	}
 
 	/* Utility Panel Window */
-        if ( session->win_util_active != 0 )
+        if ( session->win_util_active != 0 ) {
 	     fprintf(fp, "Win-Util-Active\n");
-	fprintf(fp, "Win-Util-Height\t\t%d\n", (int) session->win_util_size[0]);
-	fprintf(fp, "Win-Util-Length\t\t%d\n", (int) session->win_util_size[1]);
-	fprintf(fp, "Win-Util-PosX\t\t%d\n",   (int) session->win_util_pos[0]);
-	fprintf(fp, "Win-Util-PosY\t\t%d\n\n", (int) session->win_util_pos[1]);
+	     fprintf(fp, "Win-Util-Height\t\t%d\n", (int) session->win_util_size[0]);
+	     fprintf(fp, "Win-Util-Length\t\t%d\n", (int) session->win_util_size[1]);
+	     fprintf(fp, "Win-Util-PosX\t\t%d\n",   (int) session->win_util_pos[0]);
+	     fprintf(fp, "Win-Util-PosY\t\t%d\n\n", (int) session->win_util_pos[1]);
+	}
 
 	/* Surface Manager Window */
-        if ( session->win_surf_active != 0 )
+        if ( session->win_surf_active != 0 ) {
 	     fprintf(fp, "Win-Surf-Active\n");
-	fprintf(fp, "Win-Surf-Height\t\t%d\n", (int) session->win_surf_size[0]);
-	fprintf(fp, "Win-Surf-Length\t\t%d\n", (int) session->win_surf_size[1]);
-	fprintf(fp, "Win-Surf-PosX\t\t%d\n",   (int) session->win_surf_pos[0]);
-	fprintf(fp, "Win-Surf-PosY\t\t%d\n\n", (int) session->win_surf_pos[1]);
-
-
-
+	     fprintf(fp, "Win-Surf-Height\t\t%d\n", (int) session->win_surf_size[0]);
+	     fprintf(fp, "Win-Surf-Length\t\t%d\n", (int) session->win_surf_size[1]);
+	     fprintf(fp, "Win-Surf-PosX\t\t%d\n",   (int) session->win_surf_pos[0]);
+	     fprintf(fp, "Win-Surf-PosY\t\t%d\n\n", (int) session->win_surf_pos[1]);
+	}
+        update_session( WRITE, fp );
     }
     else
         {
           strcpy(fullpath, getenv("HOME"));
           strcat(fullpath, "/");
  	  strcat(fullpath,sessionFileName);
-          fp = fopen(fullpath, "w" );
+
+	  if ( session_id>0 ) {
+	       strcat( fullpath, session_id_string );
+	  }
+
+	  fp = fopen(fullpath, "w" );
 
 	  fprintf(fp, "* Griz session file [plot variables] written on: %s\n", env.date);
 	  fprintf(fp, "*\n");
-        }
 
-    
+          update_session( WRITE, fp );
+     }
+
     fclose(fp);
 }
 
@@ -3091,12 +3138,21 @@ init_griz_session( Session *session1 )
  */
 int
 read_griz_session_file( Session *session, char *sessionFileName, 
-			Bool_type global )
+			int session_id,   Bool_type global )
 {
     FILE *fp;
     char input[120];
     int temp_int;
-    char fullpath[100], var_name[32], var_value[64];
+    char fullpath[256], var_name[M_MAX_NAME_LEN], var_value[64],
+         session_id_string[16];
+    int i;
+
+    char *session_file_buff[2000];
+    int session_file_buff_cnt=0;
+
+     if ( session_id>0 ) {
+          sprintf( session_id_string, "%d", session_id );
+     }
 
      if ( global )
      { 
@@ -3104,11 +3160,21 @@ read_griz_session_file( Session *session, char *sessionFileName,
           strcpy(fullpath, getenv("HOME"));
           strcat(fullpath, "/");
  	  strcat(fullpath,sessionFileName);
+
+	  if ( session_id>0 ) {
+	       strcat( fullpath, session_id_string );
+	  }
+
           fp = fopen(fullpath, "r" );
      }
      else
      {
   	  strcpy(fullpath,sessionFileName);
+
+	  if ( session_id>0 ) {
+	       strcat( fullpath, session_id_string );
+	  }
+
           fp = fopen(fullpath, "r" );
      }
 
@@ -3125,35 +3191,26 @@ read_griz_session_file( Session *session, char *sessionFileName,
      fgets(input, 120, fp);
      while ( !feof( fp ) )
      { 
-	 
+	 fgets(input, 120, fp);
+
 	 /* Skip comment lines */
 	 if ( input[0]=='*' || input[0]=='#' )
 	 {
-              fgets(input, 120, fp);
-       	      continue;
+	      continue;
 	 }
 
-	 fgets(input, 120, fp);
 	 sscanf(input,"%s %s", var_name, var_value);
 	 
-	 if ( !strcmp("zbias_beams", var_value) )
-	      session->zbias_beams = atoi(var_value);   
-	 if ( !strcmp("beam_zbias", var_value) )
-	      session->beam_zbias = (float) atof(var_value);   
-	 if ( !strcmp("interp_mode", var_value) )
-	      session->interp_mode = atoi(var_value);   
-
 	 if ( !strcmp("Win-Render-Height", var_name) )
-	      session->win_render_size[0] = atoi(var_value);   
+	      session->win_render_size[0] = atoi(var_value); 
 	 if ( !strcmp("Win-Render-Length", var_name) )
-	      session->win_render_size[1] = atoi(var_value);   
+	      session->win_render_size[1] = atoi(var_value); 
 	 if ( !strcmp("Win-Render-PosX", var_name) )
-	      session->win_render_pos[0] = atoi(var_value);   
+	      session->win_render_pos[0] = atoi(var_value); 
 	 if ( !strcmp("Win-Render-PosY", var_name) )
-	      session->win_render_pos[1] = atoi(var_value);   
-
+	      session->win_render_pos[1] = atoi(var_value);
 	 if ( !strcmp("Win-Ctl-Height", var_name) )
-	      session->win_ctl_size[0] = atoi(var_value);   
+	      session->win_ctl_size[0] = atoi(var_value);
 	 if ( !strcmp("Win-Ctl-Length", var_name) )
 	      session->win_ctl_size[1] = atoi(var_value);   
 	 if ( !strcmp("Win-Ctl-PosX", var_name) )
@@ -3183,20 +3240,74 @@ read_griz_session_file( Session *session, char *sessionFileName,
 	 if ( !strcmp("Win-Util-PosY", var_name) )
 	      session->win_util_pos[1] = atoi(var_value);   
 	 
-	 if ( !strcmp("Win-Surf-Active", var_name) )
-	      session->win_surf_active = 1;   
-	 if ( !strcmp("Win-Surf-Height", var_name) )
-	      session->win_surf_size[0] = atoi(var_value);   
-	 if ( !strcmp("Win-Surf-Length", var_name) )
-	      session->win_surf_size[1] = atoi(var_value);   
+	 if ( !strcmp("Win-Surf-Active", var_name) ) {
+	      session->win_surf_active = 1;
+	 } 
+	 if ( !strcmp("Win-Surf-Height", var_name) ) {
+	      session->win_surf_size[0] = atoi(var_value);
+	 }   
+	 if ( !strcmp("Win-Surf-Length", var_name) ) {
+	      session->win_surf_size[1] = atoi(var_value);
+	 }
 	 if ( !strcmp("Win-Surf-PosX", var_name) )
 	      session->win_surf_pos[0] = atoi(var_value);   
 	 if ( !strcmp("Win-Surf-PosY", var_name) )
 	      session->win_surf_pos[1] = atoi(var_value);   
+
+	 if ( strstr(input, "var_name=" ) )
+	      session_file_buff[session_file_buff_cnt++] = strdup(input);
      }
 
+     update_session( READ, (void *) session_file_buff, session_file_buff_cnt );
+     for ( i=0;
+	   i<session_file_buff_cnt;
+	   i++ )
+           free( session_file_buff[i] );
+     
      if (fp)
          fclose(fp);
 
-     return;
+     return OK;
+}
+
+/*****************************************************************
+ * TAG( replace_string )
+ *
+ * This function will replace sub_str with all occurances of 
+ * replace_str in the input string.
+ */
+char *
+replace_string( char *input_str, char *sub_str, char *replace_str )
+{
+  static char str_buffer[512];
+  char tmp_str[1024];
+  char *str_ptr=NULL;
+  int repl_index=0, index2=0;
+  Bool_type string_found=TRUE;
+
+  /* Do a quick check to see if the string is in the input.
+   * if not return original string.
+   */
+  str_ptr = strstr( input_str, sub_str );
+  if ( !str_ptr )
+       return ( input_str );
+
+  strcpy( tmp_str, input_str );
+
+  while (string_found) {
+         str_ptr = strstr( tmp_str, sub_str );
+	 repl_index = str_ptr-tmp_str;
+         strncpy( str_buffer, tmp_str, repl_index );
+	 strcat( str_buffer, replace_str );
+	 index2=repl_index+strlen(sub_str);
+
+	 strcat( str_buffer, &tmp_str[repl_index+strlen(sub_str)] );
+
+	 str_ptr = strstr( str_buffer, sub_str );
+         if ( !str_ptr )
+	      string_found = FALSE;
+	 else
+	      strcpy( tmp_str, str_buffer );
+  }
+  return ( str_buffer );
 }

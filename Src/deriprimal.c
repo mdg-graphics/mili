@@ -140,7 +140,7 @@ PrimalMenu( Widget parent )
     int dbid;
 
     char	cbuf[24];
-    char	*long_name, short_name[24];
+    char	*long_name, short_name[M_MAX_NAME_LEN];
     char	**p_specs;
     int		idx, position;
     int		spec_qty = 0;

@@ -6,39 +6,18 @@
  *      Lawrence Livermore National Laboratory
  *      Mar 25 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
- */
+ ************************************************************************
+ * Modifications:
+ *
+ *  I. R. Corey - December 18, 2008: Added test for hidden mats in 
+ *                for cutting plane generation.
+ *                See SRC#557
+ *
+ *  I. R. Corey - Dec 28, 2009: Fixed several problems releated to drawing
+ *                ML particles.
+ *                See SRC#648
+ *
+ ************************************************************************ */
 
 /*
  * This code is derived from software authored by
@@ -63,6 +42,9 @@ static void tet_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
                           float plane_pt[3], float plane_norm[3] );
 */
 
+void
+particle_rough_cut( Analysis *analy, float *plane_ppt, float *norm, MO_class_data *p_particle_class, 
+                    GVec3D *nodes, unsigned char *particle_visib );
 
 /*****************************************************************
  * TAG( is_degen_triangle )
@@ -691,7 +673,8 @@ gen_cuts( Analysis *analy )
     static Bool_type warn_once = TRUE;
     Classed_list *p_cl;
     Triangle_poly *p_tp;
-    
+    unsigned char *part_visib;
+   
     for ( p_cl = analy->cut_poly_lists; p_cl != NULL; NEXT( p_cl ) )
     {
         p_tp = (Triangle_poly *) p_cl->list;
@@ -699,14 +682,17 @@ gen_cuts( Analysis *analy )
     }
     DELETE_LIST( analy->cut_poly_lists ); 
 
-    if ( analy->show_cut )
+    if ( analy->show_cut || analy->show_particle_cut )
     {
-        
         /* Get the current state record format and its mesh. */
         st_num = analy->cur_state + 1;
         analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &st_num, NULL, 
                          &srec_id );
-        mesh_id = analy->srec_tree[srec_id].subrecs[0].p_object_class->mesh_id;
+
+	if ( analy->last_state <= 0 )
+	     mesh_id = analy->cur_mesh_id;
+        else
+             mesh_id = analy->srec_tree[srec_id].subrecs[0].p_object_class->mesh_id;
 
         /* Update references to mesh classes if necessary. */
         if ( analy->db_ident != prev_db_ident || mesh_id != prev_mesh_id )
@@ -718,8 +704,14 @@ gen_cuts( Analysis *analy )
 
             if ( mo_classes != NULL )
                 free( mo_classes );
+#ifdef NEWMILI
+            htable_get_data( p_mesh->class_table, 
+                             (void ***) &mo_classes ,
+                             &class_qty );
+#else
             class_qty = htable_get_data( p_mesh->class_table, 
-                                         (void ***) &mo_classes );
+					 (void ***) &mo_classes);
+#endif
         }
         
         for ( plane = analy->cut_planes; plane != NULL; plane = plane->next )
@@ -730,15 +722,19 @@ gen_cuts( Analysis *analy )
                 switch ( mo_classes[i]->superclass )
                 {
                     case G_HEX:
-                        hex_fine_cut( analy, mo_classes[i], plane->pt, 
-                                      plane->norm );
+		          hex_fine_cut( analy, mo_classes[i], plane->pt, 
+					plane->norm );
+			  if ( is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) ) 
+			       reset_face_visibility( analy );
                         break;
                     case G_TET:
-/*
-                        tet_fine_cut( analy, mo_classes[i], plane->pt, 
-                                      plane->norm );
+		      /*
+
+		          tet_fine_cut( analy, mo_classes[i], plane->pt, 
+			                plane->norm );
+		      */
                         break;
-*/
+
                     case G_PYRAMID:
                     case G_WEDGE:
                         /* not implemented */
@@ -790,12 +786,17 @@ hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
     Bool_type do_result_interpolation;
     Mesh_data *p_mesh;
 
+    unsigned char *hide_mtl=NULL, *hide_brick=NULL;
+
     hex_qty = p_elem_class->qty;
     connects = (int (*)[8]) p_elem_class->objects.elems->nodes;
     mats = p_elem_class->objects.elems->mat;
     coords = analy->state_p->nodes.nodes3d;
     p_mesh = MESH_P( analy );
-    
+
+    hide_mtl   = p_mesh->hide_material;
+    hide_brick = p_mesh->hide_brick_elem;
+        
     if ( result_has_superclass( analy->cur_result, G_MAT, analy ) )
     {
 #ifdef OLD_RES_BUFFERS
@@ -845,9 +846,17 @@ hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
     {
         /* Skip inactive elements. */
         if ( activ && activ[i] == 0.0 )
-            continue;
+             continue;
 
-        /*
+	/* Skip hidden materials */
+	matl = mats[i];
+	if ( hide_mtl[matl] || hide_brick[i] )
+	     continue;
+
+	if ( hide_brick[i])
+	matl = mats[i];
+	   
+       /*
          * Clear the vertex "value <= threshold" mask.
          */
         vertex_mask = 0;

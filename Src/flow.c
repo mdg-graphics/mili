@@ -41,7 +41,6 @@
  */
 
 #include <stdlib.h>
-#include <values.h>
 #include "viewer.h"
 #include "draw.h"
 
@@ -2231,8 +2230,14 @@ delete_vec_points( Analysis *analy )
     
     for ( i = 0; i < analy->mesh_qty; i++ )
     {
+#ifdef NEWMILI
+        htable_get_data( analy->mesh_table[i].class_table, 
+                         (void ***) &p_mo_classes ,
+                         &class_qty );
+#else
         class_qty = htable_get_data( analy->mesh_table[i].class_table, 
-                                     (void ***) &p_mo_classes );
+				     (void ***) &p_mo_classes );
+#endif
         
         for ( j = 0; j < class_qty; j++ )
         {

@@ -4,40 +4,8 @@
  *
  *      Donald J. Dovey
  *      Lawrence Livermore National Laboratory
- *      Jan 2 1992
+ *      Jan 2, 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Cntract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
  ************************************************************************
  * Modifications:
  *
@@ -85,6 +53,15 @@
  *  I. R. Corey - Aug 15, 2007:	Added menus for displaying TI results.
  *                See SRC#480.
  *
+ *  I. R. Corey - Nov 09, 2009: Added enhancements to better support
+ *                running multiple sessions of Griz.
+ *                See SRC#638.
+ *
+ *  I. R. Corey - April 18, 2012: Added ehnancement to enforce checking
+ *                for enabled materials for selections.
+ *
+ *  I. R. Corey - May 2nd, 2012: Added path to top of window panes.
+ *                See TeamForge#17900
  *************************************************************************
  */
 
@@ -92,6 +69,9 @@
 #define VIEWER_H
 
 #include <time.h>
+
+#include <limits.h>
+
 #include <sys/types.h>
 
 #include "draw.h"
@@ -103,13 +83,21 @@
 #include "mesh.h"
 #include "gahl.h"
 
+#ifndef MAXINT
+#define MAXINT 2147483647
+#endif
 #ifndef MININT
-#define MININT -1000000
+#define MININT -MAXINT
+#endif
+#ifndef MAXFLOAT
+#define MAXFLOAT ((float)3.40282347e+38)
+#endif
+#ifndef MINFLOAT
+#define MINFLOAT -MAXFLOAT
 #endif
 
-
-/* Maximum number of elements that can be selected at any time. */
-#define MAXSELECT 20
+/* Define usage of new Mili Library - July 5, 2011 */
+#define NEWMILI 1
 
 /* Dimensions for default and video rendering window sizes */
 
@@ -158,7 +146,9 @@
 #define GRIZ_FAIL 1
 #endif
 
-#define MAXHIST 400
+#define MAXHIST 1000
+
+#define MAX_PATHS 10
 
 /* Macro complement to get_max_state() function. */
 #define GET_MIN_STATE( a ) ( (a)->limit_min_state ? (a)->min_state : 0 )
@@ -172,6 +162,8 @@ typedef enum
     NO_OGL_WIN /* Always last! */
 } OpenGL_win;
 
+
+#define MAXINFOMSG 20
 
 /*****************************************************************
  * TAG( Result_table_type )
@@ -293,7 +285,7 @@ typedef struct _Refl_plane_obj
  * Stores parameters for damage result calculation.
  */
 typedef struct _Damage_vals
-{ 
+{
     char vel_dir[2];
     float cut_off[3];
 } Damage_vals; 
@@ -305,7 +297,7 @@ typedef struct _Damage_vals
  */
 typedef struct _Result_spec
 { 
-    char name[64];
+    char name[M_MAX_NAME_LEN];
     Strain_type strain_variety;
     Ref_surf_type ref_surf; 
     Ref_frame_type ref_frame;
@@ -325,10 +317,10 @@ typedef struct _result
 {
     struct _result *next;
     struct _result *prev;
-    char root[32];
-    char name[64];
+    char root[512];
+    char name[M_MAX_NAME_LEN];
     char title[64];
-    char original_name[64];
+    char original_name[M_MAX_NAME_LEN];
     int qty;
     int *subrecs;
     int *superclasses;
@@ -364,7 +356,8 @@ typedef struct _Minmax_obj
     float interpolated_minmax[2];     /* Nodal result (original or interpolated). */
     float object_minmax[2];           /* Element result. */
     int object_id[2];
-    char *class_name[2];
+    char *class_long_name[2];
+    int  sclass[2];
 } Minmax_obj; 
 
 
@@ -382,6 +375,16 @@ typedef enum
     OP_QUOTIENT
 } Plot_operation_type;
 
+/*****************************************************************
+ * TAG( Analysis_type )
+ *
+ * Enumeration of analysis types.
+ */
+typedef enum
+{
+  TIME, 
+  MODAL
+} Analysis_type;
 
 /*****************************************************************
  * TAG( Time_series_obj )
@@ -617,10 +620,10 @@ typedef enum
  */
 typedef enum
 {
-    MILI_DB_TYPE, 
-    TAURUS_DB_TYPE,
-    EXODUS_DB_TYPE
-} Database_type;
+    MILI, 
+    TAURUS,
+    EXODUS
+} Database_type_griz;
 
 
 /*****************************************************************
@@ -724,16 +727,16 @@ typedef enum
  *
  * Material manager material properties. 
  */
+
 typedef enum
 {
     AMBIENT, 
-    DIFFUSE, 
+    DIFFUSE,
     SPECULAR, 
     EMISSIVE, 
     SHININESS, 
     MTL_PROP_QTY /* Always last! */
 } Material_property_type;
-
 
 /*****************************************************************
  * TAG( Util_panel_button_type )
@@ -758,19 +761,36 @@ typedef enum
     VIEW_GS,
     VIEW_POINT_CLOUD, 
     VIEW_NONE, 
-    VIEW_GS_NONE, 
     PICK_MODE_SELECT, 
     PICK_MODE_HILITE, 
-/*    BTN2_SHELL,  */
-/*    BTN2_BEAM,  */
     BTN1_PICK, 
     BTN2_PICK, 
     BTN3_PICK, 
     CLEAN_SELECT, 
     CLEAN_HILITE, 
     CLEAN_NEARFAR, 
+    BTN_CM_PICK,
     UTIL_PANEL_BTN_QTY /* Always last! */
 } Util_panel_button_type;
+
+
+/*****************************************************************
+ * TAG( colormap_type )
+ *
+ * List of available colormaps.
+ */
+typedef enum
+{
+    CM_INVERSE,
+    CM_DEFAULT,
+    CM_COOL, 
+    CM_GRAYSCALE,
+    CM_INVERSE_GRAYSCALE,
+    CM_HSV,
+    CM_JET,
+    CM_PRISM,
+    CM_WINTER
+} colormap_type;
 
 
 /*****************************************************************
@@ -856,6 +876,22 @@ typedef struct _TI_Var
 } TI_Var;
 
 /*****************************************************************
+ * TAG( Integration_points )
+ *
+ *   Struct which contains information on integration point
+ *   labels.
+ */
+typedef struct _Integration_points 
+{
+  int       es_id;
+  int       intpoints_total;
+  int       labels_cnt;
+  int       *labels;
+  int       in_mid_out_set[3];     /* Integration points set by user */
+  int       in_mid_out_default[3]; /* Integration points default     */
+} Integration_points;
+
+/*****************************************************************
  * TAG( Analysis )
  *
  * Struct which contains all the info related to an analysis.
@@ -886,7 +922,9 @@ typedef struct _Analysis
                                      int, int );
 
     int db_ident;
-    char root_name[50];
+    char root_name[256];
+    char path_name[256];
+    Bool_type path_found;
 
     char mili_version[100];
     char mili_arch[100];
@@ -903,8 +941,12 @@ typedef struct _Analysis
     int previous_state;
     float *state_times;
     int reference_state;
-    float *cur_ref_state_data;
-    float *ref_state_data;
+
+    float  *cur_ref_state_data;
+    float  *ref_state_data;
+    double *cur_ref_state_dataDp;
+    double *ref_state_dataDp;
+
     int cur_mesh_id;
     Mesh_data *mesh_table;
     int mesh_qty;
@@ -944,16 +986,20 @@ typedef struct _Analysis
     Bool_type hex_overlap;
     Mesh_view_mode_type mesh_view_mode;
     Interp_mode_type interp_mode;
-    Bool_type show_bbox;
+    Bool_type show_bbox; 
     Bool_type show_coord;
     Bool_type show_time;
-    Bool_type show_title;
+    Bool_type show_title, show_title_path;
     Bool_type show_safe;
     Bool_type show_colormap;
     Bool_type show_colorscale;
     Bool_type show_minmax;
     Bool_type show_scale;
     Bool_type show_datetime;
+    Bool_type show_deleted_elements, show_only_deleted_elements;
+    Bool_type show_tinfo;
+    Bool_type show_master, show_slave;
+
     Bool_type use_colormap_pos;
     float hidden_line_width;
     int float_frac_size;
@@ -964,6 +1010,7 @@ typedef struct _Analysis
     MO_class_data *hilite_class;
     int hilite_label;
     int hilite_num;
+    int hilite_ml_node; /* The node reference for a Meshless object */
     Center_view_sel_type center_view;
     int center_node;
     float view_center[3];
@@ -991,17 +1038,18 @@ typedef struct _Analysis
     Bool_type use_global_mm;
     Bool_type result_mod;
     float result_mm[2];            /* For result at nodes. */
+    float time_mm[2];       
     float state_mm[2];             /* For result at nodes. */
     int state_mm_nodes[2];         /* For result at nodes. */
-    char *state_mm_class[2];       /* For nodal result. */
+    char *state_mm_class_long_name[2]; /* For nodal result. */
     int  state_mm_sclass[2];
     float global_mm[2];            /* For result at nodes. */
     int global_mm_sclass[2];
     int global_mm_nodes[2];        /* For result at nodes. */
-    char *global_mm_class[2];      /* For nodal result. */
+    char *global_mm_class_long_name[2]; /* For nodal result. */
     Minmax_obj *result_mm_list;    /* Cache for global min/max's (at nodes). */
-    Bool_type mm_result_set[2];
-    Minmax_obj elem_global_mm;       /* For result on element. */
+    Bool_type mm_result_set[2], mm_time_set[2];
+    Minmax_obj elem_global_mm;     /* For result on element. */
     Minmax_obj elem_state_mm;      /* For result on element. */
     Minmax_obj tmp_elem_mm;        /* For result on element. */
     
@@ -1034,7 +1082,7 @@ typedef struct _Analysis
     
     Bool_type z_buffer_lines;
 
-    Bool_type show_edges;
+    Bool_type show_edges, show_edges_vec, hide_edges_by_mat;
     float edge_width;
     float edge_zbias;
    
@@ -1048,6 +1096,7 @@ typedef struct _Analysis
 
     Plane_obj *cut_planes;
     Bool_type show_roughcut;
+    Bool_type show_particle_cut;
     Bool_type show_cut;
     Classed_list *cut_poly_lists;
 
@@ -1070,23 +1119,6 @@ typedef struct _Analysis
     Bool_type do_tensor_transform;
     float (*tensor_transform_matrix)[3];
 
-/*
-    Bool_type show_carpet;
-    float vec_cell_size;
-    float vec_jitter_factor;
-    float vec_length_factor;
-    float vec_import_factor;
-    int vol_carpet_cnt;
-    float *vol_carpet_coords[3];
-    int *vol_carpet_elem;
-    int shell_carpet_cnt;
-    float *shell_carpet_coords[2];
-    int *shell_carpet_elem;
-    float reg_cell_size;
-    int reg_dim[3];
-    float *reg_carpet_coords[3];
-    int *reg_carpet_elem;
-*/
     Bool_type show_traces;
     Trace_pt_def_obj *trace_pt_defs;
     Trace_pt_obj *trace_pts;
@@ -1096,6 +1128,7 @@ typedef struct _Analysis
     int trace_disable_qty;
     int *trace_disable;
     float trace_width;
+    float point_diam;
 
     Bool_type show_extern_polys;
     Surf_poly *extern_polys;
@@ -1130,17 +1163,22 @@ typedef struct _Analysis
    */
     Bool_type damage_hide;
     Bool_type reset_damage_hide;
+    Bool_type damage_result;
 
   /*
    * Added December 22, 2004: IRC - Variables used for displaying 
    * free_nodes.
    */
-    Bool_type free_nodes;
+  Bool_type free_nodes_enabled, particle_nodes_hide_background,
+            free_nodes_found, particle_nodes_found;
+
     float     free_nodes_scale_factor;
     int       free_nodes_sphere_res_factor;
     int       *free_nodes_mats;
     int       free_nodes_mass_scaling;
     int       free_nodes_vol_scaling;
+    float     free_nodes_cut_width;
+  
   /*
    * Added March 22, 2005: IRC - Variables used for keep global mesh 
    *                             info. 
@@ -1148,23 +1186,32 @@ typedef struct _Analysis
     Bool_type  stateDB;  /* If TRUE, then this is a state database
                           * and not a timehistory database.
                           */
+ 
+   Bool_type   *free_nodes_list;
+   float       *free_nodes_vals;
 
   /*
    * Added January 24, 2006: IRC - Variables used for displaying 
    * free_nodes.
    */
-    Bool_type  free_particles;
-    Bool_type  fp_nodal_result;
-    float     *fp_node_ptr[10];       /* Up to 10 sets of particle objects */
-    float     *fp_buffer_ptr[10];
-    int       *fp_ref_nodes[10];
-    int        fp_ref_node_count[10];
+    Bool_type  particle_nodes_enabled;
+    Bool_type  pn_nodal_result;
+    float     *pn_node_ptr[10];       /* Up to 10 sets of particle objects */
+    float     *pn_buffer_ptr[10];
+    int       *pn_ref_nodes[10];
+    int        pn_ref_node_count[10];
 
   /*
    * Added January 30, 2006: IRC - Variables used for RubberBand Zoom. 
    */
    Bool_type rb_vcent_flag;
     
+  /*
+   * Added January 24, 2006: IRC - Variables used for displaying 
+   * free_nodes.
+   */
+    Bool_type free_particles;
+
   /*
    * Added February 07, 2006: IRC - Variables used writing FN momentum
    * data to a text file.
@@ -1193,13 +1240,12 @@ typedef struct _Analysis
    /*
     * Added August 15, 2007: IRC - Variables used to plot TI variables.
     */
-   Bool_type ti_data_found;
+   Bool_type    ti_data_found;
    int          ti_var_count;
    TI_Var       *ti_vars;
 
   /*
    * Added October 05, 2007: IRC - Error indicator result. 
-   * See SCR #4xx
    *
    */
    Bool_type ei_result;
@@ -1212,13 +1258,108 @@ typedef struct _Analysis
 
   /*
    * Added December 18, 2007: IRC - Used to control pausing. 
-   * See SCR #4xx
    *
    */
    Bool_type hist_paused;
    char      hist_filename[64];
    int       hist_line_cnt;
-} Analysis;
+
+   char      curr_result[512];
+
+   Bool_type suppress_updates;
+
+   Bool_type extreme_result, extreme_min, extreme_max;
+
+   float *extreme_node_mm;
+
+  /*
+   * Added October 01, 2011: IRC - Used to turn off adjust near-far warnings.
+   *
+   */
+   Bool_type adjust_NF_disable_warning;
+   Bool_type adjust_NF_retry;
+
+   Bool th_plotting;
+
+  /*
+   * Added December 08, 2011: IRC - Used to track badly defined sub-records
+   * from Diablo. This and associated code will be removed when Diablo Mili 
+   * output is corrected.
+   *
+   */
+   int num_bad_subrecs, *bad_subrecs;
+
+  /*
+   * Added February 1, 2012: IRC - Array to store TimeDep informational
+   * messages 1- <infoMsgCnt.
+   *
+   */
+   int infoMsgCnt;
+   char *infoMsg[MAXINFOMSG];
+  /*
+   * Added March 12, 2012: IRC - Flag to show or hide SPH ghost
+   * particles.
+   *
+   */
+   Bool_type show_sph_ghost;
+
+  /*
+   * Added March 29, 2012: IRC - Path for opening new files with a
+   * load command.
+   *
+   */
+  char *paths[MAX_PATHS];
+  Bool_type paths_set[MAX_PATHS];
+
+  /*
+   * Added April 18, 2012: IRC - Added ehnancement to enforce checking
+   * for enabled materials for selections.
+   *
+   */
+  Bool_type selectonmat;
+
+  /*
+   * Added April 18, 2012: IRC - Added ehnancement to turn off echo of
+   * commands in GUI command window.
+   */
+  Bool_type echocmd;
+
+  /*
+   * Added July 16, 2012: IRC - Forces dump of next result to be written
+   * to a text file.
+   */
+  Bool_type dump_result;
+
+  /*
+   * Added July 26, 2012: IRC - New variables to support Modal Analysis
+   * supported by Diablo.
+   */
+  ;
+  Analysis_type  analysis_type;
+  char           *time_name;
+
+  FILE *p_histfile;
+
+  /*
+   * Added July 26, 2013: IRC - Flag to output TH in single column
+   * format and to append writes to output file.
+   */
+  Bool_type th_single_col, th_append_output;
+
+  /*
+   * Added February 11, 2013: IRC - Added on/off flag to disable volume
+   * averaging when looking at interp. results.
+   */
+  Bool_type vol_averaging;
+
+  /*
+   * Added February , 2013: IRC - Array of integration point label
+   * data.
+   */
+ int                 es_cnt; /* Number of element sets */
+ Integration_points *es_intpoints;
+}
+Analysis;
 
 
 /*****************************************************************
@@ -1231,17 +1372,17 @@ typedef struct _Analysis
 typedef struct _Session
 {
 
+    short var_update[100];
+
     /* Global Session Fields */
 
-    char root_name[50];
+    char root_name[512];
     Bool_type limit_max_state;
     int max_state;
     Bool_type limit_min_state;
     int reference_state;
     float *cur_ref_state_data;
     float *ref_state_data;
-
-
 
     Bool_type normals_constant;
     float *node_norm[3];
@@ -1266,13 +1407,14 @@ typedef struct _Session
     Bool_type show_bbox;
     Bool_type show_coord;
     Bool_type show_time;
-    Bool_type show_title;
+    Bool_type show_title, show_title_path;
     Bool_type show_safe;
     Bool_type show_colormap;
     Bool_type show_colorscale;
     Bool_type show_minmax;
     Bool_type show_scale;
     Bool_type show_datetime;
+    Bool_type show_tinfo;
     Bool_type use_colormap_pos;
     float hidden_line_width;
     int float_frac_size;
@@ -1281,6 +1423,7 @@ typedef struct _Session
     Mouse_mode_type mouse_mode;
     MO_class_data *pick_class; 
     MO_class_data *hilite_class;
+    int hilite_label;
     int hilite_num;
     Center_view_sel_type center_view;
     int center_node;
@@ -1295,7 +1438,7 @@ typedef struct _Session
     float displace_scale[3];
 
     Result *cur_result;
-    int result_index;
+    int result_index, result_index_max;
     char result_title[80];
 
     int max_result_size;
@@ -1344,13 +1487,13 @@ typedef struct _Session
     Bool_type th_smooth;
     int th_filter_width;
     Filter_type th_filter_type;
-    
+     
     Bool_type zbias_beams;
     float beam_zbias;
     
     Bool_type z_buffer_lines;
 
-    Bool_type show_edges;
+    Bool_type show_edges, hide_edges_by_mat;
     float edge_width;
     float edge_zbias;
    
@@ -1364,6 +1507,7 @@ typedef struct _Session
 
     Plane_obj *cut_planes;
     Bool_type show_roughcut;
+    Bool_type show_particle_cut;
     Bool_type show_cut;
     Classed_list *cut_poly_lists;
 
@@ -1408,8 +1552,8 @@ typedef struct _Session
     
     Bool_type auto_img;
     Autoimg_format_type autoimg_format;
-    char *rgb_root;
-    char *img_root;
+    char rgb_root[512];
+    char img_root[512];
     Bool_type loc_ref;
     Bool_type show_num;
     
@@ -1426,18 +1570,30 @@ typedef struct _Session
    */
     Bool_type damage_hide;
     Bool_type reset_damage_hide;
+    Bool_type particle_nodes_hide_background;
 
     float     free_nodes_scale_factor;
     int       free_nodes_sphere_res_factor;
     int       free_nodes_mass_scaling;
     int       free_nodes_vol_scaling;
+    float     free_nodes_cut_width;
   /*
-   * Added March 22, 2005: IRC - Variables used for keep global mesh 
-   *                             info. 
+   * Added January 24, 2006: IRC - Variables used for displaying 
+   * free_nodes.
    */
-    Bool_type  stateDB;  /* If TRUE, then this is a state database
-                          * and not a timehistory database.
-                          */
+    Bool_type  particle_nodes_enabled;
+
+  /*
+   * Added February 07, 2006: IRC - Variables used writing FN momentum
+   * data to a text file.
+   */
+   Bool_type fn_output_momentum;
+
+  /*
+   * Added February 07, 2006: IRC - Variables used for drawing wireframe meshes.
+   */
+   Bool_type draw_wireframe;
+   Bool_type draw_wireframe_trans;
 
   /*
    * Added January 24, 2006: IRC - Variables used for displaying 
@@ -1446,10 +1602,30 @@ typedef struct _Session
     Bool_type free_particles;
 
   /*
-   * Added January 30, 2006: IRC - Variables used for RubberBand Zoom. 
+   * Added February 24, 2006: IRC - Variables used for tracking enable and vis
+   * of classes.
    */
-   Bool_type rb_vcent_flag;
+   Bool_type enable_brick;
+   Bool_type hide_brick;
 
+  /*
+   * Added July 25, 2007: IRC - Used for viewing materials with grey scale 
+   *                            colormap.
+   */
+    Bool_type material_greyscale;
+
+  /*
+   * Added October 05, 2007: IRC - Error indicator result. 
+   *
+   */
+   Bool_type ei_result;
+
+  /*
+   * Added October 01, 2011: IRC - Used to turn off adjust near-far warnings.
+   *
+   */
+   Bool_type adjust_NF_disable_warning;
+   Bool_type adjust_NF_retry;
 
   /*
    * Added May 10, 2007: IRC - Variables for window size and placement. 
@@ -1461,10 +1637,28 @@ typedef struct _Session
   int win_surf_size[2],   win_surf_pos[2],   win_surf_active;
 
   Bool_type hist_paused;
-  char      hist_filename[64];
+  char      hist_filename[256];
   int       hist_line_cnt;
+
+  char      curr_result[512];
 } Session;
 
+
+#define MODEL_VAR 1
+#define GLOBAL_VAR 2
+#define GET 0
+#define PUT 1
+#define READ  10
+#define WRITE 11
+
+typedef struct   
+{
+  char varname[256];
+  int  var_type;
+  int  var_len;
+  Bool_type model_var;
+  
+} analy_var_TOC_type;
 
 typedef enum
 {
@@ -1484,24 +1678,22 @@ typedef struct
     Analysis *curr_analy;
     Bool_type save_history; 
     Bool_type history_input_active; 
+    Bool_type animate_active, animate_reverse; 
     FILE *history_file;    
-    char input_file_name[100];
+    char input_file_name[512];
     char output_file_name[100];
-    char partfile_name_c[100];
-    char partfile_name_s[100];
-    char plotfile_name[100];
-    char plotfile_prefix[30];
+    char partfile_name_c[256];
+    char partfile_name_s[256];
+    char plotfile_name[512];
+    char plotfile_prefix[256];
     char user_name[30];
-    char date[20];
+    char date[32], time[32];
     int nprocs;
     int nstates;
     Bool_type timing;
     Bool_type result_timing;
     Bool_type single_buffer;
     Bool_type foreground;
-    Bool_type parallel;
-    Bool_type combine;
-    Bool_type split;
 
    /*
     * Added January 5, 2005: IRC - Variable used for selecting a beta
@@ -1513,13 +1705,13 @@ typedef struct
    /*
     * Added February 27, 2007: IRC - Variables used for runtime logging.
     */
-    Bool_type enable_logging;
+    Bool_type enable_logging, model_history_logging;
     char grizlogdir[64];
     char grizlogfile[64];
     char host[20];
     char arch[30];
     char systype[30];
-    float time_used; /* In seconds */ 
+    float time_used; /* In seconds */
     time_t time_start, time_stop;
     char command_line[256];
    /*
@@ -1534,25 +1726,50 @@ typedef struct
     */
     Bool_type win32;
 
+   /*
+    * Added November 05, 2009: IRC - ProcessId to identify windows.
+    */
+    int griz_pid;
+
+    long border_colors[20]; 
+    int  griz_id;
+
+    long dialog_text_color;
+    Bool_type show_dialog;
+
+    Bool_type window_size_set_on_command_line;
+
+    char *bname;
+    Bool_type checkresults;
+    /*
+     * Added September 09, 2011: IRC - Used for Batch quiet mode.
+     *
+     */
+    Bool_type quiet_mode;
 } Environ;    
   
 extern Environ env;
 
 #define MAXTOKENS 200
-#define TOKENLENGTH 80
+#define TOKENLENGTH 100
 
 /* viewer.c */
-extern Bool_type load_analysis( char *fname, Analysis *analy );
+extern Bool_type load_analysis( char *fname, Analysis *analy, Bool_type reload );
 extern void close_analysis( Analysis *analy );
 extern void open_history_file( char *fname );
 extern void close_history_file( void );
 extern void history_command( char *command_str );
 extern void history_log_command( char *fname );
 extern void history_log_clear( );
-extern Bool_type read_history_file( char *fname, int line_num, Analysis *analy );
+extern Bool_type read_history_file( char *fname, int line_num, int loop_count,
+				    Analysis *analy );
+extern void model_history_log_clear( Analysis * analy );
+extern void model_history_log_update( char *command, Analysis *analy );
+extern void model_history_log_run( Analysis * analy );
+
 extern char *griz_version;
 extern char *particle_cname;
-extern Database_type db_type;
+extern Database_type_griz db_type;
 
 /* faces.c */
 extern int fc_nd_nums[6][4];
@@ -1576,7 +1793,11 @@ extern void get_tet_face_verts( int, int, MO_class_data *, Analysis *,
                                 float [][3] );
 extern void get_hex_face_verts( int, int, MO_class_data *, Analysis *, 
                                 float [][3] );
+void
+get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class, 
+                    Analysis *analy, int *faceNodes );
 extern void get_hex_verts( int, MO_class_data *, Analysis *, float [][3] );
+extern void get_particle_verts( int, MO_class_data *, Analysis *, float [][3] );
 extern void get_tet_verts( int, MO_class_data *, Analysis *, float [][3] );
 extern void get_tri_verts_3d( int, MO_class_data *, Analysis *, float[][3] );
 extern void get_tri_verts_2d( int, MO_class_data *, Analysis *, float[][3] );
@@ -1604,6 +1825,8 @@ extern void create_tri_blocks( MO_class_data *, Analysis * );
 extern void free_elem_block( Elem_block_obj **, int );
 extern void write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt, 
                             Analysis *analy );
+extern void get_extents( Analysis *, Bool_type, Bool_type, float *, float * );
+
 
 /* io_wrappers.c */
 extern State2 *mk_state2( Analysis *, State_rec_obj *, int, int, int, 
@@ -1625,6 +1848,8 @@ extern char *get_subrecord( Analysis *analy, int num );
 
 extern void *get_st_input_buffer( Analysis *, int, Bool_type, void ** );
 
+extern int get_result_qty( Analysis *, int subrec_id );
+
 /* Mili wrappers. */
 extern int mili_db_open( char *, int * );
 extern int mili_db_get_geom( int, Mesh_data **, int * );
@@ -1634,7 +1859,11 @@ extern int mili_db_get_state( Analysis *, int, State2 *, State2 **, int * );
 extern int mili_db_get_subrec_def( int, int, int, Subrecord * );
 extern int mili_db_cleanse_subrec( Subrecord * );
 extern int mili_db_cleanse_state_var( State_variable * );
+
 extern int mili_db_get_results( int, int, int, int, char **, void * );
+extern int mili_db_get_results_allobjids( int, int, Analysis *,int *, int **);
+extern int mili_db_get_results_allsrecs( int, int, Analysis *, int, int *, int, char **, void * );
+
 extern int mili_db_query( int, int, void *, char *, void * );
 extern int mili_db_get_title( int, char * );
 extern int mili_db_get_dimension( int, int * );
@@ -1643,6 +1872,8 @@ extern int mili_db_close( Analysis * );
 extern int mili_db_get_param_array( int, char *, void **);
 extern MO_class_data *mili_get_class_ptr( Analysis *analy, int superclass, 
 					  char *class_name );
+
+extern int get_hex_volumes( int dbid, Analysis *analy );
 
 /* Taurus plotfile wrappers. */
 extern int taurus_db_open( char *, int * );
@@ -1697,6 +1928,12 @@ extern Bool_type tellmm( Analysis *, char *, int, int, Redraw_mode_type * );
 extern Redraw_mode_type parse_outmm_command( Analysis *, 
                                              char [MAXTOKENS][TOKENLENGTH],
                                              int );
+extern void
+get_extreme_minmax( Analysis *, int, int );
+extern void
+free_extreme_mm( Analysis * );
+extern void
+update_extreme_mm( Analysis * ); 
 
 /* VISUALIZATION */
 
@@ -1806,6 +2043,8 @@ extern void check_interp_mode( Analysis * );
 extern void init_swatch( void );
 extern void draw_mtl_swatch( float [3] );
 extern void set_particle_radius( float );
+extern Bool_type disable_by_object_type( MO_class_data *, int, int, Analysis *, float * );
+extern Bool_type hide_by_object_type( MO_class_data *, int, int, Analysis *, float * );
 
 /* time_hist.c */
 extern void set_glyphs_per_plot( int, Analysis * );
@@ -1833,6 +2072,7 @@ extern void set_plot_color( int, float * );
 extern void write_hid_file( char *fname, Analysis *analy );
 extern void read_slp_file( char *fname, Analysis *analy );
 extern void read_ref_file( char *fname, Analysis *analy );
+extern void write_geom_file( char *, Analysis *, Bool_type );
 
 #ifdef HAVE_REF_STUFF
 extern void gen_ref_from_coord();
@@ -1864,7 +2104,7 @@ extern void write_preamble( FILE *ofile );
 extern Bool_type is_numeric_token( char *num_string );
 
 /* gui.c */
-extern void gui_start( int argc, char **argv );
+extern void gui_start( int argc, char **argv, Analysis * );
 extern void gui_swap_buffers( void );
 extern void init_animate_workproc( void );
 extern void end_animate_workproc( Bool_type );
@@ -1896,13 +2136,14 @@ extern void update_cursor_vals( void );
 extern void set_plot_win_params( float, float, float, float, float *, float * );
 extern void suppress_display_updates( Bool_type );
 extern void write_start_text( void );
+extern void init_griz_name( Analysis *analy  );
 
 /* DERIVED VARIABLES. */
 
 /* result_data.c */
 extern void reset_zero_vol_warning();
 extern int lookup_result_name( char * );
-extern void elem_get_minmax( float *, Analysis * );
+extern void elem_get_minmax( float *, int, Analysis * );
 extern void unit_get_minmax( float *, Analysis * );
 extern void mat_get_minmax( float *, Analysis * );
 extern void mesh_get_minmax( float *, Analysis * );
@@ -1924,9 +2165,12 @@ extern void beam_to_nodal( float *, float *, MO_class_data *, int, int *,
                            Analysis * );
 extern void truss_to_nodal( float *, float *, MO_class_data *, int, int *, 
                             Analysis * );
+extern void particle_to_nodal( float *, float *, MO_class_data *, int, int *, 
+			       Analysis * );
 extern void init_mm_obj( Minmax_obj * );
-extern void load_result( Analysis *, Bool_type, Bool_type );
+extern void load_result( Analysis *, Bool_type, Bool_type, Bool_type );
 extern Bool_type load_subrecord_result( Analysis *, int, Bool_type, Bool_type );
+extern void dump_result( Analysis *, char * );
 
 /* results.c */
 extern Result_candidate possible_results[];
@@ -1952,6 +2196,10 @@ extern Bool_type mod_required_mesh_mode( Analysis *, Result_modifier_type, int,
                                          int );
 extern Bool_type mod_required_plot_mode( Analysis *, Result_modifier_type, int, 
                                          int );
+extern int get_element_set_id( char * );
+extern int get_element_set_index( Analysis *, int );
+extern int get_intpoint_index ( int, int, int * );
+extern void set_default_intpoints ( int, int, int, int );
 
 /* show.c */
 extern int parse_show_command( char *, Analysis * );
@@ -1992,6 +2240,7 @@ extern void compute_shell_stress( Analysis *, float *, Bool_type );
 extern void compute_node_displacement( Analysis *, float *, Bool_type );
 extern void compute_node_radial_displacement( Analysis *, float *, Bool_type );
 extern void compute_node_displacement_mag( Analysis *, float *, Bool_type );
+extern void compute_node_modaldisplacement_mag( Analysis *, float *, Bool_type );
 extern void compute_node_velocity( Analysis *, float *, Bool_type );
 extern void compute_node_acceleration( Analysis *, float *, Bool_type );
 extern void compute_node_pr_intense( Analysis *, float *, Bool_type );
@@ -2000,6 +2249,8 @@ extern void compute_node_enstrophy( Analysis *, float *, Bool_type );
 extern Bool_type check_compute_vector_component( Analysis * );
 extern void compute_vector_component( Analysis *, float *, Bool_type );
 extern void set_pr_ref( float pr_ref );
+extern void get_class_nodes ( int superclass, Mesh_data *p_mesh,
+			      int *num_nodes, int *node_list );
 
 /* global.c */
 extern void compute_global_acceleration( Analysis *, float *, Bool_type );
@@ -2026,9 +2277,9 @@ extern void remove_exp_assoc( int token_cnt,
 extern void report_exp_assoc( void );
 
 /* init_io.c */
-extern Bool_type is_known_db( char *fname, Database_type *p_db_type );
-extern Bool_type init_db_io( Database_type db_type, Analysis *analy );
-extern void reset_db_io( Database_type db_type );
+extern Bool_type is_known_db( char *fname, Database_type_griz *p_db_type );
+extern Bool_type init_db_io( Database_type_griz db_type, Analysis *analy );
+extern void reset_db_io( Database_type_griz db_type );
 
 /* tell.c */
 extern void parse_tell_command( Analysis *analy, char tokens[][TOKENLENGTH],
@@ -2056,11 +2307,32 @@ extern void compute_anvol(  Analysis *analy, float *resultArr,
                             Bool_type interpolate );
 
 extern void write_griz_session_file( Analysis *analy, Session *session,
-				     char *sessionFileName, Bool_type global );
+				     char *sessionFileName, 
+				     int session_id, Bool_type global );
 
 extern int read_griz_session_file( Session *session,
-				   char *sessionFileName, Bool_type global );
+				   char *sessionFileName, 
+				   int session_id, Bool_type global );
 
 char *get_VersionInfo( Analysis * );
+extern char *bi_date(void);
+extern char *bi_system(void);
+extern char *bi_developer(void);
 
+extern void check_for_free_nodes( Analysis *analy );
+
+extern int is_node_visible( Analysis *analy, int nd );
+
+extern void  VersionInfo(Bool_type quiet_mode);
+extern Analysis *get_analy_ptr( );
+ 
+Bool_type is_particle_class( Analysis *analy, int sclass, char *class );
+Bool_type is_dbc_class( Analysis *analy, int sclass, char *class );
+Bool_type is_elem_class( Analysis *analy, char *class );
+
+char *
+replace_string( char *input_str, char *sub_str, char *replace_str );
+
+void
+update_file_path( Analysis *analy, char *filename, char *filename_with_path );
 #endif

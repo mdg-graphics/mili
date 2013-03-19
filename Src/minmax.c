@@ -8,56 +8,28 @@
  *      Lawrence Livermore National Laboratory
  *      Jan 4 2001
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or
- * product endorsement purposes.
- * 
- *
  ************************************************************************
  * Modifications:
  *  I. R. Corey - Dec 14, 2004: Add new function to compute extreme min 
  *  and max - See SRC# 292.
  *
+ *  I. R. Corey - March 18, 2010: Added capability to outmm for material
+ *  result - See SRC# 671.
+ *
+ *  I. R. Corey - Jan 30, 2013: Moved test for nodal result in 
+ *  parse_outmm_command().
+ *
  ************************************************************************
  */
 
 #include <stdlib.h>
-#include <values.h>
 #include "viewer.h"
 
 /* Local routines. */
 static void add_node_ref_counts( Mesh_data *, Material_data *, int * );
 static void minmax_search_by_mat( Analysis *, int, int, int, int *, float **, 
                                   int *, Int_2tuple **, float *, int *, float *,
-                                  int * );
+                                  int *, Bool_type );
 static void minmax_search_by_mat_sand_elem( Analysis *, int, int, int, int *, 
                                             float **, int *, Int_2tuple **, 
                                             float *, int *, float *, int * );
@@ -66,7 +38,8 @@ static void minmax_search_by_mat_sand_node( Analysis *, int, int, int, int *,
                                             int *, float *, int *, float *, 
                                             int * );
 static void write_mm_report( Analysis *, FILE *, int, int, float *, int *, 
-                             float *, int *, int, int *, int *, Int_2tuple ** );
+                             float *, int *, int, int *, int *, Int_2tuple **,
+			     Bool_type );
 
 /*****************************************************************
  * TAG( get_global_minmax )
@@ -95,7 +68,7 @@ get_global_minmax( Analysis *analy )
         analy->db_get_state( analy, i, analy->state_p, &analy->state_p, NULL );
 
         /* Update displayed result. */
-        load_result( analy, TRUE, TRUE );
+        load_result( analy, TRUE, TRUE, FALSE );
     }
 
     /* Go back to where we were before. */
@@ -313,18 +286,18 @@ tellmm( Analysis *analy, char *desired_result_variable, int start_state,
 
         /* update displayed result */
 
-        load_result( analy, TRUE, TRUE );
+        load_result( analy, TRUE, TRUE, TRUE );
 
         if ( p_res->origin.is_node_result )
         {
             el_mm = analy->state_mm;
-            class = analy->state_mm_class;
+            class = analy->state_mm_class_long_name;
             el_id = analy->state_mm_nodes;
         }
         else
         {
             el_mm = analy->elem_state_mm.object_minmax;
-            class = analy->elem_state_mm.class_name;
+            class = analy->elem_state_mm.class_long_name;
             el_id = analy->elem_state_mm.object_id;
         }
         
@@ -384,7 +357,7 @@ tellmm( Analysis *analy, char *desired_result_variable, int start_state,
     analy->db_get_state( analy, analy->cur_state, analy->state_p, 
                          &analy->state_p, NULL );
 
-    load_result( analy, FALSE, TRUE );
+    load_result( analy, FALSE, TRUE, FALSE );
 
     if ( tell_result.qty > 0 )
         cleanse_result( &tell_result );
@@ -422,20 +395,16 @@ parse_outmm_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
     Int_2tuple **data_src_obj_blocks;
     int collapse;
     Bool_type *mats_processed;
-    Bool_type is_sand_db, is_elem_result;
+    Bool_type is_sand_db, is_elem_result, show_mat_result=FALSE;;
     Mesh_data *p_mesh;
+
+    Bool_type nonElem_result_flag=FALSE;
 
     if ( analy->cur_result == NULL )
     {
         popup_dialog( INFO_POPUP, "%s\n%s",
                       "Please specify a current result with \"show\",",
                       "then retry \"outmm\"." );
-        return NO_VISUAL_CHANGE;
-    }
-    else if ( !analy->cur_result->origin.is_node_result
-              && !analy->cur_result->origin.is_elem_result )
-    {
-        popup_dialog( INFO_POPUP, "Outmm requires a node or element result." );
         return NO_VISUAL_CHANGE;
     }
 
@@ -454,6 +423,10 @@ parse_outmm_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
         qty_states = max_st - min_st + 1;
     }
 
+    if ( !analy->cur_result->origin.is_node_result
+	 && !analy->cur_result->origin.is_elem_result )
+         nonElem_result_flag = TRUE;
+
     /*
      * Filter input data
      */
@@ -470,11 +443,12 @@ parse_outmm_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
         popup_dialog( INFO_POPUP, "Writing outmm output to file \"%s\".",
                       tokens[1] );
  
-    p_mesh = MESH_P( analy );   
-    qty_mats = p_mesh->material_qty;
+    p_mesh          = MESH_P( analy );   
+    show_mat_result = result_has_superclass( analy->cur_result, G_MAT, analy );
+    qty_mats        = p_mesh->material_qty;
 
     /* Generate array of requested & sorted material numbers. */
-    if ( token_cnt > 2 )
+    if ( token_cnt > 2 && !show_mat_result )
     {
         req_mat_qty = token_cnt - 2;
         req_mats = NEW_N( int, req_mat_qty, "Requested outmm materials" );
@@ -548,6 +522,7 @@ parse_outmm_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
      */
 
     is_elem_result = analy->cur_result->origin.is_elem_result;
+
     collapse = 0;
     for ( i = 0; i < req_mat_qty; i++ )
     {
@@ -563,7 +538,7 @@ parse_outmm_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
             req_mats[i - collapse] = req_mats[i];
     }
 
-    if ( collapse > 0 )
+    if ( collapse > 0 && !show_mat_result )
     {
         popup_dialog( INFO_POPUP, "%d material%s support result \"%s\" \n"
                       "or %s no elements; culled from request.", 
@@ -736,11 +711,11 @@ parse_outmm_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
     cur_state = analy->cur_state;
 
     /* Perform search depending on SAND/not and elem result vs. node result. */
-    if ( !is_sand_db )
+    if ( !is_sand_db || nonElem_result_flag )
         minmax_search_by_mat( analy, min_st, qty_states, req_mat_qty, req_mats, 
                               data_src_arrays, data_src_qty_blocks, 
                               data_src_obj_blocks, 
-                              mins, min_ids, maxs, max_ids );
+                              mins, min_ids, maxs, max_ids, nonElem_result_flag );
     else if ( analy->cur_result->origin.is_elem_result )
         minmax_search_by_mat_sand_elem( analy, min_st, qty_states, req_mat_qty, 
                                         req_mats, data_src_arrays, 
@@ -777,7 +752,7 @@ parse_outmm_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
     /* Output. */
     write_mm_report( analy, outfile, min_st, max_st, mins, min_ids, 
                      maxs, max_ids, req_mat_qty, req_mats, data_src_qty_blocks, 
-                     data_src_obj_blocks );
+                     data_src_obj_blocks, show_mat_result );
 
     fclose( outfile );
     
@@ -800,7 +775,7 @@ parse_outmm_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
                          NULL );
 /**/
     /* Note "interpolate" flag = TRUE wrt SCR #65. */
-    load_result( analy, TRUE, TRUE );
+    load_result( analy, TRUE, TRUE, FALSE );
 
     return NONBINDING_MESH_VISUAL;
 }
@@ -855,19 +830,24 @@ minmax_search_by_mat( Analysis *analy, int min_state, int qty_states,
                       float **data_src_arrays, int *data_src_qty_blocks, 
                       Int_2tuple **data_src_obj_blocks, 
                       float *p_mins, int *p_min_ids, float *p_maxs, 
-                      int *p_max_ids )
+                      int *p_max_ids, Bool_type nonElem_result_flag )
 {
     int i, j, k, l;
     float minval, maxval;
     int min_id, max_id;
+    int qty_mats;
     int qty_blocks;
     Int_2tuple *obj_blocks;
     float *data;
     int first, second, next, last, idx;
     int srec_id;
-    static Bool_type warn_once = TRUE;
+    static Bool_type warn_once=TRUE, show_mat_result=FALSE;
+    Mesh_data *p_mesh;
 
-    srec_id = analy->cur_result->srec_id;
+    p_mesh          = MESH_P( analy );   
+    srec_id         = analy->cur_result->srec_id;
+    qty_mats        = p_mesh->material_qty;
+    show_mat_result = result_has_superclass( analy->cur_result, G_MAT, analy );
 
     /* Loop over states to fill min/max table. */
     for ( i = 0; i < qty_states; i++ )
@@ -882,7 +862,7 @@ minmax_search_by_mat( Analysis *analy, int min_state, int qty_states,
          * calculations on element results but is the only way to get 
          * state min/max values extracted.  See SCR #65.
          */
-        load_result( analy, TRUE, TRUE );
+        load_result( analy, TRUE, TRUE, FALSE );
 
         if ( analy->cur_result->srec_id != srec_id 
              && warn_once )
@@ -893,6 +873,38 @@ minmax_search_by_mat( Analysis *analy, int min_state, int qty_states,
                           "are drawn from identical domains in each format." );
             warn_once = FALSE;
         }
+
+	if ( show_mat_result ) {
+	     p_mesh = MESH_P( analy );
+	     data = ((MO_class_data **) 
+		     p_mesh->classes_by_sclass[G_MAT].list)[0]->data_buffer;
+
+	     minval = data[0];
+	     min_id = 1;
+	     maxval = data[0];
+	     max_id = 1;
+             for ( j = 0; j < req_mat_qty; j++ )
+	     {
+	           if ( data[j]<minval ) {
+		        minval = data[j];
+			min_id = j+1;
+	           }
+	           if ( data[j]>maxval ) {
+		        maxval = data[j];
+			max_id = j+1;
+	           }
+	     }	     
+             for ( j = 0; j < req_mat_qty; j++ )
+	     {
+ 	           idx = j * qty_states + i;
+		   p_mins[idx]    = minval;
+		   p_min_ids[idx] = min_id;
+		   
+		   p_maxs[idx] = maxval;
+		   p_max_ids[idx] = max_id;
+	     }
+	     continue; /* Next state */
+	}
 
         /* 
          * For SAND db and a nodal result, process "node_ref_counts" wrt
@@ -1060,6 +1072,7 @@ minmax_search_by_mat_sand_elem( Analysis *analy, int min_state, int qty_states,
 {
     int i, j, k, l;
     float minval, maxval;
+    int qty_mats;
     int min_id, max_id;
     int qty_blocks;
     Int_2tuple *obj_blocks;
@@ -1091,7 +1104,7 @@ minmax_search_by_mat_sand_elem( Analysis *analy, int min_state, int qty_states,
          * calculations on element results but is the only way to get 
          * state min/max values extracted.  See SCR #65.
          */
-        load_result( analy, TRUE, TRUE );
+        load_result( analy, TRUE, TRUE, FALSE );
 
         if ( analy->cur_result->srec_id != srec_id 
              && warn_once )
@@ -1235,7 +1248,7 @@ minmax_search_by_mat_sand_node( Analysis *analy, int min_state, int qty_states,
                              &analy->state_p, NULL );
 
         /* Update result */
-        load_result( analy, TRUE, FALSE );
+        load_result( analy, TRUE, FALSE, FALSE );
 
         if ( analy->cur_result->srec_id != srec_id 
              && warn_once )
@@ -1354,7 +1367,7 @@ static void
 write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state, 
                  float *mins, int *min_ids, float *maxs, int *max_ids, 
                  int req_mat_qty, int *req_mats, int *block_list_sizes, 
-                 Int_2tuple **block_lists )
+                 Int_2tuple **block_lists, Bool_type show_mat_result )
 {
     int i, j, min_st, max_st, limit_st, qty_states; 
     int ident_width, object_label_width, node_pre;
@@ -1363,11 +1376,16 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
     float minval, maxval;
     char *header = 
         "# Material  State     Time       Maximum%.*s%s%.*sMinimum%.*s%s\n";
+    char *header_mat = 
+        "State    Time          Maximum    Material     Minimum    Material\n";
     char *object_label;
     char *min_label = " <min", *max_label = " <<<max";
     char *std_out_format = "   %4d    %5d  %12.6e %10.3e %*d  %10.3e %*d\n";
+    char *std_out_format_mat = " %5d   %12.6e %10.3e     %5d    %10.3e     %5d\n";
     char *mm_out_format = 
-        "   %4d    %5d  %12.6e %10.3e %*d  %10.3e %*d%s";
+        "   %4d    %5d  %12.6e %10.3e %*d  %10.3e %*d\t%s";
+    char *mm_out_format_mat = 
+                              " %5d   %12.6e %10.3e     %5d    %10.3e     %5d\t%s ";
     char *blanks = "                    ";
     Bool_type min_first;
     float *mat_min_row, *mat_max_row;
@@ -1397,8 +1415,14 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
     
     ident_width = (int) ((double) 1.0 + log10( (double) object_max ));
     
-    object_label = analy->cur_result->origin.is_node_result
-                   ? "Node" : "Elem";
+    if ( !show_mat_result )
+         object_label = analy->cur_result->origin.is_node_result
+                         ? "Node" : "Elem";
+    else {
+         object_label = " Material";
+	 req_mat_qty = 1;
+    }
+
     object_label_width = strlen( object_label );
 
     if ( ident_width < object_label_width )
@@ -1423,10 +1447,14 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
     {
         /* Dump column headers. */
         fprintf( outfile, "#\n#\n" );
-        fprintf( outfile, header,
-                 2 + node_pre, blanks, object_label, 
-                 ident_width - object_label_width - node_pre + 4, blanks,
-                 2 + node_pre, blanks, object_label );
+
+	if ( !show_mat_result )
+	     fprintf( outfile, header,
+		      2 + node_pre, blanks, object_label, 
+		      ident_width - object_label_width - node_pre + 4, blanks,
+		      2 + node_pre, blanks, object_label );
+	else
+	     fprintf( outfile, header_mat );
 
         /* Determine states with min and max values. */
         minval = mat_min_row[0];
@@ -1452,18 +1480,36 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
         mat = req_mats[i] + 1;
 
         /* Dump states before the first min or max extreme. */
+
         limit_st = min_first ? min_st : max_st;
         for ( j = 0; j < limit_st; j++ )
-            fprintf( outfile, std_out_format,
-                     mat, min_state + j + 1, state_times[j], 
-                     mat_max_row[j], ident_width, mat_max_id[j], 
-                     mat_min_row[j], ident_width, mat_min_id[j] );
+	      if ( !show_mat_result ) {
+                   fprintf( outfile, std_out_format,
+			    mat, min_state + j + 1, state_times[j], 
+			    mat_max_row[j], ident_width, mat_max_id[j], 
+			    mat_min_row[j], ident_width, mat_min_id[j] );
+	      }
+	      else {
+                   fprintf( outfile, std_out_format_mat,
+			    min_state + j + 1, state_times[j], 
+			    mat_max_row[j], ident_width, mat_max_id[j], 
+			    mat_min_row[j], ident_width, mat_min_id[j] ); 
+	      }
         
         /* Dump the min or max extreme which occurs first. */
-        fprintf( outfile, mm_out_format,
-                 mat, min_state + j + 1, state_times[j], mat_max_row[j], 
-                 ident_width, mat_max_id[j], mat_min_row[j], ident_width, 
-                 mat_min_id[j], (min_first ? min_label : max_label) );
+
+	if ( !show_mat_result )
+	     fprintf( outfile, mm_out_format,
+		      mat, min_state + j + 1, state_times[j], mat_max_row[j], 
+		      ident_width, mat_max_id[j], mat_min_row[j], ident_width, 
+		      mat_min_id[j], (min_first ? min_label : max_label) );
+	else {
+	     fprintf( outfile, mm_out_format_mat,
+		      min_state + j + 1, state_times[j], mat_max_row[j], 
+		      mat_max_id[j], mat_min_row[j],
+		      mat_min_id[j], (min_first ? min_label : max_label) );
+	}
+
         if ( min_st == max_st )
             fprintf( outfile, " %s\n", max_label );
         else
@@ -1473,36 +1519,55 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
         /* Dump states after first extreme but before second extreme. */
         limit_st = min_first ? max_st : min_st;
         for ( ; j < limit_st; j++ )
-            fprintf( outfile, std_out_format,
-                     mat, min_state + j + 1, state_times[j], mat_max_row[j], 
-                     ident_width, mat_max_id[j], mat_min_row[j], 
-                     ident_width, mat_min_id[j] );
+	      if ( !show_mat_result )
+	 	   fprintf( outfile, std_out_format,
+			    mat, min_state + j + 1, state_times[j], mat_max_row[j], 
+			    ident_width, mat_max_id[j], mat_min_row[j], 
+			    ident_width, mat_min_id[j] );
+	      else
+		   fprintf( outfile, std_out_format_mat,
+			    min_state + j + 1, state_times[j], mat_max_row[j], 
+			    mat_max_id[j], mat_min_row[j], 
+			    mat_min_id[j] );
         
         /* Dump the second min or max extreme. */
         if ( min_st != max_st )
         {
-            fprintf( outfile, mm_out_format,
-                     mat, min_state + j + 1, state_times[j], mat_max_row[j], 
-                     ident_width, mat_max_id[j], mat_min_row[j], 
-                     ident_width, mat_min_id[j], 
-                     (min_first ? max_label : min_label) );
+             if ( !show_mat_result )
+                  fprintf( outfile, mm_out_format,
+			   mat, min_state + j + 1, state_times[j], mat_max_row[j], 
+			   ident_width, mat_max_id[j], mat_min_row[j], 
+			   ident_width, mat_min_id[j], 
+			   (min_first ? max_label : min_label) );
+	     else
+                  fprintf( outfile, mm_out_format_mat,
+			   min_state + j + 1, state_times[j], mat_max_row[j], 
+			   mat_max_id[j], mat_min_row[j], 
+			   mat_min_id[j], 
+			   (min_first ? max_label : min_label) );
+
             fprintf( outfile, "\n" );
             j++;
         }
         
         /* Dump the states after the second extreme. */
         for ( ; j < qty_states; j++ )
-            fprintf( outfile, std_out_format,
-                     mat, min_state + j + 1, state_times[j], mat_max_row[j], 
-                     ident_width, mat_max_id[j], mat_min_row[j], 
-                     ident_width, mat_min_id[j] );
-        
+	      if ( !show_mat_result )
+		   fprintf( outfile, std_out_format,
+			    mat, min_state + j + 1, state_times[j], mat_max_row[j], 
+			    ident_width, mat_max_id[j], mat_min_row[j], 
+			    ident_width, mat_min_id[j] );
+	      else
+		   fprintf( outfile, std_out_format_mat,
+			    min_state + j + 1, state_times[j], mat_max_row[j], 
+			    mat_max_id[j], mat_min_row[j], 
+			    mat_min_id[j] );
+
         mat_min_row += qty_states;
         mat_min_id += qty_states;
         mat_max_row += qty_states;
         mat_max_id += qty_states;
     }
-
     free( state_times );
 }
  
@@ -1518,45 +1583,74 @@ extern void
 get_extreme_minmax( Analysis *analy, int minmax, 
                     int view_state)
 {
-    int active_qty, class_qty, elem_qty, node_qty, obj_index, obj_qty;
+    int id_qty, class_qty, elem_qty, node_qty, obj_index, obj_qty;
     int cur_state, max_state, min_state;
-    int index, elem_index, node_index;
-    int i, j, l;
+    int index, class_index, elem_index, node_index;
+    int i, j, k, l;
     int mat_qty;
     int sclass;
+    Bool sclass_ok=FALSE;
 
     unsigned char *disable_mat;
 
-    float *data_buffer, *minmax_nodal, *result_ptr, **minmax_elem;
-    float  temp_mm[2], test;
-    float *temp_mem_ptr;
+    float max_val=-1.0;
 
-    int    class_index, p_elem_class_index;
-    int   *minmax_sclass, *minmax_obj_index;
-    int    minmax_elem_index = 0, minmax_elem_cnt = 0;
+    float *data_buffer;
+    float  temp_mm[2];
+
     int    result_qty;
 
-    MO_class_data *p_element_class, *subrec_elem_class, 
-                  *p_node_class;
-
+    MO_class_data *p_class,
+                  *p_node_class,
+                  **mo_classes;
 
     Result     *p_result;
-    int         subrec, *object_ids;
+    int         subrec, subrec_qty, srec=0, obj_id, *object_ids, result_index=0;
     Subrec_obj *p_subrec;
 
-    
-    /* Initialize the temporary memory pointer */
-    init_temp_mem_ptr( );
+    Bool_type interp=TRUE;
 
     /* Pointer to current mesh. */
 
+    analy->extreme_result = TRUE;
     p_result = analy->cur_result;
     if ( p_result == NULL) 
-       return;
+         return;
 
     p_node_class = MESH_P( analy )->node_geom;
     node_qty     = p_node_class->qty;
 
+    subrec_qty = p_result->qty;
+    index  = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec   = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    sclass      = p_result->superclasses[index];
+    obj_qty     = p_subrec->subrec.qty_objects;
+    p_class     = p_subrec->p_object_class;
+    
+    /* Initialize Class data buffers */
+    for ( i=0;
+	  i<subrec_qty;
+	  i++ )
+    {
+          subrec = p_result->subrecs[i];
+          srec   = p_result->srec_id;
+          p_subrec = analy->srec_tree[srec].subrecs + subrec;
+	  p_class = p_subrec->p_object_class;
+	  if ( p_class->data_buffer_mm==NULL ) {
+	       p_class->data_buffer_mm = NEW_N( float, p_class->qty, "Class data buffer for min/max data" );
+               for ( j=0;
+		     j<p_class->qty;
+		     j++ ) {
+		     if (minmax==EXTREME_MIN)
+		         p_class->data_buffer_mm[j] = MAXFLOAT;
+		     else
+		         p_class->data_buffer_mm[j] = -MAXFLOAT; 
+		 
+	       }
+	  }
+    }
 
     /* Determine the range of states */
     min_state = GET_MIN_STATE( analy );
@@ -1568,325 +1662,235 @@ get_extreme_minmax( Analysis *analy, int minmax,
     if ( view_state > max_state )
          view_state = max_state;
 
-    /* Get the results for the 1st state */
-    analy->cur_state = 1;
-    change_state( analy );
-
-    minmax_nodal = NEW_N( float , node_qty, "minmax_nodal" );
-
-    /* Initialize nodal min/max array */
-    for (node_index=0; node_index<node_qty; node_index++)
-    {
-        if (minmax==EXTREME_MIN)
-           minmax_nodal[node_index] = MAXFLOAT;
-        else
-           minmax_nodal[node_index] = -MAXFLOAT; 
-    }
-
-
-    /* Allocate arrays that will hold min/max data across all states */
-    obj_qty = 0;
-    for ( class_index=0; class_index<p_result->qty; class_index++ )
-    {
-        sclass = p_result->superclasses[class_index];
-
-        if (sclass >= G_NODE && sclass < G_MAT)
-            obj_qty += MESH( analy ).classes_by_sclass[sclass].qty;  
-    }
-
-    test = -MAXFLOAT;
-
-    minmax_elem      = NULL;
-    minmax_sclass    = NULL;
-    minmax_obj_index = NULL;
-    minmax_elem_cnt  = 0;
-
-    if ( obj_qty>0 )
-    {
-       minmax_elem      = NEW_N( float *, obj_qty, "minmax_elem" );
-       minmax_sclass    = NEW_N( int,     obj_qty, "minmax_sclass" );
-       minmax_obj_index = NEW_N( int,     obj_qty, "minmax_obj_index" );
-       minmax_elem_cnt  = obj_qty;
-
-       for ( class_index=0; class_index<p_result->qty; class_index++ )
-       {
-           sclass = p_result->superclasses[class_index];
-
-           if (sclass >= G_TRUSS && sclass < G_MAT)
-              class_qty = MESH( analy ).classes_by_sclass[sclass].qty;  
-           else 
-           {
-              class_qty=0;
-              minmax_sclass[minmax_elem_index]    = sclass;
-              minmax_obj_index[minmax_elem_index] = 0;
-              minmax_elem_index++;
-           }
-
-           for ( l = 0; l < class_qty; l++ )       
-           {
-               p_element_class = ((MO_class_data **)
-                                 MESH( analy ).classes_by_sclass[sclass].list)[l];
-          
-               elem_qty = p_element_class->qty;
-
-               if (elem_qty>0)
-               {
-                minmax_elem[minmax_elem_index] = NEW_N( float , elem_qty, "minmax_elem" );
-
-                for (j=0; j<elem_qty; j++)
-                {
-                    if (minmax==EXTREME_MIN)
-                      minmax_elem[minmax_elem_index][j] =  MAXFLOAT;
-                    else
-                      minmax_elem[minmax_elem_index][j] = -MAXFLOAT;
-                }
-               }
-               else
-                  minmax_elem[minmax_elem_index] = NULL;
-
-               minmax_sclass[minmax_elem_index]    = sclass;
-               minmax_obj_index[minmax_elem_index] = l;
-
-               minmax_elem_index++;
-        }
-       }
-    }
-    else
-    {
-      return; 
-    }
-
+    if ( analy->extreme_node_mm==NULL )
+         analy->extreme_node_mm = NEW_N( float , node_qty,  "analy->extreme_node_mm" );
 
     /* Loop over all states  - reading the result value for each element or node */
-    for ( i = min_state; i <= max_state; i++ )
+    for ( i  = min_state; 
+	  i <= max_state; 
+	  i++ )
     {
-        analy->cur_state = i;
-        analy->db_get_state( analy, i, analy->state_p, &analy->state_p, NULL );
-        
-        minmax_elem_index = 0;
-        for ( class_index = 0; class_index< p_result->qty; class_index++ )
-        {
-            sclass = p_result->superclasses[class_index];
-            class_qty = MESH( analy ).classes_by_sclass[sclass].qty;
+          analy->cur_state = i;
+          wrt_text( "\n\n");
+          analy->db_get_state( analy, i, analy->state_p, &analy->state_p, NULL );
+          wrt_text( "Computing Extreme Max for State %d out of %d states.", analy->cur_state + 1, max_state+1 );
+       
+ 	  load_result( analy, TRUE, TRUE, TRUE );
+	  
+	  data_buffer = NODAL_RESULT_BUFFER( analy );
+	  
+	  /* Update min/max for nodal data */
+	  for (l=0; 
+	       l<node_qty;
+	       l++)
+	  {
+	       obj_id = l;
+	       if (minmax==EXTREME_MIN)
+	       {
+		   if (data_buffer[obj_id] < analy->extreme_node_mm[obj_id])
+		       analy->extreme_node_mm[obj_id] = data_buffer[obj_id];
+		 }
+	       else
+		 {
+		   if (data_buffer[obj_id] > analy->extreme_node_mm[obj_id])
+		       analy->extreme_node_mm[obj_id] = data_buffer[obj_id];
+	       }  
+	  }
 
-            if ( class_qty == 0 )
-               continue;
-            
-            for ( l = 0; l < class_qty; l++ )       
-            {
-                p_element_class = ((MO_class_data **)
-                                   MESH( analy ).classes_by_sclass[sclass].list)[l];
-                
-                
-                /* Update result buffer . */
-                /*                NODAL_RESULT_BUFFER( analy ) = result_ptr;
-                p_element_class->data_buffer = result_ptr;
-                */
-
-                load_result( analy, FALSE, FALSE );
-
-                if ( sclass!=G_NODE ) 
+	  for ( j=0;
+		j<subrec_qty;
+		j++ )
+	  {
+	        subrec = p_result->subrecs[j];
+		srec   = p_result->srec_id;
+		p_subrec = analy->srec_tree[srec].subrecs + subrec;
+		p_class = p_subrec->p_object_class;
+		for ( k=0;
+		      k<p_class->qty;
+		      k++ )
                 {
-                    obj_qty = p_element_class->qty;
-                    data_buffer = p_element_class->data_buffer;
-                }
-                else
-                {
-                    obj_qty = analy->max_result_size;  
-                    data_buffer =  NODAL_RESULT_BUFFER( analy );
-                }
+		      
+	              if (minmax==EXTREME_MIN)
+		      {
+			  if ( p_class->data_buffer[k] < p_class->data_buffer_mm[k] )
+			       p_class->data_buffer_mm[k] = p_class->data_buffer[k];
+		      }
+		      else
+		      { 
+			if ( p_class->data_buffer[k] > p_class->data_buffer_mm[k] ) {
+			       p_class->data_buffer_mm[k] = p_class->data_buffer[k];
+			}
+		      }
+		}
+	  }
+    } /* Loop over states */
 
-                for (j=0; j<obj_qty; j++)
-                {
-                     if ( sclass!=G_NODE )
-                     {
-                       if (data_buffer[j]==0.0)
-                           if (minmax_elem[minmax_elem_index][j] >=  MAXFLOAT ||
-                              minmax_elem[minmax_elem_index][j] <= -MAXFLOAT)
-                       {
-                           continue;
-                       }
-
-                       if (minmax==EXTREME_MIN)
-                       {
-                          if (data_buffer[j] < minmax_elem[minmax_elem_index][j])
-                             minmax_elem[minmax_elem_index][j] = data_buffer[j];
-                       }
-                       else
-                       {
-                         if (data_buffer[j] > minmax_elem[minmax_elem_index][j])
-                            minmax_elem[minmax_elem_index][j] = data_buffer[j];
-                       }
-
-                      
-                    }
-                     else
-                     {
-                        if (data_buffer[j]==0.0)
-                           if (minmax_nodal[j] >=  MAXFLOAT ||
-                               minmax_nodal[j] <= -MAXFLOAT)
-                              continue;
-
-                       if (minmax==EXTREME_MIN)
-                       {
-                          if (data_buffer[j] < minmax_nodal[j])
-                             minmax_nodal[j] = data_buffer[j];
-                       }
-                       else
-                       {
-                          if (data_buffer[j] > minmax_nodal[j])
-                          {
-                            minmax_nodal[j] = data_buffer[j];
-                            if (minmax_nodal[j]>test)
-                              test = minmax_nodal[j];
-                          }
-                       }
-                     }
-               }
- 
-            if ( sclass!=G_NODE )                
-               minmax_elem_index++;
-                
-           }
-        } /* End of loop on sclass */ 
-    } /* End of loop on states */
-        
-
-    /* Display results on selected state defined by view_state */
-
-    analy->cur_state = view_state;
-    change_state( analy );
-
-    p_result   = analy->cur_result;
-    index      = analy->result_index;
-    subrec     = p_result->subrecs[index];
-    p_subrec   = analy->srec_tree[p_result->srec_id].subrecs + subrec;
-    object_ids = p_subrec->object_ids;
     
-    init_mm_obj( &analy->tmp_elem_mm );
-    init_nodal_min_max( analy );
-  
-    temp_mm[0] =   MAXFLOAT;
-    temp_mm[1] = - MAXFLOAT;
-
-    for (node_index=0; node_index<node_qty; node_index++)
-    {
-        if (minmax_nodal[node_index]<= -MAXFLOAT ||
-            minmax_nodal[node_index]>= MAXFLOAT )
-          minmax_nodal[node_index]=0.0;
-    }
-
-    for ( i = 0; i<minmax_elem_cnt; i++ )
-    {
-        sclass = minmax_sclass[i];
-        if (sclass >= G_TRUSS && sclass < G_MAT)
-        {
-           obj_index = minmax_obj_index[i];
-        
-           p_element_class = ((MO_class_data **)
-                             MESH( analy ).classes_by_sclass[sclass].list)[obj_index];
-          
-           elem_qty = p_element_class->qty;
-
-           analy->result_index = obj_index;
-
-           for (elem_index=0; elem_index<elem_qty; elem_index++)
-           {
-               if (minmax_elem[i][elem_index]<= -MAXFLOAT ||
-                   minmax_elem[i][elem_index]>= MAXFLOAT )
-                  minmax_elem[i][elem_index]=0.0;
-           }
-
-           if ( analy->interp_mode != NO_INTERP ) /* This = interpolate */
-           {
-                 switch ( sclass )
-                   {
-                   case G_TRUSS:
-                     truss_to_nodal( minmax_elem[i], minmax_nodal,
-                                     p_element_class, elem_qty,
-                                     object_ids, analy );
-                     break;
-                   case G_BEAM:
-                     beam_to_nodal( minmax_elem[i], minmax_nodal, 
-                                    p_element_class, elem_qty, 
-                                    object_ids, analy );
-                     break;
-                   case G_TRI:
-                     tri_to_nodal( minmax_elem[i], minmax_nodal, 
-                                   p_element_class, elem_qty,
-                                   object_ids, analy, TRUE );
-                     break;
-                   case G_QUAD:
-                     quad_to_nodal( minmax_elem[i], minmax_nodal, 
-                                    p_subrec->p_object_class, elem_qty, 
-                                    object_ids, analy, TRUE );
-                     break;
-                   case G_TET:
-                     tet_to_nodal( minmax_elem[i], minmax_nodal, 
-                                   p_element_class, elem_qty, 
-                                   object_ids, analy );
-                     break;
-                     
-                   case G_HEX:
-                     hex_to_nodal( minmax_elem[i], minmax_nodal, 
-                                   p_element_class, elem_qty, 
-                                   object_ids, analy );
-                     break;
-                   case G_SURFACE:
-                     surf_to_nodal( minmax_elem[i], minmax_nodal, 
-                                    p_subrec->p_object_class, elem_qty, 
-                                    object_ids, analy, TRUE );
-                     break;
-                   }
-             }
-
-        for (elem_index=0; elem_index<elem_qty; elem_index++)
-             p_element_class->data_buffer[elem_index] = minmax_elem[i][elem_index];
-
-        analy->result_index  = i;         
-        subrec   = p_result->subrecs[i];
-        p_subrec = analy->srec_tree[p_result->srec_id].subrecs + subrec;
-        subrec_elem_class = p_subrec->p_object_class;
-        
-        sclass = subrec_elem_class->superclass;
-        
-        elem_get_minmax( minmax_elem[i], analy );
-       }
-    }
-
-
-
     /* Done collecting all of the data for all states - 
-     *      * Nodal data is stored in array minmax_nodal
+     *      * Nodal data is stored in array analy->extreme_node_mm
      *      * Element data (by sclass) is stored in array minmax_elem
      */
-    if ( analy->interp_mode != NO_INTERP || 
-         sclass==G_NODE )/* This = interpolate */
+     for (node_index=0; 
+	 node_index<node_qty; 
+	 node_index++) {
+         data_buffer[node_index] = analy->extreme_node_mm[node_index];
+	 if (data_buffer[node_index]>max_val)
+	     max_val=data_buffer[node_index];
+	     }
+
+    /* update_extreme_mm( analy ); */
+
+    for ( j=0;
+	  j<subrec_qty;
+	  j++ ) 
     {
-        data_buffer = NODAL_RESULT_BUFFER( analy );
+          analy->result_index = j;
+ 	  subrec = p_result->subrecs[j];
+	  srec   = p_result->srec_id;
+	  p_subrec = analy->srec_tree[srec].subrecs + subrec;
+	  p_class = p_subrec->p_object_class;
 
-        for (node_index=0; node_index<node_qty; node_index++)
-            data_buffer[node_index]  = minmax_nodal[node_index];
+	  if ( p_class->data_buffer_mm ) 
+	  {
+	       for ( k=0;
+		     k<p_class->qty;
+		     k++ )
+	  	     p_class->data_buffer[k] = p_class->data_buffer_mm[k];
 
-        obj_qty = analy->cur_result->qty;
-        for ( j = 0; j < obj_qty; j++ )
-        {
-            analy->result_index = j;
-            update_nodal_min_max( analy );
-        }
-    }
-
-    lookup_global_minmax( analy->cur_result, analy );
-    
-    analy->result_mm[0] = analy->state_mm[0];
-    analy->result_mm[1] = analy->state_mm[1];
+	       if ( p_result->origin.is_elem_result )
+	            elem_get_minmax(p_class->data_buffer, p_class->qty, analy );
+	  }
+	  update_nodal_min_max( analy );
+     }
+ 
+    free_extreme_mm( analy );
 
     update_min_max( analy );
 
     /* Free up temporary storage */
-    free(minmax_nodal);
-    free(minmax_sclass);
-    free(minmax_obj_index);
+
+    analy->cur_result     = p_result;
+    analy->extreme_result = TRUE;
+
+    return;
+}
+
+/*****************************************************************
+ * TAG( free_exteme_minmax )
+ *
+ * Free up all temp extreme max data.
+ */
+extern void
+free_extreme_mm( Analysis *analy ) 
+{
+    int j,k;
+    int index, obj_qty, sclass;
+    Result     *p_result;
+    int         subrec, subrec_qty, srec=0, obj_id, *object_ids, result_index=0;
+
+    MO_class_data *p_class;
+    Subrec_obj *p_subrec;
+
+    if ( !analy->extreme_result )
+         return;
+
+    analy->extreme_result = FALSE;
+
+    p_result   = analy->cur_result;
+    subrec_qty = p_result->qty;
+    index      = analy->result_index;
+    subrec     = p_result->subrecs[index];
+    srec       = p_result->srec_id;
+    p_subrec   = analy->srec_tree[srec].subrecs + subrec;
+    sclass     = p_result->superclasses[index];
+    obj_qty    = p_subrec->subrec.qty_objects;
+    p_class    = p_subrec->p_object_class;
+
+    if ( analy->extreme_node_mm!=NULL ) {
+         free( analy->extreme_node_mm );
+	 analy->extreme_node_mm=NULL;
+    }
+
+    for ( j=0;
+	  j<subrec_qty;
+	  j++ ) 
+    {
+	  subrec   = p_result->subrecs[j];
+	  srec     = p_result->srec_id;
+	  p_subrec = analy->srec_tree[srec].subrecs + subrec;
+	  p_class  = p_subrec->p_object_class;
+	  if ( p_class->data_buffer_mm ) 
+	  {
+	       free (p_class->data_buffer_mm);
+	       p_class->data_buffer_mm = NULL;
+	  }
+     }
+}
+
+/*****************************************************************
+ * TAG( update_extreme_minmax )
+ *
+ * Update the extreme element min/maxes for the currently displayed
+ * result.
+ */
+extern void
+update_extreme_mm( Analysis *analy ) 
+{
+    int j,k;
+    int index, obj_qty, node_index=0, node_qty=0, sclass;
+    Result     *p_result;
+    int         subrec, subrec_qty, srec=0, obj_id, *object_ids, result_index=0;
+
+    MO_class_data *p_class, *p_node_class;;
+    Subrec_obj *p_subrec;
+
+    float *data_buffer;
+
+    if ( !analy->extreme_result )
+         return;
+
+    data_buffer = NODAL_RESULT_BUFFER( analy );
+
+    p_node_class = MESH_P( analy )->node_geom;
+    node_qty     = p_node_class->qty;
+
+    p_result   = analy->cur_result;
+    subrec_qty = p_result->qty;
+    index      = analy->result_index;
+    srec       = p_result->srec_id;
+    subrec = p_result->subrecs[index];
+    p_subrec   = analy->srec_tree[srec].subrecs + subrec;
+    sclass     = p_result->superclasses[index];
+    obj_qty    = p_subrec->subrec.qty_objects;
+    p_class    = p_subrec->p_object_class;
+
+    for (node_index=0; 
+	 node_index<node_qty; 
+	 node_index++)
+         data_buffer[node_index] = analy->extreme_node_mm[node_index];
+    update_nodal_min_max( analy );
+
+    if ( p_result->origin.is_elem_result )
+         for ( j=0;
+	       j<subrec_qty;
+	       j++ ) 
+    {
+	  subrec = p_result->subrecs[j];
+	  srec   = p_result->srec_id;
+	  p_subrec = analy->srec_tree[srec].subrecs + subrec;
+	  p_class = p_subrec->p_object_class;
+	  if ( p_class->data_buffer_mm ) 
+	  {
+	       for ( k=0;
+		     k<p_class->qty;
+		     k++ )
+	  	     p_class->data_buffer[k] = p_class->data_buffer_mm[k];
+
+	       elem_get_minmax(p_class->data_buffer, p_class->qty, analy );
+	  }
+     }
+    
+    update_min_max( analy );
 
     analy->cur_result = p_result;
 }

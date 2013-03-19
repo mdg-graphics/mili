@@ -9,38 +9,6 @@
  *      Methods Development Group
  *      Lawrence Livermore National Laboratory
  *      14 Feb 1997
- *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
  * 
  ************************************************************************
  * Modifications:
@@ -78,24 +46,24 @@ static void *exo_handle;
  * format.
  */
 Bool_type
-is_known_db( char *fname, Database_type *p_db_type )
+is_known_db( char *fname, Database_type_griz *p_db_type )
 {
     if ( is_mili_db( fname ) )
     {
-        *p_db_type = MILI_DB_TYPE;
+        *p_db_type = MILI;
     }
     else if ( is_taurus_plot_db( fname ) )
     {
-        *p_db_type = TAURUS_DB_TYPE;
+        *p_db_type = TAURUS;
     }
     else if ( is_byte_swapped_taurus_plot_db( fname ) )
     {
-        *p_db_type = TAURUS_DB_TYPE;
+        *p_db_type = TAURUS;
     }
 #ifdef EXO_SUPPORT
     else if ( is_exodus_db( fname ) )
     {
-        *p_db_type = EXODUS_DB_TYPE;
+        *p_db_type = EXODUS;
     }
 #endif
     else
@@ -111,7 +79,7 @@ is_known_db( char *fname, Database_type *p_db_type )
  * Initialize I/O functions for an analysis.
  */
 Bool_type
-init_db_io( Database_type db_type, Analysis *analy )
+init_db_io( Database_type_griz db_type, Analysis *analy )
 {
     Bool_type rval;
 #ifdef EXO_SUPPORT
@@ -134,7 +102,7 @@ init_db_io( Database_type db_type, Analysis *analy )
 
     switch ( db_type )
     {
-        case MILI_DB_TYPE:
+        case MILI:
             analy->db_open = mili_db_open;
             analy->db_get_geom = mili_db_get_geom;
             analy->db_close = mili_db_close;
@@ -151,7 +119,7 @@ init_db_io( Database_type db_type, Analysis *analy )
             analy->db_set_buffer_qty = mili_db_set_buffer_qty;
             break;
             
-        case TAURUS_DB_TYPE:
+        case TAURUS:
             /* Taurus-specific functions. */
             analy->db_open = taurus_db_open;
             analy->db_get_geom = taurus_db_get_geom;
@@ -172,7 +140,7 @@ init_db_io( Database_type db_type, Analysis *analy )
             break;
             
 #ifdef EXO_SUPPORT
-        case EXODUS_DB_TYPE:
+        case EXODUS:
             exo_db_open = (int (*)( char *, int * )) 
                           dlsym( exo_handle, "exodus_db_open" );
             if ( exo_db_open == NULL )
@@ -309,7 +277,7 @@ init_db_io( Database_type db_type, Analysis *analy )
     }
 
 #ifdef EXO_SUPPORT
-    if ( db_type == EXODUS_DB_TYPE && rval == FALSE )
+    if ( db_type == EXODUS && rval == FALSE )
     {
         dlerror();
         dlclose( exo_handle );
@@ -327,11 +295,11 @@ init_db_io( Database_type db_type, Analysis *analy )
  * needed anymore.
  */
 extern void 
-reset_db_io( Database_type db_type )
+reset_db_io( Database_type_griz db_type )
 {
     switch ( db_type )
     {
-        case EXODUS_DB_TYPE:
+        case EXODUS:
 #ifdef EXO_SUPPORT
             dlclose( exo_handle );
 #endif
@@ -354,7 +322,7 @@ reset_db_io( Database_type db_type )
 static Bool_type
 is_mili_db( char *fname )
 {
-    char mili_fname[128];
+    char mili_fname[512];
     char *cbuf;
     size_t mb_len;
     FILE *p_f;

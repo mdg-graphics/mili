@@ -4,41 +4,20 @@
  *
  *      Thomas Spelce
  *      Lawrence Livermore National Laboratory
- *      Jun 29 1992
+ *      June 29 1992
  *
+ ************************************************************************
+ *
+ * Modifications:
+ *
+ *  I. R. Corey - Feb 12, 2009: Modified limits check for calculating 
+ *                               invariant for the principle stresses.
+ *                See SRC# 565.
  * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
+ ************************************************************************
+ *
  */
+
 
 #include "viewer.h"
 
@@ -328,14 +307,16 @@ compute_hex_principal_stress( Analysis *analy, float *resultArr,
                               Bool_type interpolate )
 {
     float *resultElem;               /* Element results vector. */
-    float *hexStress;                /* Ptr to element stresses. */
-    float devStress[3];              /* Deviatoric stresses,
+    float  *hexStressFlt;            /* Ptr to element stresses. */
+
+    double hexStress[6];
+    double devStress[3];             /* Deviatoric stresses,
                                         only need diagonal terms. */
-    float Invariant[3];              /* Invariants of tensor. */
-    float princStress[3];            /* Principal values. */
-    float pressure;
+    double Invariant[3];             /* Invariants of tensor. */
+    float  princStress[3];           /* Principal values. */
+    double pressure;
     float alpha, angle, value;
-    int i;
+    int i, j;
     float *result_buf;
     Result *p_result;
     char **primals;
@@ -344,6 +325,9 @@ compute_hex_principal_stress( Analysis *analy, float *resultArr,
     int index, res_index, elem_idx;
     Subrec_obj *p_subrec;
     int *object_ids;
+
+    double limit_check=0.0;
+
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -379,8 +363,16 @@ compute_hex_principal_stress( Analysis *analy, float *resultArr,
                            primals, (void *) result_buf );
 
     /* Calculate deviatoric stresses. */
-    for ( i = 0, hexStress = result_buf; i < obj_qty; i++, hexStress += 6 )
+    for ( i = 0, hexStressFlt = result_buf; 
+	  i < obj_qty; i++, 
+	    hexStressFlt += 6 )
     {
+
+        for ( j=0;
+	      j<6;
+	      j++ )
+	      hexStress[j] = hexStressFlt[j];
+	      
         /* Calculate pressure. */
         pressure =  - ( hexStress[0] +
                         hexStress[1] + 
@@ -406,10 +398,16 @@ compute_hex_principal_stress( Analysis *analy, float *resultArr,
                        + devStress[1] * hexStress[5] * hexStress[5] 
                        + devStress[2] * hexStress[3] * hexStress[3];
 
+
         /* Check to see if we can have non-zero divisor, if not 
          * set principal stress to 0.
          */
-        if ( Invariant[1] >= 1e-7 )
+
+	if (Invariant[1]>0.0)
+	    limit_check = fabs(Invariant[2]/Invariant[1]);
+	else limit_check = 0.0;
+
+        if ( limit_check >= 1e-12 )  /* IRC: February 12, 2009 */
         {
             alpha = -0.5*sqrt( (double)27.0/Invariant[1])*
                               Invariant[2]/Invariant[1];
@@ -562,7 +560,7 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
                                            analy->tensor_transform_matrix, 
                                            result_buf ) )
             {
-                popup_dialog( WARNING_POPUP, 
+                popup_dialog( WARNING_POPUP,
                               "Stress/strain coordinate transform failed." );
                 return;
             }

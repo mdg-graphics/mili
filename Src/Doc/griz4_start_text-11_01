@@ -19,7 +19,7 @@ New Commands/Featires
      "on showde"   -> show the deleted elements.
      "on showode"  -> show ONLY the deleted elements.
 
- (3) Added 2 commands to generate model geometry at the current state in 
+ (3) Added 2 commands to generate model geometry at the current state in
      True Grid file format:
      "outgeom <filename>"   -> Write mesh geometry to a file.
      "outsgeom <filename>"  -> Write surface geometry to a file.

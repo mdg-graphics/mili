@@ -74,7 +74,7 @@ parse_show_command( char *token, Analysis *analy )
     
     /* If request is for "mat", don't bother to look it up. */
     if ( strcmp( token, mat ) == 0 )
-    {
+      {
         analy->cur_result = NULL;
     }
     else if ( find_result( analy, analy->result_source, TRUE, &new_result, 
@@ -99,7 +99,7 @@ parse_show_command( char *token, Analysis *analy )
            return( 0 );
     }
 
-    load_result( analy, TRUE, TRUE );
+    load_result( analy, TRUE, TRUE, FALSE );
 
     /* 
      * Look up the global min/max for the new variable.  This must
@@ -185,7 +185,8 @@ cache_global_minmax( Analysis *analy )
     float *el_mm_vals;
     int *el_mm_id;
     char **el_mm_class;
-    int i;
+    int  *el_mm_sclass;
+    int i=0;
 
     Minmax_obj *mm_list;
     int *mesh_object;
@@ -198,11 +199,9 @@ cache_global_minmax( Analysis *analy )
     mesh_object = analy->global_mm_nodes;
 
     if ( result == NULL )
-        return;
-
-    if ( analy->ei_result )
-      i=0;
-
+         return;
+    if ( !strcmp( result->name, "damage" ) )
+         return;
 
     /* See if it's already in the list. */
     for ( mm = mm_list; mm != NULL; mm = mm->next )
@@ -224,23 +223,26 @@ cache_global_minmax( Analysis *analy )
              * If element result, update element minmax for use when
              * interpolation mode is "noterp".
              */
-            if ( result->origin.is_elem_result )
+            if ( result->origin.is_elem_result ) 
             {
                 el_mm_vals  = analy->elem_global_mm.object_minmax;
                 el_mm_id    = analy->elem_global_mm.object_id;
-                el_mm_class = analy->elem_global_mm.class_name;
+                el_mm_class = analy->elem_global_mm.class_long_name;
+                el_mm_sclass = analy->elem_global_mm.sclass;
                 
                 if ( el_mm_vals[0] < mm->object_minmax[0] )
                 {
-                    mm->object_minmax[0] = el_mm_vals[0];
-                    mm->object_id[0]     = el_mm_id[0];
-                    mm->class_name[0]    = el_mm_class[0];
+                    mm->object_minmax[0]  = el_mm_vals[0];
+                    mm->object_id[0]      = el_mm_id[0];
+                    mm->class_long_name[0] = el_mm_class[0];
+                    mm->sclass[0]         = el_mm_sclass[0];
                 }
                 if ( el_mm_vals[1] > mm->object_minmax[1] )
                 {
-                    mm->object_minmax[1] = el_mm_vals[1];
-                    mm->object_id[1]     = el_mm_id[1];
-                    mm->class_name[1]    = el_mm_class[1];
+                    mm->object_minmax[1]  = el_mm_vals[1];
+                    mm->object_id[1]      = el_mm_id[1];
+                    mm->class_long_name[1] = el_mm_class[1];
+                    mm->sclass[1]         = el_mm_sclass[1];
                 }
             }
             return;
@@ -291,11 +293,12 @@ lookup_global_minmax( Result *p_result, Analysis *analy )
     float *el_state_mm;
     int *el_state_id;
     char **el_state_class;
+    int *el_state_sclass;
 
-    el_state_mm    = analy->elem_state_mm.object_minmax;
-    el_state_id    = analy->elem_state_mm.object_id;
-    el_state_class = analy->elem_state_mm.class_name;
-
+    el_state_mm     = analy->elem_state_mm.object_minmax;
+    el_state_id     = analy->elem_state_mm.object_id;
+    el_state_class  = analy->elem_state_mm.class_long_name;
+    el_state_sclass = analy->elem_state_mm.sclass;
 
     
     /*
@@ -343,15 +346,17 @@ lookup_global_minmax( Result *p_result, Analysis *analy )
         /* Update the global minmax for element (pre-interpolated) results. */
         if ( el_state_mm[0] < analy->elem_global_mm.object_minmax[0] )
         {
-            analy->elem_global_mm.object_minmax[0] = el_state_mm[0];
-            analy->elem_global_mm.object_id[0]     = el_state_id[0];
-            analy->elem_global_mm.class_name[0]    = el_state_class[0];
+            analy->elem_global_mm.object_minmax[0]   = el_state_mm[0];
+            analy->elem_global_mm.object_id[0]       = el_state_id[0];
+            analy->elem_global_mm.class_long_name[0] = el_state_class[0];
+            analy->elem_global_mm.sclass[0]          = el_state_sclass[0];
         }
         if ( el_state_mm[1] > analy->elem_global_mm.object_minmax[1] )
         {
-            analy->elem_global_mm.object_minmax[1] = el_state_mm[1];
-            analy->elem_global_mm.object_id[1]     = el_state_id[1];
-            analy->elem_global_mm.class_name[1]    = el_state_class[1];
+            analy->elem_global_mm.object_minmax[1]   = el_state_mm[1];
+            analy->elem_global_mm.object_id[1]       = el_state_id[1];
+            analy->elem_global_mm.class_long_name[1] = el_state_class[1];
+            analy->elem_global_mm.sclass[1]          = el_state_sclass[1];
         }
     }
     else
@@ -368,8 +373,10 @@ lookup_global_minmax( Result *p_result, Analysis *analy )
         analy->elem_global_mm.object_id[0] = el_state_id[0];
         analy->elem_global_mm.object_id[1] = el_state_id[1];
 
-        analy->elem_global_mm.class_name[0] = el_state_class[0];
-        analy->elem_global_mm.class_name[1] = el_state_class[1];
+        analy->elem_global_mm.class_long_name[0] = el_state_class[0];
+        analy->elem_global_mm.class_long_name[1] = el_state_class[1];
+        analy->elem_global_mm.sclass[0]          = el_state_sclass[0];
+        analy->elem_global_mm.sclass[1]          = el_state_sclass[1];
     }
 
     /* Update the current min/max. */
@@ -400,9 +407,14 @@ reset_global_minmax( Analysis *analy )
     /* If a cached min/max for the current result exists, delete it.  */
     if ( analy->result_mm_list ) /* Added October 10, 2007: IRC - Check for a valid address */
          for ( mm = analy->result_mm_list; mm != NULL; NEXT( mm ) )
-	   if ( mm ) 
-                if ( match_result( analy, analy->cur_result, &mm->result ) )
-                     DELETE( mm, analy->result_mm_list );
+	   if (  analy->result_mm_list && mm ) 
+	     if ( match_result( analy, analy->cur_result, &mm->result ) ) {
+                 DELETE( mm, analy->result_mm_list );
+		 if ( !analy->result_mm_list ) {
+		      mm=NULL;
+		      break;
+		 }
+	     }
 
     /* Always reset the current global min/max from the current state. */
     analy->global_mm[0] = analy->state_mm[0];

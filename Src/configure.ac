@@ -73,9 +73,9 @@
 #############################################################################
 
 m4_define(GRIZ_NAME_M4, Griz4)
-m4_define(GRIZ_VERSION_M4, V4_11)
-m4_define(MILI_VERSION_M4, V1_13)
-m4_define(GRIZ_DATE_M4, 2008/01/10)
+m4_define(GRIZ_VERSION_M4, V12_01)
+m4_define(MILI_VERSION_M4, V12_01)
+m4_define(GRIZ_DATE_M4, 2012/10/01)
 m4_define(GRIZ_TIME_M4, 16:39:00)
 m4_define(GRIZ_DATETIME_M4, [GRIZ_DATE_M4 GRIZ_TIME_M4])
 m4_define(GRIZ_BUGS_M4,corey3@llnl.gov)
@@ -214,26 +214,27 @@ CONFIGURE_TASKS
 #
 #############################################################################
 
-CONFIGURE_BATCH
-
-CONFIGURE_BITMAPS
-
-CONFIGURE_IMAGE
-
-CONFIGURE_JPEG
+CONFIGURE_MILI
+if test "$OS_NAME" = "IRIX64" -o "$OS_NAME" = "IRIX"; then
+CONFIGURE_SGI_GRAPHICS
+else
+CONFIGURE_X11
 
 CONFIGURE_MESA
 
 CONFIGURE_OSMESA
+fi
+CONFIGURE_BITMAPS
+
+CONFIGURE_IMAGE
 
 CONFIGURE_HERSHEY
 
-CONFIGURE_MILI
-
 CONFIGURE_EXODUS
+
 CONFIGURE_NETCDF
 
-CONFIGURE_X11
+CONFIGURE_JPEG
 
 CONFIGURE_PNG
 
@@ -245,11 +246,8 @@ CONFIGURE_KLOCWORK
 #
 #############################################################################
 CONFIGURE_DIRS
-
 CONFIGURE_BUILDDIRS
-
 EXTERNAL_CONFIGURATIONS
-
 CONFIGURE_INSTALL
 
 #############################################################################
@@ -257,15 +255,10 @@ CONFIGURE_INSTALL
 #	Configure the Compiler Options
 #
 #############################################################################
-
 CONFIGURE_COMPILER_FLAGS
-
 CONFIGURE_COMPILER_GRIZ
-
 CONFIGURE_GRIZ_LIBRARIES
-
 CONFIGURE_COMPILER_HERSHEYLIB
-
 CONFIGURE_COMPILER_IMAGELIB
 
 #############################################################################
@@ -282,7 +275,8 @@ CONFIGURE_COMPILER_IMAGELIB
 #	Check for other functions nad libraries
 # 
 #############################################################################
-AC_CHECK_LIB(m, isnan, AC_DEFINE(HAVE_ISNAN, 1, [Math Lib has isNaN funtion]))
+#AC_CHECK_LIB(m, isnan, AC_DEFINE(HAVE_ISNAN, 1, [Math Lib has isNaN funtion]))
+AC_SEARCH_LIBS([isnan],[m],[AC_DEFINE(HAVE_ISNAN, 1, [Math Lib has isNaN funtion])])
 # General procedure for checking Fortran Libraries, but in the case of
 # libm.a this doesn't appear to work as expected.
 #AC_FC_FUNC(isnan)

@@ -7,38 +7,6 @@
  *      Methods Development Group
  *      Lawrence Livermore National Laboratory
  *      14 Feb 1997
- *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
  * 
  *************************************************************************
  *
@@ -56,13 +24,39 @@
  * 02/27/2008 I. R. Corey    
  *                          load_nodpos_timehist.
  *                          See SRC#: 291
+ *
+ * 12/05/2008 I. R. Corey   Add DP calculations for all derived nodal 
+ *                          results. See mili_db_set_results().
+ *                          See SRC#: 556
+ *
+ * 04/02/2009 I. R. Corey   Fixed a problem with searching for shell
+ *                          nodal positions (coords) needed to compute
+ *                          quad rotations.
+ *                          See SRC#: 596
+ *
+ * 05/22/2009 I. R. Corey   Fixed a problem with loading object ids
+ *                          for functions load_quad_nodpos_timehist()
+ *                          and load_hex_nodpos_timehist().
+ *                          See SRC#: 605
+ *
+ * 06/25/2009 I. R. Corey   Changed the allocate/init of object id array
+ *                          from number of nodes to number of object ids.
+ *                          See SRC#: 610
+ *
+ * 03/17/2010 I. R. Corey   Added check for missing nodes that can occur
+ *                          if a 2 node beam is defined.
+ *                          See SRC#: 610
+ *
+ * 12/28/2012 I. R. Corey   Added capability to view global & material 
+ *                          results for a file with no nodes or elements.
+ *                          See SourceForge#: 19225
  *************************************************************************
  *
  */
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <values.h>
+#include <math.h>
 #include "viewer.h"
 
 #define OK 0
@@ -74,8 +68,7 @@ static int create_derived_results( Analysis *analy, int srec_id, int subrec_id,
 static void gen_material_data( MO_class_data *, Mesh_data * );
 static void check_degen_hexs( MO_class_data *p_hex_class );
 static void check_degen_quads( MO_class_data *p_quad_class );
-static void check_degen_tris( MO_class_data *p_tri_class );
-extern void fix_title( char *title );
+static void check_degen_tris( MO_class_data *p_tri_class );extern void fix_title( char *title );
 char        *get_subrecord( Analysis *analy, int num );
 
 int mili_compare_labels( MO_class_labels *label1, MO_class_labels *label2 );
@@ -96,7 +89,7 @@ mili_db_open( char *path_root, int *p_dbid )
     char *p_root_start, *p_root_end;
     char *p_src, *p_dest;
     char *path;
-    char root[128];
+    char root[512];
     char path_text[256];
     int rval;
     Famid dbid;
@@ -162,22 +155,21 @@ mili_db_open( char *path_root, int *p_dbid )
  */
 
 
-
 extern int
 mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
 {
     Hash_table *p_ht;
     Mesh_data *mesh_array;
     Htable_entry *p_hte;
-    MO_class_data *p_mocd;
+    MO_class_data *p_mocd, *p_node_class=NULL;
     MO_class_data **mo_classes;
-    char short_name[64], long_name[64];
+    char short_name[M_MAX_NAME_LEN], long_name[M_MAX_NAME_LEN];
     Elem_data *p_ed;
     Material_data *p_matd;
     Mesh_data *p_md;
     int mesh_qty, qty_classes;
     int obj_qty;
-    int i, j, k;
+    int i, j, k, l;
     int idx;
     int int_args[3];
     int dims;
@@ -190,12 +182,13 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
         M_TET,
         M_PYRAMID,
         M_WEDGE,
-        M_HEX
+        M_HEX,
+	M_PARTICLE
     };
     int qty_esclasses, elem_class_count;
     static int qty_connects[] = 
     {
-        2, 3, 3, 4, 4, 5, 6, 8
+      2, 3, 3, 4, 4, 5, 6, 8, 1
     };
     Bool_type have_Nodal;
     List_head *p_lh;
@@ -211,7 +204,9 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
     int ii;
 
     int block_qty=0, block_index=0, block_range_index=0, 
-      *block_range=NULL, elem_sclass=0, mat_index=0;
+        *block_range=NULL, elem_sclass=0, mat_index=0;
+
+    Analysis *p_analysis;
 
     if ( *p_mtable != NULL )
     {
@@ -316,6 +311,8 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 return GRIZ_FAIL;
             }
 
+	    p_node_class = p_mocd;
+
             /* Allocate the data buffer for scalar I/O and result derivation. */
             p_mocd->data_buffer = NEW_N( float, obj_qty, "Class data buffer" );
             if ( p_mocd->data_buffer == NULL )
@@ -334,92 +331,91 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 /* Keep a reference to node geometry handy. */
                 p_md->node_geom = p_mocd;
 
-		temp_labels = NEW_N( int, obj_qty, "Temp labels " );
+                temp_labels = NEW_N( int, obj_qty, "Temp labels " );
 
-		/* Load the Nodal Labels */
+                /* Load the Nodal Labels */
 
-		status = mc_load_node_labels( dbid,  p_mocd->mesh_id, short_name, 
-					      &block_qty, &block_range, 
-					      temp_labels );
+                status = mc_load_node_labels( dbid,  p_mocd->mesh_id, short_name, 
+                                              &block_qty, &block_range, 
+                                              temp_labels );
 
-		p_mocd->labels_max = -1;    /* MININT not on all systems */
-		p_mocd->labels_min = MAXINT;
+                p_mocd->labels_max = -1;    /* MININT not on all systems */
+                p_mocd->labels_min = MAXINT;
 
-		if ( status!= OK )
+                if ( status!= OK )
                      p_mocd->labels_found = FALSE;
 
-		if ( status == OK )
-	        {
-		     /* Allocate space for object labels  */
-		     p_mocd->labels = NEW_N( MO_class_labels, obj_qty, "Class labels " );
-		     if ( p_mocd->labels == NULL )
-		          popup_fatal( "Unable to allocate labels on class load" );
+                if ( status == OK && block_qty> 0 )
+                {
+                     /* Allocate space for object labels  */
+                     p_mocd->labels = NEW_N( MO_class_labels, obj_qty, "Class labels " );
+                     if ( p_mocd->labels == NULL )
+                          popup_fatal( "Unable to allocate labels on class load" );
 
-		     p_mocd->labels_index = NEW_N( int, obj_qty, "Class labels index" );
-		     if ( p_mocd->labels_index == NULL )
-		          popup_fatal( "Unable to allocate labels index on class load" );
+                     p_mocd->labels_index = NEW_N( int, obj_qty, "Class labels index" );
+                     if ( p_mocd->labels_index == NULL )
+                          popup_fatal( "Unable to allocate labels index on class load" );
 
-		     p_mocd->labels_found = TRUE;
-		     for (obj_id=0;
-			  obj_id<p_mocd->qty;
-			  obj_id++)
-		     {
-		          p_mocd->labels[obj_id].local_id  = obj_id;
-		          p_mocd->labels[obj_id].label_num = temp_labels[obj_id];
-			  if ( temp_labels[obj_id] > p_mocd->labels_max )
-			       p_mocd->labels_max = temp_labels[obj_id];
-			  if ( temp_labels[obj_id] <= p_mocd->labels_min )
-			       p_mocd->labels_min = temp_labels[obj_id];
-			      
-		     }
+                     p_mocd->labels_found = TRUE;
+                     for (obj_id=0;
+                          obj_id<p_mocd->qty;
+                          obj_id++)
+                     {
+                          p_mocd->labels[obj_id].local_id  = obj_id;
+                          p_mocd->labels[obj_id].label_num = temp_labels[obj_id];
+                          if ( temp_labels[obj_id] > p_mocd->labels_max )
+                               p_mocd->labels_max = temp_labels[obj_id];
+                          if ( temp_labels[obj_id] <= p_mocd->labels_min )
+                               p_mocd->labels_min = temp_labels[obj_id];
+                     }
 
-		     /* Sort the labels */
+                     /* Sort the labels */
 
-		     qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels), 
-			  (void *) mili_compare_labels);
+                     qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels), 
+                          (void *) mili_compare_labels);
 
-		     /* Create a mapping for the 1-n label index */
+                     /* Create a mapping for the 1-n label index */
 
-		     for (obj_id=0;
-			  obj_id<obj_qty;
-			  obj_id++)
-		          p_mocd->labels_index[p_mocd->labels[obj_id].local_id] = obj_id;
-		}
-		else
-		{
- 	             p_mocd->labels_found = FALSE;
-		}
+                     for (obj_id=0;
+                          obj_id<obj_qty;
+                          obj_id++)
+                          p_mocd->labels_index[p_mocd->labels[obj_id].local_id] = obj_id;
+                }
+                else
+                {
+                     p_mocd->labels_found = FALSE;
+                }
 
-		p_mocd->label_blocking.block_qty = 0;
+                p_mocd->label_blocking.block_qty = 0;
 
-		if ( p_mocd->labels_found &&
-		     block_qty>0 && block_range )
-		{
-		     /* Construct the Label Blocking table of contents */
-		     p_mocd->label_blocking.block_qty           = block_qty;
-		     p_mocd->label_blocking.block_total_objects = 0;
+                if ( p_mocd->labels_found &&
+                     block_qty>0 && block_range )
+                {
+                     /* Construct the Label Blocking table of contents */
+                     p_mocd->label_blocking.block_qty           = block_qty;
+                     p_mocd->label_blocking.block_total_objects = 0;
                      p_mocd->label_blocking.block_min           = MAXINT;
-		     p_mocd->label_blocking.block_max           = MININT;
-		     p_mocd->label_blocking.block_objects = NEW_N( Label_block_data, block_qty, "Node Class Label Block Objects" );
-		     
-		     block_index = 0;
-		     for ( k=0;
-			   k<block_qty;
-			   k++ )
-		     {
-		           /* Update min and max labels for this block */
-		           if (block_range[block_index]<p_mocd->label_blocking.block_min)
-			       p_mocd->label_blocking.block_min = block_range[block_index];
-		           if (block_range[block_index]>p_mocd->label_blocking.block_max)
-			       p_mocd->label_blocking.block_max = block_range[block_index];
+                     p_mocd->label_blocking.block_max           = MININT;
+                     p_mocd->label_blocking.block_objects = NEW_N( Label_block_data, block_qty, "Node Class Label Block Objects" );
+                     
+                     block_index = 0;
+                     for ( k=0;
+                           k<block_qty;
+                           k++ )
+                     {
+                           /* Update min and max labels for this block */
+                           if (block_range[block_index]<p_mocd->label_blocking.block_min)
+                               p_mocd->label_blocking.block_min = block_range[block_index];
+                           if (block_range[block_index]>p_mocd->label_blocking.block_max)
+                               p_mocd->label_blocking.block_max = block_range[block_index];
 
-		           p_mocd->label_blocking.block_objects[k].label_start = block_range[block_index++];
-			   p_mocd->label_blocking.block_objects[k].label_stop  = block_range[block_index++];
-			   p_mocd->label_blocking.block_total_objects += (p_mocd->label_blocking.block_objects[k].label_stop -
-									  p_mocd->label_blocking.block_objects[k].label_start)+1;
-		     }
-		}
-	        free( temp_labels );
+                           p_mocd->label_blocking.block_objects[k].label_start = block_range[block_index++];
+                           p_mocd->label_blocking.block_objects[k].label_stop  = block_range[block_index++];
+                           p_mocd->label_blocking.block_total_objects += (p_mocd->label_blocking.block_objects[k].label_stop -
+                                                                          p_mocd->label_blocking.block_objects[k].label_start)+1;
+                     }
+                }
+                free( temp_labels );
             }
 
  
@@ -438,12 +434,33 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
         if ( !have_Nodal )
         {
             popup_dialog( WARNING_POPUP, 
-                          "Griz requires a node object class \"node\"." );
-            htable_delete( p_ht, delete_mo_class_data, TRUE );
+                          "Node object classs not found \"node\"." );
+
+            /* htable_delete( p_ht, delete_mo_class_data, TRUE );
+               return OK; */
+	    
+	    /* No nodal or element data in this problem so create a
+	     * fake nodal class.
+	     */
+            p_mocd = NEW( MO_class_data, "Nodes geom table entry" );
             
-            return 1;
+            p_mocd->mesh_id = i;
+            griz_str_dup( &p_mocd->short_name, " " );
+            griz_str_dup( &p_mocd->long_name, " " );
+            p_mocd->superclass = M_UNIT;
+            p_mocd->elem_class_index = -1;
+            p_mocd->qty = 0;
+
+	    /* Allocate the data buffer for I/O and result derivation. */
+	    p_mocd->data_buffer = NEW_N( float, 10000, 
+					 "Class data buffer" );
+ 
+	    /* Keep a reference to node geometry handy. */
+	    p_md->node_geom = p_mocd;
         }
-        
+
+	mesh_array->hex_vol_sums = NULL;
+	
         /*
          * Load element connectivities.
          */
@@ -479,6 +496,9 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                     return GRIZ_FAIL;
                 }
                 
+		if ( obj_qty==0 )
+		     continue;
+
                 /* Create mesh geometry table entry. */
                 htable_search( p_ht, short_name, ENTER_ALWAYS, &p_hte );
                 
@@ -487,6 +507,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 p_mocd->mesh_id = i;
                 griz_str_dup( &p_mocd->short_name, short_name );
                 griz_str_dup( &p_mocd->long_name, long_name );
+
                 p_mocd->superclass = elem_sclasses[j];
                 p_mocd->elem_class_index = elem_class_count++;
                 p_mocd->qty = obj_qty;
@@ -495,8 +516,9 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 p_mocd->objects.elems = p_ed;
                 p_ed->nodes = NEW_N( int, obj_qty * qty_connects[j], 
                                      "Element connectivities" );
-                p_ed->mat = NEW_N( int, obj_qty, "Element materials" );
-                p_ed->part = NEW_N( int, obj_qty, "Element parts" );
+                p_ed->mat    = NEW_N( int, obj_qty, "Element materials" );
+                p_ed->part   = NEW_N( int, obj_qty, "Element parts" );
+                p_ed->volume = NULL;
 
                 /* Allocate the data buffer for I/O and result derivation. */
                 p_mocd->data_buffer = NEW_N( float, obj_qty, 
@@ -506,7 +528,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 
                 p_hte->data = (void *) p_mocd;
                 
-                rval = mc_load_conns( dbid, i, short_name, p_ed->nodes, 
+                rval = mc_load_conns( dbid, i, short_name, p_ed->nodes,
                                       p_ed->mat, p_ed->part );
                 if ( rval != 0 )
                 {
@@ -515,107 +537,104 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                     return GRIZ_FAIL;
                 }
                 
-		temp_elems  = NEW_N( int, obj_qty, "Temp element ids " );
-		temp_labels = NEW_N( int, obj_qty, "Temp labels " );
+                temp_elems  = NEW_N( int, obj_qty, "Temp element ids " );
+                temp_labels = NEW_N( int, obj_qty, "Temp labels " );
 
-		/* Load the Element Labels */
-		status = mc_load_conn_labels( dbid, p_mocd->mesh_id, short_name, 
-					      obj_qty,
-					      &block_qty, &block_range, 
-					      temp_elems, temp_labels );
+                /* Load the Element Labels */
+                status = mc_load_conn_labels( dbid, p_mocd->mesh_id, short_name, 
+                                              obj_qty,
+                                              &block_qty, &block_range, 
+                                              temp_elems, temp_labels );
 
-		p_mocd->labels_max = -1;    /* MININT not on all systems */
-		p_mocd->labels_min = MAXINT;
+                p_mocd->labels_max = -1;    /* MININT not on all systems */
+                p_mocd->labels_min = MAXINT;
 
-		if ( status!= OK )
+                if ( status!= OK )
                      p_mocd->labels_found = FALSE;
 
-		if ( status == OK )
-		{
-		     /* Allocate space for object labels  */
-		     p_mocd->labels = NEW_N( MO_class_labels, obj_qty, "Class labels " );
-		     if ( p_mocd->labels == NULL )
-		          popup_fatal( "Unable to allocate labels on class load" );
+                if ( status == OK && block_qty> 0 )
+                {
+                     /* Allocate space for object labels  */
+                     p_mocd->labels = NEW_N( MO_class_labels, obj_qty, "Class labels " );
+                     if ( p_mocd->labels == NULL )
+                          popup_fatal( "Unable to allocate labels on class load" );
 
-		     p_mocd->labels_index = NEW_N( int, obj_qty, "Class labels index" );
-		     if ( p_mocd->labels_index == NULL )
-		          popup_fatal( "Unable to allocate labels index on class load" );
+                     p_mocd->labels_index = NEW_N( int, obj_qty, "Class labels index" );
+                     if ( p_mocd->labels_index == NULL )
+                          popup_fatal( "Unable to allocate labels index on class load" );
 
-		     p_mocd->labels_found = TRUE;
-		     for (obj_id=0;
-			  obj_id<p_mocd->qty;
-			  obj_id++)
-		     {
-		          p_mocd->labels[obj_id].local_id  = temp_elems[obj_id]-1;
-		          p_mocd->labels[obj_id].label_num = temp_labels[obj_id];
+                     p_mocd->labels_found = TRUE;
+                     for (obj_id=0;
+                          obj_id<p_mocd->qty;
+                          obj_id++)
+                     {
+                          p_mocd->labels[obj_id].local_id  = temp_elems[obj_id]-1;
+                          p_mocd->labels[obj_id].label_num = temp_labels[obj_id];
 
-			  if ( temp_labels[obj_id] > p_mocd->labels_max )
-			       p_mocd->labels_max = temp_labels[obj_id];
-			  if ( temp_labels[obj_id] <= p_mocd->labels_min )
-			       p_mocd->labels_min = temp_labels[obj_id];
-			       }
+                          if ( temp_labels[obj_id] > p_mocd->labels_max )
+                               p_mocd->labels_max = temp_labels[obj_id];
+                          if ( temp_labels[obj_id] <= p_mocd->labels_min )
+                               p_mocd->labels_min = temp_labels[obj_id];
+		     }
 
-		     /* Sort the labels */
+                     /* Sort the labels */
 
-		     qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels), 
-			   (void *) mili_compare_labels);
+                     qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels), 
+                           (void *) mili_compare_labels);
 
-		     /* Create a mapping for the 1-n label index */
+                     /* Create a mapping for the 1-n label index */
 
-		     for (obj_id=0;
-			  obj_id<obj_qty;
-			  obj_id++)
-		          p_mocd->labels_index[p_mocd->labels[obj_id].local_id] = obj_id;
-		}
-		else
- 	              p_mocd->labels_found = FALSE;
+                     for (obj_id=0;
+                          obj_id<obj_qty;
+                          obj_id++) {
+                          p_mocd->labels_index[p_mocd->labels[obj_id].local_id] = obj_id;
+                          mat_index = p_mocd->labels[obj_id].local_id;
+                          if ( p_mocd->labels[obj_id].local_id<0 || p_mocd->labels[obj_id].local_id>=obj_qty )
+                               mat_index = p_mocd->labels[obj_id].local_id;
+                          }
+                }
+                else
+                      p_mocd->labels_found = FALSE;
 
-		  free( temp_labels );
-		  free( temp_elems ); 
+                free( temp_labels );
+		free( temp_elems );
 
-		/* If we have multiple blocks of labels then identify them
-		 * by loading into a structure for later retrievel.
-		 */
+                /* If we have multiple blocks of labels then identify them
+                 * by loading into a structure for later retrieval.
+                 */
 
-		if ( p_mocd->labels_found && 
-		     block_qty>0 && block_range )
-		{
-		     p_mocd->label_blocking.block_qty           = block_qty;
-		     p_mocd->label_blocking.block_total_objects = 0;
+                if ( p_mocd->labels_found && 
+                     block_qty>0 && block_range )
+                {
+                     p_mocd->label_blocking.block_qty           = block_qty;
+                     p_mocd->label_blocking.block_total_objects = 0;
                      p_mocd->label_blocking.block_min           = MAXINT;
-		     p_mocd->label_blocking.block_max           = MININT;
+                     p_mocd->label_blocking.block_max           = MININT;
 
-		     p_mocd->label_blocking.block_objects = NEW_N( Label_block_data, block_qty, "Element Class Label Block Objects" );
-		     
-		     block_range_index = 0;
-		     mat_index = 0;
+                     p_mocd->label_blocking.block_objects = NEW_N( Label_block_data, block_qty, "Element Class Label Block Objects" );
+                     
+                     block_range_index = 0;
+                     mat_index = 0;
 
-		     for ( block_index=0;
-			   block_index<block_qty;
-			   block_index++ )
-		     {
-		           /* Update min and max labels for this block */
-		       
-		           if (block_range[block_range_index]<p_mocd->label_blocking.block_min)
-			       p_mocd->label_blocking.block_min = block_range[block_range_index];
-		           if (block_range[block_range_index]>p_mocd->label_blocking.block_max)
-			       p_mocd->label_blocking.block_max = block_range[block_range_index];
+                     for ( block_index=0;
+                           block_index<block_qty;
+                           block_index++ )
+                     {
+                           /* Update min and max labels for this block */
+                       
+                           if (block_range[block_range_index]<p_mocd->label_blocking.block_min)
+                               p_mocd->label_blocking.block_min = block_range[block_range_index];
+                           if (block_range[block_range_index]>p_mocd->label_blocking.block_max)
+                               p_mocd->label_blocking.block_max = block_range[block_range_index];
 
-			   p_mocd->label_blocking.block_objects[block_index].label_start = block_range[block_range_index++];
-			   p_mocd->label_blocking.block_objects[block_index].label_stop  = block_range[block_range_index++];
+                           p_mocd->label_blocking.block_objects[block_index].label_start = block_range[block_range_index++];
+                           p_mocd->label_blocking.block_objects[block_index].label_stop  = block_range[block_range_index++];
 
-			   if ( mat_index<obj_qty )
-			        p_mocd->label_blocking.block_objects[block_index].label_mat = p_ed->mat[mat_index]+1;
-			   else 
-			        p_mocd->label_blocking.block_objects[block_index].label_mat = -1;
-			   p_mocd->label_blocking.block_total_objects += (p_mocd->label_blocking.block_objects[block_index].label_stop -
-			                                                  p_mocd->label_blocking.block_objects[block_index].label_start)+1;
-									  mat_index = p_mocd->label_blocking.block_total_objects;
-		     } 
-		       
-		     if ( block_range )
-		 	  free( block_range );
-		}
+                     } 
+                       
+                     if ( block_range )
+                          free( block_range );
+                }
 
                 /* Element superclass-specific actions. */
                 switch ( elem_sclasses[j] )
@@ -626,11 +645,12 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                         mo_classes = (MO_class_data **) p_lh->list;
                         mo_classes = (void *)
                                      RENEW_N( MO_class_data *,
-                                              mo_classes, p_lh->qty, 1, 
+                                              mo_classes, p_lh->qty, 1,
                                               "Extend hex sclass array" );
                         mo_classes[p_lh->qty] = p_mocd;
                         p_lh->qty++;
                         p_lh->list = (void *) mo_classes;
+
                         break;
 
 #ifdef HAVE_WEDGE_PYRAMID
@@ -728,7 +748,18 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                         p_lh->qty++;
                         p_lh->list = (void *) mo_classes;
                         break;
-                    default:
+                    case M_PARTICLE:
+                        p_lh = p_md->classes_by_sclass + M_PARTICLE;
+                        mo_classes = (MO_class_data **) p_lh->list;
+                        mo_classes = (void *)
+                                     RENEW_N( MO_class_data *,
+                                              mo_classes, p_lh->qty, 1,
+                                              "Extend particle sclass array" );
+                        mo_classes[p_lh->qty] = p_mocd;
+                        p_lh->qty++;
+                        p_lh->list = (void *) mo_classes;
+
+                        break;                    default:
                         /* do nothing */;
                 }
             }
@@ -867,8 +898,8 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                             NULL, (void *) &qty_classes );
         if ( rval != 0 )
         {
-            mc_print_error( "mili_db_get_geom() call mc_query_family()", rval );
-            return GRIZ_FAIL;
+             mc_print_error( "mili_db_get_geom() call mc_query_family()", rval );
+             return GRIZ_FAIL;
         }
         
         for ( j = 0; j < qty_classes; j++ )
@@ -1026,12 +1057,14 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
         
             p_hte->data = (void *) p_mocd;
         }
-    } 
+    }
 
     /* Pass back address of geometry hash table array. */
-    *p_mtable = mesh_array;
+    *p_mtable   = mesh_array;
     *p_mesh_qty = mesh_qty;
 
+    p_analysis = get_analy_ptr();
+    status = get_hex_volumes( dbid, p_analysis );
     return (OK);
 }
 
@@ -1075,22 +1108,22 @@ gen_material_data( MO_class_data *p_mat_class, Mesh_data *p_mesh )
         mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[i].list;
         for ( j = 0; j < qty_classes; j++ )
         {
-            elem_qty = mo_classes[j]->qty;
-            mats = mo_classes[j]->objects.elems->mat;
+             elem_qty = mo_classes[j]->qty;
+             mats = mo_classes[j]->objects.elems->mat;
 
-            /*
-             * Pass through the elements to count elements for each material
-             * and assign element class pointers by material.
-             */
-            for ( k = 0; k < elem_qty; k++ )
-            {
-                mtl = mats[k];
-                mat_elem_qtys[mtl]++;
-                mat_mo_classes[mtl] = mo_classes[j];
-            }
+             /*
+              * Pass through the elements to count elements for each material
+              * and assign element class pointers by material.
+              */
+             for ( k = 0; k < elem_qty; k++ )
+             {
+                   mtl = mats[k];
+                   mat_elem_qtys[mtl]++;
+                   mat_mo_classes[mtl] = mo_classes[j];
+             }
 
-            /* Sum all elements. */
-            elem_sum += elem_qty;
+             /* Sum all elements. */
+             elem_sum += elem_qty;
         }
     }
 
@@ -1330,7 +1363,6 @@ check_degen_tris( MO_class_data *p_tri_class )
     }
 }
 
-
 /************************************************************
  * TAG( mili_db_get_st_descriptors )
  *
@@ -1354,12 +1386,17 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     int class_size;
     MO_class_data *p_mocd;
     Bool_type nodal, particle;
-    int *node_work_array;
+    int *node_work_array=NULL;
     State_variable *p_svar;
     Mesh_data *p_mesh;
 
+    int subrec_index=0;
+
     fid = (Famid) dbid;
     
+    analy->num_bad_subrecs=0;
+    analy->bad_subrecs=NULL;
+
     /* Get state record format count for this database. */
     rval = mc_query_family( fid, QTY_SREC_FMTS, NULL, NULL, 
                             (void *) &srec_qty );
@@ -1433,13 +1470,15 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
         p_mesh = analy->mesh_table + mesh_id;
 
         /* Allocate a temporary working array for subrec node list creation. */
-        mesh_node_qty = p_mesh->node_geom->qty;
-        node_work_array = NEW_N( int, mesh_node_qty, "Temp node array" );
+	mesh_node_qty = p_mesh->node_geom->qty;
+	node_work_array = NEW_N( int, mesh_node_qty, "Temp node array" );
 
         /* Loop over subrecs */
-        for ( j = 0; j < subrec_qty; j++ )
+        for ( j = 0; 
+	      j < subrec_qty; 
+	      j++ )
         {
-            p_subr = &p_subrecs[j].subrec;
+            p_subr = &p_subrecs[subrec_index].subrec;
 
             /* Get binding */
             rval = mc_get_subrec_def( fid, i, j, p_subr );
@@ -1450,14 +1489,23 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                 return GRIZ_FAIL;
             }
 
+	    if ( p_subr->qty_objects==0 ) {
+		 if ( analy->bad_subrecs==NULL ) {
+		      analy->bad_subrecs = NEW_N( int, subrec_qty, "List of bad subrecords" );
+		 }
+		 analy->bad_subrecs[analy->num_bad_subrecs++] = j;
+		 subrec_index++;
+		 continue;
+	    }
+
             htable_search( p_mesh->class_table, p_subr->class_name, FIND_ENTRY, 
                            &p_hte );
             p_mocd = ((MO_class_data *) p_hte->data);
-            p_subrecs[j].p_object_class = p_mocd;
+            p_subrecs[subrec_index].p_object_class = p_mocd;
 
             /* Create list of nodes referenced by objects bound to subrecord. */
             create_subrec_node_list( node_work_array, mesh_node_qty,
-                                     p_subrecs + j );
+                                     p_subrecs + subrec_index );
 
             /*
              * Create ident array if indexing is required.
@@ -1475,13 +1523,13 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                  * object class, so an index map is needed to get from
                  * sequence number in the subrecord to an object ident.
                  */
-                p_subrecs[j].object_ids = NEW_N( int, p_subr->qty_objects,
-                                                 "Subrec ident map array" );
+                p_subrecs[subrec_index].object_ids = NEW_N( int, p_subr->qty_objects,
+							    "Subrec ident map array" );
                 blocks_to_list( p_subr->qty_blocks, p_subr->mo_blocks,
-                                p_subrecs[j].object_ids, TRUE );
+                                p_subrecs[subrec_index].object_ids, TRUE );
             }
             else
-                p_subrecs[j].object_ids = NULL;
+                p_subrecs[subrec_index].object_ids = NULL;
 
             /* 
              * M_NODE class "node" is special - need it for node positions
@@ -1503,6 +1551,8 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
              * table entries.
              */
             svar_names = p_subr->svar_names;
+	    k=0;
+
             for ( k = 0; k < p_subr->qty_svars; k++ )
             {
                 rval = create_st_variable( fid, p_sv_ht, svar_names[k],
@@ -1514,7 +1564,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                                   "create state variable." );
                     return rval;
                 }
-                create_primal_result( p_mesh, i, j, p_subrecs + j, p_primal_ht, 
+                create_primal_result( p_mesh, i, subrec_index, p_subrecs + subrec_index, p_primal_ht, 
                                       srec_qty, svar_names[k], p_sv_ht );
 
                 if ( nodal )
@@ -1525,7 +1575,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                             popup_dialog( WARNING_POPUP,
                                 "Multiple \"node\" position subrecs." );
 
-                        p_sro[i].node_pos_subrec = j;
+                        p_sro[i].node_pos_subrec = subrec_index;
                         analy->stateDB = FALSE;
                         if( mesh_node_qty == p_subr->qty_objects )
                           {
@@ -1552,7 +1602,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                 {
                     if ( strcmp( svar_names[k], "partpos" ) == 0 )
                     {
-                        p_sro[i].particle_pos_subrec = j;
+                        p_sro[i].particle_pos_subrec = subrec_index;
  
                         /* Note if data is double precision. */
                         if ( p_svar->num_type == M_FLOAT8 )
@@ -1560,8 +1610,10 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                    }
                 }
             }
+	subrec_index++;
         }
 
+        p_sro[i].qty = subrec_index;
         free( node_work_array );
     }
     
@@ -1625,6 +1677,9 @@ create_subrec_node_list( int *node_tmp, int node_tmp_size, Subrec_obj *p_so )
             
                 for ( k = 0; k < conn_qty; k++ )
                 {
+		    if ( elem_conns[k]<0 ) /* Check for missing node */
+		         continue;
+
                     if ( node_tmp[elem_conns[k]] )
                         continue;
                     else
@@ -1867,7 +1922,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
     }
 
     /* Check for sand flag. */
-    p_sand_var = ( db_type == EXODUS_DB_TYPE ) ? "STATUS" : "sand";
+    p_sand_var = ( db_type == EXODUS ) ? "STATUS" : "sand";
     if( strncmp( p_name, p_sand_var, 4 ) == 0 
          && ((Primal_result *) (p_hte->data))->var->agg_type == SCALAR )
     {
@@ -1954,10 +2009,10 @@ mili_db_set_results( Analysis *analy )
         meshes = analy->mesh_table;
 
         for ( j = 0; j < analy->mesh_qty; j++ )
-	            if ( meshes[j].classes_by_sclass[p_rc->superclass].qty != 0 )
-		                break;
+                    if ( meshes[j].classes_by_sclass[p_rc->superclass].qty != 0 )
+                                break;
         if ( j == analy->mesh_qty )
-	            continue;
+                    continue;
 
         /*
          * Loop over primal results required for current possible derived
@@ -1976,42 +2031,43 @@ mili_db_set_results( Analysis *analy )
                 continue;
             
 
-	    found_th=FALSE;
+            found_th=FALSE;
 
-	    /* Look for nodal coordinates in other place for TH databases if
-	     * "noddpos" is missing.
-	     */
+            /* Look for nodal coordinates in other place for TH databases if
+             * "noddpos" is missing.
+             */
 
-	     /*           HEX
-	     */
-	    if ( !strcmp("hx",p_rc->primals[j]) && p_rc->superclass==M_HEX )
-	    {
+             /*           HEX
+             */
+            if ( !strcmp("hx",p_rc->primals[j]) && p_rc->superclass==M_HEX )
+            {
                  rval = htable_search( p_pr_ht, "nodpos", FIND_ENTRY, 
                                        &p_hte );
-	         if ( rval == OK )
-		      found_th=FALSE;
-		 else
-		      found_th=TRUE;
-	    }
+                 if ( rval == OK )
+                      found_th=FALSE;
+                 else
+                      found_th=TRUE;
+            }
 
- 	     /*           SHELL
-	     */
-	    if ( !strcmp("shlx",p_rc->primals[j]) && p_rc->superclass==M_QUAD )
-	    {
+             /*           SHELL
+             */
+            if ( !strcmp("shlx",p_rc->primals[j]) && p_rc->superclass==M_QUAD )
+            {
                  rval = htable_search( p_pr_ht, "nodpos", FIND_ENTRY, 
                                        &p_hte );
-	         if ( rval == OK )
-		      found_th=FALSE;
-		 else
-		      found_th=TRUE;
-	    }
+                 if ( rval == OK )
+                      found_th=FALSE;
+                 else
+                      found_th=TRUE;
+            }
 
 
             /* Primal precision must match candidate requirement. */
-            if ( p_rc->single_precision_input 
+            if ( strcmp(p_pr->short_name, "nodpos")
+                 && p_rc->single_precision_input 
                  && p_pr->var->num_type != G_FLOAT
                  && p_pr->var->num_type != G_FLOAT4 )
-                continue;
+                 continue;
 
             cand_primal_sclass = p_rc->primal_superclasses[j];
             
@@ -2037,8 +2093,8 @@ mili_db_set_results( Analysis *analy )
         
         pr_qty = j;
  
-	if (found_th)
-	    pr_qty=0;
+        if (found_th)
+            pr_qty=0;
        
         if ( pr_qty > 0 )
         {
@@ -2128,6 +2184,10 @@ create_derived_results( Analysis *analy, int srec_id, int subrec_id,
     Subrec_obj *p_subrec;
     Bool_type added;
     
+    p_subrec = analy->srec_tree[srec_id].subrecs + subrec_id;
+    if ( p_subrec->subrec.qty_objects==0 )
+         return OK;
+
     qty_srecs = analy->qty_srec_fmts;
     
     for ( i = 0; p_rc->short_names[i] != NULL; i++ )
@@ -2246,9 +2306,10 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
 {
     int st_qty;
     float st_time;
+    State_variable sv;
     State_rec_obj *p_sro;
     Subrec_obj *p_subrecs, *p_subrec;
-    int i;
+    int i, j;
     int dbid;
     int srec_id, mesh_id;
     int dims;
@@ -2261,7 +2322,10 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     void *input_buf, *ibuf;
     int *object_ids;
     Mesh_data *p_md;
-    char *primal;
+    char *primal, *svar;
+    int infoStringId=0, lenInfoString=0;
+    char infoString[256];
+    float *p_float;
 
     /*
      * Variables:  "nodes3d", "src_nodes3d",
@@ -2357,15 +2421,56 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
         load_nodpos( analy, p_sro, p_md, dims, st, TRUE, p_st->nodes.nodes );
 
     /* Read sand flags if they exist, re-ordering if necessary. */
-/*****
-    primal = "sand";
-*****/
+    /* Also check for string results with will be displayed as messages in GUI */
+    analy->infoMsgCnt=0;
+
     for ( i = 0; i < p_sro->qty; i++ )
     {
+         p_subrec = p_subrecs + i;
+	 if ( p_subrec->subrec.qty_svars>0 ) {
+	      svar = p_subrec->subrec.svar_names[0];
+	   
+	      rval = mc_get_svar_def( dbid, svar, &sv );
+	      if ( rval != 0 )
+	      {
+	           mc_print_error( "mc_get_svar_def()", rval );
+	           return GRIZ_FAIL;
+	     }
+	      
+	     if (sv.num_type == M_STRING ) {
+                 rval = mc_read_results( dbid, st, i, 1, &svar,
+					 (void *)infoString );
+		 if ( rval==0 ) {
+		      int intVal=0;
+		      if ( analy->infoMsg[analy->infoMsgCnt]!=NULL )
+		 	   free(analy->infoMsg[analy->infoMsgCnt] );
+		      lenInfoString = p_subrec->subrec.qty_objects;
+		      infoString[100]='\0';
+		      for ( j=0; 
+			    j<lenInfoString-2; 
+			    j++ )
+		      {
+		  	    intVal = (int) infoString[j];
+			    if ( intVal<32 || intVal>126 ) {
+			         infoString[j] = '\0';
+			         break;
+			    }
+		      }
+		      
+		      analy->infoMsg[analy->infoMsgCnt] = NEW_N( char, lenInfoString, "New Info Message" );
+		      strcpy( analy->infoMsg[analy->infoMsgCnt], infoString );
+		      analy->infoMsgCnt++;
+		 }
+	     }
+	 }
+
         if ( p_subrecs[i].sand )
         {
             p_subrec = p_subrecs + i;
-            primal = p_subrec->subrec.name;
+
+	    /*  primal = p_subrec->subrec.name;  OLD Method of finding Sand vars looking for the sub-record named sand */ 
+            primal = "sand";
+
             object_ids = p_subrec->object_ids;
             ec_index = p_subrec->p_object_class->elem_class_index;
             if ( object_ids == NULL )
@@ -2449,12 +2554,32 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
         }
     }
 
+    if ( p_st->sph_present )
+    {
+         primal     = "sph_itype";
+	 p_subrec   = p_subrecs + p_st->sph_srec_id;
+	 object_ids = p_subrec->object_ids;
+	 subrec_size = p_subrec->subrec.qty_objects;
+	 input_buf = get_st_input_buffer( analy, subrec_size, 
+                                                     TRUE, &ibuf );
+	 rval = mc_read_results( dbid, st, p_st->sph_srec_id, 1, &primal, 
+				 input_buf );
+	 p_float = (float *) input_buf;  
+	 for ( i=0;
+	       i<subrec_size;
+	       i++ )
+	       p_st->sph_class_itype[i] = (int) p_float[i]; 
+                    
+	 if ( ibuf != NULL )
+	      free( ibuf );
+    }
+
     /* If nodal positions weren't part of state data, get from geometry. */
     if ( !analy->stateDB )
     {
-        p_st->nodes = p_md->node_geom->objects;
+         p_st->nodes = p_md->node_geom->objects;
         
-        p_st->position_constant = TRUE;
+         p_st->position_constant = TRUE;
     }
 
     /* Read particle position array if it exists, re-ordering if necessary. */
@@ -2682,191 +2807,7 @@ load_nodpos( Analysis *analy, State_rec_obj *p_sro, Mesh_data *p_md,
     return OK;
 }
 
-#ifdef XYZ
-/************************************************************
- * TAG( load_nodpos_timehist )
- *
- *  Load nodal position data from a time history database,
- *  converting to single precision if necessary. This function
- *  will return the list of element numbers in an array called
- *  obj_map and the number of elements returned in obj_cnt.
- */
-extern int
-load_nodpos_timehist( Analysis *analy, int state, int single_precision,
-		      int sclass,
-                      int *obj_cnt, int **obj_map, GVec3D2P **new_nodes)
-{
-    int   axis_index, i, j;
 
-    int   dbid = analy->db_ident;
-    int   rval;
-    int   subrec_coord_index, subrec_conn_index, subrec_size;
-
-    void    *ibuf;
-    float   *input_buf_flt;
-    double  *input_buf_dbl;
-
-    int     idnum, *object_ids;
-    int     class_qty, node_qty;
-    int     nd, (*connects)[8];
-
-    MO_class_data *p_hex_class;
-
-    State_rec_obj *p_state_rec;
-    Subrec_obj    *p_subr_obj;
-    Subrecord     *p_subr;
-    State_variable *p_stvar;
-    Famid fid;
-
-    char *axis_string[3] = {"hx", "hy", "hz"};
-    char *primal[2];
-    char  primal_coord[64];
-
-    int      *obj_map_tmp;
-    GVec3D2P *new_nodes_tmp;
-
-    fid = analy->db_ident;
-    p_state_rec = analy->srec_tree;
-
-    for ( j = 0; 
-          j < p_state_rec->qty; 
-          j++ )
-    {
-          p_subr = &p_state_rec->subrecs[j].subrec;
-
-	  if ( sclass == M_HEX )
-	  {
-               if (!strcmp(p_subr->name, "hexcoord") || strstr(p_subr->name, "hex_th_coord") )
-                   subrec_coord_index = j;
-
-               if (!strcmp(p_subr->name, "hexconn")  || strstr(p_subr->name, "hex_th_conn"))
-                   subrec_conn_index = j;
-	  }
-
-	  if ( sclass == M_QUAD )
-	  {
-               if (!strcmp(p_subr->name, "shlcoord") || strstr(p_subr->name, "shl_th_coord"))
-                   subrec_coord_index = j;
-
-               if (!strcmp(p_subr->name, "shlconn")  || strstr(p_subr->name, "shl_th_conn"))
-                   subrec_conn_index = j;
-	  }
-     }
-
-    p_subr      = &p_state_rec->subrecs[subrec_coord_index].subrec;
-    object_ids  = p_state_rec->subrecs[subrec_coord_index].object_ids;
-    subrec_size = p_subr->qty_objects;
-    p_stvar = NEW( State_variable, "New state var" );
-    rval = mc_get_svar_def( fid, "hx", p_stvar );
-    if ( rval != 0 )
-    {
-        mc_print_error( "mc_get_svar_def()", rval );
-        return GRIZ_FAIL;
-    }
-
-    if (p_stvar->num_type != M_FLOAT8 )
-        input_buf_flt = get_st_input_buffer( analy, subrec_size, 
-					     FALSE, &ibuf );
-    else
-        input_buf_dbl = get_st_input_buffer( analy, subrec_size, 
-					     TRUE, &ibuf );
-
-    class_qty = MESH( analy ).classes_by_sclass[G_HEX].qty;
-    node_qty  = MESH_P( analy )->node_geom->qty;
-
-    /* Allocate space for new coordinates */
-    new_nodes_tmp  = NEW_N( GVec3D2P, 
-                            node_qty,
-                            "new nodes 3d" );
-
-    obj_map_tmp    = NEW_N( int, 
-                            node_qty,
-                            "new nodes - object map" );
-
-    for ( i = 0; 
-          i < node_qty; 
-          i++ )
-          obj_map_tmp[i] = -1;
-
-
-    *obj_cnt =  subrec_size;
-           
-
-    for ( j = 0; 
-          j < class_qty; 
-          j++ )
-    {
-        p_hex_class = ((MO_class_data **) 
-                       MESH( analy ).classes_by_sclass[G_HEX].list)[j];
-
-        connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
-    }
-
-
-    for (axis_index = 0;
-         axis_index < 3;
-         axis_index++)
-    {
-         primal[0] = axis_string[axis_index];
-
-         rval = mc_get_svar_def( fid, primal[0], p_stvar );
-         if ( rval != 0 )
-         {
-            mc_print_error( "mc_get_svar_def()", rval );
-            return GRIZ_FAIL;
-         }
-
-         if (p_stvar->num_type != M_FLOAT8 )
-             rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-                                     (void *) input_buf_flt );
-         else
-             rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-                                     (void *) input_buf_dbl );
-
-         if ( rval != 0 )
-         {
-            mc_print_error( "load_nodpos_timehist() call mc_read_results()"
-                          " for \"hexcoord[hx]\"", rval );
-            return GRIZ_FAIL;
-         }
-
-         for ( i = 0; 
-               i < subrec_size; 
-               i++ )
-         {
-             if ( object_ids ) 
-                idnum = object_ids[i];
-             else idnum = i;
-             
-             obj_map_tmp[idnum] = idnum;
-             
-             for (j = 0;
-                  j < 8;
-                  j++)
-             {
-                 nd = connects[idnum][j]; 
-                 if ( nd >= node_qty )
-                   {
-                     mc_print_error( "load_nodpos_timehist() node qty exceeded for nd ", nd);
-                     return GRIZ_FAIL;
-                   }
-                 
-                 
-                 if (p_stvar->num_type != M_FLOAT8 )
-                   new_nodes_tmp[nd][axis_index] = input_buf_flt[(i*8)+j];
-                 
-                 else
-                   new_nodes_tmp[nd][axis_index] = input_buf_dbl[(i*8)+j];
-             }
-         }
-    }
-
-    *obj_map   = obj_map_tmp;
-    *new_nodes = new_nodes_tmp; 
-
-    return OK;
-}
-#else
 
 /************************************************************
  * TAG( load_hex_nodpos_timehist )
@@ -2878,7 +2819,7 @@ load_nodpos_timehist( Analysis *analy, int state, int single_precision,
  */
 extern int
 load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
-		          int *obj_cnt, int **obj_map, GVec3D2P **new_nodes)
+                          int *obj_cnt, int **obj_map, GVec3D2P **new_nodes)
 {
     int   axis_index, obj_index, i, j;
 
@@ -2922,18 +2863,18 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
     {
           p_subr = &p_state_rec->subrecs[j].subrec;
 
-	  if (!strcmp(p_subr->class_name, "brick") &&
-	      (!strcmp(p_subr->name, "hexcoord") || strstr(p_subr->name, "hex_th_coord")) )
-	  {
-	      subrec_coord_index = j;
-	      hexcoord_found     = TRUE;
-	  }
+          if (!strcmp(p_subr->class_name, "brick") &&
+              (!strcmp(p_subr->name, "hexcoord") || strstr(p_subr->name, "hex_th_coord")) )
+          {
+              subrec_coord_index = j;
+              hexcoord_found     = TRUE;
+          }
     }
  
     if (!hexcoord_found)
       {
-	*obj_map = NULL;
-	return (OK);
+        *obj_map = NULL;
+        return (!OK);
       }
 
 
@@ -2960,18 +2901,18 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
     node_qty  = MESH_P( analy )->node_geom->qty;
 
     /* Allocate space for new coordinates */
-    new_nodes_tmp  = NEW_N( GVec3D2P, 
-                            node_qty,
-                            "new nodes 3d" );
+    new_nodes_tmp  = NEW_N_MALLOC( GVec3D2P, 
+				   node_qty,
+				   "new nodes 3d" );
 
     obj_map_tmp    = NEW_N( int, 
-                            node_qty,
+                            subrec_size+2,
                             "new nodes - object map" );
 
-    *obj_cnt =  subrec_size;
+    *obj_cnt = subrec_size;
            
     for ( i = 0;
-          i < node_qty;
+          i < subrec_size+2;
           i++ )
           obj_map_tmp[i] = -1;
 
@@ -2980,7 +2921,7 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
           j++ )
     {
           p_hex_class = ((MO_class_data **) 
-			 MESH( analy ).classes_by_sclass[G_HEX].list)[j];
+                         MESH( analy ).classes_by_sclass[G_HEX].list)[j];
 
           connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
     }
@@ -2992,127 +2933,126 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
  
     if ( ordering == OBJECT_ORDERED )
          for (axis_index = 0;
-	      axis_index < 3;
-	      axis_index++)
+              axis_index < 3;
+              axis_index++)
               for (j = 0;
-		   j < 8;
-		   j++)
-	      {
-		   sprintf(primal_coord,"hexcoord[%s,%1d]", axis_string[axis_index], j+1);
+                   j < 8;
+                   j++)
+              {
+                   sprintf(primal_coord,"hexcoord[%s,%1d]", axis_string[axis_index], j+1);
 
-	           if (p_stvar->num_type != M_FLOAT8 )
-		       rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-					       (void *) input_buf_flt );
-		   else
-		      rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-					      (void *) input_buf_dbl );
-		   
-		   if ( rval != 0 )
-		     {
-		       mc_print_error( "load_nodpos_timehist() call mc_read_results()"
-				       " for \"hexcoord[hx,1]\"", rval );
-		       return GRIZ_FAIL;
-		     }
-		   
-		   for ( i = 0; 
-			 i < subrec_size; 
-			 i++ )
-		     
-		   {
-		     if( object_ids )
-		         idnum = object_ids[i];
-		     else
-		         idnum = i;
+                   if (p_stvar->num_type != M_FLOAT8 )
+                       rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                               (void *) input_buf_flt );
+                   else
+                      rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                              (void *) input_buf_dbl );
+                   
+                   if ( rval != 0 )
+                     {
+                       mc_print_error( "load_nodpos_timehist() call mc_read_results()"
+                                       " for \"hexcoord[hx,1]\"", rval );
+                       return GRIZ_FAIL;
+                     }
+                   
+                   for ( i = 0; 
+                         i < subrec_size; 
+                         i++ )
+                     
+                   {
+                     if( object_ids )
+                         idnum = object_ids[i];
+                     else
+                         idnum = i;
 
-		       obj_map_tmp[idnum] = idnum;
-		       
-		       nd = connects[idnum][j];
-		       
-		       if ( nd >= node_qty )
-			 {
-			   mc_print_error( "load_nodpos_timehist() node qty exceeded for nd ", nd);
-			   return GRIZ_FAIL;
-			 }
-		
-		
-		       if (p_stvar->num_type != M_FLOAT8 )
-			   new_nodes_tmp[nd][axis_index] = input_buf_flt[i];
-		       else
-			   new_nodes_tmp[nd][axis_index] = input_buf_dbl[i];
-	      }
-	   }
+                       obj_map_tmp[i] = idnum;
+                       
+                       nd = connects[idnum][j];
+                       
+                       if ( nd >= node_qty )
+                         {
+                           mc_print_error( "load_nodpos_timehist() node qty exceeded for nd ", nd);
+                           return GRIZ_FAIL;
+                         }
+                
+                
+                       if (p_stvar->num_type != M_FLOAT8 )
+                           new_nodes_tmp[nd][axis_index] = input_buf_flt[i];
+                       else
+                           new_nodes_tmp[nd][axis_index] = input_buf_dbl[i];
+              }
+           }
 
-	   /* RESULT_ORDERED */
-     else
+           /* RESULT_ORDERED */
+    else
          for (axis_index = 0;
-	      axis_index < 3;
-	      axis_index++)
-	 {
-		   sprintf(primal_coord,"hexcoord[%s]", axis_string[axis_index]);
+              axis_index < 3;
+              axis_index++)
+         {
+                   sprintf(primal_coord,"hexcoord[%s]", axis_string[axis_index]);
 
-	           if (p_stvar->num_type != M_FLOAT8 )
-		       rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-					       (void *) input_buf_flt );
-		   else
-		      rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-					      (void *) input_buf_dbl );
-		   
-		   
-		   if ( rval != 0 )
-		   {
-		        sprintf(primal_coord, "%s", axis_string[axis_index]);
+                   if (p_stvar->num_type != M_FLOAT8 )
+                       rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                               (void *) input_buf_flt );
+                   else
+                      rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                              (void *) input_buf_dbl );
+                   
+                   
+                   if ( rval != 0 )
+                   {
+                        sprintf(primal_coord, "%s", axis_string[axis_index]);
 
-			if (p_stvar->num_type != M_FLOAT8 )
-			  rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-						  (void *) input_buf_flt );
-			else
-			  rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-						  (void *) input_buf_dbl );
-		   }
+                        if (p_stvar->num_type != M_FLOAT8 )
+                          rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                                  (void *) input_buf_flt );
+                        else
+                          rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                                  (void *) input_buf_dbl );
+                   }
 
-		   if ( rval != 0 )
-		     {
-		       mc_print_error( "load_nodpos_timehist() call mc_read_results()"
-				       " for \"hexcoord[hx]\"", rval );
-		       return GRIZ_FAIL;
-		     }
-		   
-		   obj_index = 0;
-		   for ( i = 0; 
-			 i < subrec_size; 
-			 i++ )
-		     
-		   {
-		         if( object_ids )
-			 {
-			     idnum = object_ids[i];
-  		             obj_map_tmp[idnum] = idnum;
-			 }
-		         else
-			     idnum = i;
-		       
-	 	         obj_map_tmp[idnum] = idnum;
-		       
-		       for (j = 0;
-			    j < 8;
-			    j++)
-		       {
-			   nd = connects[idnum][j]; 
-			   
-			   if ( nd >= node_qty )
-			   {
-			        mc_print_error( "load_hex_nodpos_timehist() node qty exceeded for nd ", nd);
-			        return GRIZ_FAIL;
-			   }
-			   
-			   if (p_stvar->num_type != M_FLOAT8 )
-			       new_nodes_tmp[nd][axis_index] = input_buf_flt[obj_index+j];
-			   else
-			       new_nodes_tmp[nd][axis_index] = input_buf_dbl[obj_index+j];
-		       }
-		       obj_index+=8;
-		   }
-	   }
+                   if ( rval != 0 )
+                     {
+                       mc_print_error( "load_nodpos_timehist() call mc_read_results()"
+                                       " for \"hexcoord[hx]\"", rval );
+                       return GRIZ_FAIL;
+                     }
+                   
+                   obj_index = 0;
+                   for ( i = 0; 
+                         i < subrec_size; 
+                         i++ )
+                     
+                   {
+                         if( object_ids )
+                         {
+                             idnum = object_ids[i];
+                         }
+                         else
+                             idnum = i;
+                       
+                         obj_map_tmp[i] = idnum;
+                       
+                       for (j = 0;
+                            j < 8;
+                            j++)
+                       {
+                           nd = connects[idnum][j]; 
+                           
+                           if ( nd >= node_qty )
+                           {
+                                mc_print_error( "load_hex_nodpos_timehist() node qty exceeded for nd ", nd);
+                                return GRIZ_FAIL;
+                           }
+                           
+                           if (p_stvar->num_type != M_FLOAT8 )
+                               new_nodes_tmp[nd][axis_index] = input_buf_flt[obj_index+j];
+                           else
+                               new_nodes_tmp[nd][axis_index] = input_buf_dbl[obj_index+j];
+                       }
+                       obj_index+=8;
+                   }
+           }
        
     *obj_map   = obj_map_tmp;
     *new_nodes = new_nodes_tmp; 
@@ -3131,7 +3071,7 @@ load_hex_nodpos_timehist( Analysis *analy, int state, int single_precision,
  */
 extern int
 load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
-		           int *obj_cnt, int **obj_map, GVec3D2P **new_nodes)
+                           int *obj_cnt, int **obj_map, GVec3D2P **new_nodes)
 {
     int   axis_index, obj_index, i, j;
 
@@ -3169,25 +3109,25 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
     fid = analy->db_ident;
     p_state_rec = analy->srec_tree;
 
-   for ( j = 0; 
+    for ( j = 0; 
           j < p_state_rec->qty; 
           j++ )
     {
           p_subr = &p_state_rec->subrecs[j].subrec;
 
-	  if (!strcmp(p_subr->class_name, "shell") &&
-	      (!strcmp(p_subr->name, "shlcoord") || !strcmp(p_subr->name, "shell_th_coord") || 
-	       strstr(p_subr->name, "hex_th_coord")) )
-	  {
-	      quadcoord_found = TRUE;
-	      subrec_coord_index = j;
-	  }
+          if (!strcmp(p_subr->class_name, "shell") &&
+              (!strcmp(p_subr->name, "shlcoord") || !strcmp(p_subr->name, "shell_th_coord") ||
+               strstr(p_subr->name, "shell_th_coord")) )
+          {
+              quadcoord_found = TRUE;
+              subrec_coord_index = j;
+          }
     }
  
     if (!quadcoord_found)
     {
-	*obj_map = NULL;
-	return (OK);
+        *obj_map = NULL;
+        return (!OK);
     }
 
     p_subr      = &p_state_rec->subrecs[subrec_coord_index].subrec;
@@ -3214,18 +3154,18 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
     node_qty  = MESH_P( analy )->node_geom->qty;
 
     /* Allocate space for new coordinates */
-    new_nodes_tmp  = NEW_N( GVec3D2P, 
-                            node_qty,
-                            "new nodes 3d" );
+    new_nodes_tmp = NEW_N_MALLOC( GVec3D2P, 
+				  node_qty,
+				  "new nodes 3d" );
 
-    obj_map_tmp    = NEW_N( int, 
-                            node_qty,
-                            "new nodes - object map" );
+    obj_map_tmp = NEW_N( int, 
+			 subrec_size+2,
+			 "new nodes - object map" );
 
     *obj_cnt =  subrec_size;
            
     for ( i = 0;
-          i < node_qty;
+          i < subrec_size+2 ;
           i++ )
           obj_map_tmp[i] = -1;
 
@@ -3234,7 +3174,7 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
           j++ )
     {
           p_quad_class = ((MO_class_data **) 
-			 MESH( analy ).classes_by_sclass[G_QUAD].list)[j];
+                         MESH( analy ).classes_by_sclass[G_QUAD].list)[j];
 
           connects = (int (*)[4]) p_quad_class->objects.elems->nodes;
     }
@@ -3244,135 +3184,131 @@ load_quad_nodpos_timehist( Analysis *analy, int state,  int single_precision,
     /* Object Ordered Results */
     /* X Coordinates */
 
-
     if ( ordering == OBJECT_ORDERED )
          for (axis_index = 0;
-	      axis_index < 3;
-	      axis_index++)
+              axis_index < 3;
+              axis_index++)
               for (j = 0;
-		   j < 8;
-		   j++)
-	      {
-		   sprintf(primal_coord,"shlcoord[%s,%1d]", axis_string[axis_index], j+1);
+                   j < 8;
+                   j++)
+              {
+                   sprintf(primal_coord,"shlcoord[%s,%1d]", axis_string[axis_index], j+1);
 
-	           if (p_stvar->num_type != M_FLOAT8 )
-		       rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-					       (void *) input_buf_flt );
-		   else
-		      rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-					      (void *) input_buf_dbl );
-		   
-		   if ( rval != 0 )
-		     {
-		       mc_print_error( "load_quad_nodpos_timehist() call mc_read_results()"
-				       " for \"quadcoord[hx,1]\"", rval );
-		       return GRIZ_FAIL;
-		     }
-		   
-		   for ( i = 0; 
-			 i < subrec_size; 
-			 i++ )
-		     
-		   {
-		       if( object_ids )
-			 idnum = object_ids[i];
-		       else
-			 idnum = i;
-		       
-		       obj_map_tmp[idnum] = idnum;
-		       
-		       nd = connects[idnum][j]; 
-		       
-		       if ( nd >= node_qty )
-			 {
-			   mc_print_error( "load_quad_nodpos_timehist() node qty exceeded for nd ", nd);
-			   return GRIZ_FAIL;
-			 }
-		
-		
-		       if (p_stvar->num_type != M_FLOAT8 )
-			   new_nodes_tmp[nd][axis_index] = input_buf_flt[i];
-		       else
-			   new_nodes_tmp[nd][axis_index] = input_buf_dbl[i];
-		   }
-	   }
-	   /* RESULT_ORDERED */
+                   if (p_stvar->num_type != M_FLOAT8 )
+                       rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                               (void *) input_buf_flt );
+                   else
+                      rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                              (void *) input_buf_dbl );
+                   
+                   if ( rval != 0 )
+                     {
+                       mc_print_error( "load_quad_nodpos_timehist() call mc_read_results()"
+                                       " for \"quadcoord[hx,1]\"", rval );
+                       return GRIZ_FAIL;
+                     }
+                   
+                   for ( i = 0; 
+                         i < subrec_size; 
+                         i++ )
+                     
+                   {
+                       if( object_ids )
+                           idnum = object_ids[i];
+                       else
+                           idnum = i;
+                       
+                       obj_map_tmp[i] = idnum;
+                       
+                       nd = connects[idnum][j]; 
+                       
+                       if ( nd >= node_qty )
+                         {
+                           mc_print_error( "load_quad_nodpos_timehist() node qty exceeded for nd ", nd);
+                           return GRIZ_FAIL;
+                         }
+                
+                
+                       if (p_stvar->num_type != M_FLOAT8 )
+                           new_nodes_tmp[nd][axis_index] = input_buf_flt[i];
+                       else
+                           new_nodes_tmp[nd][axis_index] = input_buf_dbl[i];
+                   }
+           }
+           /* RESULT_ORDERED */
      else
          for (axis_index = 0;
-	      axis_index < 3;
-	      axis_index++)
-	 {
-		   sprintf(primal_coord,"shlcoord[%s]", axis_string[axis_index]);
+              axis_index < 3;
+              axis_index++)
+         {
+                   sprintf(primal_coord,"shlcoord[%s]", axis_string[axis_index]);
 
-	           if (p_stvar->num_type != M_FLOAT8 )
-		       rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-					       (void *) input_buf_flt );
-		   else
-		      rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-					      (void *) input_buf_dbl );
-		   
-		   
-		   if ( rval != 0 )
-		   {
-		        sprintf(primal_coord, "%s", axis_string[axis_index]);
+                   if (p_stvar->num_type != M_FLOAT8 )
+                       rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                               (void *) input_buf_flt );
+                   else
+                      rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                              (void *) input_buf_dbl );
+                   
+                   
+                   if ( rval != 0 )
+                   {
+                        sprintf(primal_coord, "%s", axis_string[axis_index]);
 
-			if (p_stvar->num_type != M_FLOAT8 )
-			  rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-						  (void *) input_buf_flt );
-			else
-			  rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
-						  (void *) input_buf_dbl );
-		   }
+                        if (p_stvar->num_type != M_FLOAT8 )
+                          rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                                  (void *) input_buf_flt );
+                        else
+                          rval = mc_read_results( dbid, state, subrec_coord_index, 1, primal, 
+                                                  (void *) input_buf_dbl );
+                   }
 
-		   if ( rval != 0 )
-		     {
-		       mc_print_error( "load_quad_nodpos_timehist() call mc_read_results()"
-				       " for \"shlcoord[shlx]\"", rval );
-		       return GRIZ_FAIL;
-		     }
-		   
-		   obj_index = 0;
-		   for ( i = 0; 
-			 i < subrec_size; 
-			 i++ )
-		     
-		   {
-		       if( object_ids )
-			   idnum = object_ids[i];
-		       else
-			   idnum = i;
-		       
-		       obj_map_tmp[idnum] = idnum;
-		       
-		       for (j = 0; 
-			    j < 4;
-			    j++)
-		       {
-			    nd = connects[idnum][j]; 
-			   
-			    if ( nd >= node_qty )
-			    {
-			         mc_print_error( "load_quad_nodpos_timehist() node qty exceeded for nd ", nd);
-				 return GRIZ_FAIL;
-			    }
-			   
-			    if (p_stvar->num_type != M_FLOAT8 )
-			        new_nodes_tmp[nd][axis_index] = input_buf_flt[obj_index+j];
-			    else
-			        new_nodes_tmp[nd][axis_index] = input_buf_dbl[obj_index+j];
-		       }
-		       obj_index+=4;
-		   }
-	   }
+                   if ( rval != 0 )
+                     {
+                       mc_print_error( "load_quad_nodpos_timehist() call mc_read_results()"
+                                       " for \"shlcoord[shlx]\"", rval );
+                       return GRIZ_FAIL;
+                     }
+                   
+                   obj_index = 0;
+                   for ( i = 0; 
+                         i < subrec_size; 
+                         i++ )
+                     
+                   {
+                       if( object_ids )
+                           idnum = object_ids[i];
+                       else
+                           idnum = i;
+                       
+                       obj_map_tmp[i] = idnum;
+                       
+                       for (j = 0; 
+                            j < 4;
+                            j++)
+                       {
+                            nd = connects[idnum][j]; 
+                           
+                            if ( nd >= node_qty )
+                            {
+                                 mc_print_error( "load_quad_nodpos_timehist() node qty exceeded for nd ", nd);
+                                 return GRIZ_FAIL;
+                            }
+                           
+                            if (p_stvar->num_type != M_FLOAT8 )
+                                new_nodes_tmp[nd][axis_index] = input_buf_flt[obj_index+j];
+                            else
+                                new_nodes_tmp[nd][axis_index] = input_buf_dbl[obj_index+j];
+                       }
+                       obj_index+=4;
+                   }
+           }
  
     *obj_map   = obj_map_tmp;
     *new_nodes = new_nodes_tmp; 
 
     return (OK);
 }
-
-#endif
-
 
 /************************************************************
  * TAG( load_quad_timehist_obj_ids )
@@ -3397,7 +3333,7 @@ load_quad_objids_timehist( Analysis *analy, int *obj_cnt, int **obj_ids )
 
     Bool_type quadcoord_found=FALSE;
 
-     p_state_rec = analy->srec_tree;
+    p_state_rec = analy->srec_tree;
 
     for ( i = 0; 
           i < p_state_rec->qty; 
@@ -3405,17 +3341,17 @@ load_quad_objids_timehist( Analysis *analy, int *obj_cnt, int **obj_ids )
     {
           p_subr = &p_state_rec->subrecs[i].subrec;
 
-	  if (!strcmp(p_subr->name, "shlcoord") || strstr(p_subr->name, "hex_th_coord"))
-	  {
-	      quadcoord_found = TRUE;
-	      subrec_coord_index = i;
-	  }
+          if (!strcmp(p_subr->name, "shlcoord") || strstr(p_subr->name, "hex_th_coord"))
+          {
+              quadcoord_found = TRUE;
+              subrec_coord_index = i;
+          }
     }
  
     if (!quadcoord_found)
     {
-	*obj_ids = NULL;
-	return (OK);
+        *obj_ids = NULL;
+        return (OK);
     }
 
     *obj_cnt = p_subr->qty_objects;
@@ -3477,7 +3413,7 @@ mk_state2( Analysis *analy, State_rec_obj *p_sro, int dims, int srec_id,
     State2 *p_state;
     Bool_type sand;
     int nsubr, sub;
-    int i;
+    int i, j;
     int qty;
     float **pp_f;
     int mesh_id;
@@ -3485,6 +3421,8 @@ mk_state2( Analysis *analy, State_rec_obj *p_sro, int dims, int srec_id,
     Subrec_obj *p_subrecs;
     Mesh_data *p_md;
     MO_class_data *p_class;
+
+    int sph_qty = 0;
         
     /* Get the mesh_id and qty of element classes via one of the subrecs. */
     if ( p_sro != NULL )
@@ -3539,6 +3477,9 @@ mk_state2( Analysis *analy, State_rec_obj *p_sro, int dims, int srec_id,
     /* Count subrecords and find nodal data subrecord. */
     nsubr = -1;
     sand = FALSE;
+    p_state->sph_present     = FALSE;
+    p_state->sph_class_itype = NULL;
+
     for ( qty = 0; qty < p_sro->qty; qty++ )
     {
         if ( nsubr < 0 
@@ -3547,7 +3488,25 @@ mk_state2( Analysis *analy, State_rec_obj *p_sro, int dims, int srec_id,
         
         if ( p_subrecs[qty].sand )
             sand = TRUE;
+
+	if ( strcmp( p_subrecs[qty].subrec.class_name, "sph" ) == 0 ) {
+	     if (p_subrecs[qty].subrec.qty_svars>0 ) {
+	         for ( j=0;
+		       j<p_subrecs[qty].subrec.qty_svars;
+		       j++ )
+		       if ( strcmp("sph_itype", p_subrecs[qty].subrec.svar_names[j])==0 ) {
+		            p_state->sph_present = TRUE;
+ 		            p_state->sph_srec_id = qty;
+			    sph_qty = p_subrecs[qty].subrec.qty_objects;
+		   }
+	     }
+	}
     }
+    
+    if ( p_state->sph_present && sph_qty>0 ) {
+         p_state->sph_class_itype = NEW_N( int, sph_qty, "State2 subrec sph id" );
+    }
+
     
     if ( sand )
     {
@@ -3700,7 +3659,11 @@ extern int
 mili_db_get_results( int dbid, int state, int subrec_id, int qty, 
                      char **results, void *data )
 {
+    int i=0;
+    int errorCnt=0;
+    int result_qty=0;
     int rval;
+    float *vals;
 
     rval = mc_read_results( dbid, state, subrec_id, qty, results, data );
     if ( rval != 0 )
@@ -3709,6 +3672,24 @@ mili_db_get_results( int dbid, int state, int subrec_id, int qty,
         return GRIZ_FAIL;
     }
     
+    /* Check all result data for Nan */
+    if ( env.checkresults ) {
+         result_qty = get_result_qty( env.curr_analy, subrec_id );
+         vals = (float *) data;
+         for ( i=0;
+	       i<result_qty;
+	       i++ ) {
+	       if ( isnan(vals[i]) ) {
+		    if ( errorCnt==0 )
+		         popup_dialog( WARNING_POPUP, "Bad result found for %s at index %d. Resetting to 1.0e30", results[0], i );
+		    if ( errorCnt<10 )
+		         printf("\nError: Bad result found for %s at index %d. Resetting to 1.0e30", results[0], i);
+		    vals[i] = 1.0e30;
+		    errorCnt++;
+	       }
+	 }
+    }
+
     return OK;
 }
 
@@ -3727,7 +3708,8 @@ mili_db_query( int dbid, int query_type, void *num_args, char *char_arg,
     rval = mc_query_family( dbid, query_type, num_args, char_arg, p_info );
     if ( rval != 0 )
     {
-        mc_print_error( "mili_db_query() call mc_query_family()", rval );
+        if ( rval!=INVALID_STATE )
+             mc_print_error( "mili_db_query() call mc_query_family()", rval );
         return GRIZ_FAIL;
     }
     
@@ -3831,7 +3813,7 @@ mili_db_close( Analysis *analy )
     for ( i = 0; i < analy->qty_srec_fmts; i++ )
     {
         p_subrec = p_srec[i].subrecs;
-	
+        
         for ( j = 0; j < p_srec[i].qty; j++ )
         {
             rval = mc_cleanse_subrec( &p_subrec[j].subrec );
@@ -3932,7 +3914,7 @@ taurus_db_open( char *path_root, int *p_dbid )
     char *p_root_start, *p_root_end;
     char *p_src, *p_dest;
     char *path;
-    char root[128];
+    char root[512];
     char path_text[256];
     int rval;
     Famid dbid;
@@ -3998,7 +3980,7 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
     Htable_entry *p_hte;
     MO_class_data *p_mocd;
     MO_class_data **mo_classes;
-    char short_name[64], long_name[64];
+    char short_name[M_MAX_NAME_LEN], long_name[M_MAX_NAME_LEN];
     Elem_data *p_ed;
     Material_data *p_matd;
     Mesh_data *p_md;
@@ -4009,12 +3991,12 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
     int dims;
     static int elem_sclasses[] = 
     {
-        M_TRUSS, M_BEAM, M_TRI, M_QUAD, M_TET, M_PYRAMID, M_WEDGE, M_HEX
+       M_TRUSS, M_BEAM, M_TRI, M_QUAD, M_TET, M_PYRAMID, M_WEDGE, M_HEX, M_PARTICLE
     };
     int qty_esclasses, elem_class_count;
     static int qty_connects[] = 
     {
-        2, 3, 3, 4, 4, 5, 6, 8
+       2, 3, 3, 4, 4, 5, 6, 8, 1
     };
     Bool_type have_Nodal;
     List_head *p_lh;
@@ -4103,7 +4085,7 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
             p_mocd->superclass = M_NODE;
             p_mocd->elem_class_index = -1;
             p_mocd->qty        = obj_qty;
-	    p_mocd->labels     = NULL; 
+            p_mocd->labels     = NULL; 
             p_mocd->labels_max = obj_qty;
 
             if ( dims == 3 )
@@ -4160,7 +4142,7 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                           "Griz requires a node object class \"node\"." );
             htable_delete( p_ht, delete_mo_class_data, TRUE );
             
-            return 1;
+	    return OK;
         }
         
         /*
@@ -4209,7 +4191,7 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 p_mocd->superclass = elem_sclasses[j];
                 p_mocd->elem_class_index = elem_class_count++;
                 p_mocd->qty = obj_qty;
-		p_mocd->labels_max = obj_qty;
+                p_mocd->labels_max = obj_qty;
                 
                 p_ed = NEW( Elem_data, "Element conn struct" );
                 p_mocd->objects.elems = p_ed;
@@ -4662,7 +4644,7 @@ taurus_db_get_st_descriptors( Analysis *analy, int dbid )
 
             /* Create list of nodes referenced by objects bound to subrecord. */
             create_subrec_node_list( node_work_array, mesh_node_qty,
-		                                     p_subrecs + j );
+                                                     p_subrecs + j );
 
             /*
              * Create ident array if indexing is required.
@@ -4812,10 +4794,11 @@ taurus_db_set_results( Analysis *analy )
         meshes = analy->mesh_table;
 
         for ( j = 0; j < analy->mesh_qty; j++ )
-	            if ( meshes[j].classes_by_sclass[p_rc->superclass].qty != 0 )
-		                break;
+              if ( meshes[j].classes_by_sclass[p_rc->superclass].qty != 0 )
+                   break;
+
         if ( j == analy->mesh_qty )
-	            continue;
+                    continue;
 
         /*
          * Loop over primal results required for current possible derived
@@ -5216,12 +5199,11 @@ mili_db_get_param_array( int dbid, char *name, void **data)
 /************************************************************
  * TAG( mili_get_class_ptr )
  *
- * Get a named application parameter - an array of data
- * is returned.
+ * Get a pointer to the specified class .
  */
 extern MO_class_data *
 mili_get_class_ptr( Analysis *analy, int superclass,
-		    char *class_name )
+                    char *class_name )
 {
   
   int class_qty;
@@ -5237,15 +5219,64 @@ mili_get_class_ptr( Analysis *analy, int superclass,
                 MESH_P( analy )->classes_by_sclass[superclass].list;
 
   for ( i=0;
-	i<class_qty;
-	i++)
-    if ( !strcmp( class_name, mo_classes[i]->long_name  ) ||
-	 !strcmp( class_name, mo_classes[i]->short_name ) )
-         return ( mo_classes[i] );
+        i<class_qty;
+        i++)
+        if ( !strcmp( class_name, mo_classes[i]->long_name  ) ||
+	     !strcmp( class_name, mo_classes[i]->short_name ) )
+	     return ( mo_classes[i] );
 
   return ( NULL );
 }
 
+
+/************************************************************
+ * TAG( mili_get_class_names )
+ *
+ * Get full list of classes names in the Mili database.
+ */
+extern int
+mili_get_class_names( Analysis *analy, int *qty_classes,
+		      char **class_names, int *superclasses )
+{
+  
+  int class_qty=0, sclass=0;
+  MO_class_data **mo_classes;
+  int i, j;
+  int class_names_index=0, class_found_index=0;
+  Bool_type class_found=FALSE;
+
+
+  for ( sclass=0;
+	sclass<QTY_SCLASS;
+	sclass++ ) {
+ 
+        class_qty = MESH_P( analy )->classes_by_sclass[sclass].qty;
+
+        if ( class_qty>0 ) {
+	     mo_classes = (MO_class_data **) MESH_P( analy )->classes_by_sclass[sclass].list;
+	     class_found=FALSE;
+	     for ( i=0;
+		   i<class_qty;
+		   i++ ) {
+	           for ( j=0;
+		         j<class_names_index;
+		         j++ ) 
+		         if ( !strcmp( mo_classes[i]->short_name, class_names[j]) ) {
+			      class_found=TRUE;
+			      break;
+			 }
+		    if ( !class_found ) {
+		         class_names[class_names_index]  = strdup( mo_classes[i]->short_name );
+			 superclasses[class_names_index] = mo_classes[i]->superclass;
+			 class_names_index++;
+		         (*qty_classes)++;
+		    }
+	     }
+	}
+  }
+
+  return ( 0 );
+}
 
 /************************************************************
  * TAG( mili_compare_labels )
@@ -5267,7 +5298,7 @@ mili_compare_labels( MO_class_labels *label1, MO_class_labels *label2 )
 
 
 /************************************************************
- * TAG(  )
+ * TAG( get_subrecord )
  *
  * Returns the name of a sub-record 'num'
  * 
@@ -5287,3 +5318,133 @@ char *get_subrecord( Analysis *analy, int num )
     return (p_subr->name);
 }
 
+/************************************************************
+ * TAG( get_hex_volumes )
+ *
+ * Computes the volume for all hexes in the model.
+ * 
+ */
+
+extern int
+get_hex_volumes( int dbid, Analysis *analy ) 
+{
+  int i=0, j=0, k=0, l=0;
+    int int_args[3];
+
+    int mesh_qty=0;
+    int sclass=0;
+    int qty_nodes=0, nd=0;
+    int qty_classes=0, obj_qty=0;
+
+    int hex_id=0;
+    float xx[8], yy[8], zz[8];
+    GVec3D *coords;
+    int (*connects)[8];
+
+    float volume=0.0;
+
+    Mesh_data *p_mesh; 
+    MO_class_data **mo_classes, *p_node_class, *p_mocd;
+    char short_name[M_MAX_NAME_LEN], long_name[M_MAX_NAME_LEN];
+
+    int status=OK;
+
+    /* Get number of meshes in family. */
+    status = mc_query_family( dbid, QTY_MESHES, NULL, NULL, (void *) &mesh_qty );
+    p_mesh = MESH_P( analy );
+
+    p_node_class = p_mesh->node_geom; 
+
+    qty_nodes = p_node_class->qty;
+    if ( qty_nodes==0 )
+         return OK;
+
+    for ( i = 0; 
+	  i < mesh_qty; 
+	  i++ )
+    {
+          int_args[0] = i;
+	  sclass = M_HEX;
+	  int_args[1] = sclass;
+	  status = mc_query_family( dbid, QTY_CLASS_IN_SCLASS, 
+				    (void *) int_args, NULL, 
+				    (void *) &qty_classes );
+	  if ( status != OK )
+	  {
+	       mc_print_error( "taurus_db_get_geom() call mc_query_family()",
+			       status );
+	       return GRIZ_FAIL;
+	  }
+	  
+	  if ( p_mesh->hex_vol_sums==NULL )
+	       p_mesh->hex_vol_sums = NEW_N( float, qty_nodes, "Sum of vol for Hexes at nodes" );
+	  else
+	       for ( i = 0; 
+		     i < qty_nodes; 
+		     i++ )
+		     p_mesh->hex_vol_sums[i] = 0.;
+	  
+	  qty_classes = p_mesh->classes_by_sclass[sclass].qty;
+	  
+	  if ( qty_classes<=1 || p_mesh->classes_by_sclass[sclass].list == NULL )
+	       continue;
+	  
+	  mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[sclass].list;
+		
+	  if ( analy->state_p && analy->cur_state>0 )
+	       coords = analy->state_p->nodes.nodes3d;
+	  else
+	       coords = (GVec3D *) p_node_class->objects.nodes;
+	  
+	  for ( k = 0; 
+		k < qty_classes; 
+		k++ )
+	  {
+	      p_mocd = mo_classes[k];
+	      
+	      status = mc_get_class_info( dbid, i, sclass, k, 
+					  short_name, long_name, &obj_qty );
+	      switch ( sclass )
+	      {
+		case M_HEX:
+		  if ( p_mocd->objects.elems->volume==NULL )
+		       p_mocd->objects.elems->volume = NEW_N( float, p_mocd->qty, "Volume for Hexes at nodes" );
+		  
+		  connects = (int (*)[8]) p_mocd->objects.elems->nodes;
+		  for ( hex_id=0;
+			hex_id<p_mocd->qty;
+			hex_id++ ) {
+		    
+		        /* Compute volume sums */
+		        for ( l = 0; 
+			      l < 8; 
+			      l++ )
+			  {
+			      nd = connects[hex_id][l];
+			      
+			      xx[l] = coords[nd][0];
+			      yy[l] = coords[nd][1];
+			      zz[l] = coords[nd][2];
+			  }
+			volume = hex_vol( xx, yy, zz );
+			
+			p_mocd->objects.elems->volume[hex_id] = volume;
+			
+			/* Compute volume sums */
+			for ( l = 0; 
+			      l < 8; 
+			      l++ )
+			{
+			      nd = connects[hex_id][l];
+			      p_mesh->hex_vol_sums[nd] += volume;
+		        }
+		  }
+		  break;
+		  
+	      default:
+		/* do nothing */;
+	      }
+	  }
+    }
+    return OK;
+}

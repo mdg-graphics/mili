@@ -213,21 +213,6 @@ extern int edge_face_nums[12][2];
  */
 extern int edge_node_nums[12][2];
 
-
-/*****************************************************************
- * TAG( NODE_T BEAM_T SHELL_T BRICK_T ALL_OBJECT_T)
- *
- * Some useful defines for selecting mesh object type.
- */
-#define NODE_T 0
-#define BEAM_T 1
-#define SHELL_T 2
-#define BRICK_T 3
-#define ALL_OBJECT_T 4
-#define PARTICLE_T 5
-#define TRUSS_T 6
-#define ANY_T 7
-
 /*****************************************************************
  * TAG( K_EPSILON_MASK A2_MASK )
  *

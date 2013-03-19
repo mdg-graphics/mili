@@ -1,43 +1,12 @@
 /* $Id$ */
 /* 
+ *
  * gui.c - Graphical user interface routines.
  * 
  *      Donald J. Dovey
  *      Lawrence Livermore National Laboratory
  *      Apr 27 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
  ************************************************************************
  * Modifications:
  *  I. R. Corey - Oct 1, 2004:Changed reference to env variable GRIZ4HOME
@@ -127,6 +96,37 @@
  *                the AX tracker tool.
  *                See SRC#533.
  *
+ *  I. R. Corey - Aug 12, 2009: Rewrote the code to get blocking and class 
+ *                info for the wrt_standard_db_text() function.
+ *                See SRC#621.
+ *
+ *  I. R. Corey - Nov 09, 2009: Added enhancements to better support
+ *                running multiple sessions of Griz.
+ *                See SRC#638.
+ *
+ *  I. R. Corey - Sept 14, 2010: Added support for tear-off menus.
+ *                See SRC#686
+ *
+ *  I. R. Corey - June 1, 2011: Added support for long result menus using
+ *                a multi-column layout.
+ *
+ *  I. R. Corey - April 8th, 2012: Completed development of surface class
+ *                based on new requirements.
+ *                See TeamForge#17795
+ *
+ *  I. R. Corey - May 2nd, 2012: Added path to top of window panes.
+ *                See TeamForge#17900
+ *
+ *  I. R. Corey - July 26th, 2012: Added capability to plot a Modal
+ *                database from Diablo.
+ *                See TeamForge#18395 & 18396
+ *
+ *  I. R. Corey - October 18th, 2012: Fixed problem with output of blocking
+ *                info.
+ *                
+ *  I. R. Corey - November 14th, 2012: Removed code name & date from top
+ *                of all windows and moved to Control Window text box.
+ *
  ************************************************************************
  */
 
@@ -135,9 +135,9 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <signal.h>
 
 #include <math.h>
-#include <values.h>
 
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
@@ -204,10 +204,10 @@
  */
 Bool_type include_util_panel    = FALSE;
 Bool_type include_mtl_panel     = FALSE;
-Bool_type new_window_behavior   = FALSE;
 
 /* Griz name & version for window titles. */
-static char *griz_name;
+static char *griz_name=NULL;
+static char path_string[256];
 
 /* Set to TRUE if the material Color-Mode is active */
 Bool_type mtl_color_active=FALSE;
@@ -267,11 +267,13 @@ typedef enum
     BTN_ORTHOGRAPHIC,
     BTN_ADJUSTNF,
     BTN_RESETVIEW,
+    BTN_SU,
 
     BTN_HILITE,
     BTN_SELECT,
     BTN_CLEARHILITE,
     BTN_CLEARSELECT,
+    BTN_CLEARALL,
     BTN_PICSHELL,
     BTN_PICBEAM,
     BTN_CENTERON,
@@ -298,8 +300,12 @@ typedef enum
     BTN_TIMEPLOT,
     BTN_EI,
 
+    BTN_FN,  /* Free nodes     */
+    BTN_PN,  /* Particle nodes */
+
     BTN_HELP,
-    BTN_RELNOTES
+    BTN_RELNOTES,
+    BTN_GS
 } Btn_type;
 
 
@@ -375,6 +381,7 @@ static void step_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void stride_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void menu_setpick_CB( Widget w, XtPointer client_data, 
                              XtPointer call_data );
+static void menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void plot_cursor_EH( Widget w, XtPointer client_data, 
                             XEvent *event, Boolean *continue_dispatch );
 static void enter_render_EH( Widget w, XtPointer client_data, XEvent *event,
@@ -395,7 +402,7 @@ static void get_primal_submenu_name( Analysis *, Primal_result *, char * );
 static Bool_type find_labelled_child( Widget, char *, Widget *, int * );
 static void add_derived_result_button( Derived_result * );
 static void get_result_submenu_name( Derived_result *, char * );
-static Widget create_menu_bar( Widget parent );
+static Widget create_menu_bar( Widget parent, Analysis * );
 static Widget create_mtl_manager( Widget main_widg );
 static Widget create_surf_manager( Widget main_widg );
 static Widget create_free_util_panel( Widget main_widg );
@@ -445,20 +452,36 @@ static void init_alt_cursors( void );
 
 void get_window_attributes( void );
 void put_window_attributes( void );
+void defineDialogColor( Display* dpy );
+void pushpop_window( PushPop_type direction );
 
 MO_class_data *
-assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_name,
-		   int *qty_objects, int *label_block_qty,
-		   int *num_blocks, int *blocks, int *blocks_labels );
+assemble_blocking( Analysis *analy, int sclass, char *class_name,
+                   int *qty_objects, int *label_block_qty,
+                   int *num_blocks, int *blocks, int *blocks_labels );
 
 MO_class_data *
-get_blocking_info( Analysis *analy,  int sclass,
-		   int *class_size,  char *class_name,
-		   int *qty_objects, int *label_block_qty );
+get_blocking_info( Analysis *analy,  char *class_name, int superclass,
+                   int *qty_objects,
+                   int *num_blocks,  int **blocks );
 
 int  
 assemble_compare_blocks( int *blockl1, int *block2 );
 
+void defineBorderColor( Display* dpy );
+
+static Widget
+create_colormap_menu( Widget parent, Util_panel_button_type btn_type,
+		      char *cascade_name );
+
+static Widget
+create_colormap_submenu( Widget parent, colormap_type btn_type,
+			 Widget *p_initial_button );
+
+
+void x11_signal( int code ) {
+  exit( code );
+}
 
 /*
  * This resource list provides defaults for settable values in the
@@ -473,6 +496,7 @@ String fallback_resources[] = {
     NULL
 };
 
+static void load_colormap( Analysis *analy, char *colormap );
 
 #ifdef OLD_MENU_CODE
 /*
@@ -745,6 +769,7 @@ static Widget stride_label = NULL;
 static Widget setpick_menu1_widg = NULL;
 static Widget setpick_menu2_widg = NULL;
 static Widget setpick_menu3_widg = NULL;
+static Widget colormap_menu_widg = NULL;
 
 typedef enum _shell_win_type
 {
@@ -836,7 +861,7 @@ static MO_class_data *btn3_mo_class = NULL;
 static int pick_sclasses[] = 
 {
     G_NODE, G_UNIT, G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_PYRAMID, G_WEDGE,
-    G_HEX, G_SURFACE
+    G_HEX, G_SURFACE, G_PARTICLE
 };
 
 /* List for warning dialog handles. */
@@ -905,7 +930,12 @@ static int double_buf_no_z[] = { GLX_RGBA, GLX_DOUBLEBUFFER, GLX_RED_SIZE, 1,
 static XtWorkProcId anim_work_proc_id = 0;
 static Boolean stop_animate;
 
-
+test()
+{
+   dpy = XtDisplay( ctl_shell_widg );
+   vi = glXChooseVisual( dpy, DefaultScreen( dpy ), single_buf );
+   exit(1);
+}
 /*
  *  Rubberband Zoom Variables
  *   Added January 17, 2006: IRC
@@ -924,6 +954,8 @@ static XColor    rb_color, rb_dummy;
 static Colormap  rb_cmap;
 static Status    rb_status;
 
+static XColor border_color, border_dummy;
+ 
 static int line_style = LineSolid;  /* LineSolid */
 static int cap_style  = CapButt;  /* CapRound */
 static int join_style = 0;  /* JoinRound */
@@ -937,11 +969,10 @@ static float rb_zoom_hist[RB_MAX_HIST][3];
 static int   rb_node_hist[RB_MAX_HIST];
 static int   rb_hist_index = 0;
 static int   rb_node_num;
-
+ 
 static Position  ctl_x, ctl_y;
 static Dimension ctl_width, ctl_height;
 float rb_dx, rb_dy, temp_x, temp_y;
-
 
 /*****************************************************************
  * TAG( gui_start )
@@ -950,36 +981,20 @@ float rb_dx, rb_dy, temp_x, temp_y;
  * the gui event loop.
  */
 void
-gui_start( int argc, char **argv )
+gui_start( int argc, char **argv , Analysis *analy )
 {
     Widget mainwin_widg, pane, x_label_widg, y_label_widg;
     Drawable d1;
     XmString command_label;
     Arg args[20];
-    char title[150], current_dir[128];
+    char title[512], path[256]="";
     int n;
-    size_t namlen;
-    char *name = "GRIZ ";
-    char beta_release[40];
     XtActionsRec global_actions[3];
     Atom  WM_DELETE_WINDOW;
+    int gid=0;
     int status;
 
-    /* Initialize the name string. */
-
-    /* Check for Alpha or Beta release of the code and
-     * build appropriate info message.
-     */
-    beta_release[0] = '\0';
-
-    if (env.run_alpha_version != 0.)
-       strcpy(beta_release, "** Alpha Release **");
-    if (env.run_beta_version != 0.)
-       strcpy(beta_release, "** Beta Release **");
-
-    namlen = strlen( name ) + strlen( griz_version ) + strlen( beta_release ) + 1;
-    griz_name = NEW_N( char, namlen, "Griz name string" );
-    sprintf( griz_name, "%s%s%s", name, griz_version, beta_release );
+    init_griz_name( analy );
 
     /* Read in the session initialization data */
 
@@ -988,16 +1003,20 @@ gui_start( int argc, char **argv )
      * the rendering window.
      */
 
-    /* Add current path to title */
-    getcwd(current_dir, 128) ;
-    sprintf( title, "%s Control:  %s", griz_name, env.plotfile_name );
+    if ( !analy->path_found )
+         strcpy( path, analy->path_name );
 
-    
+    if ( env.bname )
+         sprintf( title, "Control:  %s%s", path_string, env.bname );
+    else    
+         sprintf( title, "Control:  %s%s", path_string, env.plotfile_name );
+
     n = 0;
     XtSetArg( args[n], XmNiconic, FALSE ); n++;
     XtSetArg( args[n], XmNiconName, "GRIZ" ); n++;
     XtSetArg( args[n], XmNtitle, title ); n++;
     XtSetArg( args[n], XmNallowShellResize, TRUE ); n++;
+
     ctl_shell_widg = XtAppInitialize( &app_context, "GRIZ",
                                       (XrmOptionDescList)NULL , 0,
                                       &argc,
@@ -1008,7 +1027,11 @@ gui_start( int argc, char **argv )
     /* Record the display for use elsewhere. */
     dpy = XtDisplay( ctl_shell_widg );
     dpy_copy = dpy;
+    defineDialogColor( dpy );
 
+    if ( env.griz_id>0 )
+         defineBorderColor( dpy );
+       
     /*
      * Link the window manager "close" function to the exit callback so
      * it will be called if the user kills GRIZ via the window manager.
@@ -1022,14 +1045,21 @@ gui_start( int argc, char **argv )
                                           xmMainWindowWidgetClass,
                                           ctl_shell_widg, args, n );
 
-    menu_widg = create_menu_bar( mainwin_widg );
+    menu_widg = create_menu_bar( mainwin_widg, analy );
 
     /*
      * Everything else for the control window goes onto a pane.
      */
 
     n = 0;
-    XtSetArg( args[n], XmNallowResize, TRUE ); n++;
+    if ( env.griz_id>0 ) {
+         gid = env.griz_id;
+         XtSetArg( args[n], XmNallowResize, TRUE ); n++;
+	 XtSetArg( args[n], XmNmarginWidth, 2 ); n++;
+	 XtSetArg( args[n], XmNmarginHeight, 2 ); n++;
+	 XtSetArg( args[n],  XmNbackground,  env.border_colors[gid-1] ); n++;
+    }
+
     pane = XmCreatePanedWindow( mainwin_widg, "pane", args, n );
 
     n = 0;
@@ -1056,7 +1086,7 @@ gui_start( int argc, char **argv )
     XtSetArg( args[n], XmNhistoryVisibleItemCount, 25 ); n++;
     XtSetArg( args[n], XmNselectionLabelString, command_label ); n++;
     XtSetArg( args[n], XmNskipAdjust, True ); n++;
-
+ 
     command_widg = XmCreateCommand( pane, "command", args, n );
     XtAddCallback( command_widg, XmNcommandEnteredCallback, parse_CB, NULL );
     XtManageChild( command_widg );
@@ -1077,18 +1107,26 @@ gui_start( int argc, char **argv )
      */
 
     /* Create a topLevelShell for the rendering window. */
-    sprintf( title, "%s Render:  %s", griz_name, env.plotfile_name );
+
+    if ( env.bname ) {
+         sprintf( title, "Render:  %s%s", path_string, env.bname );
+    }
+    else      
+         sprintf( title, "Render:  %s%s", path_string, env.plotfile_name );
 
     n = 0;
     XtSetArg( args[n], XtNtitle, title ); n++;
     XtSetArg( args[n], XmNiconic, FALSE ); n++;
     XtSetArg( args[n], XmNwindowGroup, XtWindow( mainwin_widg ) ); n++;
     XtSetArg( args[n], XmNdeleteResponse, XmDO_NOTHING ); n++;
+    XtSetArg( args[n], XmNbackground, XBlackPixel( dpy, DefaultScreen( dpy ) )); n++;
+
     rendershell_widg = XtAppCreateShell( NULL, "rendershell",
                                          topLevelShellWidgetClass,
                                          XtDisplay( mainwin_widg ), args, n );
     
     /* Find an OpenGL-capable RGB visual with depth buffer. */
+
     vi = NULL;
     if ( env.curr_analy->dimension == 3 )
     {
@@ -1115,14 +1153,19 @@ gui_start( int argc, char **argv )
         if ( render_ctx == NULL )
             popup_fatal( "Could not create rendering context.\n" );
         
-        /* Create a Form widget to manage OpenGL and other possible widgets. */
-        render_form_widg = XtVaCreateManagedWidget(
-            "renderform", xmFormWidgetClass, rendershell_widg,
-            XmNborderWidth, 0,
-            XmNmarginWidth, 0,
-            XmNmarginHeight, 0,
-            NULL );
-        
+	if ( env.griz_id>0 ) 
+             render_form_widg = XtVaCreateManagedWidget(
+							"renderform", xmFormWidgetClass, rendershell_widg,
+							XmNborderWidth, 20,
+							XmNmarginWidth, 4,
+							XmNmarginHeight, 4,
+							XmNbackground, env.border_colors[gid-1],
+							NULL );
+        else
+             render_form_widg = XtVaCreateManagedWidget(
+							"renderform", xmFormWidgetClass, rendershell_widg,
+							NULL );
+
         /* Create a RowColumn for plot cursor coordinates display. */
         plot_coord_widg = XtVaCreateWidget( 
             "plotcoords", xmRowColumnWidgetClass, render_form_widg, 
@@ -1243,7 +1286,6 @@ gui_start( int argc, char **argv )
         XtPopup( rendershell_widg, XtGrabNone );
         XtRealizeWidget( ctl_shell_widg );
 
-
     /* Rubber Band Zoom */
     screen_num = XDefaultScreen(dpy);
     d1         = XtWindow(ogl_widg[MESH_VIEW]);
@@ -1277,6 +1319,7 @@ gui_start( int argc, char **argv )
     /* 
      * Bind the mesh rendering context and window.
      */
+    sleep(1);
     switch_opengl_win( MESH_VIEW );
     init_gui();
     
@@ -1288,30 +1331,25 @@ gui_start( int argc, char **argv )
     /* Bring in other Apps if they were defaulted tp come up
      * in the session file.
      */
-    if ( new_window_behavior )
+    if ( !include_util_panel )
     {
-         if ( !include_util_panel )
-	 {
-	     
-	       if ( session->win_util_active )
-	            create_app_widg( BTN_UTIL_PANEL );
-	 } 
-	 
-	 if ( session->win_mtl_active )
-	      create_app_widg( BTN_MTL_MGR );
-	 
-	 /* Update the window attributes */
-	 put_window_attributes() ;
-    }
+	
+	if ( session->win_util_active )
+	  create_app_widg( BTN_UTIL_PANEL );
+    } 
+    
+    if ( session->win_mtl_active )
+         create_app_widg( BTN_MTL_MGR );
     
     /* Read in Global preferences */
-    status = read_griz_session_file( session, ".griz_session", TRUE );
+    status = read_griz_session_file( session, ".griz_session", 
+				        env.griz_id, TRUE );
 
-    if ( status==OK )
+    if ( status==OK ) {
+         /* Update the window attributes */
+         put_window_attributes() ;
          put_griz_session( env.curr_analy, session );
-
-    /* Read in plot specific preferences - if any */
-    /* status = read_griz_session_file( session, ".griz_session", FALSE ); ** Disabled for now** */
+    }
 
     /* Start event processing. */
     XtAppMainLoop( app_context );
@@ -1419,24 +1457,28 @@ gui_swap_buffers( void )
  * Create the menu bar for the main window.
  */
 static Widget
-create_menu_bar( Widget parent )
+create_menu_bar( Widget parent, Analysis *analy )
 {
     Widget menu_bar;
     Widget cascade;
     Widget menu_pane;
     Widget button;
+    Widget colormap_menu;
     Arg args[10];
     int n;
     XmString accel_str;
 
     n = 0;
     XtSetArg( args[n], XmNx, 0 ); n++;
-    XtSetArg( args[n], XmNy, 0 ); n++;
+    XtSetArg( args[n], XmNx, 0 ); n++;
     menu_bar = XmCreateMenuBar( parent, "menu_bar", args, n );
     XtManageChild( menu_bar );
 
-    /* Control menu. */
+    /****************/
+    /* Control menu.*/
+    /****************/
     n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
     ctl_menu_pane = XmCreatePulldownMenu( menu_bar, "ctl_menu_pane", args, n );
 
     button = XmCreatePushButtonGadget( ctl_menu_pane, "Copyright", args, n );
@@ -1484,7 +1526,6 @@ create_menu_bar( Widget parent )
                        (XtPointer) BTN_SURF_MGR );
     }
 
-
     n = 0;
     button = XmCreateSeparatorGadget( ctl_menu_pane, "separator", args, n );
     XtManageChild( button );
@@ -1500,8 +1541,6 @@ create_menu_bar( Widget parent )
                    (XtPointer) BTN_SAVE_SESSION_PLOT );
  
  
-
-
     button = XmCreateSeparatorGadget( ctl_menu_pane, "separator", args, n );
     XtManageChild( button );
 
@@ -1533,8 +1572,11 @@ create_menu_bar( Widget parent )
     cascade = XmCreateCascadeButton( menu_bar, "Control", args, n );
     XtManageChild( cascade );
 
-    /* Rendering menu. */
+    /******************/
+    /* Rendering menu.*/
+    /******************/
     n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
     menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
  
     n = 0;
@@ -1616,6 +1658,34 @@ create_menu_bar( Widget parent )
     XtAddCallback( button, XmNactivateCallback, menu_CB, 
                    (XtPointer) BTN_EDGES );
 
+    button = XmCreatePushButtonGadget( menu_pane, "Greyscale On/Off", args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_CB, 
+                   (XtPointer) BTN_GS );
+
+
+    if ( analy->free_nodes_found || analy->particle_nodes_found )
+    {
+         button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
+         XtManageChild( button );
+
+	 if ( analy->free_nodes_found )
+	 {
+              button = XmCreatePushButtonGadget( menu_pane, "Free Nodes On/Off", args, n );
+              XtManageChild( button );
+              XtAddCallback( button, XmNactivateCallback, menu_CB, 
+                   (XtPointer) BTN_FN );
+	 } 
+
+	 if ( analy->particle_nodes_found )
+	 {
+              button = XmCreatePushButtonGadget( menu_pane, "Particle Nodes On/Off", args, n );
+              XtManageChild( button );
+              XtAddCallback( button, XmNactivateCallback, menu_CB, 
+                   (XtPointer) BTN_PN );
+	 } 
+    }
+
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
  
@@ -1644,14 +1714,28 @@ create_menu_bar( Widget parent )
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_CB, 
                    (XtPointer) BTN_RESETVIEW );
+
+    button = XmCreatePushButtonGadget( menu_pane, "Supress Screen Refresh", args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_CB, 
+                   (XtPointer) BTN_SU );
+
+    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
+    XtManageChild( button );
  
+    colormap_menu_widg = create_colormap_menu( menu_pane, BTN_CM_PICK, 
+					       "Set Colormap" );
+
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, menu_pane ); n++;
     cascade = XmCreateCascadeButton( menu_bar, "Rendering", args, n );
     XtManageChild( cascade );
 
-    /* Picking menu. */
+    /****************/
+    /* Picking menu.*/
+    /****************/
     n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
     menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
 
     n = 0;
@@ -1678,10 +1762,15 @@ create_menu_bar( Widget parent )
     XtAddCallback( button, XmNactivateCallback, menu_CB, 
                    (XtPointer) BTN_CLEARSELECT );
 
+    button = XmCreatePushButtonGadget( menu_pane, "Clear All", args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_CB, 
+                   (XtPointer) BTN_CLEARALL );
+
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
  
-    setpick_menu1_widg = create_pick_menu( menu_pane, BTN1_PICK, 
+    setpick_menu1_widg = create_pick_menu( menu_pane, BTN1_PICK,
                                            "Set Btn 1 Pick" );
     setpick_menu2_widg = create_pick_menu( menu_pane, BTN2_PICK, 
                                            "Set Btn 2 Pick" );
@@ -1706,11 +1795,14 @@ create_menu_bar( Widget parent )
     cascade = XmCreateCascadeButton( menu_bar, "Picking", args, n );
     XtManageChild( cascade );
 
+    /************************************/
     /* Build db-sensitive result menus. */
+    /************************************/
     create_result_menus( menu_bar );
  
     /* Time menu. */
     n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
     menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
 
     n = 0;
@@ -1754,8 +1846,11 @@ create_menu_bar( Widget parent )
     cascade = XmCreateCascadeButton( menu_bar, "Time", args, n );
     XtManageChild( cascade );
 
+    /**************/
     /* Plot menu. */
+    /**************/
     n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
     menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
 
     n = 0;
@@ -1769,8 +1864,11 @@ create_menu_bar( Widget parent )
     cascade = XmCreateCascadeButton( menu_bar, "Plot", args, n );
     XtManageChild( cascade );
 
+    /**************/
     /* Help menu. */
+    /**************/
     n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
     menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
 
     n = 0;
@@ -1856,7 +1954,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     Widget button, cascade, result_submenu, subsubmenu_cascade;
     int position, vec_size;
     int i, j, n;
-    char cbuf[64];
+    char cbuf[M_MAX_NAME_LEN];
     Bool_type make_submenu;
     Arg args[10];
     char **comps, **p_specs;
@@ -1910,6 +2008,11 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     if ( make_submenu )
     {
         n = 0;
+        XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
+	XtSetArg( args[n], XmNscrollingPolicy, XmAUTOMATIC ); n++;
+	XtSetArg( args[n], XmNnumColumns, 40 ); n++;
+	XtSetArg( args[n], XmNorientation, XmHORIZONTAL ); n++;
+	XtSetArg( args[n], XmNpacking, XmPACK_COLUMN ); n++;
         submenu = XmCreatePulldownMenu( primal_menu_widg, "submenu_pane", args, 
                                         n );
     
@@ -1928,8 +2031,9 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     {
         /* Non-scalar types require another submenu level. */
         n = 0;
+        XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
         result_menu = XmCreatePulldownMenu( submenu, "submenu_pane", args, n );
-        
+       
         comps = p_pr->var->components;
         p_specs = analy->component_menu_specs;
         spec_qty = analy->component_spec_qty;
@@ -1995,6 +2099,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                 {
                     /* Create button. */
                     n = 0;
+                    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
                     result_submenu = XmCreatePulldownMenu( result_menu, 
                                                            "subsubmenu_pane", 
                                                            args, n );
@@ -2036,15 +2141,49 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
             {
                 /* Create button. */
                 n = 0;
+                XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
                 result_submenu = XmCreatePulldownMenu( result_menu, 
                                                        "subsubmenu_pane", 
                                                        args, n );
     
                 n = 0;
                 XtSetArg( args[n], XmNsubMenuId, result_submenu ); n++;
-                subsubmenu_cascade = XmCreateCascadeButton( result_menu, 
-                                                            cell_nums[i],
-                                                            args, n );
+                XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
+
+		/* 
+		 * This is WIP for new Element Set menus. 
+		 */
+
+		if ( strstr(p_pr->short_name, "es_" ) ) {
+		  int es_id=0, es_index=0, es_label=-1;
+		     char *es_ptr=NULL, es_title[64], surface_title[16]="";
+		     int integration_pt=0;
+		     es_ptr = strstr( p_pr->short_name, "es_" );
+		     es_ptr+=3;
+
+		     es_id    = get_element_set_id( es_ptr );
+		     es_index = get_element_set_index( analy, es_id );
+
+                     if ( es_id>=0 && i<= analy->es_intpoints[es_index].labels_cnt ) {
+   		          es_label = analy->es_intpoints[es_index].labels[i];
+			  if ( analy->es_intpoints[es_index].in_mid_out_set[0]==es_label )
+			       strcpy( surface_title, "(Default In)" );
+			       else if ( analy->es_intpoints[es_index].in_mid_out_set[1]==es_label )
+				         strcpy( surface_title, "(Default Mid)" );
+					 else if ( analy->es_intpoints[es_index].in_mid_out_set[2]==es_label )
+					           strcpy( surface_title, "(Default Out)" );
+		          sprintf( es_title, "Int Pt %d (Label %d) %s", i+1, analy->es_intpoints[es_index].labels[i], 
+				   surface_title );
+		     }
+			  else sprintf(es_title, "[%d]", i);
+		     subsubmenu_cascade = XmCreateCascadeButton( result_menu, 
+								 es_title,
+								 args, n );
+		}
+		else
+		     subsubmenu_cascade = XmCreateCascadeButton( result_menu, 
+								 cell_nums[i],
+								 args, n );
                 XtManageChild( subsubmenu_cascade );
 
                 vec_size = p_pr->var->vec_size;
@@ -2062,12 +2201,17 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
 
                     sprintf( cbuf, "%s[%d,%s]", p_pr->short_name, i + 1, 
                              comp_svar->short_name );
+		    if ( !strcmp( comp_svar->short_name, "es_1") ) {
+		         
+		    }
+		         
                     griz_str_dup( p_specs + spec_qty, cbuf );
                 
                     /* Create button. */
                     sprintf( cbuf, "%s (%s)", comp_svar->long_name,
                              comp_svar->short_name );
                     n = 0;
+                    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
                     button = XmCreatePushButtonGadget( result_submenu, cbuf, 
                                                        args, n );
                     XtManageChild( button );
@@ -2116,7 +2260,7 @@ add_ti_result_button( Widget parent, Primal_result *p_pr )
     Widget button, cascade, result_submenu, subsubmenu_cascade;
     int position, vec_size;
     int i, j, n;
-    char cbuf[64];
+    char cbuf[M_MAX_NAME_LEN];
     Bool_type make_submenu;
     Arg args[10];
     char **comps, **p_specs;
@@ -2446,7 +2590,7 @@ get_primal_submenu_name( Analysis *analy, Primal_result *p_pr, char *name )
                 class_names = RENEW_N( char *, class_names, qty, 1, 
                                        "Extend class name list" );
                 griz_str_dup( class_names + qty, p_subrec->class_name );
-                qty++;
+		qty++;
                 
                 /* If we see more than one class name, menu is "Shared". */
                 if ( qty > 1 )
@@ -2491,7 +2635,7 @@ find_labelled_child( Widget parent, char *name, Widget *child, int *index )
     XmString label;
     int i;
     int qty;
-    char cbuf[64];
+    char cbuf[M_MAX_NAME_LEN];
     
     /* Get list of parent's children widgets. */
     XtVaGetValues( parent, XmNnumChildren, &qty, XmNchildren, &children, 
@@ -2529,7 +2673,7 @@ add_derived_result_button( Derived_result *p_dr )
     Widget submenu_cascade, submenu, cascade, button;
     int i, n;
     int idx, position;
-    char cbuf[64], nambuf[64];
+    char cbuf[M_MAX_NAME_LEN], nambuf[M_MAX_NAME_LEN];
     Bool_type make_submenu;
     Arg args[10];
     Analysis *analy;
@@ -2549,6 +2693,7 @@ add_derived_result_button( Derived_result *p_dr )
     if ( make_submenu )
     {
         n = 0;
+        XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
         submenu = XmCreatePulldownMenu( derived_menu_widg, "submenu_pane", 
                                         args, n );
     
@@ -2756,6 +2901,8 @@ create_derived_res_menu( Widget parent )
     Htable_entry *p_hte;
     Derived_result *p_dr;
     int rval;
+    Analysis *p_analy;
+    p_analy = get_analy_ptr();
 
     /*
      * Traverse the possible_results[] array to get the names of derived
@@ -2769,6 +2916,7 @@ create_derived_res_menu( Widget parent )
 
     p_dr_ht = env.curr_analy->derived_results;
     n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
     derived_menu_widg = XmCreatePulldownMenu( parent, "derived_menu_pane", 
                                               args, n );
   
@@ -2796,7 +2944,14 @@ create_derived_res_menu( Widget parent )
             if ( rval == OK )
             {
                 p_dr = (Derived_result *) p_hte->data;
-                
+		
+                if ( p_analy->analysis_type==MODAL ) /* May later check for 
+						      * p_rc->origin.is_node_result
+						      */
+		     if ( p_rc->short_names[0]!=NULL )
+		          if ( strncmp(  p_rc->short_names[0], "evec_", 5) )
+ 			       p_rc->hide_in_menu = TRUE;
+
                 if ( !p_dr->in_menu && !p_rc->hide_in_menu)
                 {
                     add_derived_result_button( p_dr );
@@ -2829,6 +2984,7 @@ create_primal_res_menu( Widget parent )
     Subrecord subrec;
 
     n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
     primal_menu_widg = XmCreatePulldownMenu( parent, "primal_menu_pane", 
                                              args, n );
   
@@ -2886,6 +3042,9 @@ create_primal_res_menu( Widget parent )
                 {
                     p_pr = (Primal_result *) p_hte->data;
 
+		    if ( p_pr->var->num_type == M_STRING )
+		         continue;
+
                     if ( !p_pr->in_menu )
                     {
                         add_primal_result_button( parent, p_pr );
@@ -2924,7 +3083,7 @@ create_ti_res_menu( Widget parent )
     
     analy = env.curr_analy;
     n = 0;
-
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
     ti_menu_widg = XmCreatePulldownMenu( parent, "ti_menu_pane", 
 					 args, n );
   
@@ -3007,9 +3166,10 @@ create_mtl_manager( Widget main_widg )
         sep2, sep3, vert_scroll, func_operate, mtl_label, 
         frame, col_comp;
     Arg args[10];
-    char win_title[64];
+    char win_title[256];
     char mtl_toggle_name[8];
     int n, i, mtl, qty_mtls;
+    int gid=3;
     Dimension width, max_child_width, margin_width, spacing, scrollbar_width, 
         name_len, col_ed_width, max_mgr_width, height, sw_height, fudge;
     short func_width, max_cols, rows;
@@ -3034,6 +3194,7 @@ create_mtl_manager( Widget main_widg )
     String trans = 
         "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
     XtTranslations key_trans;
+    Analysis *p_analy;
     
     key_trans = XtParseTranslationTable( trans );
     
@@ -3043,11 +3204,12 @@ create_mtl_manager( Widget main_widg )
     ctl_buttons[1] = select_buttons;
     qty_mtls = env.curr_analy->mesh_table[0].material_qty;
 
-    sprintf( win_title, "%s Material Manager", griz_name );
+    sprintf( win_title, "Material Manager %s", path_string );
     n = 0;
     XtSetArg( args[n], XtNtitle, win_title ); n++;
     XtSetArg( args[n], XmNiconic, FALSE ); n++;
     XtSetArg( args[n], XmNwindowGroup, XtWindow( main_widg ) ); n++;
+
     mtl_shell = XtAppCreateShell( "GRIZ", "mtl_shell",
                                 topLevelShellWidgetClass,
                                 XtDisplay( main_widg ), args, n );
@@ -3059,21 +3221,35 @@ create_mtl_manager( Widget main_widg )
                        gress_mtl_mgr_EH, NULL );
 
     /* Use a Form widget to manage everything else. */
+    
     mtl_base = XtVaCreateManagedWidget( 
-        "mtl_base", xmFormWidgetClass, mtl_shell,
-        NULL );
-
+				       "mtl_base", xmFormWidgetClass, mtl_shell,
+				       NULL );
+   
     XtAddCallback( mtl_base, XmNdestroyCallback,
 	  destroy_mtl_mgr_CB, (XtPointer) NULL );
 
-    widg = XtVaCreateManagedWidget( 
+    if ( env.griz_id>0 ) {
+         gid = env.griz_id;
+         widg = XtVaCreateManagedWidget( 
         "Function", xmLabelGadgetClass, mtl_base, 
         XmNalignment, XmALIGNMENT_CENTER, 
         XmNtopAttachment, XmATTACH_FORM, 
         XmNrightAttachment, XmATTACH_FORM, 
         XmNleftAttachment, XmATTACH_FORM, 
         XmNinitialResourcesPersistent, FALSE,
-        NULL );
+	XmNbackground, env.border_colors[gid-1],
+       NULL );
+    }
+	 else
+         widg = XtVaCreateManagedWidget( 
+					"Function", xmLabelGadgetClass, mtl_base, 
+					XmNalignment, XmALIGNMENT_CENTER, 
+					XmNtopAttachment, XmATTACH_FORM, 
+					XmNrightAttachment, XmATTACH_FORM, 
+					XmNleftAttachment, XmATTACH_FORM, 
+					XmNinitialResourcesPersistent, FALSE,
+					NULL );
 
     /* Use a RowColumn to hold the function select toggles. */
     func_select = XtVaCreateManagedWidget( 
@@ -3250,7 +3426,7 @@ create_mtl_manager( Widget main_widg )
     
         XtOverrideTranslations( prop_checks[i], key_trans );
     }
-    
+
     /* These need to be #def'd when stable. */
     scale_len = 200;
     val_len = 50;
@@ -3637,8 +3813,8 @@ create_surf_manager( Widget main_widg )
         sep2, sep3, vert_scroll, func_operate, surf_label, 
         frame, col_comp;
     Arg args[10];
-    char win_title[64];
-    char surf_toggle_name[8];
+    char win_title[256];
+    char surf_toggle_name[64];
     int n, i, surf, qty_surfs;
     Dimension width, max_child_width, margin_width, spacing, scrollbar_width, 
         name_len, col_ed_width, max_mgr_width, height, sw_height, fudge;
@@ -3662,6 +3838,7 @@ create_surf_manager( Widget main_widg )
     String trans = 
         "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
     XtTranslations key_trans;
+    int gid=0;
     
     key_trans = XtParseTranslationTable( trans );
     
@@ -3686,9 +3863,18 @@ create_surf_manager( Widget main_widg )
                        gress_surf_mgr_EH, NULL );
 
     /* Use a Form widget to manage everything else. */
-    surf_base = XtVaCreateManagedWidget( 
-        "surf_base", xmFormWidgetClass, surf_shell, 
-        NULL );
+    gid = env.griz_id;
+    if ( env.griz_id>0 ) {
+         surf_base = XtVaCreateManagedWidget( "surf_base", xmFormWidgetClass, surf_shell, 
+					      XmNmarginWidth, 2,
+					      XmNmarginHeight, 2,
+					      XmNbackground, env.border_colors[gid-1],
+					      NULL );
+    }
+    else
+         surf_base = XtVaCreateManagedWidget( "surf_base", xmFormWidgetClass, surf_shell, 
+					      NULL );
+
     
     XtOverrideTranslations( surf_base, key_trans );
         
@@ -3765,7 +3951,7 @@ create_surf_manager( Widget main_widg )
         NULL );
         
     surf_label = XtVaCreateManagedWidget( 
-        "Surface", xmLabelGadgetClass, surf_base, 
+        "Surface Classes", xmLabelGadgetClass, surf_base, 
         XmNalignment, XmALIGNMENT_CENTER, 
         XmNtopAttachment, XmATTACH_WIDGET, 
         XmNtopWidget, sep1, 
@@ -3932,7 +4118,7 @@ create_surf_manager( Widget main_widg )
         
         surf = i + 1;
         if ( surf < 10 )
-            sprintf( surf_toggle_name, " %d ", surf );
+            sprintf( surf_toggle_name, " Name%d(master) ", surf );
         else
             sprintf( surf_toggle_name, "%d", surf );
 
@@ -4005,15 +4191,17 @@ static Widget
 create_free_util_panel( Widget main_widg )
 {
     int n;
-    char win_title[64];
+    char win_title[256];
     Arg args[10];
     Widget util_shell, util_panel;
     String trans = 
         "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
 
-    sprintf( win_title, "%s Utility Panel", griz_name );
+    sprintf( win_title, "Utility Panel %s", path_string );
+
     n = 0;
     XtSetArg( args[n], XtNtitle, win_title ); n++;
+
     XtSetArg( args[n], XmNiconic, FALSE ); n++;
     XtSetArg( args[n], XmNinitialResourcesPersistent, FALSE ); n++;
     XtSetArg( args[n], XmNwindowGroup, XtWindow( main_widg ) ); n++;
@@ -4068,16 +4256,28 @@ create_utility_panel( Widget main_widg )
     String trans = 
         "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
     XtTranslations key_trans;
+    int gid=0;
     
     key_trans = XtParseTranslationTable( trans );
     
     analy = env.curr_analy;
     
     /* Use a Form widget to manage everything else. */
-    util_panel_main = XtVaCreateManagedWidget( 
-        "util_panel_main", xmFormWidgetClass, main_widg, 
-        NULL );
-
+    gid = env.griz_id;
+    if ( env.griz_id>0 && !include_util_panel )
+         util_panel_main = XtVaCreateManagedWidget( 
+						   "util_panel_main", xmFormWidgetClass, main_widg, 
+						   XmNallowResize, FALSE,
+						   XmNmarginWidth, 2,
+						   XmNmarginHeight, 2,
+						   XmNbackground, env.border_colors[gid-1],
+						   NULL );
+    else
+         util_panel_main = XtVaCreateManagedWidget( 
+						   "util_panel_main", xmFormWidgetClass, main_widg, 
+						   XmNallowResize, TRUE,
+						   NULL );
+   
     XtAddCallback( util_panel_main, XmNdestroyCallback, 
                    destroy_util_panel_CB, (XtPointer) NULL );
 
@@ -4366,7 +4566,7 @@ create_utility_panel( Widget main_widg )
     util_render_btns[VIEW_GS] = XtVaCreateManagedWidget( 
         "Greyscale", xmToggleButtonWidgetClass, rend_child, 
         XmNindicatorOn,  False, 
-        XmNset,  ( analy->mesh_view_mode == RENDER_GS ), 
+	XmNset,  ( analy->material_greyscale ),
         XmNshadowThickness, 3,
         XmNfillOnSelect, True, 
         NULL );
@@ -4555,6 +4755,7 @@ create_pick_menu( Widget parent, Util_panel_button_type btn_type,
                                      &initial_class_btn );
 
     n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
     XtSetArg( args[n], XmNsubMenuId, pick_menu ); n++;
 
     if ( cascade_name == NULL )
@@ -4599,6 +4800,7 @@ create_pick_submenu( Widget parent, Util_panel_button_type btn_type,
     Widget init_class;
 
     n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
     pick_submenu = XmCreatePulldownMenu( parent, "pick_pane", args, n );
     
     p_mesh = MESH_P( env.curr_analy );
@@ -4696,6 +4898,134 @@ create_pick_submenu( Widget parent, Util_panel_button_type btn_type,
     return pick_submenu;
 }
 
+/*****************************************************************
+ * TAG( create_colormap_menu )
+ *
+ * Create a cascade menu to select pre-defined colormap.
+ */
+static Widget
+create_colormap_menu( Widget parent, Util_panel_button_type dummp,
+		      char *cascade_name )
+{
+    int n;
+    Arg args[5];
+    Widget colormap_menu;
+    Widget menu, p_initial_btn;
+    colormap_type btn_type=CM_JET;
+
+    /* Create a cascade menu. */
+    colormap_menu = create_colormap_submenu( parent, btn_type,
+					     &p_initial_btn );
+    n = 0;
+    XtSetArg( args[n], XmNsubMenuId, colormap_menu ); n++;
+
+    /* Create a cascade menu. */
+    menu = XmCreateCascadeButton( parent, "Set Colormap", args, n );
+
+    XtManageChild( menu );
+
+    return menu;
+}
+
+
+/*****************************************************************
+ * TAG( create_colormap_submenu )
+ *
+ * Create the submenu a cascade menu to select a pre-defined 
+ * colormap.
+ */
+static Widget
+create_colormap_submenu( Widget parent, colormap_type btn_type,
+			 Widget *p_initial_button )
+{
+    int n, i, j;
+    Arg args[5];
+    Widget pick_submenu, button;
+    Mesh_data *p_mesh;
+    Widget init_class;
+
+    n = 0;
+    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
+    pick_submenu = XmCreatePulldownMenu( parent, "colormap_pane", args, n );
+    
+    btn_type = CM_INVERSE;
+    button = XmCreatePushButtonGadget( pick_submenu, 
+				       "Inverse Colormap",
+				       args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
+		   (XtPointer) btn_type );
+
+    button = XmCreateSeparatorGadget( pick_submenu, "separator", args, n );
+    XtManageChild( button );
+
+    btn_type = CM_COOL;
+    button = XmCreatePushButtonGadget( pick_submenu, 
+				       "Cool",
+				       args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
+		   (XtPointer) btn_type );
+    
+    btn_type = CM_DEFAULT;
+    button = XmCreatePushButtonGadget( pick_submenu, 
+				       "Hotmap(default)",
+				       args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
+		   (XtPointer) btn_type );
+
+    btn_type = CM_GRAYSCALE;
+    button = XmCreatePushButtonGadget( pick_submenu, 
+				       "GrayScale",
+				       args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
+		   (XtPointer) btn_type );
+    
+    btn_type = CM_INVERSE_GRAYSCALE;
+    button = XmCreatePushButtonGadget( pick_submenu, 
+				       "Inverse GrayScale",
+				       args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
+		   (XtPointer) btn_type );
+
+    btn_type = CM_HSV;
+    button = XmCreatePushButtonGadget( pick_submenu, 
+				       "HSV",
+				       args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
+		   (XtPointer) btn_type );
+
+    btn_type = CM_JET;
+    button = XmCreatePushButtonGadget( pick_submenu, 
+				       "Jet",
+				       args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
+		   (XtPointer) btn_type );
+
+    btn_type = CM_PRISM;
+    button = XmCreatePushButtonGadget( pick_submenu, 
+				       "Prism",
+				       args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
+		   (XtPointer) btn_type );
+
+    btn_type = CM_WINTER;
+    button = XmCreatePushButtonGadget( pick_submenu, 
+				       "Winter",
+				       args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
+		   (XtPointer) btn_type );
+
+    return pick_submenu;
+}
+
 
 /*****************************************************************
  * TAG( init_btn_pick_classes )
@@ -4745,12 +5075,12 @@ get_pick_superclass( Util_panel_button_type btn_type, int *p_superclass )
     static int b2_pref_order[] =
     {
         G_QUAD, G_BEAM, G_UNIT, G_TET, G_TRI, G_TRUSS, G_WEDGE, G_PYRAMID,
-        G_HEX, G_NODE, G_SURFACE
+        G_HEX, G_NODE, G_SURFACE, G_PARTICLE
     };
     static int b3_pref_order[] = 
     {
         G_HEX, G_PYRAMID, G_WEDGE, G_TRUSS, G_TRI, G_TET, G_BEAM, G_QUAD,
-        G_NODE, G_UNIT, G_SURFACE
+        G_NODE, G_UNIT, G_SURFACE, G_PARTICLE
     };
     
     p_mesh = MESH_P( env.curr_analy );
@@ -4853,7 +5183,7 @@ init_gui( void )
 {
     FILE *test_file;
     char *init_file;
-    char *home, home_path[100], home_hist[100];
+    char *home, home_path[512], home_hist[512];
     
     char init_cmd[100];
 
@@ -5436,37 +5766,38 @@ menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
             break;
 
         case BTN_SAVE_SESSION_GLOBAL:
-	    write_griz_session_file( env.curr_analy, session, ".griz_session", TRUE );
+	    write_griz_session_file( env.curr_analy, session, ".griz_session", 
+				     env.griz_id, TRUE );
             break;
  
         case BTN_SAVE_SESSION_PLOT:
-	    write_griz_session_file( env.curr_analy, session, ".plot_session", FALSE );
+	    update_session( PUT, NULL );
+
+	    write_griz_session_file( env.curr_analy, session, ".plot_session", 
+				     env.griz_id, FALSE );
             break;
  
        case BTN_LOAD_SESSION_GLOBAL:
-	    status = read_griz_session_file( session, ".griz_session", TRUE );
+	    status = read_griz_session_file( session, ".griz_session", env.griz_id,
+					     TRUE );
 
 	    if ( status==OK )
 	         put_griz_session( env.curr_analy, session );
 
 	    /* Update the window attributes */
 
-	    if ( new_window_behavior )
-	         put_window_attributes() ;
+	    /*	    update_session( GET, NULL ); */
+
+	    put_window_attributes() ;
             break;
  
         case BTN_LOAD_SESSION_PLOT:
-	    status = read_griz_session_file( session, ".plot_session", FALSE );
+	    status = read_griz_session_file( session, ".plot_session", 
+					     env.griz_id, FALSE );
             break;
  
         case BTN_QUIT:
-	    write_log_message( );
-
-#ifdef TIME_GRIZ
-        manage_timer( 8, 1 );
-#endif
-
-            quit( 0 );
+	    parse_command( "quit", env.curr_analy );
             break;
 
         case BTN_DRAWFILLED:
@@ -5601,6 +5932,18 @@ menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 parse_command( "on edges", env.curr_analy );
             }
             break;
+         case BTN_GS:
+            if ( env.curr_analy->material_greyscale )
+            {
+                text = XmStringCreateSimple( "off gs\0" );
+                parse_command( "off gs", env.curr_analy );
+            }
+            else
+            {
+                text = XmStringCreateSimple( "on gs\0" );
+                parse_command( "on gs", env.curr_analy );
+            }
+            break;
         case BTN_PERSPECTIVE:
             text = XmStringCreateSimple( "switch persp\0" );
             parse_command( "switch persp", env.curr_analy );
@@ -5617,7 +5960,18 @@ menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
             text = XmStringCreateSimple( "rview\0" );
             parse_command( "rview", env.curr_analy );
             break;
-
+        case BTN_SU:
+            if ( env.curr_analy->suppress_updates )
+            {
+                 text = XmStringCreateSimple( "off su\0" );
+                 parse_command( "off su", env.curr_analy );
+	    }
+	    else
+	    {
+                 text = XmStringCreateSimple( "on su\0" );
+                 parse_command( "on su", env.curr_analy );
+	    }
+            break;
         case BTN_HILITE:
             text = XmStringCreateSimple( "switch pichil\0" );
             parse_command( "switch pichil", env.curr_analy );
@@ -5632,6 +5986,11 @@ menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
             break;
         case BTN_CLEARSELECT:
             text = XmStringCreateSimple( "clrsel\0" );
+            parse_command( "clrsel", env.curr_analy );
+            break;
+        case BTN_CLEARALL:
+            text = XmStringCreateSimple( "clrhil\0" );
+            parse_command( "clrhil", env.curr_analy );
             parse_command( "clrsel", env.curr_analy );
             break;
         case BTN_PICSHELL:
@@ -5732,6 +6091,32 @@ menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
             parse_command( "relnotes", env.curr_analy );
             break;
 
+       case BTN_FN:
+            if ( env.curr_analy->free_nodes_enabled )
+            {
+                text = XmStringCreateSimple( "off fn\0" );
+                parse_command( "off fn", env.curr_analy );
+            }
+            else 
+            {
+                text = XmStringCreateSimple( "on fn\0" );
+                parse_command( "on fn", env.curr_analy );
+            }
+            break;
+
+        case BTN_PN:
+            if ( env.curr_analy->particle_nodes_enabled )
+            {
+                text = XmStringCreateSimple( "off pn\0" );
+                parse_command( "off pn", env.curr_analy );
+            }
+            else 
+            {
+                text = XmStringCreateSimple( "on pn\0" );
+                parse_command( "on pn", env.curr_analy );
+            }
+            break;
+
         default:
             popup_dialog( INFO_POPUP, "Menu button %d is unrecognized", btn );
     }
@@ -5746,7 +6131,7 @@ menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
 
 /*****************************************************************
- * TAG( process_              keyboard_input )
+ * TAG( process_keyboard_input )
  *
  * Sends keyboard input from on to the Command widget.
  */
@@ -5800,7 +6185,10 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
     double pixdx, pixdy;
     Analysis *analy;
 
+    int save_center_view;
+
     XWindowChanges xwc;
+    Bool_type popup_windows = FALSE;
 
     cb_data = (GLwDrawingAreaCallbackStruct *) call_data;
     
@@ -5808,34 +6196,6 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
     yes_rx_ry = !analy->limit_rotations;
 
     history_inputCB_cmd = TRUE;
-
-    /* IRC: May 11, 2007.  Raise Utility and Control windows to the top (SCR #456) */
-    if ( new_window_behavior )
-    {
-      xwc.stack_mode = Above;
-      if ( ctl_shell_widg != NULL && ctl_top_win != 0 ) 
-      {
-	   XConfigureWindow( dpy, XtWindow( ctl_shell_widg ), CWStackMode, &xwc );
-	   XGetWindowAttributes( dpy, XtWindow( ctl_shell_widg ), &ctl_attrib );
-      }
-      
-      if ( util_panel_widg != NULL ) 
-      {
-	   XConfigureWindow( dpy, XtWindow( util_panel_widg ), CWStackMode, &xwc );
-      }
-      
-      if ( mtl_mgr_widg != NULL && mtl_mgr_top_win != 0 ) 
-      {
-	   XConfigureWindow( dpy, XtWindow( mtl_mgr_widg ),    CWStackMode, &xwc );
-      }
-      
-      if ( surf_mgr_widg != NULL && surf_mgr_top_win != 0 )
-      {
-           XConfigureWindow( dpy, XtWindow( surf_mgr_widg ),    CWStackMode, &xwc );
-      }
-    }
-    /* IRC: May 11, 2007.  Raise Utility and Control windows to the top (SCR #456) */
- 
 
     /* IRC: September 6, 2008. This code allows operations in the render window if we are using
      * the material manager color editor.
@@ -5854,7 +6214,9 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
     {
         case ButtonPress:
 
-  	    /* Rubberband Zoom */
+	    popup_windows = TRUE;
+
+ 	    /* Rubberband Zoom */
 	    if (cb_data->event->xbutton.state & ControlMask)
 	    {
             switch ( cb_data->event->xbutton.button )
@@ -5912,6 +6274,7 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
 			break;
 
 		    case Button3:
+	      
 			rb_hist_index--;
                         mode = RB_STATIC;
 
@@ -5980,7 +6343,7 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
        	   if ( (cb_data->event->xbutton.state & ControlMask) &&
                  mode == RB_MOVE )
            {
-           int       rb_x, rb_y, rb_size;
+               int       rb_x, rb_y, rb_size;
 	       int       win_center_x, win_center_y;
 	       int       rb_center_x, rb_center_y;
                int       identify_only=-1;
@@ -6065,9 +6428,11 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
 	       set_mesh_scale( scale[0], scale[1], scale[2] );
 
+	       save_center_view = analy->center_view;
 	       sprintf( str, "vcent n %d", rb_node_num);
 	       history_command( str );
 	       parse_command( str, analy);
+               analy->center_view = save_center_view;
 
 	       /* Redraw the display */
                adjust_near_far ( analy );
@@ -6133,7 +6498,9 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 unset_alt_cursor();
                 analy->update_display( analy );
             }
-            break;
+	 
+	    popup_windows = TRUE;
+           break;
 
         case MotionNotify:
             orig_posx = posx;
@@ -6144,6 +6511,7 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
 	    if ( Button1Mask && mode == RB_MOVE)
 	    {
                /* Add depth bias. */
+	       popup_windows = FALSE;
 
                glDepthRange( 0, .1 );           
 
@@ -6260,6 +6628,8 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
         XmStringFree( text );
     }
 
+    if ( popup_windows )
+         pushpop_window( PUSHPOP_ABOVE );
 }
 
 
@@ -6572,6 +6942,7 @@ parse_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     string_convert( ((XmCommandCallbackStruct *) call_data)->value, text );
 
+    /* pushpop_window( PUSHPOP_ABOVE ); */
 
     /* Call the parsing guys. */
     parse_command( text, env.curr_analy );
@@ -7364,7 +7735,7 @@ static void
 destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     Material_property_type i;
-
+    return;
     switch_opengl_win( MESH_VIEW );
     
     if (!mtl_mgr_widg)
@@ -7375,25 +7746,32 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     for ( i = AMBIENT; i < MTL_PROP_QTY; i++ )
     {
-        free( property_vals[i] );
+        if (property_vals[i])
+	    free( property_vals[i] );
         property_vals[i] = NULL;
     }
     
-    free( mtl_mgr_func_toggles );
+    if (mtl_mgr_func_toggles)
+        free( mtl_mgr_func_toggles );
     mtl_mgr_func_toggles = NULL;
 
-    free( op_buttons );
+    if ( op_buttons)
+         free( op_buttons );
     op_buttons = NULL;
 
-    DELETE_LIST( mtl_select_list );
-    DELETE_LIST( mtl_deselect_list );
+    if (mtl_select_list)
+        DELETE_LIST( mtl_select_list );
+    if (mtl_deselect_list)
+        DELETE_LIST( mtl_deselect_list );
     mtl_select_list = NULL;
     mtl_deselect_list = NULL;
     
-    free( mtl_mgr_cmd );
+    if ( mtl_mgr_cmd) 
+         free( mtl_mgr_cmd );
     mtl_mgr_cmd = NULL;
     
-    XFreePixmap( dpy, mtl_check );
+    if ( mtl_check)
+         XFreePixmap( dpy, mtl_check );
     mtl_check = NULL;
 
     mtl_mgr_top_win = 0;
@@ -7404,7 +7782,6 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     destroy_mtl_mgr();
 }
-
 
 /*****************************************************************
  * TAG( surf_func_select_CB )
@@ -7866,7 +8243,7 @@ util_render_CB( Widget w, XtPointer client_data, XtPointer call_data )
     Widget hist_list;
     Util_panel_button_type btn;
     XmString label;
-    char cbuf[64], cmdbuf[64];
+    char cbuf[M_MAX_NAME_LEN], cmdbuf[M_MAX_NAME_LEN];
     unsigned char *hide_mtl;
     int qty_mtls, btn_num;
     int i, item_cnt;
@@ -7945,7 +8322,7 @@ util_render_CB( Widget w, XtPointer client_data, XtPointer call_data )
             }
             break;
         case VIEW_WIREFRAME:
-            if ( cb_data->set )
+            if ( !env.curr_analy->draw_wireframe )
             {
                 text[item_cnt] = XmStringCreateSimple( "sw wf" );
                 item_cnt++;
@@ -7960,24 +8337,25 @@ util_render_CB( Widget w, XtPointer client_data, XtPointer call_data )
             else
             {
                 /* Explicitly unsetting filled view. Do something... */
-                text[item_cnt] = XmStringCreateSimple( "sw none" );
+                text[item_cnt] = XmStringCreateSimple( "sw solid" );
                 item_cnt++;
-                parse_command( "sw none", env.curr_analy );
+                parse_command( "sw solid", env.curr_analy );
             }
             break;
         case VIEW_GS:
-            if ( cb_data->set )
+            if ( env.curr_analy->material_greyscale )
             {
-                text[item_cnt] = XmStringCreateSimple( "on gs" );
+                text[item_cnt] = XmStringCreateSimple( "off gs" );
                 item_cnt++;
-                parse_command( "on gs", env.curr_analy );
+                parse_command( "off gs", env.curr_analy );
             }
             else
             {
                 /* Explicitly unsetting greyscale view. Do something... */
                 text[item_cnt] = XmStringCreateSimple( "off gs" );
+                text[item_cnt] = XmStringCreateSimple( "on gs" );
                 item_cnt++;
-                parse_command( "off gs", env.curr_analy );
+                parse_command( "on gs", env.curr_analy );
             }
             break;
         case PICK_MODE_SELECT:
@@ -8177,7 +8555,7 @@ menu_setpick_CB( Widget w, XtPointer client_data, XtPointer call_data )
     Widget hist_list;
     Util_panel_button_type btn;
     XmString label;
-    char cbuf[64], cmdbuf[64];
+    char cbuf[M_MAX_NAME_LEN], cmdbuf[M_MAX_NAME_LEN];
     int btn_num;
     MO_class_data *p_mo_class;
     
@@ -8208,6 +8586,107 @@ menu_setpick_CB( Widget w, XtPointer client_data, XtPointer call_data )
     }
 }
 
+/*****************************************************************
+ * TAG( menu_setcolormap )
+ *
+ * Callback for setting the colormap from the menu.
+ */
+static void
+menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
+{
+    XmString text=NULL;
+    Widget hist_list;
+    colormap_type btn;
+    int btn_num;
+
+    Analysis *analy;
+    static char cmd[256];
+
+    analy = env.curr_analy;
+      
+    btn = (Util_panel_button_type) client_data;
+
+    switch ( btn ) {
+    case CM_INVERSE:
+         parse_command( "invmap" ,analy );
+         break;
+    case CM_DEFAULT:
+         parse_command( "hotmap", analy );
+	 strcpy( cmd, "hotmap" );
+         break;
+    case CM_COOL:
+         load_colormap( analy, "cool.cm" );
+         break;
+    case CM_GRAYSCALE:
+         parse_command( "grmap", analy );
+	 strcpy( cmd, "grmap" );
+         break;
+    case CM_INVERSE_GRAYSCALE:
+         parse_command( "igrmap" ,analy );
+         strcpy( cmd, "igrmap" );
+	 break;
+    case CM_HSV:
+         load_colormap( analy, "hsv.cm" );
+         break;
+    case CM_JET:
+         load_colormap( analy, "jet.cm" );
+         break;
+    case CM_PRISM:
+         load_colormap( analy, "prism.cm" );
+         break;
+    case CM_WINTER:
+         load_colormap( analy, "winter.cm" );
+         break;
+    }
+
+    if ( strlen(cmd) > 0 ) {
+         text = XmStringCreateSimple( cmd );
+         hist_list=XmCommandGetChild(command_widg, XmDIALOG_HISTORY_LIST);
+         XmListAddItem( hist_list, text, 0 );
+         XmListSetBottomPos( hist_list, 0 );
+         XmStringFree( text );
+    } 
+}
+
+/*****************************************************************
+ * TAG( load_colormap )
+ *
+ * 
+ */
+static void load_colormap( Analysis *analy, char *colormap )
+{
+  XmString text= NULL;
+  char *griz_home, cm_filename[256], cm_cmd[256], file_spec[256];
+  struct stat statbuf;
+  Widget hist_list;
+  Bool_type griz_home_set=FALSE;
+
+    griz_home = getenv( "GRIZHOME" );
+    if ( griz_home==NULL ) {
+         griz_home = strdup( "." );
+	 griz_home_set=TRUE;
+    }
+
+    if ( griz_home != NULL )
+    {
+         sprintf( cm_cmd, "ldmap %s/ColorMaps/%s", griz_home, colormap );
+ 
+         if ( stat( cm_cmd, &statbuf ) != 0 ) {
+              parse_command( cm_cmd ,analy );
+	      text = XmStringCreateSimple( cm_cmd );
+	      hist_list=XmCommandGetChild(command_widg, XmDIALOG_HISTORY_LIST);
+	      XmListAddItem( hist_list, text, 0 );
+	      XmListSetBottomPos( hist_list, 0 );
+	      XmStringFree( text );
+	 }
+	 else
+	   popup_dialog( WARNING_POPUP, 
+			 "Unable to find designated colormap [%s].", file_spec );
+	 
+	 if ( griz_home_set )
+	      free( griz_home );
+    }
+}
 
 /*****************************************************************
  * TAG( set_pick_class )
@@ -8344,20 +8823,20 @@ update_util_panel( Util_panel_button_type button, MO_class_data *p_mo_class )
             }
             break;
         case VIEW_WIREFRAME:
-            XtVaGetValues( util_render_btns[VIEW_WIREFRAME], XmNset, &set,
+            if ( env.curr_analy->draw_wireframe )
+                XtVaSetValues( util_render_btns[VIEW_WIREFRAME], XmNset, True, 
                            NULL );
-            if ( set )
+	    else
                 XtVaSetValues( util_render_btns[VIEW_WIREFRAME], XmNset, False, 
                                NULL );
            break;
         case VIEW_GS:
-            XtVaGetValues( util_render_btns[VIEW_GS], XmNset, &set, 
+            if ( env.curr_analy->material_greyscale )
+                XtVaSetValues( util_render_btns[VIEW_GS], XmNset, True, 
                            NULL );
-            if ( set )
+	    else
                 XtVaSetValues( util_render_btns[VIEW_GS], XmNset, False, 
                                NULL );
-	    else
-	        parse_command( "off gs", env.curr_analy );
             break;
           case VIEW_SOLID_MESH:
             XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
@@ -8432,10 +8911,6 @@ update_util_panel( Util_panel_button_type button, MO_class_data *p_mo_class )
             if ( set )
                 XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, 
                                NULL );
-            break;
-       case VIEW_GS_NONE:
-	    XtVaSetValues( util_render_btns[VIEW_GS], XmNset, False, 
-                           NULL );
             break;
         case VIEW_NONE:
             XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
@@ -8639,7 +9114,7 @@ destroy_mtl_mgr( void )
 /*****************************************************************
  * TAG( destroy_surf_mgr )
  *
- * If the material manager exists, free all its resources and 
+ * If the surface manager exists, free all its resources and 
  * destroy it.
  */
 void
@@ -8647,10 +9122,8 @@ destroy_surf_mgr( void )
 {
     
     if ( surf_mgr_widg == NULL )
-        return;
-/*****
+         return;
     XtDestroyWidget( surf_mgr_widg );
-*****/
     surf_mgr_widg = NULL;
 }
 
@@ -9284,7 +9757,7 @@ update_actions_sens( void )
          */
         for ( i = 0; i < MTL_PROP_QTY; i++ )
         {
-            show_check[i] = FALSE;
+           show_check[i] = FALSE;
             if ( prop_val_changed[i] )
                 show_check[i] = TRUE;
             else if ( i != SHININESS )
@@ -9582,7 +10055,8 @@ string_convert( XmString str, char *buf )
 static void
 exit_CB( Widget w, XtPointer client_data, XtPointer reason )
 {
-    quit( -1 );
+    parse_command( "quit", env.curr_analy );
+
 }
 
 
@@ -9618,6 +10092,11 @@ animate_workproc_CB()
 
     /* Move the animation forward a step and return whether done. */
     done = step_animate( env.curr_analy );
+
+    if ( done ) 
+         env.animate_active = FALSE;
+    else
+         env.animate_active = TRUE;
 
     /* Returning true will kill the workproc. */
     return ( stop_animate ? TRUE : done );
@@ -9756,6 +10235,15 @@ write_start_text( void )
     if ( griz_home != NULL )
     {
         sprintf( file_spec, "%s/griz_start_text", griz_home );
+
+	/* Write out griz version info */
+#ifdef SERIAL_BATCH
+	wrt_text(  "\n%s\n\n", griz_name );
+#else
+	sprintf( text_line, "\n%s\n\n", griz_name );
+	XmTextInsert( monitor_widg, wpr_position, text_line );
+	wpr_position += strlen( text_line );
+#endif
         if ( stat( file_spec, &statbuf ) == 0 )
         {
             text_file = fopen( file_spec, "r" );
@@ -9791,7 +10279,8 @@ write_start_text( void )
  * Write standard startup text for a new database.
  */
 
-#define MAX_DBTEXT_LINES 4000
+#define MAX_DBTEXT_LINES 2000
+#define MAX_BLOCKS       2000
 
 void
 wrt_standard_db_text( Analysis *analy, Bool_type advance )
@@ -9803,19 +10292,26 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     float start_t, end_t;
     int db_ident;
     MO_class_data *class_ptr=NULL;
-    char class_name[128];
+    char class_name[M_MAX_NAME_LEN];
+    int  particle_count=0;
 
     int block_label_start, block_label_end;
     int block_start, block_end, block_count=0,
         num_blocks=0;
-    int blocks[2000], blocks_labels[2000];
+    int *blocks;
 
-    int label_block_qty=0, num_class_blocks=0, qty_objects=0,
+    int num_class_blocks=0, qty_objects=0,
         temp_label, block_total;
+
+    Bool_type labels_found=FALSE;
+
+    int  qty_classes=0;
+    char *class_names[2000];
+    int  superclasses[2000];
 
     static int traverse_order[] =
     {
-        G_HEX, G_TET, G_QUAD, G_TRI
+      G_HEX, G_TET, G_QUAD, G_TRI
     };
     static char *labels[] =
     {
@@ -9826,10 +10322,10 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     Mesh_data *p_mesh;
     List_head *p_lh;
     int sum, type;
-    char *start_text[MAX_DBTEXT_LINES], temp_text[100];
+    char *start_text[MAX_DBTEXT_LINES], temp_text[512];
     int rval;
 
-    int block_index, temp_block_index, class_size, st_qty;    
+    int block_index, temp_block_index, st_qty;    
     int labels_min, labels_max;
     int sclass, superclass;
 
@@ -9839,7 +10335,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     Famid fid;
     int sclass_cnt=0;
 
-    cnt = 0;
+    int status=OK;
 
     db_ident = analy->db_ident;
     p_mesh   = MESH_P( analy );
@@ -9847,6 +10343,8 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     /* For TH databases we could get many lines of block data
      * so we need to allow for this.
      */
+
+    status = mili_get_class_names( analy, &qty_classes, class_names, superclasses );
 
     p_state_rec = analy->srec_tree;
     cnt = 0;
@@ -9924,26 +10422,46 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
             if ( type == G_HEX || type == G_TET )
 	    {
                 sprintf( temp_text, 
-                         "Number of %s faces to render: %d\n", labels[type],
+                         "Number of %s faces to render: \t%d\n", labels[type],
                          sum );    
 		start_text[cnt++] = (char *) strdup(temp_text) ;
 	    }
             else
 	    {
                 sprintf( temp_text, 
-                         "Number of %s's to render: %d\n", labels[type],
+                         "Number of %s's to render: \t\t%d\n", labels[type],
                          sum );    
 		start_text[cnt++] = (char *) strdup(temp_text) ;
 	    }
-        }
+	}
     }
     
+    p_lh = p_mesh->classes_by_sclass + G_HEX;
+    for ( j = 0; j < p_lh->qty; j++ ) {
+          class_ptr = ((MO_class_data **) p_lh->list)[j];
+          if ( is_particle_class( analy, class_ptr->superclass, class_ptr->short_name )) {
+	       particle_count = class_ptr->qty;
+               sprintf( temp_text, 
+			"Number of Particles[%s] to render: \t%d\n", class_ptr->short_name, particle_count );
+		start_text[cnt++] = (char *) strdup(temp_text) ;
+	  }
+    }
+    p_lh = p_mesh->classes_by_sclass + G_PARTICLE;
+    for ( j = 0; j < p_lh->qty; j++ ) {
+          class_ptr = ((MO_class_data **) p_lh->list)[j];
+          if ( is_particle_class( analy, class_ptr->superclass, class_ptr->short_name )) {
+	       particle_count = class_ptr->qty;
+               sprintf( temp_text, 
+			"Number of Particles[%s] to render: \t%d\n", class_ptr->short_name, particle_count );
+		start_text[cnt++] = (char *) strdup(temp_text) ;
+	  }
+    }
 
-    /* IRC: Added March 29, 2005 - Print list of selected object
+    /* IRC: Added March 29, 2005 - Print list of selected objects
      * in state records. 
      */
     p_state_rec = analy->srec_tree;
-    if (p_state_rec != NULL) 
+    if (p_state_rec != NULL)
       if(p_state_rec->qty > 0)
       {
       analy->cur_state = 0;
@@ -9951,50 +10469,35 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
       analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, 
                            &st_qty );
 
-      /* Loop over subrecs */
-      for ( sclass = 0; 
-            sclass < QTY_SCLASS; 
-            sclass++ )
-      {
-  	   qty_objects     = 0;
-	   label_block_qty = 0;
-	   num_blocks      = 0;
+      /* Loop over classes */
+      for ( j = 0;
+	    j < qty_classes; 
+	    j++ ) {
 
-	   for ( i=0;
-		 i<1000;
-		 i++ )
-	   {
-	         blocks[i]        = 0;
-	         blocks_labels[i] = 0;
-	   }
+ 	    strcpy( class_name, class_names[j] );
+	    sclass = superclasses[j];
 
-	   class_ptr = get_blocking_info( analy,  sclass, 
-					  &class_size, class_name,
-					  &qty_objects, &label_block_qty );
+ 	    qty_objects     = 0;
+	    num_blocks      = 0;
 
-	   if ( qty_objects==0 )
- 	        continue;
+	    class_ptr = get_blocking_info( analy, class_name, sclass,
+					   &qty_objects,
+					   &num_blocks, &blocks );
 
-	   if ( !analy->stateDB )
-	   {
-	        class_ptr = assemble_blocking ( analy, sclass, &class_size, class_name,
-						&qty_objects, 
-						&label_block_qty, &num_blocks, 
-						blocks, blocks_labels );
+	    if ( qty_objects==0 )
+ 	         continue;
 
-	   if ( num_blocks==0 )
-	        continue;
-	   }
-	   else
-	        class_ptr = get_blocking_info( analy,  sclass, 
-					       &class_size, class_name,
-					       &qty_objects, &label_block_qty );
-	   
-	   if ( class_size > 1 )
-           {
+	    labels_found = class_ptr->labels_found;
+
+	    if ( !analy->stateDB &&  num_blocks==0 )
+	        if ( num_blocks==0 )
+		     continue;
+
+	    if ( qty_objects > 0 )
+            {
                 block_index = 0;
 
-	        sprintf( temp_text,"\nClass: %s \t\t\t\t(Total %ss=%d)\n", class_name, class_name, class_size );  
+	        sprintf( temp_text,"\nClass: %s \t\t\t\t(Total %ss=%d)\n", class_name, class_name, qty_objects );  
 	        start_text[cnt++] = (char *) strdup(temp_text) ;
 
 	        /************/
@@ -10006,10 +10509,10 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 		     /* Without Labels */
 		     /******************/
 		     /* Case 1 - State DB and no labels */
-		     if ( label_block_qty==0 )
+		     if ( !labels_found )
 		     {
 		         block_start = 1;
-			 block_end   = class_size;
+			 block_end   = qty_objects;
 			 
 			 if ( block_start!=block_end )
 			      sprintf( temp_text, 
@@ -10028,20 +10531,26 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 		         /* With Labels */
 		         /***************/
 		         /* Case 2 - State DB with labels */
-		         block_label_start = get_class_label( class_ptr, 1 );
-			 block_label_end   = get_class_label( class_ptr, class_size );
-			      
-			 if ( block_start!=block_end )
+		         block_label_start = class_ptr->labels_min;
+			 block_label_end   = class_ptr->labels_max;
+
+			 /* 
+			  * Used for debugging Labels
+			  * if ( !strcmp(class_ptr->short_name, "brick") )
+			  *    dump_class_labels(class_ptr);
+			  */
+
+			 if ( block_label_start!=block_label_end )
 			      sprintf( temp_text, 
 				       "\tblock[%d]: %d-%d (Labels: %d-%d)\n", 1, 
 				       1,
-				       class_size,
+				       qty_objects,
 				       block_label_start,
 				       block_label_end);
 			 else
 			      sprintf( temp_text, 
-				       "\tblock[%d]: %d\n", 1, 
-				       block_start);
+				       "\tblock[%d]: %d (Label: %d)\n", 1, 
+				       block_start, block_label_start );
 			 start_text[cnt++] = (char *) strdup(temp_text) ;
 		     }
 		}
@@ -10055,7 +10564,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 		     /* Without Labels */
 		     /******************/
 		     /* Case 3 - TH DB and no labels */
-		     if ( label_block_qty==0 )
+		     if ( !labels_found )
 		     {
 		          block_count = 1;
 			  block_index = 0;
@@ -10094,10 +10603,10 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 		     }
 		     else
 		     {
-		         /***************/
-		         /* With Labels */
-		         /***************/
-		        /* Case 4 - TH DB with labels */
+		          /***************/
+		          /* With Labels */
+		          /***************/
+		         /* Case 4 - TH DB with labels */
 		          block_count = 1;
 			  block_index = 0;
 			  for ( i = 0;
@@ -10115,8 +10624,8 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 			      
 				block_start       = blocks[block_index] ;
 				block_end         = blocks[block_index+1] ;
-				block_label_start = blocks_labels[block_index] ;
-				block_label_end   = blocks_labels[block_index+1] ;
+				block_label_start = get_class_label( class_ptr, block_start );
+				block_label_end   = get_class_label( class_ptr, block_end );
 				
 				sprintf( temp_text, 
 					 "\tblock[%d]: %d-%d (Labels: %d-%d)\n", block_count++, 
@@ -10158,14 +10667,14 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 	  i < cnt; 
 	  i++ )
     {
-        XmTextInsert( monitor_widg, wpr_position, start_text[i] );
-        wpr_position += strlen( start_text[i] );
+          XmTextInsert( monitor_widg, wpr_position, start_text[i] );
+          wpr_position += strlen( start_text[i] );
     }
 
     if ( advance )
     {
-        XtVaSetValues( monitor_widg, XmNcursorPosition, wpr_position, NULL );
-        XmTextShowPosition( monitor_widg, wpr_position );
+         XtVaSetValues( monitor_widg, XmNcursorPosition, wpr_position, NULL );
+         XmTextShowPosition( monitor_widg, wpr_position );
     }
 #endif /* SERIAL_BATCH */
 
@@ -10173,7 +10682,13 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 	  i<cnt;
 	  i++ )
           free( start_text[i] );     
-      }
+
+    /* Free up space for class names & superclasses */
+    for ( i=0;
+	  i<qty_classes;
+	  i++ )
+          free( class_names[i] );
+}
 
 
 /*****************************************************************
@@ -10182,7 +10697,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
  * Construct an array of the blocking for an sclass type.
  */
 MO_class_data *
-assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_name,
+assemble_blocking( Analysis *analy, int sclass, char *class_name,
 		   int *qty_objects, int *label_block_qty,
 		   int *total_blocks, int *blocks, int *blocks_labels )
 {
@@ -10208,7 +10723,6 @@ assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_nam
     if (p_state_rec != NULL) 
        if(p_state_rec->qty <=0 )
        {
-	 *class_size      = 0;
 	 *label_block_qty = 0;
 	 *qty_objects     = 0;
 	 *total_blocks    = 0;
@@ -10231,7 +10745,6 @@ assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_nam
 	  p_subr       = &p_state_rec->subrecs[j].subrec;
 	  *qty_objects = p_subr->qty_objects;
 
-	  *class_size      = p_state_rec->subrecs[j].p_object_class->qty;
 	  strcpy( class_name, p_subr->class_name );
 	  class_ptr        = mili_get_class_ptr( analy, superclass, p_subr->class_name );
 	  *label_block_qty = class_ptr->label_blocking.block_qty;
@@ -10293,7 +10806,6 @@ assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_nam
     }
     return class_ptr;
 }
- 
 
 /*****************************************************************
  * TAG( get_blocking_info )
@@ -10301,65 +10813,158 @@ assemble_blocking( Analysis *analy, int sclass, int *class_size, char *class_nam
  * Get basic info for object blocking.
  */
 MO_class_data *
-get_blocking_info( Analysis *analy,  int sclass, 
-		   int *class_size, char *class_name,
-		   int *qty_objects, int *label_block_qty )
+get_blocking_info( Analysis *analy,   char *class_name, int sclass,
+                   int *qty_objects, 
+                   int *total_blocks, int **blocks )
 {
-    int st_qty;
-
     MO_class_data *class_ptr;
     State_rec_obj *p_state_rec;
     Subrecord     *p_subr;
-    Subrec_obj    *p_subr_obj;
+    int           superclass;
+    int           i=0, j=0, k=0;
 
-    int block_index=0, mo_id_index=0, num_blocks=0, new_blocks=0;
-    int block_start, block_end, block_count=0;
+    int block_index=0, mo_id_index=0, num_blocks=0;
+    int block_max_id = -1;
+    int block_id=0, block_start, block_end, block_count=0;
+    int list_count=0;
 
-    int i,j, k;
-
-    int superclass=0;
-    
+    int num_blocks_total=0, *temp_blocks, *block_dup_check, *pib;
+    int *blocks_list;
+ 
+    int status=OK;
+   
     *qty_objects     = 0;
-    *label_block_qty = 0;
 
+    class_ptr        = mili_get_class_ptr( analy, sclass, class_name );
+    *qty_objects     = class_ptr->qty;
+
+    /* Get the block list */
     p_state_rec   = analy->srec_tree;
-    
-    if (p_state_rec != NULL) 
-       if(p_state_rec->qty <=0 )
-       {
-	 *class_size      = 0;
-	 *label_block_qty = 0;
-	 *qty_objects     = 0;
-	 return NULL;
-       }
-    
-    analy->cur_state = 0;
-    
-    analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, 
-			 &st_qty );
-    for ( j = 0; 
-	  j < p_state_rec->qty; 
-	  j++ )
-    {
-          superclass = p_state_rec->subrecs[j].p_object_class->superclass;
+    p_subr        = &p_state_rec->subrecs[j].subrec;
+    *total_blocks = 0;
 
- 	  if ( sclass != superclass )
-	       continue;
-
-	  p_subr           = &p_state_rec->subrecs[j].subrec;
-	  *qty_objects     = p_subr->qty_objects;
-
-	  class_ptr        = mili_get_class_ptr( analy, superclass, p_subr->class_name );
-	  *class_size      = p_state_rec->subrecs[j].p_object_class->qty;
-	  strcpy( class_name, p_subr->class_name );
-	  *label_block_qty = class_ptr->label_blocking.block_qty;
-
-	  j = p_state_rec->qty;
+    if ( analy->stateDB ) {
+         *total_blocks = 1;
+	 temp_blocks = NEW_N( int, 2, "Array of block numbers - Single Block");
+	 temp_blocks[0] = 1;
+	 temp_blocks[1] = *qty_objects;
+         *blocks = temp_blocks;
+	 return class_ptr;	 
     }
+
+    /* First count the total number of blocks for memory allocation */
+    for ( i = 0; 
+          i < p_state_rec->qty; 
+          i++ ) {
+          superclass = p_state_rec->subrecs[i].p_object_class->superclass;
+
+          if ( sclass != superclass )
+               continue;
+
+          p_subr     = &p_state_rec->subrecs[i].subrec;
+          class_ptr  = mili_get_class_ptr( analy, sclass, class_name );
+
+          num_blocks = p_subr->qty_blocks;
+          num_blocks_total += num_blocks;
+
+	  for ( j = 0;
+                j< num_blocks*2; 
+                j++ )
+	  {
+	        block_id = p_subr->mo_blocks[j];
+		if ( block_id > block_max_id )
+		     block_max_id = block_id;
+	  }
+    }
+
+    temp_blocks     = NEW_N( int, num_blocks_total*3, "Array of block numbers - TH Database");
+    block_dup_check = NEW_N( int, block_max_id*2, "Array of block indexes used");
+    for ( i=0;
+	  i<block_max_id;
+	  i++ ) {
+          block_dup_check[i] = -1;
+     }
+    
+    block_index = 0;
+
+    for ( i = 0; 
+          i < p_state_rec->qty; 
+          i++ ) {
+          superclass = p_state_rec->subrecs[i].p_object_class->superclass;
+
+          if ( sclass != superclass )
+               continue;
+
+          p_subr    = &p_state_rec->subrecs[i].subrec;
+          class_ptr = mili_get_class_ptr( analy, sclass, class_name );
+
+          num_blocks = p_subr->qty_blocks;
+
+          if ( num_blocks==0 )
+               continue;
+
+          mo_id_index = 0;
+ 
+          for ( j = 0;
+                j< num_blocks; 
+                j++ )
+          {
+                block_start = p_subr->mo_blocks[mo_id_index];
+                block_end   = p_subr->mo_blocks[mo_id_index+1];
+
+		if ( block_dup_check[block_start] == 1 && block_dup_check[block_end] == 1 ) {
+		     mo_id_index+=2;
+		     continue;
+		}
+
+		block_dup_check[block_start] = 1;
+		block_dup_check[block_end]   = 1;
+
+		temp_blocks[block_index]   = block_start;
+		temp_blocks[block_index+1] = block_end;
+
+		block_index+=2;
+		block_count++;
+                mo_id_index+=2;
+          }
+    }    
+
+    for ( i=0;
+	  i<block_count*2;
+	  i++ ) {
+          if ( temp_blocks[i] > block_max_id )
+  	       block_max_id = temp_blocks[i];
+    }
+
+    blocks_list = NEW_N( int, block_max_id*2, "Array of block numbers");
+    for ( i=0;
+	  i<block_max_id*2;
+	  i++ ) {
+          blocks_list[i] = -1;
+    }
+
+    blocks_to_list( block_count, temp_blocks, blocks_list, FALSE );
+    for ( i=0;
+	  i<block_max_id*2;
+	  i++ ) {
+          if ( blocks_list[i]<0 ) break;
+	  else
+	       list_count++;
+
+    }
+
+    status = list_to_blocks( list_count, blocks_list, &pib, &num_blocks_total ); 
+    *total_blocks = num_blocks_total;
+    
+    free( blocks_list );
+    free( temp_blocks );
+    free( block_dup_check );
+
+    *blocks = pib;
     return class_ptr;
 }
- 
 
+ 
 /************************************************************
  * TAG( assemble_compare_blocks )
  *
@@ -10417,6 +11022,9 @@ wrt_text( char *fmt, ... )
         XmTextInsert( monitor_widg, wpr_position, msgbuf );
         wpr_position += strlen( msgbuf );
         XtVaSetValues( monitor_widg, XmNcursorPosition, wpr_position, NULL );
+
+	/* XtVaSetValues( monitor_widg,  XmNforeground,  env.dialog_text_color, NULL ); */
+
         XmTextShowPosition( monitor_widg, wpr_position );
     }
     else
@@ -10526,6 +11134,14 @@ popup_dialog( int dtype, ... )
         fprintf( stderr, "%s\n", dialog_msg );
         return;
     }
+    
+    if ( !env.show_dialog ) {
+         wrt_text( "\n" );
+	 wrt_text( "\n**************** Notice *******************\n" );
+	 wrt_text( dialog_msg );
+	 wrt_text( "\n**************** Notice *******************\n" );
+	 return;
+    }
 
 
 #ifdef SERIAL_BATCH
@@ -10577,11 +11193,13 @@ popup_dialog( int dtype, ... )
 
     /* ...make it look and act right */
     XtAddCallback( p_wlo->handle, XmNokCallback, 
-                   (XtCallbackProc) remove_widget_CB, p_wlo );
+	  (XtCallbackProc) remove_widget_CB, p_wlo );
+
     XtUnmanageChild( XmMessageBoxGetChild( p_wlo->handle,
-                                           XmDIALOG_CANCEL_BUTTON ));
+                                           XmDIALOG_CANCEL_BUTTON )); 
     XtUnmanageChild( XmMessageBoxGetChild( p_wlo->handle,
-                                           XmDIALOG_HELP_BUTTON ));
+					   XmDIALOG_HELP_BUTTON ));
+
     XmStringFree( dialog_string );
 
     /* Put it on the list. */
@@ -10590,8 +11208,8 @@ popup_dialog( int dtype, ... )
 
     /* Show it. */
     XtManageChild( p_wlo->handle );
-    XFlush( XtDisplay( ctl_shell_widg ) );
 
+    XFlush( XtDisplay( ctl_shell_widg ) );
 #endif /* SERIAL_BATCH */
 
 }
@@ -10707,12 +11325,38 @@ void
 reset_window_titles( void )
 {
     char title[100];
+    Analysis *p_analy;
+    p_analy = get_analy_ptr();
 
-    sprintf( title, "%s Control:  %s\n", griz_name, env.plotfile_name );
+    init_griz_name( p_analy );
+
+    if ( env.bname )
+         sprintf( title, "Control:  %s%s", path_string, env.bname );
+    else
+         sprintf( title, "Control:  %s%s", path_string, env.plotfile_name );
     XtVaSetValues( ctl_shell_widg, XmNtitle, title, NULL );
 
-    sprintf( title, "%s Render:  %s\n", griz_name, env.plotfile_name );
+    if ( env.bname )
+         sprintf( title, "Render:  %s%s", path_string, env.bname );
+    else
+         sprintf( title, "Render:  %s%s", path_string, env.plotfile_name );
     XtVaSetValues( rendershell_widg, XmNtitle, title, NULL );
+
+    if ( util_panel_widg ) {
+         if ( env.bname )
+	      sprintf( title, "Utility Panel: %s", env.bname );
+	 else
+	      sprintf( title, "Utility Panel: %s", env.plotfile_name );
+	 XtVaSetValues( util_panel_widg, XmNtitle, title, NULL );
+    }
+
+    if ( mtl_mgr_widg ) {
+         if ( env.bname )
+	      sprintf( title, "Material Manager: %s", env.bname );
+	 else
+	      sprintf( title, "Material Manager: %s", env.plotfile_name );
+	 XtVaSetValues( mtl_mgr_widg, XmNtitle, title, NULL );
+    }
 }
 
 
@@ -10724,7 +11368,8 @@ reset_window_titles( void )
 static void
 action_quit( Widget w, XEvent *event, String params[], int *qty )
 {
-    quit( 0 );
+        write_log_message( );
+        quit( 0 );
 }
 
 
@@ -10736,7 +11381,10 @@ action_quit( Widget w, XEvent *event, String params[], int *qty )
 void
 quit( int return_code )
 {
+  int i=1;
 
+    (void) signal( SIGFPE, x11_signal );
+  
     close_history_file();
     close_analysis( env.curr_analy );
     env.curr_analy->db_close( env.curr_analy );
@@ -10746,7 +11394,16 @@ quit( int return_code )
     else
         printf("\n\n ** Griz Completed Normally **\n");
 
-    exit( return_code );
+#ifdef TIME_GRIZ
+    manage_timer( 8, 1 );
+#endif
+
+#ifdef SERIAL_BATCH
+    exit(1);
+#else
+    /* XtDestroyWidget( ctl_shell_widg ); */
+    exit( -1 );
+#endif
 }
 
 
@@ -10892,13 +11549,6 @@ pushpop_window( PushPop_type direction )
     else
          xwc.stack_mode = Below;
 
-
-    if ( ctl_shell_widg != NULL && ctl_top_win != 0 ) 
-    {
-         XConfigureWindow( dpy, XtWindow( ctl_shell_widg ), CWStackMode, &xwc );
-	 XGetWindowAttributes( dpy, XtWindow( ctl_shell_widg ), &ctl_attrib );
-    }
-
     if ( util_panel_widg != NULL ) 
     {
          XConfigureWindow( dpy, XtWindow( util_panel_widg ), CWStackMode, &xwc );
@@ -10912,6 +11562,17 @@ pushpop_window( PushPop_type direction )
     if ( surf_mgr_widg != NULL && surf_mgr_top_win != 0 )
     {
          XConfigureWindow( dpy, XtWindow( surf_mgr_widg ),    CWStackMode, &xwc );
+    }
+
+    if ( rendershell_widg != NULL && direction == PUSHPOP_ABOVE ) 
+    {
+         XConfigureWindow( dpy, XtWindow( rendershell_widg ), CWStackMode, &xwc );
+    }
+
+    if ( ctl_shell_widg != NULL && ctl_top_win != 0 ) 
+    {
+         XConfigureWindow( dpy, XtWindow( ctl_shell_widg ), CWStackMode, &xwc );
+	 XGetWindowAttributes( dpy, XtWindow( ctl_shell_widg ), &ctl_attrib );
     }
 }
 
@@ -10935,7 +11596,6 @@ get_window_attributes( void )
 	 session->win_render_size[1] = win_attrib.width;
 	 session->win_render_pos[0]  = win_attrib.x;
 	 session->win_render_pos[1]  = win_attrib.y;
-	 /* XGetGeometry( */
    }
 
     if ( ctl_shell_widg != NULL && ctl_top_win != 0 ) 
@@ -10987,7 +11647,7 @@ put_window_attributes( void )
 {
     XWindowChanges xwc;
 
-    if ( rendershell_widg != NULL && session->win_render_size[0] > 1 ) 
+    if ( rendershell_widg != NULL && session->win_render_size[0] > 1 && !env.window_size_set_on_command_line ) 
     {
          xwc.height = session->win_render_size[0];         
          xwc.width  = session->win_render_size[1];   
@@ -11071,5 +11731,128 @@ write_history_text( char * command, Bool_type hilite_text )
 	XmListAddItem( hist_list, text, 0 );
 	XmListSetBottomPos( hist_list, 0 );
 	XmStringFree( text );
+    }
+}
+
+/*****************************************************************
+ * TAG( defineBorderColor )
+ *
+ * This function will set some predefined border colors for all
+ * Griz windows in a session.
+ *
+ */
+void defineBorderColor( Display* dpy )
+{
+
+    Colormap cmap;
+
+    XColor color, dummy;
+
+    cmap = DefaultColormap( dpy, 0 );
+
+    XAllocNamedColor( dpy, cmap, "bisque", &color, &dummy );
+    env.border_colors[0] = color.pixel;
+    XAllocNamedColor( dpy, cmap, "blue", &color, &dummy );
+    env.border_colors[1] = color.pixel;
+    XAllocNamedColor( dpy, cmap, "lime green", &color, &dummy );
+    env.border_colors[2] = color.pixel;
+    XAllocNamedColor( dpy, cmap, "gold", &color, &dummy );
+    env.border_colors[3] = color.pixel;
+    XAllocNamedColor( dpy, cmap, "light salmon", &color, &dummy );
+    env.border_colors[4] = color.pixel;
+    XAllocNamedColor( dpy, cmap, "purple", &color, &dummy );
+    env.border_colors[5] = color.pixel;
+    XAllocNamedColor( dpy, cmap, "brown", &color, &dummy );
+    env.border_colors[6] = color.pixel;
+    XAllocNamedColor( dpy, cmap, "coral", &color, &dummy );
+    env.border_colors[7] = color.pixel;
+    XAllocNamedColor( dpy, cmap, "olive", &color, &dummy );
+    env.border_colors[8] = color.pixel;
+    XAllocNamedColor( dpy, cmap, "yellow", &color, &dummy );
+    env.border_colors[9] = color.pixel;
+}
+
+/*****************************************************************
+ * TAG( defineDialogColor )
+ *
+ * This function will set a predefined border colors for all
+ * Griz text dislog info/warning messages.
+ *
+ */
+void defineDialogColor( Display* dpy )
+{
+    Colormap cmap;
+
+    XColor color, dummy;
+
+    cmap = DefaultColormap( dpy, 0 );
+
+    XAllocNamedColor( dpy, cmap, "red", &color, &dummy );
+    env.dialog_text_color = color.pixel;
+} 
+
+
+/*****************************************************************
+ * TAG( popUpAllWindows )
+ *
+ * This function will set some predefined border colors for all
+ * Griz windows in a session.
+ *
+ */
+void popUpAllWindows( Display* dpy )
+{
+
+    XRaiseWindow( dpy, render_top_win );
+
+    if ( ctl_shell_widg != NULL && ctl_top_win !=0 ) 
+    {
+         XRaiseWindow( dpy, ctl_top_win );
+    }
+
+    if ( util_panel_widg != NULL && util_panel_top_win != 0 ) 
+    {
+         XRaiseWindow( dpy, util_panel_top_win );
+    }
+
+    if ( mtl_mgr_widg != NULL && mtl_mgr_top_win != 0 ) 
+    {
+         XRaiseWindow( dpy, mtl_mgr_top_win );
+    }
+  }
+
+/*****************************************************************
+ * TAG( init_griz_name )
+ *
+ * Updates griz name and path info.
+ *
+ */
+void
+init_griz_name( Analysis *analy )
+{
+    size_t namlen;
+    char *name = "GRIZ ";
+    char beta_release[40];
+ 
+    strcpy( path_string, "[" );
+    strcat( path_string, analy->root_name );
+    strcat( path_string, "] " );
+    strcat( path_string, analy->path_name );
+
+    /* Initialize the name string. */
+
+    /* Check for Alpha or Beta release of the code and
+     * build appropriate info message.
+     */
+    beta_release[0] = '\0';
+
+    if (env.run_alpha_version != 0.)
+        strcpy(beta_release, "** Alpha Release **");
+    if (env.run_beta_version != 0.)
+        strcpy(beta_release, "** Beta Release **");
+
+    if ( griz_name==NULL ) {
+         namlen = strlen( name ) + strlen( griz_version ) + strlen( beta_release ) + 1;
+         griz_name = NEW_N( char, namlen, "Griz name string" );
+         sprintf( griz_name, "%s%s%s", name, griz_version, beta_release );
     }
 }

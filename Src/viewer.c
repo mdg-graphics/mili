@@ -4,79 +4,10 @@
  *
  *      Donald J. Dovey
  *      Lawrence Livermore National Laboratory
- *      Dec 27 1991
+ *      Dec 27, 1991
  *
  * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
- */
-
-/*                                                                      
- *                        L E G A L   N O T I C E                       
- *                                                                      
- *                 (C) Copyright 1991 the Regents of the                
- *          University of California. All Rights Reserved.              
- *                                                                      
- *   This work was produced at the University of California,  Lawrence  
- *   Livermore  National  Laboratory  (UC  LLNL) under contract no. W-  
- *   7405-ENG-48 (Contract 48) between the U.S. Department  of  Energy  
- *   (DOE)  and the Regents of the University of California (Universi-  
- *   ty) for the operation of UC LLNL.  Copyright is reserved  to  the  
- *   University  for the purposes of controlled dissemination, commer-  
- *   cialization through formal licensing, or other disposition  under  
- *   terms  of  Contract 48; DOE policies, regulations and orders; and  
- *   U.S. statutes.  The rights of the Federal Government are reserved  
- *   under  Contract 48 subject to the restrictions agreed upon by the  
- *   DOE and University as allowed under DOE Acquisition Letter 88-1.   
- *                                                                     
- *                          D I S C L A I M E R                         
- *                                                                      
- *   This computer code was prepared as an account of  work  sponsored  
- *   by an agency of the United States Government.  Neither the United  
- *   States Government nor the University of  California  nor  any  of  
- *   their  employees  makes  any warranty, express or implied, or as-  
- *   sumes any liability or responsibility for the accuracy, complete-  
- *   ness,  or  usefulness  of  any information, apparatus, product or  
- *   process disclosed or represents that its specific commercial pro-  
- *   ducts, process or service by trade name, trademark, manufacturer,  
- *   or otherwise does not necessarily constitute  or  imply  its  en-  
- *   dorsement,  recommendation,  or  favoring  by  the  United  State  
- *   Government or the University of California.  The views and  opin-  
- *   ions  of authors expressed herein do not necessarily state or re-  
- *   flect those of the United States Government or the University  of  
- *   California,  and shall not be used for advertising or product en-  
- *   dorsement purposes.                                                
- *                                                                    
- ************************************************************************
+  ************************************************************************
  * Modifications:
  *  I. R. Corey - Dec 22, 2004: Add new function to display free nodes.
  *                See SRC# 292.
@@ -87,7 +18,7 @@
  *                 See SRC# 292.
  *
  *  I. R. Corey - Jan 24, 2005: Added a new free_node option to disable
- *                mass scaling of the nodes.
+ *                mass scaling of the nodes.def
  *                
  *  I. R. Corey - Feb 10, 2005: Added a new free_node option to enable
  *                volume disable scaling of the nodes.
@@ -134,14 +65,62 @@
  *                before Griz job returns to script.
  *                See SRC#539
  *
- *	J.K.Durrenberger - June 13, 2008 Added a check of the batch option 
- *								if no -b option was passed to griz we exit with an an 
- *								error.
+ *  J.K.Durrenberger - June 13, 2008 Added a check of the batch option 
+ *		  if no -b option was passed to Griz we exit with an an 
+ *		  error.
+ *
+ *  I. R. Corey - June 16, 2009: Add exclusion capability for nodes.
+ *                See SRC#539
+ *
+ *  I. R. Corey - June 16, 2009: Add exclusion capability for nodes.
+ *                See SRC#539
+ *
+ *  I. R. Corey - Nov 09, 2009: Added enhancements to better support 
+ *                running multiple sessions of Griz.
+ *                See SRC#638.
+ *
+ *  I. R. Corey - Dec 28, 2009: Fixed several problems releated to drawing
+ *                ML particles.
+ *                See SRC#648
+ *
+ *  I. R. Corey - Dec 28, 2010: 
+ *                ML particles.
+ *                See SRC#648
+ *
+ *  I. R. Corey - June 28, 2010: Added command line argument to override
+ *                the banner filename - useful when making pictures for
+ *                presentations.
+ *                See SRC#648
+ *
+ *  I. R. Corey - July 22, 2011: Added check for full file name on input.
+ *
+ *  I. R. Corey - June 26th, 2012: Added flag to disable echo of commands
+ *                in GUI - 'echocmd'. Default value is ON.
+ *                See TeamForge#18255
+ *
+ *  I. R. Corey - July 26th, 2012: Added capability to plot a Modal
+ *                database from Diablo.
+ *                See TeamForge#18395 & 18396
+ *
+ *  I. R. Corey - October 4th, 2012: Fixed problem with checking for file
+ *                on a load function.
+ *
+ *  I. R. Corey - February 14th, 2013: Removed code to load history commands
+ *                on a reload since the history commands are now written to
+ *                a file and the history buffer may contain commands for 
+ *                multiple reloads.
+ *
+ *  I. R. Corey - March 18th, 2013: Added support for multiple integration 
+ *                points per element set.
+ *                See TeamForge#18395 & 18396
+ *
  ************************************************************************
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
@@ -163,7 +142,6 @@ extern int get_window_width();
 extern int get_window_height();
 extern void init_griz_session( Session * );
 
-
 #else
 /*
 int     batch = 0;
@@ -182,13 +160,42 @@ extern  void init_btn_pick_classes();
 
 Environ env;
     
-Database_type db_type;
+Database_type_griz db_type;
 
 Session  *session;
+Analysis *analy_ptr;
+
+/******************************************************************
+ * This MACRO is used to perform copies between the analysis state
+ * and the session buffer.
+ ******************************************************************
+ */
+void process_update_session( int operation, void *ptr, int cnt,
+			     int var_id, char *var_name,  
+			     void *analy_var, void *session_var,
+			     int type, int len, Bool_type local_var,
+			     short *var_update );
+
+#define QUOTE_ARG(arg) #arg
+#define SESSION_VAR( operation, fp, cnt, var_id, var, type, len, local_var ) \
+  process_update_session( operation, fp, cnt, var_id, QUOTE_ARG(var), (void *) &analy_ptr->var, \
+			  (void *) &session->var, type, len, local_var, session->var_update );
+
+char *session_file_buff[2000];
+
+/*****************************************************************/
+
+static char *non_persist_cmds[] = { "rx",    "ry",     "rz" , "tx", "ty",   "tz",    "anim", "load", "reload", "copyrt", /* 1-10 */
+                                    "scale", "scalax", "hist", "h", "exec", "alias", "quit", "animc" }; /* 11-18 */
+static int  num_non_persist_cmds = 18;
 
 char      *history_log[MAXHIST];
-int        history_log_index;
+int        history_log_index=0;
 Bool_type  history_inputCB_cmd;
+
+static char      *model_history_log[MAXHIST]; /* A log of specific commands for the current model */
+static int        model_history_log_index=0;
+static Bool_type  model_loading_phase=FALSE;
 
 /* The current version of the code. */
 char *griz_version = GRIZ_VERSION;
@@ -197,7 +204,7 @@ char *griz_version = GRIZ_VERSION;
 char *particle_cname = "part";
 
 static void scan_args( int argc, char *argv[], Analysis *analy );
-static Bool_type open_analysis( char *fname, Analysis *analy );
+static Bool_type open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_only );
 static void usage( void );
 
 extern void log_variable_scale( float, float, int, float *, float *, 
@@ -238,12 +245,19 @@ main( int argc, char *argv[] )
     analy   = NEW( Analysis, "Analysis struct" );
     session = NEW( Session,  "Session struct"  );
 
-    env.win32 = FALSE;
+    /* Initialize some environment variables */
+    env.win32                = FALSE;
+    env.history_input_active = FALSE;
+    env.animate_active       = FALSE;
+    env.animate_reverse      = FALSE;
+
+    env.show_dialog          = TRUE;
+    env.window_size_set_on_command_line = FALSE;
 
     /* Scan command-line arguments, other initialization. */
     scan_args( argc, argv, analy );
 
-    /* run in the background by default to free shell window */
+    /* Run in the background by default to free shell window */
     if ( !env.foreground )
     {
         fprintf( stderr, "Main: putting GRIZ in background.\n" );
@@ -271,15 +285,24 @@ main( int argc, char *argv[] )
 #endif
 
     env.ti_enable = TRUE;
-    status = open_analysis( env.plotfile_name, analy );
+    analy_ptr = analy;
+
+    if (strlen(env.plotfile_name))
+    {
+      status = open_analysis( env.plotfile_name, analy, FALSE, FALSE );
+        if ( !status )
+             exit( 1 );
+
+	check_for_free_nodes( analy );
+
+	if ( analy->particle_nodes_found )
+	     analy->particle_nodes_enabled = TRUE;
+     }
 
 #ifdef TIME_OPEN_ANALYSIS
     printf( "Open_analysis timing...\n" );
     manage_timer( 1, 1 );
 #endif
-
-    if ( !status )
-        exit( 1 );
 
     env.curr_analy = analy;
     
@@ -295,8 +318,11 @@ main( int argc, char *argv[] )
          * MUST do non-graphic initializations found in "init_mesh_window" 
          * to set up v_win, etc.
          */
+      if ( env.quiet_mode==FALSE) {
+	   init_griz_name( analy );
+           write_start_text();
+      }
 
-        write_start_text();
 	/**
 	 * Commented this out to all run in batch mode when xterm is 
 	 * unavailable.
@@ -326,10 +352,7 @@ main( int argc, char *argv[] )
                 rc );
             quit( -1 );
         }
-
-
         process_serial_batch_mode( env.input_file_name, env.curr_analy );
-
 
         /*
          * Only get to this point via batch input file command(s):  quit, exit,
@@ -343,81 +366,107 @@ main( int argc, char *argv[] )
 
 #endif
 
-
     /* 
      * Initialize variables dealing with vis/invis and enable/disable.
      */
-    MESH( analy ).mat_hide_qty            = 0;
+    if (analy->mesh_table)
+    {
+        MESH( analy ).mat_hide_qty            = 0;
 
-    MESH( analy ).brick_hide_qty          = 0;
-    MESH( analy ).brick_disable_qty       = 0;
-    MESH( analy ).brick_exclude_qty       = 0;
-    MESH( analy ).hide_brick_elem_qty     = 0;
-    MESH( analy ).disable_brick_elem_qty  = 0;
-    MESH( analy ).brick_result_min        = 0.;
-    MESH( analy ).brick_result_max        = 0.;
-    MESH( analy ).hide_brick_by_mat       = FALSE;
-    MESH( analy ).hide_brick_by_result    = FALSE;
-
-    MESH( analy ).beam_hide_qty          = 0;
-    MESH( analy ).beam_disable_qty       = 0;
-    MESH( analy ).beam_exclude_qty       = 0;
-    MESH( analy ).hide_beam_elem_qty     = 0;
-    MESH( analy ).disable_beam_elem_qty  = 0;
-    MESH( analy ).beam_result_min        = 0.;
-    MESH( analy ).beam_result_max        = 0.;
-    MESH( analy ).hide_beam_by_mat       = FALSE;
-    MESH( analy ).hide_beam_by_result    = FALSE;
-
-    MESH( analy ).shell_hide_qty         = 0;
-    MESH( analy ).shell_disable_qty      = 0;
-    MESH( analy ).shell_exclude_qty      = 0;
-    MESH( analy ).hide_shell_elem_qty    = 0;
-    MESH( analy ).disable_shell_elem_qty = 0;
-    MESH( analy ).shell_result_min       = 0.;
-    MESH( analy ).shell_result_max       = 0.;
-    MESH( analy ).hide_shell_by_mat       = FALSE;
-    MESH( analy ).hide_shell_by_result    = FALSE;
-
-    MESH( analy ).truss_hide_qty         = 0;
-    MESH( analy ).truss_disable_qty      = 0;
-    MESH( analy ).truss_exclude_qty      = 0;
-    MESH( analy ).hide_truss_elem_qty    = 0;
-    MESH( analy ).disable_truss_elem_qty = 0;
-    MESH( analy ).truss_result_min       = 0.;
-    MESH( analy ).truss_result_max       = 0.;
-    MESH( analy ).hide_truss_by_mat       = FALSE;
-    MESH( analy ).hide_truss_by_result    = FALSE;
-
-    MESH( analy ).beam_hide_qty          = 0;
-    MESH( analy ).beam_disable_qty       = 0;
-    MESH( analy ).beam_exclude_qty       = 0;
-    MESH( analy ).hide_beam_elem_qty     = 0;
-    MESH( analy ).disable_beam_elem_qty  = 0;
-    MESH( analy ).beam_result_min        = 0.;
-    MESH( analy ).beam_result_max        = 0.;
-    MESH( analy ).hide_beam_by_mat       = FALSE;
-    MESH( analy ).hide_beam_by_result    = FALSE;
-
-    MESH( analy ).particle_hide_qty      = 0;
-    MESH( analy ).particle_disable_qty   = 0;
-    MESH( analy ).hide_particle_by_result= FALSE;
-
+	MESH( analy ).brick_hide_qty          = 0;
+	MESH( analy ).brick_disable_qty       = 0;
+	MESH( analy ).brick_exclude_qty       = 0;
+	MESH( analy ).hide_brick_elem_qty     = 0;
+	MESH( analy ).disable_brick_elem_qty  = 0;
+	MESH( analy ).brick_result_min        = 0.;
+	MESH( analy ).brick_result_max        = 0.;
+	MESH( analy ).hide_brick_by_mat       = FALSE;
+	MESH( analy ).hide_brick_by_result    = FALSE;
+	
+	MESH( analy ).beam_hide_qty          = 0;
+	MESH( analy ).beam_disable_qty       = 0;
+	MESH( analy ).beam_exclude_qty       = 0;
+	MESH( analy ).hide_beam_elem_qty     = 0;
+	MESH( analy ).disable_beam_elem_qty  = 0;
+	MESH( analy ).beam_result_min        = 0.;
+	MESH( analy ).beam_result_max        = 0.;
+	MESH( analy ).hide_beam_by_mat       = FALSE;
+	MESH( analy ).hide_beam_by_result    = FALSE;
+	
+	MESH( analy ).shell_hide_qty         = 0;
+	MESH( analy ).shell_disable_qty      = 0;
+	MESH( analy ).shell_exclude_qty      = 0;
+	MESH( analy ).hide_shell_elem_qty    = 0;
+	MESH( analy ).disable_shell_elem_qty = 0;
+	MESH( analy ).shell_result_min       = 0.;
+	MESH( analy ).shell_result_max       = 0.;
+	MESH( analy ).hide_shell_by_mat       = FALSE;
+	MESH( analy ).hide_shell_by_result    = FALSE;
+	
+	MESH( analy ).truss_hide_qty         = 0;
+	MESH( analy ).truss_disable_qty      = 0;
+	MESH( analy ).truss_exclude_qty      = 0;
+	MESH( analy ).hide_truss_elem_qty    = 0;
+	MESH( analy ).disable_truss_elem_qty = 0;
+	MESH( analy ).truss_result_min       = 0.;
+	MESH( analy ).truss_result_max       = 0.;
+	MESH( analy ).hide_truss_by_mat       = FALSE;
+	MESH( analy ).hide_truss_by_result    = FALSE;
+	
+	MESH( analy ).beam_hide_qty          = 0;
+	MESH( analy ).beam_disable_qty       = 0;
+	MESH( analy ).beam_exclude_qty       = 0;
+	MESH( analy ).hide_beam_elem_qty     = 0;
+	MESH( analy ).disable_beam_elem_qty  = 0;
+	MESH( analy ).beam_result_min        = 0.;
+	MESH( analy ).beam_result_max        = 0.;
+	MESH( analy ).hide_beam_by_mat       = FALSE;
+	MESH( analy ).hide_beam_by_result    = FALSE;
+	
+	MESH( analy ).particle_hide_qty      = 0;
+	MESH( analy ).particle_disable_qty   = 0;
+	MESH( analy ).hide_particle_by_result= FALSE;
+      }
 
     analy->ei_result_name[0] = '\0';
     analy->hist_paused       = FALSE;
 
+    analy->extreme_result   = FALSE;
+    analy->extreme_min      = FALSE;
+    analy->extreme_max      = FALSE;
+
+    analy->mm_result_set[0] = FALSE;
+    analy->mm_result_set[1] = FALSE;
+    analy->mm_time_set[0]   = FALSE;
+    analy->mm_time_set[1]   = FALSE;
+
+    analy->th_plotting      = FALSE;
+    analy->th_single_col    = FALSE;
+    analy->th_append_output = FALSE;
+    
+    analy->infoMsgCnt       = 0;
+    for ( i=0;
+	  i<MAXINFOMSG;
+	  i++ )
+          analy->infoMsg[i]=NULL;
+
     /* Initialize the history log */
     for ( i=0;
 	  i<MAXHIST;
-	  i++ )
-          history_log[i] = (char *) NULL;
+	  i++ ) {
+          history_log[i]       = (char *) NULL;
+	  model_history_log[i] = (char *) NULL;
+    }
+
+    /* 
+     * Get the process id for this griz session.
+     */
+    env.griz_pid = getppid();
 
     /*
      * All other modes (at least for time being -- 03-10-00)
      */
-
-    gui_start( argc, argv );
+    gui_start( argc, argv, analy );
 
 #ifdef TIME_GRIZ
     manage_timer( 8, 1 );
@@ -433,27 +482,25 @@ main( int argc, char *argv[] )
 static void
 scan_args( int argc, char *argv[], Analysis *analy )
 {
-  extern Bool_type include_util_panel, include_mtl_panel, new_window_behavior; /* From gui.c */
+  extern Bool_type include_util_panel, include_mtl_panel; /* From gui.c */
     int i;
     int inname_set;
     char *fontlib;
     time_t time_int;
     struct tm *tm_struct;
-
+    struct stat st;
     char *name;
 
     inname_set = FALSE;
-
-    /**** No Parallel TAURUS databases for now ****/
-    env.parallel = FALSE;
+    env.plotfile_name[0] = '\0';
 
     env.ti_enable = TRUE;
+    env.griz_id   = 0;
 
-    if ( argc < 2 )
-    {
-        usage();
-        exit( 0 );
-    }
+    env.bname = NULL;
+    env.checkresults          = FALSE;
+    env.quiet_mode            = FALSE;
+    env.model_history_logging = FALSE;
 
     for ( i = 1; i < argc; i++ )
     {
@@ -487,7 +534,7 @@ scan_args( int argc, char *argv[], Analysis *analy )
             set_window_size( VIDEO_WIDTH, VIDEO_HEIGHT );
         else if ( strcmp( argv[i], "-V" ) == 0 )
         {
-            VersionInfo();
+            VersionInfo(FALSE);
             exit( 0 );
         }
         else if ( strcmp( argv[i], "-alpha" ) == 0 )
@@ -508,6 +555,7 @@ scan_args( int argc, char *argv[], Analysis *analy )
             if ( i + 2 <= argc )
             {
                 set_window_size( atoi( argv[i + 1] ), atoi( argv[i + 2] ) );
+		env.window_size_set_on_command_line = TRUE;
                 i += 2;
             }
             else
@@ -518,9 +566,29 @@ scan_args( int argc, char *argv[], Analysis *analy )
         }
         else if ( strcmp( argv[i], "-f" ) == 0 )
             env.foreground = TRUE;
+	else if ( strcmp( argv[i], "-gid" ) == 0 ) {
+	          env.griz_id = atoi( argv[i + 1] );
+		  if ( env.griz_id<1 )
+		       env.griz_id = 0;
+		  if ( env.griz_id>10 )
+		       env.griz_id = env.griz_id % 10;
+		  i++;
+	}
 
         else if ( strcmp( argv[i], "-win32" ) == 0 )
              env.win32 = TRUE;
+
+        else if ( strcmp( argv[i], "-bname" ) == 0 ) {
+	  env.bname = strdup( argv[i + 1] );
+	  i++;
+	}
+        else if ( strcmp( argv[i], "-q" ) == 0 ) {
+ 	     env.quiet_mode = TRUE;
+	     VersionInfo(TRUE);
+	}
+        else if ( strcmp( argv[i], "-hist" ) == 0 ) {
+ 	     env.model_history_logging = TRUE;
+	}
 
 #ifdef SERIAL_BATCH
        /*
@@ -531,8 +599,8 @@ scan_args( int argc, char *argv[], Analysis *analy )
             include_util_panel = TRUE;
         else if ( strcmp( argv[i], "-m" ) == 0 )
             include_mtl_panel = TRUE;
-        else if ( strcmp( argv[i], "-nw" ) == 0 )
-            new_window_behavior = TRUE;
+        else if ( strcmp( argv[i], "-nodialog" ) == 0 )
+            env.show_dialog = FALSE;
 #endif
 
 #ifdef SERIAL_BATCH
@@ -549,7 +617,7 @@ scan_args( int argc, char *argv[], Analysis *analy )
 
             if ( NULL != argv[i] )
             {
-	        strcat(env.command_line, " ");     
+	        strcat(env.command_line, " ");
 	        strcat(env.command_line, argv[i]);        
 
                 strcpy( env.input_file_name, argv[i] );
@@ -575,26 +643,39 @@ scan_args( int argc, char *argv[], Analysis *analy )
 		{
 			fprintf( stderr, "Batch compiled code requires a -b option.\n" );
 			usage();
-			exit(-1);
+			exit(0);
 		}
 #endif
+
+
+    /* If no input file then print usage and exit */
     if ( !inname_set )
     {
-        usage();
-        exit( 0 );
+ 	 usage();
+	 exit( 0 );
     }
-
+    
     /* Make sure font path is set. */
-    fontlib      = getenv( "HFONTLIB" );
+    fontlib = getenv( "HFONTLIB" );
 
-    if ( fontlib == NULL )
-        popup_fatal( "Set HFONTLIB env variable to font file location" );
+    if ( fontlib == NULL ) {
+#ifndef SERIAL_BATCH
+	 popup_dialog( WARNING_POPUP, "\tNo HFONTLIB Env Variable founnd. Set HFONTLIB env variable to font file location" );
+	 popup_dialog( WARNING_POPUP, "\tUsing default HFONTLIB Path = /usr/apps/mdg/archive/grizdir/grizversion/Font" );
+#endif
+
+        if(stat("/usr/apps/mdg/archive/grizdir/grizversion/Font",&st) == 0)
+           fontlib = strdup( "/usr/apps/mdg/archive/grizdir/grizversion/Font" );
+	else 
+	   fontlib = strdup( "." );
+    }
 
     /* Get today's date. */
     time_int = time( NULL );
     env.time_start = time_int; /* Store Griz startup time */
-    tm_struct = gmtime( &time_int );
-    strftime( env.date, 19, "%D", tm_struct );
+    tm_struct = localtime( &time_int );
+    strftime( env.date, 20, "%D", tm_struct );
+    strftime( env.time, 20, "%T", tm_struct );
 
     /* Get user's name. */
     env.user_name[0]='\0';
@@ -640,50 +721,79 @@ scan_args( int argc, char *argv[], Analysis *analy )
 	      env.enable_logging = TRUE;
 }
 
-
 /************************************************************
  * TAG( open_analysis )
  *
  * Open a plotfile and initialize an analysis.
  */
 static Bool_type
-open_analysis( char *fname, Analysis *analy )
+open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_only )
 {
     int num_states;
     int i, j, k, l;
     int stat;
     MO_class_data **class_array;
-    MO_class_data *p_mocd;
-    Mesh_data *p_md;
+    MO_class_data *p_mocd=NULL, *p_ml_class=NULL, *p_brick_class=NULL,
+                  *p_node_geom=NULL;
+    Mesh_data *p_md, *p_mesh;
     Visibility_data *p_vd;
     Surface_data *p_surface;
-    int class_qty;
+    int class_qty=0, elem_class_qty=0, class_index=0;
     int mat_sz, max_sz, surface_sz, surf_max_sz;
     int surf, facets;
     int max_face_qty, face_qty;
     int cur_mesh_mat_qty;
     int cur_mesh_surf_qty;
     int srec_id;
+    int sclass;
+    int num_nodes=0;
 
     int brick_qty=0, shell_qty=0, truss_qty=0, beam_qty=0;
+    int particle_qty=0; /* Meshless elements - which are represented
+			 * as bricks for now.
+			 */
+
+    char temp_fname[256];
+    int dir_pos=-1;
 
     /* TI Variables */
     int  num_entries = 0;
     int  superclass, datatype, datalength, meshid;
     int  state, matid;
     char *wildcard_list[1500], temp_name[128], class[32];
+    char particle_class_name[128];
+
     Bool_type isMeshvar=FALSE;
     Bool_type isNodal=FALSE;
     int status; 
+
+    int *pn_node_list, num_ml_nodes=0;
+ 
         /*
          * Don't use popup_fatal() on failure before db is actually open.
          */
+      
+	strcpy( temp_fname, fname );
+        if ( !is_known_db( fname, &db_type ) ) {
 
+	     /* User may have typed the full filename string with 1 or 2 char extensions */ 
+	     /* Try a name with 1 and 2 trailing characters omitted */
+	     if ( strlen(fname)>=3 ) {
+	          temp_fname[strlen(temp_fname)-1]='\0';  /* Omit last character */
+		  if ( !is_known_db( temp_fname, &db_type ) ) {
+		       temp_fname[strlen(temp_fname)-1]='\0'; /* Omit last 2 characters */
+		  }
+	     }
+	}
+
+	if ( !is_known_db( temp_fname, &db_type ) )
+	     strcpy( temp_fname, fname );
+	 
         /* Initialize I/O functions by database type. */
-        if ( !is_known_db( fname, &db_type ) )
+        if ( !is_known_db( temp_fname, &db_type ) )
         {
-            popup_dialog( WARNING_POPUP, "Unable to identify database type." );
-            return FALSE;
+	     popup_dialog( WARNING_POPUP, "Unable to identify database type: %s.", temp_fname );
+             return FALSE;
         }
         else if ( !init_db_io( db_type, analy ) )
         {
@@ -692,21 +802,52 @@ open_analysis( char *fname, Analysis *analy )
             return FALSE;
         }
 
-       /* Enable reading of TI data if requested */
+	analy->path_name[0] = '\0';
+	analy->path_found   = FALSE;
+	dir_pos = -1;
+	for ( i=0;
+	      i<strlen(temp_fname);
+	      i++ ) {
+	      if ( temp_fname[i]=='/' )
+		   dir_pos = i;
+	}
+	if ( dir_pos>0) {
+	     analy->path_found = TRUE;	  
+	     strcpy( analy->path_name, temp_fname );
+	     analy->path_name[dir_pos+1] = '\0';
+	}
+	else {
+	     getcwd( analy->path_name, 128 );
+	     strcat( analy->path_name, "/" );
+	}
+
+	if ( dir_pos>=0 ) {
+             strcpy( analy->root_name,  &temp_fname[dir_pos+1] );
+	     strcpy( env.plotfile_name, &temp_fname[dir_pos+1] );
+	}
+	else {
+             strcpy( analy->root_name, temp_fname );
+	     strcpy( env.plotfile_name, temp_fname );
+	}
+	analy->show_title      = FALSE;
+	analy->show_title_path = FALSE;
+
+        /* Enable reading of TI data if requested */
         if ( env.ti_enable )
 	     mc_ti_enable( analy->db_ident ) ;
 
         /* Open the database. */
-        stat = analy->db_open( fname, &analy->db_ident );
+        stat = analy->db_open( temp_fname, &analy->db_ident );
         if ( stat != OK )
         {
-            reset_db_io( db_type );
-            popup_dialog( WARNING_POPUP, 
-                          "Unable to initialize database during open." );
-            return FALSE;
-        }
+	     reset_db_io( db_type );
+	     popup_dialog( WARNING_POPUP, 
+			   "Unable to initialize database during open." );
+	     return FALSE;
+	}
 
-        strcpy( analy->root_name, fname );
+	if ( verify_only )
+	     return TRUE;
 
         stat = analy->db_get_title( analy->db_ident, analy->title );
         if ( stat != OK )
@@ -774,7 +915,8 @@ open_analysis( char *fname, Analysis *analy )
                                       !analy->state_p->sand_present;
 
     analy->result_source = ALL;
-    analy->cur_state = 0;
+    analy->cur_state  = 0;
+    analy->last_state = 0;
     analy->refresh = TRUE;
     analy->normals_smooth = TRUE;
     analy->render_mode = RENDER_MESH_VIEW;
@@ -799,20 +941,24 @@ open_analysis( char *fname, Analysis *analy )
     if ( num_states > 0 )
         analy->show_particle_class = FALSE;
         create_class_list( &analy->bbox_source_qty, &analy->bbox_source,
-                           MESH_P( analy ), 5, G_TRUSS, G_BEAM, G_TRI, G_QUAD,
-                           G_HEX );
+                           MESH_P( analy ), 6, G_TRUSS, G_BEAM, G_TRI, G_QUAD,
+                           G_HEX, G_PARTICLE );
         if ( analy->bbox_source == NULL )
         {
-            popup_fatal( "Failed to find object classes for initial bbox." );
-            return FALSE;
+             popup_dialog( WARNING_POPUP, 
+	                   "Failed to find object classes for initial bbox.- NO Element Classes Found" );
         }
     analy->vec_scale = 1.0;
     analy->vec_head_scale = 1.0;
     analy->mouse_mode = MOUSE_HILITE;
     analy->result_on_refs = TRUE;
-/*    analy->vec_cell_size = 1.0; */
+
     analy->contour_width = 1.0;
-    analy->trace_width = 1.0;
+    analy->contour_cnt   = 0;
+    analy->contour_vals  = NULL;
+
+    analy->trace_width   = 1.0;
+    analy->point_diam    = 0.0;
     analy->vectors_at_nodes = TRUE;
     analy->conversion_scale = 1.0;
     analy->zbias_beams = TRUE;
@@ -820,17 +966,175 @@ open_analysis( char *fname, Analysis *analy )
     analy->edge_zbias = DFLT_ZBIAS;
     analy->edge_width = 1.0;
     analy->z_buffer_lines = TRUE;
-/*    
-    for ( i = 0; i < MAXSELECT - 1; i++ )
-        analy->select_objects[i] = i + 1;
-    analy->select_objects[MAXSELECT - 1].ident = -1;
-*/
     analy->hist_line_cnt = 0;
                 
+    analy->mesh_table->num_particle_classes = 0;
+    analy->mesh_table->particle_class_names = NULL;
+
+    analy->show_deleted_elements      = FALSE;
+    analy->show_only_deleted_elements = FALSE;\
+
+    analy->echocmd     = TRUE;
+    analy->dump_result = FALSE;
+
+    analy->analysis_type = TIME;
+    analy->time_name     = NULL;
+
+    analy->damage_result = FALSE;
+    
+    analy->p_histfile    = NULL;
+
+    analy->vol_averaging = TRUE;
+
     set_contour_vals( 6, analy );
 
     VEC_SET( analy->displace_scale, 1.0, 1.0, 1.0 );
-    
+
+    /* Load in TI TOC if TI data is found */
+
+    if ( env.ti_enable )
+         if ( mc_ti_check_if_data_found( analy->db_ident ) ) /* Check if we found a TI
+							      * data file.
+							      */
+         {
+	      num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+						         "M_", "NULL", "NULL",
+						         wildcard_list );
+ 
+	      analy->ti_vars      = NULL;
+              analy->ti_var_count = num_entries;
+	      analy->ti_vars      = (TI_Var *) malloc( num_entries*sizeof(TI_Var) );
+ 
+              for ( i=0;
+		    i<num_entries;
+		    i++ )
+      	      {
+		    /* Extract the long name (with class info in name) 
+		     * and short name of the TI variable. 
+		     */
+		    status = mc_ti_get_metadata_from_name( wildcard_list[i],
+							   class, &meshid, &state,
+							   &matid, &superclass,
+							   &isMeshvar, &isNodal);
+		    
+		    status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
+						 &datatype, &datalength );
+
+		    analy->ti_vars[i].long_name  = (char *) strdup(wildcard_list[i]);
+		    analy->ti_vars[i].short_name = (char *) strdup( class );
+		    analy->ti_vars[i].superclass = superclass;		  
+		    analy->ti_vars[i].type       = datatype;		  
+		    analy->ti_vars[i].length     = datalength;
+		    analy->ti_vars[i].nodal      = isNodal;
+	      }
+
+              htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+              analy->ti_data_found = TRUE;
+
+	      /* Load particle element names from list if available */
+	      num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+							 "particle_element", "NULL", "NULL",
+							 wildcard_list );
+	      if ( num_entries>0 ) {
+		   status = mc_ti_undef_class( analy->db_ident );
+	  	   analy->mesh_table->particle_class_names = NEW_N( char *, num_entries, "Particle Class Titles" );
+		   analy->mesh_table->num_particle_classes = num_entries;
+		   for ( i=0;
+			 i<num_entries;
+			 i++ )
+		   {
+		         status = mc_ti_read_string( analy->db_ident, wildcard_list[i], particle_class_name );
+		         analy->mesh_table->particle_class_names[i] = (char *) strdup( particle_class_name );	    
+		   }
+		   htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+	      }
+         }
+
+         /* Get Modal analysis variables if they exist */
+         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+						    "analysis_type", "NULL", "NULL",
+						    wildcard_list );
+	 if ( num_entries==1 ) {
+	      char tmp_string[256];
+	      status = mc_ti_read_string( analy->db_ident, wildcard_list[0], tmp_string );
+	      if ( !strcmp( tmp_string, "modal" ) )
+		   analy->analysis_type = MODAL;
+	      htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+	 }
+ 
+        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+						    "changevar_timestep", "NULL", "NULL",
+						    wildcard_list );
+	 if ( num_entries==1 ) {
+	      char tmp_string[256];
+	      status = mc_ti_read_string( analy->db_ident, wildcard_list[0], tmp_string );
+	      analy->time_name = strdup( tmp_string ); 
+	      htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+	 }
+
+         else    
+              analy->ti_data_found = FALSE;
+
+	 /* Shell Integration Point Labels */
+
+        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+						    "IntLabel", "NULL", "NULL",
+						    wildcard_list );
+
+	analy->es_cnt = 0;
+	if ( num_entries>0 ) {
+   	     analy->es_intpoints = NEW_N( Integration_points, num_entries, "Integration Point Data" );
+             analy->es_cnt       = num_entries ;
+ 
+	     for ( i=0;
+		   i<num_entries;
+		   i++ )
+	     {
+		   int num_items_read=0;
+		   int datatype=0, datalength=0;
+		   char *es_ptr=NULL;
+		   
+		   status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
+						&datatype, &datalength );
+		   /* Read int the integration point labels. The last element of the array is
+		    * the total number of integration points. 
+		    * For example:
+		    *  5 10 25 32 51
+		    *             ^- This element set has a max of 51 integration points.
+		    *
+		    *             Inner  =  5
+		    *             Middle = 25 
+		    *             Outer  = 32
+		    */
+		   analy->es_intpoints[i].in_mid_out_default[0] = -1; /* -1 = undefined inner integration point */
+		   analy->es_intpoints[i].in_mid_out_default[1] = -1;
+		   analy->es_intpoints[i].in_mid_out_default[2] = -1;
+
+		   analy->es_intpoints[i].labels =  NEW_N( int, datalength, "Element Set Labels" );
+
+                   status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
+					     (void **) & analy->es_intpoints[i].labels, &num_items_read );
+
+		   analy->es_intpoints[i].labels_cnt      = datalength-1;
+		   analy->es_intpoints[i].intpoints_total = analy->es_intpoints[i].labels[datalength-2];
+
+		   /* Strip off the element set uid from the end of the name field */
+		   es_ptr = strstr( wildcard_list[i], "_es_" );
+		   if ( es_ptr ) {
+		        es_ptr+=4;
+		        analy->es_intpoints[i].es_id = get_element_set_id( es_ptr );
+		   }
+		   else continue;
+		   set_default_intpoints ( analy->es_intpoints[i].intpoints_total, analy->es_intpoints[i].labels_cnt,
+					   analy->es_intpoints[i].labels, analy->es_intpoints[i].in_mid_out_default );
+
+		   analy->es_intpoints[i].in_mid_out_set[0] = analy->es_intpoints[i].in_mid_out_default[0];
+		   analy->es_intpoints[i].in_mid_out_set[1] = analy->es_intpoints[i].in_mid_out_default[1];
+		   analy->es_intpoints[i].in_mid_out_set[2] = analy->es_intpoints[i].in_mid_out_default[2];
+	     }
+	     htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+	}
+
     /*
      * Loop over meshes to complete mesh-specific initializations.
      */
@@ -848,8 +1152,14 @@ open_analysis( char *fname, Analysis *analy )
             cur_mesh_mat_qty = 0;
             cur_mesh_surf_qty = 0;
         
+#ifdef NEWMILI
+            stat = htable_get_data( p_md->class_table, 
+				    (void ***) &class_array,
+				    &class_qty);
+#else
             class_qty = htable_get_data( p_md->class_table, 
-                                        (void ***) &class_array );
+					 (void ***) &class_array);
+#endif
         
             /*
              * Make an initial pass to process G_MAT classes.  This generates
@@ -859,25 +1169,26 @@ open_analysis( char *fname, Analysis *analy )
             p_md->brick_qty    = 0;      
             p_md->shell_qty    = 0;      
             p_md->beam_qty     = 0;      
-            p_md->truss_qty    = 0;      
+            p_md->truss_qty    = 0;  
+ 
             p_md->particle_qty = 1;  /* Force particle allocation for now since we
                                       * do not have a superclass for particles
                                       */
 
+	    p_md->num_elem_classes = 0;
+
             for ( j = 0; j < class_qty; j++ )
             {
 		p_mocd = class_array[j];
+		if ( IS_ELEMENT_SCLASS( p_mocd->superclass ) )
+		     elem_class_qty++;
                 
-		/* Skip particle sub-classes */
-		if ( !strcmp(p_mocd->short_name, "particle") )
-		     continue;
-
-                if ( p_mocd->superclass == G_MAT )
+		if ( p_mocd->superclass == G_MAT )
                 {
                     if ( p_mocd->qty > mat_sz )
-                        mat_sz = p_mocd->qty;
+                         mat_sz = p_mocd->qty;
                     if ( mat_sz > max_sz )
-                        max_sz = mat_sz;
+                         max_sz = mat_sz;
 
                     /*
                      * Should only be one mat class, but be defensive...
@@ -901,23 +1212,31 @@ open_analysis( char *fname, Analysis *analy )
 
                 if ( p_mocd->superclass == G_QUAD )
 		{
-                     p_md->shell_qty = p_mocd->qty;
-		     shell_qty      +=  p_md->shell_qty;
+                     p_md->shell_qty += p_mocd->qty;
+		     shell_qty       +=  p_md->shell_qty; 
 		}             
-                if ( p_mocd->superclass == G_HEX )
+                if ( p_mocd->superclass == G_HEX && !is_particle_class( analy, p_mocd->superclass, p_mocd->short_name ) )
 		{
-                     p_md->brick_qty = p_mocd->qty;  
-		     brick_qty      +=  p_md->brick_qty;
+                     p_md->brick_qty +=  p_mocd->qty;
+		     p_brick_class    =  p_mocd;
+		     brick_qty       +=  p_md->brick_qty; 
+		}             
+                if ( (p_mocd->superclass == G_HEX && is_particle_class( analy, p_mocd->superclass, p_mocd->short_name )) ||
+		      p_mocd->superclass == G_PARTICLE )
+		{
+		     p_ml_class         =   p_mocd;
+		     p_md->particle_qty +=  p_mocd->qty;
+		     particle_qty       +=  p_mocd->qty;
 		}             
                 if ( p_mocd->superclass == G_BEAM )
 		{
-                     p_md->beam_qty = p_mocd->qty;  
-		     beam_qty      += p_md->beam_qty;
+                     p_md->beam_qty += p_mocd->qty;  
+		     beam_qty       += p_md->beam_qty; 
 		}            
                 if ( p_mocd->superclass == G_TRUSS )
 		{
-                     p_md->truss_qty = p_mocd->qty;   
-		     truss_qty      += p_md->truss_qty;
+                     p_md->truss_qty += p_mocd->qty;   
+		     truss_qty       += p_md->truss_qty;
 		}           
             }
        
@@ -926,6 +1245,14 @@ open_analysis( char *fname, Analysis *analy )
                                          "Material visibility" );
             p_md->disable_material = NEW_N( unsigned char, cur_mesh_mat_qty,
                                             "Material-based result disabling" );
+
+	    for (i=0;
+		 i<cur_mesh_mat_qty;
+		 i++)
+	    {
+	 	 p_md->hide_material[i]    = '\0';
+		 p_md->disable_material[i] = '\0';
+	    }
 
             p_md->hide_brick    = NULL;
             p_md->disable_brick = NULL;
@@ -1039,7 +1366,7 @@ open_analysis( char *fname, Analysis *analy )
                  p_md->exclude_truss_elem = NEW_N( unsigned char, truss_qty,
                                                    "Truss-based element result exclution" );
 
-		 /* Initialize truss arrays */
+		 /* Initialize Truss arrays */
 
 		 for (i=0;
 		      i<truss_qty;
@@ -1053,15 +1380,108 @@ open_analysis( char *fname, Analysis *analy )
 
             p_md->hide_particle    = NULL;
             p_md->disable_particle = NULL; 
+            p_md->particle_mats    = NULL;
             if ( p_md->particle_qty >0 )
             {
-                 p_md->hide_particle = NEW_N( unsigned char, cur_mesh_mat_qty,
-                                              "Particle visibility" );
+                 p_md->hide_particle    = NEW_N( unsigned char, cur_mesh_mat_qty,
+						 "Particle visibility" );
+                 p_md->particle_mats    = NEW_N( Bool_type, cur_mesh_mat_qty,
+						 "Particle material list" );
                  p_md->disable_particle = NEW_N( unsigned char, cur_mesh_mat_qty,
                                                  "Particle-based result disabling" );
-            }   
 
+		 /* Allocate space for the per element qualtities */
+                 p_md->hide_particle_elem = NEW_N( unsigned char, particle_qty,
+                                                "Particle element visibility" );
+                 p_md->disable_particle_elem = NEW_N( unsigned char, particle_qty,
+                                                   "Particle-based element result disabling" );
+                 p_md->exclude_particle_elem = NEW_N( unsigned char, particle_qty,
+                                                   "Particle-based element result exclution" );
+		 /* Initialize Particle arrays */
 
+		 for (i=0;
+		      i<particle_qty;
+		      i++)
+		 {
+		      p_md->hide_particle_elem[i]     = '\0';
+		      p_md->disable_particle_elem[i]  = '\0';
+		      p_md->exclude_particle_elem[i]  = '\0';
+                 }
+             }   
+
+	    /* Allocate data structures for By-Class Selections */
+
+            p_md->by_class_select = NEW_N( Class_Select, elem_class_qty,
+					      "Class selection data" );
+
+	    for ( i=0;
+		  i<class_qty;
+		  i++ ) {
+	          sclass = class_array[i]->superclass; 
+		  if ( IS_ELEMENT_SCLASS( sclass ) ) {
+		       p_md->by_class_select[class_index++].p_class = class_array[i];
+		       p_md->qty_class_selections++;
+		  }
+		  if ( class_index>=elem_class_qty )
+		       break;
+	    }
+	    for ( i=0;
+		  i< p_md->qty_class_selections;
+		  i++ ) {
+	          int num_elems = p_md->by_class_select[i].p_class->qty;
+                  p_md->by_class_select[i].hide_class = NEW_N( unsigned char, cur_mesh_mat_qty,
+								  "Class visibility" );
+                  p_md->by_class_select[i].disable_class = NEW_N( unsigned char, cur_mesh_mat_qty,
+								     "Class-based result disabling" );
+		  p_md->by_class_select[i].exclude_class = NEW_N( unsigned char, cur_mesh_mat_qty,
+								     "Class-based result exclusion" );
+		  
+		  for (j=0;
+		       j<cur_mesh_mat_qty;
+		       j++)
+		  {
+		       p_md->by_class_select[i].hide_class[j]     = '\0';
+		       p_md->by_class_select[i].disable_class[j]  = '\0';
+		       p_md->by_class_select[i].exclude_class[j]  = '\0';
+		  }
+
+		  /* Allocate space for the per element qualtities */
+		  p_md->by_class_select[i].hide_class_elem = NEW_N( unsigned char, num_elems,
+								       "Class element visibility" );
+		  p_md->by_class_select[i].disable_class_elem = NEW_N( unsigned char, num_elems,
+									  "Class-based element result disabling" );
+		  p_md->by_class_select[i].exclude_class_elem = NEW_N( unsigned char, num_elems,
+									  "Class-based element result exclution" );
+		  
+		  /* Initialize class arrays */
+		  
+		  for (j=0;
+		       j<num_elems;
+		       j++)
+		  {
+		       p_md->by_class_select[i].hide_class_elem[j]     = '\0';
+		       p_md->by_class_select[i].disable_class_elem[j]  = '\0';
+		       p_md->by_class_select[i].exclude_class_elem[j]  = '\0';
+		  }
+ 	    }
+ 
+	    num_nodes = p_md->node_geom->qty;
+	    
+	    /* Allocate space for NODE disable array */
+	    
+	    p_md->disable_nodes = NEW_N( short, p_md->node_geom->qty,
+					 "Node result exclusion" );
+	    
+	    /* Initialize Node array */
+	    for (i=0;
+		 i<p_md->node_geom->qty;
+		 i++)
+	    {
+		 p_md->disable_nodes[i] = FALSE;
+	    }
+	    
+	    p_md->disable_nodes_init = FALSE;
+	    
 	    /* Initialize per-material arrays */
 
 	    for (i=0;
@@ -1100,6 +1520,7 @@ open_analysis( char *fname, Analysis *analy )
 		{
 		     p_md->hide_particle[i]     = '\0';
 		     p_md->disable_particle[i]  = '\0';
+		     p_md->particle_mats[i]     = FALSE;
 		}
 	    }
 	    
@@ -1112,16 +1533,25 @@ open_analysis( char *fname, Analysis *analy )
             analy->free_nodes_mats = NEW_N( int, cur_mesh_mat_qty,
                                             "Free Node material list" );
             memset( analy->free_nodes_mats, 0, cur_mesh_mat_qty );
-            analy->free_nodes_scale_factor      = 1.0;
-            analy->free_nodes_sphere_res_factor = 2;
-            analy->free_nodes_mass_scaling      = 0; /* Default=Disabled */
-            analy->free_nodes_vol_scaling       = 0; /* Default=Disabled */
+            analy->free_nodes_scale_factor      = 2.0;
+            analy->free_nodes_sphere_res_factor = 4;
+            analy->free_nodes_mass_scaling      = 0;   /* Default=Disabled */
+            analy->free_nodes_vol_scaling       = 0;   /* Default=Disabled */
+            analy->free_nodes_cut_width         = 0;   /* Default=0 */
+            analy->show_particle_cut            = FALSE; 
+            analy->particle_nodes_hide_background = FALSE;
+	    analy->particle_nodes_found           = FALSE; 
+
+	    analy->hide_edges_by_mat              = FALSE;
+            analy->free_nodes_list                = NULL;
+	    analy->free_nodes_vals                = NULL;
+
+	    analy->extreme_node_mm                = NULL;
 
 #ifdef TIME_OPEN_ANALYSIS
             printf( "Timing face table creation...\n" );
             manage_timer( 0, 0 );
 #endif
-
             face_qty = 0;
         
             /* Now handle the other classes. */
@@ -1231,7 +1661,7 @@ open_analysis( char *fname, Analysis *analy )
                                     "Elem class Visibility_data" );
                         p_mocd->p_vis_data = p_vd;
 
-                        p_vd->adjacency = NEW_N( int *, 6, 
+                        p_vd->adjacency = NEW_N( int *, 6,   
                                                  "Hex adjacency array" );
                         for ( k = 0; k < 6; k++ )
                             p_vd->adjacency[k] = NEW_N( int, p_mocd->qty,
@@ -1241,16 +1671,21 @@ open_analysis( char *fname, Analysis *analy )
 
                         p_vd->visib_damage = NEW_N( unsigned char, p_mocd->qty,
                                              "Hex Damage visibility" );
-                        init_hex_visibility( p_mocd, analy );
 
-                        create_hex_adj( p_mocd, analy );
-                        set_hex_visibility( p_mocd, analy );
-                        get_hex_faces( p_mocd, analy );
-                       
-                        face_qty += p_mocd->p_vis_data->face_cnt;
-
+			if ( is_particle_class( analy, p_mocd->superclass, p_mocd->short_name ) ) {
+                             init_particle_visibility( p_mocd, analy );
+			     
+			}
+			else {
+                             init_hex_visibility( p_mocd, analy );
+			     
+			     create_hex_adj( p_mocd, analy );
+			     set_hex_visibility( p_mocd, analy );
+			     get_hex_faces( p_mocd, analy );
+			     
+			     face_qty += p_mocd->p_vis_data->face_cnt;
+			}
                         break;
-
 
                     case G_SURFACE:
 
@@ -1286,6 +1721,24 @@ open_analysis( char *fname, Analysis *analy )
 
                         break;
 
+                   case G_PARTICLE:
+                        if ( p_mocd->qty > max_sz )
+                             max_sz = p_mocd->qty;
+
+                        p_vd = NEW( Visibility_data, 
+                                    "Elem class Visibility_data" );
+                        p_mocd->p_vis_data = p_vd;
+
+                        p_vd->adjacency = NULL;
+
+                        p_vd->visib = NEW_N( unsigned char, p_mocd->qty,
+                                             "Particle visibility" );
+
+                        p_vd->visib_damage = NEW_N( unsigned char, p_mocd->qty,
+                                             "Particle Damage visibility" );
+
+			init_particle_visibility( p_mocd, analy );
+                        break;
                     default:
                         ;
                 }
@@ -1317,10 +1770,10 @@ open_analysis( char *fname, Analysis *analy )
     init_data_buffers( max_sz );
 #endif
 #ifndef NEW_TMP_RESULT_USE
-    analy->tmp_result[0] = NEW_N( float, TEMP_RESULT_ARRAY_QTY * max_sz,
+    analy->tmp_result[0] = NEW_N( float, TEMP_RESULT_ARRAY_QTY * max_sz * 2,
                                   "Tmp result cache" );
     for ( i = 1; i < TEMP_RESULT_ARRAY_QTY ; i++ )
-        analy->tmp_result[i] = analy->tmp_result[i - 1] + max_sz;
+        analy->tmp_result[i] = analy->tmp_result[i - 1] + max_sz * 2;
 #endif
     analy->max_result_size = max_sz;
 
@@ -1366,58 +1819,34 @@ open_analysis( char *fname, Analysis *analy )
     
     /* Set render mode based on the number of potentially visible faces. */
     if ( max_face_qty > 10000 )
-        analy->mesh_view_mode = RENDER_FILLED;
+         analy->mesh_view_mode = RENDER_FILLED;
 
     /* Enable one-time warning if zero-volume-elements encountered. */
     reset_zero_vol_warning();
 
     /* Set initial reference state for nodes to mesh definition data. */
-    set_ref_state( analy, 0 );
+    analy->cur_ref_state_dataDp  = NULL;
+    analy->ref_state_dataDp      = NULL;
+    analy->center_view           = NO_CENTER;
+    analy->suppress_updates      = FALSE;
+    analy->show_sph_ghost        = TRUE;
+    analy->selectonmat           = FALSE;
+    
+    for ( i=0;
+	  i<MAX_PATHS;
+	  i++ ) 
+    {
+          analy->paths[i]        = NULL;
+          analy->paths_set[i]    = FALSE;
+    }
 
+     set_ref_state( analy, 0 );
 
-    /* Load in TI TOC if TI data is found */
-
-    if ( env.ti_enable )
-         if ( mc_ti_check_if_data_found( analy->db_ident ) ) /* Check if we found a TI
-							      * data file.
-							      */
-         {
-	      num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-						         "M_", "NULL", "NULL",
-						         wildcard_list );
- 
-	      analy->ti_vars      = NULL;
-              analy->ti_var_count = num_entries;
-	      analy->ti_vars      = (TI_Var *) malloc( num_entries*sizeof(TI_Var) );
- 
-              for ( i=0;
-		    i<num_entries;
-		    i++ )
-      	      {
-		    /* Extract the long name (with class info in name) 
-		     * and short name of the TI variable. 
-		     */
-		    status = mc_ti_get_metadata_from_name( wildcard_list[i],
-							   class, &meshid, &state,
-							   &matid, &superclass,
-							   &isMeshvar, &isNodal);
-		    
-		    status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
-						 &datatype, &datalength );
-
-		    analy->ti_vars[i].long_name  = (char *) strdup(wildcard_list[i]);
-		    analy->ti_vars[i].short_name = (char *) strdup( class );
-		    analy->ti_vars[i].superclass = superclass;		  
-		    analy->ti_vars[i].type       = datatype;		  
-		    analy->ti_vars[i].length     = datalength;
-		    analy->ti_vars[i].nodal      = isNodal;
-	      }
-
-              htable_delete_wildcard_list( num_entries, wildcard_list ) ;
-              analy->ti_data_found = TRUE;
-         }
-         else    
-              analy->ti_data_found = FALSE;
+    /* Set a pointer to ML class if it exists */
+    if ( p_ml_class ) {
+         p_mesh = MESH_P( analy );
+         p_mesh->p_ml_class    = p_ml_class;
+    }
 
     /* Get the metadata from the A file */
     mc_get_metadata( analy->db_ident,  analy->mili_version,   analy->mili_host, 
@@ -1532,8 +1961,6 @@ close_analysis( Analysis *analy )
     /* GUI resources...*/
     if ( analy->component_menu_specs != NULL )
         free( analy->component_menu_specs );
-    destroy_mtl_mgr();
-    destroy_surf_mgr();
 }
 
 
@@ -1543,23 +1970,16 @@ close_analysis( Analysis *analy )
  * Load in a new analysis from the specified plotfile.
  */
 Bool_type
-load_analysis( char *fname, Analysis *analy )
+load_analysis( char *fname, Analysis *analy, Bool_type reload )
 {
-    Database_type db_type;
+    int fid=0;
+    Database_type_griz db_type;
     Bool_type status;
+    Analysis temp_analy;
 
-    /* 
-     * Check that filename is valid before doing anything. 
-     * 
-     * (If OK, this check will be performed redundantly again 
-     * in open_analysis.)
-     */
-    if ( !is_known_db( fname, &db_type ) )
-    {
-        popup_dialog( WARNING_POPUP, "%s\n%s", 
-                      "Unable to open database or",
-                      "unable to identify database type." );
-        return FALSE;
+    if ( !is_known_db( fname, &db_type ) ) {
+         popup_dialog( INFO_POPUP, "Unable to open file %s", fname );
+         return FALSE;
     }
 
 #ifdef SERIAL_BATCH
@@ -1571,14 +1991,23 @@ load_analysis( char *fname, Analysis *analy )
     manage_render_mode( RENDER_MESH_VIEW, analy, TRUE );
 
     /* Call close_analysis() before db_close() to permit db queries. */
+
     close_analysis( analy );
     analy->db_close( analy ); 
+
     memset( analy, 0, sizeof( Analysis ) );
+
     strcpy( env.plotfile_name, fname );
     
-    status = open_analysis( fname, analy );
+    status = open_analysis( fname, analy, reload, FALSE );
     if ( !status )
-        return FALSE;
+         return FALSE;
+ 
+    model_history_log_clear( analy );
+  
+    check_for_free_nodes( analy );
+    if ( analy->particle_nodes_found )
+         analy->particle_nodes_enabled = TRUE;
 
 #ifdef SERIAL_BATCH
 #else
@@ -1649,6 +2078,8 @@ close_history_file( void )
 void
 history_command( char *command_str )
 {
+     Analysis *p_analy;
+
     /* Keep a running history commands - but only commands enter via the CLI */
 
     if ( !history_inputCB_cmd )
@@ -1658,6 +2089,9 @@ history_command( char *command_str )
 	 if ( history_log[history_log_index]!=NULL )
 	      free(history_log[history_log_index]);
 	 history_log[history_log_index++] = (char *) strdup(command_str);
+
+	 p_analy = get_analy_ptr();
+	 model_history_log_update( command_str, p_analy );
     }
   
     if ( env.save_history )
@@ -1677,7 +2111,7 @@ void
 history_log_command( char *fname )
 {
    int i;
-    FILE *fp;
+   FILE *fp;
 
     /* Keep a running history commands */
 
@@ -1709,10 +2143,10 @@ history_log_command( char *fname )
 /************************************************************
  * TAG( history_log_clear )
  *
- * Clear the running history log to a file.
+ * Clear the running history log.
  */
 void
-history_log_clear( char *fname )
+history_log_clear( )
 {
    int i;
  
@@ -1720,12 +2154,110 @@ history_log_clear( char *fname )
 	 i<MAXHIST;
 	 i++ )
    {
-	 if ( history_log[history_log_index]!=NULL )
-	      free(history_log[history_log_index]);
-	 history_log[history_log_index] = (char *) NULL;
+	 if ( history_log[i]!=NULL )
+	      free(history_log[i]);
+	 history_log[i] = (char *) NULL;
    }
 }
 
+/************************************************************
+ * TAG( model_history_log_clear )
+ *
+ * Clear the running model state history,
+ */
+void
+model_history_log_clear ( Analysis *analy )
+{
+   int i;
+ 
+   for ( i=0;
+	 i<MAXHIST;
+	 i++ )
+   {
+	 if ( model_history_log[i]!=NULL )
+	      free(model_history_log[i]);
+	 model_history_log[i] = (char *) NULL;
+   }
+   model_history_log_index = 0;
+   analy->p_histfile = NULL;
+}
+
+
+/************************************************************
+ * TAG( model_history_log_run)
+ *
+ * Executes all commands in the model state history,
+ */
+void
+model_history_log_run( Analysis *analy )
+{
+   int i;
+ 
+   for ( i=0;
+	 i<model_history_log_index;
+	 i++ )
+   {
+         if ( model_history_log[i] )
+              parse_command(  model_history_log[i], analy );
+   }
+}
+
+/************************************************************
+ * TAG( model_history_log_update)
+ *
+ * Add the next command to the buffer and write to the log
+ * file.
+ */
+void
+model_history_log_update( char *command, Analysis *analy )
+{
+  int i;
+  char *first_token, copy_command[512], timestamp[64], timestr[64];
+  char hist_fname[256];
+
+  time_t curtime;
+  struct tm *timeinfo=NULL;
+
+  if ( model_loading_phase ) /* We do not want to log commands from the log data */
+       return;
+
+  strcpy( copy_command, command );
+
+  first_token = strtok( copy_command, "\t " );
+
+  if ( history_log_index>=MAXHIST )
+       history_log_index=0;
+
+  model_history_log[model_history_log_index++] = strdup( command );
+  if ( model_history_log_index>= MAXHIST )
+       model_history_log_index = 0;
+
+  if ( env.model_history_logging ) {
+      /*
+       * Write timestamped command to model history file.
+       */
+      time ( &curtime );
+      timeinfo = localtime ( &curtime );
+      sprintf(timestr, "%s", asctime( timeinfo ) );
+      strcpy( timestamp, &timestr[4] );
+      strcpy( timestr,   timestamp );
+      
+      /* Remove ending NL */
+      timestr[strlen(timestr)-1] = '\0';
+      
+      sprintf(timestamp, "[%s]", timestr );
+      strcpy( copy_command, timestamp );
+      strcat( copy_command, command );
+
+      if ( !analy->p_histfile ) {
+  	   strcpy( hist_fname, analy->root_name );
+	   strcat( hist_fname, ".grizhist" );
+	   analy->p_histfile = fopen( hist_fname, "at");
+      }
+      fprintf(analy->p_histfile, "%s\n", copy_command );
+      fflush( analy->p_histfile );
+  }
+}
 
 /************************************************************
  * TAG( read_history_file )
@@ -1733,7 +2265,8 @@ history_log_clear( char *fname )
  * Read in a command history file and execute the commands in it.
  */
 Bool_type
-read_history_file( char *fname, int line_num, Analysis *analy )
+read_history_file( char *fname, int line_num, int loop_count,
+		   Analysis *analy )
 {
     FILE *infile;
     char c, str[2000], tmp_str[2000];
@@ -1746,45 +2279,54 @@ read_history_file( char *fname, int line_num, Analysis *analy )
         return FALSE;
     }
 
-    analy->hist_line_cnt = line_num;
-
     env.history_input_active = TRUE;
  
-    while ( fgets( str, 2000, infile ) != NULL &&
-	    !feof(infile))
-    {
-        /* Skip to specified line number */
+    if ( loop_count<= 0 )
+         loop_count = 1;
 
-        current_line++;
-        if ( line_num>1 && (current_line < line_num) )
-	     continue;
-
-        if ( str[0] != '#' && str[0] != '\0' )
-	{
-	     analy->hist_paused = FALSE;
-             parse_command( str, analy );
-
+    for ( i=0;
+	  i<loop_count;
+	  i++ ) {
+          current_line = 0;
+          analy->hist_line_cnt = line_num;
+          while ( fgets( str, 2000, infile ) != NULL &&
+		  !feof(infile))
+	    {
+	      /* Skip to specified line number */
+	      
+	      current_line++;
+	      if ( line_num>1 && (current_line < line_num) )
+		continue;
+	      
+	      if ( str[0] != '#' && str[0] != '\0' )
+		{
+		  analy->hist_paused = FALSE;
+		  parse_command( str, analy );
+		  
 #ifndef SERIAL_BATCH
-  	    /* If we are running interactive display this command in the
-	     * history window as hilited text.
-	     */
-
-	     sprintf(tmp_str, "  [%s- Line:%d] %s", fname, analy->hist_line_cnt, str);
-	     write_history_text( tmp_str, TRUE );
-
-	     /* Check if user has a 'pause' in the history input */
-
-	     if ( analy->hist_paused )
-	     {
-	          analy->hist_line_cnt++;
-	          fclose( infile );
-		  return TRUE;
-	     }
+		  /* If we are running interactive display this command in the
+		   * history window as hilited text.
+		   */
+	          if ( analy->echocmd ) {
+		       sprintf(tmp_str, "  [%s- Line:%d] %s", fname, analy->hist_line_cnt, str);
+		       write_history_text( tmp_str, TRUE );
+		  }
+		  
+		  /* Check if user has a 'pause' in the history input */
+		  
+		  if ( analy->hist_paused )
+		    {
+		      analy->hist_line_cnt++;
+		      fclose( infile );
+		      return TRUE;
+		    }
 #endif
-        }
-	analy->hist_line_cnt++;
-	
-    }
+		}
+	      analy->hist_line_cnt++;
+	      
+	    } /* while */
+	  rewind( infile );
+    } /* for loop_count */
 
     if ( feof(infile) )
          analy->hist_line_cnt = 0;
@@ -1902,22 +2444,306 @@ usage( void )
 "            [-beta | -alpha]              # run a alpha or beta version of Griz #\n",
 "            -version aaa                  # run a specific version of Griz #\n",
 "                                          #   aaa to grizx (-version grizex) runs the latest pre-release of Griz #\n",
-"            [-tv ]                        # run griz under Totalview debugger #\n",
-"            [-nw]                         # new window behavior        #\n\n",
+"            [-tv ]                        # run Griz under the Totalview debugger #\n",
 "            [-win32]                      # displaying Griz on Win32 platform #\n\n",
+"            [-gid <1-10>]                 # griz session id number       #\n", 
 "            [-man]                        # display Griz online manual #\n\n"
-#ifdef SERIAL_BATCH
-            ,
-"            [-b | -batch] input_file_name # batch mode               #\n\n" 
-#endif
+"            [-nodialog]                   # disable popup info/warning messages #\n\n"
+"            [-bname] name                 # override banner filename with new name #\n\n"
+"            [-q]                          # run in quiet - minimal output to screen (batch only)#\n",
+"            [-checkresults] [-cr]         # checks all results for corrupt numbers (Nan)#\n\n"
     };
-    int i, line_cnt;
 
+    static char *usage_text_batch[] = {
+"\nUsage (Griz Batch):  griz4s -i input_base_name -b input_file_name\n",
+"            [-s]                          # single-buffer mode         #\n",
+"            [-f]                          # run in foreground          #\n",
+"            [-v]                          # size image for video       #\n",
+"            [-V]                          # show program version       #\n",
+"            [-q]                          # run in quiet - minimal output to screen #\n",
+"            [-w <width_pix> <height_pix>] # set exact image size       #\n", 
+"            [-beta | -alpha]              # run a alpha or beta version of Griz #\n",
+"            -version aaa                  # run a specific version of Griz #\n",
+"                                          #   aaa to Grizx (-version grizex) runs the latest pre-release of Griz #\n",
+"            [-tv ]                        # run Griz under the Totalview debugger #\n",
+"            -b | -batch input_file_name # batch mode               #\n\n" 
+"            [-bname]                      # override banner filename with new name #\n\n"
+"            [-checkresults]               # checks all results for corrupt numbers #\n\n"
+    };
+    int i, line_cnt=0, line_cnt_batch=0;
+
+#ifdef SERIAL_BATCH
+    line_cnt_batch = sizeof( usage_text_batch ) / sizeof( usage_text_batch[0] );
+    for ( i = 0; i < line_cnt_batch; i++ )
+          wrt_text( usage_text_batch[i] );
+#else
     line_cnt = sizeof( usage_text ) / sizeof( usage_text[0] );
-
     for ( i = 0; i < line_cnt; i++ )
           wrt_text( usage_text[i] );
+#endif
 
     return;
 }
 
+/*****************************************************************
+ * TAG( update_session )
+ *
+ * This function will initialize a session show_colordata structure.
+ */
+void update_session( int operation, void *fp, int cnt )
+{
+  int var_id=0;
+  return;
+
+  SESSION_VAR( operation, fp, cnt, var_id++, reference_state,       G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, normals_constant,      G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, node_norm,             G_FLOAT, 3, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, vis_mat_bbox,          G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, keep_max_bbox_extent,  G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, limit_rotations,       G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_background_image, G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, refresh,               G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, normals_smooth,        G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, hex_overlap,           G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, interp_mode,           G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_bbox,             G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_coord,            G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_time,             G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_title,            G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_title_path,       G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_safe,             G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_colormap,         G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_colorscale,       G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_minmax,           G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_scale,            G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_datetime,         G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_tinfo,            G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, use_colormap_pos,      G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, hidden_line_width,     G_FLOAT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, float_frac_size,       G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, auto_frac_size,        G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, colormap_pos,          G_FLOAT, 4, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, mouse_mode,            G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, hilite_label,          G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, hilite_num,            G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, center_node,           G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, view_center,           G_FLOAT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, reflect,               G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, refl_orig_only,        G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, manual_backface_cull,  G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, displace_exag,         G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, displace_scale,        G_FLOAT, 3, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_plot_grid,        G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_plot_glyphs,      G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_plot_coords,      G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_legend_lines,     G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, color_plots,           G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, color_glyphs,          G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, minmax_loc,            G_CHAR, 2, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, th_smooth,             G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, th_filter_width,       G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, th_filter_type,        G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, zbias_beams,           G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, beam_zbias,            G_FLOAT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, z_buffer_lines,        G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_edges,            G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, hide_edges_by_mat,     G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, edge_width,            G_FLOAT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, edge_zbias,            G_FLOAT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, vec_col_set,           G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, vec_hd_col_set,        G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, vec_min_mag,           G_FLOAT8, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, vec_max_mag,           G_FLOAT8, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, vec_scale,             G_FLOAT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, vec_head_scale,        G_FLOAT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, have_grid_points,      G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, vectors_at_nodes,      G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, scale_vec_by_result,   G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, dir_vec,               G_FLOAT, 3, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, do_tensor_transform,   G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, trace_width,           G_FLOAT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, ptrace_limit,          G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, trace_disable_qty,     G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, perform_unit_conversion, G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, conversion_scale,      G_FLOAT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, conversion_offset,     G_FLOAT, 1, MODEL_VAR );
+
+  SESSION_VAR( operation, fp, cnt, var_id++, auto_img,              G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, autoimg_format,        G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, rgb_root,              G_STRING, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, img_root,              G_STRING, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, loc_ref,               G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_num,              G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, show_particle_class,   G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, logscale,              G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, damage_hide,           G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, reset_damage_hide,     G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, particle_nodes_hide_background, G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, free_nodes_scale_factor,        G_FLOAT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, free_nodes_sphere_res_factor,   G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, free_nodes_mass_scaling,        G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, free_nodes_vol_scaling,         G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, free_nodes_cut_width,           G_FLOAT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, fn_output_momentum,             G_INT, 1, MODEL_VAR );
+
+  SESSION_VAR( operation, fp, cnt, var_id++, draw_wireframe,        G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, draw_wireframe_trans,  G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, enable_brick,          G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, hide_brick,            G_INT, 1, MODEL_VAR );
+  SESSION_VAR( operation, fp, cnt, var_id++, material_greyscale,    G_INT, 1, MODEL_VAR );
+}
+
+/*****************************************************************
+ * TAG( process_update_session )
+ *
+ * This function will initialize a session data structure.
+ */
+void process_update_session( int operation, void *ptr, int cnt,
+			     int var_id, char *var_name,
+			     void *p_analy_var, void *p_session_var,
+			     int type, int len, Bool_type local_var,
+			     short *var_update )
+{
+  int    *analy_int_var_ptr;
+  float  *analy_float_var_ptr;
+  double *analy_dbl_var_ptr;
+  char   *analy_char_var_ptr;
+
+  int    *session_int_var_ptr;
+  float  *session_float_var_ptr;
+  double *session_dbl_var_ptr;
+  char   *session_char_var_ptr;
+
+  FILE *fp=NULL;
+  char **session_buff=NULL;
+  int    i;
+
+  switch ( type ) {
+  case ( G_INT ):
+    analy_int_var_ptr   = (int *) p_analy_var ;
+    session_int_var_ptr = (int *) p_session_var ;
+    break;
+
+  case ( G_FLOAT ):
+    analy_float_var_ptr   = (float *) p_analy_var ;
+    session_float_var_ptr = (float *) p_session_var ;
+    break;
+
+  case ( G_FLOAT8 ):
+    analy_dbl_var_ptr   = (double *) p_analy_var ;
+    session_dbl_var_ptr = (double *) p_session_var ;
+    break;
+
+  case ( G_STRING ):
+    analy_char_var_ptr   = (char *) p_analy_var ;
+    session_char_var_ptr = (char *) p_session_var ;
+    break;
+}
+
+  switch ( operation ) {
+    case ( GET ):
+           switch ( type ) { 
+             case ( G_INT ):
+	       for ( i=0; 
+		     i<len;
+		     i++ )
+		     session_int_var_ptr[i] = analy_int_var_ptr[i];
+	     break;
+             case ( G_FLOAT ):
+	       for ( i=0; 
+		     i<len;
+		     i++ )
+		     session_float_var_ptr[i] = analy_float_var_ptr[i];
+	     break;
+             case ( G_FLOAT8 ):
+	       for ( i=0; 
+		     i<len;
+		     i++ )
+		     session_dbl_var_ptr[i] = analy_dbl_var_ptr[i];
+	     break;
+             case ( G_STRING ):
+	       strcpy( session_char_var_ptr, analy_char_var_ptr );
+	     break;
+	   }
+
+      break;
+
+    case ( PUT ):
+           switch ( type ) { 
+             case ( G_INT ):
+	       for ( i=0; 
+		     i<len;
+		     i++ )
+		     analy_int_var_ptr[i] = session_int_var_ptr[i];
+	     break;
+             case ( G_FLOAT ):
+	       for ( i=0; 
+		     i<len;
+		     i++ )
+		     analy_float_var_ptr[i] = session_float_var_ptr[i];
+	     break;
+             case ( G_FLOAT8 ):
+	       for ( i=0; 
+		     i<len;
+		     i++ )
+		     analy_dbl_var_ptr[i] = session_dbl_var_ptr[i];
+	     break;
+             case ( G_STRING ):
+	       strcpy( analy_char_var_ptr, session_char_var_ptr );
+	     break;
+	   }
+
+      break;
+ 
+    case ( READ ):
+           if ( ptr==NULL ) return;
+           
+      break;
+
+  case ( WRITE ):
+           if ( ptr==NULL ) return;
+           fp = (FILE *) ptr;
+
+	   fprintf( fp, "var_name= %s len= %d val= ", var_name, len );
+           switch ( type ) { 
+             case ( G_INT ):
+	       for ( i=0; 
+		     i<len;
+		     i++ )
+		     fprintf( fp, " %d ", analy_int_var_ptr[i] );
+
+	     break;
+             case ( G_FLOAT ):
+	       for ( i=0; 
+		     i<len;
+		     i++ )
+		     fprintf( fp, " %e ", analy_float_var_ptr[i] );
+	     break;
+             case ( G_FLOAT8 ):
+	       for ( i=0; 
+		     i<len;
+		     i++ )
+		     fprintf( fp, " %e ", analy_dbl_var_ptr[i] );
+	     break;
+             case ( G_STRING ):
+	       strcpy( analy_char_var_ptr, session_char_var_ptr );
+	     break;
+	   }
+	   fprintf( fp, "\n" );                   
+      break;
+    
+  }
+  analy_int_var_ptr = (int *) p_analy_var;
+}
+
+ 
+/*****************************************************************
+ * TAG( get_analy_ptr )
+ *
+ * Returns pointer to the analysis data structure
+ */
+Analysis *
+get_analy_ptr( )
+{
+    return ((Analysis *) analy_ptr );
+}

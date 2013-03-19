@@ -6,38 +6,6 @@
  *      Lawrence Livermore National Laboratory
  *      Mar 19 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
  ************************************************************************
  * Modifications:
  *  I. R. Corey - Aug 26, 2005: Add option to hide result from pull-down 
@@ -98,14 +66,39 @@ static char *node_disp_mag_shorts[] =
 {
     "dispmag", NULL 
 };
+static char *node_modedisp_mag_shorts[] = 
+{
+    "evec_disp_mag", NULL 
+};
+static char *node_moderot_mag_shorts[] = 
+{
+    "evec_rot_mag", NULL  
+};
 static char *node_disp_mag_longs[] = 
 {
     "Displacement Magnitude", NULL
 };
+static char *node_modedisp_mag_longs[] = 
+{
+    "Disp Eigenvector Magnitude", NULL
+};
+static char *node_moderot_mag_longs[] = 
+{
+    "Rot Eigenvector Magnitude", NULL
+};
+
+static char *node_modedisp_primals[] = 
+{
+   "evec_disp", NULL
+};
+static char *node_moderot_primals[] = 
+{
+   "evec_rot", NULL
+};
 
 static char *node_disp_primals[] = 
 {
-    "nodpos", NULL
+   "nodpos", NULL
 };
 
 static int node_disp_primal_sclasses[] = 
@@ -113,6 +106,14 @@ static int node_disp_primal_sclasses[] =
     G_NODE
 };
 
+static int node_modedisp_primal_sclasses[] = 
+{
+    G_NODE
+};
+static int node_moderot_primal_sclasses[] = 
+{
+    G_NODE
+};
 
 static char *node_vel_shorts_xy[] = 
 {
@@ -864,12 +865,39 @@ Result_candidate possible_results[] =
         FALSE,
         compute_node_displacement_mag,   
         NULL,
-        node_disp_mag_shorts, 
+        node_disp_mag_shorts,
         node_disp_mag_longs, 
         node_disp_primals,
         node_disp_primal_sclasses
     }, 
 
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        FALSE, 
+        FALSE,
+        compute_node_modaldisplacement_mag,   
+        NULL,
+        node_modedisp_mag_shorts, 
+        node_modedisp_mag_longs, 
+        node_modedisp_primals,
+        node_modedisp_primal_sclasses
+    }, 
+
+    {
+        G_NODE, 
+        { 1, 1 }, 
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },      
+        FALSE, 
+        FALSE,
+        compute_node_modaldisplacement_mag,   
+        NULL,
+        node_moderot_mag_shorts, 
+        node_moderot_mag_longs, 
+        node_moderot_primals,
+        node_moderot_primal_sclasses
+    }, 
     /*
      * Node velocity can occur explicitly in the data or be derived from
      * displacements, so there are two sets of Result_candidate's for it.
@@ -2539,7 +2567,10 @@ result_has_class( Result *p_result, MO_class_data *p_mo_class, Analysis *analy )
                 p_subr = analy->srec_tree[i].subrecs;
                 
                 for ( j = 0; j < qty; j++ )
-                    if ( p_subr[p_i[j]].p_object_class == p_mo_class )
+                    if ( p_subr[p_i[j]].p_object_class == p_mo_class || 
+		         ( p_mo_class->superclass==M_HEX && is_particle_class( analy, p_subr[p_i[j]].p_object_class->superclass, 
+									       p_subr[p_i[j]].p_object_class->short_name )) )
+
                         /* Found class match. */
                         return TRUE;
             }
@@ -2781,11 +2812,8 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
 				   * render window.
 				   */
 
-    /*   if ( !strcmp(p_subrec->p_object_class->short_name, "particle")  )
-	 interpolate = FALSE; */
-
-   if ( !analy->free_particles && !strcmp(p_subrec->p_object_class->short_name, "particle") )
-        return;
+    if ( !analy->particle_nodes_enabled && is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
+         return;
 
    if ( object_ids )
    {
@@ -2874,6 +2902,11 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
                                   p_subrec->p_object_class, obj_qty, 
                                   object_ids, analy );
                     break;
+                case G_PARTICLE:
+                    particle_to_nodal( result_buf, resultArr, 
+				       p_subrec->p_object_class, obj_qty, 
+				       object_ids, analy );
+                    break;
                 case G_SURFACE:
                     surf_to_nodal( result_buf, resultArr, 
                                    p_subrec->p_object_class, obj_qty, 
@@ -2884,7 +2917,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
         else
         {
             if(  p_result->superclasses[index] != G_SURFACE )
-                elem_get_minmax( result_buf, analy );
+	         elem_get_minmax( result_buf, 0, analy );
 
 	    if ( p_result->superclasses[index] == G_QUAD )
 	    {
@@ -2900,7 +2933,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
         switch ( p_result->superclasses[index] )
         {
             case G_UNIT:
-                unit_get_minmax( result_buf, analy );
+	        unit_get_minmax( result_buf, analy );
                 break;
             case G_MAT:
                 mat_get_minmax( result_buf, analy );
@@ -3018,6 +3051,11 @@ load_primal_result_double( Analysis *analy, float *resultArr,
                                   p_subrec->p_object_class, obj_qty, 
                                   object_ids, analy );
                     break;
+                case G_PARTICLE:
+                    particle_to_nodal( resultElem, resultArr, 
+				       p_subrec->p_object_class, obj_qty, 
+				       object_ids, analy );
+                    break;
                 case G_SURFACE:
                     surf_to_nodal( resultElem, resultArr, 
                                    p_subrec->p_object_class, obj_qty, 
@@ -3027,7 +3065,7 @@ load_primal_result_double( Analysis *analy, float *resultArr,
         }
         else
         {
-            elem_get_minmax( resultElem, analy );
+	    elem_get_minmax( resultElem, (int)NULL, analy );
         }
     }
     else if ( !p_result->origin.is_node_result )
@@ -3153,6 +3191,11 @@ load_primal_result_int( Analysis *analy, float *resultArr,
                                   p_subrec->p_object_class, obj_qty, 
                                   object_ids, analy );
                     break;
+                case G_PARTICLE:
+                    particle_to_nodal( resultElem, resultArr, 
+				       p_subrec->p_object_class, obj_qty, 
+				       object_ids, analy );
+                    break;
                 case G_SURFACE:
                     surf_to_nodal( resultElem, resultArr, 
                                    p_subrec->p_object_class, obj_qty, 
@@ -3162,7 +3205,7 @@ load_primal_result_int( Analysis *analy, float *resultArr,
         }
         else
         {
-            elem_get_minmax( resultElem, analy );
+	    elem_get_minmax( resultElem, 0, analy );
         }
     }
     else if ( !p_result->origin.is_node_result )
@@ -3287,16 +3330,21 @@ load_primal_result_long( Analysis *analy, float *resultArr,
                                   p_subrec->p_object_class, obj_qty, 
                                   object_ids, analy );
                     break;
+                case G_PARTICLE:
+                    particle_to_nodal( resultElem, resultArr, 
+				       p_subrec->p_object_class, obj_qty, 
+				       object_ids, analy );
+                    break;
                 case G_SURFACE:
                     surf_to_nodal( resultElem, resultArr, 
                                    p_subrec->p_object_class, obj_qty, 
                                    object_ids, analy, TRUE );
                     break;
             }
-        }
+        } 
         else
         {
-            elem_get_minmax( resultElem, analy );
+	    elem_get_minmax( resultElem, 0, analy );
         }
     }
     else if ( !p_result->origin.is_node_result )
@@ -3695,7 +3743,7 @@ is_nodal_result( Result_type result_id )
  *
  * Used for debugging updates to the nodal result buffer.
  */
-int
+void
 check_nodal_result( Analysis *a )
 { 
   float *data;
@@ -3712,5 +3760,120 @@ check_nodal_result( Analysis *a )
        i++)
        sum += data[i];
   
-  return 0;
+  return;
 }
+
+/*****************************************************************
+ * TAG( get_result_qty )
+ * 
+ * Returns the quantity of a result for a given subrecord id.
+ *
+ */
+int
+get_result_qty( Analysis *analy, int subrec_id )
+{
+    Result *p_result;
+    int index;
+    int subrec, srec;
+    Subrec_obj *p_subrec;
+    p_result = analy->cur_result;
+    index    = analy->result_index;
+    subrec   = p_result->subrecs[index];
+    srec     = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    return (p_subrec->subrec.qty_objects); 
+}
+
+/*****************************************************************
+ * TAG( get_element_set_id )
+ * 
+ * Returns the element set (es) id from the es name.
+ *
+ */
+int 
+get_element_set_id( char *es_ptr )
+{
+  int es_id=-1;
+  sscanf( es_ptr, "%d", &es_id );
+
+  return( es_id );
+}
+
+/*****************************************************************
+ * TAG( get_element_set_index )
+ * 
+ * Returns the element set (es) index for the specified es id.
+ *
+ */
+int 
+get_element_set_index( Analysis *analy, int es_id )
+{
+  int i=0;
+  int es_index=-1;
+
+  for (i=0;
+       i<analy->es_cnt;
+       i++ ) {
+       if ( analy->es_intpoints[i].es_id == es_id ) {
+	    es_index = i;
+	    break;
+       }
+  }
+  return( es_index );
+}
+
+/*****************************************************************
+ * TAG( get_intpoint_index )
+ * 
+ * Returns the index of the specified label or -1 if not found.
+ *
+ */
+int
+get_intpoint_index ( int label, int num_labels, int *intpoint_labels )
+{
+  int i=0;
+  int label_index=-1;
+
+  for ( i=0;
+	i<num_labels;
+	i++ ) {
+        if ( intpoint_labels[i]==label ) 
+	     label_index = i;
+  }
+  return ( label_index );
+}
+
+/*****************************************************************
+ * TAG( set_default_intpoints )
+ * 
+ * Returns the default integration points in array 
+ * default_intpoints.
+ *
+ */
+void
+set_default_intpoints ( int num_intpoints, int num_labels,
+			int *intpoint_labels, int default_intpoints[3] )
+{
+  int i; 
+      int calc_middle=0, middle_point=-1;
+
+  default_intpoints[0] = intpoint_labels[0];               /* Inner */ 
+  
+  /* Calculate the MIDDLE integration point */
+  calc_middle = num_intpoints/2.0;
+  if ( calc_middle*2 != num_intpoints ) { /* Odd number of points */
+       calc_middle++;
+
+       /* Make sure the middle point is in the list of labels */
+       for ( i=0;
+	     i<num_labels-1;
+	     i++ ) {
+	     if ( intpoint_labels[i] == calc_middle )
+	          middle_point = calc_middle;     
+       }
+       
+  }
+  default_intpoints[1] = middle_point; /* MIDDLE integration point undefined if -1 */  
+  default_intpoints[2] = intpoint_labels[num_labels-1]; /* Outer */     
+}
+

@@ -6,39 +6,6 @@
  *      Lawrence Livermore National Laboratory
  *      Jun 25 1992
  *
- *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
  *************************************************************************
  *
  * Modification History
@@ -71,8 +38,29 @@
  *
  * 08/27/2008 I. R. Corey   Strain rotations not computed correctly for
  *                          data organized by object ids in rotate_quad_
- *                          strain. 
+ *                          result. 
  *                          See SRC#: 546
+ *
+ * 11/10/2008 I. R. Corey   Fixed an indexing problem for strain rotations
+ *                          when object ids are found in compute_shell_
+ *                          strain.
+ *                          See SRC#: 551
+ *
+ * 05/22/2009 I. R. Corey   Fixed a problem with loading object ids
+ *                          for quad rotations.
+ *                          See SRC#: 605
+ *
+ * 09/29/2009 I. R. Corey   Fixed a problem with computing strains for
+ *                          shared result with multiple Hex element 
+ *                          sets.
+ *                          See SRC#: 629
+ *
+ * 09/07/2011 I. R. Corey   Fixed a problem with computing hex strain
+ *                          rate. 
+ *
+ * 01/29/2013 I. R. Corey   Fixed a problem with computing hex strain 
+ *                          for TH databases.
+ *
  *************************************************************************
  *
  */
@@ -151,7 +139,7 @@ free_static_strain_data( void )
 void
 compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
-    double x[8], y[8], z[8];         /* Initial element geom. */
+    double x[8],  y[8], z[8];        /* Initial element geom. */
     double xx[8], yy[8], zz[8];      /* Current element geom. */
     double xv[8], yv[8], zv[8];      /* Current node velocities. */
     double px[8], py[8], pz[8];      /* Global derivates dN/dx,dN/dy,dN/dz. */
@@ -182,14 +170,16 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
     int cur_mat;
     Bool_type single_prec_pos, single_prec_vel;
     static Bool_type mixed_prec_warn = FALSE;
+    Bool particle_class=FALSE;
 
+    int status=OK;
 
     /* IRC: Added March 29, 2005 - Support strain 
      *      calculations for timehistory databases 
      */
     Bool_type map_timehist_coords = FALSE;
     int       elem_index;
-    int       obj_cnt, obj_num, *obj_ids=NULL;
+    int       obj_cnt=0, obj_num=0, *obj_ids=NULL;
     GVec3D2P  *new_nodes; 
 
     p_result = analy->cur_result;
@@ -245,10 +235,13 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
         /* Save current result */
         p_result = analy->cur_result;
 
-        load_hex_nodpos_timehist( analy, analy->cur_state+1, single_prec_pos, 
-				  &obj_cnt, &obj_ids, &new_nodes);
+        status = load_hex_nodpos_timehist( analy, analy->cur_state+1, single_prec_pos, 
+					   &obj_cnt, &obj_ids, &new_nodes);
 
         analy->cur_result = p_result;
+
+	if (status!=OK)
+	    return;   
     }  
 
 
@@ -316,15 +309,15 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
                 analy->cur_result = velx;
                 NODAL_RESULT_BUFFER( analy ) = nxv;
-                load_result( analy, TRUE, FALSE );
+                load_result( analy, TRUE, FALSE, FALSE );
                 
                 analy->cur_result = vely;
                 NODAL_RESULT_BUFFER( analy ) = nyv;
-                load_result( analy, TRUE, FALSE );
+                load_result( analy, TRUE, FALSE, FALSE );
                 
                 analy->cur_result = velz;
                 NODAL_RESULT_BUFFER( analy ) = nzv;
-                load_result( analy, TRUE, FALSE );
+                load_result( analy, TRUE, FALSE, FALSE );
 
                 analy->cur_result = p_result;
                 NODAL_RESULT_BUFFER( analy ) = tmp_data;
@@ -381,15 +374,15 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
                 analy->cur_result = velx;
                 NODAL_RESULT_BUFFER( analy ) = nxv;
-                load_result( analy, TRUE, FALSE );
+                load_result( analy, TRUE, FALSE, FALSE );
                 
                 analy->cur_result = vely;
                 NODAL_RESULT_BUFFER( analy ) = nyv;
-                load_result( analy, TRUE, FALSE );
+                load_result( analy, TRUE, FALSE, FALSE );
                 
                 analy->cur_result = velz;
                 NODAL_RESULT_BUFFER( analy ) = nzv;
-                load_result( analy, TRUE, FALSE );
+                load_result( analy, TRUE, FALSE, FALSE );
 
                 analy->cur_result = p_result;
                 NODAL_RESULT_BUFFER( analy ) = tmp_data;
@@ -429,15 +422,15 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
                 analy->cur_result = velx;
                 NODAL_RESULT_BUFFER( analy ) = (float *) nxv_2p;
-                load_result( analy, TRUE, FALSE );
+                load_result( analy, TRUE, FALSE, FALSE );
                 
                 analy->cur_result = vely;
                 NODAL_RESULT_BUFFER( analy ) = (float *) nyv_2p;
-                load_result( analy, TRUE, FALSE );
+                load_result( analy, TRUE, FALSE, FALSE );
                 
                 analy->cur_result = velz;
                 NODAL_RESULT_BUFFER( analy ) = (float *) nzv_2p;
-                load_result( analy, TRUE, FALSE );
+                load_result( analy, TRUE, FALSE, FALSE );
 
                 analy->cur_result = p_result;
                 NODAL_RESULT_BUFFER( analy ) = tmp_data;
@@ -464,15 +457,17 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                /* Save current result */
                p_result = analy->cur_result;
 
-               load_hex_nodpos_timehist( analy, 1, single_prec_pos,
-                                         &obj_cnt, &obj_ids, &reference_nodes);
+               status = load_hex_nodpos_timehist( analy, 1, single_prec_pos,
+						  &obj_cnt, &obj_ids, &reference_nodes);
+	       if (status!=OK)
+		   return;   
             }
                onodes3d2p = reference_nodes;
         }
         else
            {
              if ( reference_nodes == NULL )
-                load_reference_node_pos( analy );
+                  load_reference_node_pos( analy );
     
              onodes3d2p = reference_nodes;
 
@@ -506,6 +501,10 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
         p_hex_class = ((MO_class_data **) 
                        MESH( analy ).classes_by_sclass[G_HEX].list)[l];
 
+	particle_class = FALSE;
+	if (is_particle_class( analy, p_hex_class->superclass, p_hex_class->short_name) )
+	    particle_class = TRUE;
+
         connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
         resultElem = p_hex_class->data_buffer;
 
@@ -530,15 +529,45 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
             if (map_timehist_coords)
                elem_block_qty = 1;
 
+	    if ( class_qty>1 && elem_block_qty>1 ) {
+	         elem_block_qty = 1;
+	    }
+
             /* Loop over the element blocks of the current active material. */
             for ( n = 0; n < elem_block_qty; n++ )
             {
                 start = p_mats[cur_mat].elem_blocks[n][0];
                 stop  = p_mats[cur_mat].elem_blocks[n][1];
 
+		if ( class_qty>1 && stop>=p_hex_class->qty ) {
+		     start = 0;
+		     stop  = p_hex_class->qty-1;
+		}
+
+		if ( obj_ids && obj_cnt>0 ) {
+		     for ( i = start; i <= stop; i++ )
+		           resultElem[i] = 0.0;     
+		     start = 0;
+		     stop  = obj_cnt-1;
+		}
+
                 /* Loop over the elements in the current element block. */
                 for ( i = start; i <= stop; i++ )
                     {
+		      if ( particle_class ) {
+
+                           elem_index = i;
+			   
+			   if ( obj_ids )
+			   {
+			        if (map_timehist_coords && obj_ids[i] == -1)
+				    continue;
+			        else
+				    elem_index = obj_ids[i];
+			   }
+			   resultElem[elem_index] = 0.0;
+		      }
+
                     /*
                      * Since we're calculating volume element results from 
                      * nodal data, loop over the hex element class, not the 
@@ -585,10 +614,13 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                             for ( j = 0; j < 8; j++ )
                             {
                                 nd = connects[i][j];
-
-				if (i==1296 || i==1295)
-			       nd = connects[i][j];
-
+                                if (map_timehist_coords) 
+                                {
+				    if ( obj_ids ) {
+				         elem_index = obj_ids[i];
+                                         nd = connects[elem_index][j];
+				    }
+				}
                                 x[j] = (double) onodes3d[nd][0];
                                 y[j] = (double) onodes3d[nd][1];
                                 z[j] = (double) onodes3d[nd][2];
@@ -614,6 +646,13 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                             for ( j = 0; j < 8; j++ )
                             {
                                 nd = connects[i][j];
+                                if (map_timehist_coords) 
+                                {
+				    if ( obj_ids ) {
+				         elem_index = obj_ids[i];
+                                         nd = connects[elem_index][j];
+				    }
+				}
 
                                 x[j] = onodes3d2p[nd][0];
                                 y[j] = onodes3d2p[nd][1];
@@ -645,6 +684,13 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                             for ( j = 0; j < 8; j++ )
                             {
                                  nd = connects[i][j];
+                                 if (map_timehist_coords) 
+                                 {
+				     if ( obj_ids ) {
+				          elem_index = obj_ids[i];
+                                          nd = connects[elem_index][j];
+				    }
+				 }
 
                                  xv[j] = nxv[nd];
                                  yv[j] = nyv[nd];
@@ -673,6 +719,13 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                                 for ( j = 0; j < 8; j++ )
                                 {
                                     nd = connects[i][j];
+                                    if (map_timehist_coords) 
+                                    {
+				        if ( obj_ids ) {
+				             elem_index = obj_ids[i];
+                                             nd = connects[elem_index][j];
+					}
+				    }
 
                                     xv[j] = (double) nxv[nd];
                                     yv[j] = (double) nyv[nd];
@@ -699,6 +752,13 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                                 for ( j = 0; j < 8; j++ )
                                 {
                                     nd = connects[i][j];
+                                    if (map_timehist_coords) 
+				    {
+				        if ( obj_ids ) {
+					     elem_index = obj_ids[i];
+					     nd = connects[elem_index][j];
+					}
+				    }
 
                                     xv[j] = nxv_2p[nd];
                                     yv[j] = nyv_2p[nd];
@@ -728,7 +788,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                     {
                         case INFINITESIMAL: 
                         case GREEN_LAGRANGE: 
-                            hex_partial_deriv( px, py, pz, x, y, z);
+			  hex_partial_deriv( px, py, pz, x, y, z);
                             for ( k = 0; k < 8; k++ )
                             {
                                 F[0] = F[0] + px[k]*xx[k];
@@ -882,6 +942,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                             popup_dialog( WARNING_POPUP, 
                                           "Unknown strain result requested!" );
                     }
+
                 } /* elements in block loop */
             } /* element block in active material loop */
         } /* active material in hex class loop */
@@ -954,9 +1015,9 @@ hex_partial_deriv( double dNx[8], double dNy[8], double dNz[8], double coorX[8],
 
     if ( fabs( detJacob ) < 1.0e-20 )
     {
-        popup_dialog( WARNING_POPUP, 
-                      "Element is degenerate! Result is invalid!" );
-        detJacob = 1.0;
+         popup_dialog( WARNING_POPUP, 
+		       "Element is degenerate! Result is invalid!" );
+	 detJacob = 1.0;
     }
 
     /* Develop inverse of mapping. */ 
@@ -994,10 +1055,17 @@ extract_strain_vec( double *strain, double F[9], Strain_type s_type )
     switch ( s_type ) 
     {
         case INFINITESIMAL:
-        case RATE:
             strain[0] = F[0] - 1.0;
             strain[1] = F[4] - 1.0; 
             strain[2] = F[8] - 1.0; 
+            strain[3] = 0.5 * ( F[1] + F[3] );
+            strain[4] = 0.5 * ( F[5] + F[7] );
+            strain[5] = 0.5 * ( F[2] + F[6] );
+            break;
+        case RATE:
+            strain[0] = F[0];
+            strain[1] = F[4]; 
+            strain[2] = F[8]; 
             strain[3] = 0.5 * ( F[1] + F[3] );
             strain[4] = 0.5 * ( F[5] + F[7] );
             strain[5] = 0.5 * ( F[2] + F[6] );
@@ -1122,7 +1190,7 @@ compute_hex_eff_strain( Analysis *analy,float *resultArr,
     if ( object_ids )
     {
         for ( i = 0; i < obj_qty; i++ )
-            resultElem[object_ids[i]] = e0[i];
+              resultElem[object_ids[i]] = e0[i];
     }
     
     if ( interpolate )
@@ -1173,7 +1241,7 @@ compute_hex_relative_volume( Analysis *analy, float *resultArr,
     int cur_mat;
     Bool_type single_prec_pos;
     State_rec_obj *p_sro;
-
+    Bool particle_class = FALSE;
 
     /* Get node position data precision. */
     single_prec_pos = !(MESH_P( analy )->double_precision_nodpos);
@@ -1225,6 +1293,10 @@ compute_hex_relative_volume( Analysis *analy, float *resultArr,
         p_hex_class = ((MO_class_data **) 
                        MESH( analy ).classes_by_sclass[G_HEX].list)[l];
 
+	particle_class = FALSE;
+	if (is_particle_class( analy, p_hex_class->superclass, p_hex_class->short_name) )
+	    particle_class = TRUE;
+
         connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
         resultElem = p_hex_class->data_buffer;
 
@@ -1248,10 +1320,19 @@ compute_hex_relative_volume( Analysis *analy, float *resultArr,
             {
                 start = p_mats[cur_mat].elem_blocks[n][0];
                 stop = p_mats[cur_mat].elem_blocks[n][1];
+		
+		if ( class_qty>1 && stop>=p_hex_class->qty ) {
+		     start = 0;
+		     stop  = p_hex_class->qty-1;
+		}
 
                 /* Loop over the elements in the current element block. */
                 for ( i = start; i <= stop; i++ )
                 {
+		      if ( particle_class ) {
+			   resultElem[i] = 0.0;
+			   continue;
+		      }
 
                     /* Get the initial and current geometries. */
                     if ( single_prec_pos )
@@ -1303,7 +1384,8 @@ compute_hex_relative_volume( Analysis *analy, float *resultArr,
                      * Foolishly assuming detF will never be negative, we won't
                      * test to ensure it's positive as required by log().
                      */
-                    resultElem[i] = (float) (vol_strain ? log( detF ) : detF);
+		    resultElem[i] = (float) (vol_strain ? log( detF ) : detF);
+
                 } /* for element in block */
             } /* for element block in material */
         } /* for active material */
@@ -1732,7 +1814,7 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 		     else
 		     {
                          for ( j = 0; j < 6; j++ )
-                               eps[j] = analy->tmp_result[j][obj_id];
+                               eps[j] = analy->tmp_result[j][i];
 		     }
 
                     global_to_local_mtx( analy, p_quad_class, obj_id, 
@@ -1781,7 +1863,7 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 		    else
 		      {
                           for ( j = 0; j < 6; j++ )
-                                eps[j] = analy->tmp_result[j][obj_id];
+                                eps[j] = analy->tmp_result[j][i];
 		      }
 
                     global_to_local_mtx( analy, p_quad_class, obj_id, 
@@ -1832,7 +1914,7 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 		      else
 		      {
                          for ( j = 0; j < 6; j++ )
-                               eps[j] = analy->tmp_result[j][obj_id];
+                               eps[j] = analy->tmp_result[j][i];
 		     }
 
                      global_to_local_mtx( analy, p_quad_class, obj_id, 
@@ -1841,10 +1923,6 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 		     transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
 		     resultElem[obj_id] = eps[comp_idx];
                 }
-
-	       /* OLD  outer - IRC analy->db_get_results( analy->db_ident,
-                                       analy->cur_state + 1, subrec,
-                                       1, primals + 1, analy->tmp_result[0] ); */
                 break;
         }
 
@@ -1862,7 +1940,7 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                 global_to_local_mtx( analy, p_quad_class, obj_id,
 		                     map_timehist_coords, new_nodes,
 				     localMat );
-                transform_tensors( 1, p_tensors + i, localMat );
+                transform_tensors( 1, p_tengriz4ssors + i, localMat );
 
                 resultElem[obj_id] = p_tensors[i][comp_idx];
 		} */
@@ -2235,6 +2313,13 @@ rotate_quad_result( Analysis *analy, char *primal,
         load_quad_nodpos_timehist( analy, analy->cur_state+1, single_prec_pos, 
 				   &obj_qty, &object_ids, &new_nodes);
 
+	if ( new_nodes==NULL) 
+	{
+	     popup_dialog( WARNING_POPUP, "Node Position Required for strain rotation calculation."
+			   "Aborting strain rate rotation." );
+	     return;
+	}
+
         analy->cur_result = p_result;
     }  
 
@@ -2341,8 +2426,12 @@ rotate_quad_result( Analysis *analy, char *primal,
 	       for ( j = 0; 
 		     j < obj_qty;
 		     j++ )
+		     temp_result[j] = res1[i][j];
+
+	       for ( j = 0; 
+		     j < obj_qty;
+		     j++ )
 	       {
-		     temp_result[j]         = res1[i][j];
 		     res1[i][object_ids[j]] = temp_result[j];
 	       }
 	       free( temp_result );
@@ -2355,11 +2444,6 @@ rotate_quad_result( Analysis *analy, char *primal,
 	      j < 6; 
 	      j++ )
 	      eps[j] = res1[j][single_obj_id];
-	
-	if ( analy->cur_state == 500 || analy->cur_state == 40  )
-	{
-	     primal_list[0] = primal1;
-	}
 	
 	global_to_local_mtx( analy, p_quad_class, single_obj_id, 
 			     map_timehist_coords, new_nodes,

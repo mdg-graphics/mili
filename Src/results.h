@@ -270,6 +270,7 @@ typedef enum
     VAL_NODE_DISPZ,        /* Nodal Z displacement */
     VAL_NODE_DISPR,        /* Nodal Radial displacement */
     VAL_NODE_DISPMAG,      /* Nodal displacement magnitude */
+    VAL_NODE_MODEDISPMAG,  /* Nodal modal displacement magnitude */
     VAL_NODE_PINTENSE,     /* Nodal pressure intensity */
     VAL_NODE_HELICITY,     /* Nodal helicity */
     VAL_NODE_ENSTROPHY,    /* Nodal enstrophy */

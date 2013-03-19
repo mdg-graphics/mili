@@ -6,39 +6,6 @@
  *      Lawrence Livermore National Laboratory
  *      Oct 28 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
- *
  ************************************************************************
  * Modifications:
  *
@@ -56,13 +23,24 @@
  *
  *  I. R. Corey - Mar 31, 2008:	Add Node/Element labeling.
  *                See SRC#418 (Mili) and 504 (Griz)
+ *
+ *  I. R. Corey - Jan 13, 2009:	Fixed a problem with testing for labels
+ *                for a node class where structure (mo_class) does not
+ *                exist.
+ *                 See SRC#562
+ *
+ *  I. R. Corey - Nov 02, 2009:	Fixed a problem with multiple Griz sessions
+ *                hanging on Windows with Hummingbird Exceed X11 software
+ *                due to a glBegin( GL_LINE_LOOP ) that does not have a
+ *                glEnd();
+ *                See SRC#636
  ************************************************************************
  *
  */
 
 #include <stdlib.h>
 #include <ctype.h>
-#include <values.h>
+#include <sys/stat.h>
 #include "viewer.h"
 #include "draw.h"
 
@@ -322,6 +300,7 @@ static void
 dump_gather_segment( Gather_segment * );
 #endif
 
+static Bool_type th_series_print_header = TRUE;
 
 /*****************************************************************
  * TAG( tell_time_series )
@@ -647,35 +626,51 @@ output_time_series( int token_qty, char tokens[MAXTOKENS][TOKENLENGTH],
 	}
     }
 
-    if ( ( outfile = fopen( tokens[1], "w") ) == NULL )
-    {
-        popup_dialog( INFO_POPUP, "Couldn't open file \"%s\".\n", tokens[1] );
-        return;
+    if ( analy->th_append_output ) {
+         struct stat s;
+	 if ( stat( tokens[1], &s ) == 0 )
+	      th_series_print_header = FALSE;
+	 else
+	      th_series_print_header = TRUE;
+         if ( ( outfile = fopen( tokens[1], "a") ) == NULL )
+	 {
+	     popup_dialog( INFO_POPUP, "Couldn't open file \"%s\".\n", tokens[1] );
+	     return;
+         }
+    }
+    else {
+         if ( ( outfile = fopen( tokens[1], "w") ) == NULL )
+	 {
+	     popup_dialog( INFO_POPUP, "Couldn't open file \"%s\".\n", tokens[1] );
+	     return;
+         }
     }
         
     /* Print the header. */
-    fprintf( outfile, "# Time series data\n#\n" );
-    fprintf( outfile, "#---------------------------------------------------------------------\n" );
-    fprintf( outfile, "# Griz Version Info:\n" );
-    /* Print out Griz version info header */
-    version_info_ptr = get_VersionInfo( analy );
+    if ( analy->th_append_output && th_series_print_header ) {
+         fprintf( outfile, "# Time series data\n#\n" );
+	 fprintf( outfile, "#---------------------------------------------------------------------\n" );
+	 fprintf( outfile, "# Griz Version Info:\n" );
+	 /* Print out Griz version info header */
+	 version_info_ptr = get_VersionInfo( analy );
+	 
+	 fprintf( outfile, "%s#\n", version_info_ptr );    
+	 if ( version_info_ptr )
+	   free( version_info_ptr );
+	 fprintf( outfile, "#---------------------------------------------------------------------\n" );
+	 
+	 fprintf( outfile, "# Database path/name: %s\n", analy->root_name );
+	 fprintf( outfile, "# Description: %s\n", analy->title );
+	 fprintf( outfile, "# Output date: %s\n", env.date );
+	 if ( analy->perform_unit_conversion )
+	      fprintf( outfile, "# Applied conversion scale/offset: %E/%E\n", 
+		       analy->conversion_scale, analy->conversion_offset );
+	 fprintf( outfile, "#\n" );
+    }
     
-    fprintf( outfile, "%s#\n", version_info_ptr );    
-    if ( version_info_ptr )
-         free( version_info_ptr );
-    fprintf( outfile, "#---------------------------------------------------------------------\n" );
-
-    fprintf( outfile, "# Database path/name: %s\n", analy->root_name );
-    fprintf( outfile, "# Description: %s\n", analy->title );
-    fprintf( outfile, "# Output date: %s\n", env.date );
-    if ( analy->perform_unit_conversion )
-        fprintf( outfile, "# Applied conversion scale/offset: %E/%E\n", 
-                 analy->conversion_scale, analy->conversion_offset );
-    fprintf( outfile, "#\n" );
-
     /* Output format depends on source of abscissa. */
-    if ( output_plots->abscissa->mo_class == NULL )
-    {
+    if ( output_plots->abscissa->mo_class == NULL && ! analy->th_single_col )
+      {
         /* Time is common abscissa; dump curves' data adjacently. */
         output_interleaved_series( outfile, output_plots, analy );
     }
@@ -685,7 +680,7 @@ output_time_series( int token_qty, char tokens[MAXTOKENS][TOKENLENGTH],
     
         for ( p_po = output_plots, cnt = 1; p_po != NULL; 
               NEXT( p_po ), cnt++ )
-            output_one_series( cnt, p_po, outfile, analy );
+              output_one_series( cnt, p_po, outfile, analy );
     }
 
     fclose( outfile );
@@ -1576,8 +1571,14 @@ output_interleaved_series( FILE *ofile, Plot_obj *output_list, Analysis *analy )
         fprintf( ofile, "%*s", column_widths[i], ord_titles[i * 2 + 1] );
     fprintf( ofile, "\n" );
 
+    if ( analy->th_single_col ) {
+         fprintf( ofile, "# %s - %d: %s", ord_tso->mo_class->long_name, ord_tso->ident + 1, ord_titles[0] );
+    }
+
     /* Write the data. */
-    for ( i = analy->first_state; i <= analy->last_state; i++ )
+    for ( i = analy->first_state; 
+	  i <= analy->last_state; 
+	  i++ )
     {
         /* Abscissa is time. */
         fprintf( ofile, "%*.6e", time_width, times[i] );
@@ -1630,7 +1631,7 @@ output_interleaved_series( FILE *ofile, Plot_obj *output_list, Analysis *analy )
         
         /* Terminate the line of data for the current state. */
         fputc( (int) '\n', ofile );
-    }
+    } /* Loop on Time */
 
     fputc( (int) '\n', ofile );
     
@@ -1649,14 +1650,19 @@ output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
 {
     float *ab_data, *ord_data;
     int i, j;
-    int col_1_width, col_2_width, tlen;
+    int col_1_width, col_2_width, title_1_width, title_2_width, cwidth=0;
     int qty_blocks, limit_state;
     Int_2tuple *blocks;
     float scale, offset;
     Result *ab_res, *ord_res;
     Bool_type ab_is_time;
     Time_series_obj *ab_tso, *ord_tso;
-    
+    int fracsz = 6;
+    char ab_title[64], col_str[64];
+
+    if ( analy->float_frac_size>fracsz )
+	 fracsz = analy->float_frac_size;
+
     if ( analy->perform_unit_conversion )
     {
         scale = analy->conversion_scale;
@@ -1671,6 +1677,12 @@ output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
     ord_res = ord_tso->result;
     ord_data = ord_tso->data;
     
+    if ( ab_res==NULL && analy->th_single_col ) {
+         ab_res = ord_res;
+	 strcpy(ab_title, "Time" );
+    }
+         else strcpy(ab_title, ab_res->title );
+
     /* Assign blocks list to drive curve segmentation. */
     if ( p_plot->abscissa->mo_class != NULL )
     {
@@ -1689,23 +1701,27 @@ output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
     }
     
     /* Output individual curve header. */
-    fprintf( ofile, "\n\n# Curve %d - %s %d\n", index, 
-             ab_tso->mo_class->long_name, ab_tso->ident + 1 );
+    if ( ab_tso->mo_class==NULL )
+         fprintf( ofile, "\n#\n# Curve %d - %s %d\n", index, 
+		  ord_tso->mo_class->long_name, ord_tso->ident + 1 );
+    else
+         fprintf( ofile, "\n\n# Curve %d - %s %d\n", index, 
+		  ab_tso->mo_class->long_name, ab_tso->ident + 1 );
 
     if ( ab_res->modifiers.use_flags.use_strain_variety )
-        fprintf( ofile, "# %s strain variety: %s\n", ab_res->title,
+        fprintf( ofile, "# %s strain variety: %s\n", ab_title,
                  strain_label[ab_res->modifiers.strain_variety] );
 
     if ( ab_res->modifiers.use_flags.use_ref_surface )
-        fprintf( ofile, "# %s reference surface: %s\n", ab_res->title,
+        fprintf( ofile, "# %s reference surface: %s\n", ab_title,
                  ref_surf_label[ab_res->modifiers.ref_surf] );
 
     if ( ab_res->modifiers.use_flags.use_ref_frame )
-        fprintf( ofile, "# %s reference frame: %s\n", ab_res->title,
+        fprintf( ofile, "# %s reference frame: %s\n", ab_title,
                  ref_frame_label[ab_res->modifiers.ref_frame] );
 
     if ( ab_res->modifiers.use_flags.use_ref_state )
-        fprintf( ofile, "# %s reference state: %d\n", ab_res->title,
+        fprintf( ofile, "# %s reference state: %d\n", ab_title,
                  ab_res->modifiers.ref_state );
 
     if ( ord_res->modifiers.use_flags.use_strain_variety )
@@ -1729,18 +1745,27 @@ output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
                  ord_res->modifiers.ref_state );
         
     /* Set initial column widths for 13.6e numeric format. */
-    col_1_width = col_2_width = 13;
+    col_1_width = col_2_width = fracsz;
 
-    tlen = strlen( ab_res->title );
-    if ( tlen > col_1_width )
-        col_1_width = tlen;
+    title_1_width = strlen( ab_title );
+    sprintf(col_str, "%.*e",col_1_width, 1.0);
+    cwidth = strlen( col_str );
+    if  ( (col_1_width*2)>title_1_width )
+          title_1_width = cwidth;
 
-    tlen = strlen( ord_res->title );
-    if ( tlen > col_2_width )
-        col_2_width = tlen;
+    title_2_width = strlen( ord_res->title );
+    sprintf(col_str, "%.*e",col_2_width, 1.0);
+    cwidth = strlen( col_str );
+    if  ( (col_2_width*2)>title_2_width )
+          title_2_width = cwidth;
              
-    fprintf( ofile, "# %*s  %*s\n", col_1_width, ab_res->title, 
-             col_2_width, ord_res->title );
+    fprintf( ofile, "\n# %*s  %*s\n", title_1_width, ab_title, 
+             title_2_width, ord_res->title );
+
+    if ( analy->th_single_col ) {
+         fprintf( ofile, "# %s - %d: %s\n", ord_tso->mo_class->long_name, 
+		  ord_tso->ident + 1, ord_res->title );
+    }
 
     for ( i = 0; i < qty_blocks; i++ )
     {
@@ -1748,17 +1773,17 @@ output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
 
         if ( !analy->perform_unit_conversion )
             for ( j = blocks[i][0]; j < limit_state; j++ )
-                fprintf( ofile, "  %*.6e  %*.6e\n", col_1_width, ab_data[j],
+                fprintf( ofile, "  %.*e  %.*e\n", col_1_width, ab_data[j],
                          col_2_width, ord_data[j] );
         else
             for ( j = blocks[i][0]; j < limit_state; j++ )
-                fprintf( ofile, "%*.6e  %*.6e\n", 
+                fprintf( ofile, "%.*e  %.*e\n", 
                          col_1_width, ab_data[j] * scale + offset,
                          col_2_width, ord_data[j] * scale + offset );
     }
     
     if ( !ab_is_time )
-        free( blocks );
+         free( blocks );
 }
 
 
@@ -2125,8 +2150,8 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
         }
         else
         {
-            if ( analy->cur_result != NULL )
-                wrt_text( "Using current result for plot.\n\n" );
+            if ( analy->cur_result != NULL && !env.quiet_mode )
+                 wrt_text( "Using current result for plot.\n\n" );
             res_list = duplicate_result( analy, analy->cur_result, TRUE );
         }
     }
@@ -2173,8 +2198,8 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
 
                 if ( res_list == NULL )
                 {
-                    if ( analy->cur_result != NULL )
-                        wrt_text( "Using current result for plot.\n\n" );
+                    if ( analy->cur_result != NULL && !env.quiet_mode )
+                         wrt_text( "Using current result for plot.\n\n" );
                     res_list = duplicate_result( analy, analy->cur_result, 
                                                  TRUE );
                 }
@@ -2293,10 +2318,14 @@ build_oper_result_list( int token_qty, char tokens[][TOKENLENGTH],
             p_r = NULL;
 
             /* Only default to current result for operand 1. */
+            if ( operand1 && analy->cur_result != NULL && !env.quiet_mode )
+            {
+                 wrt_text( "Using current result for operand 1 or 2.\n\n" );
+	    }
+
             if ( operand1 && analy->cur_result != NULL )
             {
-                wrt_text( "Using current result for operand 1 or 2.\n\n" );
-                p_r = duplicate_result( analy, analy->cur_result, TRUE );
+                 p_r = duplicate_result( analy, analy->cur_result, TRUE );
             }
         }
         else if ( !p_r->single_valued )
@@ -2345,10 +2374,14 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
     /* Pick off cases where we just use the selected objects. */
     if ( token_qty == 1 || i == token_qty || strcmp( tokens[i], "vs" ) == 0 )
     {
+        if ( analy->selected_objects != NULL && !env.quiet_mode )
+        {
+             wrt_text(  "Using 'select'ed object(s) for plot(s).\n\n" );
+	}
+
         if ( analy->selected_objects != NULL )
         {
-            wrt_text(  "Using 'select'ed object(s) for plot(s).\n\n" );
-            so_list = copy_obj_list( analy->selected_objects );
+             so_list = copy_obj_list( analy->selected_objects );
         }
 
         *p_so_list = so_list;
@@ -2530,10 +2563,14 @@ build_oper_object_list( int token_qty, char tokens[][TOKENLENGTH],
          * list.  Return a NULL operand 2 list to flag the condition where 
          * there's no separate operand 2 object list defined in the tokens.
          */
+        if ( analy->selected_objects != NULL && operand1 && !env.quiet_mode )
+        {
+             wrt_text(  "Using 'select'ed object(s) for operands.\n\n" );
+	}
+
         if ( analy->selected_objects != NULL && operand1 )
         {
-            wrt_text(  "Using 'select'ed object(s) for operands.\n\n" );
-            so_list = copy_obj_list( analy->selected_objects );
+             so_list = copy_obj_list( analy->selected_objects );
         }
 
         *p_so_list = so_list;
@@ -4167,6 +4204,7 @@ gen_gather( Result *res_list, Specified_obj *so_list, Analysis *analy,
     Time_series_obj *p_tso, *tso_list;
     int i, j;
     int maxst, minst;
+    
     Bool_type derived;
     int subrec_id;
     Subrecord_result *sr_array;
@@ -4839,7 +4877,7 @@ Analysis *analy;
     {
         analy->cur_state = i;
         analy->state_p = get_state( i, analy->state_p );
-        load_result( analy, FALSE );
+        load_result( analy, FALSE, FALSE, FALSE );
 
         for ( j = 0; j < num_nodes; j++ )
             for ( k = 0; k < mat_cnt; k++ )
@@ -4848,7 +4886,7 @@ Analysis *analy;
     }
     analy->cur_state = cur_state;
     analy->state_p = get_state( cur_state, analy->state_p );
-    load_result( analy, FALSE );
+    load_result( analy, FALSE, FALSE, FALSE );
 
     wrt_text( "Done gathering timehist values.\n" );
     
@@ -5533,7 +5571,7 @@ draw_plots( Analysis *analy )
     float y_scale_width, x_scale_width;
     double scale, offset;
     float *times;
-    char str[90], result_label[90];
+    char str[M_MAX_NAME_LEN], result_label[M_MAX_NAME_LEN];
     char *xlabel, *op_name_str;
     char **legend_labels;
     int qty_plots;
@@ -5572,6 +5610,7 @@ draw_plots( Analysis *analy )
     float ch, cw;
 
     int label;
+    Bool_type end_curve=False;
 
     if ( analy->ei_result && analy->result_active )
          ei_labels = TRUE;
@@ -5610,6 +5649,18 @@ draw_plots( Analysis *analy )
     get_bounded_series_min_max( p_po->ordinate, analy->first_state,
                                 analy->last_state, &min_ord, &max_ord );
     
+    /* Scale to rmin and rmax if they are set */
+    if ( analy->mm_result_set[0] ) /* rmin set */
+         min_ord = analy->result_mm[0];
+    if ( analy->mm_result_set[1] ) /* rmax set */
+         max_ord = analy->result_mm[1];
+
+    /* Scale to tmin and tmax if they are set */
+    if ( analy->mm_time_set[0] ) /* tmin set */
+         min_ab = analy->time_mm[0];
+    if ( analy->mm_time_set[1] ) /* tmax set */
+         max_ab = analy->time_mm[1];
+
     /* Is this an operation plot? */
     if ( p_po->ordinate->op_type != OP_NULL )
     {
@@ -5663,22 +5714,35 @@ draw_plots( Analysis *analy )
         get_bounded_series_min_max( p_po->abscissa, analy->first_state,
                                     analy->last_state, &mins, &maxs );
         if ( mins < min_ab )
-            min_ab = mins;
+             min_ab = mins;
 
         if ( maxs > max_ab )
-            max_ab = maxs;
+             max_ab = maxs;
 
         get_bounded_series_min_max( p_po->ordinate, analy->first_state,
                                     analy->last_state, &mins, &maxs );
         
         if ( mins < min_ord )
-            min_ord = mins;
+             min_ord = mins;
 
         if ( maxs > max_ord )
-            max_ord = maxs;
+             max_ord = maxs;
+
+	/* Scale to rmin and rmax if they are set */
+	if ( analy->mm_result_set[0] ) /* rmin set */
+	     min_ord = analy->result_mm[0];
+	if ( analy->mm_result_set[1] ) /* rmax set */
+	     max_ord = analy->result_mm[1];
+
+	/* Scale to tmin and tmax if they are set */
+	if ( analy->mm_time_set[0] ) /* tmin set */
+	     min_ab = analy->time_mm[0];
+	if ( analy->mm_time_set[1] ) /* tmax set */
+	     max_ab = analy->time_mm[1];
 
         if ( !oper_plot )
             ord_class = p_po->ordinate->mo_class;
+
 #ifdef DONT_KNOW_WHY_THIS_EXISTS
         /* Accumulate class references and counts. */
         for ( i = 0; i < qty_classes; i++ )
@@ -5708,10 +5772,13 @@ draw_plots( Analysis *analy )
         
         /* Build legend label(s). */
 
-	if ( p_po->ordinate->mo_class->labels_found )
-	     label = get_class_label(  p_po->ordinate->mo_class, p_po->ordinate->ident+1 );
-	else 
-	     label = p_po->ordinate->ident+1;
+	if ( p_po->ordinate->mo_class )
+	     if ( p_po->ordinate->mo_class->labels_found )
+	          label = get_class_label(  p_po->ordinate->mo_class, p_po->ordinate->ident+1 );
+	     else 
+	          label = p_po->ordinate->ident+1;
+	else
+             label = p_po->ordinate->ident+1;	
 
         if ( oper_plot )
             build_oper_series_label( p_po->ordinate, TRUE, str );
@@ -5909,8 +5976,8 @@ draw_plots( Analysis *analy )
         else
             for ( k = 0; k < j; incr_ax[i] *= 10.0, k++ );
 
-        min_ax[i] = floor( (double)min_ax[i]/incr_ax[i] ) * incr_ax[i];
-        max_ax[i] = ceil( (double)max_ax[i]/incr_ax[i] ) * incr_ax[i];
+	min_ax[i] = floor( (double)min_ax[i]/incr_ax[i] ) * incr_ax[i];
+	max_ax[i] = ceil( (double)max_ax[i]/incr_ax[i] ) * incr_ax[i];
 
         /* Number of increments along the axes. */
         incr_cnt[i] = (int) ((max_ax[i] - min_ax[i])/incr_ax[i] + 0.5);
@@ -6002,7 +6069,9 @@ draw_plots( Analysis *analy )
 
     /* Draw the border. */
     glColor3fv( v_win->foregrnd_color );
+
     glBegin( GL_LINE_LOOP );
+
     pos[0] = gr_ll[0];
     pos[1] = gr_ll[1];
     glVertex3fv( pos );
@@ -6027,7 +6096,9 @@ draw_plots( Analysis *analy )
 
     /* X axis values & grid/tics. */
     glColor3fv( v_win->text_color );
-    glBegin( GL_LINE_LOOP );
+
+    /* glBegin( GL_LINE_LOOP ); SCR #636 */
+
     htextang( 90.0 );
     hrightjustify( TRUE );
     for ( i = 0; i <= incr_cnt[0]; i++ )
@@ -6158,7 +6229,22 @@ draw_plots( Analysis *analy )
             if ( !analy->perform_unit_conversion )
                 for ( j = start_state; j < limit_state; j++ )
                 {
-                    pos[0] = win_x_min + win_x_span * (ab_data[j] - ax_x_min)
+		    end_curve = FALSE;
+		    if ( analy->mm_result_set[0] && ord_data[j]<analy->result_mm[0] )
+		      	 end_curve = TRUE;
+		    if ( analy->mm_result_set[1] && ord_data[j]>analy->result_mm[1] )
+		         end_curve = TRUE;
+		    if ( analy->mm_time_set[0] && ab_data[j]<=analy->time_mm[0] )
+		         end_curve = TRUE;
+		    if ( analy->mm_time_set[1] && ab_data[j]>=analy->time_mm[1] )
+		         end_curve = TRUE;
+		    if ( end_curve) {
+		         glEnd();
+			 glBegin( GL_LINE_STRIP );
+			 continue;
+		    }
+
+		    pos[0] = win_x_min + win_x_span * (ab_data[j] - ax_x_min)
                                                       / ax_x_span;
                     pos[1] = win_y_min + win_y_span * (ord_data[j] - ax_y_min)
                                                       / ax_y_span;
@@ -6167,6 +6253,15 @@ draw_plots( Analysis *analy )
             else
                 for ( j = start_state; j < limit_state; j++ )
                 {
+		    if ( analy->mm_result_set[0] && ord_data[j]<analy->result_mm[0] )
+		         continue;
+		    if ( analy->mm_result_set[1] && ord_data[j]>analy->result_mm[1] )
+		         continue;
+		    if ( analy->mm_time_set[0] && ab_data[j]<analy->time_mm[0] )
+		         continue;
+		    if ( analy->mm_time_set[1] && ab_data[j]>analy->time_mm[1] )
+		         continue;
+
                     val = cross_plot ? ab_data[j] * scale + offset : ab_data[j];
                     pos[0] = win_x_min + win_x_span * (val - ax_x_min)
                                                       / ax_x_span;

@@ -6,39 +6,7 @@
  *      Lawrence Livermore National Laboratory
  *      Jun 25 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
- *************************************************************************
+  *************************************************************************
  *
  * Modification History
  *
@@ -55,17 +23,64 @@
  * 04/30/2008  I.R. Corey   Added new derived nodal result = dispr, radial
  *                          nodal displacement. 
  *                          See SRC#: 532
+ *
+ * 12/05/2008 I. R. Corey   Add DP calculations for all derived nodal 
+ *                          results. See mili_db_set_results().
+ *                          See SRC#: 556
  *************************************************************************
  */
 
 #include <stdlib.h>
 #include "viewer.h"
+#include "misc.h"
 
-#define INFINITY        4.2535295865117308e37   /* (2^125) */
+#define INFINITY        4.2535295865117308e37 /* (2^125) */
                                                                                      
 /* Reference pressure intensity for PING. */
 static float ping_pr_ref = 1.0;
 
+void *
+create_node_array( Analysis *analy)
+{
+  Result *p_result;
+  State_rec_obj *p_sro;
+  Subrec_obj *p_subrec;
+  int index;
+  int subrec, srec;
+  int *object_ids;
+  int num_nodes;
+  MO_class_data *p_node_class;
+  Bool_type double_prec_pos = FALSE;
+  void *tmp_nodesDp;
+  
+  p_result = analy->cur_result;
+  index = analy->result_index;
+  subrec = p_result->subrecs[index];
+  srec = p_result->srec_id;
+  p_subrec = analy->srec_tree[srec].subrecs + subrec;
+  
+  object_ids = p_subrec->object_ids;
+
+  p_node_class = MESH_P( analy )->node_geom;
+  num_nodes    = p_node_class->qty;
+    
+  if (MESH_P( analy )->double_precision_nodpos)
+  {
+    tmp_nodesDp = (void *) NEW_N( double, num_nodes*analy->dimension,
+			                           "Tmp DP node cache" );
+    double_prec_pos = TRUE;    
+  }
+  else
+    tmp_nodesDp = (void *)NEW_N( float, num_nodes*analy->dimension,
+			                           "Tmp DP node cache" );
+  
+  p_sro = analy->srec_tree + analy->state_p->srec_id;
+
+  load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+               analy->cur_state + 1, double_prec_pos, tmp_nodesDp );
+
+  return tmp_nodesDp;
+}
 
 /* ARGSUSED 2 */
 /************************************************************
@@ -81,6 +96,7 @@ compute_node_displacement( Analysis *analy, float *resultArr,
     int i, node_qty;
     GVec3D *nodes3d, *onodes3d;
     GVec2D *nodes2d, *onodes2d;
+
     int coord;
 
     /* EMP: Added July 19, 2005 - Support
@@ -98,7 +114,20 @@ compute_node_displacement( Analysis *analy, float *resultArr,
     Bool_type map_timehist_coords = FALSE;
     int       elem_index;
     int       obj_cnt, obj_num, *obj_ids;
-                                                                              
+
+    /* Added December 04, 2008: IRC
+     *  Add logic to use DP nodal coordinates.
+     */
+
+    GVec3D2P *nodes3dDp, *onodes3dDp;
+    GVec2D2P *nodes2dDp, *onodes2dDp;
+    void *tmp_nodesDp=0;
+
+    int  num_nodes;
+    
+    MO_class_data *p_node_class;
+                                                                            
+
     p_result = analy->cur_result;
     index = analy->result_index;
     subrec = p_result->subrecs[index];
@@ -107,6 +136,9 @@ compute_node_displacement( Analysis *analy, float *resultArr,
     node_qty = p_subrec->subrec.qty_objects;
     object_ids = p_subrec->object_ids;
 
+    p_node_class = MESH_P( analy )->node_geom;
+    num_nodes    = p_node_class->qty;
+    
     if (analy->stateDB)
     {
         node_qty = MESH( analy ).node_geom->qty;
@@ -115,45 +147,106 @@ compute_node_displacement( Analysis *analy, float *resultArr,
             nodes3d = analy->state_p->nodes.nodes3d;
         else
             nodes2d = analy->state_p->nodes.nodes2d;
-    }
-    else
-    {
+ 
+        if (MESH_P( analy )->double_precision_nodpos)
+        {
+            p_sro = analy->srec_tree + analy->state_p->srec_id;
+
+	    
+
+            tmp_nodesDp = (void *)NEW_N( double, num_nodes*analy->dimension,
+			         "Tmp DP node cache for calc node disp" );
+	          load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+			                   analy->cur_state + 1, FALSE,
+			                   tmp_nodesDp );
+
+	          if( analy->dimension == 3 )
+	            nodes3dDp = (GVec3D2P *) tmp_nodesDp;
+	          else
+	            nodes2dDp = (GVec2D2P *) tmp_nodesDp;
+            
+	      }
+   }
+   else
+   {
+      
+      if (MESH_P( analy )->double_precision_nodpos)
+        tmp_nodesDp = (void *) NEW_N( double, num_nodes*analy->dimension,
+			         "Tmp DP node cache for calc node disp" );
+      else
+        tmp_nodesDp = (void *)NEW_N( float, num_nodes*analy->dimension,
+			         "Tmp DP node cache for calc node disp" );
+      
         p_sro = analy->srec_tree + analy->state_p->srec_id;
 
         load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
                      analy->cur_state + 1, TRUE,
-                     (void *) analy->tmp_result[0] );
-                                                                                 
+                     tmp_nodesDp );
+        /*
+                     (void *) analy->tmp_result[1] );
+                     */
+                                                                                
         if( analy->dimension == 3 )
-            nodes3d = (GVec3D *) analy->tmp_result[0];
+        {
+           if (MESH_P( analy )->double_precision_nodpos)
+             nodes3dDp = (GVec3D2P *)tmp_nodesDp ;
+           else        
+            nodes3d = (GVec3D *)tmp_nodesDp ;/*
+            nodes3d = (GVec3D *) analy->tmp_result[1];*/
+          }
         else
-            nodes2d = (GVec2D *) analy->tmp_result[0];
+        {
+          if (MESH_P( analy )->double_precision_nodpos)
+            nodes2dDp = (GVec2D2P *)tmp_nodesDp ;
+          else
+            nodes2d = (GVec2D *)tmp_nodesDp ;
+        }/*
+            nodes2d = (GVec2D *) analy->tmp_result[1];*/
+        
     }
 
     coord = (int) (analy->cur_result->name[4] - 'x'); /* 0, 1, or 2 */
 
     if ( analy->dimension == 3 )
     {
-        onodes3d = (GVec3D *) analy->cur_ref_state_data;
+        if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+            onodes3dDp = (GVec3D2P *) analy->cur_ref_state_dataDp;
+	      else
+            onodes3d = (GVec3D *) analy->cur_ref_state_data;
+
         for ( i = 0; i < node_qty; i++ )
         {
             node_idx = ( object_ids ) ? object_ids[i] : i;
-            resultArr[node_idx] = nodes3d[i][coord] - onodes3d[node_idx][coord];
+
+            if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+                resultArr[node_idx] = nodes3dDp[node_idx][coord] - onodes3dDp[node_idx][coord];
+	          else
+                resultArr[node_idx] = nodes3d[node_idx][coord] - onodes3d[node_idx][coord];	        
         }
     }
     else
     {
-        onodes2d = (GVec2D *) analy->cur_ref_state_data;
-        
+        if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+           onodes2dDp = (GVec2D2P *) analy->cur_ref_state_dataDp;
+	      else
+           onodes2d = (GVec2D *) analy->cur_ref_state_data;
+
         for ( i = 0; i < node_qty; i++ )
         {
             node_idx = ( object_ids ) ? object_ids[i] : i;
-            resultArr[node_idx] = nodes2d[i][coord] - onodes2d[node_idx][coord];
+
+	          if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+                resultArr[node_idx] = nodes2dDp[i][coord] - onodes2dDp[node_idx][coord];
+	          else
+                resultArr[node_idx] = nodes2d[i][coord] - onodes2d[node_idx][coord];
         }
     }
 
     analy->cur_result->modifiers.use_flags.use_ref_state = 1;
     analy->cur_result->modifiers.ref_state = analy->reference_state;
+
+    if (tmp_nodesDp)
+      free( tmp_nodesDp );
 }
 
 
@@ -188,6 +281,20 @@ compute_node_radial_displacement( Analysis *analy, float *resultArr,
     int       elem_index;
     int       obj_cnt, obj_num, *obj_ids;
                                                                               
+    /* Added December 04, 2008: IRC
+     *  Add logic to use DP nodal coordinates.
+     */
+
+    GVec3D2P *nodes3dDp, *onodes3dDp;
+    GVec2D2P *nodes2dDp, *onodes2dDp;
+
+    int           num_nodes;
+    void *tmp_nodesDp=0;
+    /*
+    double        *tmp_nodesDp=NULL;
+    */
+    MO_class_data *p_node_class;
+
     p_result = analy->cur_result;
     index = analy->result_index;
     subrec = p_result->subrecs[index];
@@ -195,6 +302,9 @@ compute_node_radial_displacement( Analysis *analy, float *resultArr,
     p_subrec = analy->srec_tree[srec].subrecs + subrec;
     node_qty = p_subrec->subrec.qty_objects;
     object_ids = p_subrec->object_ids;
+
+    p_node_class = MESH_P( analy )->node_geom;
+    num_nodes    = p_node_class->qty;
 
     if (analy->stateDB)
     {
@@ -204,19 +314,56 @@ compute_node_radial_displacement( Analysis *analy, float *resultArr,
             nodes3d = analy->state_p->nodes.nodes3d;
         else
             nodes2d = analy->state_p->nodes.nodes2d;
-    }
+
+        if (MESH_P( analy )->double_precision_nodpos)
+        {
+            p_sro = analy->srec_tree + analy->state_p->srec_id;
+
+	    
+            tmp_nodesDp = (void *)NEW_N( double, num_nodes*analy->dimension,
+                "Tmp DP node cache for calc node disp" );
+	    
+            load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                analy->cur_state + 1, FALSE, tmp_nodesDp );
+
+	    
+            if( analy->dimension == 3 )
+              nodes3dDp = (GVec3D2P *) tmp_nodesDp;
+            else
+              nodes2dDp = (GVec2D2P *) tmp_nodesDp;
+          }
+        }
     else
     {
-        p_sro = analy->srec_tree + analy->state_p->srec_id;
+      if (MESH_P( analy )->double_precision_nodpos)
+        tmp_nodesDp = (void *) NEW_N( double, num_nodes*analy->dimension,
+			         "Tmp DP node cache for calc node disp" );
+      else
+        tmp_nodesDp = (void *)NEW_N( float, num_nodes*analy->dimension,
+			         "Tmp DP node cache for calc node disp" );
+  
+      p_sro = analy->srec_tree + analy->state_p->srec_id;
 
-        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
-                     analy->cur_state + 1, TRUE,
-                     (void *) analy->tmp_result[0] );
+        
+      load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                   analy->cur_state + 1, 
+                   ! (MESH_P( analy)->double_precision_nodpos),
+                   tmp_nodesDp );
                                                                                  
         if( analy->dimension == 3 )
-            nodes3d = (GVec3D *) analy->tmp_result[0];
+        {
+          if (MESH_P( analy )->double_precision_nodpos) 
+            nodes3dDp = (GVec3D2P *)tmp_nodesDp ; 
+          else        
+            nodes3d = (GVec3D *)tmp_nodesDp ;
+        }
         else
-            nodes2d = (GVec2D *) analy->tmp_result[0];
+        {
+          if (MESH_P( analy )->double_precision_nodpos)
+            nodes2dDp = (GVec2D2P *)tmp_nodesDp ;
+          else
+            nodes2d = (GVec2D *)tmp_nodesDp ;
+        }
     }
 
     coord_x = 0;
@@ -224,33 +371,62 @@ compute_node_radial_displacement( Analysis *analy, float *resultArr,
 
     if ( analy->dimension == 3 )
     {
-        onodes3d = (GVec3D *) analy->cur_ref_state_data;
-        for ( i = 0; i < node_qty; i++ )
-        {
-            node_idx = ( object_ids ) ? object_ids[i] : i;
-            dx = nodes3d[i][coord_x] - onodes3d[node_idx][coord_x];
-            dy = nodes3d[i][coord_y] - onodes3d[node_idx][coord_y];
-	    dr = sqrt( (dx*dx)+(dy*dy) );
-            resultArr[node_idx] = dr;
-        }
-    }
-    else
-    {
-        onodes2d = (GVec2D *) analy->cur_ref_state_data;
-        
+        if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+            onodes3dDp = (GVec3D2P *) analy->cur_ref_state_dataDp;
+        else
+            onodes3d = (GVec3D *) analy->cur_ref_state_data;
+
         for ( i = 0; i < node_qty; i++ )
         {
             node_idx = ( object_ids ) ? object_ids[i] : i;
 
-            dx = nodes2d[i][coord_x] - onodes2d[node_idx][coord_x];
-            dy = nodes2d[i][coord_y] - onodes2d[node_idx][coord_y];
-	    dr = sqrt( (dx*dx)+(dy*dy) );
+            if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+            {
+              dx = nodes3dDp[node_idx][coord_x] - onodes3dDp[node_idx][coord_x];
+              dy = nodes3dDp[node_idx][coord_y] - onodes3dDp[node_idx][coord_y];
+            }
+            else
+            {  
+              dx = nodes3d[node_idx][coord_x] - onodes3d[node_idx][coord_x];
+              dy = nodes3d[node_idx][coord_y] - onodes3d[node_idx][coord_y];
+            }
+
+            dr = sqrt( (dx*dx)+(dy*dy) );
             resultArr[node_idx] = dr;
         }
-    }
+      }
+      else
+      {
+        if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+          onodes2dDp = (GVec2D2P *) analy->cur_ref_state_dataDp;
+        else
+          onodes2d = (GVec2D *) analy->cur_ref_state_data;
+       
+        for ( i = 0; i < node_qty; i++ )
+        {
+          node_idx = ( object_ids ) ? object_ids[i] : i;
 
-    analy->cur_result->modifiers.use_flags.use_ref_state = 1;
-    analy->cur_result->modifiers.ref_state = analy->reference_state;
+          if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+          {
+            dx = nodes2dDp[node_idx][coord_x] - onodes2dDp[node_idx][coord_x];
+            dy = nodes2dDp[node_idx][coord_y] - onodes2dDp[node_idx][coord_y];
+          }
+          else
+          {    
+            dx = nodes2d[node_idx][coord_x] - onodes2d[node_idx][coord_x];
+            dy = nodes2d[node_idx][coord_y] - onodes2d[node_idx][coord_y];
+          }
+	    
+          dr = sqrt( (dx*dx)+(dy*dy) );  
+          resultArr[node_idx] = dr;
+        }
+      }
+
+      analy->cur_result->modifiers.use_flags.use_ref_state = 1;
+      analy->cur_result->modifiers.ref_state = analy->reference_state;
+
+      if (tmp_nodesDp)
+        free( tmp_nodesDp );
 }
 
 
@@ -282,7 +458,21 @@ compute_node_displacement_mag( Analysis *analy, float *resultArr,
     int *object_ids;
     int  node_idx;
                                                                                 
-    p_result = analy->cur_result;
+    /* Added December 04, 2008: IRC
+     *  Add logic to use DP nodal coordinates.
+     */
+
+    GVec3D2P *nodes3dDp, *onodes3dDp;
+    GVec2D2P *nodes2dDp, *onodes2dDp;
+
+    int           num_nodes;
+    void *tmp_nodesDp=0;
+    /*
+    double        *tmp_nodesDp=NULL;
+    */
+    MO_class_data *p_node_class;
+                                                                            
+     p_result = analy->cur_result;
     index = analy->result_index;
     subrec = p_result->subrecs[index];
     srec = p_result->srec_id;
@@ -290,6 +480,9 @@ compute_node_displacement_mag( Analysis *analy, float *resultArr,
     node_qty = p_subrec->subrec.qty_objects;
     object_ids = p_subrec->object_ids;
                                                                                 
+    p_node_class = MESH_P( analy )->node_geom;
+    num_nodes    = p_node_class->qty;
+
     if (analy->stateDB)
     {
         node_qty = MESH( analy ).node_geom->qty;
@@ -298,30 +491,75 @@ compute_node_displacement_mag( Analysis *analy, float *resultArr,
             nodes3d = analy->state_p->nodes.nodes3d;
         else
             nodes2d = analy->state_p->nodes.nodes2d;
+
+        if (MESH_P( analy )->double_precision_nodpos)
+        {
+            p_sro = analy->srec_tree + analy->state_p->srec_id;
+
+	    tmp_nodesDp = (void *)NEW_N( double, num_nodes*analy->dimension,
+			         "Tmp DP node cache for calc node disp" );
+
+	    load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+			 analy->cur_state + 1, FALSE,
+			 tmp_nodesDp );
+
+	    if( analy->dimension == 3 )
+	        nodes3dDp = (GVec3D2P *) tmp_nodesDp;
+	    else
+	        nodes2dDp = (GVec2D2P *) tmp_nodesDp;
+	}
     }
     else
     {
+      if (MESH_P( analy )->double_precision_nodpos)
+        tmp_nodesDp = (void *) NEW_N( double, num_nodes*analy->dimension,
+			         "Tmp DP node cache for calc node disp" );
+      else
+        tmp_nodesDp = (void *)NEW_N( float, num_nodes*analy->dimension,
+			         "Tmp DP node cache for calc node disp" );
+      
         p_sro = analy->srec_tree + analy->state_p->srec_id;
         load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
-                     analy->cur_state + 1, TRUE,
-                     (void *) analy->tmp_result[0] );
+                     analy->cur_state + 1, 
+                     ! (MESH_P( analy)->double_precision_nodpos),
+                     (void *) tmp_nodesDp );
                                                                                 
         if( analy->dimension == 3 )
-            nodes3d = (GVec3D *) analy->tmp_result[0];
+          if (MESH_P( analy )->double_precision_nodpos) 
+            nodes3dDp = (GVec3D2P *)tmp_nodesDp ; 
+          else        
+            nodes3d = (GVec3D *)tmp_nodesDp ;
         else
-            nodes2d = (GVec2D *) analy->tmp_result[0];
+          if (MESH_P( analy )->double_precision_nodpos)
+            nodes2dDp = (GVec2D2P *)tmp_nodesDp ;
+          else
+            nodes2d = (GVec2D *)tmp_nodesDp ;
     }
 
     if ( analy->dimension == 3 )
     {
-        onodes3d = (GVec3D *) analy->cur_ref_state_data;
-        
+        if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+            onodes3dDp = (GVec3D2P *) analy->cur_ref_state_dataDp;
+	else
+            onodes3d = (GVec3D *) analy->cur_ref_state_data;
+
         for ( i = 0; i < node_qty; i++ )
         {
             node_idx = ( object_ids ) ? object_ids[i] : i;
-            dx = nodes3d[i][0] - onodes3d[node_idx][0];
-            dy = nodes3d[i][1] - onodes3d[node_idx][1];
-            dz = nodes3d[i][2] - onodes3d[node_idx][2];
+
+	    if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+	    {
+                dx = nodes3dDp[node_idx][0] - onodes3dDp[node_idx][0];
+		dy = nodes3dDp[node_idx][1] - onodes3dDp[node_idx][1];
+		dz = nodes3dDp[node_idx][2] - onodes3dDp[node_idx][2];
+	    }
+	    else
+	    {
+                dx = nodes3d[node_idx][0] - onodes3d[node_idx][0];
+		dy = nodes3d[node_idx][1] - onodes3d[node_idx][1];
+		dz = nodes3d[node_idx][2] - onodes3d[node_idx][2];
+	    }
+
             resultArr[node_idx] = sqrt( (double) dx * dx + dy * dy + dz * dz );
         }
     }
@@ -329,17 +567,137 @@ compute_node_displacement_mag( Analysis *analy, float *resultArr,
     {
         onodes2d = (GVec2D *) analy->cur_ref_state_data;
         
+        if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+           onodes2dDp = (GVec2D2P *) analy->cur_ref_state_dataDp;
+	else
+           onodes2d = (GVec2D *) analy->cur_ref_state_data;
+
         for ( i = 0; i < node_qty; i++ )
         {
-            node_idx = ( object_ids ) ? object_ids[i] : i;
-            dx = nodes2d[i][0] - onodes2d[node_idx][0];
-            dy = nodes2d[i][1] - onodes2d[node_idx][1];
-            resultArr[node_idx] = sqrt( (double) dx * dx + dy * dy );
+              node_idx = ( object_ids ) ? object_ids[i] : i;
+
+	      if (MESH_P( analy )->double_precision_nodpos && analy->cur_ref_state_dataDp)
+	      {
+		  dx = nodes2dDp[node_idx][0] - onodes2dDp[node_idx][0];
+		  dy = nodes2dDp[node_idx][1] - onodes2dDp[node_idx][1];
+	      }
+	      else
+	      {
+                  dx = nodes2d[node_idx][0] - onodes2d[node_idx][0];
+                  dy = nodes2d[node_idx][1] - onodes2d[node_idx][1];
+	      }
+	      
+	      resultArr[node_idx] = sqrt( (double) dx * dx + dy * dy );
         }
     }
 
     analy->cur_result->modifiers.use_flags.use_ref_state = 1;
     analy->cur_result->modifiers.ref_state = analy->reference_state;
+
+    if (tmp_nodesDp)
+        free( tmp_nodesDp );
+}
+
+/************************************************************
+ * TAG( compute_node_modaldisplacement_mag )
+ *
+ * Computes the magnitude of the displacement of a modal 
+ * analysis at nodes given the current geometry.
+ */
+void
+compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
+				    Bool_type interpolate )
+{
+    float (*modedisp)[3];
+    double (*modedisp_dp)[3];
+    float *modedispscalar;
+    double *modedispscalar_dp;
+    int i;
+    double *result_buf;
+    double dx, dy, dz;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int node_qty;
+    int  node_idx;
+    int *object_ids;
+    State_variable sv;
+    Subrec_obj *p_subrec;
+    MO_class_data *p_node_class;
+    char *primal_list[1];
+    int rval=0;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+
+    node_qty = MESH( analy ).node_geom->qty;
+	
+    rval = mc_get_svar_def( analy->db_ident, primals[0], &sv );
+
+    /* Read the database. */
+    primal_list[0] = strdup(primals[0]);
+
+    result_buf = NEW_N( double, node_qty*sv.vec_size*2,
+			"Current Nodal Results" );
+
+    analy->db_get_results( analy->db_ident, analy->cur_state+1, subrec, 1, 
+                           primal_list, (void *) result_buf );
+
+    if ( sv.vec_size==3 )
+         if ( sv.num_type==M_FLOAT ) {
+	      modedisp     = (float (*)[3]) result_buf;
+	 }
+	 else {
+	   modedisp_dp     = (double (*)[3]) result_buf;
+	 }
+    else
+         if ( sv.num_type==M_FLOAT ) {
+	      modedispscalar    = (float (*)[3]) result_buf;
+	 }
+	 else {
+	      modedispscalar_dp = (double (*)[3]) result_buf;
+	 }
+ 
+    free( primal_list[0] );
+
+    for ( i = 0; 
+	  i < node_qty; 
+	  i++ )
+    {
+          if ( sv.vec_size==3 )
+               if ( sv.num_type==M_FLOAT ) {
+		    dx =  modedisp[i][0];
+		    dy =  modedisp[i][1];
+		    dz =  modedisp[i][2];
+	       }
+	       else {
+		 dx =  modedisp_dp[i][0];
+		 dy =  modedisp_dp[i][1];
+		 dz =  modedisp_dp[i][2];
+	  }
+	  else
+               if ( sv.num_type==M_FLOAT ) {
+		    dx =  modedispscalar[i];
+	       }
+	       else {
+		 dx =  modedispscalar_dp[i];
+	  }
+
+	  if ( sv.vec_size==3 )
+               resultArr[i] = sqrt( (double) dx * dx + dy * dy + dz * dz );
+	  else
+               resultArr[i] = sqrt( (double) dx * dx );
+    }
+
+    free( result_buf );
 }
 
 
@@ -373,11 +731,26 @@ compute_node_velocity( Analysis *analy, float *resultArr,
     GVec2D *vels2d, *pos2d_0, *pos2d_1;
     GVec3D *vels3d, *pos3d_0, *pos3d_1;
     
+    /* Added December 04, 2008: IRC
+     *  Add logic to use DP nodal coordinates.
+     */
+
+    GVec2D2P *pos2dDp_0, *pos2dDp_1;
+    GVec3D2P *pos3dDp_0, *pos3dDp_1;
+
+    int           num_nodes=0, tmp_state=0;
+    double        *tmp_nodesDp=NULL, *tmp_nodesDp_lastState=NULL;
+    MO_class_data *p_node_class;
+    State_rec_obj *p_sro;
+
     dim = analy->dimension;
     p_result = analy->cur_result;
     index = analy->result_index;
     primals = p_result->primals[index];
-    
+
+    p_node_class = MESH_P( analy )->node_geom;
+    num_nodes    = p_node_class->qty;
+
     /* Determine if result is actually primal or derived from displacements. */
     if ( strcmp( primals[0], "nodvel" ) == 0 )
     {
@@ -485,26 +858,93 @@ compute_node_velocity( Analysis *analy, float *resultArr,
             pos2d_0 = state_prev->nodes.nodes2d;
             pos2d_1 = analy->state_p->nodes.nodes2d;
             
+	  if (MESH_P( analy )->double_precision_nodpos)
+	    {
+	      p_sro = analy->srec_tree + analy->state_p->srec_id;
+	      
+	      tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
+				   "Tmp DP node cache for calc node velocity" );
+	      
+	      load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+			   analy->cur_state + 1, FALSE,
+			   (void *) tmp_nodesDp );
+	      
+	      tmp_nodesDp_lastState = NEW_N( double, num_nodes*analy->dimension,
+				             "TmpLS DP node cache for calc node velocity" );
+	      
+	      tmp_state = analy->cur_state;
+	      if ( tmp_state == 0 )
+		   tmp_state = 1;
+
+	      load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+			   tmp_state, FALSE,
+			   (void *) tmp_nodesDp_lastState );
+	      
+	      pos2dDp_0 = (GVec2D2P *) tmp_nodesDp_lastState;
+	      pos2dDp_1 = (GVec2D2P *) tmp_nodesDp;
+	    }
+
             if ( p_result->name[3] != 'm' ) /* velmag vs. velx, vely, or velz */
             {
                 coord = (int) (p_result->name[3] - 'x');
                 
                 for ( i = 0; i < obj_qty; i++ )
-                    resultArr[i] = (pos2d_1[i][coord] - pos2d_0[i][coord]) 
-                                   / delta_t;
+		{
+                      if (MESH_P( analy )->double_precision_nodpos && pos2dDp_0)
+			  resultArr[i] = (pos2dDp_1[i][coord] - pos2dDp_0[i][coord]) 
+			                  / delta_t;
+		      else
+			  resultArr[i] = (pos2d_1[i][coord] - pos2d_0[i][coord]) 
+			                  / delta_t;
+		}
             }
             else
             {
                 for ( i = 0; i < obj_qty; i++ )
                 {
-                    tmp[0] = pos2d_1[i][0] - pos2d_0[i][0];
-                    tmp[1] = pos2d_1[i][1] - pos2d_0[i][1];
+                      if (MESH_P( analy )->double_precision_nodpos && pos2dDp_0)
+		      {
+			  tmp[0] = pos2dDp_1[i][0] - pos2dDp_0[i][0];
+			  tmp[1] = pos2dDp_1[i][1] - pos2dDp_0[i][1];
+		      }
+		      else
+		      {
+			  tmp[0] = pos2d_1[i][0] - pos2d_0[i][0];
+			  tmp[1] = pos2d_1[i][1] - pos2d_0[i][1];
+		      }
+
                     resultArr[i] = VEC_LENGTH_2D( tmp ) / delta_t;
                 }
             }
         }
         else
         {
+	  if (MESH_P( analy )->double_precision_nodpos)
+	    {
+	      p_sro = analy->srec_tree + analy->state_p->srec_id;
+	      
+	      tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
+				   "Tmp DP node cache for calc node velocity" );
+	      
+	      load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+			   analy->cur_state + 1, FALSE,
+			   (void *) tmp_nodesDp );
+	      
+	      tmp_nodesDp_lastState = NEW_N( double, num_nodes*analy->dimension,
+				             "TmpLS DP node cache for calc node velocity" );
+	      
+	      tmp_state = analy->cur_state;
+	      if ( tmp_state == 0 )
+		   tmp_state = 1;
+
+	      load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+			   tmp_state, FALSE,
+			   (void *) tmp_nodesDp_lastState );
+	      
+	      pos3dDp_0 = (GVec3D2P *) tmp_nodesDp_lastState;
+	      pos3dDp_1 = (GVec3D2P *) tmp_nodesDp;
+	    }
+
             pos3d_0 = state_prev->nodes.nodes3d;
             pos3d_1 = analy->state_p->nodes.nodes3d;
             
@@ -513,16 +953,33 @@ compute_node_velocity( Analysis *analy, float *resultArr,
                 coord = (int) (p_result->name[3] - 'x');
                 
                 for ( i = 0; i < obj_qty; i++ )
-                    resultArr[i] = (pos3d_1[i][coord] - pos3d_0[i][coord]) 
-                                   / delta_t;
+		{
+		      if (MESH_P( analy )->double_precision_nodpos && pos3dDp_0)
+		          resultArr[i] = (pos3dDp_1[i][coord] - pos3dDp_0[i][coord]) 
+			  / delta_t;
+		      else
+			  resultArr[i] = (pos3d_1[i][coord] - pos3d_0[i][coord]) 
+			  / delta_t;
+		}
             }
             else
             {
                 for ( i = 0; i < obj_qty; i++ )
                 {
-                    tmp[0] = pos3d_1[i][0] - pos3d_0[i][0];
-                    tmp[1] = pos3d_1[i][1] - pos3d_0[i][1];
-                    tmp[2] = pos3d_1[i][1] - pos3d_0[i][1];
+
+	            if (MESH_P( analy )->double_precision_nodpos && pos3dDp_0)
+		    {
+                        tmp[0] = pos3dDp_1[i][0] - pos3dDp_0[i][0];
+			tmp[1] = pos3dDp_1[i][1] - pos3dDp_0[i][1];
+			tmp[2] = pos3dDp_1[i][1] - pos3dDp_0[i][1];
+		    }
+		    else
+		    {
+                        tmp[0] = pos3d_1[i][0] - pos3d_0[i][0];
+			tmp[1] = pos3d_1[i][1] - pos3d_0[i][1];
+			tmp[2] = pos3d_1[i][1] - pos3d_0[i][1];
+		    }
+
                     resultArr[i] = VEC_LENGTH( tmp ) / delta_t;
                 }
             }
@@ -530,6 +987,11 @@ compute_node_velocity( Analysis *analy, float *resultArr,
 
         fr_state2( state_prev, analy );
     }
+
+    if (tmp_nodesDp)
+        free( tmp_nodesDp );
+    if (tmp_nodesDp_lastState)
+        free( tmp_nodesDp_lastState );
 }
 
 
@@ -1329,6 +1791,75 @@ compute_vector_component( Analysis *analy, float *resultArr,
         free( vec_comp[i] );
 
     analy->cur_result->must_recompute = TRUE;
+} 
+
+
+/*****************************************************************
+ * TAG( get_class_nodes )
+ * 
+ * This function will return the list of nodes for all elements
+ * in a specified class in connectivity order with duplicates if
+ * for elements that share nodes.
+ */
+void
+get_class_nodes ( int superclass, Mesh_data *p_mesh,
+		  int *num_nodes, int *node_list )
+{
+  MO_class_data **mo_classes=NULL;
+  MO_class_data *p_node_geom=NULL, *p_class=NULL;
+
+  int i=0, j=0, k=0;
+  int nd, elem_id=0, qty_classes=0, qty_elems=0, qty_nodes=0, node_index=0;
+  int num_connects=0;
+  int *all_nodes=0;
+
+  num_connects = qty_connects[superclass];
+  int (*connects)[num_connects];
+
+  p_node_geom = p_mesh->node_geom; 
+  qty_nodes   = p_node_geom->qty;
+  qty_classes = p_mesh->classes_by_sclass[superclass].qty;
+  mo_classes  = (MO_class_data **) p_mesh->classes_by_sclass[superclass].list;
+  connects    = (int (*) [num_connects]) p_class->objects.elems->nodes;
+
+  /* First count the number of nodes */
+
+  for ( i = 0; 
+	i < qty_classes; 
+	i++ ) {
+        p_class   =  mo_classes[i];
+	qty_elems = p_class->qty;
+	qty_nodes += qty_elems*num_connects;
+  }
+  
+
+ all_nodes  = NEW_N( int, qty_nodes, "Node list for a class" );
+ *num_nodes = qty_nodes;
+
+ if ( *num_nodes == 0 ) {
+      *all_nodes = 0;
+      return;
+ }
+
+ for ( i = 0; 
+	i < qty_classes; 
+	i++ ) {
+        p_class   =  mo_classes[i];
+	qty_elems = p_class->qty;
+	connects  = (int (*) [num_connects]) p_class->objects.elems->nodes;
+ 
+	for ( j = 0; 
+	      j < qty_elems; 
+	      j++ ) {
+
+	      elem_id = j;
+	      for ( k = 0; 
+		    k < num_connects;
+		    k++ )
+	      {
+		    nd = connects[elem_id][k];
+		    all_nodes[node_index++] = nd;
+	     }
+	}
+  }
 }
-
-

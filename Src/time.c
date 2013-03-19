@@ -6,49 +6,31 @@
  *      Lawrence Livermore National Laboratory
  *      Jan 2 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
  ************************************************************************
  * Modifications:
+ *
  *  I. R. Corey - Sept 15, 2004: Fixed problem with anim command when
  *   running from a batch script. The animation was stopping immediately
- *   becaue the next command was the stop command.
+ *   because the next command was the stop command.
+ * 
+ *  I. R. Corey - Dec 28, 2009: Fixed several problems releated to drawing
+ *                ML particles.
+ *                See SRC#648
+ * 
+ *  I. R. Corey - Jan 17, 2013: Added test in change_state() and change_
+ *                time() for zero states.
+ *                ML particles.
+ *
+ *  I. R. Corey - Feb 08, 2013: Removed calculation for hex_vol_sums -
+ *                no need with changes in hex_to_nodal().
+ *
  ************************************************************************
  */
 
 #include <stdlib.h>
 #include "viewer.h"
 
+/* #define DEBUG_TIME 1 */
 
 /* Local routines. */
 static void interp_activity( State2 *state_a, State2 *state_b );
@@ -92,6 +74,8 @@ change_state( Analysis *analy )
     Bool_type recompute_norms;
     int st_qty;
     int srec_id;
+    int status=OK;
+    static Bool_type warn_state = TRUE;
 
     if ( env.timing )
     {
@@ -101,6 +85,18 @@ change_state( Analysis *analy )
 
     analy->db_get_state( analy, analy->cur_state, analy->state_p, 
                                 &analy->state_p, &st_qty );
+
+    if ( st_qty==0 )
+    {
+         if ( warn_state ) {
+	      popup_dialog( WARNING_POPUP, "%s\n%s\n%s",
+			    "Cannot change state when",
+			    "number of states is zero.",
+			    "(This warning will not be repeated.)" );
+	      warn_state = FALSE;
+      }
+      return;
+    }
 
     /* Update current mesh ident. */
     srec_id = analy->state_p->srec_id;
@@ -126,7 +122,7 @@ change_state( Analysis *analy )
         get_mesh_edges( analy->cur_mesh_id, analy );
 
     /* Update displayed result. */
-    load_result( analy, TRUE, TRUE );
+    load_result( analy, TRUE, TRUE, FALSE );
 
     /* 
      * Update cut planes, isosurfs, contours.
@@ -163,7 +159,7 @@ change_time( float time, Analysis *analy )
     GVec3D *nodes3d_a, *nodes3d_b;
     int interp_result, can_interp;
     int srec_id_a, srec_id_b;
-    static Bool_type warn_once = TRUE;
+    static Bool_type warn_once = TRUE, warn_time=TRUE;
     int mesh_id;
 
     /*
@@ -184,6 +180,19 @@ change_time( float time, Analysis *analy )
     st_num_b = ( st_nums[1] > 1 ) ? st_nums[1] - 1 : 1;
     st_num_a = st_num_b - 1;
     analy->db_get_state( analy, st_num_a, analy->state_p, &state_a, &st_qty );
+
+    if ( st_qty==0 )
+    {
+        if ( warn_time ) {
+             popup_dialog( WARNING_POPUP, "%s\n%s\n%s",
+			   "Cannot change time when",
+			   "number of states is zero.",
+			   "(This warning will not be repeated.)" );
+	     warn_time = FALSE;
+	}
+	return;
+    }
+
     analy->db_get_state( analy, st_num_b, NULL, &state_b, NULL );
     analy->cur_state      = st_num_a;
 
@@ -217,11 +226,11 @@ change_time( float time, Analysis *analy )
     {
         result_b = NEW_N( float, node_qty, "Interpolate result" );
         result_a = NODAL_RESULT_BUFFER( analy );
-        load_result( analy, TRUE, TRUE );
+        load_result( analy, TRUE, TRUE, FALSE );
         analy->state_p = state_b;
         NODAL_RESULT_BUFFER( analy ) = result_b;
         analy->cur_state = st_num_b;
-        load_result( analy, TRUE, TRUE );
+        load_result( analy, TRUE, TRUE, FALSE );
         analy->state_p = state_a;
         NODAL_RESULT_BUFFER( analy ) = result_a;
         analy->cur_state = st_num_a;
@@ -268,8 +277,23 @@ change_time( float time, Analysis *analy )
 
             if ( interp_result )
                 result_a[i] = ninterp * result_a[i] + interp * result_b[i];
+
         }
     }
+
+#ifdef DEBUG_TIME
+    int count=0;
+    for (i=0;
+         i<node_qty;
+         i++)
+    {
+      if ( result_a[i]!=0.0 ) {
+	   printf("\nTIME[%d] = %e/%e", i, result_b[i], result_a[i] );
+           count++;
+	   if ( count>10 ) 
+	     break; }
+    }
+#endif
 
     analy->state_p->time = time;
 
@@ -384,11 +408,11 @@ parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
             anim_info.result_b = NEW_N( float, analy->max_result_size,
                                         "Animate result" );
             analy->cur_state = anim_info.st_num_a;
-            load_result( analy, TRUE, TRUE );
+            load_result( analy, TRUE, TRUE, FALSE );
             analy->state_p = anim_info.state_b;
             NODAL_RESULT_BUFFER( analy ) = anim_info.result_b;
             analy->cur_state = anim_info.st_num_b;
-            load_result( analy, TRUE, TRUE );
+            load_result( analy, TRUE, TRUE, FALSE );
             analy->state_p = anim_info.state_a;
             NODAL_RESULT_BUFFER( analy ) = anim_info.result_a;
             analy->cur_state = anim_info.st_num_a;
@@ -406,15 +430,17 @@ parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
     /* Fire up a work proc to step the animation forward. */
 #ifdef SERIAL_BATCH
     while( !step_animate( analy ) );
-#else
+#else 
+
     /* Added Sept 15, 2004: IRC */
     if (env.history_input_active) /* If we are getting commands from 
                                    * a file and we see an animate command,
                                    * then let it complete.
                                    */
-      while( !step_animate( analy ) );
+    while( !step_animate( analy ) );
     else
     init_animate_workproc();
+
 #endif /* SERIAL_BATCH */
 }
 
@@ -533,7 +559,7 @@ step_animate( Analysis *analy )
                     analy->state_p = anim_info.state_b;
                     NODAL_RESULT_BUFFER( analy ) = anim_info.result_b;
                     analy->cur_state = anim_info.st_num_b;
-                    load_result( analy, TRUE, TRUE );
+                    load_result( analy, TRUE, TRUE, FALSE );
                     analy->state_p = anim_info.state_a;
                     NODAL_RESULT_BUFFER( analy ) = anim_info.result_a;
                     analy->cur_state = anim_info.st_num_a;
@@ -563,11 +589,11 @@ step_animate( Analysis *analy )
                 if ( analy->cur_result != NULL )
                 {
                     analy->cur_state = anim_info.st_num_a;
-                    load_result( analy, TRUE, TRUE );
+                    load_result( analy, TRUE, TRUE, FALSE );
                     analy->state_p = anim_info.state_b;
                     NODAL_RESULT_BUFFER( analy ) = anim_info.result_b;
                     analy->cur_state = anim_info.st_num_b;
-                    load_result( analy, TRUE, TRUE );
+                    load_result( analy, TRUE, TRUE, FALSE );
                     analy->state_p = anim_info.state_a;
                     NODAL_RESULT_BUFFER( analy ) = anim_info.result_a;
                     analy->cur_state = anim_info.st_num_a;
@@ -583,7 +609,7 @@ step_animate( Analysis *analy )
                                  anim_info.state_a, &anim_info.state_a, NULL );
 
             if ( analy->cur_result != NULL )
-                load_result( analy, TRUE, TRUE );
+	      load_result( analy, TRUE, TRUE, FALSE );
         }
 
         /* If a-b swapping occurred, need to fix up. */

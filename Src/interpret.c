@@ -1,4 +1,5 @@
 /* $Id$ */
+
 /* 
  * interpret.c - Command line interpreter for graphics viewer.
  * 
@@ -6,38 +7,6 @@
  *  Lawrence Livermore National Laboratory
  *  Jan 2 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject t`o 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- * 
  ************************************************************************
  *
  * Modifications:
@@ -128,15 +97,135 @@
  *  I. R. Corey - May 5, 2008: Added support for code usage tracking using
  *                the AX tracker tool.
  *                See SRC#533.
+ *
+ *  I. R. Corey - Dec 2, 2008: Increased fracsize max from 6->10.
+ *                See SRC#555
+ *
+ *  I. R. Corey - Jan 5, 2009: Added another form of cutplane - cut relative
+ *                plane or cutrpln. With this form of the command the x,y.z 
+ *                values are not positions but fractions from 0-1 in each
+ *                direction, for example cutrpln .5 .5 .5 0 0 1 would 
+ *                place the point in the center of the model. 
+ *                See SRC#558
+ *
+ *  I. R. Corey - June 16, 2009: Add exclusion capability for nodes.
+ *                See SRC#539
+ *
+ *  I. R. Corey - Nov 09, 2009: Added enhancements to better support
+ *                running multiple sessions of Griz.
+ *                See SRC#638.
+ *
+ *  I. R. Corey - Nov 12, 2009: Fixed error in setting mo_class pointer
+ *                for Beams in process_node_selection().
+ *                See SRC#639.
+ *
+ *  I. R. Corey - Dec 1, 2009: Added a new command to clear all selects
+ *                and hilites -> 'clrallpicks' or aka 'cap'.
+ *                See SRC#643.
+ *
+ *  I. R. Corey - Dec 28, 2009: Fixed several problems releated to drawing
+ *                ML particles.
+ *                See SRC#648
+ *
+ *  I. R. Corey - Dec 28, 2010: Fixed several problems releated to drawing
+ *                ML particles.
+ *                See SRC#648
+ *
+ *  I. R. Corey - Feb 16, 2011: Added all-but (allb) option to all material 
+ *                selection commands.
+ *                See SRC#648
+ *
+ *  I. R. Corey - March 24th, 2011: Added option to allow viewing of 
+ *                inactive elements - "on showde" -> show deleted elements
+ *                and "on showode" -> show only deleted elements.
+ *                See TeamForge#
+ *
+ *  I. R. Corey - March 28th, 2011: Fixed a bug with the alias command. It 
+ *                not working correctly when the aliased command had > 1
+ *                keyword.
+ *                See TeamForge#14543
+ *
+ *  I. R. Corey - January 11th, 2012: Fixed a bug with selecting ranges of
+ *                elements. Id was being tested and not the label.
+ *                See TeamForge#17213
+ *
+ *  I. R. Corey - March 30th, 2012: Added capability to set up to 10 paths
+ *                for load commands.
+ *                See TeamForge#17794
+ *
+ *  I. R. Corey - April 8th, 2012: Completed development of surface class
+ *                based on new requirements.
+ *                See TeamForge#17795
+ *
+ *  I. R. Corey - April 20th, 2012: Added ability to select objects for
+ *                only visible materials.
+ *                See TeamForge#17939
+ *
+ *  I. R. Corey - May 8th, 2012: Added ability to hide edges for invisible
+ *                or excluded materials.
+ *                See TeamForge#17940
+ *
+ *  I. R. Corey - June 25th, 2012: Added xpdf reader as default with
+ *                2nd reader set to acroread if xpdf not available.
+ *                See TeamForge#18256
+ *
+ *  I. R. Corey - June 26th, 2012: Added flag to disable echo of commands
+ *                in GUI - 'echocmd'. Default value is ON.
+ *                See TeamForge#18255
+ *
+ *  I. R. Corey - July 16th, 2012: Added new command to dump current result
+ *                to a text file: 'dumpresult'.
+ *                See TeamForge#18363
+ *
+ *  I. R. Corey - October 8th, 2012: Added new command to dump current result
+ *                to a text file: 'dumpresult'.
+ *                See TeamForge#18363
+ *
+ *  I. R. Corey - October 12th, 2012: Added capability to show/hide elements
+ *                by class name.
+
+ *                See TeamForge#
+ *
+ *  I. R. Corey - November 21th, 2012: Added capability to have a multi-command
+ *                alias such as: alias new on all;l.
+ *                See TeamForge#
+ *
+ *  I. R. Corey - November 25th, 2012: Set max fracsz to 12.
+ *
+ *  I. R. Corey - Dec 4th, 2012: Fixed problem with dump_result and added
+ *                option to choose a filename.
+ *
+ *  I. R. Corey - Dec 19th, 2012: Fixed problem with updating edges when 
+ *                on edges command input.
+ *
+ *  I. R. Corey - Jan 2nd, 2013: Added flag to force single column output
+ *                for TH output.
+ *                See TeamForge#
+ *
+ *  I. R. Corey - February 11th, 2013: Added a flag to disable volume
+ *                averaging for hex interp results.
+ *                See TeamForge#
+ *
+ *  I. R. Corey - March 1st, 2013: Do not update display for sw commands
+ *                hilite and select.
+ *                See TeamForge#19547
+ *
+ *  I. R. Corey - March 18th, 2013: New command to set controls for
+ *                element sets.
+ *                See TeamForge#19547
  *************************************************************************
  */
+
+/* #define DEBUG_SELECT 1 */
 
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
 #include "viewer.h"
 #include "draw.h"
+#include "mdg.h"
 #include "traction_force.h"
+#include "misc.h"
 
 #ifdef VIDEO_FRAMER
 extern void vid_select( /* int select */ );
@@ -185,6 +274,7 @@ static Alias_obj *alias_list = NULL;
 typedef struct _Material_property_obj
 {
     GLfloat color_props[3];
+    float gslevel;
     int *materials;
     int mtl_cnt;
     int cur_idx;
@@ -211,8 +301,7 @@ typedef struct _Surface_property_obj
 int jpeg_quality = 75;
 #endif
 
-
-
+char *griz_home=NULL;
 
 static char last_command[200] = "\n";
 
@@ -221,8 +310,11 @@ static void tokenize_line( char *buf, char tokens[MAXTOKENS][TOKENLENGTH],
                            int *token_cnt );
 static void check_visualizing( Analysis *analy );
 static void create_alias( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH] );
+static void delete_alias( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH] );
+static void list_alias( );
 static void alias_substitute( char tokens[MAXTOKENS][TOKENLENGTH], 
                               int *token_cnt );
+static void alias_expand( char *buf, int *token_cnt );
 static int parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH],
                                    int cnt, Bool_type preview, 
                                    GLfloat *save[MTL_PROP_QTY], 
@@ -266,13 +358,31 @@ static int  check_for_result( Analysis *analy, int display_warning );
 
 void
 process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
-			    int idx, int token_cnt, int mat_qty, int elem_qty,
+			    int idx, int token_cnt, int mat_qty, 
+			    int elem_qty, MO_class_data *p_class,
 			    unsigned char *p_elem, int  *p_hide_qty, int *p_hide_elem_qty, 
                             unsigned char *p_uc,
 			    unsigned char setval, 
 			    Bool_type vis_selected, Bool_type mat_selected);
+void
+process_node_selection ( Analysis *analy );
+int
+is_node_visible( Analysis *analy, int nd );
 
+void hide_particles( Analysis *analy, 
+		     Bool_type all_flag, Bool_type invis,   
+		     int mat );
 
+void disable_particles( Analysis *analy, 
+		        Bool_type all_flag, Bool_type disable,   
+		        int mat );
+
+Bool_type
+is_elem_mat_visible( Analysis *analy, int elem_id, MO_class_data *p_class );
+
+void
+dump_selection_buff( char *buff_name, unsigned char *buff, int qty );
+int get_class_select_index( Analysis *analy, char *short_name );
 
 /* Used by other files, but not by the interpreter. */
 /*****************************************************************
@@ -526,8 +636,7 @@ tokenize_line( char *buf, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt )
     *token_cnt = word; 
 }
 
-
-
+extern Bool_type mtl_color_active;
 /*****************************************************************
  * TAG( parse_command )
  * 
@@ -536,15 +645,16 @@ tokenize_line( char *buf, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt )
  * line and pass them to parse_single_command.
  */
 void
-parse_command( char *buf, Analysis *analy )
+parse_command( char *input_buf, Analysis *analy )
 {
-  char command_buf[2000];
+  char buf[2000], command_buf[2000];
   int  i, j;
   int  len_buf;
   int  num_cmds = 1;
-  int  next_cmd_index[2000];
+  int  next_cmd_index[1000];
 
   int  first_nonspace=0, start_of_cmd=0;
+  int  token_cnt=0;
 
   len_buf = strlen(buf);
 
@@ -552,14 +662,71 @@ parse_command( char *buf, Analysis *analy )
 
   history_inputCB_cmd = FALSE;
  
-  for (i = 0; i < len_buf; i++ )
-       if ( buf[i] == ';' )
-       {
-            buf[i] = '\0';
-            next_cmd_index[num_cmds++]=i+1;        
-       }
+  strcpy( buf, input_buf );
 
-  for (i=0; i < num_cmds ; i++ )
+  /* Commands pasted from text buffer in GUI may have preceding
+   * line number in comment [] - remove chars including and 
+   * between []. 
+   */
+  for ( i=0; 
+	i<2; 
+	i++ ) {
+        for(j=first_nonspace; 
+	    j<strlen( buf ); 
+	    j++ )
+	    if (buf[j]!=' ') {
+	        first_nonspace = j;
+	        break;
+	  }
+
+        if (buf[first_nonspace]=='[') {
+	    for(j = first_nonspace; 
+		j < strlen( buf );
+		j++ )
+	        if (buf[j]==']') {
+		    first_nonspace = j+1;
+		    break;
+		}
+	    for(j = first_nonspace; 
+		j < strlen( buf ); 
+		j++ )
+	        if (buf[j]!=' ') {
+		    first_nonspace = j;
+		    break;
+		}
+	}
+	else break;
+  }
+
+  strcpy( command_buf, &buf[first_nonspace] );
+  strcpy( buf,         command_buf );
+
+  /* Include entire line for an alias command */	
+  if ( !strncmp("alias", buf, 5 ) ) {
+       num_cmds=1;
+       next_cmd_index[0] = 0;
+  }
+  else {
+       /* Need to check for alias here since they could be multi-
+	* command alias.
+	*/
+       if ( strncmp("echo", buf, 4) )
+            alias_expand( buf, &token_cnt );
+
+       len_buf = strlen( buf );
+       for (i = 0; 
+	    i < len_buf; 
+	    i++ )
+	    if ( buf[i] == ';' )
+	    {
+		 buf[i] = '\0';
+		 next_cmd_index[num_cmds++]=i+1;        
+	    }
+   }
+
+  for (i=0; 
+       i < num_cmds;
+       i++ )
   {   
     if (strlen(&buf[next_cmd_index[i]]) > 0)
         strcpy(command_buf, &buf[next_cmd_index[i]]);
@@ -581,16 +748,15 @@ parse_command( char *buf, Analysis *analy )
         break;
       }
 
-    if (command_buf[first_nonspace]=='[')
-      for(j = 0; j < strlen( command_buf ); j++ )
-	if (command_buf[j]==']')
-	    start_of_cmd = j+1;
+    if (mtl_color_active)
+        switch_opengl_win( MESH_VIEW );
 
     parse_single_command( &command_buf[start_of_cmd], analy );
+
+    if (mtl_color_active)
+        switch_opengl_win( SWATCH );
   }
 }
-  
-
 
 /*****************************************************************
  * TAG( parse_single_command )
@@ -603,7 +769,7 @@ parse_single_command( char *buf, Analysis *analy )
     char tokens[MAXTOKENS][TOKENLENGTH];
     int token_cnt, token_index;
     float val, pt[3], vec[3], rgb[3], pt2[3], pt3[3], pt4[3];
-    Bool_type renorm, setval, valid_command, found;
+    Bool_type renorm, setval, valid_command, found, unselect=FALSE;
     Redraw_mode_type redraw;
     static Bool_type cutting_plane_defined = FALSE;
     int sz[3], nodes[3];
@@ -617,6 +783,7 @@ parse_single_command( char *buf, Analysis *analy )
     int rval;
     Htable_entry *p_hte;
     MO_class_data *p_mo_class;
+    MO_class_data *p_class;
     MO_class_data **p_classes;
     Mesh_data *p_mesh;
     List_head *p_lh;
@@ -626,9 +793,11 @@ parse_single_command( char *buf, Analysis *analy )
     int           elem_qty;
     int superclass;
     int qty_facets;
+    int class_select_index=0;
 
     int *p_hide_qty, *p_hide_qty2, *p_disable_qty, p_hide_qty_temp_int=0;
     int *p_hide_elem_qty, *p_hide_elem_qty2, *p_disable_elem_qty;
+    int label_num=0;
 
     int elem_sclasses[] = 
     {
@@ -654,9 +823,9 @@ parse_single_command( char *buf, Analysis *analy )
     FILE *fp_outview_file;
     FILE *select_file;
 
-    char tmp_token[64];
+    char tmp_token[256], token_upper[256];
 
-    char *griz_home, acroread_cmd[128];
+    char pdfreader_cmd[128];
 
     /* Material range selection variables
      */
@@ -667,14 +836,31 @@ parse_single_command( char *buf, Analysis *analy )
     int obj, obj_min, obj_max;
 
     Bool_type mat_selected     = TRUE;
+    Bool_type mat_brick_selected = FALSE;
     Bool_type result_selected  = TRUE;
     Bool_type vis_selected     = FALSE;
     Bool_type enable_selected  = FALSE;
     Bool_type include_selected = FALSE;
+    Bool_type class_selected   = FALSE;
 
     int view_state; /* Used for extreme_min/max */
 
     float *rgb_default, *rgb_ei; 
+
+    float vert_low[3], vert_hi[3], rel_pos[3];
+
+    char filename_with_path[512];
+
+    int loop_count = 1;
+    int path_index=0;
+    int elem_sclass=0;
+    int status=OK;
+
+    if ( griz_home==NULL ) {
+         griz_home = getenv( "GRIZHOME" );
+         if ( griz_home == NULL )
+              griz_home = strdup(".");
+    }
 
     tokenize_line( buf, tokens, &token_cnt );
 
@@ -687,7 +873,8 @@ parse_single_command( char *buf, Analysis *analy )
      */
     clear_popup_dialogs();
 
-    alias_substitute( tokens, &token_cnt );
+    if ( strncmp("echo", tokens[0], 4) )
+         alias_substitute( tokens, &token_cnt );
 
     /*
      * Should call getnum in slots below to make sure input is valid,
@@ -746,9 +933,9 @@ parse_single_command( char *buf, Analysis *analy )
         get_mesh_scale( vec );
         sscanf( tokens[1], "%f", &val );
 
-        vec[0] = vec[0] + (val*vec[0]);
-        vec[1] = vec[1] + (val*vec[1]);
-        vec[2] = vec[2] + (val*vec[2]);
+        vec[0] = val*vec[0];
+        vec[1] = val*vec[1];
+        vec[2] = val*vec[2];
 
         set_mesh_scale( vec[0], vec[1], vec[2] );
         redraw = BINDING_MESH_VISUAL;
@@ -797,10 +984,16 @@ parse_single_command( char *buf, Analysis *analy )
         /* Repeat the last command. */
         parse_command( last_command, analy );
     }
-    else if ( strcmp( tokens[0], "hilite" ) == 0 )
+    else if ( strcmp( tokens[0], "hilite" ) == 0 ) /* IRC */
     {
         rval = htable_search( MESH( analy ).class_table, tokens[1], FIND_ENTRY,
                               &p_hte );
+
+	if ( rval!=OK ) {
+	     string_to_upper( tokens[1], token_upper );	     
+	     rval = htable_search( MESH( analy ).class_table, token_upper, FIND_ENTRY,
+				   &p_hte );
+	}
         if ( rval == OK  )
              p_mo_class = (MO_class_data *) p_hte->data;
 
@@ -823,6 +1016,10 @@ parse_single_command( char *buf, Analysis *analy )
             {
                 analy->hilite_class = p_mo_class;
 		analy->hilite_num   = temp_ival-1;
+		if ( analy->hilite_num<0 ) {
+		     analy->hilite_num=1; 
+		     analy->hilite_label=1;
+		}
                 analy->hilite_label = ival;
             }
             redraw = BINDING_MESH_VISUAL;
@@ -835,17 +1032,40 @@ parse_single_command( char *buf, Analysis *analy )
         analy->hilite_class = NULL;
         redraw = BINDING_MESH_VISUAL;
     }
-    else if ( strcmp( tokens[0], "select" ) == 0 )
+    else if ( strcmp( tokens[0], "select" ) == 0 || strcmp( tokens[0], "unselect" ) == 0 )
     {
+        if ( strcmp( tokens[0], "unselect" ) == 0 )
+	     unselect = TRUE;
+	else
+	     unselect = FALSE;
+
         rval = htable_search( MESH( analy ).class_table, tokens[1], FIND_ENTRY,
                               &p_hte );
+
+	if ( rval!=OK ) {
+	     string_to_upper( tokens[1], token_upper );	     
+	     rval = htable_search( MESH( analy ).class_table, token_upper, FIND_ENTRY,
+				   &p_hte );
+	}
+
+	if ( rval == OK && token_cnt == 2 ) { /* If a class named on the select and no other
+					       * options, select then all.
+					       */
+	     if ( is_elem_class( analy, tokens[1] ) ) {
+	          token_cnt++;
+	          strcpy( tokens[2], "ALL" );
+	     }
+	}
+	     
         if ( rval == OK && token_cnt > 2 )
         {
             p_mo_class = (MO_class_data *) p_hte->data;
             superclass = p_mo_class->superclass;
 
             qty = 0;
-            for ( i = 2; i < token_cnt; i++ )
+            for ( i = 2; 
+		  i < token_cnt; 
+		  i++ )
             {
 
                 /* IRC: Added March 29, 2005 */
@@ -875,16 +1095,26 @@ parse_single_command( char *buf, Analysis *analy )
                          * candidate already exists.
                          */
 
+                       for ( p_so = analy->selected_objects; p_so != NULL; 
+                              NEXT( p_so ) )
+                               if ( p_so->mo_class == p_mo_class && p_so->label == obj )
+                                    break;
+                        
 			if ( p_mo_class->labels_found )
 			     temp_ival = get_class_label_index( p_mo_class, obj );
 			else
 			     temp_ival = obj;
 
-                        for ( p_so = analy->selected_objects; p_so != NULL; 
-                              NEXT( p_so ) )
-                               if ( p_so->mo_class == p_mo_class && p_so->ident == temp_ival )
-                                    break;
-                        
+			if ( analy->selectonmat ) {
+			     if ( !strcmp( "node", p_mo_class->short_name  ) ) {
+			          if ( !is_node_visible( analy, temp_ival-1 ) )
+				       continue;
+			     }
+			     else
+			          if ( !is_elem_mat_visible( analy, temp_ival-1, p_mo_class ) )
+				       continue;
+			}
+
                        /* If object exists, delete to de-select, else add. */
                        if ( p_so != NULL )
                        {
@@ -892,12 +1122,13 @@ parse_single_command( char *buf, Analysis *analy )
                        }
                        else
                        {
-                         p_so = NEW( Specified_obj, "New object selection" );
-                         p_so->ident = temp_ival-1;
-			 p_so->label = obj;
-			    
-                         p_so->mo_class = p_mo_class;
-                         APPEND( p_so, analy->selected_objects );
+                         if ( !unselect ) {
+                              p_so = NEW( Specified_obj, "New object selection" );
+			      p_so->ident = temp_ival-1;
+			      p_so->label = obj;
+			      p_so->mo_class = p_mo_class;
+			      APPEND( p_so, analy->selected_objects );
+			 }
                        }
                         
                         qty++; /* Additions or deletions should cause redraw. */
@@ -926,7 +1157,7 @@ parse_single_command( char *buf, Analysis *analy )
                        for ( p_so = analy->selected_objects; p_so != NULL;
                              NEXT( p_so ) )
                          if ( p_so->mo_class == p_mo_class
-                              && p_so->ident == temp_ival - 1 )
+                              && p_so->label == obj )
                               break;
                                                                                  
                        /* If object exists, delete to de-select, else add. */
@@ -936,33 +1167,49 @@ parse_single_command( char *buf, Analysis *analy )
                        }
                        else
                        {
-                         p_so = NEW( Specified_obj, "New object selection" );
-                         p_so->ident    = temp_ival - 1;
-                         p_so->mo_class = p_mo_class;
-			 p_so->label = obj;
-			 APPEND( p_so, analy->selected_objects );
+                         if ( !unselect ) {
+			      p_so = NEW( Specified_obj, "New object selection" );
+			      p_so->ident    = temp_ival - 1;
+			      p_so->mo_class = p_mo_class;
+			      p_so->label = obj;
+			      APPEND( p_so, analy->selected_objects );
+			 }
                        }
                                                                                  
                         qty++; /*Additions or deletions should cause redraw.*/
                      }
                    }
                 }
-                else if ( strcmp( tokens[i], "all" ) == 0 )
+                else if ( strcmp( tokens[i], "all" ) == 0 ||
+			  strcmp( tokens[i], "ALL" ) == 0 )
                 {
                    if( superclass != G_SURFACE )
                    {
-                       obj_max = p_mo_class->qty;
-                       if( p_mo_class->labels )
-                           obj_max = p_mo_class->labels_max; 
+		        obj_max = p_mo_class->qty;
 
                         for( j = 1; 
 			     j <= obj_max;
 			     j++ )
                         {
-			    if ( p_mo_class->labels_found )
-			         temp_ival = get_class_label_index( p_mo_class, j );
+			    if ( p_mo_class->labels_found && p_mo_class->labels ) {
+				 label_num = p_mo_class->labels[j-1].label_num;
+			         temp_ival = get_class_label_index( p_mo_class, label_num );
+			    }
 			    else
 			         temp_ival = j;
+
+			    if ( temp_ival == M_INVALID_LABEL )
+			         continue;
+
+		  	    if ( analy->selectonmat ) {
+			         if ( !strcmp( "node", p_mo_class->short_name  ) ) {
+			              if ( !is_node_visible( analy, temp_ival-1 ) )
+				           continue;
+			     }
+			     else
+			          if ( !is_elem_mat_visible( analy, temp_ival-1, p_mo_class ) )
+				       continue;
+			    }
 
                             /*
                              * Traverse currently selected objects to see if
@@ -983,11 +1230,13 @@ parse_single_command( char *buf, Analysis *analy )
                             }
                             else
                             {
-                                p_so = NEW( Specified_obj, "New object selection" );
-                                p_so->ident = temp_ival-1;
-		                p_so->label = j-1;
-                                p_so->mo_class = p_mo_class;
-                                APPEND( p_so, analy->selected_objects );
+			      if ( !unselect ) {
+				   p_so = NEW( Specified_obj, "New object selection" );
+				   p_so->ident = temp_ival-1;
+				   p_so->label = label_num-1;
+				   p_so->mo_class = p_mo_class;
+				   APPEND( p_so, analy->selected_objects );
+			      }
                             }
 
                             /* Additions or deletions should cause redraw. */
@@ -998,7 +1247,9 @@ parse_single_command( char *buf, Analysis *analy )
                     {
                         p_surface = p_mo_class->objects.surfaces;
                         qty_facets = p_surface->facet_qty;
-                        for( j = 1; j <= qty_facets; j++ )
+                        for( j = 1; 
+			     j <= qty_facets; 
+			     j++ )
                         {
                                                                                  
 			     if ( p_mo_class->labels_found )
@@ -1006,6 +1257,15 @@ parse_single_command( char *buf, Analysis *analy )
 			     else
 			          temp_ival = j;
 
+		  	     if ( analy->selectonmat ) {
+			          if ( !strcmp( "node", p_mo_class->short_name ) ) {
+			               if ( !is_node_visible( analy, temp_ival-1 ) )
+				             continue;
+			     }
+			     else
+			          if ( !is_elem_mat_visible( analy, temp_ival-1, p_mo_class ) )
+				       continue;
+			     }
 
                             /*
                              * Traverse currently selected objects to see if
@@ -1025,11 +1285,13 @@ parse_single_command( char *buf, Analysis *analy )
                             }
                             else
                             {
-                                p_so = NEW( Specified_obj, "New object selection" );
-                                p_so->ident    = temp_ival-1;
-                                p_so->label    = j-1;
-                                p_so->mo_class = p_mo_class;
-                                APPEND( p_so, analy->selected_objects );
+			      if ( !unselect ) {
+			 	   p_so = NEW( Specified_obj, "New object selection" );
+				   p_so->ident    = temp_ival-1;
+				   p_so->label    = j-1;
+				   p_so->mo_class = p_mo_class;
+				   APPEND( p_so, analy->selected_objects );
+			      }
                             }
 
                             /* Additions or deletions should cause redraw. */
@@ -1081,12 +1343,13 @@ parse_single_command( char *buf, Analysis *analy )
                     }
                     else
                     {
-                      p_so = NEW( Specified_obj, "New object selection" );
-                      p_so->ident = temp_ival-1;
-		      p_so->label = j;
-
-                      p_so->mo_class = p_mo_class;
-                      APPEND( p_so, analy->selected_objects );
+                      if ( !unselect ) {
+                           p_so = NEW( Specified_obj, "New object selection" );
+			   p_so->ident = temp_ival-1;
+			   p_so->label = j;
+			   p_so->mo_class = p_mo_class;
+			   APPEND( p_so, analy->selected_objects );
+		      }
                     }
 
                     qty++; /* Additions or deletions should cause redraw. */
@@ -1121,16 +1384,16 @@ parse_single_command( char *buf, Analysis *analy )
                   }
                   else
                   {
-                    p_so = NEW( Specified_obj, "New object selection" );
-                    if ( p_mo_class->labels_found )
-		         p_so->ident = get_class_label_index( p_mo_class, j );
-		    else
-		         p_so->ident = j-1;
-
-		    p_so->label = j;
-
-                    p_so->mo_class = p_mo_class;
-                    APPEND( p_so, analy->selected_objects );
+                    if ( !unselect ) {
+		         p_so = NEW( Specified_obj, "New object selection" );
+                         if ( p_mo_class->labels_found )
+			      p_so->ident = get_class_label_index( p_mo_class, j );
+			 else
+			      p_so->ident = j-1;
+			 p_so->label = j;
+			 p_so->mo_class = p_mo_class;
+			 APPEND( p_so, analy->selected_objects );
+		    }
                   }
                                                                                  
                   qty++; /* Additions or deletions should cause redraw. */
@@ -1307,21 +1570,33 @@ parse_single_command( char *buf, Analysis *analy )
             redraw = BINDING_MESH_VISUAL;
         }
     }
+    else if ( strcmp( tokens[0], "clrallpicks" ) == 0 || strcmp( tokens[0], "cap" ) == 0 ) /* Clears all select and hilites */
+    {
+         parse_command( "clrsel", analy);
+         parse_command( "clrhil", analy);
+    }
     else if ( strcmp( tokens[0], "show" ) == 0 )
     {
+	analy->th_plotting   = FALSE;
+	if (  strncmp( tokens[1], "mat", 3 ) == 0 )
+	      analy->result_active = FALSE;
+	analy->damage_result = FALSE;
+	analy->damage_hide   = FALSE;
+ 
+        strcpy( analy->curr_result, tokens[1] );
 
         if ( strcmp( tokens[1], "damage" ) == 0 )
         {
             if ( token_cnt != 6 )
             {
-                popup_dialog( USAGE_POPUP, "show damage vel_dir <vx,vy,vz>, vel_cutoff, relVol_cutoff, eps_cutoff ");
+                popup_dialog( USAGE_POPUP, "show damage <\"vx\" | \"vy\" | \"vz\"> <vel_cutoff> <relVol_cutoff> <eps_cutoff>");
                 valid_command = FALSE;
             }
             else
             {
                 if ( strncmp( tokens[2], "v", 1 ) != 0 )
                 {
-                    popup_dialog( USAGE_POPUP, "show damage vel_dir <vx,vy,vz>, vel_cutoff, relVol_cutoff, eps_cutoff ");
+                    popup_dialog( USAGE_POPUP, "show damage <\"vx\" | \"vy\" | \"vz\"> <vel_cutoff> <relVol_cutoff> <eps_cutoff>");
                     valid_command = FALSE;
                 }
                 else
@@ -1330,28 +1605,33 @@ parse_single_command( char *buf, Analysis *analy )
                     sscanf( tokens[3], "%f", analy->damage_params.cut_off );
                     sscanf( tokens[4], "%f", analy->damage_params.cut_off+1 );
                     sscanf( tokens[5], "%f", analy->damage_params.cut_off+2 );
-                    analy->result_mod = TRUE;
-		    if (  strncmp( tokens[1], "mat", 3 ) == 0 )
-		          analy->result_active = FALSE;
-
-                    if ( parse_show_command( tokens[1], analy ) )
-                        redraw = BINDING_MESH_VISUAL;
-                    else
-                        valid_command = FALSE;
+                    analy->result_mod    = TRUE;
+		    analy->damage_result = TRUE; 
+		    if ( parse_show_command( tokens[1], analy ) ) {
+		         parse_command( "delth damage", analy );
+			 redraw = BINDING_MESH_VISUAL;
+		    }
+                    else {   
+		         analy->damage_result = FALSE; 
+                         valid_command = FALSE;
+		    }
                 }
             }
         }
         else
         {
             analy->result_mod = TRUE;
-	    if ( !strcmp("show", tokens[0]) && strcmp("mat", tokens[1]) )
-		 strcpy( analy->ei_result_name,tokens[1] );
+	    if ( !strcmp("show", tokens[0]) && strcmp("mat", tokens[1]) ) {
+	         strcpy( analy->ei_result_name,tokens[1] );
+	    }
 
             if ( parse_show_command( tokens[1], analy ) )
                 redraw = BINDING_MESH_VISUAL;
             else
                 valid_command = FALSE;
         }
+        if ( valid_command ) 
+	     analy->extreme_result = FALSE;
     }
 
     /* Multi-commands like "show" should go here for faster parsing.
@@ -1369,26 +1649,50 @@ parse_single_command( char *buf, Analysis *analy )
 #ifdef TIME_GRIZ
         manage_timer( 8, 1 );
 #endif
+        if ( analy->p_histfile )
+	     fclose ( analy->p_histfile ); 
         quit( 0 );
     }
     else if ( strcmp( tokens[0], "help" ) == 0 || strcmp( tokens[0], "man" ) == 0 ||  strcmp( tokens[0], "grizman" ) == 0 ||
               strcmp( tokens[0], "?" ) == 0 )
     {
-         griz_home = getenv( "GRIZHOME" );
 	 if ( griz_home != NULL )
 	 {
-	      sprintf( acroread_cmd, "acroread %s/griz_manual.pdf &", griz_home );
-	      system( acroread_cmd );
+#ifdef MAC_OS
+	      sprintf( pdfreader_cmd, "open %s/griz_manual.pdf &", griz_home );
+	      status = system( pdfreader_cmd );
+#else
+	      status = system( "which xpdf" );
+	      if ( status == 0 ) {
+		   sprintf( pdfreader_cmd, "xpdf %s/griz_manual.pdf &", griz_home );
+		   status = system( pdfreader_cmd );
+	      }
+	      else {
+	          sprintf( pdfreader_cmd, "acroread %s/griz_manual.pdf &", griz_home );
+	          status = system( pdfreader_cmd );
+	      }
+#endif
 	 }
     }
     else if ( strcmp( tokens[0], "relnotes" ) == 0 || strcmp( tokens[0], "notes" ) == 0 ||  strcmp( tokens[0], "rn" ) == 0 ||
               strcmp( tokens[0], "rnotes" ) == 0 )
     {
-         griz_home = getenv( "GRIZHOME" );
 	 if ( griz_home != NULL )
 	 {
-	      sprintf( acroread_cmd, "acroread %s/griz_relnotes.pdf &", griz_home );
-	      system( acroread_cmd );
+#ifdef MAC_OS
+	      sprintf( pdfreader_cmd, "open %s/griz_relnotes.pdf &", griz_home );
+	      status = system( pdfreader_cmd );
+#else
+	      status = system( "which xpdf" );\
+	      if ( status == 0 ) {
+		   sprintf( pdfreader_cmd, "xpdf %s/griz_relnotes.pdf &", griz_home );
+		   status = system( pdfreader_cmd );
+	      }
+	      else {
+	      sprintf( pdfreader_cmd, "acroread %s/griz_relnotes.pdf &", griz_home );
+	      status = system( pdfreader_cmd );
+	      }
+#endif
 	 }
     }
      else if ( strcmp( tokens[0], "copyrt" ) == 0 )
@@ -1461,10 +1765,18 @@ parse_single_command( char *buf, Analysis *analy )
     }
     else if ( strcmp( tokens[0], "load" ) == 0 )
     {
-        if ( token_cnt > 1 )
-            if ( !load_analysis( tokens[1], analy ) )
-                return;
+      if ( token_cnt > 1 ) {
+	update_file_path( analy, tokens[1], filename_with_path );
+	if ( !load_analysis( filename_with_path, analy, FALSE ) )
+	     return;
+    }
         redraw = BINDING_MESH_VISUAL;
+    }
+    else if ( strcmp( tokens[0], "reload" ) == 0 )
+    {
+      if ( !load_analysis(  env.plotfile_name, analy, TRUE ) )
+	    return;
+      redraw = BINDING_MESH_VISUAL;
     }
     else if ( strcmp( tokens[0], "bufqty" ) == 0 )
     {
@@ -1552,6 +1864,28 @@ parse_single_command( char *buf, Analysis *analy )
 
         redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
     }
+    else if ( strcmp( tokens[0], "res" ) == 0 || 
+	      strcmp( tokens[0], "pres" ) == 0 || strcmp( tokens[0], "fres" ) == 0)
+    {
+	      analy->free_nodes_sphere_res_factor = atoi( tokens[1] );
+	      if (analy->free_nodes_sphere_res_factor<2)
+		  analy->free_nodes_sphere_res_factor = 2;
+	      redraw = BINDING_MESH_VISUAL;
+    }
+    else if ( strcmp( tokens[0], "pscale" ) == 0 || strcmp( tokens[0], "fscale" ) == 0 ||
+	      strcmp( tokens[0], "psize" )  == 0 || strcmp( tokens[0], "fsize" )  == 0)
+    {
+              analy->free_nodes_scale_factor = atof( tokens[1] );
+	      redraw = BINDING_MESH_VISUAL;
+    }
+    else if ( strcmp( tokens[0], "pcutwidth" ) == 0 || strcmp( tokens[0], "fcutwidth" ) == 0 ||
+	      strcmp( tokens[0], "pcutw" )     == 0 || strcmp( tokens[0], "fcutw" )     == 0)
+    {
+              analy->free_nodes_cut_width = atof( tokens[1] );
+	      reset_face_visibility( analy );
+	      redraw = NONBINDING_MESH_VISUAL;
+	      redraw = BINDING_MESH_VISUAL;
+    }
     else if ( strcmp( tokens[0], "on" ) == 0 ||
               strcmp( tokens[0], "off" ) == 0 )
     {
@@ -1562,31 +1896,42 @@ parse_single_command( char *buf, Analysis *analy )
 
         for ( i = 1; i < token_cnt; i++ )
         {
-            if ( strcmp( tokens[i], "box" ) == 0 )
-                analy->show_bbox = setval; 
+            if ( strcmp( tokens[i], "box" ) == 0 || strcmp( tokens[i], "bbox" ) == 0 )
+                 analy->show_bbox = setval; 
+            else if ( strcmp( tokens[i], "echocmd" ) == 0 )
+	              analy->echocmd = setval;
             else if ( strcmp( tokens[i], "coord" ) == 0 )
                 analy->show_coord = setval; 
             else if ( strcmp( tokens[i], "time" ) == 0 )
                 analy->show_time = setval;
-            else if ( strcmp( tokens[i], "title" ) == 0 )
-                analy->show_title = setval;
+            else if ( strcmp( tokens[i], "title" ) == 0 ) {
+                analy->show_title      = setval;
+                analy->show_title_path = setval;
+	    }
+            else if ( strcmp( tokens[i], "path" ) == 0 )
+                analy->show_title_path = setval;
             else if ( strcmp( tokens[i], "cmap" ) == 0 )
                 analy->show_colormap = setval;
             else if ( strcmp( tokens[i], "minmax" ) == 0 )
                 analy->show_minmax = setval;
-            else if ( strcmp( tokens[i], "scale" ) == 0 )
+            else if ( strcmp( tokens[i],  "scale" )    == 0 ||  
+		      strncmp( tokens[i], "dscal", 5 ) == 0 )
                 analy->show_scale = setval;
             else if ( strcmp( tokens[i], "date" ) == 0 )
                 analy->show_datetime = setval;
+            else if ( strcmp( tokens[i], "tinfo" ) == 0 )
+                analy->show_tinfo = setval;
             else if ( strcmp( tokens[i], "all" ) == 0 )
             {   
-                analy->show_coord     = setval;
-                analy->show_time      = setval;
-                analy->show_title     = setval;
-                analy->show_colormap  = setval;
-                analy->show_minmax    = setval;
-                analy->show_scale     = setval;
-                analy->show_datetime  = setval;
+                analy->show_coord      = setval;
+                analy->show_time       = setval;
+                analy->show_title      = setval;
+		analy->show_title_path = setval;
+		analy->show_colormap   = setval;
+                analy->show_minmax     = setval;
+                analy->show_scale      = setval;
+                analy->show_datetime   = setval;
+                analy->show_tinfo      = setval;
 		if ( !setval )
 		     parse_command( "off ei", analy ); /* On all should not enable ei mode */
            }
@@ -1594,23 +1939,21 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->show_colorscale = setval;
             else if ( strcmp( tokens[i], "edges" ) == 0 )
             {
-                if ( strcmp( tokens[0], "on" ) == 0
-                     && analy->state_p->sand_present )
-                    get_mesh_edges( analy->cur_mesh_id, analy );
-                analy->show_edges = setval;
+	      if ( strcmp( tokens[0], "on" ) == 0 )
+		     get_mesh_edges( analy->cur_mesh_id, analy );
+
+		analy->show_edges = setval;
                 if ( setval && MESH( analy ).edge_list == NULL )
                     popup_dialog( INFO_POPUP, 
                                   "Empty edge list; check mat visibility" );
                 update_util_panel( VIEW_EDGES, NULL );
             }
+            else if ( strcmp( tokens[i], "hideedges" ) == 0 )
+            {
+		analy->hide_edges_by_mat = setval;
+            }
             else if ( strcmp( tokens[i], "safe" ) == 0 )
                 analy->show_safe = setval;
-/*
-            else if ( strcmp( tokens[i], "ndnum" ) == 0 )
-                analy->show_node_nums = setval;
-            else if ( strcmp( tokens[i], "elnum" ) == 0 )
-                analy->show_elem_nums = setval;
-*/
             else if ( strcmp( tokens[i], "shrfac" ) == 0 )
                 analy->shared_faces = setval;
             else if ( strcmp( tokens[i], "rough" ) == 0 )
@@ -1621,19 +1964,27 @@ parse_single_command( char *buf, Analysis *analy )
             }
             else if ( strcmp( tokens[i], "cut" ) == 0 )
             {    
-                if ( cutting_plane_defined )
+                if ( cutting_plane_defined || analy->show_particle_cut )
                 {
                     analy->show_cut = setval;
-                    gen_cuts( analy );
+                    if ( setval) 
+		         gen_cuts( analy );
+
 #ifdef HAVE_VECTOR_CARPETS
                     gen_carpet_points( analy );
 #endif
                     check_visualizing( analy );
+
+		    analy->show_particle_cut = setval;
                 }
-                else
-                    popup_dialog( WARNING_POPUP,
-                                  "Cutting plane must be defined BEFORE display/removal of the cutting plane.\n"
-                                  "cutpln <pt x> <pt y> <pt z> <norm x> <norm y> <norm z>" );
+                else {
+		     if ( !cutting_plane_defined && setval )
+		          popup_dialog( WARNING_POPUP,
+					"Cutting plane must be defined BEFORE display/removal of the cutting plane.\n"
+					"cutpln <pt x> <pt y> <pt z> <norm x> <norm y> <norm z>" );
+		     analy->show_particle_cut = setval;
+		     renorm = TRUE;
+		}
             }   
             else if ( strcmp( tokens[i], "con" ) == 0 )
             {
@@ -1874,7 +2225,8 @@ parse_single_command( char *buf, Analysis *analy )
             }
             else if ( strcmp( tokens[i], "su" ) == 0 )
             {
-              suppress_display_updates( setval );
+	              env.curr_analy->suppress_updates = setval;
+                      suppress_display_updates( setval );
             }
             else if ( strcmp( tokens[i], "ei" ) == 0 )
             {
@@ -1917,12 +2269,9 @@ parse_single_command( char *buf, Analysis *analy )
 		      strcmp( tokens[i], "gs" ) == 0 )
             {
               analy->material_greyscale = setval;
-              if  ( setval )
-		    update_util_panel( VIEW_GS, NULL );
-	      else
-		    update_util_panel( VIEW_GS_NONE, NULL );
-             }
-             else if ( strcmp( tokens[i], "damage_hide" ) == 0 )
+              update_util_panel( VIEW_GS, NULL );
+	    }
+            else if ( strcmp( tokens[i], "damage_hide" ) == 0 )
             {
               analy->damage_hide       = setval;
               analy->reset_damage_hide = TRUE;
@@ -1932,22 +2281,26 @@ parse_single_command( char *buf, Analysis *analy )
               redraw = BINDING_MESH_VISUAL;
             }
            else if ( strcmp( tokens[i], "fn_output_mom" ) == 0 )
-            {
+           {
               analy->fn_output_momentum = setval;
-            }
-             else if ( strcmp( tokens[i], "free_nodes" ) == 0 ||  
-                      strcmp( tokens[i], "particle" )   == 0 ||
-                      strcmp( tokens[i], "particles" )  == 0 ||
-                      strcmp( tokens[i], "fn" )         == 0 ||
-                      strcmp( tokens[i], "pn" ) == 0)
+           }
+           else if ( strcmp( tokens[i], "free_nodes" ) == 0 ||  
+		     strcmp( tokens[i], "particle" )   == 0 ||
+		     strcmp( tokens[i], "particles" )  == 0 ||
+		     strcmp( tokens[i], "fn" )         == 0 ||
+		     strcmp( tokens[i], "pn" ) == 0)
             {
 
               if ( strcmp( tokens[i], "particle" )  == 0 ||
                    strcmp( tokens[i], "particles" ) == 0 ||
                    strcmp( tokens[i], "pn" ) == 0 )
-                 analy->free_particles = setval;
+                   analy->particle_nodes_enabled = setval;
               else
-                 analy->free_nodes     = setval;
+                   analy->free_nodes_enabled = setval;
+
+	      if ( !analy->particle_nodes_found ) {
+	           analy->particle_nodes_enabled = 0;     
+	      }
 
 
               analy->result_mod = FALSE; /* IRC: was TRUE */
@@ -2035,10 +2388,64 @@ parse_single_command( char *buf, Analysis *analy )
                       }
                   }
               }
-
+ 
               i = token_cnt;
             }
-              else
+	    else
+	    if (!strcmp( tokens[i], "pnhidebg") || !strcmp( tokens[i], "parthidebg") )
+            {
+	        analy->particle_nodes_hide_background = setval;
+	    }
+	    else
+	    if (!strcmp( tokens[i], "dialog"))
+            {
+	        env.show_dialog = setval;
+	    }
+	    /* Last On/Off switch test */
+	    else
+	    if (!strcmp( tokens[i], "showde"))
+            {
+	        analy->show_deleted_elements = setval;
+		change_state( analy );
+	    }
+	    else
+	    if (!strcmp( tokens[i], "showonlyde") || !strcmp( tokens[i], "showode"))
+            {
+	        analy->show_only_deleted_elements = setval;
+		change_state( analy );
+	    }
+	    else
+	    if (!strcmp( tokens[i], "showsphghost") || !strcmp( tokens[i], "showsphg"))
+            {
+	        analy->show_sph_ghost = setval;
+		change_state( analy );
+	    }
+	    else if (!strcmp( tokens[i], "master"))
+            {
+	        analy->show_master = setval;
+	    }
+	    else if (!strcmp( tokens[i], "slave"))
+            {
+	        analy->show_slave = setval;
+	    }
+	    else if (!strcmp( tokens[i], "selectonmat") || !strcmp( tokens[i], "som") )
+            {
+	        analy->selectonmat = setval;
+	    }
+	    else if (!strcmp( tokens[i], "thsinglecol") || !strcmp( tokens[i], "thsc") )
+            {
+	        analy->th_single_col = setval;
+	    }
+	    else if (!strcmp( tokens[i], "thappend") || !strcmp( tokens[i], "tha") )
+            {
+	        analy->th_append_output = setval;
+	    }
+	    else if (!strncmp( tokens[i], "volav", 5) || !strcmp( tokens[i], "volavg") )
+            {
+	        analy->vol_averaging = setval;
+		change_state( analy );
+	    }
+            else
                 popup_dialog( INFO_POPUP,
                               "On/Off command unrecognized: %s\n", tokens[i] );
         } 
@@ -2047,14 +2454,20 @@ parse_single_command( char *buf, Analysis *analy )
         if ( analy->result_mod )
         {
             if ( analy->render_mode == RENDER_MESH_VIEW )
-                load_result( analy, TRUE, TRUE );
+	         load_result( analy, TRUE, TRUE, FALSE );
             analy->display_mode_refresh( analy );
         }
         redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
-    }
+    } 
+    /*************************
+     * End of test for On/Off
+     *************************/
+
     else if ( strcmp( tokens[0], "switch" ) == 0 ||
               strcmp( tokens[0], "sw" ) == 0 )
     {
+        Bool_type redraw_mesh=TRUE;
+        analy->draw_wireframe = FALSE;
         for ( i = 1; i < token_cnt; i++ )
         {
             /* View type. */
@@ -2085,6 +2498,7 @@ parse_single_command( char *buf, Analysis *analy )
             else if ( strcmp( tokens[i], "wf" ) == 0 || 
 		      strcmp( tokens[i], "wireframe" ) == 0)
             {
+	        analy->draw_wireframe = TRUE;
                 analy->mesh_view_mode = RENDER_WIREFRAME;
                 update_util_panel( VIEW_WIREFRAME, NULL );
             }
@@ -2129,11 +2543,15 @@ parse_single_command( char *buf, Analysis *analy )
             {
                 analy->mouse_mode = MOUSE_SELECT;
                 update_util_panel( PICK_MODE_SELECT, NULL );
+		redraw_mesh = FALSE;
+		redraw = NO_VISUAL_CHANGE;
             }
             else if ( strcmp( tokens[i], "pichil" ) == 0 )
             {
                 analy->mouse_mode = MOUSE_HILITE;
-                update_util_panel( PICK_MODE_HILITE, NULL );
+                update_util_panel( PICK_MODE_HILITE, NULL ); 
+		redraw_mesh = FALSE;
+		redraw = NO_VISUAL_CHANGE;
             }
 
             /* Result min/max. */
@@ -2209,14 +2627,17 @@ parse_single_command( char *buf, Analysis *analy )
             }
             else if ( strcmp( tokens[i], "rloc" ) == 0 )
             {
-                old = analy->ref_frame;
-                analy->ref_frame = LOCAL;
+                old               = analy->ref_frame;
+                analy->ref_frame  = LOCAL;
                 analy->result_mod = analy->check_mod_required( analy, 
                                         REFERENCE_FRAME, old,
                                         analy->ref_frame );
                 if ( old != LOCAL )
                     /* LOCAL and analy->do_tensor_transform are exclusive */
                     analy->do_tensor_transform = FALSE;
+
+		change_state( analy );
+		redraw = BINDING_MESH_VISUAL;
             }
 
             /* Strain variety. */
@@ -2254,7 +2675,7 @@ parse_single_command( char *buf, Analysis *analy )
             {
                 old = analy->strain_variety;
                 analy->strain_variety = RATE;
-                analy->result_mod = analy->check_mod_required( analy, 
+                analy->result_mod = analy->check_mod_required( analy,
                                         STRAIN_TYPE, old,
                                         analy->strain_variety );
             }
@@ -2283,10 +2704,176 @@ parse_single_command( char *buf, Analysis *analy )
         if ( analy->result_mod )
         {
             if ( analy->render_mode == RENDER_MESH_VIEW )
-                load_result( analy, TRUE, TRUE );
+	         load_result( analy, TRUE, TRUE, FALSE );
             analy->display_mode_refresh( analy );
         }
-        redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
+        if ( redraw_mesh )
+	     redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
+    } /* end sw */
+    else if ( strcmp( tokens[0], "switches" ) == 0 || strcmp( tokens[0], "swes" ) == 0 )
+    {
+         Bool_type valid_command=TRUE, show_command=FALSE;
+	 char show_txt[256], temp_txt[256];
+         int es_id=0, es_index=0, es_intpoint=-1;
+	 int label_index=-1;
+	 char es_command[64]="";
+         int ref_surf_index=0;
+
+         if ( token_cnt >= 1 ) {
+	      es_id = atoi( tokens[i+1] );
+	      if ( es_id<1 || es_id>analy->es_cnt ) {
+	           popup_dialog( USAGE_POPUP, "switches - Element set id out of range." );
+		   valid_command = FALSE;
+	      }	
+	      else es_index = get_element_set_index( analy, es_id );
+	 }
+
+         if ( token_cnt >= 2 && valid_command ) {
+	      strcpy( es_command, tokens[i+2] );
+	      if ( strcmp( es_command, "inner" ) == 0 ) {
+		   ref_surf_index = 0;
+	      }
+	           else if ( strcmp( es_command, "middle" ) == 0 ) {  
+		        ref_surf_index = 1;
+		   } 
+		        else if ( strcmp( es_command, "outer" ) == 0 ) { 
+			     ref_surf_index = 2;
+			}
+		        else if ( strcmp( es_command, "show" ) == 0 ) { 
+			     show_command = TRUE;
+			     sprintf( show_txt, "\nElement Set %d: \n", es_id );
+			     sprintf( temp_txt, "\t\tInner Label:\t%d\n", 
+				      analy->es_intpoints[es_index].in_mid_out_set[0] ); 
+			     strcat( show_txt, temp_txt );
+			     if ( analy->es_intpoints[es_index].in_mid_out_set[1]>0 )
+			          sprintf( temp_txt, "\t\tMiddle Label:\t%d\n", 
+					   analy->es_intpoints[es_index].in_mid_out_set[1] );
+			     else
+			          sprintf( temp_txt, "\t\tMiddle Label:\tUndefined\n" );
+
+			     strcat( show_txt, temp_txt );
+			     sprintf( temp_txt, "\t\tOuter Label:\t%d", 
+				      analy->es_intpoints[es_index].in_mid_out_set[2] );
+			     strcat( show_txt, temp_txt );
+			     wrt_text( show_txt );
+			}
+			else {
+			     valid_command = FALSE;
+			     popup_dialog( USAGE_POPUP, "switches - Invalid keyword.\nExpecting [inner | middle | outer | show]" );
+			}
+	      
+	 }
+
+         if ( token_cnt >= 3 && valid_command ) {
+	      es_intpoint = atoi( tokens[i+3] );
+	      if ( es_intpoint>=1 || es_intpoint<=analy->es_intpoints[es_index].intpoints_total ) {
+	 	   label_index = get_intpoint_index ( es_intpoint, analy->es_intpoints[es_index].labels_cnt, 
+						      analy->es_intpoints[es_index].labels );
+		   if ( label_index<0 )
+		        valid_command = FALSE;
+	      }
+	      else valid_command = FALSE;
+	 }
+	 
+	 if ( valid_command && !show_command ) {
+	      if ( token_cnt >= 3 )
+	           analy->es_intpoints[es_index].in_mid_out_set[ref_surf_index] = es_intpoint;
+	      else
+		   analy->es_intpoints[es_index].in_mid_out_set[ref_surf_index] = 
+		     analy->es_intpoints[es_index].in_mid_out_default[ref_surf_index];
+	 }
+
+    }
+    else if ( strcmp( tokens[0], "setpath" ) == 0 )
+    {
+      if ( token_cnt == 1 ) /* Clear path 0 */
+      {
+	   if ( analy->paths[0] && analy->paths_set[0] )
+	   {
+	        free( analy->paths[0] );
+		analy->paths_set[0] = FALSE;
+	   }
+      }
+
+      if ( token_cnt == 2 ) /* Clear the specified path */
+      {
+  	   int path_id=1;
+	   path_id = atoi( tokens[i+1] );
+	   if ( path_id>0 && path_id<=MAX_PATHS ) {
+	        if ( analy->paths[path_id-1] && analy->paths_set[path_id-1] )
+		{
+		     free( analy->paths[path_id-1] );
+		     analy->paths_set[path_id-1] = FALSE;
+		}
+	   }
+		else {
+		     analy->paths[0] = strdup( tokens[1] );
+		     if ( analy->paths[0][strlen(analy->paths[0] )-1] == '/' )
+		          analy->paths[0][strlen(analy->paths[0] )-1] = '\0';
+		     analy->paths_set[0] = TRUE;
+		}
+      }
+
+      if ( token_cnt == 3 ) /* Set the specified path */
+      {
+  	   int path_id=1;
+	   path_id = atoi( tokens[1] );
+	   if ( path_id>0 && path_id<=MAX_PATHS )
+	        if ( analy->paths[path_id-1] && analy->paths_set[path_id-1] )
+		{
+		     free( analy->paths[path_id-1] );
+		}
+	        analy->paths[path_id-1] = strdup( tokens[2] );
+		if ( analy->paths[path_id-1][strlen(analy->paths[path_id-1] )-1] == '/' )
+		     analy->paths[path_id-1][strlen(analy->paths[path_id-1] )-1] = '\0';
+		analy->paths_set[path_id-1] = TRUE;
+      }
+     }
+     else if ( strcmp( tokens[0], "clrpath" ) == 0 )
+    {
+      if ( token_cnt == 2 )
+      {
+  	   int path_id=1;
+	   path_id = atoi( tokens[1] );  
+	   string_to_upper( tokens[1], tmp_token ); /* Make case insensitive */
+	   if ( !strcmp( "ALL", tmp_token) ) { /* Clear all path entries */
+	        for ( path_index=0;
+		      path_index<MAX_PATHS;
+		      path_index++ )
+		      if ( analy->paths[path_index] && analy->paths_set[path_index] )
+		      {
+			   free( analy->paths[path_index] );
+			   analy->paths_set[path_index] = FALSE;
+		      }
+	   }
+	   else {
+	        if ( path_id>0 && path_id<=MAX_PATHS ) /* Clear the specified path */
+		     if ( analy->paths[path_id-1] && analy->paths_set[path_id-1] )
+		     {
+		          free( analy->paths[path_id-1] );
+		          analy->paths_set[path_id-1] = FALSE;
+		     }
+	   }
+      }
+      else {
+	   if ( analy->paths[0] && analy->paths_set[0] )
+           {
+	        free( analy->paths[0] );
+	        analy->paths_set[0] = FALSE;
+           }	   
+      }
+    }
+     else if ( strcmp( tokens[0], "showpath" ) == 0 )
+    {
+      printf("\nPaths Set:\n");
+      for ( path_index=0;
+	    path_index<MAX_PATHS;
+	    path_index++ )
+	    if ( analy->paths[path_index] && analy->paths_set[path_index] )
+	         printf("\n(%d)\t\t%s", path_index+1, analy->paths[path_index] );
+	    else
+	         printf("\n(%d)\t\tNot Defined", path_index+1 );
+      printf("\n" );
     }
     else if ( strcmp( tokens[0], "setpick" ) == 0 )
     {
@@ -2320,10 +2907,11 @@ parse_single_command( char *buf, Analysis *analy )
             popup_dialog( USAGE_POPUP,
                           "setpick <button (ie,  1, 2, or 3)> <class name>" );
     }
-    else if ( strcmp( tokens[0], "fracsz" ) == 0 )
+    else if ( strcmp( tokens[0], "fracsz" ) == 0 || 
+	      strcmp( tokens[0], "fracsize" ) == 0 )
     {
         sscanf( tokens[1], "%d", &ival );
-        if ( ival >= 0 && ival <= 6 )
+        if ( ival >= 0 && ival <= 13 )
         {
             analy->float_frac_size = ival;
             redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
@@ -2340,7 +2928,15 @@ parse_single_command( char *buf, Analysis *analy )
         else
             popup_dialog( USAGE_POPUP, "hidwid <line width>" );
     }
-
+    else if ( strcmp( tokens[0], "dumpresult" ) == 0 ||
+	      strcmp( tokens[0], "dumpres" ) == 0 )
+    {
+        analy->dump_result = TRUE;
+        if ( token_cnt == 2 )
+	     dump_result( analy, tokens[1] ) ;
+	else
+	     dump_result( analy, NULL);
+    }
 
     /****************************************
      * VIS/INVIS
@@ -2364,11 +2960,12 @@ parse_single_command( char *buf, Analysis *analy )
  
 	mat_selected    = TRUE;
 	result_selected = FALSE;
+        p_class         = NULL;
+
 	qty        = MESH( analy ).material_qty;
 	p_uc       = MESH( analy ).hide_material;
 	mat_qty    = MESH( analy ).material_qty;
         p_hide_qty = &MESH( analy ).mat_hide_qty;
-        p_uc       = MESH( analy ).hide_material;
         p_elem     = NULL;
 
        /* Look for element selection keyword */
@@ -2396,10 +2993,36 @@ parse_single_command( char *buf, Analysis *analy )
             idx++;
         }
         
-        if ( strstr( "BRICK", tmp_token ) )
+        if( strcmp( tmp_token, "ELEM" ) == 0 )
+	{
+	    mat_selected = FALSE;
+	    string_to_upper( tokens[2], tmp_token ); /* Make case insensitive */
+	    strcpy( tmp_token, tokens[1] );
+	    idx++;
+        }
+
+	class_selected = FALSE;
+	if ( is_elem_class( analy, tokens[1] ) ) {
+	     p_class = NULL;
+             class_select_index = get_class_select_index( analy, tokens[1] );
+	     if ( class_select_index>=0 ) {
+	          p_class  =  MESH( analy ).by_class_select[class_select_index].p_class;
+	          elem_qty = MESH( analy ).by_class_select[class_select_index].p_class->qty;
+		  p_hide_elem_qty =  &MESH( analy ).by_class_select[class_select_index].hide_class_elem_qty;
+		  p_elem          = MESH( analy ).by_class_select[class_select_index].hide_class_elem;
+		  mat_selected = FALSE;
+	     }
+
+	     if ( p_class )
+	          class_selected = TRUE;
+	     idx++;
+	}
+
+        if ( !strcmp( "BRICK", tmp_token ) && !class_selected )
         {
 	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
-	     mat_selected    = FALSE; 
+	     mat_selected = FALSE;
+	     p_uc = MESH( analy ).hide_brick;
 
 	     if ( result_selected )
 	     {
@@ -2423,12 +3046,12 @@ parse_single_command( char *buf, Analysis *analy )
              idx++;
         }
 
-
-        if ( strstr( "SHELL", tmp_token ) )
+         if ( !strcmp( "SHELL", tmp_token ) && !class_selected )
         {
 	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
-  	     mat_selected = FALSE;
- 
+	     mat_selected = FALSE;
+	     p_uc = MESH( analy ).hide_shell;
+
 	     if ( result_selected )
 	     {
 	          MESH( analy ).hide_shell_by_result = TRUE;
@@ -2451,10 +3074,12 @@ parse_single_command( char *buf, Analysis *analy )
              idx++;
         }
 
-        if ( strstr( "TRUSS", tmp_token ) )
+        if ( !strcmp( "TRUSS", tmp_token ) && !class_selected )
         {
 	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
-	     mat_selected = FALSE; 
+	     mat_selected = FALSE;
+	     p_uc = MESH( analy ).hide_truss;
+
 	     if ( result_selected )
 	     {
 	          MESH( analy ).hide_truss_by_result = TRUE;
@@ -2477,10 +3102,12 @@ parse_single_command( char *buf, Analysis *analy )
              idx++;
         }
 
-        if ( strstr( "BEAM", tmp_token ) )
+        if ( !strcmp( "BEAM", tmp_token ) && !class_selected )
         {
 	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
-	     mat_selected = FALSE; 
+	     mat_selected = FALSE;
+	     p_uc = MESH( analy ).hide_beam;
+
 	     if ( result_selected )
 	     {
 	          MESH( analy ).hide_beam_by_result = TRUE;
@@ -2504,7 +3131,8 @@ parse_single_command( char *buf, Analysis *analy )
         }
 
 	/* Particle type objects */
-        if ( strstr( tmp_token, "PART" ) )
+        if ( !strcmp( tmp_token, "PART" ) || is_particle_class( analy, -1, tmp_token ) &&
+	     !class_selected )    
         {
 	     if ( result_selected )
 	     {
@@ -2516,17 +3144,27 @@ parse_single_command( char *buf, Analysis *analy )
 	     else
 	          MESH( analy ).hide_particle_by_result = FALSE;
 
-             p_uc         = MESH( analy ).hide_particle;
-             p_hide_qty   = &MESH( analy ).particle_hide_qty;
-
-	     elem_qty     = mat_qty;
-             idx++;
 	     mat_selected = FALSE;
+             p_uc        = MESH( analy ).hide_particle;
+             p_hide_qty  = &MESH( analy ).particle_hide_qty;
+	     p_elem      = NULL;
+
+	     if (!mat_selected && !result_selected)
+	     {
+	         MESH( analy ).hide_particle_by_mat    = FALSE;
+	         MESH( analy ).hide_particle_by_result = FALSE;
+		 
+		 /* Hide particles by elements */
+		 elem_qty        =  MESH( analy ).particle_qty;
+		 p_elem          =  MESH( analy ).hide_particle_elem;
+		 p_hide_elem_qty =  &MESH( analy ).hide_particle_elem_qty;
+	     }
+             idx++;
         } 
   
-        if ( !result_selected)
+        if ( !result_selected )
 	     process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-					 elem_qty, 
+					 elem_qty, p_class,
 					 p_elem, p_hide_qty, p_hide_elem_qty, 
 					 p_uc, 
 					 setval, vis_selected, mat_selected );
@@ -2534,8 +3172,35 @@ parse_single_command( char *buf, Analysis *analy )
 
         reset_face_visibility( analy );
         if ( analy->dimension == 3 ) renorm = TRUE;
+
+        if ( analy->hide_edges_by_mat )
+	     get_mesh_edges( analy->cur_mesh_id, analy );
+        if ( analy->show_cut || analy->show_roughcut )
+	     parse_command( "on cut", analy );
+
+        process_node_selection ( analy );
+
         analy->result_mod = TRUE;
         redraw = BINDING_MESH_VISUAL;
+
+#ifdef DEBUG_SELECT
+	printf("\n\n" );
+	for ( i=0;
+	      i<mat_qty;
+	      i++ )
+	  {
+	      printf(" \n Material - %d", i+1 );
+	      if ( MESH( analy ).brick_qty>0 )
+	           printf("\n\t[HIDE] Brick \tMat %d = %d", i+1, MESH( analy ).hide_brick[i] );  
+	      if ( MESH( analy ).shell_qty>0 )
+		   printf("\n\t[HIDE] Shell \tMat %d = %d", i+1, MESH( analy ).hide_shell[i] );  
+	      if ( MESH( analy ).beam_qty>0 )
+		   printf("\n\t[HIDE] Beam \tMat %d = %d", i+1, MESH( analy ).hide_beam[i] );  
+	      if ( MESH( analy ).hide_particle )
+		   printf("\n\t[HIDE] Particle \tMat %d = %d", i+1, MESH( analy ).hide_particle[i] );  
+	      printf("\n\t[HIDE] Mat %d = %d", i+1, MESH( analy ).hide_material[i] );  	  
+	  }
+#endif
     }
 
 
@@ -2561,11 +3226,12 @@ parse_single_command( char *buf, Analysis *analy )
 	idx        = 0;
 	mat_selected    = TRUE;
 	result_selected = FALSE;
+        p_class         = NULL;
+
 	qty        = MESH( analy ).material_qty;
 	p_uc       = MESH( analy ).disable_material;
 	mat_qty    = MESH( analy ).material_qty;
         p_hide_qty = &MESH( analy ).mat_disable_qty;
-        p_uc       = MESH( analy ).disable_material;
         p_elem     = NULL;
 
 	/* Look for element selection keyword */
@@ -2581,6 +3247,7 @@ parse_single_command( char *buf, Analysis *analy )
 	/* Result range selection */
         if( strcmp( tmp_token, "RESULT" ) == 0 )
         {
+	    mat_selected    = FALSE;
 	    result_selected = TRUE;
 	    string_to_upper( tokens[2], tmp_token ); /* Make case insensitive */
 	    idx++;
@@ -2593,18 +3260,37 @@ parse_single_command( char *buf, Analysis *analy )
             idx++;
         }
 
-        if ( strstr( "BRICK", tmp_token ) )
+	class_selected = FALSE;
+	if ( is_elem_class( analy, tokens[1] ) ) {
+	     p_class = NULL;
+             class_select_index = get_class_select_index( analy, tokens[1] );
+	     if ( class_select_index>=0 ) {
+	          p_class  =  MESH( analy ).by_class_select[class_select_index].p_class;
+	          elem_qty = MESH( analy ).by_class_select[class_select_index].p_class->qty;
+		  p_hide_elem_qty =  &MESH( analy ).by_class_select[class_select_index].hide_class_elem_qty;
+		  p_elem          = MESH( analy ).by_class_select[class_select_index].hide_class_elem;
+		  mat_selected = FALSE;
+	     }
+
+	     if ( p_class )
+	          class_selected = TRUE;
+	     idx++;
+	}
+
+        if ( !strcmp( "BRICK", tmp_token ) && !class_selected )
         {
 	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
- 
+	     mat_selected = FALSE;
+	     p_uc =  MESH( analy ).disable_brick;
+	     mat_selected = FALSE;
+
 	     if ( result_selected )
 	     {
 	          MESH( analy ).brick_result_min = atof( tokens[3] );
 	          MESH( analy ).brick_result_max = atof( tokens[4] );
 	          idx+=3;
 	     }
-
-	     if (!mat_selected && !result_selected)
+	     else
 	     {
 	         MESH( analy ).disable_brick_by_mat = FALSE;
 
@@ -2617,18 +3303,18 @@ parse_single_command( char *buf, Analysis *analy )
              idx++;
         }
 
-        if ( strstr( "SHELL", tmp_token ) )
+        if ( !strcmp( "SHELL", tmp_token ) && !class_selected )
         {
-	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
- 
+	     string_to_upper( tokens[2], tmp_token );  /* Make case insensitive */
+	     p_uc =  MESH( analy ).disable_shell;
+	     mat_selected = FALSE;
 	     if ( result_selected )
 	     {
 	          MESH( analy ).shell_result_min = atof( tokens[3] );
 	          MESH( analy ).shell_result_max = atof( tokens[4] );
 	          idx+=3;
 	     }
-
-	     if (!mat_selected && !result_selected)
+	     else
 	     {
 	         MESH( analy ).disable_shell_by_mat = FALSE;
 
@@ -2637,23 +3323,21 @@ parse_single_command( char *buf, Analysis *analy )
 		 p_elem             =  MESH( analy ).disable_shell_elem;
 		 p_disable_elem_qty =  &MESH( analy ).disable_shell_elem_qty;
 	     }
-
              idx++;
         }
 
-        if ( strstr( "TRUSS", tmp_token ) )
+        if ( !strcmp( "TRUSS", tmp_token ) && !class_selected )
         {
 	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
- 
+	     p_uc =  MESH( analy ).disable_truss;
+	     mat_selected = FALSE; 
 	     if ( result_selected )
 	     {
 	          MESH( analy ).truss_result_min = atof( tokens[3] );
 	          MESH( analy ).truss_result_max = atof( tokens[4] );
 	          idx+=3;
 	     }
-
-
-	     if (!mat_selected && !result_selected)
+	     else
 	     {
 	         MESH( analy ).disable_truss_by_mat=FALSE;
 
@@ -2666,19 +3350,18 @@ parse_single_command( char *buf, Analysis *analy )
              idx++;
         }
 
-        if ( strstr( "BEAM", tmp_token ) )
+        if ( !strcmp( "BEAM", tmp_token ) && !class_selected )
         {
 	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
- 
+	     p_uc =  MESH( analy ).disable_beam;
+	     mat_selected = FALSE; 
 	     if ( result_selected )
 	     {
 	          MESH( analy ).beam_result_min = atof( tokens[3] );
 	          MESH( analy ).beam_result_max = atof( tokens[4] );
 	          idx+=3;
 	     }
-
-
-	     if (!mat_selected && !result_selected)
+	     else
 	     {
 	         MESH( analy ).disable_beam_by_mat=FALSE;
 
@@ -2687,11 +3370,11 @@ parse_single_command( char *buf, Analysis *analy )
 		 p_elem             =  MESH( analy ).disable_beam_elem;
 		 p_disable_elem_qty =  &MESH( analy ).disable_beam_elem_qty;
 	     }
-
              idx++;
         }
 
-        if ( strstr( tmp_token, "PART" ) )
+        if ( !strcmp( tmp_token, "PART" )  || is_particle_class( analy, -1, tmp_token ) &&
+	     !class_selected )
         {
 	     if ( result_selected )
 	     {
@@ -2702,22 +3385,50 @@ parse_single_command( char *buf, Analysis *analy )
 
              p_uc       = MESH( analy ).disable_particle;
              p_hide_qty = &MESH( analy ).particle_disable_qty;
-
+ 
 	     elem_qty   = mat_qty;
              idx++;
 	     mat_selected = TRUE;
         } 
 
-        if ( !result_selected)
+        if ( !result_selected )
              process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-					 elem_qty, 
+					 elem_qty, p_class,
 					 p_elem, p_hide_qty, p_disable_elem_qty, 
 					 p_uc, 
 					 setval, enable_selected, mat_selected );
 	
-        analy->result_mod = TRUE;
-        load_result( analy, TRUE, TRUE );
+	/* if ( !strcmp( tokens[idx+1], "all" )) {
+	     disable_particles( analy, TRUE, setval, NULL ); 
+	     }  */
+
+        process_node_selection ( analy );
+
+        if ( analy->show_cut || analy->show_roughcut )
+	     parse_command( "on cut", analy );
+ 
+	analy->result_mod = TRUE;
+        load_result( analy, TRUE, TRUE, FALSE );
         redraw = BINDING_MESH_VISUAL;
+
+#ifdef DEBUG_SELECT
+	printf("\n\n" );
+	for ( i=0;
+	      i<mat_qty;
+	      i++ )
+	  {
+	      printf(" \n Material - %d", i );
+	      if ( MESH( analy ).brick_qty>0 )
+		   printf("\n\t[DISABLE] Brick Mat %d = %d", i, MESH( analy ).disable_brick[i] );  
+	      if ( MESH( analy ).shell_qty>0 )
+	           printf("\n\t[DISABLE] Shell Mat %d = %d", i, MESH( analy ).disable_shell[i] );  
+	      if ( MESH( analy ).beam_qty>0 )
+		   printf("\n\t[DISABLE] Beam Mat %d = %d", i, MESH( analy ).disable_beam[i] );  
+	      if ( MESH( analy ).disable_particle )
+		   printf("\n\t[DISABLE] Particle Mat %d = %d", i, MESH( analy ).disable_particle[i] );  
+	      printf("\n\t[DISABLE] Mat %d = %d", i, MESH( analy ).disable_material[i] );  	  
+	  }
+#endif
     }
 
 
@@ -2725,11 +3436,10 @@ parse_single_command( char *buf, Analysis *analy )
      * INCLUDE/EXCLUDE
      ****************************************
      */
-
-   else if ( strcmp( tokens[0], "exclude" ) == 0 ||
+   else if ( strcmp( tokens[0],  "exclude" ) == 0 ||
               strcmp( tokens[0], "include" ) == 0 )
     {
-        if ( strcmp( tokens[0], "exclude" ) == 0 )
+        if ( strcmp( tokens[0],  "exclude" ) == 0 )
         {
             setval           = TRUE;
             include_selected = FALSE;
@@ -2749,6 +3459,7 @@ parse_single_command( char *buf, Analysis *analy )
         p_uc2   = MESH( analy ).hide_material;
         p_elem  = NULL;
         p_elem2 = NULL;
+        p_class = NULL;
 
        /* Look for element selection keyword */
        string_to_upper( tokens[1], tmp_token ); /* Make case insensitive */
@@ -2763,6 +3474,7 @@ parse_single_command( char *buf, Analysis *analy )
 	/* Result range selection */
         if( strcmp( tmp_token, "RESULT" ) == 0 )
         {
+ 	    mat_selected    = FALSE;
 	    result_selected = TRUE;
 	    string_to_upper( tokens[2], tmp_token ); /* Make case insensitive */
 	    idx++;
@@ -2771,15 +3483,34 @@ parse_single_command( char *buf, Analysis *analy )
         if( strcmp( tokens[1], "SURF" ) == 0 )
         {
             mat_qty = MESH( analy ).surface_qty;
-            p_uc    = MESH( analy ).hide_surface;
-	    p_uc2   = MESH( analy ).disable_surface;
+            p_uc    = MESH( analy ).disable_surface;
+	    p_uc2   = MESH( analy ).hide_surface;
             idx++;
         }
 
-        if ( strstr( "BRICK", tmp_token ) )
+	class_selected = FALSE;
+	if ( is_elem_class( analy, tokens[1] ) ) {
+	     p_class = NULL;
+             class_select_index = get_class_select_index( analy, tokens[1] );
+	     if ( class_select_index>=0 ) {
+	          p_class  =  MESH( analy ).by_class_select[class_select_index].p_class;
+	          elem_qty = MESH( analy ).by_class_select[class_select_index].p_class->qty;
+		  p_hide_elem_qty =  &MESH( analy ).by_class_select[class_select_index].hide_class_elem_qty;
+		  p_elem          = MESH( analy ).by_class_select[class_select_index].hide_class_elem;
+		  mat_selected = FALSE;
+	     }
+
+	     if ( p_class )
+	          class_selected = TRUE;
+	     idx++;
+	}
+
+        if ( !strcmp( "BRICK", tmp_token ) || elem_sclass==M_HEX )
         {
-	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
- 
+	     string_to_upper( tokens[2], tmp_token );  /* Make case insensitive */
+	     p_uc  = MESH( analy ).disable_brick;
+             p_uc2 = MESH( analy ).hide_brick;
+	     mat_selected = FALSE;
 	     if ( result_selected )
 	     {
 	          MESH( analy ).hide_brick_by_result = TRUE;
@@ -2787,10 +3518,9 @@ parse_single_command( char *buf, Analysis *analy )
 	          MESH( analy ).brick_result_max = atof( tokens[4] );
 	          idx+=3;
 	     }
-
-	     if (!mat_selected && !result_selected)
+	     else
 	     {
-	         MESH( analy ).exclude_brick_by_mat  =FALSE;
+	         MESH( analy ).exclude_brick_by_mat = FALSE;
 	         MESH( analy ).hide_brick_by_result = FALSE;
 
 		 /* Exclude bricks by elements */
@@ -2799,15 +3529,17 @@ parse_single_command( char *buf, Analysis *analy )
 		 p_hide_elem_qty  =  &MESH( analy ).hide_brick_elem_qty;
 		 p_elem2          =  MESH( analy ).disable_brick_elem;
 		 p_hide_elem_qty2 =  &MESH( analy ).disable_brick_elem_qty;
-	     }
 
+	     }
              idx++;
         }
 
-        if ( strstr( "SHELL", tmp_token ) )
+        if ( !strcmp( "SHELL", tmp_token ) || elem_sclass==M_QUAD )
         {
 	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
- 
+	     p_uc  = MESH( analy ).disable_shell;
+             p_uc2 = MESH( analy ).hide_shell;
+	     mat_selected = FALSE;
 	     if ( result_selected )
 	     {
 	          MESH( analy ).hide_shell_by_result = TRUE;
@@ -2815,8 +3547,7 @@ parse_single_command( char *buf, Analysis *analy )
 	          MESH( analy ).shell_result_max = atof( tokens[4] );
 	          idx+=3;
 	     }
-
-	     if (!mat_selected && !result_selected)
+             else
 	     {
 	         MESH( analy ).exclude_shell_by_mat = FALSE;
 	         MESH( analy ).hide_shell_by_result = FALSE;
@@ -2828,14 +3559,15 @@ parse_single_command( char *buf, Analysis *analy )
 		 p_elem2          =  MESH( analy ).disable_shell_elem;
 		 p_hide_elem_qty2 =  &MESH( analy ).disable_shell_elem_qty;
 	     }
-
              idx++;
         }
 
-        if ( strstr( "TRUSS", tmp_token ) )
+        if ( !strcmp( "TRUSS", tmp_token ) || elem_sclass==M_TRUSS )
         {
 	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
- 
+	     p_uc  = MESH( analy ).disable_truss;
+             p_uc2 = MESH( analy ).hide_truss;
+	     mat_selected = FALSE;  
 	     if ( result_selected )
 	     {
 	          MESH( analy ).hide_truss_by_result = TRUE;
@@ -2843,8 +3575,7 @@ parse_single_command( char *buf, Analysis *analy )
 	          MESH( analy ).truss_result_max = atof( tokens[4] );
 	          idx+=3;
 	     }
-
-	     if (!mat_selected && !result_selected)
+	     else
 	     {
 	         MESH( analy ).exclude_truss_by_mat = FALSE;
 	         MESH( analy ).hide_truss_by_result = FALSE;
@@ -2860,10 +3591,12 @@ parse_single_command( char *buf, Analysis *analy )
              idx++;
         }
 
-        if ( strstr( "BEAM", tmp_token ) )
+        if ( !strcmp( "BEAM", tmp_token ) || elem_sclass==M_BEAM )
         {
-	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
- 
+	     string_to_upper( tokens[2], tmp_token ); /* Make case insensitive */
+	     p_uc  = MESH( analy ).disable_beam;
+             p_uc2 = MESH( analy ).hide_beam;
+	     mat_selected = FALSE;
 	     if ( result_selected )
 	     {
 	          MESH( analy ).hide_beam_by_result = TRUE;
@@ -2871,8 +3604,7 @@ parse_single_command( char *buf, Analysis *analy )
 	          MESH( analy ).beam_result_max = atof( tokens[4] );
 	          idx+=3;
 	     }
-
-	     if (!mat_selected && !result_selected)
+	     else
 	     {
 	         MESH( analy ).exclude_beam_by_mat = FALSE;
 	         MESH( analy ).hide_beam_by_result = FALSE;
@@ -2884,11 +3616,10 @@ parse_single_command( char *buf, Analysis *analy )
 		 p_elem2          =  MESH( analy ).disable_beam_elem;
 		 p_hide_elem_qty2 =  &MESH( analy ).disable_beam_elem_qty;
 	     }
-
              idx++;
         }
 
-        if ( strstr( tmp_token, "PART" ) )
+        if ( !strcmp( tmp_token, "PART" )  || is_particle_class( analy, -1, tmp_token ) )
         {
 	      if ( result_selected )
 	      {
@@ -2899,32 +3630,84 @@ parse_single_command( char *buf, Analysis *analy )
 	      }
 	      else MESH( analy ).hide_particle_by_result = FALSE;
 
-              p_uc  = MESH( analy ).hide_particle;
-              p_uc2 = MESH( analy ).disable_particle;
+              p_uc  = MESH( analy ).disable_particle;
+              p_uc2 = MESH( analy ).hide_particle;
+
 	      p_hide_qty = &MESH( analy ).particle_disable_qty;
 	      elem_qty   = mat_qty;
 	      idx++;
 	      mat_selected = TRUE;
         } 
 
-        if ( !result_selected)
+        if ( !result_selected ) {
 	     process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-					 elem_qty, 
+					 elem_qty, p_class,
 					 p_elem, p_hide_qty, p_hide_elem_qty, 
 					 p_uc, 
 					 setval, include_selected, mat_selected );
 
-        if ( !result_selected)
+	     if ( !mat_brick_selected ) {
+		  p_uc    = MESH( analy ).disable_particle;
+		  
+		  p_hide_qty = &MESH( analy ).particle_disable_qty;
+		  elem_qty   = mat_qty;
+		  process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+					      elem_qty, p_class,
+					      p_elem, p_hide_qty, p_hide_elem_qty, 
+					      p_uc, 
+					      setval, include_selected, mat_selected );
+	     }
+
 	     process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-					 elem_qty, 
-					 p_elem2, p_hide_qty, p_hide_elem_qty, 
+					 elem_qty, p_class,
+					 p_elem2, p_hide_qty, p_hide_elem_qty2, 
 					 p_uc2, 
 					 setval, include_selected, mat_selected );
 
+
+	     if ( !mat_brick_selected ) {
+		  p_uc2   = MESH( analy ).hide_particle;
+		  
+		  p_hide_qty = &MESH( analy ).particle_disable_qty;
+		  elem_qty   = mat_qty;
+		  process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+					      elem_qty, p_class,
+					      p_elem2, p_hide_qty, p_hide_elem_qty2, 
+					      p_uc2, 
+					 setval, include_selected, mat_selected );
+	     }
+
+	     /* p_uc = MESH( analy ).hide_material; 
+		dump_selection_buff( "HIDE-MAT", p_uc, mat_qty ); */
+	}
+
+        process_node_selection ( analy );
+        if ( analy->show_cut || analy->show_roughcut )
+	     parse_command( "on cut", analy );
+
+#ifdef DEBUG_SELECT
+	printf("\n\n" );
+	for ( i=0;
+	      i<mat_qty;
+	      i++ )
+	  {
+	      printf(" \n Material - %d", i );
+	      if ( MESH( analy ).brick_qty>0 )
+		   printf("\n\t[EXCLUDE] Brick Mat %d = %d/%d", i, MESH( analy ).hide_brick[i],       MESH( analy ).disable_brick[i] );  
+	      if ( MESH( analy ).shell_qty>0 )
+		   printf("\n\t[EXCLUDE] Shell Mat %d = %d/%d", i, MESH( analy ).hide_shell[i],       MESH( analy ).disable_shell[i] );  
+	      if ( MESH( analy ).beam_qty>0 )
+		   printf("\n\t[EXCLUDE] Beam Mat %d = %d/%d", i, MESH( analy ).hide_beam[i],         MESH( analy ).disable_beam[i]);  
+	      if ( MESH( analy ).hide_particle )
+		   printf("\n\t[EXCLUDE] Particle Mat %d = %d/%d", i, MESH( analy ).hide_particle[i], MESH( analy ).disable_particle[i] );  
+	    printf("\n\t[EXCLUDE] Mat %d = %d/%d", i, MESH( analy ).hide_material[i], MESH( analy ).disable_material[i] );  	  
+	  }
+#endif
         reset_face_visibility( analy );
         if ( analy->dimension == 3 ) renorm = TRUE;
         analy->result_mod = TRUE;
-        load_result( analy, TRUE, TRUE );
+        load_result( analy, TRUE, TRUE, TRUE );
+ 
         redraw = BINDING_MESH_VISUAL;
     }
     else if ( strcmp( tokens[0], "mtl" ) == 0 ||
@@ -3322,19 +4105,21 @@ parse_single_command( char *buf, Analysis *analy )
 	   strcpy(tmp_token, "delth ");
 	   strcat(tmp_token, analy->ei_result_name);
            parse_command( tmp_token, analy );
-      }
+      } 
 
-      if ( check_for_result( analy, TRUE ) || analy->ei_result )
-        {
+      if ( token_cnt>1 || check_for_result( analy, TRUE ) || analy->ei_result )
+      {
            create_plot_objects( token_cnt, tokens, analy, &analy->current_plots ); 
            redraw = BINDING_PLOT_VISUAL;
-        }
+      }
+      analy->th_plotting = TRUE;
     }
     else if ( strcmp( tokens[0], "oplot" ) == 0 )
     {
         create_oper_plot_objects( token_cnt, tokens, analy, 
                                   &analy->current_plots ); 
         redraw = BINDING_PLOT_VISUAL;
+	analy->th_plotting = TRUE;
     }
     else if ( strcmp( tokens[0], "timhis" ) == 0 )
     {
@@ -3512,7 +4297,7 @@ parse_single_command( char *buf, Analysis *analy )
             if ( analy->do_tensor_transform )
             {
                 analy->result_mod = TRUE;
-                load_result( analy, TRUE, TRUE );
+                load_result( analy, TRUE, TRUE, FALSE );
                 redraw = redraw_for_render_mode( FALSE, RENDER_MESH_VIEW, 
                                                  analy );
             }
@@ -3539,7 +4324,7 @@ parse_single_command( char *buf, Analysis *analy )
              && strcmp( analy->cur_result->name, "pvmag" ) == 0 )
         {
             analy->result_mod = TRUE;
-            load_result( analy, TRUE, TRUE );
+            load_result( analy, TRUE, TRUE, FALSE );
             redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
         }
     }
@@ -3575,7 +4360,7 @@ parse_single_command( char *buf, Analysis *analy )
              && strcmp( analy->cur_result->name, "pvmag" ) == 0 )
         {
             analy->result_mod = TRUE;
-            load_result( analy, TRUE, TRUE );
+            load_result( analy, TRUE, TRUE, FALSE );
             redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
         }
     }    
@@ -3613,7 +4398,7 @@ parse_single_command( char *buf, Analysis *analy )
              && strcmp( analy->cur_result->name, "pvmag" ) == 0 )
         {
             analy->result_mod = TRUE;
-            load_result( analy, TRUE, TRUE );
+            load_result( analy, TRUE, TRUE, FALSE );
             redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
         }
     }
@@ -3666,8 +4451,10 @@ parse_single_command( char *buf, Analysis *analy )
         }
 
         /* Any unspecified are set to zero. */
-        for ( ; j < analy->dimension; i++ )
-            analy->vector_result[j] = NULL;
+        for ( ; 
+	      j < analy->dimension; 
+	      j++ )
+              analy->vector_result[j] = NULL;
         
         found = intersect_srec_maps( &analy->vector_srec_map, 
                                      analy->vector_result, 3, analy );
@@ -3686,7 +4473,7 @@ parse_single_command( char *buf, Analysis *analy )
                  && strcmp( analy->cur_result->name, "pvmag" ) == 0 )
             {
                 analy->result_mod = TRUE;
-                load_result( analy, TRUE, TRUE );
+                load_result( analy, TRUE, TRUE, FALSE );
                 redraw = redraw_for_render_mode( FALSE, RENDER_ANY, 
                                                  analy );
             }
@@ -3928,6 +4715,19 @@ parse_single_command( char *buf, Analysis *analy )
                 redraw = BINDING_MESH_VISUAL;
         }
     }
+    else if ( strcmp( tokens[0], "ptdiam" ) == 0 )
+    {
+        val = atof( tokens[1] );
+        if ( val <= 0.0 )
+        {
+            popup_dialog( INFO_POPUP, "Point diameter must be greater than 0.0." );
+            valid_command = FALSE;
+        }
+        else
+        {
+            analy->point_diam = val;
+        }
+    }
     else if ( strcmp( tokens[0], "ptdis" ) == 0 )
     {
         if ( analy->trace_disable != NULL )
@@ -4078,7 +4878,7 @@ parse_single_command( char *buf, Analysis *analy )
             if ( analy->result_mod )
             {
                 if ( analy->render_mode == RENDER_MESH_VIEW )
-                    load_result( analy, TRUE, TRUE );
+		  load_result( analy, TRUE, TRUE, FALSE );
                 analy->display_mode_refresh( analy );
             }
         }
@@ -4133,7 +4933,7 @@ parse_single_command( char *buf, Analysis *analy )
                     popup_dialog( INFO_POPUP, "Already at state %d", i + 1 );
             }
         }
-        else if ( strcmp( tokens[0], "n" ) == 0 )
+        else if ( strcmp( tokens[0], "n" ) == 0 || strcmp( tokens[0], "next" ) == 0 )
         {
             if ( analy->cur_state < max_state )
                 analy->cur_state += 1;
@@ -4151,10 +4951,10 @@ parse_single_command( char *buf, Analysis *analy )
                 else
                     popup_dialog( INFO_POPUP, "Already at min state..." );
         }
-        else if ( strcmp( tokens[0], "f" ) == 0 )
-            analy->cur_state = min_state;
-        else if ( strcmp( tokens[0], "l" ) == 0 )
-            analy->cur_state = max_state;
+        else if ( strcmp( tokens[0], "f" ) == 0 || strcmp( tokens[0], "first" ) == 0)
+                  analy->cur_state = min_state;
+        else if ( strcmp( tokens[0], "l" ) == 0 || strcmp( tokens[0], "last" ) == 0 )
+                  analy->cur_state = max_state;
  
         change_state( analy );
         redraw = BINDING_MESH_VISUAL;
@@ -4190,6 +4990,15 @@ parse_single_command( char *buf, Analysis *analy )
     }
     else if ( strcmp( tokens[0], "anim" ) == 0 )
     {
+        env.animate_active   = TRUE;
+        env.animate_reverse  = FALSE;
+        redraw = BINDING_MESH_VISUAL;
+        parse_animate_command( token_cnt, tokens, analy );
+    }
+    else if ( strcmp( tokens[0], "animr" ) == 0 )
+    {
+        env.animate_active   = TRUE;
+        env.animate_reverse  = TRUE;
         redraw = BINDING_MESH_VISUAL;
         parse_animate_command( token_cnt, tokens, analy );
     }
@@ -4198,11 +5007,12 @@ parse_single_command( char *buf, Analysis *analy )
         redraw = BINDING_MESH_VISUAL;
         continue_animate( analy );
     }
-    else if ( strcmp( tokens[0], "stopan" ) == 0 )
+    else if ( strcmp( tokens[0], "stopan" ) == 0 || strcmp( tokens[0], "stopanim" ) == 0 
+	      || strcmp( tokens[0], "stop" ) == 0 )
     {
         end_animate_workproc( TRUE );
     }
-    else if ( strcmp( tokens[0], "cutpln" ) == 0 )
+    else if ( strcmp( tokens[0], "cutpln" ) == 0 || strcmp( tokens[0], "cutrpln" ) == 0 )
     {   
         if ( token_cnt < 7 )
             popup_dialog( USAGE_POPUP, 
@@ -4215,8 +5025,19 @@ parse_single_command( char *buf, Analysis *analy )
             plane = NEW( Plane_obj, "Cutting plane" );
             for ( i = 0; i < 3; i++ )
                 sscanf( tokens[i+1], "%f", &(plane->pt[i]) );
+
+	    /* Cut reative plane - uses relative coords */
+	    if ( strcmp( tokens[0], "cutrpln" ) == 0 )
+	    {
+	         get_extents( analy, TRUE, TRUE, vert_low, vert_hi );
+		 for ( i = 0; i < 3; i++ ) {
+		       sscanf( tokens[i+1], "%f", &(rel_pos[i]) );
+		       plane->pt[i] = vert_low[i] + (rel_pos[i] * (vert_hi[i] - vert_low[i]));
+		 }
+	    }
             for ( i = 0; i < 3; i++ )
                 sscanf( tokens[i+4], "%f", &(plane->norm[i]) );
+
             vec_norm( plane->norm );
             APPEND( plane, analy->cut_planes );
 
@@ -4238,9 +5059,10 @@ parse_single_command( char *buf, Analysis *analy )
     else if ( strcmp( tokens[0], "clrcut" ) == 0 )
     {
         DELETE_LIST( analy->cut_planes );
-        if ( analy->show_roughcut )
+        if ( analy->show_roughcut || analy->show_particle_cut )
         {
             reset_face_visibility( analy );
+	    analy->show_particle_cut = FALSE; 
             renorm = TRUE;
         }
 
@@ -4252,9 +5074,10 @@ parse_single_command( char *buf, Analysis *analy )
         DELETE_LIST( analy->cut_poly_lists );
         
         if ( analy->show_cut || analy->show_roughcut )
-            redraw = BINDING_MESH_VISUAL;
+             redraw = BINDING_MESH_VISUAL;
 
         cutting_plane_defined = FALSE;
+	process_node_selection ( analy );
     }
     else if ( strcmp( tokens[0], "ison" ) == 0 )
     {
@@ -4408,8 +5231,7 @@ parse_single_command( char *buf, Analysis *analy )
     {
         if ( token_cnt > 1 )
 	{
-	    /* Hide all other Griz windows */
-            pushpop_window( PUSHPOP_BELOW );
+            pushpop_window( PUSHPOP_ABOVE );
             screen_to_rgb( tokens[1], FALSE );
         } 
         else
@@ -4419,8 +5241,7 @@ parse_single_command( char *buf, Analysis *analy )
     {
         if ( token_cnt > 1 )
 	{
-	    /* Hide all other Griz windows */
-            pushpop_window( PUSHPOP_BELOW );
+            pushpop_window( PUSHPOP_ABOVE);
             screen_to_rgb( tokens[1], TRUE );
 	}
         else
@@ -4430,8 +5251,7 @@ parse_single_command( char *buf, Analysis *analy )
     {
         if ( token_cnt > 1 )
 	{
-	    /* Hide all other Griz windows */
-            pushpop_window( PUSHPOP_BELOW );
+            pushpop_window( PUSHPOP_ABOVE );
             screen_to_ps( tokens[1] );
         }
         else
@@ -4598,13 +5418,15 @@ parse_single_command( char *buf, Analysis *analy )
         close_history_file();
     }
     else if ( strcmp( tokens[0], "rdhis" ) == 0 ||
-              strcmp( tokens[0], "h" ) == 0 )
+	      strcmp( tokens[0], "rdhist" ) == 0 ||
+	      strcmp( tokens[0], "h" ) == 0 ||
+              strcmp( tokens[0], "hinclude" ) == 0 )
     {
         if ( token_cnt > 1 )
 	{
 	  strcpy( analy->hist_filename, tokens[1] );
 	  analy->hist_line_cnt = 0;
-	  read_history_file( tokens[1], 1, analy );
+	  read_history_file( tokens[1], 1, 1, analy );
 	}
         else
             popup_dialog( USAGE_POPUP, "%s\nOR\n%s", "rdhis <filename>",
@@ -4617,10 +5439,17 @@ parse_single_command( char *buf, Analysis *analy )
         else
             popup_dialog( USAGE_POPUP, "savhislog <filename>" );
 
+        history_log_clear( );
+
         /* Don't want to save _this_ command. */
         valid_command = FALSE;
     }
-     else if ( strcmp( tokens[0], "loop" ) == 0 )
+    else if ( strcmp( tokens[0], "clrhislog" ) == 0 )
+    {
+        history_log_clear( );
+        valid_command = FALSE;
+    }
+    else if ( strcmp( tokens[0], "loop" ) == 0 )
     {
 #ifdef SERIAL_BATCH
         /*
@@ -4630,15 +5459,19 @@ parse_single_command( char *buf, Analysis *analy )
 
         popup_dialog( INFO_POPUP, "Command loop is disabled for batch execution." );
 #else
+	loop_count = 1;
+	if  ( token_cnt==3 )
+	      loop_count = atoi(tokens[2]);
         if ( token_cnt > 1 )
         {
-	     while ( read_history_file( tokens[1], 1, analy ) );
+	     status = read_history_file( tokens[1], 1, loop_count, analy );
         }
         else
             popup_dialog( USAGE_POPUP, "loop <filename>" );
 #endif /* SERIAL_BATCH */
     }
-    else if ( strcmp( tokens[0], "getedg" ) == 0 )
+    else if ( strcmp( tokens[0], "getedg" ) == 0 || 
+	      strncmp( tokens[0], "getedge", 7 ) == 0 )
     {
         get_mesh_edges( analy->cur_mesh_id, analy );
         redraw = BINDING_MESH_VISUAL;
@@ -4705,7 +5538,10 @@ parse_single_command( char *buf, Analysis *analy )
         analy->mm_result_set[1] = TRUE;
         set_cutoff_colors( TRUE, 
                            analy->mm_result_set[0], analy->mm_result_set[1] );
-        redraw = BINDING_MESH_VISUAL;
+       if ( analy->th_plotting )
+	    redraw = BINDING_PLOT_VISUAL;
+       else
+            redraw = BINDING_MESH_VISUAL;
     }
     else if ( strcmp( tokens[0], "rmin" ) == 0 )
     {
@@ -4722,7 +5558,52 @@ parse_single_command( char *buf, Analysis *analy )
         analy->mm_result_set[0] = TRUE;
         set_cutoff_colors( TRUE, 
                            analy->mm_result_set[0], analy->mm_result_set[1] );
-        redraw = BINDING_MESH_VISUAL;
+
+       if ( analy->th_plotting )
+	    redraw = BINDING_PLOT_VISUAL;
+       else
+            redraw = BINDING_MESH_VISUAL;
+    }
+    else if ( strcmp( tokens[0], "tmin" ) == 0 || 
+	      strcmp( tokens[0], "mint" ) == 0 ) /* Time Min - used for TH Plots */
+    {
+        sscanf( tokens[1], "%f", &analy->time_mm[0] );
+        analy->mm_time_set[0] = TRUE;
+
+	redraw = redraw_for_render_mode( FALSE, RENDER_ANY, 
+					 analy );
+    }
+    else if ( strcmp( tokens[0], "tmax" ) == 0 || 
+	      strcmp( tokens[0], "maxt" ) == 0 ) /* Time Max - used for TH Plots */
+    {
+        sscanf( tokens[1], "%f", &analy->time_mm[1] );
+        analy->mm_time_set[1] = TRUE;
+
+#ifdef TMAX
+	int i=0;
+	int state_num=1, qty_states=1;
+	Int_2tuple st_nums;
+	float *times;
+        st_nums[0] = 1;
+        st_nums[1] = analy->last_state + 1;
+	qty_states = st_nums[1] - st_nums[0] + 1;
+	times = NEW_N( float, qty_states, "Time series time array" );
+        analy->db_query( analy->db_ident, QRY_SERIES_TIMES, (void *) st_nums, NULL, 
+                     (void *) times );
+	for( i=0; 
+	     i<qty_states;
+	     i++ ) {
+	     if ( analy->time_mm[1]== times[i] ) {
+	          char cmd[64];
+	          state_num = i+1;
+		  sprintf( cmd, "maxst %d", state_num );
+	          parse_command( cmd, analy);
+		  break;
+	    }
+	}
+#endif	       
+  	redraw = redraw_for_render_mode( FALSE, RENDER_ANY, 
+					 analy );
     }
     else if ( strcmp( tokens[0], "clrthr" ) == 0 )
     {
@@ -4731,6 +5612,17 @@ parse_single_command( char *buf, Analysis *analy )
         analy->zero_result = 0.0;
         analy->mm_result_set[0] = FALSE;
         analy->mm_result_set[1] = FALSE;
+
+	if ( analy->mm_time_set[0] )
+	     parse_command( "minst 1", analy);
+	if ( analy->mm_time_set[1] ) {
+	     char cmd[64];
+	     sprintf( cmd, "maxst %d", analy->last_state + 1 );
+	     parse_command( cmd, analy);
+	}
+
+        analy->mm_time_set[0]   = FALSE;
+        analy->mm_time_set[1]   = FALSE;
         if ( analy->use_global_mm )
         {
             analy->result_mm[0] = analy->global_mm[0];
@@ -4741,14 +5633,18 @@ parse_single_command( char *buf, Analysis *analy )
             analy->result_mm[0] = analy->state_mm[0];
             analy->result_mm[1] = analy->state_mm[1];
         }
-        redraw = BINDING_MESH_VISUAL;
+        if ( analy->th_plotting )
+	     redraw = BINDING_PLOT_VISUAL;
+        else
+             redraw = BINDING_MESH_VISUAL;
     }
     else if ( strcmp( tokens[0], "globmm" ) == 0 )
     {
         get_global_minmax( analy );
         redraw = BINDING_MESH_VISUAL;
     }
-    else if ( strcmp( tokens[0], "extreme_min" ) == 0 )
+    else if ( strcmp( tokens[0], "extreme_min" ) == 0 || 
+	      strcmp( tokens[0], "exmin" ) == 0 )
     {
         view_state = 0;
         if ( token_cnt > 1 )
@@ -4761,8 +5657,11 @@ parse_single_command( char *buf, Analysis *analy )
         reset_face_visibility( analy );
         if ( analy->dimension == 3 ) renorm = TRUE;
         redraw = BINDING_MESH_VISUAL;
+        analy->extreme_min = TRUE;
+        analy->extreme_max = FALSE;
     }
-    else if ( strcmp( tokens[0], "extreme_max" ) == 0 )
+    else if ( strcmp( tokens[0], "extreme_max" ) == 0 ||
+	      strcmp( tokens[0], "exmax" ) == 0 )
     {
         view_state = 0;
         if ( token_cnt > 1 )
@@ -4775,12 +5674,14 @@ parse_single_command( char *buf, Analysis *analy )
         reset_face_visibility( analy );
         if ( analy->dimension == 3 ) renorm = TRUE;
         redraw = BINDING_MESH_VISUAL;
+        analy->extreme_min = FALSE;
+        analy->extreme_max = TRUE;
     }
     else if ( strcmp( tokens[0], "resetmm" ) == 0 )
     {
         redraw = reset_global_minmax( analy );
-        if ( redraw != NO_VISUAL_CHANGE )
-             load_result( analy, TRUE, TRUE );
+        if ( redraw != NO_VISUAL_CHANGE && analy->extreme_result == FALSE )
+	     load_result( analy, TRUE, TRUE, FALSE );
     }
     else if ( strcmp( tokens[0], "tellmm" ) == 0 )
     {
@@ -4888,6 +5789,10 @@ parse_single_command( char *buf, Analysis *analy )
         else
             redraw = parse_outmm_command( analy, tokens, token_cnt );    
     }
+    else if ( strcmp( tokens[0], "break" ) == 0 )
+    {
+              analy->hist_paused = TRUE;
+    }
     else if ( strcmp( tokens[0], "pause" ) == 0 )
     {
 
@@ -4925,8 +5830,15 @@ parse_single_command( char *buf, Analysis *analy )
 	      strcmp( tokens[0], "resume" ) == 0 )
     {
       if ( analy->hist_line_cnt>1 && env.history_input_active )
-	   read_history_file( analy->hist_filename, analy->hist_line_cnt, analy );
+	   read_history_file( analy->hist_filename, analy->hist_line_cnt, 1, analy );
+
       analy->hist_paused = FALSE;    
+      
+      if ( env.animate_active )
+      {
+           redraw = BINDING_MESH_VISUAL;
+           continue_animate( analy );
+      }
     }
     else if ( strcmp( tokens[0], "light" ) == 0 )
     {
@@ -4964,11 +5876,19 @@ parse_single_command( char *buf, Analysis *analy )
     }
     else if ( strcmp( tokens[0], "mat" ) == 0 )
     {
-        redraw = set_material( token_cnt, tokens, analy->max_mesh_mat_qty );
+         redraw = set_material( token_cnt, tokens, analy->max_mesh_mat_qty );
     }
     else if ( strcmp( tokens[0], "alias" ) == 0 )
     {
-        create_alias( token_cnt, tokens );
+         create_alias( token_cnt, tokens );
+    }
+    else if ( strcmp( tokens[0], "unalias" ) == 0 )
+    {
+         delete_alias( token_cnt, tokens );
+    }
+    else if ( strcmp( tokens[0], "listalias" ) == 0 )
+    {
+         list_alias( token_cnt, tokens );
     }
 /*
     else if ( strcmp( tokens[0], "resttl" ) == 0 )
@@ -4994,8 +5914,20 @@ parse_single_command( char *buf, Analysis *analy )
         if ( analy->show_title )
             redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
     }
-    else if ( strcmp( tokens[0], "echo" ) == 0 )
-        wrt_text( "%s\n\n", tokens[1] );
+    else if ( strcmp( tokens[0], "echo" ) == 0 ) {
+         char echo_buf[521];
+	 int k=0;
+	 strcpy( echo_buf, tokens[1] );
+	 if ( token_cnt>2 ) {
+	      for ( k=2;
+	   	    k<token_cnt;
+		    k++ ) {
+		    strcat( echo_buf, " " );
+		    strcat( echo_buf, tokens[k] );
+	      }
+	 }
+	 wrt_text( "%s\n\n", echo_buf );
+    }
     else if ( strcmp( tokens[0], "vidti" ) == 0 )
     {
         sscanf( tokens[1], "%d", &ival );
@@ -5005,7 +5937,8 @@ parse_single_command( char *buf, Analysis *analy )
     {
         draw_vid_title();
     }
-    else if ( strcmp( tokens[0], "dscal" ) == 0 )
+    else if ( strcmp( tokens[0], "dscal" ) == 0 ||
+	      strcmp( tokens[0], "dscale" ) == 0 )
     {
         analy->displace_exag = TRUE;
         sscanf( tokens[1], "%f", &val );
@@ -5119,8 +6052,6 @@ parse_single_command( char *buf, Analysis *analy )
     {
         if ( token_cnt > 1 )
         {
-	    /* Hide all other Griz windows */
-            pushpop_window( PUSHPOP_BELOW );
 
             write_hid_file( tokens[1], analy );
 
@@ -5136,12 +6067,39 @@ parse_single_command( char *buf, Analysis *analy )
         else
             popup_dialog( USAGE_POPUP, "outhid <filename>" );
     }
+    else if ( strcmp( tokens[0], "outgeom" ) == 0 )
+    {
+        if ( token_cnt > 1 )
+        {
+
+	    write_geom_file( tokens[1], analy, FALSE );
+
+            popup_dialog( INFO_POPUP,
+			  "Generating mesh geometry output in file %s",
+			  tokens[1] );
+        }
+        else
+            popup_dialog( USAGE_POPUP, "outgeom <filename>" );
+    }
+    else if ( strcmp( tokens[0], "outsgeom" ) == 0 )
+    {
+        if ( token_cnt > 1 )
+        {
+
+	    write_geom_file( tokens[1], analy, TRUE );
+
+            popup_dialog( INFO_POPUP,
+			  "Generating mesh surface geometry output in file %s",
+			  tokens[1] );
+        }
+        else
+            popup_dialog( USAGE_POPUP, "outgeom <filename>" );
+    }
+
 #ifdef PNG_SUPPORT
     else if ( strcmp( tokens[0], "outpng" ) == 0 )
     {
-        /* Hide all other Griz windows */
-        pushpop_window( PUSHPOP_BELOW );
-
+        pushpop_window( PUSHPOP_ABOVE );
         if ( token_cnt > 1 )
             write_PNG_file( tokens[1], FALSE );
         else
@@ -5164,8 +6122,7 @@ parse_single_command( char *buf, Analysis *analy )
     else if ( strcmp( tokens[0], "outjpeg" ) == 0 || 
               strcmp( tokens[0], "outjpg"  ) == 0)
     {
-        /* Hide all other Griz windows */
-        pushpop_window( PUSHPOP_BELOW );
+        pushpop_window( PUSHPOP_ABOVE );
         if ( token_cnt > 1 )
             write_JPEG_file( tokens[1], FALSE, jpeg_quality );
         else
@@ -5174,13 +6131,6 @@ parse_single_command( char *buf, Analysis *analy )
     else if ( strcmp( tokens[0], "jpegqual" ) == 0 ||
               strcmp( tokens[0], "jpgqual" ) == 0 )
     {
-	  /* Hide all other Griz windows */
-	  pushpop_window( PUSHPOP_BELOW );
-	  if ( token_cnt > 1 )
-               write_JPEG_file( tokens[1], FALSE, jpeg_quality );
-	  else
-               popup_dialog( USAGE_POPUP, "outjpeg <filename>" );
-
         if ( token_cnt > 1 )
 	  jpeg_quality = strtod( tokens[1], (char **)NULL );
         else
@@ -5372,7 +6322,7 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->result_mod = TRUE;
                 redraw = reset_global_minmax( analy );
                 if ( redraw != NO_VISUAL_CHANGE )
-                    load_result( analy, TRUE, TRUE );
+		  load_result( analy, TRUE, TRUE, FALSE );
             }
         }
         else
@@ -5455,7 +6405,10 @@ parse_single_command( char *buf, Analysis *analy )
     if ( renorm )
         compute_normals( analy );
 
-    switch ( redraw )
+    if ( redraw!=BINDING_PLOT_VISUAL )
+         analy->th_plotting = FALSE;
+
+   switch ( redraw )
     {
         case BINDING_MESH_VISUAL:
             if ( analy->render_mode != RENDER_MESH_VIEW )
@@ -5854,7 +6807,6 @@ parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int cnt,
                 }
             }
 
-        
             if ( reading_materials )
             {
                 /* mtl = (atoi ( tokens[i] ) - 1) % MAX_MATERIALS; */
@@ -5935,6 +6887,21 @@ parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int cnt,
                 update_previous_prop( SHININESS, reading_cprop, &props );
                 reading_cprop[SHININESS] = TRUE;
             }
+            else if ( strcmp( tokens[i], "gslevel" ) == 0 ||
+		      strcmp( tokens[i], "gs" ) == 0 )
+            {
+	          i++;
+		  for ( k = 0; 
+			k < props.mtl_cnt; 
+			k++ )
+		  {
+		        mtl = props.materials[k];
+	                v_win->mesh_materials.gslevel[mtl] = (GLfloat) atof( tokens[i] );
+		  }
+            }
+	    else 
+	        popup_dialog( WARNING_POPUP, "Bad Mtl Mgr parse. Color Property Must = [amb | diff | spec || emis | shine]" );
+
         }
         else if ( strcmp( tokens[i], "vis" ) == 0 )
             visible = TRUE;
@@ -6016,7 +6983,7 @@ parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int cnt,
                         disable_mtl[props.materials[k]] = (unsigned char) disable;
 
                 analy->result_mod = TRUE;
-                load_result( analy, TRUE, TRUE );
+                load_result( analy, TRUE, TRUE, FALSE );
                 enable = FALSE;
                 disable = FALSE;
             }
@@ -6054,7 +7021,7 @@ parse_mtl_range( char *token, int qty, int *mat_min, int *mat_max )
 
     if ( strcmp(temp_token , "ALL" ) == 0 )
     {
-         *mat_min = 0;
+         *mat_min = 1;
 	 *mat_max = qty;
 	 return;	
     }
@@ -6238,7 +7205,7 @@ parse_embedded_surf_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int cnt,
                     disable_surf[props.surfaces[k]] = (unsigned char) disable;
 
             analy->result_mod = TRUE;
-            load_result( analy, TRUE, TRUE );
+            load_result( analy, TRUE, TRUE, FALSE );
             enable = FALSE;
             disable = FALSE;
         }
@@ -6315,6 +7282,7 @@ update_previous_prop( Material_property_type cur_property,
     props->color_props[0] = 0.0;
     props->color_props[1] = 0.0;
     props->color_props[2] = 0.0;
+    props->gslevel        = 0.0;
 }
 
  
@@ -6432,7 +7400,6 @@ parse_vcent( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
              int token_cnt, Redraw_mode_type *p_redraw )
 {
     int ival;
-
     if ( token_cnt > 1 && strcmp( tokens[1], "off" ) == 0 )
     {
         analy->center_view = NO_CENTER;
@@ -6498,12 +7465,12 @@ check_visualizing( Analysis *analy )
          analy->show_vectors )
 /*         analy->show_vectors || analy->show_carpet ) */
     {
-        analy->show_edges = TRUE;
+        analy->show_edges_vec = TRUE;
         analy->mesh_view_mode = RENDER_NONE;
     }
     else
     {
-        analy->show_edges = FALSE;
+        analy->show_edges_vec = FALSE;
         analy->mesh_view_mode = RENDER_FILLED;
         update_util_panel( VIEW_SOLID, NULL );
     }
@@ -6550,28 +7517,146 @@ create_alias( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH] )
     Alias_obj *alias;
     int i;
 
+    if ( token_cnt <3 )
+         return;
+
     /* See if this alias is already being used. */
     for ( alias = alias_list; alias != NULL; alias = alias->next )
     {
         if ( strcmp( tokens[1], alias->alias_str ) == 0 )
         {
-            for ( i = 2; i < token_cnt; i++ )
-                strcpy( alias->tokens[i-2], tokens[i] );
-            alias->token_cnt = token_cnt - 2;
-            return;
+	     for ( i = 2; 
+		   i < token_cnt; 
+		   i++ ) {
+	           strcpy( alias->tokens[i-2], tokens[i] );
+	  }
+          alias->token_cnt = token_cnt - 2;
+	  return;
         }
     }
 
     alias = NEW( Alias_obj, "Command alias" );
 
     strcpy( alias->alias_str, tokens[1] );
-    for ( i = 2; i < token_cnt; i++ )
-        strcpy( alias->tokens[i-2], tokens[i] );
+
+    for ( i = 2; i < token_cnt; i++ ) {
+          strcpy( alias->tokens[i-2], tokens[i] );
+    }
     alias->token_cnt = token_cnt - 2;
 
     INSERT( alias, alias_list );
 }
 
+/*****************************************************************
+ * TAG( delete_alias )
+ *
+ * Delete a command alias.
+ */
+static void
+delete_alias( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH] )
+{
+    Alias_obj *alias;
+    int i;
+ 
+    if ( token_cnt < 2 )
+         return;
+
+    printf("\nToken=%s-%s\n\n", tokens[0], tokens[1]);
+
+    /* See if this alias is already being used. */
+    for ( alias = alias_list; alias != NULL; alias = alias->next )
+    {
+          if ( strcmp( tokens[1], alias->alias_str ) == 0 )
+	  {
+	      /* Found the matching alias - now remove it */
+	      
+	      DELETE( alias, alias_list );
+	      return;
+          }
+    }
+    return;
+}
+
+/*****************************************************************
+ * TAG( list_alias )
+ *
+ * Print a list of all command alias.
+ */
+static void
+list_alias( )
+{
+    Alias_obj *alias;
+    char alias_names[MAXTOKENS*TOKENLENGTH];
+    int alias_count=0;
+    int i,j;
+ 
+    /* See if this alias is already being used. */
+    alias = alias_list;
+    alias_names[0]='\0';
+    strcat(alias_names, " Alias List:" );
+    for ( alias = alias_list; alias != NULL; alias = alias->next )
+    {
+          strcat(alias_names, "\n  " );
+          strcat(alias_names, alias->alias_str );
+	  strcat( alias_names, "  \"" );
+	  for ( j = 0;
+		j < alias->token_cnt; 
+		j++ ) {
+	        strcat( alias_names, alias->tokens[j] );
+		if (j<alias->token_cnt-1)
+		    strcat( alias_names, " " );
+	  }
+	  strcat( alias_names, "\"" );
+	  alias_count++;
+     }
+    if ( alias_count>0 )
+         popup_dialog( INFO_POPUP, 
+		       alias_names );
+   return;
+}
+
+
+/*****************************************************************
+ * TAG( alias_expand )
+ * 
+ *  Expand multi-line alias to single string.
+ */
+static void
+alias_expand( char *buf, int *token_cnt )
+{
+  char tokens[MAXTOKENS][TOKENLENGTH];
+  char tmp_buf[2000];
+  int i=0, j=0;
+
+  strcpy( tmp_buf, buf );
+  for ( i=0;
+	i<strlen(buf);
+	i++ ) {
+        if ( buf[i]==';' ) {
+	     tmp_buf[j++] = ' ';
+             tmp_buf[j++] = buf[i]; /* Make ; a single token */
+	     tmp_buf[j++] = ' ';
+	}
+	else
+	     tmp_buf[j++] = buf[i];
+  }
+  tmp_buf[j++] = '\0';
+  tokenize_line( tmp_buf, tokens, token_cnt );
+
+  if ( *token_cnt < 1 )
+       return;
+
+  alias_substitute( tokens, token_cnt );
+  
+  strcpy( buf, "" );
+  for ( i=0;
+	i<*token_cnt;
+	i++ ) {
+        if ( i>0 )
+	     strcat( buf, " " );
+        strcat( buf, tokens[i] );        
+  }
+}
 
 /*****************************************************************
  * TAG( alias_substitute )
@@ -6584,36 +7669,67 @@ alias_substitute( char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt )
     Alias_obj *alias;
     int i, j;
 
-    /* If the command is an "alias" command, don't do any alias
+    char *str_delimiter = " ", *token=NULL;
+
+    int  token_string_cnt=0, token_index=0;
+    char token_string[MAXTOKENS*TOKENLENGTH];
+    Bool_type found_alias=FALSE, match_alias=FALSE;
+
+    /* If the command is an "alias" or "unalias" command, don't do any alias
      * substitutions!
      */
-    if ( strcmp( tokens[0], "alias" ) == 0 )
-        return;
+    if ( strcmp( tokens[0], "alias" ) == 0 || 
+	 strcmp( tokens[0], "unalias" ) == 0 )
+         return;
 
-    for ( i = 0; i < *token_cnt; i++ )
+    token_string[0]='\0';
+
+    for ( i = 0; 
+	  i < *token_cnt; 
+	  i++ )
     {
         alias = alias_list;
+	match_alias=FALSE;
+        
         while ( alias != NULL )
         {
             if ( strcmp( tokens[i], alias->alias_str ) == 0 )
             {
-                if ( alias->token_cnt == 1 )
-                    strcpy( tokens[i], alias->tokens[0] );
-                else
-                {
-                    for ( j = *token_cnt - 1; j >= i; j-- )
-                        strcpy( tokens[*token_cnt+j-i], tokens[j] );
-                    for ( j = i; j < i + alias->token_cnt; j++ )
-                        strcpy( tokens[j], alias->tokens[j-i] );
-                    *token_cnt += alias->token_cnt - 1;
-                }
+	          found_alias = TRUE;
+		  match_alias = TRUE;
 
-                break;
+		  for ( j = 0;
+			j < alias->token_cnt; 
+			j++ ) {
+                        strcat( token_string, alias->tokens[j] );
+			strcat( token_string, " " );
+		  }
+		  
             }
-
             alias = alias->next;
-        }
+        } 
+	if ( !match_alias ) 
+	{
+	     strcat( token_string, tokens[i] );
+	     strcat( token_string, " " );
+	}
     }
+
+    if ( strlen(token_string)==0 || !found_alias ) 
+         return;
+ 
+    token = strtok(token_string, str_delimiter);
+    strcpy(tokens[token_index++], token); 
+
+    while (1) {
+          token = strtok(NULL, str_delimiter);
+	  if ( token==NULL )
+   	       break;
+	  else 
+	    strcpy(tokens[token_index++], token); 
+
+    }
+    *token_cnt = token_index;
 }
 
 
@@ -7050,6 +8166,14 @@ write_preamble( FILE *ofile )
              file_creator, env.user_name, 
              infile_label, env.plotfile_name ); 
 
+    fprintf( ofile, "#---------------------------------------------------------------" );
+    fprintf( ofile, "\n#---------------------- Griz Version Info ----------------------" );     
+    fprintf( ofile, "\n#" );
+    fprintf( ofile, "\n# Griz Version %d.%d.%d", GRIZ_MAJOR, GRIZ_MINOR, GRIZ_BUG);
+    fprintf( ofile, "\n# Built: %s", bi_date());
+    fprintf( ofile, "\n#        on - %s",bi_system());
+    fprintf( ofile, "\n#        by - %s",bi_developer());
+    fprintf( ofile, "\n#---------------------------------------------------------------" );
     return;
 }
 
@@ -7195,7 +8319,7 @@ write_outvec_data( FILE *outvec_file, Analysis *analy )
                     continue;
                 analy->cur_result = analy->vector_result[i];
                 p_node_class->data_buffer = vec_data[i];
-                load_result( analy, TRUE, TRUE );
+                load_result( analy, TRUE, TRUE, FALSE );
             }
 
             analy->cur_result = tmp_result;
@@ -7224,8 +8348,15 @@ write_outvec_data( FILE *outvec_file, Analysis *analy )
             /* Count the grid points. */
             qty_of_nodes = 0;
             
+#ifdef NEWMILI
+            htable_get_data( MESH( analy ).class_table, 
+                            (void ***) &p_mo_classes ,
+                            &class_qty);
+#else
             class_qty = htable_get_data( MESH( analy ).class_table, 
-                                         (void ***) &p_mo_classes );
+					 (void ***) &p_mo_classes );
+#endif
+
             for ( i = 0; i < class_qty; i++ )
                 qty_of_nodes += p_mo_classes[i]->vector_pt_qty;
 
@@ -7323,7 +8454,7 @@ write_outvec_data( FILE *outvec_file, Analysis *analy )
                     continue;
                 analy->cur_result = analy->vector_result[i];
                 p_node_class->data_buffer = vec_data[i];
-                load_result( analy, TRUE, TRUE );
+                load_result( analy, TRUE, TRUE, FALSE );
             }
 
             analy->cur_result = tmp_result;
@@ -7348,8 +8479,15 @@ write_outvec_data( FILE *outvec_file, Analysis *analy )
             /* Count the grid points. */
             qty_of_nodes = 0;
             
-            class_qty = htable_get_data( MESH( analy ).class_table, 
-                                         (void ***) &p_mo_classes );
+#ifdef NEWMILI
+            htable_get_data( MESH( analy ).class_table, 
+                             (void ***) &p_mo_classes ,
+                             &class_qty );
+#else
+           class_qty = htable_get_data( MESH( analy ).class_table, 
+					(void ***) &p_mo_classes );
+#endif
+
             for ( i = 0; i < class_qty; i++ )
                 qty_of_nodes += p_mo_classes[i]->vector_pt_qty;
 
@@ -7454,32 +8592,57 @@ int valid_result = TRUE;
    return( valid_result );
 }
 
+/*****************************************************************
+ * TAG( dump_tokens )
+ * 
+ * This function will write out the contents of the input tokens.
+ */
+void
+dump_tokens ( int token_cnt, 
+	      char tokens[MAXTOKENS][TOKENLENGTH] )
+{
+   int i=0;
+   printf("\n");
+   for ( i=0;
+	 i<token_cnt;
+	 i++ )
+   {
+         printf("\nToken[%i] = %s", i, tokens[i] );
+   }
+   printf("\n");
+}
 
 /*****************************************************************
  * TAG( process_mat_obj_selection )
  * 
- * This function will process the material an object selection 
+ * This function will process the material/object selection
  * requests for vis/invis, enable/disable, and include/exclude
  * commands.
  */
 void
 process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
-			    int idx, int token_cnt, int mat_qty, int elem_qty, 
-			    unsigned char *p_elem, int  *p_hide_qty, int *p_hide_elem_qty, 
+			    int idx, int token_cnt, int mat_qty, 
+			    int elem_qty, MO_class_data *p_class,
+			    unsigned char *p_elem, int  *p_hide_qty, int *p_hide_elem_qty,
                             unsigned char *p_mat,
 			    unsigned char setval, 
 			    Bool_type vis_selected, Bool_type mat_selected )
 
 {
-   int i, ival;
-   int mtl;
+   int i, j, ival;
+   int mtl, *p_mtl;
    int mat_min, mat_max;
-   int elem_min, elem_max;
 
    char tmp_token[1000];
+   unsigned char local_setval;
 
-   string_to_upper( tokens[idx+1], tmp_token ); /* Make case insensitive */
+   if ( (idx+1) < token_cnt)
+         string_to_upper( tokens[idx+1], tmp_token ); /* Make case insensitive */
+   else
+         strcpy( tmp_token, "ALL" );
 
+   local_setval = setval;
+   
    /* Material based selection */
    if ( p_mat != NULL && mat_selected )
    {
@@ -7495,8 +8658,23 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
 		      (*p_hide_qty)--;
 	     }
 	}
-	else
-	     for ( i = 1; i < token_cnt - idx; i++ )
+	else {
+             if ( strcmp( tmp_token, "ALLB" ) == 0 || strcmp( tmp_token, "ALLBUT" ) == 0 )
+             {
+	          for ( i = 0; i < mat_qty; i++ )
+		  {
+		        p_mat[i]  = (unsigned char) setval; /* Hide the selected material */
+		      
+			if (setval) 
+			    (*p_hide_qty)++;
+			else
+			    (*p_hide_qty)--;
+		  }
+		  local_setval = !setval;
+	     }
+	     for ( i = 1; 
+		   i < token_cnt - idx;
+		   i++ )
              {
 	             parse_mtl_range(tokens[i+idx], mat_qty, &mat_min, &mat_max ) ;
                      mtl = mat_min ;
@@ -7507,41 +8685,401 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
 		     {
 			  if (mtl > 0 && mtl <= mat_qty)
 			  {
-			      p_mat[mtl-1]  = (unsigned char) setval; /* Hide the selected material */
+			      p_mat[mtl-1]  = (unsigned char) local_setval; /* Hide the selected material */
                              
-			      if ( setval )
+			      if ( local_setval )
 			           (*p_hide_qty)++;
 			     else
 			           (*p_hide_qty)--;
 			  }
 		     }
 	      }
+	}
    }
-   else /* Object selected */
-        {
-	     for ( i = 1; i < token_cnt - idx; i++ )
+   else /* Object selected - hide by element for a selected material */
+       if ( p_class )
+       {
+	    p_mtl = p_class->objects.elems->mat;
+	    if ( strcmp( tmp_token, "ALL" ) == 0  )
+	    {
+	         parse_mtl_range("ALL", mat_qty, &mat_min, &mat_max);
+		 for ( j=0;
+		       j<elem_qty;
+		       j++ )
+		       for (i=mat_min;
+			    i<=mat_max;
+			    i++)
+		       {
+			    if ( p_mtl[j] == i-1 )
+			         if ( !vis_selected )
+				 {
+				      p_elem[j] = TRUE;
+				      (*p_hide_elem_qty)++;
+				 }
+				 else
+			         {
+				       p_elem[j] = FALSE;  
+				       (*p_hide_elem_qty)--;
+				 }
+		       }
+	    }
+	    else
+	      for ( i = 1; 
+		    i < token_cnt - idx;
+		    i++ )
              {
-	           parse_mtl_range(tokens[i+idx], elem_qty, &elem_min, &elem_max) ;
-
-		   if (elem_max > elem_qty)
-		       elem_max = elem_qty;
-		   
-		   for (i=elem_min;
-			i<=elem_max;
-			i++)
-		   {
-		        if ( !vis_selected )
-			{
-			     p_elem[i-1] = TRUE; 
-			     (*p_hide_elem_qty)++;
-			}
-		        else
-			{
-			     p_elem[i-1] = FALSE;  
-			     (*p_hide_elem_qty)--;
-			}
-		   } 
+	           parse_mtl_range(tokens[i+idx], mat_qty, &mat_min, &mat_max) ;
+		   for ( j=0;
+			 j<elem_qty;
+			 j++ )
+		         for (i=mat_min;
+			      i<=mat_max;
+			      i++)
+		         {
+			      if ( p_mtl[j] == i-1 )
+		                   if ( !vis_selected )
+				   {
+				        p_elem[j] = TRUE;
+				        (*p_hide_elem_qty)++;
+				   }
+				   else
+			           {
+				        p_elem[j] = FALSE;  
+				        (*p_hide_elem_qty)--;
+			           }
+		   }
 	     } 
 	}
 }
 
+
+/*****************************************************************
+ * TAG( process_node_selection )
+ * 
+ * This function will disable/enable nodes for elements that will
+ * included/excluded. If a node is shared with both an included and
+ * excluded element then the node is not included.
+ */
+void
+process_node_selection ( Analysis *analy )
+{
+  Mesh_data     *p_mesh;
+  MO_class_data **mo_classes;
+  MO_class_data *p_class;
+  MO_class_data *p_node_geom;
+
+  int i, j, k;
+  int elem_id=0;
+  int qty_classes=0;
+  int qty_elems, qty_nodes=0, num_connects=0;
+  int nd=0;
+  int *mats=NULL;
+  int (*connects_hex)[8], (*connects_quad)[4], (*connects_beam)[3], (*connects_tet)[3];
+
+  int *disable_mtl;
+
+  int disable_mat=FALSE, disable_elem=FALSE; 
+  Bool_type particle_class=FALSE;
+
+  p_mesh      = MESH_P( analy );
+  mats        = p_mesh->disable_material;
+  p_node_geom = p_mesh->node_geom; 
+  qty_nodes   = p_node_geom->qty;
+
+  /* First set all valid nodes (nodes that are connected to elements) to 
+   * false.
+   */
+
+  /* This code is disabled by setting p_mesh->disable_nodes_init to TRUE for now.
+   * This is to address a special case where unattached nodes are referenced in
+   * results.
+   */
+  if ( !p_mesh->disable_nodes_init ) {
+
+       /* Set all nodes to be disabled */
+       for ( nd = 0; 
+	     nd < qty_nodes; 
+	     nd++ ) {
+	     p_mesh->disable_nodes[nd] = TRUE;
+       }
+
+  /******************************/
+  /* Capture all Included Nodes */
+  /******************************/
+
+  /* Hex element classes. */
+  
+  qty_classes = p_mesh->classes_by_sclass[G_HEX].qty;
+  mo_classes  = (MO_class_data **) p_mesh->classes_by_sclass[G_HEX].list;
+
+  for ( i = 0; 
+	i < qty_classes; 
+	i++ ) {
+        p_class      =  mo_classes[i];
+	particle_class = is_particle_class( analy, p_class->superclass, p_class->short_name );
+	qty_elems    = p_class->qty;
+	qty_nodes    = p_node_geom->qty;
+	num_connects  = qty_connects[G_HEX];
+	connects_hex = (int (*) [num_connects]) p_class->objects.elems->nodes;
+        mats         = p_class->objects.elems->mat;
+
+	for ( j = 0; 
+	      j < qty_elems; 
+	      j++ ) {
+
+	      elem_id = j;
+	      disable_mat  = p_mesh->hide_material[ mats[elem_id] ];
+	      disable_elem = disable_by_object_type( p_class, mats[elem_id], j, analy, NULL );
+
+	      if ( particle_class )
+		   disable_elem = disable_by_object_type( p_class, mats[elem_id], j, analy, NULL );
+	      else 
+		   disable_elem = disable_by_object_type( p_class, mats[elem_id], j, analy, NULL );
+
+	      /* Ignore disabled materials. */ 
+	      if ( !disable_mat && !disable_elem )
+		   for ( k = 0; 
+			 k < num_connects;
+			 k++ )
+		   {
+		         nd = connects_hex[elem_id][k];
+			 p_mesh->disable_nodes[nd] = FALSE;
+		   }
+	}
+  } /* Hexes */
+  
+  /* Shell element classes. */
+  qty_classes = p_mesh->classes_by_sclass[G_QUAD].qty;
+  mo_classes  = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
+
+  for ( i = 0; 
+	i < qty_classes; 
+	i++ ) {
+        p_class       =  mo_classes[i];
+	qty_elems     = p_class->qty;
+	num_connects  = qty_connects[G_QUAD];
+	connects_quad = (int (*) [num_connects]) p_class->objects.elems->nodes;
+        mats          = p_class->objects.elems->mat;
+
+	for ( j = 0; 
+	      j < qty_elems; 
+	      j++ ) {
+
+	      elem_id = j;
+
+	      /* Ignore disabled materials. */
+	      if ( !p_mesh->hide_material[ mats[elem_id] ] && 
+		   !disable_by_object_type( p_class, mats[elem_id], j, analy, NULL ) )
+		   for ( k = 0; 
+			 k < num_connects; 
+			 k++ )
+		   {
+		         nd = connects_quad[elem_id][k];
+			 p_mesh->disable_nodes[nd] = FALSE;
+		   }
+	}
+  } /* Shells */
+
+  /* Beam element classes. */
+  qty_classes = p_mesh->classes_by_sclass[G_BEAM].qty;
+  mo_classes  = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
+
+  for ( i = 0; 
+	i < qty_classes; 
+	i++ ) {
+        p_class       =  mo_classes[i];
+	qty_elems     = p_class->qty;
+ 	num_connects  = qty_connects[G_BEAM];
+	connects_beam = (int (*) [num_connects]) p_class->objects.elems->nodes;
+        mats          = p_class->objects.elems->mat;
+
+	for ( j = 0;
+	      j < qty_elems; 
+	      j++ ) {
+
+	      elem_id = j;
+
+	      /* Include  materials & Beams */
+	      if ( !p_mesh->hide_material[ mats[elem_id] ] && 
+		   !disable_by_object_type( p_class, mats[elem_id], j, analy, NULL ) )
+		   for ( k = 0; 
+			 k < num_connects; 
+			 k++ )
+		   {
+		         nd = connects_beam[elem_id][k];
+			 p_mesh->disable_nodes[nd] = FALSE;
+		   }
+	}
+  } /* Beams */
+
+  /* Tet element classes. */
+  qty_classes = p_mesh->classes_by_sclass[G_TET].qty;
+  mo_classes  = (MO_class_data **) p_mesh->classes_by_sclass[G_TET].list;
+
+  for ( i = 0; 
+	i < qty_classes; 
+	i++ ) {
+        p_class       =  mo_classes[i];
+	qty_elems     = p_class->qty;
+ 	num_connects  = qty_connects[G_TET];
+	connects_tet  = (int (*) [num_connects]) p_class->objects.elems->nodes;
+        mats          = p_class->objects.elems->mat;
+
+	for ( j = 0;
+	      j < qty_elems; 
+	      j++ ) {
+
+	      elem_id = j;
+
+	      /* Include  materials & Tets */
+	      if ( !p_mesh->hide_material[ mats[elem_id] ] && 
+		   !disable_by_object_type( p_class, mats[elem_id], j, analy, NULL ) )
+		   for ( k = 0; 
+			 k < num_connects; 
+			 k++ )
+		   {
+		         nd = connects_tet[elem_id][k];
+			 p_mesh->disable_nodes[nd] = FALSE;
+		   }
+	}
+  } /* Tets */
+  }
+}
+
+/*****************************************************************
+ * TAG( is_node_visible() )
+ * 
+ * This function will return status of nodes visibility.
+ */
+int
+is_node_visible( Analysis *analy, int nd )
+{
+  Mesh_data     *p_mesh;
+  MO_class_data *p_node_geom;
+  int qty_nodes;
+
+  p_mesh      = MESH_P( analy );
+  p_node_geom = p_mesh->node_geom; 
+  qty_nodes   = p_node_geom->qty;
+
+  if ( nd<0 || nd>=qty_nodes )
+       return( -1 );
+  if ( p_mesh->disable_nodes[nd] )
+       return( 0 );
+  else
+    return( 1 );
+}
+
+/*****************************************************************
+ * TAG( is_elem_mat_visible() )
+ * 
+ * This function will return status of an elements material
+ * visibility.
+ */
+Bool_type
+is_elem_mat_visible( Analysis *analy, int elem_id, MO_class_data *p_mo_class )
+{
+  int *mtl_list=NULL, material=0;
+  int qty=0;
+  Mesh_data     *p_mesh;
+  unsigned char *hide_mtl;
+
+  qty         = p_mo_class->qty;
+  if ( elem_id >= qty || elem_id < 0 )
+       return( FALSE );
+
+  p_mesh      = MESH_P( analy );
+  mtl_list    = p_mo_class->objects.elems->mat;
+  material    = mtl_list[elem_id];
+  hide_mtl    = p_mesh->hide_material;
+  if ( hide_mtl[material] )
+       return( FALSE );
+  else
+       return( TRUE );
+}
+
+/*****************************************************************
+ * TAG( dump_selection_buff() )
+ * 
+ * This function output an object selection buffer.
+ */
+void
+dump_selection_buff( char *buff_name, unsigned char *buff, int qty )
+{
+  int i=0;
+  for ( i=0;
+	i<qty;
+	i++ ) {
+    if ( (Bool_type) buff[i] )
+	     printf("\nBuffer %s[%d] = True\n", buff_name, i );
+  }
+}
+
+/*****************************************************************
+ * TAG( update_file_path() )
+ * 
+ * This function will sub path variables of the form $pathn with 
+ * the true path.
+ */
+void
+update_file_path( Analysis *analy, char *filename, char *filename_with_path )
+{
+  int i=0;
+  Bool_type pathSet=FALSE;
+  char pathvar[16];
+  char *p_repl, *p_str;
+
+  if ( strstr( filename, "$path" ) )
+       pathSet = TRUE;
+
+  if ( analy->paths_set[0] && !pathSet ) { /* Append first path to filename */
+       strcpy( filename_with_path, analy->paths[0] );
+       strcat( filename_with_path, "/" );
+       strcat( filename_with_path, filename );
+       return;
+  }
+
+  strcpy( filename_with_path, filename );
+
+  for ( i=0;
+	i<MAX_PATHS;
+	i++ ) {
+        if ( analy->paths_set[i] && analy->paths[i] ) {
+	     sprintf( pathvar, "$path%d", i+1 );
+	     p_str = strstr( filename, pathvar );
+	     if ( p_str ) {
+	          p_repl = replace_string( filename_with_path, pathvar, analy->paths[i] );
+		  strcpy( filename_with_path, p_repl );
+	     }
+        }
+  }
+}
+
+/*****************************************************************
+ * TAG( get_class_select_index )
+ *
+ * Returns index to by-class selection data
+ */
+int
+get_class_select_index( Analysis *analy, char *class_name )
+{
+  Mesh_data *p_md;
+  int class_index=0;
+  int i=0;
+  char class_name_upper[256], short_name_upper[256];
+  
+  string_to_upper( class_name, class_name_upper ); /* Make case insensitive */
+
+
+  p_md = MESH_P( analy );
+  for ( i=0;
+	i<p_md->qty_class_selections;
+	i++ ) {
+        string_to_upper( p_md->by_class_select[class_index].p_class->short_name, short_name_upper ); /* Make case insensitive */
+
+        if (!strcmp( class_name_upper, short_name_upper ))
+	    return( class_index );
+	else class_index++;
+    }
+  return (-1);
+}

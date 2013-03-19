@@ -61,7 +61,7 @@ OS_NAME         =       @OS_NAME@
 SRC_DIRS	    =	@SRC_DIRS@
 ROOT_DIR        = 	@ROOT_DIR@
 INSTALL_DIR     = 	@INSTALL_DIR@
-SRC              = 	@SRC@
+SRC              = 	src
 TASKS_DEFAULT   =	16
 
 ifndef TASKS
@@ -111,12 +111,8 @@ endif
 		@ echo "    TASKS:  Number of processes for parallel builds."
 		@ echo "  VERBOSE:  Verbose mode for echoing of build steps.\n"
 
-all:
-		@ for src_dir in $(SRC_DIRS) $(SRC); do \
-			cd $(ROOT_DIR); \
-			cd $$src_dir; \
-			$(MAKE) all SYS_NAME=$(OS_NAME); \
-		done
+all: opt debug batch_opt batch_debug 
+		
 
 opt:
 		@ for src_dir in $(SRC_DIRS) $(SRC); do \
@@ -125,6 +121,7 @@ opt:
 			$(MAKE) opt SYS_NAME=$(OS_NAME); \
 		done
 
+batchopt: batch_opt
 batch_opt:
 		@ for src_dir in $(SRC_DIRS); do \
 			cd $(ROOT_DIR); \
@@ -135,11 +132,12 @@ batch_opt:
             cd $(SRC); \
 		  $(MAKE) batch_opt SYS_NAME=$(OS_NAME);
 
+batchdebug: batch_debug
 batch_debug:
 		@ for src_dir in $(SRC_DIRS); do \
 			cd $(ROOT_DIR); \
 			cd $$src_dir; \
-			$(MAKE) opt SYS_NAME=$(OS_NAME); \
+			$(MAKE) debug SYS_NAME=$(OS_NAME); \
 		done
 		@ cd $(ROOT_DIR); \
             cd $(SRC); \
@@ -154,14 +152,14 @@ debug:
 		done
 
 clean:
-		@ for src_dir in $(SRC_DIRS); do \
+		@ for src_dir in $(SRC_DIRS) $(SRC); do \
 			cd $(ROOT_DIR); \
 			cd $$src_dir; \
 			$(MAKE) clean SYS_NAME=$(OS_NAME); \
 		done
 
 clobber:
-		@ for src_dir in $(SRC_DIRS); do \
+		@ for src_dir in $(SRC_DIRS) $(SRC); do \
 			cd $(ROOT_DIR); \
 			cd $$src_dir; \
 			$(MAKE) clobber; \

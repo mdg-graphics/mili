@@ -220,7 +220,7 @@ compute_fnmoment( Analysis *analy, float *resultArr,
     Bool  mats_used[200];
     float mass_by_mat[200], mass_by_mat_fn[200], mom_by_mat[200], mom_by_mat_fn[200];
 
-    char fname[20];
+    char fname[100];
     FILE *fp;
  
     Result *p_result;
@@ -695,13 +695,13 @@ gather_nodal_velocity( Analysis *analy,
    if ( single_prec_vel )
    {
         NODAL_RESULT_BUFFER( analy ) = vel_1p;
-        load_result( analy, FALSE, FALSE );
+        load_result( analy, FALSE, FALSE, FALSE );
         
    }
    else
    {
         NODAL_RESULT_BUFFER( analy ) = (float *) vel_2p;
-        load_result( analy, FALSE, FALSE );
+        load_result( analy, FALSE, FALSE, FALSE );
    }
    for (i=0;
         i<num_nodes;
@@ -716,13 +716,13 @@ gather_nodal_velocity( Analysis *analy,
    if ( single_prec_vel )
    {
         NODAL_RESULT_BUFFER( analy ) = vel_1p;
-        load_result( analy, FALSE, FALSE );
+        load_result( analy, FALSE, FALSE, FALSE );
         
    }
    else
    {
         NODAL_RESULT_BUFFER( analy ) = (float *) vel_2p;
-        load_result( analy, FALSE, FALSE );
+        load_result( analy, FALSE, FALSE, FALSE );
    }
    for (i=0;
         i<num_nodes;
@@ -737,13 +737,13 @@ gather_nodal_velocity( Analysis *analy,
    if ( single_prec_vel )
    {
         NODAL_RESULT_BUFFER( analy ) = vel_1p;
-        load_result( analy, FALSE, FALSE );
+        load_result( analy, FALSE, FALSE, FALSE );
         
    }
    else
    {
         NODAL_RESULT_BUFFER( analy ) = (float *) vel_2p;
-        load_result( analy, FALSE, FALSE );
+        load_result( analy, FALSE, FALSE, FALSE );
    }
    for (i=0;
         i<num_nodes;

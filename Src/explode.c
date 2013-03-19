@@ -38,6 +38,13 @@
  * University of California, and shall not be used for advertising or 
  * product endorsement purposes.
  * 
+ ************************************************************************
+ * Modifications:
+ *
+ *  I. R. Corey - Jan 30, 2013: Added check for existance of activity
+ *        flag.
+ *
+ ************************************************************************
  */
 
 #include <stdlib.h>
@@ -364,6 +371,7 @@ find_matl_means( Analysis *analy, int matls[], int qty_matls,
     int *connects;
     float **sand_arrays;
     List_head *p_lh;
+    float activity_flag=0.0;
 
     p_mesh = MESH_P( analy );
     coords = analy->state_p->nodes.nodes;
@@ -455,20 +463,29 @@ find_matl_means( Analysis *analy, int matls[], int qty_matls,
                     activity = sand_arrays[p_mo_class->elem_class_index];
                     
                     /* Loop over each element */
-                    for ( k = 0; k < p_mo_class->qty; k++ )
+                    for ( k = 0;
+			  k < p_mo_class->qty; 
+			  k++ )
                     {
-                        if ( activity[k] != 0.0 )
-                        {
-                            matl = mat[k];
-                            for ( l = 0; l < conn_qty; l++ )
-                            {
-                                nd = connects[k * node_qty + l];
-                                sumx[matl] += coords[nd * 3];
-                                sumy[matl] += coords[nd * 3 + 1];
-                                sumz[matl] += coords[nd * 3 + 2];
-                            }
-                            cnt[matl] += conn_qty;
-                        }
+		          if ( activity )
+		 	       activity_flag = activity[k];
+			  else
+			       activity_flag = 1.0;
+
+			  if ( activity_flag != 0.0 )
+			  {
+			      matl = mat[k];
+			      for ( l = 0;
+				    l < conn_qty; 
+				    l++ )
+			     {
+				  nd = connects[k * node_qty + l];
+				  sumx[matl] += coords[nd * 3];
+				  sumy[matl] += coords[nd * 3 + 1];
+				  sumz[matl] += coords[nd * 3 + 2];
+			     }
+			     cnt[matl] += conn_qty;
+			  }
                     }
                 }
             }

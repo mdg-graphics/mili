@@ -87,7 +87,8 @@ static void BuildInfo(FILE *outfile)
     char *ctime_string;
     FILE *fp;
     char *module_lst;
-    int recordcount;
+    int  recordcount;
+    char *developer;
 
     fprintf(outfile, "#define BI_VERSION \"%s-%s\"\n",
 	    PACKAGE_NAME, PACKAGE_VERSION);
@@ -182,8 +183,8 @@ static void BuildInfo(FILE *outfile)
     fprintf(outfile, "#define BI_LINK \"%s\"\n",
         LINK_CMD);
     
-    fprintf(outfile, "#define BI_DEVELOPER \"%s\"\n",
-	getlogin());
+    developer =	getlogin(); 
+    fprintf(outfile, "#define BI_DEVELOPER \"%s\"\n", developer );
 
     uname(&u_info);
     fprintf(outfile, "#define BI_SYSTEM \"%s %s %s %s\"\n",

@@ -1,38 +1,5 @@
 /* $Id$ */
 
-/*
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
- */
-
  /*
  ************************************************************************
  * Modifications:
@@ -56,7 +23,7 @@
 #define IS_ELEMENT_SCLASS( s ) \
     ( (s) == G_TRUSS || (s) == G_BEAM || (s) == G_TRI || (s) == G_QUAD || \
       (s) == G_TET || (s) == G_PYRAMID || (s) == G_WEDGE || (s) == G_HEX || \
-      (s) == G_SURFACE )
+      (s)==G_PARTICLE || (s) == G_SURFACE )
 
 /* Used for debugging data buffers */
 /* #define NODAL_RESULT_BUFFER( a )					\
@@ -122,6 +89,7 @@ typedef struct _elem_data
     int *nodes;
     int *mat;
     int *part;
+    float *volume; /* For elements that have a volume */
     Bool_type has_degen;
 } Elem_data;
 
@@ -219,7 +187,6 @@ typedef struct _Label_Blocks
   Label_block_data *block_objects;
 } Label_blocks;
 
-
 typedef struct _mo_class_data
 {
     int mesh_id;
@@ -238,7 +205,7 @@ typedef struct _mo_class_data
     int *referenced_nodes;
     int referenced_node_qty;
     int surface_sizes;
-    float *data_buffer;
+    float *data_buffer, *data_buffer_mm;
 
     /* Data associated with Labels */
     Bool_type labels_found;
@@ -250,6 +217,32 @@ typedef struct _mo_class_data
     Label_blocks label_blocking;
 } MO_class_data;
 
+
+/* October 04, 2012: IRC - Added data structures to hide/disable elements by
+ * element classes.
+ */
+typedef struct _Class_Select
+{
+    MO_class_data *p_class;    
+    Bool_type hide_by_mat;
+    Bool_type hide_class_by_result;
+    Bool_type disable_class_by_mat;
+    Bool_type exclude_class_by_mat;
+
+    float     class_result_min;
+    float     class_result_max;
+
+    int hide_class_elem_qty;
+    int disable_class_elem_qty;
+    int exclude_class_elem_qty;
+
+    unsigned char *hide_class;         /* List of hidden materials for classs   */
+    unsigned char *disable_class;      /* List of disabled materials for classs */
+    unsigned char *exclude_class;      /* List of disabled materials for classs */
+    unsigned char *hide_class_elem;    /* A flag for each class - TRUE if hidden   */
+    unsigned char *disable_class_elem; /* A flag for each class - TRUE if disabled */ 
+    unsigned char *exclude_class_elem; /* A flag for each class - TRUE if excluded */ 
+} Class_Select;
 
 /*****************************************************************
  * TAG( Edge_obj )
@@ -396,7 +389,6 @@ typedef struct _mesh_data
     unsigned char *disable_beam_elem; /* A flag for each beam - TRUE if disabled */ 
     unsigned char *exclude_beam_elem; /* A flag for each beam - TRUE if excluded */ 
 
-
     /* TRUSS */
     int truss_qty;
     int truss_hide_qty; 
@@ -431,17 +423,54 @@ typedef struct _mesh_data
     int particle_qty;    
     int particle_hide_qty;    
     int particle_disable_qty;    
+    MO_class_data *p_ml_class;    
 
     unsigned char *hide_particle;
     unsigned char *disable_particle;
+
+    int hide_particle_elem_qty;
+    int disable_particle_elem_qty;
+    int exclude_particle_elem_qty;
         
     float     particle_result_min;
     float     particle_result_max;
-
+    
+    Bool_type hide_particle_by_mat;
     Bool_type hide_particle_by_result;
+    Bool_type disable_particle_by_mat;
+    Bool_type exclude_particle_by_mat;
+    Bool_type *particle_mats;
+
+    unsigned char *hide_particle_elem;    /* A flag for each particle - TRUE if hidden   */
+    unsigned char *disable_particle_elem; /* A flag for each particle - TRUE if disabled */ 
+    unsigned char *exclude_particle_elem; /* A flag for each particle - TRUE if excluded */ 
+
+    /* CLASSES */
+
+    /* October 04, 2012: IRC - Added data structures to hide/disable elements by
+     * element classes.
+     */
+    int          qty_class_selections;
+    Class_Select *by_class_select;
+
 
     float *mtl_trans[3];
     Edge_list_obj *edge_list;
+
+    /* January 15, 2009: IRC added capability to define particle class names 
+     * from a list specified in the TI file.
+     */
+   int  num_particle_classes;
+   char **particle_class_names;
+   
+   /* June 16, 2009: IRC - New array for enabling/disabling by NODE.
+    */
+   short     *disable_nodes; 
+   Bool_type disable_nodes_init;
+
+   int           num_elem_classes;
+   MO_class_data **p_elem_classes;
+   float *hex_vol_sums;
 } Mesh_data;
 
 
@@ -455,14 +484,17 @@ typedef struct
 {
     int state_no;
     int srec_id;
+  int sph_srec_id;
     
     float time;
     
     int position_constant;
     int sand_present;
+    int sph_present;
 
     Object_data nodes;
     float **elem_class_sand;
+    int   *sph_class_itype;
     
     Object_data particles;
 } State2;

@@ -1,3 +1,4 @@
+
 /* $Id$ */
 /*
  * result_data.c - Routines for managing result data arrays.
@@ -6,37 +7,6 @@
  *      Lawrence Livermore National Laboratory
  *      Aug 1997
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
- * under DOE Acquisition Letter 97-1.
- * 
- * 
- * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
- * product endorsement purposes.
  * 
  ************************************************************************
  * Modifications:
@@ -65,14 +35,30 @@
  *                nodal result on material boundary. This affects all
  *                class types (hex_to_nodal, quad_to_nodal, etc.)
  *                See SRC#517.
+ *
+ *  I. R. Corey - June 16, 2009: Add exclusion capability for nodes.
+ *                See SRC#539
+ *
+ *  09/29/2009 I. R. Corey  Fixed a problem with computing strains for
+ *                          shared result with multiple Hex element sets. 
+ *                          See SRC#: 629
+ *
+ *  11/11/2009 I. R. Corey  update_nodal_min_max() gives incorrect max value
+ *                          of 0 when values are all < 0.
+ *
+ *  02/11/2013 I. R. Corey  Fixed problem with calculating interp results
+ *                   across multiple element sets or multiple sub-records.
+ *                   See TeamForge#19431
+ *
+ *  02/25/2013 I. R. Corey Added class_name +  hexid to zer volume warning.
+ *
+ *
  *************************************************************************
  */
 
 #include <stdlib.h>
-#include <values.h>
 #include "viewer.h"
 #include "mdg.h"
-
 
 #ifdef AIX
 #ifndef MAXFLOAT
@@ -83,7 +69,10 @@
 void update_min_max( Analysis * );
 void update_nodal_min_max( Analysis * );
 void init_nodal_min_max( Analysis * );
+void find_min_max( int num_nodes, float *result, float *min, float *max,
+		   int *min_index, int *max_index );
 
+void dump_result( Analysis *analy, char * );
 
 /*****************************************************************
  * TAG( derive_order )
@@ -94,12 +83,12 @@ void init_nodal_min_max( Analysis * );
  * is likely to handle, (2) the priority setting will only impact
  * results which are supported on multiple superclasses, and (3) the 
  * order of evaluation of mesh object _classes_ within a superclass is
- * not determined by this information.
+ * not determined this information.
  */
 static int derive_order[] = 
 {
     G_NODE, G_TRUSS, G_BEAM, G_TET, G_HEX, G_TRI, G_QUAD, G_SURFACE,
-    G_MAT, G_MESH, G_UNIT
+    G_PARTICLE, G_MAT, G_MESH, G_UNIT
 };
 
 
@@ -137,18 +126,21 @@ update_min_max( Analysis *analy )
     float *state_mm, *el_state_mm;
     int *el_state_id;
     char **el_state_class;
+    int *el_state_sclass;
     int i;
     int *mm_nodes;
     char **mm_class;
+    int *mm_sclass;
 
     state_mm = analy->state_mm;
     el_state_mm    = analy->elem_state_mm.object_minmax;
     el_state_id    = analy->elem_state_mm.object_id;
-    el_state_class = analy->elem_state_mm.class_name;
+    el_state_class = analy->elem_state_mm.class_long_name;
+    el_state_sclass = analy->elem_state_mm.sclass;
 
-
-    mm_nodes = analy->state_mm_nodes;
-    mm_class = analy->state_mm_class;
+    mm_nodes      = analy->state_mm_nodes;
+    mm_class      = analy->state_mm_class_long_name;
+    mm_sclass     = analy->state_mm_sclass;
     
 #ifdef OLD_UPDATE_MM
 /* Get rid of these local var's on cleanup. */
@@ -167,7 +159,10 @@ update_min_max( Analysis *analy )
         {
             state_mm[0] = result[i];
             mm_nodes[0] = i + 1;
-            mm_class[0] = 
+            mm_class_long_name[0] = class_name;
+	    mm_class_long_name[1] = class_name;
+	    mm_sclass[0] = sclass;
+	    mm_sclass[1] = sclass;
         }
         else if ( result[i] > state_mm[1] )
         {
@@ -214,10 +209,13 @@ update_min_max( Analysis *analy )
         /* For a new result, always init the global mm from the state mm. */
         analy->global_mm[0] = state_mm[0];
         analy->global_mm_nodes[0] = mm_nodes[0];
-        analy->global_mm_class[0] = mm_class[0];
+        analy->global_mm_class_long_name[0] = mm_class[0];
+        analy->global_mm_sclass[0] = mm_sclass[0];
+
         analy->global_mm[1] = state_mm[1];
         analy->global_mm_nodes[1] = mm_nodes[1];
-        analy->global_mm_class[1] = mm_class[1];
+        analy->global_mm_class_long_name[1] = mm_class[1];
+        analy->global_mm_sclass[1] = mm_sclass[1];
 
         analy->elem_global_mm.object_minmax[0] = el_state_mm[0];
         analy->elem_global_mm.object_minmax[1] = el_state_mm[1];
@@ -225,8 +223,11 @@ update_min_max( Analysis *analy )
         analy->elem_global_mm.object_id[0] = el_state_id[0];
         analy->elem_global_mm.object_id[1] = el_state_id[1];
 
-        analy->elem_global_mm.class_name[0] = el_state_class[0];
-        analy->elem_global_mm.class_name[1] = el_state_class[1];
+        analy->elem_global_mm.class_long_name[0] = el_state_class[0];
+        analy->elem_global_mm.class_long_name[1] = el_state_class[1];
+
+        analy->elem_global_mm.sclass[0] = el_state_sclass[0];
+        analy->elem_global_mm.sclass[1] = el_state_sclass[1];
     }
     else
     {
@@ -235,27 +236,31 @@ update_min_max( Analysis *analy )
         {
             analy->global_mm[0] = state_mm[0];
             analy->global_mm_nodes[0] = mm_nodes[0];
-            analy->global_mm_class[0] = mm_class[0];
+            analy->global_mm_class_long_name[0] = mm_class[0];
+            analy->global_mm_sclass[0] = mm_sclass[0];
         }
         if ( state_mm[1] > analy->global_mm[1] )
         {
             analy->global_mm[1] = state_mm[1];
             analy->global_mm_nodes[1] = mm_nodes[1];
-            analy->global_mm_class[1] = mm_class[1];
+            analy->global_mm_class_long_name[1] = mm_class[1];
+            analy->global_mm_sclass[1] = mm_sclass[1];
         }
     
         /* Update the global minmax for element (pre-interpolated) results. */
         if ( el_state_mm[0] < analy->elem_global_mm.object_minmax[0] )
         {
-            analy->elem_global_mm.object_minmax[0] = el_state_mm[0];
-            analy->elem_global_mm.object_id[0]     = el_state_id[0];
-            analy->elem_global_mm.class_name[0]    = el_state_class[0];
+            analy->elem_global_mm.object_minmax[0]  = el_state_mm[0];
+            analy->elem_global_mm.object_id[0]      = el_state_id[0];
+            analy->elem_global_mm.class_long_name[0] = el_state_class[0];
+            analy->elem_global_mm.sclass[0]         = el_state_sclass[0];
         }
         if ( el_state_mm[1] > analy->elem_global_mm.object_minmax[1] )
         {
-            analy->elem_global_mm.object_minmax[1] = el_state_mm[1];
-            analy->elem_global_mm.object_id[1]     = el_state_id[1];
-            analy->elem_global_mm.class_name[1]    = el_state_class[1];
+            analy->elem_global_mm.object_minmax[1]  = el_state_mm[1];
+            analy->elem_global_mm.object_id[1]      = el_state_id[1];
+            analy->elem_global_mm.class_long_name[1] = el_state_class[1];
+            analy->elem_global_mm.sclass[1]         = el_state_sclass[1];
         }
     }
 
@@ -283,11 +288,12 @@ init_nodal_min_max( Analysis *analy )
     Result *p_r;
     Subrec_obj *p_so;
     char *class_name;
-    int ident, superclass, cur_idx; 
+    int ident=0, superclass, cur_idx; 
     Bool_type indirect;
     MO_class_data *p_mo_class;
     
     result = NODAL_RESULT_BUFFER( analy );
+
     p_r = analy->cur_result;
     cur_idx = analy->result_index;
     indirect = p_r->indirect_flags[cur_idx];
@@ -295,6 +301,7 @@ init_nodal_min_max( Analysis *analy )
            + p_r->subrecs[analy->result_index];
 /**/
     /* superclass = p_so->p_object_class->superclass; */
+
     superclass = p_r->superclasses[cur_idx];
     
     /* 
@@ -302,7 +309,7 @@ init_nodal_min_max( Analysis *analy )
      * data.
      */
     if ( superclass!=G_SURFACE && (superclass < G_NODE
-				   || superclass > G_HEX) )
+				   || superclass > G_PARTICLE) )
         return; 
     
     if ( indirect )
@@ -320,6 +327,7 @@ init_nodal_min_max( Analysis *analy )
         /* Direct nodal data. */
 
         class_name = p_so->p_object_class->long_name;
+	superclass = p_so->p_object_class->superclass;
 
         if ( p_so->object_ids == NULL )
             ident = 0;
@@ -331,20 +339,27 @@ init_nodal_min_max( Analysis *analy )
         /* Direct element data. */
 
         class_name = p_so->p_object_class->long_name;
+	superclass = p_so->p_object_class->superclass;
 
         /* Init from the first node referenced in element connectivities. */
-        ident = p_so->referenced_nodes[0];
+        if ( p_so->referenced_nodes!= NULL )
+	     ident = p_so->referenced_nodes[0];
+	else ident = 0;
     }
      
     /* Initialize the state min/max for nodal/interpolated data. */   
-    analy->state_mm_class[0]  = class_name;
-    analy->state_mm_class[1]  = class_name;
+    analy->state_mm_class_long_name[0]  = class_name;
+    analy->state_mm_class_long_name[1]  = class_name;
 
     analy->state_mm_sclass[0] = superclass;
     analy->state_mm_sclass[1] = superclass;
 
-    analy->state_mm[0] = result[ident];
-    analy->state_mm[1] = result[ident];
+    /* analy->state_mm[0] = result[ident];
+       analy->state_mm[1] = result[ident]; */
+ 
+    analy->state_mm[0] = MAXFLOAT;
+    analy->state_mm[1] = -MAXFLOAT;
+
     analy->state_mm_nodes[0] = ident + 1;
     analy->state_mm_nodes[1] = ident + 1;
 }
@@ -366,15 +381,19 @@ update_nodal_min_max( Analysis *analy )
     Result *p_r;
     Subrec_obj *p_so;
     char **mm_class;
+    int *mm_sclass;
     char *class_name;
     int superclass;
     Bool_type indirect;
     MO_class_data **mo_classes;
     MO_class_data *p_mo_class;
+    Mesh_data *p_mesh;
+ 
+    p_mesh = MESH_P( analy );
+    p_r    = analy->cur_result;
 
-    p_r = analy->cur_result;
-/**/
-    /* superclass = p_so->p_object_class->superclass; */
+    int exclude_cnt=0;
+
     cur_idx = analy->result_index;
     superclass = p_r->superclasses[cur_idx];
     
@@ -383,22 +402,25 @@ update_nodal_min_max( Analysis *analy )
      * data.
      */
     if ( superclass!=G_SURFACE && (superclass < G_NODE
-				   || superclass > G_HEX ) )
+				   || superclass > G_PARTICLE ) )
         return;
 
     indirect = p_r->indirect_flags[cur_idx];
     p_so = analy->srec_tree[p_r->srec_id].subrecs + p_r->subrecs[cur_idx];
     state_mm = analy->state_mm;
     mm_nodes = analy->state_mm_nodes;
-    mm_class = analy->state_mm_class;
-
-    analy->state_mm_sclass[0] = superclass;
-    analy->state_mm_sclass[1] = superclass;
+    mm_class = analy->state_mm_class_long_name;
+    mm_sclass = analy->state_mm_sclass;
 
     result = NODAL_RESULT_BUFFER( analy );
-    
+
+    float min, max;
+    int min_index, max_index;
+    find_min_max( p_mesh->node_geom->qty, result, &min, &max,
+		  &min_index, &max_index );
+
     class_qty = 1;
-    
+
     if ( indirect )
     {
         /* Prepare for traversing first class of appropriate superclass. */
@@ -407,7 +429,7 @@ update_nodal_min_max( Analysis *analy )
                      MESH_P( analy )->classes_by_sclass[superclass].list;
         p_mo_class = mo_classes[0];
         class_name = mo_classes[0]->long_name;
-        
+
         if ( p_mo_class->referenced_nodes == NULL )
         {
             /* Create a node list for the class. */
@@ -416,13 +438,15 @@ update_nodal_min_max( Analysis *analy )
                                          &p_mo_class->referenced_nodes );
         }
         
-        ref_nodes = p_mo_class->referenced_nodes;
+        ref_nodes    = p_mo_class->referenced_nodes;
         ref_node_qty = p_mo_class->referenced_node_qty;
+	superclass   = p_mo_class->superclass;
     }
     else if ( superclass == G_NODE )
     {
         class_name = p_so->p_object_class->long_name;
-
+	superclass = p_so->p_object_class->superclass;
+ 
         if ( p_so->object_ids == NULL )
         {
             /* Traverse proper nodal subrecords directly. */
@@ -433,17 +457,24 @@ update_nodal_min_max( Analysis *analy )
             {
                 val = result[i];
 
+		/* Skip excluded nodes */
+		if ( p_mesh->disable_nodes )
+		     if ( p_mesh->disable_nodes[i] )
+		          continue;
+
                 if ( val < state_mm[0] )
                 {
-                    state_mm[0] = val;
-                    mm_nodes[0] = i + 1;
-                    mm_class[0] = class_name;
+                    state_mm[0]  = val;
+                    mm_nodes[0]  = i + 1;
+                    mm_class[0]  = class_name;
+                    mm_sclass[0] = superclass;
                 }
-                else if ( val > state_mm[1] )
+                if ( val > state_mm[1] )
                 {
-                    state_mm[1] = val;
-                    mm_nodes[1] = i + 1;
-                    mm_class[1] = class_name;
+                    state_mm[1]  = val;
+                    mm_nodes[1]  = i + 1;
+                    mm_class[1]  = class_name;
+		    mm_sclass[1] = superclass;
                 }
             }
             
@@ -455,7 +486,7 @@ update_nodal_min_max( Analysis *analy )
              * Prepare for traversal with ident indirection for non-proper 
              * nodal subrecord.
              */
-            ref_nodes = p_so->object_ids;
+            ref_nodes    = p_so->object_ids;
             ref_node_qty = p_so->subrec.qty_objects;
         }
     }
@@ -465,28 +496,43 @@ update_nodal_min_max( Analysis *analy )
          * Traverse nodal data via referenced nodes list for element
          * subrecords.
          */
-        class_name = p_so->p_object_class->long_name;
-        ref_nodes = p_so->referenced_nodes;
+        class_name   = p_so->p_object_class->long_name;
+	superclass   = p_so->p_object_class->superclass;
+        ref_nodes    = p_so->referenced_nodes;
         ref_node_qty = p_so->ref_node_qty;
     }
-    
+
     /* Traverse through appropriate nodal values to update min/max. */
     for ( i = 1; i < ref_node_qty; i++ )
     {
         ident = ref_nodes[i];
-        val = result[ident];
+        val   = result[ident];
 
-        if ( val < state_mm[0] )
+	/* Skip excluded nodes */
+	if ( p_mesh->disable_nodes && !is_particle_class( analy, p_so->p_object_class->superclass, p_so->p_object_class->short_name ) )
+	     if ( p_mesh->disable_nodes[ident] || p_mesh->disable_nodes[ident]<0 ) {
+	          exclude_cnt++;
+	          continue;
+	  }
+	if ( p_mesh->disable_nodes )
+	     if ( p_mesh->disable_nodes[ident] || p_mesh->disable_nodes[ident]<0 ) {
+	          exclude_cnt++;
+	          continue;
+	  }
+	
+       if ( val < state_mm[0] )
         {
             state_mm[0] = val;
             mm_nodes[0] = ident + 1;
             mm_class[0] = class_name;
+	    analy->state_mm_sclass[0] = superclass;
         }
         else if ( val > state_mm[1] )
         {
             state_mm[1] = val;
             mm_nodes[1] = ident + 1;
             mm_class[1] = class_name;
+	    analy->state_mm_sclass[1] = superclass;
         }
     }
     
@@ -500,7 +546,8 @@ update_nodal_min_max( Analysis *analy )
         {
             p_mo_class = mo_classes[i];
             class_name = p_mo_class->long_name;
-        
+	    superclass = p_mo_class->superclass;
+
             if ( p_mo_class->referenced_nodes == NULL )
             {
                 /* Create a node list for the class. */
@@ -515,19 +562,26 @@ update_nodal_min_max( Analysis *analy )
             for ( i = 1; i < ref_node_qty; i++ )
             {
                 ident = ref_nodes[i];
-                val = result[ident];
+                val   = result[ident];
+
+		/* Skip excluded nodes */
+		if ( p_mesh->disable_nodes && !is_particle_class( analy, p_so->p_object_class->superclass, p_so->p_object_class->short_name ) )
+		     if ( p_mesh->disable_nodes[ident] || p_mesh->disable_nodes[ident]<1 )
+		          continue;
 
                 if ( val < state_mm[0] )
                 {
-                    state_mm[0] = val;
-                    mm_nodes[0] = ident + 1;
-                    mm_class[0] = class_name;
+                    state_mm[0]  = val;
+                    mm_nodes[0]  = ident + 1;
+                    mm_class[0]  = class_name;
+		    mm_sclass[0] = superclass;
                 }
                 else if ( val > state_mm[1] )
                 {
-                    state_mm[1] = val;
-                    mm_nodes[1] = ident + 1;
-                    mm_class[1] = class_name;
+                    state_mm[1]  = val;
+                    mm_nodes[1]  = ident + 1;
+                    mm_class[1]  = class_name;
+		    mm_sclass[1] = superclass;
                 }
             }
         }
@@ -543,13 +597,14 @@ update_nodal_min_max( Analysis *analy )
  * Data in val_elem is assumed to be indexed by element id.
  */
 void
-elem_get_minmax( float *val_elem, Analysis *analy )
+elem_get_minmax( float *val_elem, int qty, Analysis *analy )
 {
     Mesh_data *p_mesh;
     MO_class_data *p_elem_class;
     int i;
     int *elem_ids;
     char **classes;
+    int *sclasses, sclass;
     char *class_long_name;
     Result *p_result;
     int idx, subrec_idx;
@@ -570,18 +625,23 @@ elem_get_minmax( float *val_elem, Analysis *analy )
     p_so = analy->srec_tree[srec].subrecs + subrec_idx;
     p_elem_class = p_so->p_object_class;
     class_long_name = p_elem_class->long_name;
+    sclass = p_elem_class->superclass;
     elem_qty = p_so->subrec.qty_objects;
     analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec, NULL, 
-                     (void *) &mesh );
+		     (void *) &mesh );
     p_mesh = analy->mesh_table + mesh;
     mats = p_elem_class->objects.elems->mat;
     activity = analy->state_p->sand_present
-               ? analy->state_p->elem_class_sand[p_elem_class->elem_class_index]
-               : NULL;
- 
+      ? analy->state_p->elem_class_sand[p_elem_class->elem_class_index]
+      : NULL;
+
+    if ( qty!=(int)NULL )
+         elem_qty = qty;
+
     /* Prepare to extract elem min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    classes = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     elem_ids = analy->tmp_elem_mm.object_id;
 
 
@@ -589,10 +649,13 @@ elem_get_minmax( float *val_elem, Analysis *analy )
     for ( i = 0; i < elem_qty; i++ )
     {
         /* Get the elem identifier. */
-        elem_id = p_so->object_ids ? p_so->object_ids[i] : i;
+      if ( qty==(int)NULL )
+	     elem_id = p_so->object_ids ? p_so->object_ids[i] : i;
+	else
+	     elem_id = i;
         
         /* Ignore inactive elements. */
-        if ( !analy->free_nodes && activity && activity[elem_id] == 0.0 )
+        if ( !analy->free_nodes_enabled && activity && activity[elem_id] == 0.0 )
             continue;
 
         /* Ignore disabled materials. */
@@ -611,6 +674,7 @@ elem_get_minmax( float *val_elem, Analysis *analy )
             mm_val[0] = val;
             elem_ids[0] = elem_id + 1;
             classes[0] = class_long_name;
+            sclasses[0] = sclass;
         }
         
         if ( val > mm_val[1] )
@@ -618,6 +682,7 @@ elem_get_minmax( float *val_elem, Analysis *analy )
             mm_val[1] = val;
             elem_ids[1] = elem_id + 1;
             classes[1] = class_long_name;
+            sclasses[1] = sclass;
         }
     }
 }
@@ -641,6 +706,7 @@ unit_get_minmax( float *val_unit, Analysis *analy )
     int i;
     int *unit_ids;
     char **classes;
+    int *sclasses, sclass;
     char *class_long_name;
     Result *p_result;
     int idx, subrec_idx;
@@ -657,15 +723,16 @@ unit_get_minmax( float *val_unit, Analysis *analy )
     subrec_idx = p_result->subrecs[idx];
     p_so = analy->srec_tree[srec].subrecs + subrec_idx;
     class_long_name = p_so->p_object_class->long_name;
+    sclass = p_so->p_object_class->superclass;
     unit_qty = p_so->subrec.qty_objects;
     analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec, NULL, 
                      (void *) &mesh );
  
     /* Prepare to extract unit min/max (values init'd in load_result()). */
-    mm_val = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    mm_val   = analy->tmp_elem_mm.object_minmax;
+    classes  = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     unit_ids = analy->tmp_elem_mm.object_id;
-
 
     /* Loop to extract state unit min/max. */
     for ( i = 0; i < unit_qty; i++ )
@@ -678,16 +745,18 @@ unit_get_minmax( float *val_unit, Analysis *analy )
         /* Test for new min and max. */
         if ( val < mm_val[0] )
         {
-            mm_val[0] = val;
+            mm_val[0]   = val;
             unit_ids[0] = unit_id + 1;
-            classes[0] = class_long_name;
+            classes[0]  = class_long_name;
+            sclasses[0] = sclass;
         }
         
         if ( val > mm_val[1] )
         {
-            mm_val[1] = val;
+            mm_val[1]   = val;
             unit_ids[1] = unit_id + 1;
-            classes[1] = class_long_name;
+            classes[1]  = class_long_name;
+            sclasses[1] = sclass;
         }
     }
 }
@@ -712,6 +781,7 @@ mat_get_minmax( float *val_mat, Analysis *analy )
     int i;
     int *mat_ids;
     char **classes;
+    int *sclasses, sclass;
     char *class_long_name;
     Result *p_result;
     int idx, subrec_idx;
@@ -728,6 +798,7 @@ mat_get_minmax( float *val_mat, Analysis *analy )
     subrec_idx = p_result->subrecs[idx];
     p_so = analy->srec_tree[srec].subrecs + subrec_idx;
     class_long_name = p_so->p_object_class->long_name;
+    sclass = p_so->p_object_class->superclass;
     mat_qty = p_so->subrec.qty_objects;
     analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec, NULL, 
                      (void *) &mesh );
@@ -735,7 +806,8 @@ mat_get_minmax( float *val_mat, Analysis *analy )
  
     /* Prepare to extract material min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    classes = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     mat_ids = analy->tmp_elem_mm.object_id;
 
 
@@ -754,16 +826,18 @@ mat_get_minmax( float *val_mat, Analysis *analy )
         /* Test for new min and max. */
         if ( val < mm_val[0] )
         {
-            mm_val[0] = val;
-            mat_ids[0] = mat_id + 1;
-            classes[0] = class_long_name;
+            mm_val[0]   = val;
+            mat_ids[0]  = mat_id + 1;
+            classes[0]  = class_long_name;
+            sclasses[0] = sclass;
         }
         
         if ( val > mm_val[1] )
         {
-            mm_val[1] = val;
-            mat_ids[1] = mat_id + 1;
-            classes[1] = class_long_name;
+            mm_val[1]   = val;
+            mat_ids[1]  = mat_id + 1;
+            classes[1]  = class_long_name;
+            sclasses[1] = sclass;
         }
     }
 }
@@ -786,6 +860,7 @@ mesh_get_minmax( float *val_mesh, Analysis *analy )
 {
     int *mesh_ids;
     char **classes;
+    int *sclasses;
     Result *p_result;
     int idx, subrec_idx;
     Subrec_obj *p_so;
@@ -802,13 +877,15 @@ mesh_get_minmax( float *val_mesh, Analysis *analy )
  
     /* Prepare to extract material min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    classes = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     mesh_ids = analy->tmp_elem_mm.object_id;
 
 
     mm_val[0] = mm_val[1] = val_mesh[0];
     mesh_ids[0] = mesh_ids[1] = 1;
-    classes[0] = classes[1] = p_so->p_object_class->long_name;
+    classes[0] = classes[1]   = p_so->p_object_class->long_name;
+    sclasses[0] = sclasses[1] = p_so->p_object_class->superclass;
 }
 
 
@@ -962,17 +1039,22 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
     Mesh_data *p_mesh;
     float xx[8], yy[8], zz[8];
     float *hex_vols, *vol_sums, *activity, *mm_val;
+    Bool_type *nodes_updated;
+    float *val_nodal_input;
     Bool_type volume_average;
     int i, j, nd;
     int *el_id;
     char **classes;
+    int *sclasses;
     int (*connects)[8];
     int *mats;
     int hex_id;
 
+    Bool_type ignore_elem=FALSE;
+
     float temp_nodal;
 
-    int num_hexes, num_nodes;
+    int num_nodes;
 
     /* Free Node & Particle Node variables */
     float *free_nodes_vol = NULL;
@@ -985,11 +1067,8 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
     float *ei_elem, *ei_nodal, *ei_nodal_weight;
     float  ei_elem_val;
 
-    if ( !is_last_result( analy ) )
-         return;
-
     /* Set the next line to FALSE to compare with TAURUS output. */
-    volume_average = TRUE;
+    volume_average = analy->vol_averaging;
 
     /*
      * ORIGINAL:
@@ -1003,15 +1082,15 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
      * REPLACEMENT:
      */
 
-    if (!strcmp(p_hex_class->short_name, "particle"))
-        particle_class = TRUE;
+    if ( is_particle_class( analy, p_hex_class->superclass, p_hex_class->short_name ) )
+         particle_class = TRUE;
 
     p_mesh = MESH_P( analy );
 
     /* END REPLACEMENT */
 
     p_node_geom = p_mesh->node_geom;
-    num_hexes   = p_hex_class->qty;
+
     num_nodes   = p_node_geom->qty;
     connects    = (int (*) [8]) p_hex_class->objects.elems->nodes;
     mats        = p_hex_class->objects.elems->mat;
@@ -1021,12 +1100,21 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
                ? analy->state_p->elem_class_sand[p_hex_class->elem_class_index] 
                : NULL;
 
-    hex_vols      = NEW_N( float, p_hex_class->qty, "Hex volumes" );
-    vol_sums      = NEW_N( float, p_node_geom->qty, "Volume sums" );
+    hex_vols        = NEW_N( float, p_hex_class->qty, "Hex volumes" );
+    vol_sums        = NEW_N( float, p_node_geom->qty, "Volume sums" );
+    val_nodal_input = NEW_N( float, p_node_geom->qty, "Input val_nodal" );
+    nodes_updated   = NEW_N( Bool_type, p_node_geom->qty, "List of updated nodes" );
+
+    for ( i=0;
+	  i<p_node_geom->qty;
+	  i++ ) {
+          val_nodal_input[i] = val_nodal[i];
+	  nodes_updated[i]   = FALSE;
+    }
 
     if ( analy->ei_result )
     {
-         ei_elem         = NEW_N( float, num_hexes, "Error Indicator - Element" );
+         ei_elem         = NEW_N( float, hex_qty, "Error Indicator - Element" );
          ei_nodal        = NEW_N( float, num_nodes, "Error Indicator - Nodal" );
          ei_nodal_weight = NEW_N( float, num_nodes, "Error Indicator - Nodal Weight" );
 
@@ -1036,16 +1124,17 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
 	       ei_nodal_weight[i] = 0.0;
 	 }
 
-         for ( i = 0; i <  num_hexes; i++ )
+         for ( i = 0; 
+	       i <  hex_qty; 
+	       i++ )
 	       ei_elem[i] = 0.0;
     }
  
-
     /* If free nodes are active then:
      *  
      * Read the nodal volumes if volume scaling is enabled
      */
-    if ( analy->free_nodes || (analy->free_particles && particle_class) )
+    if ( analy->free_nodes_enabled || (analy->particle_nodes_enabled && particle_class) )
     {
        status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
        if (status==0)
@@ -1065,15 +1154,24 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
     {
         /* Get the element identifier. */
         hex_id = hex_ids ? hex_ids[i] : i;
-        
+
+	ignore_elem = FALSE;
+
         /* Ignore inactive elements. */
         if ( !particle_class && !fn_vol_found && activity && activity[hex_id] == 0.0 )
-            continue;
+              continue;
 
         /* Ignore disabled materials. */
         if ( p_mesh->disable_material[ mats[hex_id] ] || 
-             disable_by_object_type( BRICK_T, mats[hex_id], hex_id, analy, NULL ) )
-             continue;
+             disable_by_object_type( p_hex_class, mats[hex_id], hex_id, analy, NULL ) )
+             ignore_elem = TRUE;
+
+        if ( particle_class && analy->particle_nodes_enabled &&
+             !disable_by_object_type( p_hex_class, mats[hex_id], hex_id, analy, NULL ) )
+             ignore_elem = FALSE;
+
+	if (ignore_elem)
+	    continue;
 
         for ( j = 0; j < 8; j++ )
         {
@@ -1085,20 +1183,26 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
 
         if (fn_vol_found)
             hex_vols[hex_id] = free_nodes_vol[nd];
-        else
+        else {
             hex_vols[hex_id] = hex_vol( xx, yy, zz );
+	}
 
         if ( zero_vol_warn_once && hex_vols[hex_id] <= 0.0 )
         {
-            popup_dialog( WARNING_POPUP, 
-                          "Element volume is zero or negative!\n"
-                          "(warning will not repeat for this database load)" );
-            zero_vol_warn_once = FALSE;
+	     popup_dialog( WARNING_POPUP, 
+			   "Element volume is zero or negative!\n"
+			   "@ %s %d.\n(warning will not repeat)",  
+			   p_hex_class->short_name, 
+			   hex_id + 1 );
+             zero_vol_warn_once = FALSE;
         }
 
         for ( j = 0; j < 8; j++ )
         {
             nd = connects[hex_id][j];
+	    nodes_updated[nd] = TRUE;
+            if ( val_nodal_input[nd]!=0.0 )
+	         val_nodal[nd] = 0.0;
 
             if ( volume_average )
                  vol_sums[nd] += hex_vols[hex_id];
@@ -1114,7 +1218,8 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
     
     /* Prepare to extract element min/max (values init'd in load_result()). */
     mm_val  = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    classes = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     el_id   = analy->tmp_elem_mm.object_id;
 
     /* Loop to get the averaged values and extract state element min/max. */
@@ -1122,29 +1227,40 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
     {
         /* Get the element identifier. */
         hex_id = hex_ids ? hex_ids[i] : i;
-        
+ 
+	ignore_elem = FALSE;
+
         /* Ignore inactive elements. */
-        if ( !particle_class && fn_vol_found && activity && activity[hex_id] == 0.0 )
+        if ( !particle_class && !fn_vol_found && activity && activity[hex_id] == 0.0 )
               continue;
 
         /* Ignore disabled materials. */
         if ( p_mesh->disable_material[ mats[hex_id] ] || 
-             disable_by_object_type( BRICK_T, mats[hex_id], hex_id, analy, NULL ) )
-             continue;
+             disable_by_object_type( p_hex_class, mats[hex_id], hex_id, analy, NULL ) )
+             ignore_elem = TRUE;
+
+        if ( particle_class && analy->particle_nodes_enabled &&
+             !disable_by_object_type( p_hex_class, mats[hex_id], hex_id, analy, NULL ) )
+             ignore_elem = FALSE;
+
+	if (ignore_elem)
+	    continue;
 
         /* Test for new min or max. */
         if ( val_hex[hex_id] < mm_val[0] )
         {
-            mm_val[0] = val_hex[hex_id];
-            el_id[0] = hex_id + 1;
-            classes[0] = p_hex_class->long_name;
+            mm_val[0]   = val_hex[hex_id];
+            el_id[0]    = hex_id + 1;
+            classes[0]  = p_hex_class->long_name;
+            sclasses[0] = p_hex_class->superclass;
         }
         
         if ( val_hex[hex_id] > mm_val[1] )
         {
-            mm_val[1] = val_hex[hex_id];
-            el_id[1] = hex_id + 1;
-            classes[1] = p_hex_class->long_name;
+            mm_val[1]   = val_hex[hex_id];
+            el_id[1]    = hex_id + 1;
+            classes[1]  = p_hex_class->long_name;
+            sclasses[1] = p_hex_class->superclass;
         }
 
 	analy->result_active = TRUE; /* We have some valid result data */
@@ -1155,7 +1271,6 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
         for ( j = 0; j < 8; j++ )
         {
             nd = connects[hex_id][j];
-
             /*
              * Divide hex_vol by vol_sum first to avoid precision errors
              * for models with very small dimensions.
@@ -1171,9 +1286,11 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
 	    if ( particle_class )
 	         val_nodal[nd] = val_hex[hex_id];
 	    else 
-	    if ( volume_average )
+	      if ( volume_average ) {
+	        
 		 val_nodal[nd] += val_hex[hex_id] 
 		   * ( hex_vols[hex_id] / vol_sums[nd] );
+	      }
 	    else
 		 val_nodal[nd] += val_hex[hex_id] / vol_sums[nd];
 	    
@@ -1203,14 +1320,24 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
 	       hex_id = hex_ids ? hex_ids[i] : i;
 
 	       /* Ignore inactive elements. */
+	       ignore_elem = FALSE;
+	       
+	       /* Ignore inactive elements. */
 	       if ( !particle_class && !fn_vol_found && activity && activity[hex_id] == 0.0 )
-                     continue;
-
+		    continue;
+	       
 	       /* Ignore disabled materials. */
 	       if ( p_mesh->disable_material[ mats[hex_id] ] || 
-		    disable_by_object_type( BRICK_T, mats[hex_id], hex_id, analy, NULL ) )
-		    continue;
-
+		    disable_by_object_type( p_hex_class, mats[hex_id], hex_id, analy, NULL ) )
+		    ignore_elem = TRUE;
+	       
+	       if ( particle_class && analy->particle_nodes_enabled &&
+		    !disable_by_object_type( p_hex_class, mats[hex_id], hex_id, analy, NULL ) )
+		    ignore_elem = FALSE;
+	       
+	       if (ignore_elem)
+		   continue;
+	       
        	       for ( j = 0; j < 8; j++ )
 	       {
 	             nd = connects[hex_id][j];
@@ -1234,7 +1361,7 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
 	       
 	       /* Ignore disabled materials. */
 	       if ( p_mesh->disable_material[ mats[hex_id] ] || 
-		    disable_by_object_type( BRICK_T, mats[hex_id], hex_id, analy, NULL ) )
+		    disable_by_object_type( p_hex_class, mats[hex_id], hex_id, analy, NULL ) )
 		    continue;
 
        	       for ( j = 0; j < 8; j++ )
@@ -1248,8 +1375,8 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
 		     else
 		     {
 			  if ( volume_average )
-			       val_nodal[nd] += ei_elem[hex_id] 
-			         * ( hex_vols[hex_id] / vol_sums[nd] );
+			       val_nodal[nd] += (double)ei_elem[hex_id] 
+			         * ( (double)hex_vols[hex_id] / vol_sums[nd] );
 			  else
 			       if ( vol_sums[nd] != 0. )
 			            val_nodal[nd] += ei_elem[hex_id] / vol_sums[nd];
@@ -1264,7 +1391,7 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
 	if ( analy->ei_norm_qty!= 0. )
 	     analy->ei_global_indicator = analy->ei_error_norm/analy->ei_norm_qty;
 
-	analy->ei_refinement_indicator  = 0.;
+	analy->ei_refinement_indicator = 0.;
 	analy->ei_global_indicator     = 0.;
 	analy->ei_refinement_indicator = 0.;
 
@@ -1272,9 +1399,122 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
 	free( ei_nodal );
 	free( ei_nodal_weight );
    }
+    
+    /* Average out nodes that were already computed with other subrecords
+     * or element sets.
+     */
+    for ( i=0;
+	  i<p_node_geom->qty;
+	  i++ ) {
+          if ( !particle_class && nodes_updated[i] &&  val_nodal_input[i]!=0.0 ) {
+	       val_nodal[i] = ((double)val_nodal[i]+val_nodal_input[i])/(double)2.0;
+      }
+    }
 
    free( hex_vols );
    free( vol_sums );
+   free( nodes_updated );
+   free( val_nodal_input );
+}
+
+/*****************************************************************
+ * TAG( particle_to_nodal )
+ *
+ * Convert brick element result data to nodal data.
+ *
+ * Data in val_part is assumed to be indexed by element id.
+ *
+ *****************************************************************
+ * Modifications:
+ *  I. R. Corey February 22, 2012: Created.
+ *
+ ****************************************************************
+ */
+void
+particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_class,
+		   int part_qty, int *part_ids, Analysis *analy )
+{
+    GVec3D *nodes;
+    MO_class_data *p_node_geom;
+    Mesh_data *p_mesh;
+    float *activity, *mm_val;
+    int i, j, nd;
+    int *el_id, *sclasses;
+    char **classes;
+    int (*connects)[1];
+    int *mats;
+    int part_id;
+
+    Bool_type ignore_elem=FALSE;
+
+    float temp_nodal;
+
+    int num_nodes=0;
+
+    int status;
+
+    p_mesh = MESH_P( analy );
+
+    p_node_geom = p_mesh->node_geom;
+    num_nodes   = p_node_geom->qty;
+    connects    = (int (*) [1]) p_part_class->objects.elems->nodes;
+    mats        = p_part_class->objects.elems->mat;
+    sclasses    = analy->tmp_elem_mm.sclass;
+    el_id       = analy->tmp_elem_mm.object_id;
+
+    nodes    = analy->state_p->nodes.nodes3d;
+    activity = analy->state_p->sand_present
+               ? analy->state_p->elem_class_sand[p_part_class->elem_class_index] 
+               : NULL;
+
+    /* Prepare to extract element min/max (values init'd in load_result()). */
+    mm_val  = analy->tmp_elem_mm.object_minmax;
+    classes = analy->tmp_elem_mm.class_long_name;
+
+    /* Loop to get the averaged values and extract state element min/max. */
+    for ( i = 0;
+	  i < part_qty; 
+	  i++ )
+    {
+        /* Get the element identifier. */
+        part_id = part_ids ? part_ids[i] : i;
+        
+	ignore_elem = FALSE;
+
+        /* Ignore inactive elements. */
+        if (  activity && activity[part_id] == 0.0 )
+              continue;
+
+        /* Ignore disabled materials. */
+
+        if ( analy->particle_nodes_enabled &&
+             !disable_by_object_type( p_part_class, mats[part_id], part_id, analy, NULL ) )
+             ignore_elem = FALSE;
+
+	if (ignore_elem)
+	    continue;
+
+        /* Test for new min or max. */
+        if ( val_part[part_id] < mm_val[0] )
+        {
+            mm_val[0]   = val_part[part_id];
+            classes[0]  = p_part_class->long_name;
+        }
+        
+        if ( val_part[part_id] > mm_val[1] )
+        {
+             mm_val[1]   = val_part[part_id];
+	     el_id[1]    = part_id + 1;
+	     classes[1]  = p_part_class->long_name;
+	     sclasses[0] = p_part_class->superclass;
+        }
+
+	analy->result_active = TRUE; /* We have some valid result data */
+
+	nd = connects[part_id][0];
+	
+	val_nodal[nd] = val_part[part_id];
+        }
 }
 
 
@@ -1314,6 +1554,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
     int i, j, m, n, nd;
     int *el_id;
     char **classes;
+    int *sclasses;
     int (*connects)[8];
     int hex_id, hex_ids;
     int elem_block_qty;
@@ -1321,6 +1562,8 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
     int cur_mat;
     int *mats;
     int num_hexes, num_nodes;
+    int hex_class_qty=0;
+    float vol_term;
 
     /* Free Nodes variables */
     float *free_nodes_vol = NULL;
@@ -1328,13 +1571,13 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
     int    status;
     Bool   particle_class = FALSE;
 
-   /* Error Indicator Arrays */
+    /* Error Indicator Arrays */
     int   hex_qty = 0;
     float *ei_elem, *ei_nodal, *ei_nodal_weight;
     float ei_elem_val;
 
-    if (!strcmp(p_hex_class->short_name, "particle"))
-        particle_class = TRUE;
+    if ( is_particle_class( analy, p_hex_class->superclass, p_hex_class->short_name ) )
+         particle_class = TRUE;
 
     /* Set the next line to FALSE to compare with TAURUS output. */
     volume_average = TRUE;
@@ -1374,7 +1617,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
      *
      * Read the nodal volumes if volume scaling is enabled
      */
-    if (analy->free_nodes || analy->free_particles)
+    if (analy->free_nodes_enabled || analy->particle_nodes_enabled)
     {
        status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
        if (status==0)
@@ -1390,8 +1633,12 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
      */
     
     /* First loop to get the summed volumes. */
+
+    hex_class_qty = MESH( analy ).classes_by_sclass[G_HEX].qty;
         
     /* Loop over the active materials. */
+
+    if ( !particle_class )
     for ( m = 0; m < active_mat_qty; m++ )
     {
         cur_mat = active_mats[m];
@@ -1403,16 +1650,21 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
             start = p_mats[cur_mat].elem_blocks[n][0];
             stop = p_mats[cur_mat].elem_blocks[n][1];
 
+	    if (  hex_class_qty>1 && stop>=p_hex_class->qty ) {
+	          start = 0;
+	          stop  = p_hex_class->qty-1;
+	    }
+
             /* Loop over the elements in the current element block. */
             for ( hex_id = start; hex_id <= stop; hex_id++ )
             {
-                /* Ignore inactive elements. */
+              /* Ignore inactive elements. */
                 if ( !fn_vol_found && activity && activity[hex_id] == 0.0 )
                     continue;
 
 		/* Ignore disabled materials. */
 		if ( p_mesh->disable_material[ cur_mat ] || 
-		     disable_by_object_type( BRICK_T, cur_mat, hex_id, analy, NULL ) )
+		     disable_by_object_type( p_hex_class, cur_mat, hex_id, analy, NULL ) )
 		     continue;
 
 		hex_qty++;
@@ -1420,7 +1672,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
 		analy->result_active = TRUE; /* We have some valid result data */
 
                 for ( j = 0; j < 8; j++ )
-                {
+                { 
                     nd = connects[hex_id][j];
                     xx[j] = nodes[nd][0];
                     yy[j] = nodes[nd][1];
@@ -1442,9 +1694,6 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
                     zero_vol_warn_once = FALSE;
                 }
 
-                if ( hex_vols[hex_id] <= 0.0 )
-                {
-                }
                 for ( j = 0; j < 8; j++ )
                 {
                     nd = connects[hex_id][j];
@@ -1465,7 +1714,8 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
     
     /* Prepare to extract element min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    classes = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     el_id = analy->tmp_elem_mm.object_id;
 
     /* Loop to get the averaged values and extract state element min/max. */
@@ -1482,16 +1732,21 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
             start = p_mats[cur_mat].elem_blocks[n][0];
             stop = p_mats[cur_mat].elem_blocks[n][1];
 
+	    if ( hex_class_qty>1 && stop>=p_hex_class->qty ) {
+	         start = 0;
+	         stop  = p_hex_class->qty-1;
+	    }
+
             /* Loop over the elements in the current element block. */
             for ( hex_id = start; hex_id <= stop; hex_id++ )
             {
                 /* Ignore inactive elements. */
-                if ( !analy->free_nodes && !analy->free_particles && activity && activity[hex_id] == 0.0 )
+                if ( !analy->free_nodes_enabled && !analy->particle_nodes_enabled && activity && activity[hex_id] == 0.0 )
                      continue;
 		
 		/* Ignore disabled materials. */
 		if ( p_mesh->disable_material[ cur_mat ] || 
-		     disable_by_object_type( BRICK_T, cur_mat, hex_id, analy, NULL ) )
+		     disable_by_object_type( p_hex_class, cur_mat, hex_id, analy, NULL ) )
 		     continue;
 
                 /* Test for new min or max. */
@@ -1500,6 +1755,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
                     mm_val[0] = val_hex[hex_id];
                     el_id[0] = hex_id + 1;
                     classes[0] = p_hex_class->long_name;
+                    sclasses[0] = p_hex_class->superclass;
                 }
                 
                 if ( val_hex[hex_id] > mm_val[1] )
@@ -1507,8 +1763,10 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
                     mm_val[1] = val_hex[hex_id];
                     el_id[1] = hex_id + 1;
                     classes[1] = p_hex_class->long_name;
+                    sclasses[1] = p_hex_class->superclass;
                 }
 
+                if ( !particle_class )
                 for ( j = 0; j < 8; j++ )
                 {
                     nd = connects[hex_id][j];
@@ -1517,19 +1775,35 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
                      * Divide hex_vol by vol_sum first to avoid precision
                      * errors for models with very small dimensions.
                      */
-                    if ( volume_average )
-                        val_nodal[nd] += val_hex[hex_id] 
-                                         * ( hex_vols[hex_id] / vol_sums[nd] );
-                    else
-                        val_nodal[nd] += val_hex[hex_id] / vol_sums[nd];
+			if ( volume_average ) {
+			     if ( vol_sums[nd]>0.0 )
+			          vol_term = hex_vols[hex_id] / vol_sums[nd]; 
+			     else vol_term = hex_vols[hex_id];
+			     if ( vol_term == 0.0 )
+			          vol_term = 1,0;
+
+                             val_nodal[nd] += val_hex[hex_id] 
+                                           * ( vol_term );
+			}
+			else {
+			  if ( vol_sums[nd]==0.0 )
+			       val_nodal[nd] += val_hex[hex_id];
+			  else
+			       val_nodal[nd] += val_hex[hex_id] / vol_sums[nd];
+			}
                 }
+		else {
+		     nd = connects[hex_id][0]; 
+		     val_nodal[nd] = val_hex[hex_id];
+		}
+
             } /* for hex element in element block */
         } /* for element block */
     } /* for active material */
 
 
     /* Compute an Error Indicator result from the selected (primal or derived) result */
-    if ( analy->ei_result )
+    if ( analy->ei_result && !particle_class )
     { 
         /* Loop over the active materials. */
         for ( m = 0; m < active_mat_qty; m++ )
@@ -1552,7 +1826,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
 		      
 		      /* Ignore disabled materials. */
 		      if ( p_mesh->disable_material[ cur_mat ] || 
-			   disable_by_object_type( BRICK_T, cur_mat, hex_id, analy, NULL ) )
+			   disable_by_object_type( p_hex_class, cur_mat, hex_id, analy, NULL ) )
 			   continue;
 
 		      for ( j = 0; j < 8; j++ )
@@ -1596,7 +1870,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
 	      for ( n = 0; n < elem_block_qty; n++ )
 	      {
 		  start = p_mats[cur_mat].elem_blocks[n][0];
-		  stop = p_mats[cur_mat].elem_blocks[n][1];
+		  stop  = p_mats[cur_mat].elem_blocks[n][1];
 		  
 		  /* Loop over the elements in the current element block. */
 		  for ( hex_id = start; hex_id <= stop; hex_id++ )
@@ -1608,7 +1882,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
 		      
 		      /* Ignore disabled materials. */
 		      if ( p_mesh->disable_material[ mats[hex_id] ] || 
-			   disable_by_object_type( BRICK_T, mats[hex_id], hex_id, analy, NULL ) )
+			   disable_by_object_type( p_hex_class, mats[hex_id], hex_id, analy, NULL ) )
 			continue;
 		      
 		      for ( j = 0; j < 8; j++ )
@@ -1658,12 +1932,12 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
 		    for ( hex_id = start; hex_id <= stop; hex_id++ )
 		    {
 		        /* Ignore inactive elements. */
-			if ( !analy->free_nodes && !analy->free_particles && activity && activity[hex_id] == 0.0 )
+			if ( !analy->free_nodes_enabled && !analy->particle_nodes_enabled && activity && activity[hex_id] == 0.0 )
 			     continue;
 			
 			/* Ignore disabled materials. */
 			if ( p_mesh->disable_material[ mats[hex_id] ] || 
-			     disable_by_object_type( BRICK_T, cur_mat, hex_id, analy, NULL ) )
+			     disable_by_object_type( p_hex_class, cur_mat, hex_id, analy, NULL ) )
 			     continue;
 			
 			for ( j = 0; j < 8; j++ )
@@ -1683,17 +1957,19 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
 			/* Update Min max using EI values */
 			if ( ei_elem_val < mm_val[0] )
 			{
-			     mm_val[0]  = ei_elem_val;
-			     el_id[0]   = hex_id + 1;
-			     classes[0] = p_hex_class->long_name;
+			     mm_val[0]   = ei_elem_val;
+			     el_id[0]    = hex_id + 1;
+			     classes[0]  = p_hex_class->long_name;
+			     sclasses[0] = p_hex_class->superclass;
 			}
 		    }
 		    
 		    if ( ei_elem_val > mm_val[1] )
 		    {
-			 mm_val[1] = ei_elem_val;
-			 el_id[1] = hex_id + 1;
-			 classes[1] = p_hex_class->long_name;
+			 mm_val[1]   = ei_elem_val;
+			 el_id[1]    = hex_id + 1;
+			 classes[1]  = p_hex_class->long_name;
+			 sclasses[1] = p_hex_class->superclass;
 		    }
 		    
 		    analy->ei_error_norm += hex_vols[hex_id]*ei_elem[i];
@@ -1755,16 +2031,15 @@ tet_to_nodal( float *val_tet, float *val_nodal, MO_class_data *p_tet_class,
     Mesh_data *p_mesh;
     float tet_verts[4][3];
     float *tet_vols, *vol_sums, *activity, *mm_val;
+    float *val_nodal_input;
+    Bool_type *nodes_updated;
     int i, j, k, nd;
     int *el_id;
     char **classes;
+    int *sclasses;
     int (*connects)[4];
     int *mats;
     int tet_id;
-
-
-    if ( !is_last_result( analy ) )
-         return;
 
     /*
      * NOTE:  Original coding as per "hex_to_nodal"
@@ -1780,8 +2055,17 @@ tet_to_nodal( float *val_tet, float *val_nodal, MO_class_data *p_tet_class,
                ? analy->state_p->elem_class_sand[p_tet_class->elem_class_index] 
                : NULL;
 
-    tet_vols = NEW_N( float, tet_qty, "Tet volumes" );
-    vol_sums = NEW_N( float, p_node_geom->qty, "Volume sums" );
+    tet_vols        = NEW_N( float, tet_qty, "Tet volumes" );
+    vol_sums        = NEW_N( float, p_node_geom->qty, "Volume sums" );
+    val_nodal_input = NEW_N( float, p_node_geom->qty, "Input val_nodal" );
+    nodes_updated   = NEW_N( Bool_type, p_node_geom->qty, "List of updated nodes" );
+
+    for ( i=0;
+	  i<p_node_geom->qty;
+	  i++ ) {
+          val_nodal_input[i] = val_nodal[i];
+	  nodes_updated[i]   = FALSE;
+    }
 
     /*
      * Each node result is a volume-weighted average of the neighboring
@@ -1825,12 +2109,17 @@ tet_to_nodal( float *val_tet, float *val_nodal, MO_class_data *p_tet_class,
         {
             nd = connects[tet_id][j];
             vol_sums[nd] += tet_vols[i];
+	    nodes_updated[nd] = TRUE;
+            if ( val_nodal_input[nd]!=0.0 )
+	         val_nodal[nd] = 0.0;
+
         }
     }
     
     /* Prepare to extract element min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    classes = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     el_id = analy->tmp_elem_mm.object_id;
 
     /* Loop to get the averaged values and extract state element min/max. */
@@ -1850,16 +2139,18 @@ tet_to_nodal( float *val_tet, float *val_nodal, MO_class_data *p_tet_class,
         /* Test for new min or max. */
         if ( val_tet[tet_id] < mm_val[0] )
         {
-            mm_val[0] = val_tet[tet_id];
-            el_id[0] = tet_id + 1;
-            classes[0] = p_tet_class->long_name;
-        }
+            mm_val[0]   = val_tet[tet_id];
+            el_id[0]    = tet_id + 1;
+            classes[0]  = p_tet_class->long_name;
+	    sclasses[0] = p_tet_class->superclass;
+       }
         
         if ( val_tet[tet_id] > mm_val[1] )
         {
-            mm_val[1] = val_tet[tet_id];
-            el_id[1] = tet_id + 1;
-            classes[1] = p_tet_class->long_name;
+            mm_val[1]   = val_tet[tet_id];
+            el_id[1]    = tet_id + 1;
+            classes[1]  = p_tet_class->long_name;
+	    sclasses[1] = p_tet_class->superclass;
         }
 
         for ( j = 0; j < 4; j++ )
@@ -1875,8 +2166,21 @@ tet_to_nodal( float *val_tet, float *val_nodal, MO_class_data *p_tet_class,
         }
     }
 
+    /* Average out nodes that were already computed with other subrecords
+     * element sets.
+     */
+    for ( i=0;
+	  i<p_node_geom->qty;
+	  i++ ) {
+          if ( nodes_updated[i] &&  val_nodal_input[i]!=0.0 ) {
+	       val_nodal[i] = (val_nodal[i]+val_nodal_input[i])/2.0;
+      }
+    }
+
     free( tet_vols );
     free( vol_sums );
+    free( nodes_updated );
+    free( val_nodal_input );
 }
  
 
@@ -1896,18 +2200,18 @@ quad_to_nodal( float *val_quad, float *val_nodal, MO_class_data *p_quad_class,
 {
     Mesh_data *p_mesh;
     MO_class_data *p_node_geom;
-    float *activity, *mm_val;
-    int *adj_cnt;
-    int i, j, nd;
+    float *activity, *mm_val, *val_nodal_input;
+    Bool_type *nodes_updated;
+    int *adj_cnt=NULL;
+    int i, j, nd=0;
     int *el_id;
     char **classes;
+    int *sclasses;
     int (*connects)[4];
     int *mats;
-    int quad_id;
+    int quad_id=0;
 
-    if ( !is_last_result( analy ) )
-         return; 
-
+    double *val_nodal_dbl=NULL, val_dbl;
 
     /*
      * NOTE:  Original coding as per "hex_to_nodal"
@@ -1922,8 +2226,18 @@ quad_to_nodal( float *val_quad, float *val_nodal, MO_class_data *p_quad_class,
                ? analy->state_p->elem_class_sand[p_quad_class->elem_class_index]
                : NULL;
 
-    adj_cnt = NEW_N( int, p_node_geom->qty, "Tmp quad result cnts" );
+    adj_cnt         = NEW_N( int,    p_node_geom->qty, "Tmp quad result cnts" );
+    val_nodal_dbl   = NEW_N( double, p_node_geom->qty, "Tmp quad result cnts" );
+    val_nodal_input = NEW_N( float, p_node_geom->qty, "Input val_nodal" );
+    nodes_updated   = NEW_N( Bool_type, p_node_geom->qty, "List of updated nodes" );
 
+    for ( i=0;
+	  i<p_node_geom->qty;
+	  i++ ) {
+          val_nodal_input[i] = val_nodal[i];
+	  nodes_updated[i]   = FALSE;
+    }
+      
     if ( merge )
     {
         /* Zero selectively. */
@@ -1932,21 +2246,56 @@ quad_to_nodal( float *val_quad, float *val_nodal, MO_class_data *p_quad_class,
             /* Get the element identifier. */
             quad_id = quad_ids ? quad_ids[i] : i;
 
-            if ( (activity && activity[quad_id] == 0.0) ||
-                 p_mesh->disable_material[ mats[quad_id] ] ||
-                 disable_by_object_type( SHELL_T, mats[quad_id], quad_id, analy, NULL ) )
-                continue;
+	    if ( activity )
+                 if ( activity[quad_id] == 0.0 ||
+		      p_mesh->disable_material[ mats[quad_id] ] ||
+		      disable_by_object_type( p_quad_class, mats[quad_id], quad_id, analy, NULL ) )
+	  continue;
 
             for ( j = 0; j < 4; j++ )
               {
-                val_nodal[connects[quad_id][j]] = 0.0;
+                  val_nodal[connects[quad_id][j]] = 0.0;
               } 
        }
     }
 
+    for ( i = 0; 
+	  i < quad_qty;
+	  i++ )
+    {
+	/* Get the element identifier. */
+	quad_id = quad_ids ? quad_ids[i] : i;
+	
+	if ( activity )
+	  if ( activity[quad_id] == 0.0 ||
+	       p_mesh->disable_material[ mats[quad_id] ] ||
+	       disable_by_object_type( p_quad_class, mats[quad_id], quad_id, analy, NULL ) )
+	    continue;
+	
+	for ( j = 0; 
+	      j < 4; 
+	      j++ )
+	{
+	      nd = connects[quad_id][j];
+	      nodes_updated[nd] = TRUE;
+	} 
+    }
+    
+    for ( i=0;
+	  i<p_node_geom->qty;
+	  i++ )
+          if ( nodes_updated[i] && val_nodal_input[i]!=0.0 )
+	       val_nodal[i] = 0.0;
+
+    for ( i = 0; 
+	  i < p_node_geom->qty; 
+	  i++ )
+          val_nodal_dbl[i] = val_nodal[i];
+ 
     /* Prepare to extract element min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    classes = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     el_id = analy->tmp_elem_mm.object_id;
 
     /*
@@ -1959,13 +2308,15 @@ quad_to_nodal( float *val_quad, float *val_nodal, MO_class_data *p_quad_class,
         quad_id = quad_ids ? quad_ids[i] : i;
 
         /* Ignore inactive elements. */
-        if ( activity && activity[quad_id] == 0.0 )
-            continue;
+	if ( activity )
+             if ( activity[quad_id] == 0.0 )
+                  continue;
 
         /* Ignore disabled materials. */
         if ( p_mesh->disable_material[ mats[quad_id] ] || 
-             disable_by_object_type( SHELL_T, mats[quad_id], quad_id, analy, NULL ) )
-            continue;
+             disable_by_object_type( p_quad_class, mats[quad_id], quad_id, analy, NULL ) ) {
+             continue;
+	}
 
         /* Test for new min or max. */
         if ( val_quad[quad_id] < mm_val[0] )
@@ -1973,6 +2324,7 @@ quad_to_nodal( float *val_quad, float *val_nodal, MO_class_data *p_quad_class,
             mm_val[0] = val_quad[quad_id];
             el_id[0] = quad_id + 1;
             classes[0] = p_quad_class->long_name;
+            sclasses[0] = p_quad_class->superclass;
         }
         
         if ( val_quad[quad_id] > mm_val[1] )
@@ -1980,21 +2332,39 @@ quad_to_nodal( float *val_quad, float *val_nodal, MO_class_data *p_quad_class,
             mm_val[1] = val_quad[quad_id];
             el_id[1] = quad_id + 1;
             classes[1] = p_quad_class->long_name;
+            sclasses[1] = p_quad_class->superclass;
         }
 
         for ( j = 0; j < 4; j++ )
         {
             nd = connects[quad_id][j];
-            val_nodal[nd] += val_quad[quad_id];
+	    val_nodal_dbl[nd] += (double) val_quad[quad_id];
             adj_cnt[nd]++;
         }
     }
 
     for ( i = 0; i < p_node_geom->qty; i++ )
         if ( adj_cnt[i] != 0 )
-            val_nodal[i] = val_nodal[i] / adj_cnt[i];
+	{
+	     val_dbl      = (double) val_nodal_dbl[i]/adj_cnt[i];
+	     val_nodal[i] = (float) val_dbl;
+	}
+
+    /* Average out nodes that were already computed with other subrecords
+     * or element sets.
+     */
+    for ( i=0;
+	  i<p_node_geom->qty;
+	  i++ ) {
+          if ( nodes_updated[i] &&  val_nodal_input[i]!=0.0 ) {
+	       val_nodal[i] = (val_nodal[i]+val_nodal_input[i])/2.0;
+      }
+    }
 
     free( adj_cnt );
+    free( val_nodal_dbl );
+    free( nodes_updated );
+    free( val_nodal_input );
 } 
 
 
@@ -2019,10 +2389,13 @@ surf_to_nodal( float *val_surf, float *val_nodal, MO_class_data *p_surf_class,
     int i, j, nd;
     int *el_id;
     char **classes;
+    int *sclasses;
     int (*connects)[4];
     int facet_qty;
     int *mats;
     int surf_id;
+
+    double *val_nodal_dbl=NULL, val_dbl=0.0;
 
     /*
      * NOTE:  Original coding as per "quad_to_nodal"
@@ -2038,7 +2411,8 @@ surf_to_nodal( float *val_surf, float *val_nodal, MO_class_data *p_surf_class,
                : NULL;
 
 
-    adj_cnt = NEW_N( int, p_node_geom->qty, "Tmp surf result cnts" );
+    adj_cnt       = NEW_N( int,    p_node_geom->qty, "Tmp surf result cnts" );
+    val_nodal_dbl = NEW_N( double, p_node_geom->qty, "Tmp surf double result values" );
 
     if ( merge )
     {
@@ -2048,14 +2422,21 @@ surf_to_nodal( float *val_surf, float *val_nodal, MO_class_data *p_surf_class,
             /* Get the element identifier. */
             surf_id = surf_ids ? surf_ids[i] : i;
 
-            for ( j = 0; j < 4; j++ )
-                val_nodal[connects[surf_id][j]] = 0.0;
+            for ( j = 0; j < 4; j++ ) {
+                  val_nodal[connects[surf_id][j]] = 0.0; 
+	    }
         }
     }
 
+    for ( i = 0; 
+	  i < p_node_geom->qty; 
+	  i++ )
+          val_nodal_dbl[i] = val_nodal[i];
+
     /* Prepare to extract element min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    classes = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     el_id = analy->tmp_elem_mm.object_id;
 
     /*
@@ -2089,17 +2470,21 @@ surf_to_nodal( float *val_surf, float *val_nodal, MO_class_data *p_surf_class,
         for ( j = 0; j < 4; j++ )
         {
             nd = connects[surf_id][j];
-            val_nodal[nd] += val_surf[surf_id];
+            val_nodal_dbl[nd] += (double) val_surf[surf_id];
             adj_cnt[nd]++;
         }
     }
 
     for ( i = 0; i < p_node_geom->qty; i++ )
-        if ( adj_cnt[i] != 0 )
-            val_nodal[i] = val_nodal[i] / adj_cnt[i];
+          if ( adj_cnt[i] != 0 ) {
+	       val_dbl      = (double) val_nodal_dbl[i]/adj_cnt[i];
+	       val_nodal[i] = (float) val_dbl;
+      }
 
     free( adj_cnt );
+    free( val_nodal_dbl );
 } 
+
 
 /*****************************************************************
  * TAG( tri_to_nodal )
@@ -2121,12 +2506,17 @@ tri_to_nodal( float *val_tri, float *val_nodal, MO_class_data *p_tri_class,
     int i, j, nd;
     int *el_id;
     char **classes;
+    int *sclasses;
     int (*connects)[3];
     int *mats;
-    int tri_id;
+    int tri_id=0;
+    Bool_type *nodes_updated;
+    float *val_nodal_input;
+
+    double *val_nodal_dbl=NULL, val_dbl=0.0;
 
     /*
-     * NOTE:  Original coding as per "hex_to_nodal"
+     * NOTE: Original coding as per "hex_to_nodal"
      */
 
     p_mesh = MESH_P( analy );
@@ -2137,13 +2527,25 @@ tri_to_nodal( float *val_tri, float *val_nodal, MO_class_data *p_tri_class,
     activity = analy->state_p->sand_present
                ? analy->state_p->elem_class_sand[p_tri_class->elem_class_index] 
                : NULL;
+  
+    adj_cnt       = NEW_N( int, p_node_geom->qty, "Tmp tri result cnts" );
+    val_nodal_dbl = NEW_N( double, p_node_geom->qty, "Tmp tri double result values" );
+    val_nodal_input = NEW_N( float, p_node_geom->qty, "Input val_nodal" );
+    nodes_updated   = NEW_N( Bool_type, p_node_geom->qty, "List of updated nodes" );
 
-    adj_cnt = NEW_N( int, p_node_geom->qty, "Tmp tri result cnts" );
+    for ( i=0;
+	  i<p_node_geom->qty;
+	  i++ ) {
+          val_nodal_input[i] = val_nodal[i];
+	  nodes_updated[i]   = FALSE;
+    }
 
     if ( merge )
     {
         /* Zero selectively. */
-        for ( i = 0; i < tri_qty; i++ )
+        for ( i = 0; 
+	      i < tri_qty;
+	      i++ )
         {
             /* Get the element identifier. */
             tri_id = tri_ids ? tri_ids[i] : i;
@@ -2152,16 +2554,41 @@ tri_to_nodal( float *val_tri, float *val_nodal, MO_class_data *p_tri_class,
                  p_mesh->disable_material[ mats[tri_id] ] )
                  continue;
 
-            for ( j = 0; j < 3; j++ )
-                val_nodal[connects[tri_id][j]] = 0.0;
+            for ( j = 0; j < 3; j++ ) {
+                  val_nodal[connects[tri_id][j]] = 0.0;
+	    }
         }
     }
 
+    for ( i = 0; 
+	  i < tri_qty;
+	  i++ )
+   {
+	  /* Get the element identifier. */
+          tri_id = tri_ids ? tri_ids[i] : i;
+     
+	  if ( (activity && activity[tri_id] == 0.0) ||
+	       p_mesh->disable_material[ mats[tri_id] ] )
+	       continue;
+	  
+	  for ( j = 0; 
+		j < 3; 
+		j++ ) {
+	        nd = connects[tri_id][j];
+		nodes_updated[nd] = TRUE;
+	}
+   }
+    
+    for ( i = 0; 
+	  i < p_node_geom->qty; 
+	  i++ )
+          val_nodal_dbl[i] = val_nodal[i];
+
     /* Prepare to extract element min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    classes = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     el_id = analy->tmp_elem_mm.object_id;
-
 
     /*
      * Each node result is an average of the neighboring
@@ -2183,31 +2610,49 @@ tri_to_nodal( float *val_tri, float *val_nodal, MO_class_data *p_tri_class,
         /* Test for new min or max. */
         if ( val_tri[tri_id] < mm_val[0] )
         {
-            mm_val[0] = val_tri[tri_id];
-            el_id[0] = tri_id + 1;
-            classes[0] = p_tri_class->long_name;
-        }
+            mm_val[0]   = val_tri[tri_id];
+            el_id[0]    = tri_id + 1;
+            classes[0]  = p_tri_class->long_name;
+            sclasses[0] = p_tri_class->superclass; 
+	}
         
         if ( val_tri[tri_id] > mm_val[1] )
         {
-            mm_val[1] = val_tri[tri_id];
-            el_id[1] = tri_id + 1;
-            classes[1] = p_tri_class->long_name;
+            mm_val[1]   = val_tri[tri_id];
+            el_id[1]    = tri_id + 1;
+            classes[1]  = p_tri_class->long_name;
+            sclasses[1] = p_tri_class->superclass; 
         }
 
         for ( j = 0; j < 3; j++ )
         {
             nd = connects[tri_id][j];
-            val_nodal[nd] += val_tri[tri_id];
+            val_nodal_dbl[nd] += (double) val_tri[tri_id];
             adj_cnt[nd]++;
         }
     }
 
     for ( i = 0; i < p_node_geom->qty; i++ )
-        if ( adj_cnt[i] != 0 )
-            val_nodal[i] = val_nodal[i] / adj_cnt[i];
+          if ( adj_cnt[i] != 0 ) {
+	       val_dbl      = (double) val_nodal_dbl[i]/adj_cnt[i];
+	       val_nodal[i] = (float) val_dbl;
+	  }
+
+    /* Average out nodes that were already computed with other subrecords
+     * or element sets.
+     */
+    for ( i=0;
+	  i<p_node_geom->qty;
+	  i++ ) {
+          if ( nodes_updated[i] && val_nodal_input[i]!=0.0 ) {
+	       val_nodal[i] = (val_nodal[i]+val_nodal_input[i])/2.0;
+      }
+    }
 
     free( adj_cnt );
+    free( val_nodal_dbl );
+    free( nodes_updated );
+    free( val_nodal_input );
 }
 
 
@@ -2229,9 +2674,12 @@ beam_to_nodal( float *val_beam, float *val_nodal, MO_class_data *p_beam_class,
     int i, nd;
     int *el_id;
     char **classes;
+    int *sclasses;
     int (*connects)[3];
     int *mats;
     int beam_id;
+
+    double *val_nodal_dbl=NULL, val_dbl=0.0;
 
     /*
      * NOTE:  Original coding as per "hex_to_nodal"
@@ -2246,13 +2694,20 @@ beam_to_nodal( float *val_beam, float *val_nodal, MO_class_data *p_beam_class,
                ? analy->state_p->elem_class_sand[p_beam_class->elem_class_index]
                : NULL;
 
-    adj_cnt = NEW_N( int, p_node_geom->qty, "Tmp beam result cnts" );
+    adj_cnt       = NEW_N( int, p_node_geom->qty, "Tmp beam result cnts" );
+    val_nodal_dbl = NEW_N( double, p_node_geom->qty, "Tmp beam double result values" );
     
     /* Prepare to extract element min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    classes = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     el_id = analy->tmp_elem_mm.object_id;
 
+    for ( i = 0; 
+	  i < p_node_geom->qty; 
+	  i++ )
+          val_nodal_dbl[i] = val_nodal[i];
+ 
     /*
      * Each node result is an average of the neighboring
      * element results.
@@ -2268,22 +2723,24 @@ beam_to_nodal( float *val_beam, float *val_nodal, MO_class_data *p_beam_class,
 
         /* Ignore disabled materials. */
         if ( p_mesh->disable_material[ mats[beam_id] ] ||
-             disable_by_object_type( BEAM_T, mats[beam_id], beam_id, analy, NULL ) )
+             disable_by_object_type( p_beam_class, mats[beam_id], beam_id, analy, NULL ) )
              continue;
 
         /* Test for new min or max. */
         if ( val_beam[beam_id] < mm_val[0] )
         {
-            mm_val[0] = val_beam[beam_id];
-            el_id[0] = beam_id + 1;
-            classes[0] = p_beam_class->long_name;
+            mm_val[0]   = val_beam[beam_id];
+            el_id[0]    = beam_id + 1;
+            classes[0]  = p_beam_class->long_name;
+            sclasses[0] = p_beam_class->superclass;
         }
         
         if ( val_beam[beam_id] > mm_val[1] )
         {
-            mm_val[1] = val_beam[beam_id];
-            el_id[1] = beam_id + 1;
-            classes[1] = p_beam_class->long_name;
+            mm_val[1]   = val_beam[beam_id];
+            el_id[1]    = beam_id + 1;
+            classes[1]  = p_beam_class->long_name;
+            sclasses[1] = p_beam_class->superclass;
         }
 
         /* Sum the result at each node. */
@@ -2292,16 +2749,19 @@ beam_to_nodal( float *val_beam, float *val_nodal, MO_class_data *p_beam_class,
         adj_cnt[nd]++;
 
         nd = connects[beam_id][1];
-        val_nodal[nd] += val_beam[beam_id];
+        val_nodal_dbl[nd] += (double) val_beam[beam_id];
         adj_cnt[nd]++;
     }
 
     /* Average the result at each node. */
     for ( i = 0; i < p_node_geom->qty; i++ )
-        if ( adj_cnt[i] != 0 )
-            val_nodal[i] = val_nodal[i] / adj_cnt[i];
+          if ( adj_cnt[i] != 0 ) {
+	       val_dbl      = (double) val_nodal_dbl[i]/adj_cnt[i];
+	       val_nodal[i] = (float) val_dbl;
+          }
 
     free( adj_cnt );
+    free( val_nodal_dbl );
 }
 
 
@@ -2324,9 +2784,14 @@ truss_to_nodal( float *val_truss, float *val_nodal,
     int i, nd;
     int *el_id;
     char **classes;
+    int *sclasses;
     int (*connects)[2];
     int *mats;
     int truss_id;
+
+    double *val_nodal_dbl=NULL, val_dbl=0.0;
+    Bool_type *nodes_updated;
+    float *val_nodal_input;
 
     /*
      * NOTE:  Original coding as per "hex_to_nodal"
@@ -2341,19 +2806,46 @@ truss_to_nodal( float *val_truss, float *val_nodal,
               ? analy->state_p->elem_class_sand[p_truss_class->elem_class_index]
                : NULL;
 
-    adj_cnt = NEW_N( int, p_node_geom->qty, "Tmp truss result cnts" );
-    
+    adj_cnt       = NEW_N( int, p_node_geom->qty, "Tmp truss result cnts" );
+    val_nodal_dbl = NEW_N( double, p_node_geom->qty, "Tmp truss double result values" );
+   
     /* Prepare to extract element min/max (values init'd in load_result()). */
     mm_val = analy->tmp_elem_mm.object_minmax;
-    classes = analy->tmp_elem_mm.class_name;
+    classes = analy->tmp_elem_mm.class_long_name;
+    sclasses = analy->tmp_elem_mm.sclass;
     el_id = analy->tmp_elem_mm.object_id;
+    val_nodal_input = NEW_N( float, p_node_geom->qty, "Input val_nodal" );
+    nodes_updated   = NEW_N( Bool_type, p_node_geom->qty, "List of updated nodes" );
 
+    for ( i=0;
+	  i<p_node_geom->qty;
+	  i++ ) {
+          val_nodal_input[i] = val_nodal[i];
+	  nodes_updated[i]   = FALSE;
+    }
 
+    for ( i = 0; 
+	  i < truss_qty; 
+	  i++ )
+    {
+          truss_id = truss_ids ? truss_ids[i] : i;
+	  nd = connects[truss_id][0];
+	  if ( val_nodal_input[nd]!=0.0 )
+	       val_nodal[nd] = 0.0;
+   }
+
+    for ( i = 0; 
+	  i < p_node_geom->qty; 
+	  i++ )
+          val_nodal_dbl[i] = val_nodal[i];
+ 
     /*
      * Each node result is an average of the neighboring
      * element results.
      */
-    for ( i = 0; i < truss_qty; i++ )
+    for ( i = 0; 
+	  i < truss_qty; 
+	  i++ )
     {
         /* Get the element identifier. */
         truss_id = truss_ids ? truss_ids[i] : i;
@@ -2364,40 +2856,61 @@ truss_to_nodal( float *val_truss, float *val_nodal,
 
         /* Ignore disabled materials. */
         if ( p_mesh->disable_material[ mats[truss_id] ] ||
-	     disable_by_object_type( TRUSS_T, mats[truss_id], truss_id, analy, NULL ) )
+	     disable_by_object_type( p_truss_class, mats[truss_id], truss_id, analy, NULL ) )
             continue;
 
         /* Test for new min or max. */
         if ( val_truss[truss_id] < mm_val[0] )
         {
-            mm_val[0] = val_truss[truss_id];
-            el_id[0] = truss_id + 1;
-            classes[0] = p_truss_class->long_name;
+            mm_val[0]   = val_truss[truss_id];
+            el_id[0]    = truss_id + 1;
+            classes[0]  = p_truss_class->long_name;
+            sclasses[0] = p_truss_class->superclass;
         }
         
         if ( val_truss[truss_id] > mm_val[1] )
         {
-            mm_val[1] = val_truss[truss_id];
-            el_id[1] = truss_id + 1;
-            classes[1] = p_truss_class->long_name;
+            mm_val[1]   = val_truss[truss_id];
+            el_id[1]    = truss_id + 1;
+            classes[1]  = p_truss_class->long_name;
+            sclasses[1] = p_truss_class->superclass;
         }
 
         /* Sum the result at each node. */
         nd = connects[truss_id][0];
+
         val_nodal[nd] += val_truss[truss_id];
         adj_cnt[nd]++;
 
         nd = connects[truss_id][1];
-        val_nodal[nd] += val_truss[truss_id];
+        val_nodal_dbl[nd] += (double) val_truss[truss_id];
         adj_cnt[nd]++;
     }
 
     /* Average the result at each node. */
-    for ( i = 0; i < p_node_geom->qty; i++ )
-        if ( adj_cnt[i] != 0 )
-            val_nodal[i] = val_nodal[i] / adj_cnt[i];
+    for ( i = 0; 
+	  i < p_node_geom->qty;
+	  i++ )
+          if ( adj_cnt[i] != 0 ) {
+	       val_dbl      = (double) val_nodal_dbl[i]/adj_cnt[i];
+	       val_nodal[i] = (float) val_dbl;
+      }
+
+    /* Average out nodes that were already computed with other subrecords
+     * or element sets.
+     */
+    for ( i=0;
+	  i<p_node_geom->qty;
+	  i++ ) {
+          if ( nodes_updated[i] &&  val_nodal_input[i]!=0.0 ) {
+	       val_nodal[i] = (val_nodal[i]+val_nodal_input[i])/2.0;
+      }
+    }
 
     free( adj_cnt );
+    free( val_nodal_dbl );
+    free( nodes_updated );
+    free( val_nodal_input );
 }
 
 
@@ -2439,18 +2952,23 @@ init_mm_obj( Minmax_obj *p_mmo )
  * not.
  */
 void
-load_result( Analysis *analy, Bool_type update, Bool_type interpolate )
+load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type extreme_result )
 {
     Result *p_r;
+    float *data_buffer;
     int qty;
     int i, j;
     Bool_type first;
-    float *data_buffer;
+    int idcnt=0;
+    int num_nodes=0;
 
     int        particle_count, *particle_nodes;
-    int        subrec, srec;
+    int        subrec=0, srec=0;
     Subrec_obj *p_subrec;   
     
+    if ( extreme_result==FALSE && analy->extreme_result == TRUE )
+         return;
+  
     p_r = analy->cur_result;
 
     if ( p_r != NULL )
@@ -2483,13 +3001,15 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate )
         first = TRUE;
         qty = sizeof( derive_order ) / sizeof( derive_order[0] );
 
-	analy->fp_nodal_result  = FALSE;
-	analy->fp_ref_nodes[0]  = NULL;
-	analy->fp_buffer_ptr[0] = NULL;
+	analy->pn_nodal_result  = FALSE;
+	analy->pn_ref_nodes[0]  = NULL;
+	analy->pn_buffer_ptr[0] = NULL;
 
         for ( i = 0; i < qty; i++ )
         {
-            for ( j = 0; j < p_r->qty; j++ )
+            for ( j = 0; 
+		  j < p_r->qty; 
+		  j++ )
             {
 /**/
 /* Set the subrecord references in the Derived_result in the appropriate
@@ -2499,26 +3019,26 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate )
                 {
                      analy->result_index = j;
 
+		     subrec   = p_r->subrecs[j];
+		     srec     = p_r->srec_id;
+		     p_subrec = analy->srec_tree[srec].subrecs + subrec;
+
                      p_r->result_funcs[j]( analy, data_buffer, interpolate );
 
-		    /* Get a pointer to the result buffer for the Particle object */
-		    if ( analy->free_particles )
-		    {
+		     /* Get a pointer to the result buffer for the Particle object */
+		     if ( analy->particle_nodes_enabled )
+		     {
 			subrec   = p_r->subrecs[analy->result_index];
 			srec     = p_r->srec_id;
 			p_subrec = analy->srec_tree[srec].subrecs + subrec;
 
-			if ( !strcmp(p_subrec->p_object_class->short_name, "brick") ||
-			     !strcmp(p_subrec->p_object_class->short_name, "node") )
+			if ( is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
 			{
-			      analy->fp_nodal_result = TRUE;
-			      analy->fp_node_ptr[0]  = data_buffer;
-			}
-
-			if ( !strcmp(p_subrec->p_object_class->short_name, "particle") )
-			{
-			      analy->fp_ref_nodes[0]      = p_subrec->referenced_nodes;
-			      analy->fp_ref_node_count[0] = p_subrec->ref_node_qty;
+			     analy->pn_nodal_result = TRUE;
+			     analy->pn_node_ptr[0]  = data_buffer;
+			     
+			     analy->pn_ref_nodes[0]      = p_subrec->referenced_nodes;
+			     analy->pn_ref_node_count[0] = p_subrec->ref_node_qty;
 			}
 		    }
 
@@ -2529,26 +3049,27 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate )
                             init_nodal_min_max( analy );
                             first = FALSE;
                         }
-
-			/*	if ( !analy->ei_result ) */
-			     update_nodal_min_max( analy );
+			update_nodal_min_max( analy );
                     }
-                }
-            }
-        }
+                } /* if ( p_r->superclasses[j] == derive_order[i] ) */
+            } /* for j */
+	}
     
         if ( env.result_timing && !env.timing )
-            check_timing( 1 );
+             check_timing( 1 );
         
         if ( update )
-            update_min_max( analy );
+             update_min_max( analy );
 
         if (analy->previous_state > analy->cur_state ||
             analy->min_state == analy->cur_state)
-           analy->reset_damage_hide = TRUE;
-           analy->previous_state    = analy->cur_state;          
+            analy->reset_damage_hide = TRUE;
+            analy->previous_state    = analy->cur_state;          
     }
+    else
+        analy->dump_result = FALSE;
 }
+
 
 /*****************************************************************
  * TAG( load_subrecord_result )
@@ -2638,7 +3159,7 @@ int *get_free_nodes( Analysis *analy )
     int  *free_nodes_list;
     int   nd;
 
-    float *activity;
+    float *activity, active_element=0.;
     float *data_array;
     float verts[3], leng[3];
     float **sand_arrays;
@@ -2700,7 +3221,10 @@ int *get_free_nodes( Analysis *analy )
                 p_mo_class = mo_classes[j];
                 connects   = p_mo_class->objects.elems->nodes;
                 mat        = p_mo_class->objects.elems->mat;
-                activity   = sand_arrays[p_mo_class->elem_class_index];
+                if ( sand_arrays )
+	             activity = sand_arrays[p_mo_class->elem_class_index];
+		else activity = NULL;
+
                 
                 /* Loop over each element */
                 for ( k = 0; 
@@ -2708,8 +3232,11 @@ int *get_free_nodes( Analysis *analy )
                       k++ )
                 {
                     mat_num = mat[k];
+		    if ( activity )
+		         active_element = activity[k];
+		    else active_element = 0.0;
 
-                    if (!disable_mtl[mat_num] && activity[k] == 0.0)
+                    if (!disable_mtl[mat_num] && active_element == 0.0)
                        for ( l = 0; l < conn_qty; l++ )
                        {
                            nd = connects[k * node_qty + l];
@@ -2724,30 +3251,192 @@ int *get_free_nodes( Analysis *analy )
 
     if (num_fn==0)
     {
-       free(free_nodes_list);
-       free_nodes_list = NULL;
+        free(free_nodes_list);
+        free_nodes_list = NULL;
     }
   
     return (free_nodes_list);
 }
 
 /************************************************************
- * TAG( is_last_result )
+ * TAG( find_min_max )
  *
- * This function will determine if this is the last
- * set of result data so that we know when to compute
- * nodal sums.
+ * This function will return the min and max values + the
+ * indexes for a nodal result.
  */
 
-Bool_type is_last_result( Analysis *analy )
+void find_min_max( int num_nodes,  float *result, float *min, float *max,
+		   int *min_index, int *max_index )
 {
-  return ( TRUE );
+  int i;
 
-  if ( analy->cur_result==NULL )
-       return ( TRUE );
+  *min = MAXFLOAT;
+  *max = -MAXFLOAT;
 
-  if ( analy->cur_result->qty == analy->result_index+1 )
-       return ( TRUE );
-  else
-       return ( FALSE );
+  for ( i=0;
+	i<num_nodes;
+	i++ ) {
+        if ( result[i] < *min ) {
+	     *min = result[i];
+	     *min_index = i;
+	}
+        if ( result[i] > *max ) {
+	     *max = result[i];
+	     *max_index = i;
+	}
+  }
 }
+
+/*****************************************************************
+ * TAG( dump_result )
+ *
+ * This function will dump results data to a txt file named after
+ * the result_name.
+ */
+void
+dump_result( Analysis *analy, char *fname_input )
+{
+  FILE  *fp;
+  int   i,j,k;
+  char  fname[128], state_string[10];
+  float *data_buffer=NULL, *data_result=NULL;
+  int   *data_sclass=NULL, *data_mat=NULL;
+  int   *data_ids=NULL; 
+  Bool_type *data_hide=NULL;
+  int   result_index=0;
+  int   class_qty=0;
+  int   class_type;
+  int   num_nodes=0;
+  int   num_objects=1;
+  int   superclass=0;
+  MO_class_data *p_node_class, *p_class;
+  Result *p_r;
+  Subrec_obj *p_subrec;
+  char *class_names[100];
+  int  *class_name_index;
+  int  class_index=0, class_label_index=0;
+  Bool class_found=FALSE;
+
+  int *mat=NULL;
+  Mesh_data *p_mesh;
+  unsigned char *hide_mat;
+
+  p_mesh = MESH_P( analy );
+  hide_mat    = p_mesh->hide_material;
+  
+  p_r = analy->cur_result;
+  if ( !p_r )
+       return;
+
+  /* Count number of result objects for array allocation */
+  for ( i = 0; 
+	i < p_r->qty;
+	i++ ) {
+        superclass = p_r->superclasses[i];
+	class_qty = MESH( analy ).classes_by_sclass[superclass].qty;
+
+        for ( j = 0; 
+	      j < class_qty;
+	      j++ )
+        {
+              p_class = ((MO_class_data **) 
+                         MESH( analy ).classes_by_sclass[superclass].list)[j];
+	      num_objects+=p_class->qty;
+	}
+  }
+
+  p_node_class = MESH_P( analy )->node_geom;
+  num_nodes = p_node_class->qty;
+  data_sclass = NEW_N( int , num_objects, "data_sclass" );
+  memset( data_sclass, -1, num_objects );
+  data_ids = NEW_N( int , num_objects, "data_ids" );
+  memset( data_ids, -1, num_objects );
+  data_hide = NEW_N( Bool_type, num_objects, "data_hide" );
+  memset( data_hide, FALSE, num_objects );
+  data_mat = NEW_N( int , num_objects, "data_mat" );
+  memset( data_mat, 0, num_objects );
+  data_result = NEW_N( float , num_objects, "data_result" );
+  memset( data_result, 0.0, num_objects );
+  class_name_index = NEW_N( int , num_objects, "class_name_index" );
+  memset( class_name_index, -1, num_objects );
+  
+  for ( i = 0; 
+	i < p_r->qty;
+	i++ ) {
+        superclass = p_r->superclasses[i];
+	class_qty = MESH( analy ).classes_by_sclass[superclass].qty;
+
+        for ( j = 0; 
+	      j < class_qty;
+	      j++ )
+        {
+              p_class = ((MO_class_data **) 
+                         MESH( analy ).classes_by_sclass[superclass].list)[j];
+
+	      mat = p_class->objects.elems->mat;
+
+	      /* Only process class one time - do not allow duplicates */
+	      class_found = FALSE;
+	      for ( k=0;
+	            k<class_index;
+		    k++ )
+	 	    if ( !strcmp( class_names[k], p_class->short_name ) )
+		         class_found = TRUE;
+	      if ( class_found )
+	 	   continue;
+
+	      for ( k=0; 
+	            k<p_class->qty;
+		    k++ ) {
+		    data_mat[k] = mat[k]+1;
+		    if ( hide_mat[mat[k]] )
+		         data_hide[k] = TRUE;
+		    else
+		         data_hide[k] = FALSE;
+		    
+		    data_sclass[result_index] = p_class->superclass;
+	            data_ids[result_index]    = k+ 1;
+		    class_label_index = get_class_label_index( p_class, k+1 ); 
+	            data_result[k] = p_class->data_buffer[class_label_index-1];
+		    class_name_index[result_index] = class_index;
+		    result_index++;
+	      }
+	      class_names[class_index++] = strdup( p_class->short_name  );
+	}
+   }
+
+  if ( fname_input ) 
+       strcpy( fname, fname_input );
+  else { 
+       strcpy( fname, "ResultData-" );
+       strcat( fname, analy->cur_result->name );
+       sprintf( state_string, "_State-%d", analy->cur_state+1 );
+       strcat( fname, state_string );
+  }
+
+  fp = fopen(fname, "w" );
+  fprintf( fp, "* Global-Id\tClass-Name\tClass-Id\tMaterial\tElemType\t\tValue\n" );
+  for ( i=0; 
+	i<result_index;
+	i++ ) {
+        if ( data_sclass[i]>0 && data_hide[i]==FALSE ) {
+	     fprintf( fp, "\t%d\t\t%s\t\t%d\t\t%d\t%d\t\t%22.15e\n", i+1, class_names[class_name_index[i]], data_ids[i], 
+		      data_mat[i], data_sclass[i], data_result[i] );
+    }
+  }
+
+  fclose( fp );
+
+  free( data_sclass );
+  free( data_ids );
+  free( data_result );
+  free( data_hide );
+  free( data_mat );
+
+  free( class_name_index );
+  for ( i=0;
+	i<class_index;
+	i++ )
+        free( class_names[i] );
+}
+
