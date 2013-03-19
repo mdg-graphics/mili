@@ -10,17 +10,17 @@ off all; on cmap; on title; on time; on coord; on box; on minmax
 off path
 switch mglob
 fracsz 8
-alias s80 state 80
+alias s44 state 44
 on thsinglecol
 jpegqual 100
 alias selml select ml 1 667 963 1010
 
 # Set the view
-hinclude ml40_V1.gsf
+rdhis ml40_V1.gsf
 
 # Image for variable eps
 clrsel 
-s80 
+s44
 selml
 select ml 1369 1000
 show "ml_ellipse[elp1_x]"

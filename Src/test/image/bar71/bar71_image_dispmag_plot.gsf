@@ -7,7 +7,7 @@
 # Min/Max Switch: global
 
 # Setup
-alias chgst f;n;n;l
+# alias chgst f;n;n;l // Multi command alias in newer releases
 alias min 1
 alias max 81
 alias staterange minst 1; maxst 70

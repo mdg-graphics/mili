@@ -1,11 +1,5 @@
 # $Id$
-#	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#	+                                                               +
-#	+                       Copyright (c) 2004                      +
-#	+          The Regents of the University of California          +
-#	+                      All Rights Reserved                      +
-#	+                                                               +
-#	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
 #
 #	*****************************************************************
 #	*								*
@@ -79,45 +73,7 @@
 #                      Add support for building on CHAOS4
 #		       SCR # 429
 #	-----------------------------------------------------------------
-
 #
-# The Regents of the University of California.  
-# All rights reserved.
-# 
-# This work was produced at the University of California, 
-# Lawrence Livermore National Laboratory (UC LLNL) under 
-# contract no. W-7405-ENG-48 between the U.S. Department of 
-# Energy (DOE) and The Regents of the University of California
-# (University) for   the operation of UC LLNL. Copyright is 
-# reserved to the University for purposes of controlled dis-
-# semination, commercialization through formal licensing, or 
-# other disposition under terms of Contract 48; DOE policies, 
-# regulations and orders; and U.S. statutes.
-# 
-# DISCLAIMER OF LIABILITY
-# 
-# This document was prepared as an account of work sponsored 
-# by an agency of the United States Government.  Neither the 
-# United States Government nor the University of California 
-# nor any of their employees, makes any warranty, express
-# or implied, including the warranties of merchantability
-# and fitness for a particular purpose, or assumes any legal
-# liability or responsibility for the accuracy, completeness,
-# or usefulness of any information, apparatus, product, or 
-# process disclosed, or represents that its use would not 
-# infringe privately-owned rights.
-# 
-# DISCLAIMER OF ENDORSEMENT
-# 
-# Reference herein to any specific commercial products,
-# process, or service by trade name, trademark, manufacturer,
-# or otherwise, does not necessarily constitute or imply its
-# endorsement, recommendation, or favoring by the United States
-# Government or the University of California.  The views and 
-# opinions of authors expressed herein do not necessarily state
-# or reflect those of the United States Government or the 
-# University of California, and shall not be used for advertising
-# or product endorsement purposes.
 #################################################################
 
 AC_DEFUN([CONFIGURE_INIT],
@@ -160,7 +116,6 @@ AC_DEFUN([CONFIGURE_OS],
 
         AC_SUBST(OS_NAME)
         AC_SUBST(PROCESSOR_TYPE)
-        AC_MSG_RESULT($OS_NAME_VERSION)
   ])
 
 
@@ -249,12 +204,6 @@ AC_DEFUN([CONFIGURE_GPROF],
         fi
   ])
 
-AC_DEFUN([CONFIGURE_BATCH],
-  [       
-        #
-        # Set options for running Griz in Batch
-        #
-  ])
 
 
 AC_DEFUN([CONFIGURE_BITMAPS],
@@ -402,60 +351,82 @@ AC_DEFUN([CONFIGURE_JPEG],
   [    
 	JPEG_ENABLE="True"  
 	CONFIG_JPEG="True"
-        
-	#
-	# Set options for running with JPEG support
-	#
 	AC_ARG_ENABLE([nojpeg],       
-		AC_HELP_STRING([--enable-jpeg],[Compile and load with JPEG support]),
-		JPEG_ENABLE="False" &&  AC_MSG_RESULT(---->Enabling: JPEG),
-		JPEG_ENABLE="True")
-        
-	#
-	#  Make JPEG default enabled 
-	#  
-	
-        
-	JPEG_HOME="None"
-	JPEG_INCLUDE_PATHS=""
-	JPEG_LIBRARY_PATHS=""
-	JPEG_LIBRARY=""
-	JPEG_DEFINES=""
-
-        
+		AC_HELP_STRING([--enable-nojpeg],[Turn off JPEG support]),
+		[
+			JPEG_ENABLE="False" 
+			CONFIG_JPEG="False"
+			AC_MSG_RESULT(---->Disabling: JPEG)
+		]
+	)	
 	if test "$JPEG_ENABLE" = "True"; then
+		#
+		# See if the user gave a path to a jpeg file
+		#
+		jpeg_on_system="false"
+		JPEG_HOME="None"
+		
 		AC_ARG_WITH([jpeg],
 			AC_HELP_STRING(
 				[--with-jpeg=[PATH]],
 				[Use given base PATH for JPEG libraries and header files]),
-			JPEG_HOME="${withval}" &&
-			CONFIG_OPTIONS="$CONFIG_OPTIONS --with-jpeg=$JPEG_HOME " jpeg_set="True" &&
-			AC_MSG_RESULT("Using JPEG Path : $withval")
-        	   
+			[
+				JPEG_HOME="${withval}" 
+				CONFIG_OPTIONS="$CONFIG_OPTIONS --with-jpeg=$JPEG_HOME " jpeg_set="True" 
+				
+			],
+			[
+				AC_SEARCH_LIBS([jpeg_destroy],[jpeg],
+	 				[  
+						AC_CHECK_HEADER([jpeglib.h],
+							[
+								AC_DEFINE([HAVE_JPEGLIB_H],
+									[1],
+									[define to 1 if you have <jpeglib.h>]
+								)
+							]
+						)
+						jpeg_on_system="true"
+	 				]
+				)
+			]        	   
 		)
-		if test "$JPEG_HOME" = "None";then
-         		JPEG_HOME=".."
-			CONFIG_JPEG="true"
-		fi
-
-  		JPEG_INCLUDE_PATHS="-I$JPEG_HOME/include"
-		JPEG_LIBRARY_PATHS="-L$JPEG_HOME/lib"
-
-		CONFIG_OPTIONS="$CONFIG_OPTIONS --enable-jpeg "
-          
-		JPEG_LIBRARY="-ljpeg "
-
-		if test "$OS_NAME" = "OSF1"; then 
-			JPEG_LIBRARY_PATHS=" -noso $JPEG_LIBRARY_PATHS"
-			JPEG_LIBRARY="$JPEG_LIBRARY -so_archive "
-		fi
 		
+		#
+		# Set options for running with JPEG support
+		#
+		JPEG_INCLUDE_PATHS=""
+		JPEG_LIBRARY_PATHS=""
+		JPEG_LIBRARY=""
+		JPEG_DEFINES=""
+		if test "$jpeg_on_system" = "false"; then
+			if test "$JPEG_HOME" = "None";then
+				JPEG_HOME=".."
+				CONFIG_JPEG="true"
+			fi
+			JPEG_INCLUDE_PATHS="-I$JPEG_HOME/include"
+			JPEG_LIBRARY_PATHS="-L$JPEG_HOME/lib"
+
+			CONFIG_OPTIONS="$CONFIG_OPTIONS --enable-jpeg "
+          
+			JPEG_LIBRARY="-ljpeg "
+
+			if test "$OS_NAME" = "OSF1"; then 
+				JPEG_LIBRARY_PATHS=" -noso $JPEG_LIBRARY_PATHS"
+				JPEG_LIBRARY="$JPEG_LIBRARY -so_archive "
+			fi
+		
+			
+		
+		else
+			JPEG_HOME=""
+			CONFIG_JPEG="False"
+		fi
 		JPEG_DEFINES="-DJPEG_SUPPORT"
 		AC_DEFINE(HAVE_JPEG, 1, [Jpeg library])
-        
+      
 	fi
-
-        
+          
 	#  JPEG Library Options
 	AC_SUBST(JPEG_HOME)
 	AC_SUBST(CONFIG_JPEG)
@@ -464,136 +435,356 @@ AC_DEFUN([CONFIGURE_JPEG],
 	AC_SUBST(JPEG_LIBRARY_PATHS)
   ])
 	
-	
+AC_DEFUN([CONFIGURE_SGI_GRAPHICS],
+	[
+		X11_LIBRARY_PATHS=""
+		X11_INCLUDE_PATHS=""
+		X11_LIBS=" -lGLw -lXm -lXt -lX11 -lGLU -lGL "
+		OSMESA_ENABLE="False"
+		BATCH_ENABLE="False" 
+		AC_SUBST(X11_LIBRARY_PATHS)
+    AC_SUBST(X11_INCLUDE_PATHS)
+		AC_SUBST(OSMESA_ENABLE)
+    AC_SUBST(BATCH_ENABLE)
+		AC_SUBST(X11_LIBS)
+	]
+)	
 AC_DEFUN([CONFIGURE_X11],
   [       
         #
         # Set options for X11 Libraries
         # -lGLw -lXm -lXt -lX11 -lGLU -lGL -lm
-	paths="/usr/X11R6 /usr"
+
+	paths="/usr /usr/X11R6 /usr/X11 /sw"
+
 	X11_INCLUDE_PATHS=""
 	X11_LIBRARY_PATHS=""
 	X11_LIBS=" "
 	X11_PATH=""
 	X11_HOME=""   
 	allfound="true"
-	   
-	   
+
+	X11found=""
+	Xmfound=""
+	Xtfound=""
+	GLfound=""
+        GLUfound=""
+        GLwfound=""
+	
+        libsfound=""
+
+	#AC_PATH_X()
+	#AC_PATH_XTRA()
+	
+	#AC_SEARCH_LIBS([XDestroyWindow],[X11]) 
+	#AC_SEARCH_LIBS([XmStringFree],[Xm]) 
+	#AC_SEARCH_LIBS([XtAddGrab],[Xt])
+	#AC_SEARCH_LIBS([glXFreeMemoryMESA],[GL]) 
+	#AC_SEARCH_LIBS([gluNewQuadric],[GLU]) 
+	#AC_SEARCH_LIBS([glwDrawingAreaClassRec],[GLw]) 
+	
+	#AC_MSG_ERROR([$x_includes $x_libraries $LIBS])
+
+        allfound="false"
 	required_files="libX11.a libXm.a libXt.a libGL.a libGLU.a libGLw.a"
+
 	for path in $paths; do
-		allfound="true"
+		pathset="false"
+		if test "$allfound" = "false";then
 		for file in $required_files; do
 			AC_CHECK_FILE([$path/lib64/$file],
 				[
-					X11_INCLUDE_PATHS="-I$path/include "
-					X11_LIBRARY_PATHS="-L$path/lib64 "
 					LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.a||'`
 					X11_LIBS="$X11_LIBS -l$LIBNAME "
-					X11_PATH="$path/lib64"
+
+					if test $pathset = "false" ;then
+					   X11_INCLUDE_PATHS="$X11_INCLUDE_PATHS -I$path/include "
+					   X11_LIBRARY_PATHS="$X11_LIBRARY_PATHS -L$path/lib64 "
+					   X11_PATH="$X11_PATH $path/lib64"
+				           pathset="true"
+					fi
+
 					X11_HOME="$path"
+
+	     				if test "$X11found" = "" -a "$file" = "libX11.a" ;then
+					   X11found="$path/lib64/$file "	
+					fi	
+	     				if test "$Xmfound" = "" -a "$file" = "libXm.a" ;then
+					   Xmfound="$path/lib64/$file "	
+					fi	
+	     				if test "$Xtfound" = "" -a "$file" = "libXt.a" ;then
+					   Xtfound="$path/lib64/$file "	
+					fi	
+	     				if test "$GLfound" = "" -a "$file" = "libGL.a" ;then
+					   GLfound="$path/lib64/$file "	
+					fi	
+	     				if test "$GLUfound" = "" -a "$file" = "libGLU.a" ;then
+					   GLUfound="$path/lib64/$file "	
+					fi	
+	     				if test "$GLwfound" = "" -a "$file" = "libGLw.a" ;then
+					   GLwfound="$path/lib64/$file "	
+					fi
 				],
 				[
-					allfound="false"
-					X11_LIBS=" "
-					break
+				noop="true"
 				]
 			)
 		done
+		fi
+
+	        if test "$X11found" != "" -a "$Xmfound"  != "" -a "$Xtfound"  != "" -a "$GLfound"  != "" -a "$GLUfound" != "" -a "$GLwfound" != "" ;then
+	           allfound="true"
+	        fi
+
 		if test "$allfound" = "false";then
-			allfound="true"
+			pathset="false"
 			for file in $required_files; do
 				AC_CHECK_FILE([$path/lib/$file],
 					[
-						X11_INCLUDE_PATHS="-I$path/include "
-						X11_LIBRARY_PATHS="-L$path/lib "
 						LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.a||'`
 						X11_LIBS="$X11_LIBS -l$LIBNAME "
-						X11_PATH="$path/lib"
+
+						if test $pathset = "false" ;then
+					 	   X11_INCLUDE_PATHS="$X11_INCLUDE_PATHS -I$path/include "
+						   X11_LIBRARY_PATHS="$X11_LIBRARY_PATHS -L$path/lib "
+						   X11_PATH="$X11_PATH $path/lib"
+					           pathset="true"
+						fi
+
 						X11_HOME="$path"
+
+	     					if test "$X11found" = "" -a "$file" = "libX11.a" ;then
+					   	   X11found="$path/lib/$file "	
+						fi	
+	     					if test "$Xmfound" = "" -a "$file" = "libXm.a" ;then
+					   	   Xmfound="$path/lib/$file "	
+						fi	
+	     					if test "$Xtfound" = "" -a "$file" = "libXt.a" ;then
+					           Xtfound="$path/lib/$file "	
+						fi	
+	     					if test "$GLfound" = "" -a "$file" = "libGL.a" ;then
+					   	   GLfound="$path/lib/$file "	
+						fi	
+	     					if test "$GLUfound" = "" -a "$file" = "libGLU.a" ;then
+					   	   GLUfound="$path/lib/$file "	
+						fi	
+	     					if test "$GLwfound" = "" -a "$file" = "libGLw.a" ;then
+					           GLwfound="$path/lib/$file "	
+						fi	
 					],
 					[
-						allfound="false"
-						X11_LIBS=" "
-						break
+					noop="true"
 					]
 				)
 			done
-			if test "$allfound" = "false";then
-				X11_INCLUDE_PATHS=""
-	   		X11_LIBRARY_PATHS=""
-	   		X11_PATH=""
-				X11_HOME=""
-			else
-				break
 			fi
-		else
-			break
-		fi
-	done
+  		done
 	
-	
-	if test "$allfound" = "false";then
+	        if test "$X11found" != "" -a "$Xmfound"  != "" -a "$Xtfound"  != "" -a "$GLfound"  != "" -a "$GLUfound" != "" -a "$GLwfound" != "" ;then
+	           allfound="true"
+	        fi
+
+	        if test "$allfound" = "false";then
 		for path in $paths; do
 			required_files="libX11.so libXm.so libXt.so libGL.so libGLU.so libGLw.so"
-			allfound="true"
+			pathset="false"
 			for file in $required_files; do
 				AC_CHECK_FILE([$path/lib64/$file],
 					[
-						X11_INCLUDE_PATHS="-I$path/include "
-						X11_LIBRARY_PATHS="-L$path/lib64 "
 						LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.so||'`
 						X11_LIBS="$X11_LIBS -l$LIBNAME "
-						X11_PATH="$path/lib64"
+
+						if test $pathset = "false" ;then
+						   X11_INCLUDE_PATHS="$X11_INCLUDE_PATHS -I$path/include "
+						   X11_LIBRARY_PATHS="$X11_LIBRARY_PATHS -L$path/lib64 "
+						   X11_PATH="$X11_PATH $path/lib64"
+					           pathset="true"
+						fi
+
 						X11_HOME="$path"
+
+	     					if test "$X11found" = "" -a "$file" = "libX11.so" ;then
+					   	   X11found="$path/lib64/$file "
+						fi	
+	     					if test "$Xmfound" = "" -a "$file" = "libXm.so" ;then
+					   	   Xmfound="$path/lib64/$file "	
+						fi	
+	     					if test "$Xtfound" = "" -a "$file" = "libXt.so" ;then
+					           Xtfound="$path/lib64/$file "	
+						fi	
+	     					if test "$GLfound" = "" -a "$file" = "libGL.so" ;then
+					   	   GLfound="$path/lib64/$file "	
+						fi	
+	     					if test "$GLUfound" = "" -a "$file" = "libGLU.so" ;then
+					   	   GLUfound="$path/lib64/$file "	
+						fi	
+	     					if test "$GLwfound" = "" -a "$file" = "libGLw.so" ;then
+					           GLwfound="$path/lib64/$file "	
+						fi
 					],
 					[
-						allfound="false"
-						X11_LIBS=" "
-						break
+					noop="true"
 					]
 				)
 			done
+
+	                if test "$X11found" != "" -a "$Xmfound"  != "" -a "$Xtfound"  != "" -a "$GLfound"  != "" -a "$GLUfound" != "" -a "$GLwfound" != "" ;then
+	           	   allfound="true"
+	        	fi
+
 			if test "$allfound" = "false";then
-				allfound="true"
+	 			pathset="false"
 				for file in $required_files; do
 					AC_CHECK_FILE([$path/lib/$file],
 						[
-							X11_INCLUDE_PATHS="-I$path/include "
-							X11_LIBRARY_PATHS="-L$path/lib "
-							LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.a||'`
+							LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.so||'`
 							X11_LIBS="$X11_LIBS -l$LIBNAME "
-							X11_PATH="$path/lib"
+
+							if test $pathset = "false" ;then
+						           X11_INCLUDE_PATHS="$X11_INCLUDE_PATHS -I$path/include "
+							   X11_LIBRARY_PATHS="$X11_LIBRARY_PATHS -L$path/lib "
+							   X11_PATH="$X11_PATH $path/lib"
+							   pathset="true"
+							fi
+
 							X11_HOME="$path"
+
+	     						if test "$X11found" = "" -a "$file" = "libX11.so" ;then
+					   	  	   X11found="$path/lib/lib/$file "
+							fi
+	     						if test "$Xmfound" = "" -a "$file" = "libXm.so" ;then
+					   		   Xmfound="$path/lib/lib/$file "	
+							fi	
+	     						if test "$Xtfound" = "" -a "$file" = "libXt.so" ;then
+						           Xtfound="$path/lib/lib/$file "	
+							fi	
+	     						if test "$GLfound" = "" -a "$file" = "libGL.so" ;then
+						   	   GLfound="$path/lib/lib/$file "	
+							fi	
+	     						if test "$GLUfound" = "" -a "$file" = "libGLU.so" ;then
+						   	   GLUfound="$path/lib/lib/$file "	
+							fi	
+	     						if test "$GLwfound" = "" -a "$file" = "libGLw.so" ;then
+						           GLwfound="$path/lib/lib/$file "	
+							fi	
 						],
 						[
-							allfound="false"
-							X11_LIBS=" "
-							break
+						noop="true"
 						]
 					)
 				done
-				if test "$allfound" = "false";then
-					X11_INCLUDE_PATHS=""
-	   			X11_LIBRARY_PATHS=""
-	   			X11_PATH=""
-					X11_HOME=""
-				else
-					break
-				fi
-			else
-				break
 			fi
-		done	
+		done
+	fi	
+
+	if test "$X11found" != "" -a "$Xmfound"  != "" -a "$Xtfound"  != "" -a "$GLfound"  != "" -a "$GLUfound" != "" -a "$GLwfound" != "" ;then
+           allfound="true"
+        fi
+	
+	if test "$allfound" = "false";then
+		for path in $paths; do
+			required_files="libX11.dylib libXm.dylib libXt.dylib libGL.dylib libGLU.dylib libGLw.dylib"
+		        pathset="false"
+			for file in $required_files; do
+				AC_CHECK_FILE([$path/lib64/$file],
+					[
+						LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.dylib||'`
+						X11_LIBS="$X11_LIBS -l$LIBNAME "
+						
+						if test $pathset = "false" ;then
+  						   X11_INCLUDE_PATHS="$X11_INCLUDE_PATHS -I$path/include "
+						   X11_LIBRARY_PATHS="$X11_LIBRARY_PATHS -L$path/lib64 "
+						   X11_PATH="$X11_PATH $path/lib64"
+						   pathset="true"
+						fi
+
+						X11_HOME="$path"
+
+	     					if test "$X11found" = "" -a "$file" = "libX11.dylib" ;then
+					   	   X11found="$path/lib64/$file "	
+						fi	
+	     					if test "$Xmfound" = "" -a "$file" = "libXm.dylib" ;then
+					   	   Xmfound="$path/lib64/$file "	
+						fi	
+	     					if test "$Xtfound" = "" -a "$file" = "libXt.dylib" ;then
+					           Xtfound="$path/lib64/$file "	
+						fi	
+	     					if test "$GLfound" = "" -a "$file" = "libGL.dylib" ;then
+					   	   GLfound="$path/lib64/$file "	
+						fi	
+	     					if test "$GLUfound" = "" -a "$file" = "libGLU.dylib" ;then
+					   	   GLUfound="$path/lib64/$file "	
+						fi	
+	     					if test "$GLwfound" = "" -a "$file" = "libGLw.dylib" ;then
+					           GLwfound="$path/lib64/$file "	
+						fi	
+					],
+					[
+					noop="true"
+					]
+				)
+			done
+
+			if test "$X11found" != "" -a "$Xmfound"  != "" -a "$Xtfound"  != "" -a "$GLfound"  != "" -a "$GLUfound" != "" -a "$GLwfound" != "" ;then
+           		   allfound="true"
+        		fi
+
+			if test "$allfound" = "false";then
+				pathset="false"
+				for file in $required_files; do
+					AC_CHECK_FILE([$path/lib/$file],
+						[
+							LIBNAME=`echo $file | sed -e 's|lib||' | sed -e 's|.dylib||'`
+							X11_LIBS="$X11_LIBS -l$LIBNAME "
+
+							if test $pathset = "false" ;then
+  							   X11_INCLUDE_PATHS="$X11_INCLUDE_PATHS -I$path/include "
+							   X11_LIBRARY_PATHS="$X11_LIBRARY_PATHS -L$path/lib "
+						   	   X11_PATH="$X11_PATH $path/lib"
+						           pathset="true"
+							fi
+
+							X11_HOME="$path"
+
+	     						if test "$X11found" = "" -a "$file" = "libX11.dylib" ;then
+					   	  	   X11found="$path/lib/$file "	
+							fi	
+	     						if test "$Xmfound" = "" -a "$file" = "libXm.dylib" ;then
+					   		   Xmfound="$path/lib/$file "	
+							fi	
+	     						if test "$Xtfound" = "" -a "$file" = "libXt.dylib" ;then
+						           Xtfound="$path/lib/$file "	
+							fi	
+	     						if test "$GLfound" = "" -a "$file" = "libGL.dylib" ;then
+						   	   GLfound="$path/lib/$file "	
+							fi	
+	     						if test "$GLUfound" = "" -a "$file" = "libGLU.dylib" ;then
+						   	   GLUfound="$path/lib/$file "	
+							fi	
+	     						if test "$GLwfound" = "" -a "$file" = "libGLw.dylib" ;then
+						           GLwfound="$path/lib/$file "	
+							fi	
+						],
+						[
+						noop="true"
+						]
+					)
+				done
+			fi
+		done
 	fi
-	   if test "$allfound" = "false"; then
-		AC_MSG_ERROR([Could not locate X11 libraries in $paths])
-	   else
-		AC_MSG_RESULT([X11 libraries validated at $X11_HOME])
-	   fi
+	
+	libsfound="$X11found $Xmfound $Xtfound $GLfound $GLUfound $GLwfound"
+
+        if test "$allfound" = "false"; then
+	 	AC_MSG_RESULT([Could not locate all needed X11 libraries in $paths - Libraries found: $libsfound])
+        else
+	 	AC_MSG_RESULT([X11 libraries ($libsfound) validated at ($X11_PATH)])
+        fi
 
         AC_SUBST(X11_LIBRARY_PATHS)
         AC_SUBST(X11_INCLUDE_PATHS)
-		AC_SUBST(X11_LIBS)
+	AC_SUBST(X11_LIBS)
   ])
 
 
@@ -680,6 +871,8 @@ AC_DEFUN([CONFIGURE_MESA],
 #
 # For AIX Use:  -L/g/g14/icorey/MDG/Mesa/Mesa-3.5/lib/ -lOSMesa -lGL -lGLU -lGLw \
 #               -lOSMesa -lMesaGL
+#
+# For Mac(Darwin) add -L/sw/lib -L/usr/X11/lib
 #
 ###############################################################################
 #      
@@ -844,18 +1037,8 @@ AC_DEFUN([CONFIGURE_OSMESA],
 														suffix="so"
 														break
 													
-													],
-													[
-														AC_CHECK_FILE([/usr/gapps/visit/mesa/4.1/aix/lib/libOSMesa.so],
-															[
-															       OSMESA_HOME=/usr/gapps/visit/mesa/4.1/aix
-															       OSMESA_LIBRARY_PATHS=$OSMESA_HOME/lib
-															       PATH_SET="true"
-															       suffix="so"
-															       break
-														        ]
-														]
-													)	
+													]
+														
 												)
 											]
 										)
@@ -870,6 +1053,7 @@ AC_DEFUN([CONFIGURE_OSMESA],
 		)	
 	fi
 	NO_MESA_X11_LIBS=""
+	SET_OSMESA="false"
 	if test "$PATH_SET" = "true"; then
 		NO_MESA_X11_LIBS=$X11_LIBS
 		OSMESA_LIBRARY=" -lOSMesa"
@@ -902,12 +1086,26 @@ AC_DEFUN([CONFIGURE_OSMESA],
 		BATCH_ENABLE="True" 
 
 	else
-		OSMESA_ENABLE="False"
-		BATCH_ENABLE="False" 
+		
+		if test  "$OS_NAME" = "AIX";then 
+		#
+		# On AIX Platforms, use our own OSMesa build
+     	        #
+	    BATCH_DEFINES="-DSERIAL_BATCH"			
+	    OSMESA_HOME=../../ext/Mesa/AIX 
+	    OSMESA_LIBRARY_PATHS=-L$OSMESA_HOME/lib
+	    OSMESA_LIBRARY=" -lOSMesa -lMesaGL -lGLU -lGLw -lXm -lX11 -lXt -lOSMesa "
+			SET_OSMESA="true"
+			PATH_SET="true"
+			BATCH_ENABLE="True"
+			
+		else
+			OSMESA_ENABLE="False"
+			BATCH_ENABLE="False" 
+		fi
 	fi
 
-
-        
+	      
 	#  MESA Library Options
          
 	AC_SUBST(OSMESA_ENABLE)
@@ -918,6 +1116,7 @@ AC_DEFUN([CONFIGURE_OSMESA],
 	AC_SUBST(BATCH_ENABLE)
 	AC_SUBST(BATCH_DEFINES)
 	AC_SUBST(NO_MESA_X11_LIBS)
+	AC_SUBST(SET_OSMESA)
   ])
 
 AC_DEFUN([CONFIGURE_MILI],
@@ -936,7 +1135,7 @@ AC_DEFUN([CONFIGURE_MILI],
 				AC_CHECK_FILE([${withval}/lib/libmili.a],
 					[
 	            			MILI_HOME="${withval}"
-	            			AC_MSG_RESULT([Using MILI Path : $withval])
+	            			AC_MSG_RESULT([Using MILI Path: $withval])
 					],
 					[
 						AC_MSG_ERROR([No Mili library at $withval/lib])
@@ -946,7 +1145,7 @@ AC_DEFUN([CONFIGURE_MILI],
 			[
 				AC_CHECK_FILE([$MILI_HOME/lib/libmili.a],
 					[
-	            			AC_MSG_RESULT([Using MILI Path :$MILI_HOME ])
+	            			AC_MSG_RESULT([Using MILI Path: $MILI_HOME ])
 					],
 					[
 						AC_MSG_ERROR([No Mili library found. Please set --with-mili=PATH to correct Mili library])
@@ -960,7 +1159,7 @@ AC_DEFUN([CONFIGURE_MILI],
         	MILI_INCLUDE_PATHS="-I$MILI_HOME/include"
         	MILI_LIBRARY_PATHS="-L$MILI_HOME/lib"
 
-        	MILI_LIBRARY="-leprtf -lmili -ltaurus"
+        	MILI_LIBRARY="-leprtf -lmili -ltaurus -lm"
 
         AC_DEFINE(HAVE_MILI, 1, [Mili library])
 
@@ -1063,80 +1262,73 @@ AC_DEFUN([CONFIGURE_PAPI],
 
 
 AC_DEFUN([CONFIGURE_PNG],
-  [       
-        PNG_ENABLE="False"
-        #
-        # Set options for running with PNG support
-        #
-        AC_ARG_ENABLE([nopng],
-               AC_HELP_STRING(
-                      [--enable-png],[Compile and load with PNG Library]),
-		      PNG_ENABLE="False" &&  AC_MSG_RESULT(---->Enabling: PNG),
-		      PNG_ENABLE="True")
-	
-	PNG_HOME=""
-	PNG_INCLUDE_PATHS=""
-	PNG_LIBRARY_PATHS=""
-	ZLIB_HOME="None"
-	ZLIB_INCLUDE_PATHS=""
-	ZLIB_LIBRARY_PATHS=""
-	PNG_LIBRARY=""
-	PNG_DEFINES=""
-	CONFIG_PNG="false"
-	CONFIG_ZLIB="false"
-        
-
-     
-	if test "$PNG_ENABLE" = "True"; then
-               
-		AC_ARG_WITH([png],
-			AC_HELP_STRING(
-				[--with-png=[PATH]],
-				[Use given base PATH for PNG libraries and header files, "local"
-				the png libs included with Griz]),
-			PNG_HOME="${withval}" &&
-			AC_MSG_RESULT("Using PNG Path : $withval")
-		) 
-		if test "$PNG_HOME" = "local"; then
-			PNG_HOME=".."
-			ZLIB_HOME=".."
-			CONFIG_ZLIB="true"
-			CONFIG_PNG="true"
-		elif test -e "/usr/local/tools/libpng/lib/libpng.a" -o -e "/usr/local/tools/libpng/lib/libpng.so"; then
-			PNG_HOME="/usr/local/tools/libpng"
-			if test "$HOSTNAME" = "GPS";then
-				ZLIB_HOME="$PNG_HOME"
-				ZLIB_LIBRARY_PATHS="-L$ZLIB_HOME/lib"
-				ZLIB_LIBRARY=" -lz "
-			fi
-		else
-			PNG_HOME=".."
-			ZLIB_HOME=".."
-			CONFIG_ZLIB="true"
-			CONFIG_PNG="true"
+	[  
+		PNG_ENABLE="True"  
+		AC_ARG_ENABLE([nopng],
+			AC_HELP_STRING([--enable-nopng],[Disable PNG Support]),
+			[
+				PNG_ENABLE="False"  
+				AC_MSG_RESULT(---->Disabling: PNG)
+			]
+		)
+		png_on_system="false"
+		PNG_HOME=""
+		PNG_INCLUDE_PATHS=""
+		PNG_LIBRARY_PATHS=""
+		ZLIB_HOME="None"
+		ZLIB_INCLUDE_PATHS=""
+		ZLIB_LIBRARY_PATHS=""
+		PNG_LIBRARY=""
+		PNG_DEFINES=""
+		CONFIG_PNG="false"
+		CONFIG_ZLIB="false"
+		if test "$PNG_ENABLE" = "True"; then
+			AC_ARG_WITH([png],
+				AC_HELP_STRING([--with-png=[PATH]],
+					[Use given base PATH for PNG libraries and header files, "local" the png libs included with Griz]),
+				[
+					PNG_HOME="${withval}" 
+				],
+				[
+					AC_SEARCH_LIBS([png_init_io],[png],
+	 					[  
+							png_on_system="true"
+							AC_SEARCH_LIBS([compress],[z])
+	 					],
+						[
+	 						AC_MSG_WARN(DID NOT FIND the png on the system. Using built=in)
+	 					]
+					)
+				]
+			)
 			
-			ZLIB_LIBRARY_PATHS="-L$ZLIB_HOME/lib"
-			ZLIB_INCLUDE_PATHS="-I$ZLIB_HOME/include"
-			ZLIB_LIBRARY=" -lz "		
-		fi
 		
-		PNG_LIBRARY_PATHS="-L$PNG_HOME/lib"
-		PNG_INCLUDE_PATHS="-I$PNG_HOME/include"
-		
-		PNG_LIBRARY=" -lpng "
-		PNG_DEFINES="-DPNG_SUPPORT"
 	
-		CONFIG_OPTIONS="$CONFIG_OPTIONS --enable-png --with-png=$PNG_HOME "
-                AC_DEFINE(HAVE_PNG, 1, [Png library])
-          AC_MSG_RESULT([PNG path set to $PNG_HOME ])
-	fi
-	if test "$OS_NAME" = "OSF1"; then 
-		PNG_LIBRARY_PATHS=" -noso $PNG_LIBRARY_PATHS"
-		PNG_LIBRARY="$PNG_LIBRARY -so_archive "
-		ZLIB_LIBRARY_PATHS=" -noso $ZLIB_LIBRARY_PATHS"
-		ZLIB_LIBRARY="$ZLIB_LIBRARY -so_archive "
-		
-	fi
+			
+			
+    	if test "$png_on_system" = "false"; then
+				PNG_HOME=".."
+				ZLIB_HOME=".."
+				CONFIG_ZLIB="true"
+				CONFIG_PNG="true"
+				
+				PNG_LIBRARY_PATHS="-L$PNG_HOME/lib"
+				PNG_INCLUDE_PATHS="-I$PNG_HOME/include"
+				PNG_LIBRARY=" -lpng "
+				
+				ZLIB_LIBRARY_PATHS="-L$ZLIB_HOME/lib"
+				ZLIB_INCLUDE_PATHS="-I$ZLIB_HOME/include"
+				ZLIB_LIBRARY=" -lz "	
+				
+				CONFIG_OPTIONS="$CONFIG_OPTIONS --enable-png --with-png=$PNG_HOME "	
+			fi
+			
+			
+			PNG_DEFINES="-DPNG_SUPPORT"
+			AC_DEFINE(HAVE_PNG, 1, [Png library])
+			
+                
+		fi
         
 	# PNG Library Options
 
@@ -1162,7 +1354,7 @@ AC_DEFUN([CONFIGURE_64bit],
         #
         AC_ARG_ENABLE([bits64],
                AC_HELP_STRING(
-                      [--enable-bits64],[Compile and load with 64bit option]),
+                      [--enable-64bit],[Compile and load with 64bit option]),
 		      bits64_ENABLE="True" &&  AC_MSG_RESULT(---->Enabling: 64bit),
 		      bits64_ENABLE="False")
 
@@ -1188,10 +1380,9 @@ AC_DEFUN([CONFIGURE_64bit],
                  EXE_SUFFIX="$EXE_SUFFIX""_32bit"
               fi
         else
-        	AC_MSG_WARN("****  Unknown 64bit Enable State: $64bit_ENABLE")
+        	AC_MSG_WARN("****  Unknown 64bit Enable State")
         fi
 		# Export 64bit Options
-        AC_SUBST(64bit_ENABLE)
         AC_SUBST(WORD_SIZE)
         AC_SUBST(EXE_SUFFIX)
   ])
@@ -1249,11 +1440,16 @@ AC_DEFUN([CONFIGURE_DIRS],
 	fi
 
 
+	# 
+	# Add precompiled Mesa 
+	#
+	if test "$SET_OSMESA" = "true"; then
+		EXT_DIRS="$EXT_DIRS ext/Mesa "
+	fi
         SRC_DIRS="$SRC_DIRS HersheyLib/src ImageLib"
         OBJS_DIRS=""
-        INC_DIRS="include"
-	   SRC="src"
-        AC_ARG_WITH([install],
+        INC_DIRS=""
+	      AC_ARG_WITH([install],
                AC_HELP_STRING(
 	            [--install-path=[PATH]],
                     [Use given base PATH installing Griz4]),
@@ -1273,7 +1469,6 @@ AC_DEFUN([CONFIGURE_DIRS],
         AC_SUBST(BIN_DIRS)
         AC_SUBST(LIB_DIRS)
         AC_SUBST(SRC_DIRS)
-	AC_SUBST(SRC)
         AC_SUBST(INC_DIRS)
 	AC_SUBST(INSTALL_DIRS)
 	AC_SUBST(EXT_BUILDS)
@@ -1283,8 +1478,9 @@ AC_DEFUN([CONFIGURE_DIRS],
 
 AC_DEFUN([EXTERNAL_CONFIGURATIONS],
   [
-	# We run any other external configuration files here. We need this to run after everything else
-        # so the directories would be created and the flags set.
+	# We run any other external configuration files here. 
+	# We need this to run after everything else
+  # so the directories would be created and the flags set.
 
 	# PNG
 
@@ -1297,7 +1493,7 @@ AC_DEFUN([EXTERNAL_CONFIGURATIONS],
 		fi
 		cd $TOP_DIR/$HOSTDIR/ext/ZLIB;
 		
-		AC_MSG_RESULT("Configuring ZLIB")
+		AC_MSG_RESULT(Configuring ZLIB)
 
 		configure --prefix=$TOP_DIR/$HOSTDIR
 
@@ -1329,8 +1525,7 @@ AC_DEFUN([EXTERNAL_CONFIGURATIONS],
 				
 		cd $TOP_DIR	
 	fi
-	   #/ PNG
-        # JPEG
+	
 
 	if test "$CONFIG_JPEG" = "true";then
 		AC_MSG_RESULT("Configuring JPEG")
@@ -1366,27 +1561,27 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
 	    HOSTDIR="GRIZ4-$BASE_DIR-$HOSTNAME"
 	else
 	    HOSTDIR="$HOST_PREFIX""$HOSTDIR""$EXE_SUFFIX"
-        fi
+  fi
 
-        if test -d "$HOSTDIR"; then
-           rm -rf "$HOSTDIR-old"
-           mv -f "$HOSTDIR" "$HOSTDIR-old"
-        fi     
+  if test -d "$HOSTDIR"; then
+  	rm -rf "$HOSTDIR-old"
+  	mv -f "$HOSTDIR" "$HOSTDIR-old"
+  fi     
 
-        if test ! -d "$HOSTDIR"; then
+  if test ! -d "$HOSTDIR"; then
 	   	AC_MSG_RESULT("Creating directory: $HOSTDIR")
 	   	mkdir "$HOSTDIR"
 	   	if test ! -d "$HOSTDIR"; then
 	       AC_MSG_WARN("****  Error creating directory:  $HOSTDIR")
 	   	fi
-        fi
-        for dir in $BIN_DIRS $LIB_DIRS $INC_DIRS $SRC_DIRS $SRC $EXT_DIRS $OBJS_DIRS $MISC_DIRS; do
-                PATH_NAME=$HOSTDIR
-	        set PATH_NAME_TEMP `echo ":$dir" | sed -ne 's/^:\//#/;s/^://;s/\// /g;s/^#/\//;p'`
-	        shift
-	        for dir_name
-	        do
-		        PATH_NAME="$PATH_NAME/$dir_name"
+  fi
+  for dir in $BIN_DIRS $LIB_DIRS $INC_DIRS $SRC_DIRS $EXT_DIRS $OBJS_DIRS $MISC_DIRS; do
+  	PATH_NAME=$HOSTDIR
+	  set PATH_NAME_TEMP `echo ":$dir" | sed -ne 's/^:\//#/;s/^://;s/\// /g;s/^#/\//;p'`
+	  shift
+	  for dir_name
+	  	do
+		  	PATH_NAME="$PATH_NAME/$dir_name"
 
 		        case "$PATH_NAME" in
 		        	-* ) PATH_NAME=./$PATH_NAME ;;
@@ -1398,99 +1593,80 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
 			        	AC_MSG_WARN("****  Error creating directory:  $PATH_NAME")
 			        fi
 		        fi
-	        done
-        done
-	   ROOT_DIR=$TOP_DIR/$HOSTDIR
+	    done
+    done
+	  ROOT_DIR=$TOP_DIR/$HOSTDIR
 
-	   if test "$CONFIG_JPEG" = "true" -o "$CONFIG_PNG" = "true"; then
-		cd $ROOT_DIR/ext
-		ln -sf $TOP_DIR/ext/Makefile.in
-		cd $TOP_DIR
-	   fi
-
-
-	cd $HOSTDIR
-        # Make a temporary src and include directory at the top level
-        cd $TOP_DIR
-        if test ! -e "src"; then
-                mkdir src
-        fi
-
-        if test ! -e "include"; then
-                mkdir include
-        fi
-        cd src
-        ln -sf $TOP_DIR/*.c .     > /dev/null 2>&1
+	  if test "$CONFIG_JPEG" = "true" -o "$CONFIG_PNG" = "true"; then
+			cd $ROOT_DIR/ext
+			ln -sf $TOP_DIR/ext/Makefile.in
+			cd $TOP_DIR
+	  fi
 
 
-        cd $ROOT_DIR
+		cd $ROOT_DIR
+		
+		ln -sf  ../Makefile.Driver Makefile.in
+		
+		if test ! -e "src"; then
+      mkdir src
+    fi
+		   
+    
+    if test ! -e "include"; then
+      mkdir include
+    fi
 
-        cp ../Makefile.Driver Makefile.in
-        cp ../Makefile.Library src/Makefile.in
-
-        if test ! -e "src"; then
-                mkdir src
-        fi
-
-        if test ! -e "include"; then
-                mkdir include
-        fi
-
-        if test ! -e "Doc"; then
-                mkdir Doc
-        fi
+    if test ! -e "Doc"; then
+      mkdir Doc
+    fi
 
 
-        # Set up links for source files
-        cd $ROOT_DIR
-        cd src
-        ln -sf $TOP_DIR/*.c .     > /dev/null 2>&1
-        ln -sf $TOP_DIR/griz.in . > /dev/null 2>&1
+    # Set up links for source files
+    cd $ROOT_DIR
+    cd src
+		ln -sf ../../Makefile.Library Makefile.in
+
+    ln -sf $TOP_DIR/*.c .     > /dev/null 2>&1
+    ln -sf $TOP_DIR/griz.in . > /dev/null 2>&1
+		
+    cd ../include
+    ln -sf $TOP_DIR/*.h .     > /dev/null 2>&1
+		rm -f confdefs.h  > /dev/null 2>&1
+		if test "$SET_OSMESA" = "true"; then
         if test ! -e "GL"; then
                 mkdir GL
         fi
-
-	
-        cd ..
-        cd include
-        ln -sf $TOP_DIR/*.h .     > /dev/null 2>&1
-        if test ! -e "GL"; then
-                mkdir GL
-        fi
-	cd GL
-        ln -sf $TOP_DIR/osmesa.h . > /dev/null 2>&1
-
+				cd GL
+        ln -sf $TOP_DIR/ext/Mesa/include/*.h . > /dev/null 2>&1
+		fi
         # Set up links for Doc files
-        cd $ROOT_DIR
-        cd Doc
-        ln -sf $TOP_DIR/Doc/* .     > /dev/null 2>&1
+    cd $ROOT_DIR
+    cd Doc
+    ln -sf $TOP_DIR/Doc/* .     > /dev/null 2>&1
 
 
-        # Set up links for include files
-        cd $ROOT_DIR
-        cd include
-        ln -sf $TOP_DIR/*.h . > /dev/null 2>&1
 
-        cd $ROOT_DIR
-        for dir in $INC_DIRS; do
-        	dir_tmp="$TOP_DIR/$dir"
-        	cd "$dir_tmp"
+    cd $ROOT_DIR
+    for dir in $INC_DIRS; do
+			dir_tmp="$TOP_DIR/$dir"
+			cd "$dir_tmp"
+			for file in *.h; do
+				if test ! -e "$TOP_DIR/$HOSTDIR/$dir/$file" && test -e $dir_tmp/$file; then
+					ln -s $dir_tmp/$file $TOP_DIR/$HOSTDIR/$dir/$file > /dev/null 2>&1
+				fi
+       done
+       for file in *.h.in; do
+       	if test ! -e "$TOP_DIR/$HOSTDIR/$dir/$file" && test -e $dir_tmp/$file; then
+       		ln -s $dir_tmp/$file $TOP_DIR/$HOSTDIR/$dir/$file > /dev/null 2>&1
+       	fi
+      done
+      cd $TOP_DIR
+		done
 
-        	for file in *.h; do
-	        	if test ! -e "$TOP_DIR/$HOSTDIR/$dir/$file" && test -e $dir_tmp/$file; then
-		        	ln -s $dir_tmp/$file $TOP_DIR/$HOSTDIR/$dir/$file > /dev/null 2>&1
-		        fi
-        	done
-        	for file in *.h.in; do
-        		if test ! -e "$TOP_DIR/$HOSTDIR/$dir/$file" && test -e $dir_tmp/$file; then
-        			ln -s $dir_tmp/$file $TOP_DIR/$HOSTDIR/$dir/$file > /dev/null 2>&1
-        		fi
-        	done
-        	cd $TOP_DIR
-        done
-
-        # Setup links for sources files, makefiles, and include files
-        for dir in $SRC_DIRS $SRC; do
+    # Setup links for sources files, makefiles, and include files
+		
+    for dir in $SRC_DIRS; do
 	        cd $ROOT_DIR/$dir
 
 	        #   Create a link to the matching include directory for debugging purposes.
@@ -1545,7 +1721,7 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
 	        		ln -s $dir_tmp/$file $TOP_DIR/$HOSTDIR/$dir/$file > /dev/null 2>&1
 	        	fi
 	        done
-		for file in *.doc; do
+		      for file in *.doc; do
 	        	if test ! -e "$TOP_DIR/$HOSTDIR/$dir/$file" && test -e $dir_tmp/$file; then
 	        		ln -s $dir_tmp/$file $TOP_DIR/$HOSTDIR/$dir/$file > /dev/null 2>&1
 	        	fi
@@ -1555,10 +1731,10 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
         # Misc directories do not consist of code - this is stuff like the Bitmaps, Fonts, etc.
         cd $TOP_DIR
         PATH_NAME="$HOSTDIR"
-        for dir in $MISC_DIRS; do
+				for dir in $MISC_DIRS; do
 	        cd $PATH_NAME/$dir
 
-                # Link to all files in these directories
+          # Link to all files in these directories
 	        dir_tmp="$TOP_DIR/$dir"
 	        cd "$dir_tmp"
 	        for file in *; do
@@ -1581,10 +1757,9 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
 			fi
 		done
 	done
-
-     AC_SUBST(ROOT_DIR)
+	cd $TOP_DIR
 	
-	cd $ROOT_DIR
+  AC_SUBST(ROOT_DIR)
 	echo $CONFIG_CMD > CONFIGURE_OPTIONS
   ])
 
@@ -1639,11 +1814,7 @@ AC_DEFUN([CONFIGURE_GRIZ_LIBRARIES],
                 SYSLIBS=" -lm"
         fi
 
-        if test "$OS_NAME" = "OSF1"; then
-                SYSLIBS="$SYSLIBS -lXext -lXmu "
-                LDLIBPATH="/usr/local/lib"
-
-        elif test "$OS_NAME" = "Linux"; then
+        if test "$OS_NAME" = "Linux"; -o "$OS_NAME" = "Darwin"; then
                 SYSLIBS="$SYSLIBS "
                 LDLIBPATH="/usr/X11R6/lib"
 
@@ -1707,9 +1878,7 @@ AC_DEFUN([CONFIGURE_COMPILER_FLAGS],
                 $PNG_DEFINES"
 	CC_DEFINES="`echo $CC_DEFINES | sed -e 's|-O2||'`"
 
-        CC_INCLUDE_PATHS="-I/usr/local/include \
-                -I/usr/include \
-                -I../include "
+        CC_INCLUDE_PATHS=" -I../include "
 		if test ! "$JPEG_INCLUDE_PATH" = "-I../include"; then
 			CC_INCLUDE_PATHS="$CC_INCLUDE_PATHS $JPEG_INCLUDE_PATH "
 		fi
@@ -1771,25 +1940,15 @@ AC_DEFUN([CONFIGURE_COMPILER],
         SHELL="/bin/sh"
         SHELL_ARGS="-ec"
 
-        if test "$OS_NAME" = "OSF1"; then
-                AC_CHECK_PROGS(MY_CC, cc c89)
-                CC_FLAGS_DEBUG="-g"
-                CC_FLAGS_OPT="-g4"
-                CC_DEPEND="-M" 
+        CC_FLAGS_EXTRA=" "
 
-	        AR="ar"
-                RANLIB="ranlib"
-	        AR_FLAGS="-r"
-
-                GRIZ_EXE="griz4s.dec""$EXE_SUFFIX"
-
-        elif test "$OS_NAME" = "Linux"; then
-                AC_CHECK_PROGS(MY_CC, gcc cc)
+        if test "$OS_NAME" = "Linux"; then
+                AC_CHECK_PROGS(MY_CC, icc gcc cc)
 
                 SHELL_ARGS=" "
 
                 CC_FLAGS_DEBUG="-g"
-                CC_FLAGS_OPT="-g -O3"
+                CC_FLAGS_OPT=" -O3"
                 CC_DEPEND="-M" 
 
 	        AR="ar"
@@ -1802,11 +1961,18 @@ AC_DEFUN([CONFIGURE_COMPILER],
                    MY_CC="pathcc"
                    MY_FC="pathf90"
                 fi
-
+        elif test "$OS_NAME" = "Darwin"; then
+                CC_FLAGS_EXTRA=" -DMAC_OS -arch i386 -Bstatic"
+                CC_FLAGS_OPT=" -O3"
+                CC_DEPEND="-M" 
+                GRIZ_EXE="griz4s.osx""$EXE_SUFFIX"
+	        AR="ar"
+    	        MY_CC="cc" 
         elif test "$OS_NAME" = "AIX"; then
                 AC_CHECK_PROGS(MY_CC, cc xlc xlr_r)
-                CC_FLAGS_DEBUG="-g -bnoobjreorder -qfullpath -DAIX -qMAXMEM=8192 -bmaxdata:0x40000000"
-                CC_FLAGS_OPT="-g -O3 -bnoobjreorder -qfullpath -DAIX -qMAXMEM=8192 -bmaxdata:0x40000000"
+	        CC_FLAGS_EXTRA=" -bnoobjreorder -qfullpath -DAIX -qMAXMEM=8192 -bmaxdata:0x40000000"
+                CC_FLAGS_DEBUG="-g -DAIX "
+                CC_FLAGS_OPT="-g -O3 -DAIX "
                 CC_DEPEND="-M" 
 
 	        AR="ar"
@@ -1882,6 +2048,7 @@ AC_DEFUN([CONFIGURE_COMPILER],
         AC_SUBST(CC_DEPEND)
         AC_SUBST(CC_FLAGS_DEBUG)
         AC_SUBST(CC_FLAGS_OPT)
+        AC_SUBST(CC_FLAGS_EXTRA)
         AC_SUBST(LDFLAGS_EXTRA)
   ])
 
@@ -1898,7 +2065,7 @@ AC_DEFUN([CONFIGURE_COMPILER_IMAGELIB],
 
         CC_INCLUDE_PATHS_IMAGELIB=" $CC_INCLUDE_PATHS "
 
-        CC_INCLUDE_PATHS_IMAGELIB=" -I/usr/local/include -I/usr/include -I../include "
+        CC_INCLUDE_PATHS_IMAGELIB=" -I../include "
 
 	CC_INCLUDE_PATHS_IMAGELIB="`echo $CC_INCLUDE_PATHS_IMAGELIB | sed -e 's|-O2||'`"
 
@@ -1929,7 +2096,7 @@ AC_DEFUN([CONFIGURE_COMPILER_HERSHEYLIB],
         #
         # Define the compile search order
         #
-        CC_INCLUDE_PATHS_HERSHEYLIB="$MESA_INCLUDE_PATHS -I/usr/local/include -I/usr/include -I../include "
+        CC_INCLUDE_PATHS_HERSHEYLIB=" -I../include "
 
         HERSHEY_FONTLIB=/usr/local/lib/hershey
         HERSHEY_FONTLIB=$TOP_DIR/$HOSTDIR/HersheyLib/hfonts

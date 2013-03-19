@@ -1,0 +1,96 @@
+# bolt problem
+# Title: bolt
+# End Time: 5
+# Griz Script File: bolt_th.gsf
+# Min/Max Switch: global
+
+# Setup
+clrsel 
+switch mglob
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+
+# Object selection 
+select brick 1 14134 51912 10824 10333 11656 11842-11845
+select node 1-4 334 703 741 777-778 1027 1369
+select nike all
+select nike 6
+select mat 1
+
+# Append output to TH file
+on tha
+
+# Plot for variable nodpos[uy]
+show  nodpos[uy]
+plot
+outth bolt_th.jansw cur
+
+# Plot for variable dispy
+plot dispy
+outth bolt_th.jansw cur
+
+# Plot for variable accz
+plot accz
+outth bolt_th.jansw cur
+
+# Plot for variable accmag
+plot accmag
+outth bolt_th.jansw cur
+
+# Plot and Images for variable sx
+show sx
+plot
+outth bolt_th.jansw cur
+
+# Plot for variable sz
+plot sz
+outth bolt_th.jansw
+
+# Plot for variable sxy
+show sxy
+plot
+outth bolt_th.jansw
+
+# Plot for variable szx
+show szx
+plot
+outth bolt_th.jansw
+
+# Plot for variable szx
+show szx
+plot
+outth bolt_th.jansw
+
+# Plot for variable gamxy
+show gamxy
+plot
+outth bolt_th.jansw
+
+# Plot for variable yield
+show yield
+plot
+outth bolt_th.jansw
+
+# Plot for variable pdev1
+show pdev1
+plot
+outth bolt_th.jansw
+
+# Plot for variable gamxy
+show gamxy
+plot
+outth bolt_th.jansw
+
+# Plot for variable slide
+plot slide
+outth bolt_th.jansw
+
+echo "Writing TH data to file bolt_th.jansw"
+
+# EndCase 
+

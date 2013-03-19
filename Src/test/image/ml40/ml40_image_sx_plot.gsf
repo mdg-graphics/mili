@@ -2,7 +2,7 @@
 # Title: Simple meshless particle example of bar impact (same problem as bar71)
 # Material Model: 3
 # Units: gm-cm-ms
-# End Time: 80
+# End Time: 80 (68 states)
 # Griz Script File: ml40_sx_plot.gsf
 # Min/Max Switch: mstat
 
@@ -10,19 +10,19 @@ off all; on cmap; on title; on time; on coord; off box; on minmax
 off path
 switch mglob
 fracsz 8
-alias s70 state 70
+alias s55 "state 55"
 on thsinglecol
 jpegqual 100
 alias selml select ml 1 667 963 1010 200
 
 # Set the view
-hinclude ml40_V2.gsf
+rdhis ml40_V2.gsf
 tx -.22; ty -.15, rx 45
 
 # Image for variable sx
 sw mstat
 clrsel 
-s70
+s55
 selml
 select ml 1000 1012 1369 200-201
 show "stress[sx]"

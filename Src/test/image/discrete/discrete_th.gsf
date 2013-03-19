@@ -1,0 +1,53 @@
+# discrete
+# Title: a test problem using discrete elements
+# Material Model: 1 & 12 discrete materials
+# Units: gm-cm-ms
+# End Time: 1
+# Griz Script File: discrete.gsf
+# XY Plot File Prefix: plot_discrete_
+# XY Data File Prefix: xy_discrete_
+# Image File Prefix: image_discrete_
+# Min/Max Switch: global
+# Verbatim To Griz: off all; on cmap; on title; on time; on coord
+off all; on cmap; on title; on time; on coord
+switch mglob
+#  Plot for variable pe
+clrsel 
+minst 1
+maxst 101
+plot pe
+outjpeg plot_discrete_pe.jpg
+outth xy_discrete_pe cur
+#  Plot for variable disc_fy
+clrsel 
+select disc 2 6 10 14 18 22
+minst 1
+maxst 101
+plot disc_fy
+outjpeg plot_discrete_disc_fy.jpg
+outth xy_discrete_disc_fy cur
+#  Image for variable matpe
+clrsel 
+time 1
+rview; ry -90; ry 45; rx 35.26
+show matpe
+outjpeg image_discrete_matpe.jpg
+#  Image for variable disc_ext
+clrsel 
+time 0.5
+rview; ry -90; ry 45; rx 35.26
+show disc_ext
+outjpeg image_discrete_disc_ext.jpg
+#  Image for variable disc_fy
+clrsel 
+time 0.5
+rview; ry -90; ry 45; rx 35.26
+show disc_fy
+outjpeg image_discrete_disc_fy.jpg
+#  Image for variable inteng
+clrsel 
+time 0.5
+rview; ry -90; ry 45; rx 35.26
+show inteng
+outjpeg image_discrete_inteng.jpg
+# EndCase 

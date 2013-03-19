@@ -73,8 +73,9 @@
 #undef HAVE_STDINT_H
 
 /* Define to 1 if you have the <stdlib.h> header file. */
+#ifndef HAVE_STDLIB_H
 #undef HAVE_STDLIB_H
-
+#endif
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 

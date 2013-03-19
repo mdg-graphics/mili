@@ -10,7 +10,7 @@ off all; on cmap; on title; on time; on coord; on box; on minmax
 off path
 switch mglob
 fracsz 8
-alias s80 state 80
+alias s67 state 67
 on thsinglecol
 jpegqual 100
 alias selml select ml 1 15 667 963 1010
@@ -23,7 +23,7 @@ zb 1.45;tx .31
 
 # Image for variable sz
 clrsel 
-s80; state 50
+s67; state 50
 selml
 select ml 1369
 show "stress[sz]"
