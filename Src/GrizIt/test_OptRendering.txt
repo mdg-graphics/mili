@@ -1,0 +1,28 @@
+on edges
+edgwid 6
+edgwid 1
+edgwid 9
+off edges
+on bgimage
+on box
+on cmap
+on coord
+on dscal 
+on locref
+on minmax
+on num
+on time
+on title
+// title YEAH I'm THE TITLE
+
+
+off bgimage
+off box
+off cmap
+off coord
+off dscal
+off locref
+off minmax
+off num
+off time
+off title

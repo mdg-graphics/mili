@@ -1,0 +1,29 @@
+######
+# file: grizIt_Query.vpq
+# VisIt Python Query
+#######
+
+class ScalarExtractQuery(SimplePythonQuery):
+     def __init__(self):
+         SimplePythonQuery.__init__(self)
+         self.name ="ScalarExtractQuery"
+         self.description = "Scalar Extract Query"
+     def pre_execute(self):
+         self.vals = []
+     def execute_chunk(self,ds_in,domain_id):
+         ncells = ds_in.GetNumberOfCells()
+         if ncells > 0:
+             varr = ds_in.GetCellData().GetArray(self.input_var_names[-1])
+             values  = [ varr.GetTuple1(i) for i in xrange(ncells)]
+             self.vals.extend(values )
+     def post_execute(self):
+         res = []
+         rvals = mpicom.gather(self.vals)
+         for v in rvals:
+             res.extend(v)
+         if mpicom.rank() == 0:
+             self.set_result_value(res)
+
+py_filter = ScalarExtractQuery
+
+#######

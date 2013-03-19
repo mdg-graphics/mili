@@ -1,0 +1,20 @@
+
+		**** Making Movies with Griz ****
+
+Follow is a sequence of steps to generate a movie with Griz:
+
+(1) Select the result variable that you want to plot and the 
+    desired view.
+
+(2) Enter the commands:    autoimg FILENAME png
+                           on autoimg
+
+(3) Animate the result:    anim
+
+      Look in the current directory where you should see a sequence of
+      files such as:
+                          FILENAME001.png .... FILENAME9999.png
+
+(4) Make the movie:       convert *.png mymovie.mpg
+
+(5) View the movie:       mplayer (or other movie player) mymovie.mpg

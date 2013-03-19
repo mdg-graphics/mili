@@ -1,0 +1,2 @@
+on all
+off all

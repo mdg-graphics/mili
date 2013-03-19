@@ -1,0 +1,69 @@
+
+#!/bin/sh
+#
+#################################################################
+#								#
+#	           GrizIt Script Template	                #
+#								#
+#################################################################
+#
+#################################################################
+#  Revision History                                             #
+#  ----------------                                             #
+#								#
+#  02-Oct-2009  IRC Created.                                    #
+#								#
+#################################################################
+#
+#
+GRIZITHOME=/usr/apps/mdg/archive/grizdir/grizversion/bin
+
+GRIZLOGDIR=/usr/gapps/mdg
+GRIZLOGFILE=grizit_usagelog
+
+LOGFILE=yes
+
+export GRIZITHOME GRIZLOGDIR
+
+alpha="no"
+beta="no"
+production="yes"
+
+for argument in $*; do
+
+    if test $argument = "-alpha"
+    then
+        alpha="yes"
+        beta="no"
+        production="no"
+        GRIZITALPHAHOME=/usr/apps/mdg/archive/grizdir/grizalpha/bin
+	GRIZITHOME=/usr/apps/mdg/archive/grizdir/grizalpha/bin
+    fi
+
+    if test $argument = "-beta"
+    then
+        alpha="no"
+        beta="yes"
+        production="no"
+        GRIZITBETAHOME=/usr/apps/mdg/archive/grizdir/grizbeta/bin
+	GRIZITHOME=/usr/apps/mdg/archive/grizdir/grizbeta/bin
+    fi
+done
+
+
+if test $production = "yes"
+then
+    $GRIZHOME/grizIt.py $*
+fi
+
+if test $beta = "yes"
+then
+    echo "** Loading Beta version of Griz $GRIZBETAHOME/grizIt.py **"
+    $GRIZBETAHOME/grizIt.py $*
+fi
+
+if test $alpha = "yes"
+then
+    echo "** Loading Alpha version of GrizIt $GRIZALPHAHOME/grizIt.py **"
+    $GRIZALPHAHOME/grizIt.py $*
+fi
