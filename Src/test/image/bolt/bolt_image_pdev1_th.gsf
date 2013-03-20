@@ -3,28 +3,24 @@
 # Min/Max Switch: Global
 
 # Setup
+alias min 1
+alias max 5
 clrsel 
 switch mglob
 on thsinglecol
 fracsz 8
 jpegqual 100
 
-# Set viewing 
-off all; on cmap; on title; on time; on coord
-off box; on minmax
-off path
-rdhis bolt.V2
-
 # Object selection 
-select brick 1-2 757 6049-6055 13483 14134 106425 51912 10824 11656 11842 106824
-select brick 6055-6057
+select brick 1-10 757 6049 13483 14134 106425 51912 10824 11656 11842 106824
 select nike all
 select nike 6
 select mat 1
 
 # Image for variable pdev1
-echo "generating image"
-show pdev1; plot
+show 		pdev1; plot
+state 4
+state 5
 outjpeg bolt_image_pdev1_th.answ.jpg
 
 # EndCase 
