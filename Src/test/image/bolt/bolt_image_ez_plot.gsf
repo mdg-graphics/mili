@@ -19,22 +19,20 @@ jpegqual 100
 
 # Set viewing 
 off all; on cmap; on title; on time; on coord
-off box; on minmax
+on box; on minmax
 off path
 rdhis bolt.V1
 
 # Object selection 
-select brick 1-2 757 6049 13483 14134 106425 51912 10824 11656 11842 106824
-select nike all
-select nike 6
+select brick 1 757 85626 85629 85665 84125 106824
 select mat 1
 
-# Images for variable sz
-show  slide
+# Images for variable ez
+show ez
 state 4
 state 5
 sw noterp
-outjpeg bolt_image_slide_plot.answ.jpg
+outjpeg bolt_image_ez_plot.answ.jpg
 
 # EndCase 
 

@@ -17,24 +17,21 @@ on thsinglecol
 fracsz 8
 jpegqual 100
 
-# Set viewing 
-off all; on cmap; on title; on time; on coord
-off box; on minmax
-off path
-rdhis bolt.V1
+
+rdhis bolt.V2
+sw hidden
 
 # Object selection 
 select brick 1-2 757 6049 13483 14134 106425 51912 10824 11656 11842 106824
-select nike all
-select nike 6
 select mat 1
 
-# Images for variable sz
-show  slide
-state 4
-state 5
-sw noterp
-outjpeg bolt_image_slide_plot.answ.jpg
+# Images for variable press (TH)
+show press; plot
+
+outjpeg bolt_image_press_th.answ.jpg
+
+tell th
+delth all
 
 # EndCase 
 

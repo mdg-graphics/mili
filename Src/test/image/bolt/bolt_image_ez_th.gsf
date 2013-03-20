@@ -3,22 +3,21 @@
 # Min/Max Switch: Global
 
 # Setup
+
 clrsel 
-switch mglob
 on thsinglecol
 fracsz 8
 jpegqual 100
 
 # Object selection 
-select node 1-4 334 703 741 777 1369 117467
+select brick 1-4 757 6049 13483 14134 106425 51912 10824 11656 11842 106824
 select nike all
 select nike 6
 select mat 1
 
-# Images for variable nodpos[uy]
-show  nodpos[uy]; plot
-outjpeg bolt_image_nodposuy_th.answ.jpg
-delth all
+# Images for variable ez
+show  ez; plot
+outjpeg bolt_image_ez_th.answ.jpg
 
 # EndCase 
 
