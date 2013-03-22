@@ -127,6 +127,10 @@
  *  I. R. Corey - November 14th, 2012: Removed code name & date from top
  *                of all windows and moved to Control Window text box.
  *
+ *  I. R. Corey - March 20th, 2013: 
+ *                of all windows and moved to Control Window text box.
+ *                See TeamForge#18395 & 18396
+ *
  ************************************************************************
  */
 
@@ -2151,11 +2155,11 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                 XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
 
 		/* 
-		 * This is WIP for new Element Set menus. 
+		 * This is WIP for the new Element Set menus. 
 		 */
 
-		if ( strstr(p_pr->short_name, "es_" ) ) {
-		  int es_id=0, es_index=0, es_label=-1;
+		if ( analy->es_cnt>0 && strstr(p_pr->short_name, "es_" ) ) {
+		     int es_id=0, es_index=0, es_label=-1;
 		     char *es_ptr=NULL, es_title[64], surface_title[16]="";
 		     int integration_pt=0;
 		     es_ptr = strstr( p_pr->short_name, "es_" );
@@ -2201,10 +2205,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
 
                     sprintf( cbuf, "%s[%d,%s]", p_pr->short_name, i + 1, 
                              comp_svar->short_name );
-		    if ( !strcmp( comp_svar->short_name, "es_1") ) {
-		         
-		    }
-		         
+
                     griz_str_dup( p_specs + spec_qty, cbuf );
                 
                     /* Create button. */
@@ -2661,7 +2662,6 @@ find_labelled_child( Widget parent, char *name, Widget *child, int *index )
     return FALSE;
 }
 
-
 /*****************************************************************
  * TAG( add_derived_result_button )
  *
@@ -2670,7 +2670,7 @@ find_labelled_child( Widget parent, char *name, Widget *child, int *index )
 static void
 add_derived_result_button( Derived_result *p_dr )
 {
-    Widget submenu_cascade, submenu, cascade, button;
+  Widget submenu_cascade, submenu, subsubmenu, cascade, sub_cascade, button;
     int i, j, k, n;
     int idx, position;
     char cbuf[M_MAX_NAME_LEN], nambuf[M_MAX_NAME_LEN];
@@ -2680,12 +2680,14 @@ add_derived_result_button( Derived_result *p_dr )
     Subrecord_result *p_subr_res;
     
     /* Vars added to add element set derived results */
+    int es_id=0;
+    char submenu_name[64], *cb_name=NULL, cb_name_temp[64];
     Bool_type es_found=FALSE;
+    State_variable sv;
     Subrecord subrec;
     Hash_table *p_pr_ht;
     Htable_entry *p_hte;
     Primal_result *p_pr;
-    char **svar_names;
     int dbid=0, srec_qty=0;
     int subrec_qty=0;
     int rval=0;
@@ -2696,6 +2698,7 @@ add_derived_result_button( Derived_result *p_dr )
     
     /* Determine correct submenu name ("Shared" or class name). */
     get_result_submenu_name( p_dr, cbuf );
+    strcpy( submenu_name, cbuf );
     
     /* See if submenu exists. */
     make_submenu = !find_labelled_child( derived_menu_widg, cbuf, 
@@ -2717,25 +2720,15 @@ add_derived_result_button( Derived_result *p_dr )
         /* Submenu exists; get the pane from the cascade button. */
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
     
-    /* Add derived result button. */
     for ( i = 0; i < analy->qty_srec_fmts; i++ )
         if ( p_dr->srec_map[i].qty > 0 )
             break;
     p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
     idx = p_subr_res->index;
-    
-    sprintf( nambuf, "%s (%s)", p_subr_res->candidate->long_names[idx],
-             p_subr_res->candidate->short_names[idx] );
-    n = 0;
-    button = XmCreatePushButtonGadget( submenu, nambuf, args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, res_menu_CB, 
-                   p_subr_res->candidate->short_names[idx] );
 
     /* If we have element set derived results then add them now */
 
     p_pr_ht = env.curr_analy->primal_results;
-
     if ( analy->es_cnt>0 && p_pr_ht != NULL ) {
 
          /* Get state record format count for this database. */
@@ -2750,7 +2743,7 @@ add_derived_result_button( Derived_result *p_dr )
 	       i++ )
 	 {
 	     /* Get subrecord count for this state record. */
-	     rval = env.curr_analy->db_query( dbid, QRY_QTY_SUBRECS, (void *) &i, 
+	     rval = env.curr_analy->db_query( dbid, QRY_QTY_SUBRECS, (void *) &i,
 					      NULL, (void *) &subrec_qty );
 	     if ( rval != OK )
 	          continue;
@@ -2764,41 +2757,71 @@ add_derived_result_button( Derived_result *p_dr )
 		   rval = env.curr_analy->db_get_subrec_def( dbid, i, j, &subrec );
 		   if ( rval != OK )
 		        continue;
-		 
+
 		   /* Look for element set svars to add to sub-menu */
 
-		   if ( subrec.qty_svars==1 && strstr( cbuf, subrec.class_name) 
+		   if ( subrec.qty_svars==1 && strstr( submenu_name, subrec.class_name) 
 			&& !strncmp( subrec.svar_names[0], "es_", 3 ) ) 
 		   {
+		        es_id = get_element_set_id( subrec.svar_names[0]+3 );
+			sprintf( nambuf, "Element Set %d (%s)", es_id,
+				 subrec.svar_names[0] );
 
-		        /* Use bound state vars as keys into Primal_result hash table.
+		        /* See if submenu exists. */
+		        make_submenu = !find_labelled_child( submenu, nambuf, 
+							     &submenu_cascade, &position );
+
+			/* Use bound state vars as keys into Primal_result hash table.
 			 */
-			  svar_names = subrec.svar_names;
-			  
-			  rval = htable_search( p_pr_ht, svar_names[k], FIND_ENTRY, &p_hte );
-			  if ( rval == OK )
-			    {
-			      p_pr = (Primal_result *) p_hte->data;
+			rval = htable_search( p_pr_ht, subrec.svar_names[0], FIND_ENTRY, &p_hte );
+			if ( rval != OK )
+			     continue;
 
-			      n = 0;
-			      XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
-			      submenu = XmCreatePulldownMenu( derived_menu_widg, "es_submenu_pane", 
-							      args, n );
-			      strcpy( cbuf, "test");
-			      
-			      n = 0;
-			      XtSetArg( args[n], XmNsubMenuId, submenu ); n++;
-			      cascade = XmCreateCascadeButton( derived_menu_widg, cbuf, args, n );
-			      XtManageChild( cascade );
-			      
-			      if ( p_pr->var->num_type == M_STRING )
-			  	   continue;
-			      
-			      /* if ( !p_pr->in_menu )
-				 {
-				 add_primal_result_button( parent, p_pr );
-				 } */
-			    } 
+			p_pr = (Primal_result *) p_hte->data;
+
+			if ( make_submenu ) {
+				 n = 0;
+				 XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED ); n++;
+				 subsubmenu = XmCreatePulldownMenu( submenu, "es_submenu_pane", 
+								    args, n );
+
+				 n = 0;
+				 XtSetArg( args[n], XmNsubMenuId, subsubmenu ); n++;
+				 sub_cascade = XmCreateCascadeButton( submenu, nambuf, args, n );
+				 XtManageChild( sub_cascade );
+			} 
+			else 
+			  /* Submenu exists; get the pane from the cascade button. */
+			  XtVaGetValues( submenu_cascade, XmNsubMenuId, &subsubmenu, NULL );
+				 
+			if ( p_pr->var->num_type == M_STRING )
+			     continue;
+
+			rval = mc_get_svar_def( dbid, subrec.svar_names[0], &sv );
+			if ( rval == 0 )
+			{
+			  for ( k=0;
+				k<sv.vec_size;
+				k++ )
+			        if ( !strcmp( sv.components[k], p_subr_res->candidate->short_names[idx] ) )
+			        {
+			             /* Add derived element set result button. */
+				     for ( i = 0; i < analy->qty_srec_fmts; i++ )
+				           if ( p_dr->srec_map[i].qty > 0 )
+					        break;
+				      p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
+				  
+				     sprintf( nambuf, "%s (%s)", p_subr_res->candidate->long_names[idx],
+				     p_subr_res->candidate->short_names[idx] );
+				     n = 0;
+				     button = XmCreatePushButtonGadget( subsubmenu, nambuf, args, n );
+				     XtManageChild( button );
+				     sprintf( cb_name_temp, "%s[%s]", subrec.svar_names[0], p_subr_res->candidate->short_names[idx] );
+                                     cb_name = NEW_N( char, strlen(cb_name_temp), "Static cb name" );
+				     strcpy( cb_name, cb_name_temp );
+				     XtAddCallback( button, XmNactivateCallback, res_menu_CB, cb_name );
+				}
+			}
 		   } /* es variable test */
 		   
 		   /* Don't care about return value for this. */
@@ -2806,6 +2829,17 @@ add_derived_result_button( Derived_result *p_dr )
 	       } /* for on j */
 	 }
     }
+
+    /* Add derived result button. */
+    
+    sprintf( nambuf, "%s (%s)", p_subr_res->candidate->long_names[idx],
+             p_subr_res->candidate->short_names[idx] );
+    n = 0;
+    button = XmCreatePushButtonGadget( submenu, nambuf, args, n );
+    XtManageChild( button );
+    XtAddCallback( button, XmNactivateCallback, res_menu_CB, 
+                   p_subr_res->candidate->short_names[idx] );
+
 }
 
 /*****************************************************************
