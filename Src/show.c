@@ -66,7 +66,15 @@ void lookup_global_minmax( Result *p_result, Analysis *analy );
 int
 parse_show_command( char *token, Analysis *analy )
 {
+    Result es_result;
     static char mat[] = "mat";
+    int index_qty=0;
+    char root[G_MAX_NAME_LEN + 1];
+    char component[G_MAX_NAME_LEN + 1];
+    int indices[G_MAX_ARRAY_DIMS];
+    int i=0;
+    int qty=0;
+    int status=OK;
 
     /* Cache the current global min/max. */
     if ( !analy->ei_result )
@@ -74,8 +82,56 @@ parse_show_command( char *token, Analysis *analy )
     
     /* If request is for "mat", don't bother to look it up. */
     if ( strcmp( token, mat ) == 0 )
-      {
+    {
         analy->cur_result = NULL;
+    }
+    else if ( strncmp( token, "es_", 3 )==0 )
+    {
+              init_result( &es_result );
+              if ( !find_result( analy, analy->result_source, TRUE, &es_result, 
+				token ) ) {
+		   popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
+		   return( 0 );
+	      }
+	      if ( !es_result.single_valued )
+	      {
+	  	   /* An es result of the form es_n[var] is really an invalid specification that
+		    * needs to be resolved when we load the result. The result will later be
+		    * converted to the form es_n[i,var] where I is the integration point. 
+		    * for now use the component as the result but we  will look at the original
+		    * result later to build a result spec for the load.
+		    */
+
+		   /* Divide the specification into its component parts. */
+		   if ( !parse_result_spec( token, root, &index_qty, indices, component ) )
+		         return 0; 
+		   status = find_result( analy, analy->result_source, TRUE, &new_result, component );
+		   free( new_result.superclasses );
+		   free( new_result.subrecs );
+		   free( new_result.indirect_flags );
+		   qty = es_result.qty;
+		   new_result.superclasses = NEW_N( int, qty, "Result sclass array" );
+		   new_result.subrecs = NEW_N( int, qty, "Result subrec array" );
+		   new_result.indirect_flags = NEW_N( Bool_type, qty, 
+						       "Result indirect flags" );
+		   new_result.qty = qty;
+		   for ( i=0;
+			 i<qty;
+			 i++ ) { 
+		         new_result.superclasses[i]   = es_result.superclasses[i];
+			 new_result.subrecs[i]        = es_result.subrecs[i]; 
+			 new_result.indirect_flags[i] = es_result.indirect_flags[i];
+		   }
+		   
+		   strcpy( new_result.original_name, token );
+		   cleanse_result( &es_result );
+	      }
+	      current_result = new_result;
+	      init_result( &es_result );
+	      init_result( &new_result );
+	      
+	      analy->cur_result = &current_result;
+	      analy->cur_result->reference_count++;
     }
     else if ( find_result( analy, analy->result_source, TRUE, &new_result, 
               token ) )
