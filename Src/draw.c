@@ -112,6 +112,10 @@
  *                when any particles are rendered.
  *                See TeamForge#19627
  *
+ *  I. R. Corey - March 25th, 2013: Added check for particle nodes being 
+ *                enabled when drawing a result hilite. If pn enabled then
+ *                use the pn result.
+ *                See TeamForge#19627
  ************************************************************************
  */
 
@@ -5747,17 +5751,19 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
                  && ( !analy->cur_result->origin.is_elem_result 
                       || data_array == NODAL_RESULT_BUFFER( analy ) ) )
             {
-                val = analy->perform_unit_conversion
-                      ? data_array[hilite_num] * analy->conversion_scale
-                        + analy->conversion_offset
-                      : data_array[hilite_num];
-
-		if ( analy->free_nodes_list && analy->free_nodes_vals )
+		if ( analy->particle_nodes_enabled &&
+		     analy->free_nodes_list && 
+		     analy->free_nodes_vals )
 		     if ( analy->free_nodes_list[hilite_num]==TRUE )
 		          val = analy->perform_unit_conversion
                                 ? analy->free_nodes_vals[hilite_num] * analy->conversion_scale
                                   + analy->conversion_offset
                                 : analy->free_nodes_vals[hilite_num];
+		else
+                     val = analy->perform_unit_conversion
+		       ? data_array[hilite_num] * analy->conversion_scale
+		       + analy->conversion_offset
+		       : data_array[hilite_num];
 		       
                 sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, 
                          val );
