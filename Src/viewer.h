@@ -2200,6 +2200,7 @@ extern int get_element_set_id( char * );
 extern int get_element_set_index( Analysis *, int );
 extern int get_intpoint_index ( int, int, int * );
 extern void set_default_intpoints ( int, int, int *, int * );
+extern void get_intpoints ( Analysis *, int, int[3] );
 
 /* show.c */
 extern int parse_show_command( char *, Analysis * );

@@ -3791,10 +3791,26 @@ get_result_qty( Analysis *analy, int subrec_id )
  *
  */
 int 
-get_element_set_id( char *es_ptr )
+get_element_set_id( char *es_input_ptr )
 {
+  int i=0;
   int es_id=-1;
-  sscanf( es_ptr, "%d", &es_id );
+  char *es_ptr=NULL, es_temp[64]="";
+  
+  es_ptr = strstr( es_input_ptr, "es_" );
+  es_ptr += 3;
+  if ( es_ptr ) {
+       strcpy( es_temp, es_ptr );
+       for ( i=0;
+	     i<strlen( es_temp );
+	     i++) {
+	       if ( !isdigit(es_temp[i] ) ) {
+		     es_temp[i]='\0';
+		     break;
+	       }
+	     }
+       sscanf( es_temp, "%d", &es_id );
+  }
 
   return( es_id );
 }
@@ -3841,6 +3857,33 @@ get_intpoint_index ( int label, int num_labels, int *intpoint_labels )
 	     label_index = i;
   }
   return ( label_index );
+}
+
+/*****************************************************************
+ * TAG( get_intpoints )
+ * 
+ * Returns the current integration points in array 
+ * intpoints for a specified element set id.
+ *
+ */
+void
+get_intpoints ( Analysis *analy, int es_id, int intpoints[3] )
+{
+  int i; 
+  
+  for ( i=0;
+	i<analy->es_cnt;
+	i++ )
+  {
+        if ( es_id == analy->es_intpoints[i].es_id ) {
+  	     intpoints[0] = analy->es_intpoints[i].in_mid_out_set[0];
+	     intpoints[1] = analy->es_intpoints[i].in_mid_out_set[1]; 
+	     intpoints[2] = analy->es_intpoints[i].in_mid_out_set[2];
+	     return;
+	}
+  }
+  intpoints[0] =  intpoints[1] =  intpoints[2] = -1;
+  return;
 }
 
 /*****************************************************************
