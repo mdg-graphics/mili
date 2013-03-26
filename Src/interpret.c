@@ -173,17 +173,12 @@
  *                in GUI - 'echocmd'. Default value is ON.
  *                See TeamForge#18255
  *
- *  I. R. Corey - July 16th, 2012: Added new command to dump current result
- *                to a text file: 'dumpresult'.
- *                See TeamForge#18363
- *
  *  I. R. Corey - October 8th, 2012: Added new command to dump current result
  *                to a text file: 'dumpresult'.
  *                See TeamForge#18363
  *
  *  I. R. Corey - October 12th, 2012: Added capability to show/hide elements
  *                by class name.
-
  *                See TeamForge#
  *
  *  I. R. Corey - November 21th, 2012: Added capability to have a multi-command
@@ -210,7 +205,7 @@
  *                hilite and select.
  *                See TeamForge#19547
  *
- *  I. R. Corey - March 18th, 2013: New command to set controls for
+ *  I. R. Corey - March 18th, 2013: New commands to set controls for
  *                element sets.
  *                See TeamForge#19547
  *************************************************************************

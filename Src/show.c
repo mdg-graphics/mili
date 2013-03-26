@@ -125,8 +125,11 @@ parse_show_command( char *token, Analysis *analy )
 		   
 		   strcpy( new_result.original_name, token );
 		   cleanse_result( &es_result );
+		   current_result = new_result;
 	      }
-	      current_result = new_result;
+	      else {
+		   current_result = es_result;
+	      }
 	      init_result( &es_result );
 	      init_result( &new_result );
 	      

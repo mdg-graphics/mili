@@ -1121,8 +1121,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		   /* Strip off the element set uid from the end of the name field */
 		   es_ptr = strstr( wildcard_list[i], "_es_" );
 		   if ( es_ptr ) {
-		        es_ptr+=4;
-		        analy->es_intpoints[i].es_id = get_element_set_id( es_ptr );
+		        analy->es_intpoints[i].es_id = get_element_set_id( wildcard_list[i] );
 		   }
 		   else continue;
 		   set_default_intpoints ( analy->es_intpoints[i].intpoints_total, analy->es_intpoints[i].labels_cnt,

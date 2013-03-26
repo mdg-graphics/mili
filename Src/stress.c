@@ -497,6 +497,7 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 
     Bool_type map_timehist_coords = FALSE;
     GVec3D2P      *new_nodes      = NULL;
+    Bool_type es_result = FALSE;
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -523,6 +524,32 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
     ref_surf = analy->ref_surf;
     ref_frame = analy->ref_frame;
 
+    /* Process this as an element set result if found */
+
+    if ( strcmp( p_result->name, p_result->original_name ) && 
+	 strncmp( p_result->original_name, "es_", 3 )==0 ) {
+         int es_id=0, intpoints[3];
+	 int ref_index=0;
+
+         es_id = get_element_set_id( p_result->original_name );
+         get_intpoints ( analy, es_id, intpoints );
+         switch ( ref_surf )
+	 {
+	 case MIDDLE:
+	   ref_index = 1;
+	   break;
+	 case INNER:
+	   ref_index = 0;
+	   break;
+	 case OUTER:
+	   ref_index = 2;
+	   break;
+	 }
+	 /* Construct Primal Spec */
+	 sprintf( primal_spec, "es_%d[%d,%s]", es_id, intpoints[ref_index], p_result->name );
+	 es_result = TRUE;
+   }
+    else
     /*
      * Don't want to read in all the primals from the Result_candidate for
      * this result, so build up a new primals array with just the right one.
@@ -539,6 +566,7 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
             strcpy( primal_spec, primals[2] );
             break;
     }
+
     primal_list[0] = primal_spec;
     
     /* Update the result to record modifier(s) that affected the calculation. */
@@ -570,8 +598,9 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
         else
         {
             /* Augment primal vector name with component name. */
-            sprintf( primal_spec + strlen( primal_spec ), "[%s]", 
-                     p_result->name );
+	    if ( !es_result )
+	         sprintf( primal_spec + strlen( primal_spec ), "[%s]", 
+			  p_result->name );
             
             /* Read the database. */
             analy->db_get_results( analy->db_ident, analy->cur_state + 1, 

@@ -2162,9 +2162,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
 		     int es_id=0, es_index=0, es_label=-1;
 		     char *es_ptr=NULL, es_title[64], surface_title[16]="";
 		     int integration_pt=0;
-		     es_ptr = strstr( p_pr->short_name, "es_" );
-		     es_ptr+=3;
-
+		     es_ptr   = strstr( p_pr->short_name, "es_" );
 		     es_id    = get_element_set_id( es_ptr );
 		     es_index = get_element_set_index( analy, es_id );
 
@@ -2763,7 +2761,7 @@ add_derived_result_button( Derived_result *p_dr )
 		   if ( subrec.qty_svars==1 && strstr( submenu_name, subrec.class_name) 
 			&& !strncmp( subrec.svar_names[0], "es_", 3 ) ) 
 		   {
-		        es_id = get_element_set_id( subrec.svar_names[0]+3 );
+		        es_id = get_element_set_id( subrec.svar_names[0] );
 			sprintf( nambuf, "Element Set %d (%s)", es_id,
 				 subrec.svar_names[0] );
 
