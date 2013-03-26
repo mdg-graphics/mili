@@ -1,0 +1,117 @@
+# d3samp6
+# Title: Beam element example quarter model INGDY6.dat (in.sec.lb-s^2/in)
+# End Time: 1.0e-3
+# Griz Script File: d3samp6_th.gsf
+# Min/Max Switch: global
+
+# Setup
+alias chgst f;n;n;l
+alias min 1
+alias max 101
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+staterange
+minst 1
+maxst 101
+chgst
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+vcent node 108
+zf 2
+
+# Object selection 
+select beam all; select beam 18-21 23-25
+select beam 4-8
+select shell all
+select shell 6
+select brick all
+select brick 36 18 20-24 30
+select node 1 10 58-61 7 138 132 
+select mat 1
+
+# Append output to TH file
+on thsinglecol
+on tha
+
+# Nodal Results
+# Plots for variable nodpos[uy]
+plot nodpos[uy]
+show  nodpos[uy]
+outth d3samp6_th.jansw cur
+
+# Plots for variable dispz
+show dispz
+plot
+outth d3samp6_th.jansw
+
+# Plots for variable accmag
+show accmag
+plot
+outth d3samp6_th.jansw
+
+# Plots and Images for variable sx
+show sx
+plot
+outth d3samp6_th.jansw cur
+
+# Plots for variable sz
+show sz
+outth d3samp6_th.jansw
+
+# Plots for variable sxy
+show sxy
+plot
+outth d3samp6_th.jansw
+
+# Plots for variable szx
+show szx
+plot
+outth d3samp6_th.jansw
+
+# Reset view
+rview; ry 90; rx 45; ry -35.26; rz -30
+zf 2
+on edges; edgwid 1.8
+
+# Plots for variable szx
+show szx
+plot
+outth d3samp6_th.jansw
+
+# Plots for variable eeff
+show eeff
+plot
+outth d3samp6_th.jansw
+
+# Plots for variable evol
+show evol
+outth d3samp6_th.jansw
+
+# Plots for variable pshrstr
+sw rate
+show pshrstr
+plot
+outth d3samp6_th.jansw
+
+# Plots for variable gamxy
+show gamxy
+plot
+outth d3samp6_th.jansw
+
+# Plots for variable dispmag
+plot dispmag
+outth d3samp6_th.jansw
+
+# Beam Results
+# Plots for variable tor
+plot tor
+outth d3samp6_th.jansw cur
+
+echo "Writing TH data to file d3samp6_th.jansw"
+
+# EndCase 
