@@ -8,7 +8,7 @@
 
 switch mglob
 # alias FNAME ml40_th.jansw
-alias OUTPUT ml40_th.jansw cur
+alias OUTPUT outth ml40_th.jansw cur
 on thsinglecol
 on tha
 
