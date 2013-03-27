@@ -1,0 +1,28 @@
+# d3samp6
+# Title: Beam element example quarter model INGDY6.dat (in.sec.lb-s^2/in)
+# End Time: 1.0e-3
+# Griz Script File: d3samp6_image_gamxy_th.gsf
+# Min/Max Switch: global
+
+# Setup
+clrsel 
+switch mglob
+
+fracsz 10
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; off box; on minmax
+off path
+
+# Object selection 
+select brick all
+select brick 5 17 28 15 36 18 20-24 30
+select mat 1
+
+# Images for variable gamxy
+show gamxy; plot
+outjpeg d3samp6_image_gamxy_th.answ.jpg
+
+# EndCase  
+

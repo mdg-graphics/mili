@@ -1,0 +1,61 @@
+# d3samp6
+# Title: Beam element example quarter model INGDY6.dat (in.sec.lb-s^2/in)
+# End Time: 1.0e-3
+# Griz Script File: d3samp6_image_szx_cutpln2_plot.gsf
+# Min/Max Switch: global
+
+# Setup
+alias chgst f;n;n;l
+alias min 1
+alias max 101
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+# staterange // Enable after Release 13.1
+# chgst // Enable after Release 13.1
+minst 1
+maxst 100
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+rview; ry -50; rz -185
+zf 2.1
+ty .25; tx .491
+on edges
+edgwid 1.8
+dscalz 1.4
+rnf
+rdhis d3samp6_V1.gsf
+
+# Object selection 
+select brick 1 14 36 18 20-24 30
+select shell all
+select shell 6 7 
+select mat 1
+
+# Images for variable szx
+rmax 5.5e2
+sw mstat
+show szx
+state 20
+state 101
+l
+sw noterp
+cutrpln .25 .25 .5 1 0 0
+on cut
+clrcut
+cutrpln .25 .5 .5 1 0 0
+cutrpln .25 .5 .05 0 0 1
+cutrpln .25 .5 .45 0 0 1
+cutrpln .25 .5 .5 0 1 0
+ty .40
+ry 90; rx 15
+rnf
+outjpeg d3samp6_image_szx_cutpln2_plot.answ.jpg
+
+# EndCase 
+
