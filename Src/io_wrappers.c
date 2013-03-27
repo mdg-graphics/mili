@@ -50,6 +50,10 @@
  * 12/28/2012 I. R. Corey   Added capability to view global & material 
  *                          results for a file with no nodes or elements.
  *                          See SourceForge#: 19225
+ *
+ * 03/27/2013 I. R. Corey   Added check for material numbers > number of
+ *                          materials.
+ *                          See SourceForge#:19777
  *************************************************************************
  *
  */
@@ -1118,6 +1122,13 @@ gen_material_data( MO_class_data *p_mat_class, Mesh_data *p_mesh )
              for ( k = 0; k < elem_qty; k++ )
              {
                    mtl = mats[k];
+		   
+		   if ( mtl>=qty_mats ) {
+			printf( "\n\n** Error: A Material was found (#%d) that is greater than the total number of materials (%d).", mtl, qty_mats );
+			printf( "\n** Error: Griz exiting!\n" );
+		        exit(0);
+		   }
+
                    mat_elem_qtys[mtl]++;
                    mat_mo_classes[mtl] = mo_classes[j];
              }
