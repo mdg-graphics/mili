@@ -116,6 +116,12 @@
  *                enabled when drawing a result hilite. If pn enabled then
  *                use the pn result.
  *                See TeamForge#19627
+ *
+ *  I. R. Corey - March 27th, 2013: Corrected bbox usage comment for
+ *                Warning: Near/far planes shouldn't go behind the eyepoint.
+ *                See TeamForge#19778
+ *
+ *
  ************************************************************************
  */
 
@@ -1254,7 +1260,7 @@ adjust_near_far( Analysis *analy )
     if ( !analy->adjust_NF_disable_warning && (new_near < 0.0 || new_far < new_near) )
           popup_dialog( WARNING_POPUP, "%s\n%s\n%s\n%s\n%s",
                         "Unable to reset near/far planes.",
-			"If using material invisibility, try \"bbox vis\"",
+			"If using material invisibility, try \"bbox xmin ymin zmin xmax ymax zmax\"",
 			"to minimize the mesh bounding box then \"rnf\" again OR",
 			"use \"info\" to see previous near/far planes and",
 			"adjust manually using \"near\" and \"far\"." );
