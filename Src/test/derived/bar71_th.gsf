@@ -29,19 +29,19 @@ zf 2
 
 # Object selection 
 select brick 1 9 331
-select node 1 334 703 741 777-778 1027 1369
+select node 37 298 670 334 703 741 777-778 1027 1369 
 select mat 1
 
 # Append output to TH file
 on tha
 
 # Plots for variable eps
-plot eps
+show eps; plot
 outth bar71_th.jansw cur
 
 # Plots for variable nodpos[uy]
-plot nodpos[uy]
 show  nodpos[uy]
+plot
 outth bar71_th.jansw cur
 
 # Plots and Images for variable sx
@@ -51,6 +51,7 @@ outth bar71_th.jansw cur
 
 # Plots for variable sz
 show sz
+plot
 outth bar71_th.jansw
 
 # Plots for variable sxy
@@ -80,6 +81,7 @@ outth bar71_th.jansw
 
 # Plots for variable t_cur
 show t_cur
+plot
 outth bar71_th.jansw
 
 # Plots for variable yield
@@ -98,7 +100,9 @@ plot
 outth bar71_th.jansw
 
 # Plots for variable dispmag
-plot dispmag
+clrsel
+select node 37 298 670 792
+show dispmag; plot
 outth bar71_th.jansw
 
 echo "Writing TH data to file bar71_th.jansw"
