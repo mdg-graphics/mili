@@ -537,12 +537,27 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
 	 {
 	 case MIDDLE:
 	   ref_index = 1;
+	   if ( intpoints[ref_index]<0 ) {
+		popup_dialog( WARNING_POPUP,
+                              "MIDDLE integration point is undefined\nfor this element set." );
+		return;
+	   }
 	   break;
 	 case INNER:
 	   ref_index = 0;
+	   if ( intpoints[ref_index]<0 ) {
+		popup_dialog( WARNING_POPUP,
+                              "INNER integration point is undefined\nfor this element set." );
+		return;
+	   }
 	   break;
 	 case OUTER:
 	   ref_index = 2;
+	   if ( intpoints[ref_index]<0 ) {
+		popup_dialog( WARNING_POPUP,
+                              "OUTER integration point is undefined\nfor this element set." );
+		return;
+	   }
 	   break;
 	 }
 	 /* Construct Primal Spec */

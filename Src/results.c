@@ -3898,9 +3898,12 @@ set_default_intpoints ( int num_intpoints, int num_labels,
 			int *intpoint_labels, int default_intpoints[3] )
 {
   int i; 
-      int calc_middle=0, middle_point=-1;
-
-  default_intpoints[0] = intpoint_labels[0];               /* Inner */ 
+  int calc_middle=0, middle_point=-1;
+  
+  default_intpoints[0] =  default_intpoints[1] = default_intpoints[2] = -1;
+  
+  if ( intpoint_labels[0] == 1 )
+       default_intpoints[0] = 1; /* Inner */ 
   
   /* Calculate the MIDDLE integration point */
   calc_middle = num_intpoints/2.0;
@@ -3917,6 +3920,7 @@ set_default_intpoints ( int num_intpoints, int num_labels,
        
   }
   default_intpoints[1] = middle_point; /* MIDDLE integration point undefined if -1 */  
-  default_intpoints[2] = intpoint_labels[num_labels-1]; /* Outer */     
+  if ( intpoint_labels[num_labels-1] == num_intpoints )
+       default_intpoints[2] = num_intpoints; /* Outer */     
 }
 

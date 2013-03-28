@@ -179,16 +179,18 @@
  *
  *  I. R. Corey - October 12th, 2012: Added capability to show/hide elements
  *                by class name.
- *                See TeamForge#
+ *                See TeamForge#19748
  *
  *  I. R. Corey - November 21th, 2012: Added capability to have a multi-command
  *                alias such as: alias new on all;l.
  *                See TeamForge#
  *
  *  I. R. Corey - November 25th, 2012: Set max fracsz to 12.
+ *                See TeamForge#19765
  *
  *  I. R. Corey - Dec 4th, 2012: Fixed problem with dump_result and added
  *                option to choose a filename.
+ *                See TeamForge#19764
  *
  *  I. R. Corey - Dec 19th, 2012: Fixed problem with updating edges when 
  *                on edges command input.
@@ -2715,7 +2717,7 @@ parse_single_command( char *buf, Analysis *analy )
          int ref_surf_index=0;
 
          if ( token_cnt >= 1 ) {
-	      es_id = atoi( tokens[i+1] );
+	      es_id = atoi( tokens[1] );
 	      if ( es_id<1 || es_id>analy->es_cnt ) {
 	           popup_dialog( USAGE_POPUP, "switches - Element set id out of range." );
 		   valid_command = FALSE;
@@ -2724,7 +2726,7 @@ parse_single_command( char *buf, Analysis *analy )
 	 }
 
          if ( token_cnt >= 2 && valid_command ) {
-	      strcpy( es_command, tokens[i+2] );
+	      strcpy( es_command, tokens[2] );
 	      if ( strcmp( es_command, "inner" ) == 0 ) {
 		   ref_surf_index = 0;
 	      }
@@ -2736,7 +2738,8 @@ parse_single_command( char *buf, Analysis *analy )
 			}
 		        else if ( strcmp( es_command, "show" ) == 0 ) { 
 			     show_command = TRUE;
-			     sprintf( show_txt, "\nElement Set %d: \n", es_id );
+			     sprintf( show_txt, "\n\nElement Set %d: \n\t\tTotal Points:\t%d\n", es_id, 
+				      analy->es_intpoints[es_index].intpoints_total);
 			     sprintf( temp_txt, "\t\tInner Label:\t%d\n", 
 				      analy->es_intpoints[es_index].in_mid_out_set[0] ); 
 			     strcat( show_txt, temp_txt );
@@ -2759,8 +2762,8 @@ parse_single_command( char *buf, Analysis *analy )
 	      
 	 }
 
-         if ( token_cnt >= 3 && valid_command ) {
-	      es_intpoint = atoi( tokens[i+3] );
+         if ( token_cnt >3 && valid_command ) {
+	      es_intpoint = atoi( tokens[3] );
 	      if ( es_intpoint>=1 || es_intpoint<=analy->es_intpoints[es_index].intpoints_total ) {
 	 	   label_index = get_intpoint_index ( es_intpoint, analy->es_intpoints[es_index].labels_cnt, 
 						      analy->es_intpoints[es_index].labels );
