@@ -1,7 +1,7 @@
 # d3samp6
 # Title: Beam element example quarter model INGDY6.dat (in.sec.lb-s^2/in)
 # End Time: 1.0e-3
-# Griz Script File: d3samp6_image_rmin_press_plot.gsf
+# Griz Script File: d3samp6_image_rmin_press_th.gsf
 # Min/Max Switch: state (mstat)
 
 # Setup
@@ -15,28 +15,9 @@ switch mglob
 # staterange // Multi command alias in newer releases 
 # chgst      // Enable this after 13.1 release
 
-minst 1
-maxst 100
 on thsinglecol
 fracsz 8
 jpegqual 100
-
-# Set viewing 
-off all; on cmap; on title; on time; on coord; off box; on minmax
-off path
-rview; ry -150; rz 90
-zf 1.15
-tx .2 ; ty -.4
-
-# Test save view function
-outview d3samp6.View
-rdhis d3samp6_V1.gsf
-posmap .91 -.5 .07 .5
-ry 15
-zb 1.1
-tx -.14; ty .4
-sw ortho
-sw interp
 
 # Object selection 
 clrsel
@@ -44,14 +25,13 @@ select brick 1 8 10 14 27 36 18 20-24 30
 select shell 3
 
 # Test rmin/tmin & tmin/tmax with variable press
-sw mstat
-l
 show press
-rmin -40
-rmax 32.5
-tmin 20
-tmax 70
-outjpeg d3samp6_image_press_rmin_plot.answ.jpg
+rmin -77
+rmax 38.5
+minst 20
+maxst 95
+plot
+outjpeg d3samp6_image_press_rmin_th.answ.jpg
 
 # EndCase 
 
