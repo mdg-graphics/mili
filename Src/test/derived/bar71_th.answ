@@ -4,9 +4,9 @@
 # Griz Version Info:
 #
 #	Griz4-V12_01
-# 	Built: 	Thu Feb 28 14:54:37 2013 on Linux #1 SMP Tue Jun 19 17:16:17 PDT 2012 2.6.32-220.23.1.1chaos.ch5.x86_64 x86_64 by icorey
+# 	Built: 	Thu Feb 28 15:05:30 2013 on Linux #1 SMP Tue Jun 19 17:16:17 PDT 2012 2.6.32-220.23.1.1chaos.ch5.x86_64 x86_64 by icorey
 # 	Configure: ./configure 
-# 	Compile Options: gcc -O3 -DJPEG_SUPPORT -DPNG_SUPPORT  -DSERIAL_BATCH -I../include -I/usr/apps/mdg/include -I.. -I../HersheyLib/src -I../ImageLib -I/usr/include -I/usr/include -I/usr/../include -I../.. 
+# 	Compile Options: gcc -O3 -DJPEG_SUPPORT -DPNG_SUPPORT  -DSERIAL_BATCH -I../include -I/usr/apps/mdg/include -I.. -I../HersheyLib/src -I../ImageLib -I/usr/include -I/usr/../include -I../.. 
 # 		Mili Library Version (Griz Linked): 	V13_01
 #		Mili Database-Library Version: 		V13_01
 #		Mili Database-Host: 			rzzeus286
