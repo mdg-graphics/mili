@@ -1,0 +1,106 @@
+# thickshells
+# Title: Material Model 1 - Basic Test
+# Material Model: 1
+# End Time: 1.0
+# Griz Script File: thickshells_th.gsf
+# Min/Max Switch: global
+
+# Setup
+alias chgst f;n;n;l
+alias min 1
+alias max 81
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+staterange; chgst // Enable after Release 13.1
+minst 1
+maxst 81
+
+on thsinglecol
+fracsz 10
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+vcent node 501
+zf 2
+
+# Object selection 
+select thick 19 35 114 170 13 61 46 35 71 31 19
+select node 1 104 132 197 500 511 553 598 1000 153 956
+select mat 1-5
+
+# Append output to TH file
+on tha
+
+# Plot for variable nodpos[uy]
+show  nodpos[uy]; plot
+outth thickshells_th.jansw cur
+
+# Plot for variable nodvel[vz]
+show  nodvel[vz]
+plot
+outth thickshells_th.jansw cur
+
+# Plot and Images for variable gamxy
+show gamxy
+plot
+outth thickshells_th.jansw cur
+
+# Reset view
+rview; ry 90; rx 45; ry -35.26; rz -30
+zf 2
+on edges; edgwid 1.8
+
+# Plot for variable relvol
+show relvol
+plot
+outth thickshells_th.jansw
+
+# Plot for variable press
+show press
+plot
+outth thickshells_th.jansw
+
+# Plot for variable pdev2
+show pdev2
+plot
+outth thickshells_th.jansw
+
+echo "BP 1"
+
+clrsel
+select thick 19 23 48 50 81 92 170 
+
+# Plot for variable sz
+show sz
+plot
+outth thickshells_th.jansw
+
+# Plot for variable pshrstr
+show pshrstr
+plot
+outth thickshells_th.jansw
+
+# Plot for variable pdstrn3
+show pdstrn3
+plot
+outth thickshells_th.jansw
+
+# Plot for variable gamxy
+show gamxy
+plot
+outth thickshells_th.jansw
+
+echo "BP 2"
+
+# Plot for variable dispmag
+select node 104 132 197 500 511 553 598 1000 153 956
+plot dispmag
+outth thickshells_th.jansw
+
+echo "Writing TH data to file thickshells_th.jansw"
+
+# EndCase 
+
