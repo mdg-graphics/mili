@@ -1,0 +1,46 @@
+# bolt
+# Title: bolt
+# Min/Max Switch: Global
+
+# Setup
+# alias chgst f;n;n;l // Enable in release 13.1
+alias min 1
+alias max 5
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+# staterange // Enable in release 13.1
+minst 1
+maxst 5
+# chgst // Enable in release 13.1
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord
+off box; on minmax
+off path
+rdhis bolt.V2
+
+# Object selection
+select brick 1618 12081
+select brick 1-2 757 6049 13483 14134 106425 51912 10824 11656 11842 106824
+select nike all
+select nike 6
+select mat 1
+
+# Test greyscale command
+disable all
+enable 4
+enable 1
+on gs
+# Image for variable maxshr
+show maxshr
+state 4
+state 5
+sw noterp
+outjpeg bolt_image_maxshr_plot.answ.jpg
+
+# EndCase 
+

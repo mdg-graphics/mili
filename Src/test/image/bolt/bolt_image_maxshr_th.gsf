@@ -1,0 +1,24 @@
+# bolt
+# Title: bolt
+# Min/Max Switch: Global
+
+# Setup
+alias min 1
+alias max 5
+clrsel 
+switch mglob
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Object selection 
+select brick 1-10 757 6049 13483 14134 106425 51912 10824 11656 11842 106824
+select brick 12081 1618
+select mat 1
+
+# TH Image for variable maxshr
+show maxshr; plot
+outjpeg bolt_image_maxshr_th.answ.jpg
+
+# EndCase 
+
