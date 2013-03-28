@@ -42,7 +42,8 @@ outth bending-71_th.jansw cur
 
 select beam 1 2 3 4 5
 #  Plot for variable tor
-plot tor
+show tor
+plot
 outth bending-71_th.jansw cur
 
 #  Plot for variable svec[svec_x]
@@ -50,7 +51,7 @@ plot svec[svec_x]
 outth bending-71_th.jansw cur
 
 #  Plot for variable svec[svec_z]
-plot svec[svec_z] 
+show svec[svec_z]; plot
 outth bending-71_th.jansw cur
 
 #  Plot for variable sand
