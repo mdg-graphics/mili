@@ -19,7 +19,7 @@
  * 
  *  I. R. Corey - Jan 17, 2013: Added test in change_state() and change_
  *                time() for zero states.
- *                ML particles.
+ *                See TeamForge#19786
  *
  *  I. R. Corey - Feb 08, 2013: Removed calculation for hex_vol_sums -
  *                no need with changes in hex_to_nodal().
