@@ -183,7 +183,7 @@
  *
  *  I. R. Corey - November 21th, 2012: Added capability to have a multi-command
  *                alias such as: alias new on all;l.
- *                See TeamForge#
+ *                See TeamForge#19750
  *
  *  I. R. Corey - November 25th, 2012: Set max fracsz to 12.
  *                See TeamForge#19765
@@ -197,7 +197,7 @@
  *
  *  I. R. Corey - Jan 2nd, 2013: Added flag to force single column output
  *                for TH output.
- *                See TeamForge#
+ *                See TeamForge#19785
  *
  *  I. R. Corey - February 11th, 2013: Added a flag to disable volume
  *                averaging for hex interp results.
@@ -210,6 +210,7 @@
  *  I. R. Corey - March 18th, 2013: New commands to set controls for
  *                element sets.
  *                See TeamForge#19547
+ *
  *************************************************************************
  */
 
