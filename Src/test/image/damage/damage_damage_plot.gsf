@@ -1,0 +1,45 @@
+# damage
+# Title: bar impact problem (gm cm microsec)
+# Material Model: 45
+# End Time: 80.0
+# Griz Script File: damage_damage_plot.gsf
+# Min/Max Switch: global
+
+# Setup
+# alias chgst f;n;n;l // Enable after Release 13.1
+alias min 1
+alias max 81
+# alias staterange minst min; maxst max // Enable after Release 13.1
+clrsel 
+switch mglob
+# staterange; chgst // Enable after Release 13.1
+minst 1
+maxst 77
+
+on thsinglecol
+fracsz 10
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; off box; on minmax
+off path
+vcent node 1000
+vcent off
+zf 2
+
+# Reset view
+rdhis bar45_V1.gsf
+on edges; edgwid 1.8
+l
+
+# Object selection
+clrsel
+select brick 1 37 705 331 675 651 741 328  971-972 
+
+# Plot for variable damage
+sw noterp
+show damage vz -1 0 0 
+outjpg damage_damage_plot.answ.jpg
+
+# EndCase 
+
