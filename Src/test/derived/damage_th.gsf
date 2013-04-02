@@ -1,0 +1,107 @@
+# damage
+# Title: Material Model 1 - Basic Test
+# Material Model: 45
+# End Time: 80.0
+# Griz Script File: damage_th.gsf
+# Min/Max Switch: global
+
+# Setup
+alias chgst f;n;n;l
+alias min 1
+alias max 81
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+# staterange; chgst // Enable after Release 13.1
+minst 1
+maxst 81
+
+on thsinglecol
+fracsz 10
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+vcent node 1000
+zf 2
+
+# Object selection 
+select mat 1
+
+# Append output to TH file
+on tha
+
+# Plot for variable nodpos[uz]
+select node 1 1369 783 1259 667 519 471 1295 1028 1290
+show  nodpos[uz]; plot
+outth damage_th.jansw cur
+
+# Plot for variable nodvel[vz]
+show  nodvel[vz]
+plot
+outth damage_th.jansw cur
+
+# Reset view
+rview; ry 90; rx 45; ry -35.26; rz -30
+zf 2
+on edges; edgwid 1.8
+
+# Object selection
+clrsel
+select brick 1 37 705 331 675 651 741 328  971-972 
+
+# Plot and Images for variable gamxy
+show gamxy
+plot
+outth damage_th.jansw cur
+
+# Plot for variable relvol
+show relvol
+plot
+outth damage_th.jansw
+
+# Plot for variable press
+show press
+plot
+outth damage_th.jansw
+
+# Plot for variable pdev2
+show pdev2
+plot
+outth damage_th.jansw
+
+# Plot for variable sz
+show sz
+plot
+outth damage_th.jansw
+
+# Plot for variable pshrstr
+show pshrstr
+plot
+outth damage_th.jansw
+
+# Plot for variable pdstrn3
+show pdstrn3
+plot
+outth damage_th.jansw
+
+# Plot for variable gamxy
+show gamxy
+plot
+outth damage_th.jansw
+
+# Plot for variable damage
+show damage vz -1 0 0 
+plot
+outth damage_th.jansw
+
+# Plot for variable dispmag
+select node 1 1369 783 1259 667 519 471 1295 1028 1290
+plot dispmag
+outth damage_th.jansw
+
+echo "Writing TH data to file damage_th.jansw"
+
+# EndCase 
+
