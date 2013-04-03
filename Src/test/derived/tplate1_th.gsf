@@ -1,0 +1,106 @@
+# tplate1
+# Title: Thick Plate Pressure Loaded
+# End Time: 5e+4 (State 11)
+# Griz Script File: tplate1_th.gsf
+# Min/Max Switch: global
+
+# Setup
+# alias chgst f;n;n;l // Enable after Release 13.1
+alias min 1
+alias max 11
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+# staterange; chgst // Enable after Release 13.1
+minst 1
+maxst 11
+
+on thsinglecol
+fracsz 10
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+vcent node 144
+zf 2
+
+# Object selection 
+select mat 1
+
+# Append output to TH file
+on tha
+
+# Plot for variable nodpos[uz]
+select node 1 22 241 72 222 230-237 74
+show  nodpos[uz]; plot
+outth tplate1_th.jansw cur
+
+# Plot for variable nodvel[vz]
+show  nodvel[vz]
+plot
+outth tplate1_th.jansw cur
+
+# Reset view
+rview; ry 90; rx 45; ry -35.26; rz -30
+zf 2
+on edges; edgwid 1.8
+
+# Object selection
+clrsel
+select thick 1 6 10 51 56 91 100  
+
+# Plot and Images for variable gamxy
+show gamxy
+plot
+outth tplate1_th.jansw cur
+
+# Plot for variable relvol
+show relvol
+plot
+outth tplate1_th.jansw
+
+# Plot for variable press
+show press
+plot
+outth tplate1_th.jansw
+
+# Plot for variable pdev2
+show pdev2
+plot
+outth tplate1_th.jansw
+
+# Plot for variable sz
+show sz
+plot
+outth tplate1_th.jansw
+
+# Plot for variable pshrstr
+show pshrstr
+plot
+outth tplate1_th.jansw
+
+# Plot for variable pdstrn3
+show pdstrn3
+plot
+outth tplate1_th.jansw
+
+# Plot for variable gamxy
+show gamxy
+plot
+outth tplate1_th.jansw
+
+# Plot for variable tplate1
+show tplate1 vz -1 0 0 
+plot
+outth tplate1_th.jansw
+
+# Plot for variable dispmag
+select node 1 22 241 72 222 230-237 74
+plot dispmag
+outth tplate1_th.jansw
+
+echo "Writing TH data to file tplate1_th.jansw"
+
+# EndCase 
+
