@@ -1,0 +1,44 @@
+# thick plate 1
+# tplate1
+# Title: Thick Plate Pressure Loaded
+# End Time: 5e+4 (State 11)
+# Griz Script File: tplate1_velx_plot.gsf
+# Min/Max Switch: global
+
+# Setup
+# alias chgst f;n;n;l // Enable after Release 13.1
+alias min 1
+alias max 11
+# alias staterange minst min; maxst max // Enable after Release 13.1
+clrsel 
+switch mstat
+# staterange; chgst // Enable after Release 13.1
+minst 1
+maxst 11;l
+
+on thsinglecol
+fracsz 10
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; off box; on minmax
+off path
+zf 2
+
+# Reset view
+rdhis  tplate1_V1.gsf
+on edges; edgwid 1.8
+l
+
+# Object selection
+clrsel
+select node 1 22-24 164 146 114 170 241 72 222 230 237 74
+
+# Plot for variable velx
+refstate 10
+sw interp
+show velx
+outjpg tplate1_velx_plot.answ.jpg
+
+# EndCase 
+
