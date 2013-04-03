@@ -30,6 +30,8 @@ select mat 1
 # Append output to TH file
 on tha
 
+refstate 10
+
 #  Plot for variable dispz
 clrsel 
 minst 1
@@ -38,16 +40,16 @@ select node 1 11 121 111 61 49 97 73
 plot dispz
 outth plate71_th.jansw cur
 
-#  Plot for variable nodpos[uz]
-plot nodpos[uz]
+#  Plot for variable nodpos[uy]
+plot nodpos[uy]
 outth plate71_th.jansw cur
 
 #  Plot for variable dispy
 show dispy
 outjpeg image_plate71_dispz.jpg
 
-# Plot for variable nodpos[uz]
-show nodpos[uz]
+# Plot for variable nodpos[ux]
+show nodpos[ux]
 outth plate71_th.jansw cur
 
 # Object Selection
@@ -70,8 +72,8 @@ outth plate71_th.jansw cur
 show bend[myy]
 outth plate71_th.jansw cur
 
-# Plot for variable normal[nxz]
-show normal[nxz]
+# Plot for variable normal[nxy]
+show normal[nxy]
 outth plate71_th.jansw cur
 
 # EndCase 
