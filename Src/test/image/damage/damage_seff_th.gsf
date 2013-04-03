@@ -2,7 +2,7 @@
 # Title: bar impact problem (gm cm microsec)
 # Material Model: 45
 # End Time: 80.0
-# Griz Script File: damage_seff_plot.gsf
+# Griz Script File: damage_seff_th.gsf
 # Min/Max Switch: global
 
 # Setup

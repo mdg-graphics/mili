@@ -2,7 +2,7 @@
 # Title: bar impact problem (gm cm microsec)
 # Material Model: 45
 # End Time: 80.0
-# Griz Script File: damage_damage_th.gsf
+# Griz Script File: damage_dispmag_th.gsf
 # Min/Max Switch: global
 
 # Setup
@@ -14,7 +14,8 @@ clrsel
 switch mglob
 # staterange; chgst // Enable after Release 13.1
 minst 1
-maxst 77
+maxst 80
+l
 
 on thsinglecol
 fracsz 10
@@ -22,13 +23,12 @@ jpegqual 100
 
 # Object selection
 clrsel
-select brick 1 37 358 705 331 675 651 741 328  971-972 
+select node 1 1369 783 1259 667 519 471 1295 1028 1290
 
-# Plot for variable damage (TH)
-tmax 7.0
-show damage vz -1 0 0
+# Plot for variable dispmag (TH)
+show dispmag
 plot
-outjpg damage_damage_th.answ.jpg
+outjpg damage_dispmag_th.answ.jpg
 
 # EndCase 
 
