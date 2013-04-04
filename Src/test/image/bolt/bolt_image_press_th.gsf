@@ -17,8 +17,7 @@ on thsinglecol
 fracsz 8
 jpegqual 100
 
-
-rdhis bolt.V2
+rdhis bolt_V2.gsf
 sw hidden
 
 # Object selection 
