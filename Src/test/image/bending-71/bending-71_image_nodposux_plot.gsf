@@ -27,7 +27,7 @@ rview; ry -90; rz -145
 ty .2
 
 # Test save view function
-rdhis bending-71.V1
+rdhis bending-71_V1.gsf
 rz -145
 tx -.25
 posmap .91 -.77 .07 .5

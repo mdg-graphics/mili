@@ -6,7 +6,7 @@
 # Griz Script File: bending-71_image_nodposvec_plot.gsf
 
 # Setup
-alias chgst f;n;n;l
+# alias chgst f;n;n;l // Enable in Release 13.1
 alias min 1
 alias max 11
 alias staterange minst min; maxst max
@@ -27,8 +27,8 @@ rview; ry -140; rz -145
 ty .2
 
 # Test save view function
-outview bending-71.V1
-rdhis bending-71.V1
+outview test_V1.gsf
+rdhis bending-71_V1.gsf
 tx -.25
 posmap .91 -.77 .07 .5
 

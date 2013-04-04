@@ -31,8 +31,8 @@ refstate 10
 dscal 1.5
 
 # Test save view function
-outview bar71.V1
-rdhis bar71.V1
+outview test_V1.gsf
+rdhis bending-71_V1.gsf
 
 # Object selection 
 select brick 1 331 40 42 100 879 307 

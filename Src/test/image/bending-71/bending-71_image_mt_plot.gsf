@@ -6,7 +6,7 @@
 # Griz Script File: bending-71_image_mt_plot.gsf
 
 # Setup
-alias chgst f;n;n;l
+# alias chgst f;n;n;l // Add to test after Release 13.1
 alias min 1
 alias max 11
 alias staterange minst min; maxst max
@@ -21,8 +21,8 @@ fracsz 8
 jpegqual 100
 
 # Test save view function
-outview bending-71.V1
-rdhis bending-71.V1
+outview test_V1.gsf
+rdhis bending-71_V1.gsf
 tx -.1; ty -.15; zf 1.25
 
 # Object selection 

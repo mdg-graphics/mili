@@ -7,7 +7,7 @@
 
 # Setup
 off all; on cmap; on title; on time; on coord; on box; on minmax
-alias chgst f;n;n;l
+// alias chgst f;n;n;l // Add to test after Release 13.1
 alias min 1
 alias max 11
 alias staterange minst min; maxst max
@@ -22,7 +22,7 @@ fracsz 8
 jpegqual 100
 
 # Test load view function
-rdhis bending-71.V1
+rdhis bending-71_V1.gsf
 zf 1.25
 ty -.25; tx -.225; tz .01
 

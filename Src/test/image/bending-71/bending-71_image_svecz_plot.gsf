@@ -30,7 +30,7 @@ refstate 10
 dscal 1.5
 
 # Test save view function
-rdhis bar71.V1
+rdhis bending-71_V1.gsf
 
 # Object selection 
 select beam all

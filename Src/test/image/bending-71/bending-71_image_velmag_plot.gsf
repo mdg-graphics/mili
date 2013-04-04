@@ -7,7 +7,7 @@
 
 # Setup
 off all; on cmap; on title; on time; on coord; on box; on minmax
-alias chgst f;n;n;l
+# alias chgst f;n;n;l // Add to test after Release 13.1
 alias min 1
 alias max 11
 alias staterange minst min; maxst max
