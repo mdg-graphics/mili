@@ -7,7 +7,7 @@
 # Min/Max Switch: global
 
 # Setup
-alias chgst f;n;n;l
+# alias chgst f;n;n;l // Enable after Release 13.1
 alias min 1
 alias max 81
 alias staterange minst min; maxst max
@@ -30,7 +30,7 @@ refstate 10
 dscal 1.5
 
 # Test loading view function
-rdhis bar71.V1
+rdhis bar71_V1.gsf
 
 # Object selection 
 select brick 1 331 40 42 100 879 307 

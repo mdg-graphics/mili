@@ -12,12 +12,6 @@ maxst 81
 fracsz 8
 jpegqual 100
 
-# Test save view function
-outview bar71.V1
-rdhis bar71.V1
-posmap .91 -.77 .07 .5
-sw flat
-
 # Object selection 
 select node 1 741 777-778 482 1259 1369
 select mat 1

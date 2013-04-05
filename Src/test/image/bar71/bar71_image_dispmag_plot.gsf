@@ -10,7 +10,7 @@
 # alias chgst f;n;n;l // Multi command alias in newer releases
 alias min 1
 alias max 81
-alias staterange minst 1; maxst 70
+# alias staterange minst 1; maxst 70
 clrsel 
 switch mglob
 
@@ -31,8 +31,8 @@ zf 2.25
 ty .25
 
 # Test save view function
-outview bar71.V1
-rdhis bar71.V1
+outview test_V1.gsf
+rdhis bar71_V1.gsf
 posmap .91 -.75 .07 .5
 sw ortho
 sw noterp

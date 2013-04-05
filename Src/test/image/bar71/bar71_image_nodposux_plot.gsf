@@ -29,8 +29,8 @@ zf 2
 ty .2
 
 # Test save view function
-outview bar71.V1
-rdhis bar71.V1
+outview test_V1.gsf
+rdhis bar71_V1.gsf
 posmap .91 -.77 .07 .5
 sw flat
 
