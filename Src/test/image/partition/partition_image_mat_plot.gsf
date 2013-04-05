@@ -1,0 +1,37 @@
+# partition
+# Title: Blade containment 
+#   Test of file with no results or states
+# Material Model: 3
+# Units: gm-cm-ms
+# End Time: 80
+# Griz Script File: partition_th.gsf
+# Min/Max Switch: global
+
+switch mglob
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+switch mglob
+fracsz 8
+on thsinglecol
+jpegqual 100
+alias selbrick select brick 1 1000 4400 16000
+
+on thsinglecol
+rx 30; zf 20;rdhis     partition_V1.gsf; echo "BP 1"
+
+# Append output to TH file
+on tha
+
+plot
+clrsel 
+l
+selbrick
+plot sx
+invis 5 7
+show mat
+rnf
+zb 1.15
+
+outjpg partition_image_mat_plot.answ.jpg
+
+# EndCase 
