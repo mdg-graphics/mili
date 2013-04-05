@@ -1,0 +1,48 @@
+# discrete
+# Title: a test problem using discrete elements
+# Material Model: 1 & 12 discrete materials
+# Units: gm-cm-ms
+# End Time: 1
+# Griz Script File: discrete_image_discfx_plot.gsf
+
+# Setup
+# alias chgst f;n;n;l // Enable after Release 13.1
+alias min 1
+alias max 101
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+# staterange; chgst // Enable after Release 13.1
+minst 1
+maxst 101
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; on minmax
+off path
+rview; ry -140; rz -140
+zf 2
+ty .2
+refstate 10
+dscal 1.5
+
+# Test loading of a view function
+rdhis discrete_V1.gsf
+
+# Object selection 
+select disc 2 6 10 14 18 22
+select mat 1
+
+# Images for variable disc_fx
+show disc_fx
+state 20
+maxst 72
+stride 10
+anim
+sw gterp
+outjpeg discrete_image_discfx_plot.answ.jpg
+
+# EndCase 
+
