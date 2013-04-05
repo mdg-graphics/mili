@@ -1,0 +1,43 @@
+# thickshells
+# Title: Material Model 1 - Basic Test
+# Material Model: 1
+# End Time: 1.0
+# Griz Script File: thickshells_th.gsf
+# Min/Max Switch: global
+
+# Setup
+# alias chgst f;n;n;l // Enable in release 13.1
+alias min 1
+alias max 5
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+# staterange // Enable in release 13.1
+minst 1
+maxst 100
+# chgst // Enable in release 13.1
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord
+off box; on minmax
+off path
+rdhis thickshells_V1.gsf
+
+# Object selection
+select thick all
+select mat 1-5
+
+# Test greyscale command
+disable 4
+on gs
+
+# TH Image for variable eyz
+show eyz
+plot
+outjpeg thickshells_image_eyz_th.answ.jpg
+
+# EndCase
+
