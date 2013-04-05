@@ -5759,20 +5759,23 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
             {
 		if ( analy->particle_nodes_enabled &&
 		     analy->free_nodes_list && 
-		     analy->free_nodes_vals )
+		     analy->free_nodes_vals ) {
 		     if ( analy->free_nodes_list[hilite_num]==TRUE )
 		          val = analy->perform_unit_conversion
                                 ? analy->free_nodes_vals[hilite_num] * analy->conversion_scale
                                   + analy->conversion_offset
-                                : analy->free_nodes_vals[hilite_num];
-		else
+                                : analy->free_nodes_vals[hilite_num]; 
+		     sprintf( label, " %s %d", cname, hilite_label );
+		}
+		else {
                      val = analy->perform_unit_conversion
 		       ? data_array[hilite_num] * analy->conversion_scale
 		       + analy->conversion_offset
 		       : data_array[hilite_num];
 		       
-                sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, 
-                         val );
+		     sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, 
+			      val );
+		}
             }
             else
                 sprintf( label, " %s %d", cname, hilite_label );

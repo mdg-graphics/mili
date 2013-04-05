@@ -158,7 +158,7 @@
  *                See TeamForge#17795
  *
  *  I. R. Corey - April 20th, 2012: Added ability to select objects for
- *                only visible materials.
+ *                only visible materials - "on som".
  *                See TeamForge#17939
  *
  *  I. R. Corey - May 8th, 2012: Added ability to hide edges for invisible
