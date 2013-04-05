@@ -10,7 +10,6 @@ off all; on cmap; on title; on time; on coord; on box; on minmax
 off path
 switch mglob
 fracsz 8
-alias s80 state 80
 on thsinglecol
 jpegqual 100
 alias selml select ml 1 667 963 1010
@@ -22,9 +21,10 @@ tx -.145;ty -.25
 
 # Image for variable eps
 clrsel 
-s80
+l
 selml
 select ml 1369 1000
+sw noterp
 show eps
 outjpg ml40_image_eps_plot.answ.jpg
 
