@@ -1,0 +1,50 @@
+# discrete
+# Title: a test problem using discrete elements
+# Material Model: 1 & 12 discrete materials
+# Units: gm-cm-ms
+# End Time: 1
+# Griz Script File: discrete_th.gsf
+
+switch mglob
+
+# Setup
+alias chgst f;n;n;l
+alias min 1
+alias max 81
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; on minmax
+off path
+vcent node 19
+zf 2
+
+# Object selection 
+select beam 1
+select node 1 10 20 40-42 62  
+select disc 1-2 15 27 45 48 20 
+
+# Append output to TH file
+on tha
+#  Plot for variable axf
+show axf; plot
+outth discrete_th.jansw cur
+
+#  Plot for variable disc_fz
+show disc_fz; plot
+outth discrete_th.jansw cur
+
+#  Plot for variable disc_ext
+show disc_ext; plot
+outth discrete_th.jansw cur
+
+#  Plot for variable disc_fmag
+show disc_fmag; plot
+outth discrete_th.jansw cur
+
+# EndCase 
