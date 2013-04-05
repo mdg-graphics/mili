@@ -7,7 +7,7 @@
 # alias chgst f;n;n;l // Enable in 13.1 Release
 alias min 1
 alias max 81
-alias staterange minst min; maxst max
+# alias staterange minst min; maxst max
 clrsel 
 switch mglob
 # staterange // Enable in 13.1 Release
