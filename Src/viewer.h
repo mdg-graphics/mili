@@ -1325,12 +1325,6 @@ typedef struct _Analysis
   Bool_type echocmd;
 
   /*
-   * Added July 16, 2012: IRC - Forces dump of next result to be written
-   * to a text file.
-   */
-  Bool_type dump_result;
-
-  /*
    * Added July 26, 2012: IRC - New variables to support Modal Analysis
    * supported by Diablo.
    */

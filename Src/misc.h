@@ -25,11 +25,11 @@
 #include <limits.h>
 
 #ifndef GRIZ_VERSION
-#define GRIZ_VERSION        "V12_01 - 030113"
-#define GRIZ_VERSION_NUMBER "V12_01"
+#define GRIZ_VERSION        "V13_01 - 040713"
+#define GRIZ_VERSION_NUMBER "V13_01"
 #endif
 
-#define GRIZ_MAJOR 12
+#define GRIZ_MAJOR 13
 #define GRIZ_MINOR 1
 #define GRIZ_BUG   0
 

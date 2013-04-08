@@ -975,7 +975,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->show_only_deleted_elements = FALSE;\
 
     analy->echocmd     = TRUE;
-    analy->dump_result = FALSE;
 
     analy->analysis_type = TIME;
     analy->time_name     = NULL;

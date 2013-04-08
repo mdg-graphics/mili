@@ -50,8 +50,11 @@
  *                   across multiple element sets or multiple sub-records.
  *                   See TeamForge#19431
  *
- *  02/25/2013 I. R. Corey Added class_name +  hexid to zer volume warning.
+ *  02/25/2013 I. R. Corey Added class_name + hexid to zero volume warning.
  *
+ *  04/07/2013 I. R. Fixed problem with function dump_result. Need to check
+ *                   if the requested result is valid for the class.
+ *                   See TeamForge#19800
  *
  *************************************************************************
  */
@@ -3066,8 +3069,6 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
             analy->reset_damage_hide = TRUE;
             analy->previous_state    = analy->cur_state;          
     }
-    else
-        analy->dump_result = FALSE;
 }
 
 
@@ -3375,6 +3376,9 @@ dump_result( Analysis *analy, char *fname_input )
 
 	      mat = p_class->objects.elems->mat;
 
+	      if (!result_has_class( analy->cur_result, p_class, analy ) )
+		  continue;
+	      
 	      /* Only process class one time - do not allow duplicates */
 	      class_found = FALSE;
 	      for ( k=0;
@@ -3390,14 +3394,14 @@ dump_result( Analysis *analy, char *fname_input )
 		    k++ ) {
 		    data_mat[k] = mat[k]+1;
 		    if ( hide_mat[mat[k]] )
-		         data_hide[k] = TRUE;
+		         data_hide[result_index] = TRUE;
 		    else
-		         data_hide[k] = FALSE;
+		         data_hide[result_index] = FALSE;
 		    
 		    data_sclass[result_index] = p_class->superclass;
 	            data_ids[result_index]    = k+ 1;
 		    class_label_index = get_class_label_index( p_class, k+1 ); 
-	            data_result[k] = p_class->data_buffer[class_label_index-1];
+	            data_result[result_index] = p_class->data_buffer[class_label_index-1];
 		    class_name_index[result_index] = class_index;
 		    result_index++;
 	      }

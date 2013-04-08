@@ -2930,11 +2930,20 @@ parse_single_command( char *buf, Analysis *analy )
     else if ( strcmp( tokens[0], "dumpresult" ) == 0 ||
 	      strcmp( tokens[0], "dumpres" ) == 0 )
     {
-        analy->dump_result = TRUE;
-        if ( token_cnt == 2 )
-	     dump_result( analy, tokens[1] ) ;
-	else
-	     dump_result( analy, NULL);
+         if ( token_cnt == 1 )
+	     dump_result( analy, NULL ) ;
+	     else if ( token_cnt == 2 ) { /* First argument is the result to show */
+	               strcpy( tmp_token, "show " );
+		       strcat( tmp_token, tokens[1] );
+		       parse_command( tmp_token, analy ); 
+	               dump_result( analy, NULL ) ;
+	}
+	     else if ( token_cnt == 3 ) { /* 3rd argumnet is the filename */
+	               strcpy( tmp_token, "show " );
+		       strcat( tmp_token, tokens[1] );
+		       parse_command( tmp_token, analy ); 
+		       dump_result( analy, tokens[2] );
+	     }
     }
 
     /****************************************
