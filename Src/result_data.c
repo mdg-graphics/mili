@@ -3361,7 +3361,7 @@ dump_result( Analysis *analy, char *fname_input )
   class_name_index = NEW_N( int , num_objects, "class_name_index" );
   memset( class_name_index, -1, num_objects );
   
-  for ( i = 0; 
+  for ( i = 0;
 	i < p_r->qty;
 	i++ ) {
         superclass = p_r->superclasses[i];
@@ -3392,7 +3392,7 @@ dump_result( Analysis *analy, char *fname_input )
 	      for ( k=0; 
 	            k<p_class->qty;
 		    k++ ) {
-		    data_mat[k] = mat[k]+1;
+		    data_mat[result_index] = mat[k]+1;
 		    if ( hide_mat[mat[k]] )
 		         data_hide[result_index] = TRUE;
 		    else
