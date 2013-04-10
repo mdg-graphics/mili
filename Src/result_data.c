@@ -3392,12 +3392,19 @@ dump_result( Analysis *analy, char *fname_input )
 	      for ( k=0; 
 	            k<p_class->qty;
 		    k++ ) {
-		    data_mat[result_index] = mat[k]+1;
-		    if ( hide_mat[mat[k]] )
-		         data_hide[result_index] = TRUE;
-		    else
-		         data_hide[result_index] = FALSE;
-		    
+
+		    if ( p_class->superclass!=M_NODE ) {
+		        data_mat[result_index] = mat[k]+1;
+			if ( hide_mat[mat[k]] )
+			     data_hide[result_index] = TRUE;
+			else
+			     data_hide[result_index] = FALSE;
+		    }
+		    else { 
+		         data_mat[result_index]  = -1;
+			 data_hide[result_index] = FALSE;
+		    }
+
 		    data_sclass[result_index] = p_class->superclass;
 	            data_ids[result_index]    = k+ 1;
 		    class_label_index = get_class_label_index( p_class, k+1 ); 
