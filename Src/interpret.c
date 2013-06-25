@@ -224,6 +224,7 @@
 #include "mdg.h"
 #include "traction_force.h"
 #include "misc.h"
+#include "io_wrap.h"
 
 #ifdef VIDEO_FRAMER
 extern void vid_select( /* int select */ );
@@ -321,6 +322,7 @@ static int parse_embedded_surf_cmd( Analysis *analy, char tokens[][TOKENLENGTH],
                                     int cnt, Bool_type *p_renorm );
 
 static void parse_single_command( char *buf, Analysis *analy );
+static int include_all_elements( Analysis *analy);
 
 static void parse_vcent( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], 
                          int token_cnt, Redraw_mode_type *p_redraw );
@@ -765,6 +767,7 @@ void
 parse_single_command( char *buf, Analysis *analy )
 {
     char tokens[MAXTOKENS][TOKENLENGTH];
+    char comment[512];
     int token_cnt, token_index;
     float val, pt[3], vec[3], rgb[3], pt2[3], pt3[3], pt4[3];
     Bool_type renorm, setval, valid_command, found, unselect=FALSE;
@@ -796,6 +799,12 @@ parse_single_command( char *buf, Analysis *analy )
     int *p_hide_qty, *p_hide_qty2, *p_disable_qty, p_hide_qty_temp_int=0;
     int *p_hide_elem_qty, *p_hide_elem_qty2, *p_disable_elem_qty;
     int label_num=0;
+
+    /* initialize tokens */
+    for(i = 0; i < MAXTOKENS; i++)
+    {
+	strcpy(tokens[i], "");
+    }
 
     int elem_sclasses[] = 
     {
@@ -1049,10 +1058,26 @@ parse_single_command( char *buf, Analysis *analy )
 	if ( rval == OK && token_cnt == 2 ) { /* If a class named on the select and no other
 					       * options, select then all.
 					       */
-	     if ( is_elem_class( analy, tokens[1] ) ) {
+	     /*if ( is_elem_class( analy, tokens[1] ) ) {
 	          token_cnt++;
 	          strcpy( tokens[2], "ALL" );
-	     }
+	     } */
+
+        for(i = 0; i < MESH(analy).qty_class_selections; i++)
+        {
+	  p_class = MESH(analy).by_class_select[i].p_class;
+          if(!strcmp(tokens[1], p_class->short_name))
+          {
+	    break;
+          }
+        }
+ 
+        if( (i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
+        {
+          token_cnt++;
+          strcpy(tokens[2], "ALL");
+        }
+
 	}
 	     
         if ( rval == OK && token_cnt > 2 )
@@ -3010,7 +3035,7 @@ parse_single_command( char *buf, Analysis *analy )
         }
 
 	class_selected = FALSE;
-	if ( is_elem_class( analy, tokens[1] ) ) {
+	/*if ( is_elem_class( analy, tokens[1] ) ) {
 	     p_class = NULL;
              class_select_index = get_class_select_index( analy, tokens[1] );
 	     if ( class_select_index>=0 ) {
@@ -3024,7 +3049,27 @@ parse_single_command( char *buf, Analysis *analy )
 	     if ( p_class )
 	          class_selected = TRUE;
 	     idx++;
-	}
+	} */
+
+        for(i = 0; i < MESH(analy).qty_class_selections; i++)
+        {
+	  p_class = MESH(analy).by_class_select[i].p_class;
+          if(!strcmp(tokens[1], p_class->short_name))
+          {
+	    break;
+          }
+        }
+ 
+        if( (i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
+        {
+
+	  elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
+	  p_hide_elem_qty =  &MESH( analy ).by_class_select[i].hide_class_elem_qty;
+	  p_elem          = MESH( analy ).by_class_select[i].hide_class_elem;
+	  mat_selected = FALSE;
+          class_selected = TRUE;
+          idx++;
+        }
 
         if ( !strcmp( "BRICK", tmp_token ) && !class_selected )
         {
@@ -3171,11 +3216,43 @@ parse_single_command( char *buf, Analysis *analy )
         } 
   
         if ( !result_selected )
+	  {
 	     process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
 					 elem_qty, p_class,
 					 p_elem, p_hide_qty, p_hide_elem_qty, 
 					 p_uc, 
 					 setval, vis_selected, mat_selected );
+
+	     /* now get all the element classes associated with this material, but only if token_cnt == 2 */
+             if(token_cnt == 2)
+	     {
+       
+	        for(i = 0; i < MESH(analy).qty_class_selections; i++)
+                {
+	          p_class = MESH(analy).by_class_select[i].p_class;
+                
+ 
+                  if( (i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
+                  {
+
+	            elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
+	            p_hide_elem_qty =  &MESH( analy ).by_class_select[i].hide_class_elem_qty;
+	            p_elem          = MESH( analy ).by_class_select[i].hide_class_elem;
+	            mat_selected = FALSE;
+                    class_selected = TRUE;
+                    idx = 0;
+                   
+                    process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+					 elem_qty, p_class,
+					 p_elem, p_hide_qty, p_hide_elem_qty, 
+					 p_uc, 
+					 setval, vis_selected, mat_selected );
+                  }
+                }
+	     }
+
+
+	  }
 	
 
         reset_face_visibility( analy );
@@ -3269,7 +3346,7 @@ parse_single_command( char *buf, Analysis *analy )
         }
 
 	class_selected = FALSE;
-	if ( is_elem_class( analy, tokens[1] ) ) {
+	/*if ( is_elem_class( analy, tokens[1] ) ) {
 	     p_class = NULL;
              class_select_index = get_class_select_index( analy, tokens[1] );
 	     if ( class_select_index>=0 ) {
@@ -3283,7 +3360,39 @@ parse_single_command( char *buf, Analysis *analy )
 	     if ( p_class )
 	          class_selected = TRUE;
 	     idx++;
-	}
+	} */
+
+        
+        for(i = 0; i < MESH(analy).qty_class_selections; i++)
+        {
+	  p_class = MESH(analy).by_class_select[i].p_class;
+          if(!strcmp(tokens[1], p_class->short_name))
+          {
+	    break;
+          }
+        }
+ 
+        if( (i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
+        {
+
+	  elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
+	  p_disable_elem_qty =  &MESH( analy ).by_class_select[i].disable_class_elem_qty;
+	  p_elem          = MESH( analy ).by_class_select[i].disable_class_elem; 
+         
+          if(p_class->superclass == M_BEAM){
+	    MESH(analy).disable_beam_elem_qty = p_disable_elem_qty;
+            MESH(analy).disable_beam = p_elem;
+          }else if(p_class->superclass == M_HEX && !strcmp(p_class->short_name, "ml")){
+	    p_disable_elem_qty = &MESH(analy).particle_disable_qty;
+            p_elem = MESH(analy).disable_particle;
+          } 
+	  mat_selected = FALSE;
+          class_selected = TRUE;
+          idx++;
+        } else 
+        {
+          p_class = NULL;
+        }
 
         if ( !strcmp( "BRICK", tmp_token ) && !class_selected )
         {
@@ -3497,7 +3606,7 @@ parse_single_command( char *buf, Analysis *analy )
         }
 
 	class_selected = FALSE;
-	if ( is_elem_class( analy, tokens[1] ) ) {
+	/* if ( is_elem_class( analy, tokens[1] ) ) {
 	     p_class = NULL;
              class_select_index = get_class_select_index( analy, tokens[1] );
 	     if ( class_select_index>=0 ) {
@@ -3511,11 +3620,35 @@ parse_single_command( char *buf, Analysis *analy )
 	     if ( p_class )
 	          class_selected = TRUE;
 	     idx++;
-	}
+	} */
+  
+          for(i = 0; i < MESH(analy).qty_class_selections; i++)
+          {
+	    p_class = MESH(analy).by_class_select[i].p_class;
+            if(!strcmp(tokens[1], p_class->short_name))
+            {
+	      break;
+            }
+          }
+ 
+          if( (i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
+          {
 
-        if ( !strcmp( "BRICK", tmp_token ) || elem_sclass==M_HEX )
+	    elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
+	    p_hide_elem_qty =  &MESH( analy ).by_class_select[i].hide_class_elem_qty;
+	    p_elem          = MESH( analy ).by_class_select[i].hide_class_elem;
+	    mat_selected = FALSE;
+            class_selected = TRUE;
+            idx++;
+          } else if(token_cnt > 2 && strcmp(tokens[0], "include") && strcmp(tokens[1], "all"))
+          {
+	      return;
+          }
+          
+
+       /* if (FALSE && !strcmp( "BRICK", tmp_token ) || elem_sclass==M_HEX )
         {
-	     string_to_upper( tokens[2], tmp_token );  /* Make case insensitive */
+	     string_to_upper( tokens[2], tmp_token );  /* Make case insensitive 
 	     p_uc  = MESH( analy ).disable_brick;
              p_uc2 = MESH( analy ).hide_brick;
 	     mat_selected = FALSE;
@@ -3531,7 +3664,7 @@ parse_single_command( char *buf, Analysis *analy )
 	         MESH( analy ).exclude_brick_by_mat = FALSE;
 	         MESH( analy ).hide_brick_by_result = FALSE;
 
-		 /* Exclude bricks by elements */
+		 /* Exclude bricks by elements 
 		 elem_qty         =  MESH( analy ).brick_qty;
 		 p_elem           =  MESH( analy ).hide_brick_elem;
 		 p_hide_elem_qty  =  &MESH( analy ).hide_brick_elem_qty;
@@ -3539,12 +3672,12 @@ parse_single_command( char *buf, Analysis *analy )
 		 p_hide_elem_qty2 =  &MESH( analy ).disable_brick_elem_qty;
 
 	     }
-             idx++;
-        }
+             /*idx++;
+        } 
 
-        if ( !strcmp( "SHELL", tmp_token ) || elem_sclass==M_QUAD )
+        if (FALSE && !strcmp("SHELL", tmp_token ) || elem_sclass==M_QUAD )
         {
-	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
+	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive 
 	     p_uc  = MESH( analy ).disable_shell;
              p_uc2 = MESH( analy ).hide_shell;
 	     mat_selected = FALSE;
@@ -3560,7 +3693,7 @@ parse_single_command( char *buf, Analysis *analy )
 	         MESH( analy ).exclude_shell_by_mat = FALSE;
 	         MESH( analy ).hide_shell_by_result = FALSE;
 
-		 /* Exclude shells by elements */
+		 /* Exclude shells by elements 
 		 elem_qty         =  MESH( analy ).shell_qty;
 		 p_elem           =  MESH( analy ).hide_shell_elem;
 		 p_hide_elem_qty  =  &MESH( analy ).hide_shell_elem_qty;
@@ -3570,9 +3703,9 @@ parse_single_command( char *buf, Analysis *analy )
              idx++;
         }
 
-        if ( !strcmp( "TRUSS", tmp_token ) || elem_sclass==M_TRUSS )
+        if (FALSE && !strcmp("TRUSS", tmp_token ) || elem_sclass==M_TRUSS )
         {
-	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
+	     string_to_upper( tokens[2], tmp_token );      /* Make case insensitive 
 	     p_uc  = MESH( analy ).disable_truss;
              p_uc2 = MESH( analy ).hide_truss;
 	     mat_selected = FALSE;  
@@ -3588,7 +3721,7 @@ parse_single_command( char *buf, Analysis *analy )
 	         MESH( analy ).exclude_truss_by_mat = FALSE;
 	         MESH( analy ).hide_truss_by_result = FALSE;
 
-		 /* Exclude trusss by elements */
+		 /* Exclude trusss by elements 
 		 elem_qty         =  MESH( analy ).truss_qty;
 		 p_elem           =  MESH( analy ).hide_truss_elem;
 		 p_hide_elem_qty  =  &MESH( analy ).hide_truss_elem_qty;
@@ -3599,9 +3732,9 @@ parse_single_command( char *buf, Analysis *analy )
              idx++;
         }
 
-        if ( !strcmp( "BEAM", tmp_token ) || elem_sclass==M_BEAM )
+        if (FALSE && !strcmp("BEAM", tmp_token ) || elem_sclass==M_BEAM )
         {
-	     string_to_upper( tokens[2], tmp_token ); /* Make case insensitive */
+	     string_to_upper( tokens[2], tmp_token ); /* Make case insensitive 
 	     p_uc  = MESH( analy ).disable_beam;
              p_uc2 = MESH( analy ).hide_beam;
 	     mat_selected = FALSE;
@@ -3617,7 +3750,7 @@ parse_single_command( char *buf, Analysis *analy )
 	         MESH( analy ).exclude_beam_by_mat = FALSE;
 	         MESH( analy ).hide_beam_by_result = FALSE;
 
-		 /* Exclude beams by elements */
+		 /* Exclude beams by elements 
 		 elem_qty         =  MESH( analy ).beam_qty;
 		 p_elem           =  MESH( analy ).hide_beam_elem;
 		 p_hide_elem_qty  =  &MESH( analy ).hide_beam_elem_qty;
@@ -3626,8 +3759,10 @@ parse_single_command( char *buf, Analysis *analy )
 	     }
              idx++;
         }
-
-        if ( !strcmp( tmp_token, "PART" )  || is_particle_class( analy, -1, tmp_token ) )
+        /* Particle type objects */ 
+        /* added && !class_selected to the condifional by Bill Oliver as a test */
+        if ( !strcmp( tmp_token, "PART" )  || is_particle_class( analy, -1, tmp_token )  &&
+             !class_selected)
         {
 	      if ( result_selected )
 	      {
@@ -3666,12 +3801,11 @@ parse_single_command( char *buf, Analysis *analy )
 					      setval, include_selected, mat_selected );
 	     }
 
-	     process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+	      process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
 					 elem_qty, p_class,
 					 p_elem2, p_hide_qty, p_hide_elem_qty2, 
 					 p_uc2, 
 					 setval, include_selected, mat_selected );
-
 
 	     if ( !mat_brick_selected ) {
 		  p_uc2   = MESH( analy ).hide_particle;
@@ -3684,10 +3818,16 @@ parse_single_command( char *buf, Analysis *analy )
 					      p_uc2, 
 					 setval, include_selected, mat_selected );
 	     }
+             
 
 	     /* p_uc = MESH( analy ).hide_material; 
 		dump_selection_buff( "HIDE-MAT", p_uc, mat_qty ); */
 	}
+        
+        if(!strcmp(tokens[0], "include") && !strcmp(tokens[1], "all"))
+        {
+	   include_all_elements(analy); 
+        }
 
         process_node_selection ( analy );
         if ( analy->show_cut || analy->show_roughcut )
@@ -5003,6 +5143,13 @@ parse_single_command( char *buf, Analysis *analy )
         redraw = BINDING_MESH_VISUAL;
         parse_animate_command( token_cnt, tokens, analy );
     }
+    else if (strcmp( tokens[0], "animd" ) == 0)
+    {
+        env.animate_active =- TRUE;
+	env.animate_reverse = FALSE;
+	redraw = BINDING_MESH_VISUAL;
+	parse_animate_command( token_cnt, tokens, analy );
+    }
     else if ( strcmp( tokens[0], "animr" ) == 0 )
     {
         env.animate_active   = TRUE;
@@ -5434,6 +5581,17 @@ parse_single_command( char *buf, Analysis *analy )
 	{
 	  strcpy( analy->hist_filename, tokens[1] );
 	  analy->hist_line_cnt = 0;
+          if(env.model_history_logging)
+          {
+            /* log the read history command in the default history file as a comment */
+            /*strcpy(comment, "# ");
+            strcat(comment, tokens[0]);
+            strcat(comment, " ");
+            strcat(comment, tokens[1]);
+            strcat(comment, "\n");*/
+            sprintf(comment, "# %s %s\n", tokens[0], tokens[1]);
+            model_history_log_comment(comment, analy);
+          }
 	  read_history_file( tokens[1], 1, 1, analy );
 	}
         else
@@ -6459,6 +6617,44 @@ parse_single_command( char *buf, Analysis *analy )
          strcpy( last_command, buf );
 }
 
+/****************************************************************
+ * TAG( include_all_elements )
+ * turns on visibility for all elements in addition to materials
+ *
+ *
+ */
+int include_all_elements(Analysis *analy)
+{
+  MO_class_data **class_array, *p_mocd;
+  Mesh_data *p_md;
+  int class_qty = 0;
+  int qty_selected = 0;
+  int i, j, qty_elements, status = OK;
+  p_md = MESH_P(analy);
+  status = htable_get_data(p_md->class_table,
+                         (void ***) &class_array,
+                         &class_qty);
+  qty_selected = MESH(analy).qty_class_selections;
+  for(i = 0; i < qty_selected; i++)
+  {
+    p_mocd = MESH( analy ).by_class_select[i].p_class;
+    if(p_mocd == NULL)
+       continue;
+    if(!is_elem_class(p_mocd->superclass))
+       continue;
+    qty_elements = p_mocd->qty;
+    for(j = 0; j < qty_elements; j++)
+    {
+         MESH(analy).by_class_select[i].hide_class_elem[j] = FALSE;
+    }
+
+    MESH(analy).by_class_select[i].hide_class_elem_qty = 0;
+    
+  }
+
+  return 0;
+}
+
  
 /*****************************************************************
  * TAG( redraw_for_render_mode )
@@ -7424,13 +7620,20 @@ parse_vcent( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
                    || strcmp( tokens[1], "node" ) == 0 ) )
     {
         ival = atoi( tokens[2] );
-        if ( ival < 1 || ival > MESH( analy ).node_geom->qty )
+        /*if ( ival < 1 || ival > MESH( analy ).node_geom->labels_max )
             popup_dialog( INFO_POPUP, 
-                          "Invalid node specified for view center" );
+                          "Invalid node specified for view center" ); */
+        ival = get_class_label_index(MESH(analy).node_geom, ival);
+        if( ival == M_INVALID_LABEL)
+            popup_dialog( INFO_POPUP,
+                          "Invalid node specified for view center");
         else
         {
             analy->center_view = NODE;
-            analy->center_node = ival - 1;
+            /*analy->center_node = ival - 1;
+            analy->center_node = ival - MESH( analy ).node_geom->labels_min; */
+            ival -= 1;
+            analy->center_node = ival;
             center_view( analy );
             *p_redraw = BINDING_MESH_VISUAL;
         }
@@ -8637,7 +8840,7 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
 			    Bool_type vis_selected, Bool_type mat_selected )
 
 {
-   int i, j, ival;
+   int i, j, k, ival;
    int mtl, *p_mtl;
    int mat_min, mat_max;
 
@@ -8706,7 +8909,11 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
    }
    else /* Object selected - hide by element for a selected material */
        if ( p_class )
-       {
+       {   
+            if(p_elem == NULL)
+            {
+               return;
+            }
 	    p_mtl = p_class->objects.elems->mat;
 	    if ( strcmp( tmp_token, "ALL" ) == 0  )
 	    {
@@ -8740,11 +8947,11 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
 		   for ( j=0;
 			 j<elem_qty;
 			 j++ )
-		         for (i=mat_min;
-			      i<=mat_max;
-			      i++)
+		         for (k=mat_min; /* changed i to k here */
+			      k<=mat_max;
+			      k++)
 		         {
-			      if ( p_mtl[j] == i-1 )
+			      if ( p_mtl[j] == k-1 )
 		                   if ( !vis_selected )
 				   {
 				        p_elem[j] = TRUE;

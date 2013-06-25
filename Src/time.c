@@ -28,6 +28,7 @@
  */
 
 #include <stdlib.h>
+#include <unistd.h>
 #include "viewer.h"
 
 /* #define DEBUG_TIME 1 */
@@ -40,6 +41,9 @@ static void interp_activity( State2 *state_a, State2 *state_b );
  * TAG( anim_info )
  *
  * Holds the animation state for the animation in progress.
+ * W. B. Oliver - Apr 29, 2013: Added a delay member to anim_info -
+ *                to allow the user to slow down the animation -
+ *                default is normal time.
  */
 static struct
 {
@@ -60,6 +64,7 @@ static struct
     State2 *state_b;
     float *result_a;
     float *result_b;
+    unsigned int delay;
 } anim_info;
 
  
@@ -360,6 +365,7 @@ parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
         anim_info.interpolate = FALSE;
         anim_info.cur_state = min_state;
         anim_info.last_state = max_state;
+        anim_info.delay = 0;
     }
     else if ( token_cnt == 2 || token_cnt == 4 )
     {
@@ -371,14 +377,22 @@ parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
         analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES, (void *) i_args, 
                          NULL, (void *) time_bounds );
 
-        sscanf( tokens[1], "%d", &anim_info.num_frames );
+        /* sscanf( tokens[1], "%d", &anim_info.num_frames ); */
 
-        if ( token_cnt == 2 )
+        if ( token_cnt == 2 && strcmp(tokens[0], "animd") != 0)
         {
             /* The user input just the number of frames. */
+	    sscanf( tokens[1], "%d", &anim_info.num_frames);
             anim_info.start_time = time_bounds[0];
             anim_info.end_time = time_bounds[1];
-        }
+        } else if (token_cnt == 2 && strcmp(tokens[0], "animd") == 0) {
+	   /* The user spedified a time delayed animation of all frames */
+	   sscanf(tokens[1], "%u", &anim_info.delay);
+           anim_info.delay *= 1000;
+	   anim_info.interpolate = FALSE;
+	   anim_info.cur_state = min_state;
+	   anim_info.last_state = max_state;
+	}
         else
         {
             /* The user input number of frames and start & end times. */
@@ -495,7 +509,7 @@ step_animate( Analysis *analy )
     int i, j, k;
     int st_bounds[2];
     int rval;
-
+    usleep(anim_info.delay);
     if ( !anim_info.interpolate )
     {
         /* Display the next state. */
@@ -514,8 +528,8 @@ step_animate( Analysis *analy )
             screen_to_rgb( rgbfile, FALSE );
         }
         */
-
-        anim_info.cur_state += get_step_stride();
+        
+	anim_info.cur_state += get_step_stride();
         if ( anim_info.cur_state > anim_info.last_state )
         {
             end_animate_workproc( FALSE );

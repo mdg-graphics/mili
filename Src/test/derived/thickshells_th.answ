@@ -4,9 +4,9 @@
 # Griz Version Info:
 #
 #	Griz4-V12_01
-# 	Built: 	Thu Feb 28 15:05:30 2013 on Linux #1 SMP Tue Jun 19 17:16:17 PDT 2012 2.6.32-220.23.1.1chaos.ch5.x86_64 x86_64 by icorey
-# 	Configure: ./configure 
-# 	Compile Options: gcc -O3 -DJPEG_SUPPORT -DPNG_SUPPORT  -DSERIAL_BATCH -I../include -I/usr/apps/mdg/include -I.. -I../HersheyLib/src -I../ImageLib -I/usr/include -I/usr/../include -I../.. 
+# 	Built: 	Fri May  3 07:51:55 2013 on Linux #1 SMP Thu Mar 7 13:05:47 PST 2013 2.6.32-358.5chaos.ch5.1.x86_64 x86_64 by oliver4
+# 	Configure: ./configure --enable-png --with-mili=/g/g12/oliver4/Mili/MILI-chaos_5_x86_64_ib-RZZEUS
+# 	Compile Options: gcc -O3 -DJPEG_SUPPORT -DPNG_SUPPORT  -DSERIAL_BATCH -I../include -I/g/g12/oliver4/Mili/MILI-chaos_5_x86_64_ib-RZZEUS/include -I.. -I../HersheyLib/src -I../ImageLib -I/usr/include -I/usr/include -I/usr/../include -I../.. 
 # 		Mili Library Version (Griz Linked): 	V13_01
 #		Mili Database-Library Version: 		V11_01_01
 #		Mili Database-Host: 			rzmerl2
@@ -16,7 +16,7 @@
 #---------------------------------------------------------------------
 # Database path/name: thickshells_c
 # Description: Material Model 1 - Basic Test
-# Output date: 03/28/13
+# Output date: 05/03/13
 #
 
 #

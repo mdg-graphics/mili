@@ -14200,7 +14200,7 @@ is_brick_class( Analysis *analy, char *short_name )
  *
  * Returns TRUE if this class is an element type class.
  *
- */
+ 
 
 Bool_type
 is_elem_class( Analysis *analy, char *short_name )
@@ -14211,7 +14211,7 @@ is_elem_class( Analysis *analy, char *short_name )
   int class_qty=0;
   int i;
   int status=OK;
-  string_to_upper( short_name, short_name_upper ); /* Make case insensitive */
+  string_to_upper( short_name, short_name_upper ); /* Make case insensitive 
 
   p_md = MESH_P( analy );
   status = htable_get_data( p_md->class_table, 
@@ -14229,6 +14229,19 @@ is_elem_class( Analysis *analy, char *short_name )
   }
 
   return( FALSE );
+} */
+
+
+Bool_type
+is_elem_class(int superclass)
+{
+    if((superclass > M_NODE) && (superclass <= M_HEX))
+    {
+	return TRUE;
+    }
+
+    return FALSE;
+
 }
 
 /************************************************************

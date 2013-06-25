@@ -1,3 +1,4 @@
+
 /* $Id$ */
 /*
  * viewer.c - MDG mesh viewer.
@@ -483,7 +484,7 @@ static void
 scan_args( int argc, char *argv[], Analysis *analy )
 {
   extern Bool_type include_util_panel, include_mtl_panel; /* From gui.c */
-    int i;
+  int i;
     int inname_set;
     char *fontlib;
     time_t time_int;
@@ -500,7 +501,7 @@ scan_args( int argc, char *argv[], Analysis *analy )
     env.bname = NULL;
     env.checkresults          = FALSE;
     env.quiet_mode            = FALSE;
-    env.model_history_logging = FALSE;
+    env.model_history_logging = TRUE;
 
     for ( i = 1; i < argc; i++ )
     {
@@ -586,8 +587,8 @@ scan_args( int argc, char *argv[], Analysis *analy )
  	     env.quiet_mode = TRUE;
 	     VersionInfo(TRUE);
 	}
-        else if ( strcmp( argv[i], "-hist" ) == 0 ) {
- 	     env.model_history_logging = TRUE;
+        else if ( strcmp( argv[i], "-nohist" ) == 0 ) {
+ 	     env.model_history_logging = FALSE;
 	}
 
 #ifdef SERIAL_BATCH
@@ -732,6 +733,13 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     int num_states;
     int i, j, k, l;
     int stat;
+    int pos;
+    char *first_token, copy_command[512], timestamp[64], timestr[64];
+    char hist_fname[256];
+    char header[] = "# This is the history file for debugging purposes only\
+\n# and is for use by the griz team. Do not modify or alter in any way.\n";
+    time_t curtime;
+    struct tm *timeinfo=NULL;
     MO_class_data **class_array;
     MO_class_data *p_mocd=NULL, *p_ml_class=NULL, *p_brick_class=NULL,
                   *p_node_geom=NULL;
@@ -1850,6 +1858,33 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     mc_get_metadata( analy->db_ident,  analy->mili_version,   analy->mili_host, 
                      analy->mili_arch, analy->mili_timestamp, analy->xmilics_version );
 
+     if ( env.model_history_logging ) {
+
+      if ( !analy->p_histfile ) {
+           time(&curtime);
+           timeinfo = localtime(&curtime);
+           sprintf(timestr, "%s", asctime(timeinfo));
+           strcpy(timestamp, &timestr[4]);
+           strcpy(timestr, timestamp);
+           /* Remove ending NL */
+           timestr[strlen(timestr)-1] = '\0';
+           sprintf(timestamp, "[%s]", timestr);
+  	   strcpy( hist_fname, analy->root_name );
+	   strcat( hist_fname, ".grizhist" );
+	   analy->p_histfile = fopen( hist_fname, "at");
+           strcpy(analy->hist_fname, hist_fname);
+           fseek(analy->p_histfile, 0L, SEEK_END);
+	   pos = ftell(analy->p_histfile); 
+           fprintf(analy->p_histfile, "#");
+           fprintf(analy->p_histfile, "%s\n", timestamp);
+           if(pos == 0)
+           {
+             fprintf(analy->p_histfile, "%s", header);
+	   }
+ 
+      }
+  }
+
    return TRUE;
 }
 
@@ -2039,9 +2074,19 @@ load_analysis( char *fname, Analysis *analy, Bool_type reload )
  */
 void
 open_history_file( char *fname )
-{
-    /* Close file if we had one open already. */
+{   
+    char hist_fname[256];
+    strcat(hist_fname, env.plotfile_name);
+    strcat(hist_fname, ".grizhist");
+    /*Close file if we had one open already. */
     close_history_file();
+    
+    /* make sure fname is not the same as the default history file  */
+    if( strcmp(fname, hist_fname) == 0 )
+    {
+        popup_dialog( INFO_POPUP, "Use a different file name than %s for logging history.", fname);
+	return;
+    }
 
     if ( ( env.history_file = fopen(fname, "w") ) == NULL )
     {
@@ -2063,8 +2108,9 @@ close_history_file( void )
 {
     if ( env.save_history )
         fclose( env.history_file );
-
+    
     env.save_history = FALSE;
+
 }
  
 
@@ -2089,7 +2135,16 @@ history_command( char *command_str )
 	 history_log[history_log_index++] = (char *) strdup(command_str);
 
 	 p_analy = get_analy_ptr();
-	 model_history_log_update( command_str, p_analy );
+         /* Do not call model_history_log_update if we are reading in the same file we
+	    are logging to. */
+	 if(env.history_input_active == FALSE)
+	 { 
+	    model_history_log_update( command_str, p_analy );
+         }
+	 else if(strcmp(p_analy->hist_filename, p_analy->hist_fname) != 0)
+	 {
+	    model_history_log_update( command_str, p_analy );
+	 }
     }
   
     if ( env.save_history )
@@ -2200,6 +2255,21 @@ model_history_log_run( Analysis *analy )
    }
 }
 
+/***********************************************************
+ * TAG(model_history_log_comment)
+ *
+ * Adds a comment to the default history file
+*/
+void
+model_history_log_comment(char *comment, Analysis *analy)
+{
+  if(env.model_history_logging)
+  {
+    fprintf(analy->p_histfile, comment);
+  }
+
+}
+
 /************************************************************
  * TAG( model_history_log_update)
  *
@@ -2212,6 +2282,9 @@ model_history_log_update( char *command, Analysis *analy )
   int i;
   char *first_token, copy_command[512], timestamp[64], timestr[64];
   char hist_fname[256];
+  char comment[512];
+  char header[] = "# This is the history file for debugging purposes only\
+  \n# and is for use by the griz team. Do not modify or alter in any way.\n";
 
   time_t curtime;
   struct tm *timeinfo=NULL;
@@ -2221,7 +2294,7 @@ model_history_log_update( char *command, Analysis *analy )
 
   strcpy( copy_command, command );
 
-  first_token = strtok( copy_command, "\t " );
+  /*first_token = strtok( copy_command, "\t " );*/
 
   if ( history_log_index>=MAXHIST )
        history_log_index=0;
@@ -2234,26 +2307,58 @@ model_history_log_update( char *command, Analysis *analy )
       /*
        * Write timestamped command to model history file.
        */
-      time ( &curtime );
+      /* time ( &curtime );
       timeinfo = localtime ( &curtime );
       sprintf(timestr, "%s", asctime( timeinfo ) );
       strcpy( timestamp, &timestr[4] );
-      strcpy( timestr,   timestamp );
+      strcpy( timestr,   timestamp ); */
       
-      /* Remove ending NL */
-      timestr[strlen(timestr)-1] = '\0';
+      /* Remove ending NL 
+      timestr[strlen(timestr)-1] = '\0'; */
       
-      sprintf(timestamp, "[%s]", timestr );
-      strcpy( copy_command, timestamp );
-      strcat( copy_command, command );
+      /*sprintf(timestamp, "[%s]", timestr ); */
+      /* strcpy( copy_command, timestamp ); */
+      /*strcat( copy_command, command ); */
 
       if ( !analy->p_histfile ) {
+           time(&curtime);
+           timeinfo = localtime(&curtime);
+           sprintf(timestr, "%s", asctime(timeinfo));
+           strcpy(timestamp, &timestr[4]);
+           strcpy(timestr, timestamp);
+           /* Remove ending NL */
+           timestr[strlen(timestr)-1] = '\0';
+           sprintf(timestamp, "[%s]", timestr);
   	   strcpy( hist_fname, analy->root_name );
 	   strcat( hist_fname, ".grizhist" );
 	   analy->p_histfile = fopen( hist_fname, "at");
+           strcpy(analy->hist_fname, hist_fname);
+           /*fseek(analy->p_histfile, 0L, SEEK_END);
+	     pos = ftell(analy->p_histfile);*/ 
+           fprintf(analy->p_histfile, "#");
+           fprintf(analy->p_histfile, "%s\n", timestamp);
+           /*if(pos == 0)
+           {
+             fprintf(analy->p_histfile, "%s", header);
+	     }*/
+ 
       }
-      fprintf(analy->p_histfile, "%s\n", copy_command );
-      fflush( analy->p_histfile );
+      
+      first_token = strtok( copy_command, "\t " );
+      if((strcmp(first_token, "rdhis") != 0) && 
+         (strcmp(first_token, "rdhist") != 0) &&
+         (strcmp(first_token, "h") != 0) &&
+         (strcmp(first_token, "hinclude") != 0))
+      { 
+        strcpy( copy_command, command );
+        fprintf(analy->p_histfile, "%s\n", copy_command );
+        fflush( analy->p_histfile );
+      } else
+      {
+        strcpy(copy_command, command );
+        sprintf(comment, "# end %s\n", copy_command);
+        model_history_log_comment(comment, analy); 
+      }
   }
 }
 

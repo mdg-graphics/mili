@@ -758,7 +758,8 @@ static Widget surf_row_col = NULL;
 static Widget mtl_quick_select = NULL;
 static Widget surf_quick_select = NULL;
 static Widget color_editor = NULL;
-static Widget color_comps[EMISSIVE + 1];
+/*static Widget color_comps[EMISSIVE + 1];*/
+static Widget color_comps[MTL_PROP_QTY];
 static Widget prop_checks[MTL_PROP_QTY];
 static Widget col_ed_scales[2][4];
 static Widget swatch_label = NULL;
@@ -1021,6 +1022,10 @@ gui_start( int argc, char **argv , Analysis *analy )
     XtSetArg( args[n], XmNtitle, title ); n++;
     XtSetArg( args[n], XmNallowShellResize, TRUE ); n++;
 
+    /*
+    The XtAppInitialize function calls XtToolkitInitialize followed by XtCreateApplicationContext, then calls XtOpenDisplay with display_string NULL and application_name NULL, and finally calls XtAppCreateShell with application_name NULL, widget_class applicationShellWidgetClass, and the specified args and num_args and returns the created shell. The modified argc and argv returned by XtDisplayInitialize are returned in argc_in_out and argv_in_out. If app_context_return is not NULL, the created application context is also returned. If the display specified by the command line cannot be opened, an error message is issued and XtAppInitialize terminates the application. If fallback_resources is non-NULL, XtAppSetFallbackResources is called with the value prior to calling XtOpenDisplay.
+
+    */
     ctl_shell_widg = XtAppInitialize( &app_context, "GRIZ",
                                       (XrmOptionDescList)NULL , 0,
                                       &argc,
@@ -3332,8 +3337,8 @@ create_mtl_manager( Widget main_widg )
                                 topLevelShellWidgetClass,
                                 XtDisplay( main_widg ), args, n );
 
-    XtAddCallback( mtl_shell, XmNdestroyCallback,
-                   destroy_mtl_mgr_CB, (XtPointer) NULL );
+    /* XtAddCallback( mtl_shell, XmNdestroyCallback,
+                   destroy_mtl_mgr_CB, (XtPointer) NULL ); */
 
     XtAddEventHandler( mtl_shell, EnterWindowMask | LeaveWindowMask, False,
                        gress_mtl_mgr_EH, NULL );
@@ -3345,7 +3350,7 @@ create_mtl_manager( Widget main_widg )
 				       NULL );
    
     XtAddCallback( mtl_base, XmNdestroyCallback,
-	  destroy_mtl_mgr_CB, (XtPointer) NULL );
+	  destroy_mtl_mgr_CB, (XtPointer) NULL ); 
 
     if ( env.griz_id>0 ) {
          gid = env.griz_id;
@@ -6516,7 +6521,7 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
 	       rb_node_hist[rb_hist_index] = rb_node_num;
 
-               if (rb_hist_index<RB_MAX_HIST) 
+               if (rb_hist_index<RB_MAX_HIST - 1) 
                    rb_hist_index++;
 
 
@@ -7705,8 +7710,9 @@ mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
     
     switch_opengl_win( MESH_VIEW );
     
-    memset( mtl_mgr_cmd, 0, 
-            128 + env.curr_analy->mesh_table[0].material_qty * 4 );
+    /* memset( mtl_mgr_cmd, 0, 
+            128 + env.curr_analy->mesh_table[0].material_qty * 4 ); */
+    memset(mtl_mgr_cmd, 0, sizeof(mtl_mgr_cmd));
     
     /* Command always starts with "mtl ". */
     for ( p_dest = mtl_mgr_cmd, p_src = "mtl "; *p_dest = *p_src; 
@@ -7853,7 +7859,7 @@ static void
 destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     Material_property_type i;
-    return;
+    /*return;*/
     switch_opengl_win( MESH_VIEW );
     
     if (!mtl_mgr_widg)
@@ -7899,6 +7905,7 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
     session->win_mtl_active = 0; 
 
     destroy_mtl_mgr();
+   
 }
 
 /*****************************************************************
@@ -9225,6 +9232,7 @@ destroy_mtl_mgr( void )
 
     mtl_mgr_top_win = 0;
     mtl_base = NULL;
+
 
 }
 

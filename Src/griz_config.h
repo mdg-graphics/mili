@@ -2,7 +2,7 @@
 /* scripts/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Configure command */
-#define CONFIG_CMD "./configure "
+#define CONFIG_CMD "./configure --with-mili=/collab/usr/apps/mdg/archive/milidir/V13_2"
 
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
@@ -110,10 +110,10 @@
 #define HAVE_VPRINTF 1
 
 /* Host directory name ($SYS_TYPE) */
-#define HOSTDIR chaos_5_x86_64_ib-RZZEUS
+#define HOSTDIR chaos_5_x86_64-RZCEREAL
 
 /* Host name */
-#define HOSTNAME RZZEUS
+#define HOSTNAME RZCEREAL
 
 /* Operating system name */
 #define OS_NAME Linux

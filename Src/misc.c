@@ -72,6 +72,7 @@
 #include "draw.h"
 #include "misc.h"
 #include "mdg.h"
+#include "io_wrap.h"
 
 extern Bool_type include_util_panel, include_mtl_panel, include_utilmtl_panel;
 
@@ -1939,8 +1940,19 @@ prep_object_class_buffers( Analysis *analy, Result *p_r )
         /* Init the class data buffer. */
         init_val = analy->buffer_init_val;
         p_data_buffer = p_mo_class->data_buffer;
-        for ( j = 0; j < limit; j++ )
-            p_data_buffer[j] = init_val;
+        if(is_particle_class(analy, p_mo_class->superclass,p_mo_class->short_name ))
+        {
+          for ( j = 0; j < limit; j++)
+          {
+              if(MESH(analy).disable_particle[j])
+                p_data_buffer[j] = init_val;
+          }
+
+        } else 
+        {
+          for ( j = 0; j < limit; j++ )
+              p_data_buffer[j] = init_val;
+        }
     }
 }
 

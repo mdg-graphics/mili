@@ -1333,6 +1333,7 @@ typedef struct _Analysis
   char           *time_name;
 
   FILE *p_histfile;
+  char hist_fname[512];
 
   /*
    * Added July 26, 2013: IRC - Flag to output TH in single column
@@ -1759,6 +1760,7 @@ extern Bool_type read_history_file( char *fname, int line_num, int loop_count,
 				    Analysis *analy );
 extern void model_history_log_clear( Analysis * analy );
 extern void model_history_log_update( char *command, Analysis *analy );
+extern void model_history_log_comment(char *comment, Analysis *analy);
 extern void model_history_log_run( Analysis * analy );
 
 extern char *griz_version;
@@ -2323,7 +2325,8 @@ extern Analysis *get_analy_ptr( );
  
 Bool_type is_particle_class( Analysis *analy, int sclass, char *class );
 Bool_type is_dbc_class( Analysis *analy, int sclass, char *class );
-Bool_type is_elem_class( Analysis *analy, char *class );
+/*Bool_type is_elem_class( Analysis *analy, char *class );*/
+Bool_type is_elem_class( int superclass );
 
 char *
 replace_string( char *input_str, char *sub_str, char *replace_str );
