@@ -2,7 +2,7 @@
 /* scripts/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Configure command */
-#define CONFIG_CMD "./configure --with-mili=/collab/usr/apps/mdg/archive/milidir/V13_2"
+#define CONFIG_CMD "./configure --with-mili=/g/g12/oliver4/Mili/MILI-chaos_5_x86_64-RZCEREAL"
 
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */

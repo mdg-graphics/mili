@@ -1000,7 +1000,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     /* Load in TI TOC if TI data is found */
 
     if ( env.ti_enable )
-         if ( mc_ti_check_if_data_found( analy->db_ident ) ) /* Check if we found a TI
+         /*if ( mc_ti_check_if_data_found( analy->db_ident ) )*/ /* Check if we found a TI
 							      * data file.
 							      */
          {

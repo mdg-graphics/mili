@@ -3382,8 +3382,8 @@ parse_single_command( char *buf, Analysis *analy )
           if(p_class->superclass == M_BEAM){
 	    MESH(analy).disable_beam_elem_qty = p_disable_elem_qty;
             MESH(analy).disable_beam = p_elem;
-          }else if(p_class->superclass == M_HEX && !strcmp(p_class->short_name, "ml")){
-	    p_disable_elem_qty = &MESH(analy).particle_disable_qty;
+          }else if(is_particle_class(analy, p_class->superclass, p_class->short_name)){
+	    p_disable_elem_qty = &MESH(analy).material_qty;
             p_elem = MESH(analy).disable_particle;
           } 
 	  mat_selected = FALSE;
