@@ -13919,6 +13919,7 @@ disable_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *
     Mesh_data *p_mesh;
     int obj_type;
     int i;
+    int class_select_index = 0;
 
     obj_type = p_class->superclass;
     if (is_particle_class( analy, p_class->superclass, p_class->short_name ) )
@@ -13992,6 +13993,14 @@ disable_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *
                     disable_elem = TRUE;
 
             break;
+    }
+
+    
+    class_select_index = get_class_select_index( analy, p_class->short_name );
+
+    if ( !disable_elem && class_select_index>=0 && elm<p_class->qty) {
+         if ( p_mesh->by_class_select[class_select_index].disable_class_elem[elm] )
+	      disable_elem = TRUE; 
     }
     return disable_elem;
 }

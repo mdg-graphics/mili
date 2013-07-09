@@ -1360,13 +1360,15 @@ parse_single_command( char *buf, Analysis *analy )
 
 
                     /* If object exists, delete to de-select, else add. */
-                    if ( p_so != NULL )
+                    /* Added && unselect to conditional to account for selecting the same obj more than once
+ *                     without first deselecting it. */
+                    if ( p_so != NULL && unselect)
                     {
                       DELETE( p_so, analy->selected_objects );
                     }
                     else
                     {
-                      if ( !unselect ) {
+                      if ( !unselect && p_so == NULL) {
                            p_so = NEW( Specified_obj, "New object selection" );
 			   p_so->ident = temp_ival-1;
 			   p_so->label = j;
@@ -1522,7 +1524,7 @@ parse_single_command( char *buf, Analysis *analy )
             valid_command = FALSE;
         }
     }
-    else if ( strcmp( tokens[0], "clrsel" ) == 0 )
+    else if ( (strcmp( tokens[0], "clrsel" ) == 0) || (strcmp( tokens[0], "poof" ) == 0) )
     {
         selection_cleared = FALSE;
                 
@@ -1534,11 +1536,36 @@ parse_single_command( char *buf, Analysis *analy )
         }
         else
         {
+            strcpy(tmp_token, tokens[1]);
+             
+	    string_to_upper( tokens[1], tmp_token ); 
+            if(!strcmp(tmp_token, "ALL"))
+            {
+              /* Treat this as if the user typed "clrsel" */
+              if(analy->selected_objects != NULL)
+		selection_cleared = TRUE;
+	      DELETE_LIST( analy->selected_objects);     
+            }
+
             rval = htable_search( MESH( analy ).class_table, tokens[1], 
                                   FIND_ENTRY, &p_hte );
-            p_mo_class = (MO_class_data *) p_hte->data;
+            if(p_hte == NULL && !selection_cleared)
+            {
+               if( analy->selected_objects == NULL)
+		  return;
+               strcpy(comment, "HEY DUFUS, there is no class with a shortname of ");
+               strcat(comment, tokens[1]);
+               /*popup_dialog( WARNING_POPUP, "HEY DUFUS, there is no class with that shortname.\n");*/
+               popup_dialog(WARNING_POPUP, comment); 
+               return;
 
-            if ( rval == OK && token_cnt == 2 )
+            }
+            if(p_hte != NULL)
+            {
+               p_mo_class = (MO_class_data *) p_hte->data;
+            }
+	
+            if ( rval == OK && token_cnt == 2 && !selection_cleared)
             {
                 /* Clear all for specified class. */
                 p_so = analy->selected_objects;
@@ -1562,12 +1589,12 @@ parse_single_command( char *buf, Analysis *analy )
                 for ( i = 2; i < token_cnt; i++ )
                 {
                     sscanf( tokens[i], "%d", &j );
-                    j--; 
+                    /*j--; */
                     p_so = analy->selected_objects;
                     while ( p_so != NULL )
                     {
 		        if ( p_so->mo_class == p_mo_class && 
-			   (p_so->ident == j || p_so->label == j) )
+			   /*(p_so->ident == j ||*/ p_so->label == j) 
                         {
                             DELETE( p_so, analy->selected_objects );
                             selection_cleared = TRUE;
@@ -1578,7 +1605,7 @@ parse_single_command( char *buf, Analysis *analy )
                     }
                 }
             }
-            else
+            else if (!selection_cleared)
             {
                 popup_dialog( USAGE_POPUP, 
                               "clrsel [<class name> [<ident>...]]" );
@@ -3379,13 +3406,13 @@ parse_single_command( char *buf, Analysis *analy )
 	  p_disable_elem_qty =  &MESH( analy ).by_class_select[i].disable_class_elem_qty;
 	  p_elem          = MESH( analy ).by_class_select[i].disable_class_elem; 
          
-          if(p_class->superclass == M_BEAM){
+          /*if(p_class->superclass == M_BEAM){
 	    MESH(analy).disable_beam_elem_qty = p_disable_elem_qty;
             MESH(analy).disable_beam = p_elem;
           }else if(is_particle_class(analy, p_class->superclass, p_class->short_name)){
 	    p_disable_elem_qty = &MESH(analy).material_qty;
             p_elem = MESH(analy).disable_particle;
-          } 
+          }*/ 
 	  mat_selected = FALSE;
           class_selected = TRUE;
           idx++;
@@ -3636,6 +3663,7 @@ parse_single_command( char *buf, Analysis *analy )
 
 	    elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
 	    p_hide_elem_qty =  &MESH( analy ).by_class_select[i].hide_class_elem_qty;
+            p_disable_elem_qty = &MESH( analy ).by_class_select[i].disable_class_elem_qty;
 	    p_elem          = MESH( analy ).by_class_select[i].hide_class_elem;
 	    mat_selected = FALSE;
             class_selected = TRUE;
@@ -3818,8 +3846,18 @@ parse_single_command( char *buf, Analysis *analy )
 					      p_uc2, 
 					 setval, include_selected, mat_selected );
 	     }
+            
+             if( ( i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
+             { 
+                p_elem = MESH( analy ).by_class_select[i].disable_class_elem;
+                elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
+             }
              
-
+	     process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+					 elem_qty, p_class,
+					 p_elem, p_hide_qty, p_hide_elem_qty, 
+					 p_uc, 
+					 setval, include_selected, mat_selected );
 	     /* p_uc = MESH( analy ).hide_material; 
 		dump_selection_buff( "HIDE-MAT", p_uc, mat_qty ); */
 	}
@@ -6646,9 +6684,11 @@ int include_all_elements(Analysis *analy)
     for(j = 0; j < qty_elements; j++)
     {
          MESH(analy).by_class_select[i].hide_class_elem[j] = FALSE;
+         MESH(analy).by_class_select[i].disable_class_elem[j] = FALSE;
     }
 
     MESH(analy).by_class_select[i].hide_class_elem_qty = 0;
+    MESH(analy).by_class_select[i].disable_class_elem_qty = 0;
     
   }
 
