@@ -15,43 +15,37 @@ Once the Griz tarfile has been extracted, execute the following steps in this or
 (1) cd to the directory GrizDist
     change the date in file misc.h to todays date
 
-(2) Enter the command: ./configure --enable-png --with-mili= ** directory 
-								path for mili you built **
+(2) Enter the command: 
+
+    ./configure 
+
+    Or, if you need to use a different mili other 
+    than the default installation on LC.
+
+    ./configure --with-mili= ** directory
 
 (3) A new directory will be created - it with start with "GRIZ4", 
     for example: GRIZ4-chaos_3_x86_64-YANA/
 
-    cd to this directory
+    cd into this directory
 
-(4) Enter the command: gmake clobber; gmake opt
+(4) Enter the command: gmake clean; gmake opt; gmake batch_opt;
 
 (5) The Griz execution script called "griz4s" can be found in the directory
-    /bin_opt
+    /bin_opt. DO NOT COPY THIS SCRIPT FILE INTO THE MDG SPACE.
 
-(6) To run Griz, enter the command:  griz4s -i input_file
+(6) To run/test Griz, enter the command:  ./bin_opt/griz4s -i input_file
 
 
 ** Livermore Specific **
 
 (7) To install an executable on the LC machines do the following:
     a). Perform steps 1-5 above
-    b). give mdgadmin griz4s.linux_opt
+    b). give mdgadmin bin_opt/griz4s.linux_opt bin_batch_opt/griz4s.linux_opt_batch
     c). xsu mdgadmin
-    d). cd /usr/apps/mdg/archive/grizdir/[grizalpha|grizbeta|grizversion]/bin
-    e). mv griz4s.linux_opt griz4s.linux_opt-MMMDDYYYY
-    f). take username
-    g). chmod 750 griz4s.linux_opt_batch
-    h). chgrp mdgusers griz4s.linux_opt
-    i). Most Important - logout as mdgadmin and run a test using the new installed version
+    d). cd /collab/usr/apps/mdg/archive/grizdir/[grizalpha|grizbeta|grizversion]/bin
+    e). cp griz4s.linux_opt griz4s.linux_opt-MMMDDYYYY
+    f). cp griz4s.linux_opt_batch griz4s.linux_opt_batch-MMMDDYYYY
+    g). take -f username
+    h). Most Important - logout as mdgadmin and run a test using the new installed version
 
-(8) To build and install the batch version of Griz:
-    a). Perform steps 1-4 above
-          New Step 5 - > gmake clobber; gmake batch_opt
-    b). give mdgadmin griz4s.linux_opt_batch
-    c). xsu mdgadmin
-    d). cd /usr/apps/mdg/archive/grizdir/[grizalpha|grizbeta|grizversion]/bin
-    e). mv griz4s.linux_opt griz4s.linux_opt_batch-MMMDDYYYY
-    f). take username
-    g). chmod 750 griz4s.linux_opt_batch
-    h). chgrp mdgusers griz4s.linux_opt_batch
-    i). Most Important - logout as mdgadmin and run a test using the new installed batch version
