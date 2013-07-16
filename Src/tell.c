@@ -24,10 +24,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include "viewer.h"
 #include "sarray.h"
 
-static void build_extended_svar_name( char *svdesc, State_variable *p_sv );
+#define SIZE1 1024 
+
+static char * build_extended_svar_name( char *svdesc, State_variable *p_sv, int * namesize );
 static void tell_info( Analysis *analy );
 static void parse_tell_times_command( Analysis *analy, 
                                       char tokens[][TOKENLENGTH], 
@@ -43,6 +46,7 @@ static void tell_element_coords( int el_ident, MO_class_data *p_mo_class,
 static void tell_mesh_classes( Analysis *analy );
 static void tell_results( Analysis *analy );
 static int max_id_string_width( int *connects, int node_cnt );
+static int num_digits(int x);
 
 
 /*****************************************************************
@@ -315,7 +319,7 @@ parse_tell_pos_command( Analysis *analy, char tokens[][TOKENLENGTH],
 static void
 tell_results( Analysis *analy )
 {
-    int i, j, k, idx,arrsize;
+    int i, j, k, idx, arrsize, namesize = SIZE1;
     int superclass;
     int res_qty, srec_qty, subrec_qty, c_qty;
     int rval;
@@ -329,7 +333,10 @@ tell_results( Analysis *analy )
     Subrec_obj *p_subrec, *p_subrecs;
     Htable_entry *p_hte;
     Result_candidate *p_cand;
-    char names[128], current[64];
+    char * names = NULL;
+    char * tmp_names = NULL;
+    char * current = NULL;
+    char * more_current = NULL;
     char *sclass_names[QTY_SCLASS] = 
     {
         "G_UNIT", "G_NODE", "G_TRUSS", "G_BEAM", "G_TRI", "G_QUAD", "G_TET",
@@ -337,7 +344,7 @@ tell_results( Analysis *analy )
     };
     char *p_short, *p_long;
     Bool_type have_result;
-    int max_len, tmp_len;
+    int max_len = 0, tmp_len;
     int *i_array;
     Hash_table *p_ht;
     typedef struct _class_primals
@@ -349,7 +356,13 @@ tell_results( Analysis *analy )
     StringArray sa;
     
     srec_qty = analy->qty_srec_fmts;
-    max_len = 0;
+    names = (char *) malloc(SIZE1 * sizeof(char));
+    if(names == NULL)
+    {
+       
+       printf("Out of memory in file %s, line %d, exiting\n", __FILE__, __LINE__);      
+       exit(1);
+    }
 
     /* 
      * Derived results. 
@@ -378,7 +391,22 @@ tell_results( Analysis *analy )
                 /* Init the StringArray if first insertion. */
                 if ( sa_arr[superclass] == NULL )
                     SANEWS( sa_arr[superclass], 4096 );
-                
+               
+
+                if(strlen(p_cand->short_names[idx]) + strlen(p_cand->long_names[idx]) + 3  > SIZE1) 
+                {
+                   
+                   namesize = strlen(p_cand->short_names[idx]) + strlen(p_cand->long_names[idx]) + 3; 
+                   /* Need to increase the memory allocated for names */
+                   tmp_names = (char *) realloc(names, namesize*sizeof(char));
+                   if(tmp_names == NULL)
+                   {
+                      printf("memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                      exit(1);
+                   }
+                   names = tmp_names;
+                   
+                }  
                 /* Build a name that combines short and long names. */
                 sprintf( names, "%s|%s", p_cand->short_names[idx],
                          p_cand->long_names[idx] );
@@ -401,6 +429,14 @@ tell_results( Analysis *analy )
                                   names );
             }
         }
+    }
+
+    /* max_len on line 388 should contain the largest string so now allocate memory for current */
+    current = (char *) malloc(max_len);
+    if( current == NULL)
+    {
+	popup_dialog( WARNING_POPUP, "Out of memory in file tell.c, exiting.");
+        exit(1);
     }
     
     /* Sort StringArrays to enable duplicate detection. */
@@ -435,6 +471,25 @@ tell_results( Analysis *analy )
             wrt_text( "        %-*s - %s\n", max_len, p_short, p_long );
             strcpy( current, p_short );
 
+            for(j = 1; j < res_qty; j++)
+            {
+               if(strlen(SASTRING(sa_arr[i], j)) > namesize)
+               {
+                  namesize = strlen(SASTRING(sa_arr[i], j));
+         
+               }
+            }
+            
+            if(namesize > SIZE1)
+            {
+               tmp_names = (char *) realloc(names, namesize*sizeof(char));
+               if(tmp_names == NULL)
+               {
+                  printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                  exit(1);
+               } 
+            }
+
             for ( j = 1; j < res_qty; j++ )
             {
                 strcpy( names, SASTRING( sa_arr[i], j ) );
@@ -466,6 +521,19 @@ tell_results( Analysis *analy )
     res_qty = htable_get_data( analy->primal_results, (void ***) &pp_pr);
 #endif
     
+    /* go ahead and realloc names to SIZE1 before proceeding 
+    tmp_names = realloc(names, SIZE1*sizeof(char));
+    if(tmp_names == NULL)
+    {
+      printf("memory allocation error in file %s lind $d\n", __FILE__, __LINE__);
+      exit(1);
+    }
+
+    names = tmp_names; */
+
+    /* at this point the amount of memory allocated for names is either SIZE1 or namesize if namesize > SIZE1 */
+
+ 
     if ( have_result )
         wrt_text( "\n" );
 
@@ -511,7 +579,7 @@ tell_results( Analysis *analy )
                 sa = ((Class_primals *) p_hte->data)->sa;
                 
                 /* Append state variable aggregation info to short name. */
-                build_extended_svar_name( names, p_sv );
+                names =  build_extended_svar_name( names, p_sv, & namesize );
                 
                 /* Save the longest extended short name length. */
                 if ( (tmp_len = strlen( names )) > max_len )
@@ -535,7 +603,20 @@ tell_results( Analysis *analy )
             }
         }
     }
-    
+
+    /* there is a new value for max_len so we need to check it against the size of current and
+       realloc if necessary */
+    if(max_len >= strlen(current))
+    {
+       more_current =  (char *) realloc(current, (max_len + 10)*sizeof(char));	
+       if(more_current == NULL  )
+       {
+          popup_dialog( WARNING_POPUP, "Out of memory in file tell.c, exiting\n");
+          exit(1);
+       }
+
+       current = more_current;
+    }   
     /* Pointer to current mesh. */
     p_md = MESH_P( analy );
 
@@ -598,6 +679,17 @@ tell_results( Analysis *analy )
     
     /* Don't need the hash table anymore. */
     htable_delete( p_ht, NULL, TRUE );
+    if(current != NULL)
+    {
+	free(current);
+    }
+
+    if(names != NULL)
+    {
+
+	free(names);
+
+    }
 }
 
 
@@ -606,24 +698,76 @@ tell_results( Analysis *analy )
  * 
  * Compose a descriptive string of a State_variable aggregation type.
  */
-static void
-build_extended_svar_name( char *svdesc, State_variable *p_sv )
+static char * 
+build_extended_svar_name( char *svdesc, State_variable *p_sv, int * namesize )
 {
-    int k;
-
+    int k, size = 0;
+    char * tmp_names = svdesc;
+    svdesc[0] = '\0';
+    /* namesize is the amount of memory allocated for svdesc */
     switch ( p_sv->agg_type )
     {
         case SCALAR:
+            if(strlen(p_sv->short_name) > *namesize)
+            {
+               *namesize = strlen(p_sv->short_name);
+               tmp_names = (char *)  realloc(svdesc, *namesize*sizeof(char));
+               if(tmp_names == NULL)
+               {
+                  printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                  exit(1);
+               }
+
+               svdesc = tmp_names; 
+            }
             sprintf( svdesc, p_sv->short_name );
             break;
         case VECTOR:
+            size = 2 + strlen(p_sv->short_name) + strlen(p_sv->components[0]);
+            for( k = 1; k < p_sv->vec_size; k++)
+            {
+               size += strlen(p_sv->components[k]);
+            }
+            size += 2; /* add room for the null terminator */
+            if(size > *namesize)
+            {
+              *namesize = size*2;
+              tmp_names =  (char *) realloc(svdesc, *namesize*sizeof(char));
+              if(tmp_names == NULL)
+              {
+                  printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                  exit(1);
+              }
+ 
+              svdesc = tmp_names;
+            }
+            
             sprintf( svdesc, "%s[%s", p_sv->short_name, p_sv->components[0] );
             for ( k = 1; k < p_sv->vec_size; k++ )
-                sprintf( svdesc + strlen( svdesc ), " %s", 
-                         p_sv->components[k] );
+                strcat( svdesc, p_sv->components[k]);
             strcat( svdesc, "]" );
             break;
         case ARRAY:
+
+            size = strlen(p_sv->short_name) + 1; /* add 1 to account for the null terminating character that
+                                                    will be required at the end. */
+            for( k = p_sv->rank - 1; k >= 0; k--)
+            {
+               size += strlen(num_digits(p_sv->dims[k])) + 2; 
+            }
+            
+            if(size > *namesize)
+            {
+              *namesize = size*2;
+              tmp_names = (char *) realloc(svdesc, *namesize*sizeof(char));
+              if(tmp_names == NULL)
+              {
+                  printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                  exit(1);
+              }
+              svdesc = tmp_names; 
+            }
+
             sprintf( svdesc, "%s", p_sv->short_name );
             /* 
              * Write indices in row-major order to match menu & command-line
@@ -633,6 +777,32 @@ build_extended_svar_name( char *svdesc, State_variable *p_sv )
                 sprintf( svdesc + strlen( svdesc ), "[%d]", p_sv->dims[k] );
             break;
         case VEC_ARRAY:
+            size = strlen(p_sv->short_name) + 1;
+            for( k = p_sv->rank - 1; k >= 0; k--)
+            {
+               size += num_digits(p_sv->dims[k]) + 2; 
+            }
+
+            
+            for ( k = 1; k < p_sv->vec_size; k++ )
+            {   
+              size =+  num_digits(p_sv->components[k]) ;
+
+            }
+
+            if(size > *namesize)
+            {
+              *namesize = size*2;
+              tmp_names = (char *) realloc(svdesc, *namesize*sizeof(char));
+              if(tmp_names == NULL)
+              {
+                  printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                  exit(1);
+              }
+
+              svdesc = tmp_names; 
+            }
+
             sprintf( svdesc, "%s", p_sv->short_name );
             /* 
              * Write indices in row-major order to match menu & command-line
@@ -642,11 +812,15 @@ build_extended_svar_name( char *svdesc, State_variable *p_sv )
                 sprintf( svdesc + strlen( svdesc ), "[%d]", p_sv->dims[k] );
             sprintf( svdesc + strlen( svdesc ), "[%s", p_sv->components[0] );
             for ( k = 1; k < p_sv->vec_size; k++ )
-                sprintf( svdesc + strlen( svdesc ), " %s", 
-                         p_sv->components[k] );
+                /*sprintf( svdesc + strlen( svdesc ), " %s", 
+                         p_sv->components[k] ); */
+               strcat(svdesc, p_sv->components[k]);
+
             strcat( svdesc, "]" );
             break;
     }
+
+    return tmp_names;
 }
 
 
@@ -1052,4 +1226,27 @@ max_id_string_width( int *connects, int node_cnt )
     }
     
     return width;
+}
+
+
+/*************************************************************
+ * TAG(num_digits)
+ * return the number of digits in an integer including the 
+ * minus sign if negative. 
+ *
+ * Added by Bill Oliver
+ * July 12, 2013 
+ *
+ */
+static int num_digits(int x)
+{
+   int y;
+
+   if(x >= 0)
+   {
+      return floor(log10(abs(x))) + 1;
+   } else
+   {
+      return floor(log10(abs(x))) + 2;
+   }
 }

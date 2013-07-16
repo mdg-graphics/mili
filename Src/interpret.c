@@ -1553,7 +1553,7 @@ parse_single_command( char *buf, Analysis *analy )
             {
                if( analy->selected_objects == NULL)
 		  return;
-               strcpy(comment, "HEY DUFUS, there is no class with a shortname of ");
+               strcpy(comment, "There is no class with a shortname of ");
                strcat(comment, tokens[1]);
                /*popup_dialog( WARNING_POPUP, "HEY DUFUS, there is no class with that shortname.\n");*/
                popup_dialog(WARNING_POPUP, comment); 
