@@ -3668,7 +3668,7 @@ parse_single_command( char *buf, Analysis *analy )
 	    mat_selected = FALSE;
             class_selected = TRUE;
             idx++;
-          } else if(token_cnt > 2 && strcmp(tokens[0], "include") && strcmp(tokens[1], "all"))
+          } else if(token_cnt > 2 && strcmp(tokens[0], "include") && strcmp(tokens[1], "all") && isdigit(tokens[1]))
           {
 	      return;
           }
@@ -3865,6 +3865,28 @@ parse_single_command( char *buf, Analysis *analy )
         if(!strcmp(tokens[0], "include") && !strcmp(tokens[1], "all"))
         {
 	   include_all_elements(analy); 
+        } else if(!strcmp(tokens[0], "include"))
+        {
+            for(i = 0; i < MESH(analy).qty_class_selections; i++)
+            {
+               p_class = MESH(analy).by_class_select[i].p_class;
+               if( ( i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
+               {
+                  elem_qty = MESH(analy).by_class_select[i].p_class->qty;
+                  p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
+                  p_elem  = MESH(analy).by_class_select[i].hide_class_elem;
+                  mat_selected = FALSE;
+                  class_selected = TRUE;
+                  idx = 0;
+
+	          process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+					      elem_qty, p_class,
+					      p_elem, p_hide_qty, p_hide_elem_qty, 
+					      p_uc, 
+					      setval, include_selected, mat_selected );
+                  
+               }
+            }
         }
 
         process_node_selection ( analy );

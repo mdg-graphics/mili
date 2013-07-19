@@ -143,6 +143,8 @@
 
 #include <math.h>
 
+#include "griz_config.h"
+
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
 #include <X11/keysym.h>
@@ -199,6 +201,9 @@
 #ifdef xSERIAL_BATCHx
 #include <GL/gl_mangle.h>
 #endif
+
+#define GRIZ_VERSION "                      WELCOME TO GRIZ " PACKAGE_VERSION "\n"
+#define GRIZ_DATE    "                        Updated: " PACKAGE_DATE "\n"
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
@@ -10316,9 +10321,7 @@ get_monitor_width( void )
 }
 
 
-/*****************************************************************
- * TAG( get_step_stride )
- *
+/***************************************************************** * TAG( get_step_stride ) *
  * Return current step stride.
  */
 int
@@ -10344,54 +10347,42 @@ put_step_stride( int stride )
  * TAG( write_start_text )
  *
  * Write start-up text messages to the monitor window.
+ * 07/19/2013 Bill Oliver:
+ * Removed requirement to have a griz_start_text file by taking configuration
+ *        information from griz_config.h file instead.
  */
 void
 write_start_text( void )
 {
-    struct stat statbuf;
-    FILE *text_file;
-    char *griz_home;
-    char text_line[132], file_spec[132];
+    int i;
+    char text_line[13][132];
+    char asteric[] = "**********************************************************************";
+    sprintf(text_line[0],"%s\n\n", asteric);
+    sprintf(text_line[1],"                    WELCOME TO GRIZ %s\n\n", PACKAGE_VERSION);
+    sprintf(text_line[2],"                      Updated: %s \n\n", PACKAGE_DATE);
+    sprintf(text_line[3],"%s\n\n\n", asteric);
+    sprintf(text_line[4],"Griz On-Line Manual: \n\n");
+    sprintf(text_line[5],"       The Griz manual is now available on-line via the\n");
+    sprintf(text_line[6],"       Help option (top-right) on the Griz Gui.\n\n");
+    sprintf(text_line[7],"%s\n\n", asteric);
+    sprintf(text_line[8],"Contacts:\n\n");
+    sprintf(text_line[9],"For questions or problems relating to GRIZ please contact:\n\n");
+    sprintf(text_line[10],"%s\n", PACKAGE_BUGREPORT);
+    sprintf(text_line[11],"%s\n\n", PACKAGE_BUGREPORT_ALT);
+    sprintf(text_line[12], "%s\n", asteric);
 
-    /*
-     * Look for a start-up text file and if it exists, pump it out for
-     * the user to see.
-     */
-    griz_home = getenv( "GRIZHOME" );
-    if ( griz_home != NULL )
-    {
-        sprintf( file_spec, "%s/griz_start_text", griz_home );
-
-	/* Write out griz version info */
 #ifdef SERIAL_BATCH
-	wrt_text(  "\n%s\n\n", griz_name );
-#else
-	sprintf( text_line, "\n%s\n\n", griz_name );
-	XmTextInsert( monitor_widg, wpr_position, text_line );
-	wpr_position += strlen( text_line );
+     for(i = 0; i < 13; i++)
+     {
+	wrt_text("%s\n", text_line[i]);
+     }
+#else  
+     for(i = 0; i < 13; i++)
+     {    
+        XmTextInsert(monitor_widg, wpr_position, text_line[i]);
+        wpr_position += strlen(text_line[i]);
+     } 
 #endif
-        if ( stat( file_spec, &statbuf ) == 0 )
-        {
-            text_file = fopen( file_spec, "r" );
-
-            if ( text_file )
-            {
-                /*
-                 * The start-up text file exists and is open, so copy its
-                 * contents into the monitor widget line-by-line.
-                 */
-                while ( fgets( text_line, sizeof( text_line ), text_file ) )
-                {
-#ifdef SERIAL_BATCH
-                    wrt_text( "%s\n", text_line );
-#else
-                    XmTextInsert( monitor_widg, wpr_position, text_line );
-                    wpr_position += strlen( text_line );
-#endif /* SERIAL_BATCH */
-                }
-            }
-        }
-    }
 
     wrt_standard_db_text( env.curr_analy, FALSE );
 

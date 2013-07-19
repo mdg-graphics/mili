@@ -78,7 +78,7 @@ m4_define(MILI_VERSION_M4, V13_01)
 m4_define(GRIZ_DATE_M4, 2013/07/09)
 m4_define(GRIZ_TIME_M4, 07:39:00)
 m4_define(GRIZ_DATETIME_M4, [GRIZ_DATE_M4 GRIZ_TIME_M4])
-m4_define(GRIZ_BUGS_M4,oliver4@llnl.gov)
+m4_define(GRIZ_BUGS_M4,[Bill Oliver  ext: 3-0540 email: oliver4@llnl.gov])
 m4_define(GRIZ_TOP_SRC_DIR_M4, `pwd`)
 
 AC_INIT(GRIZ_NAME_M4, GRIZ_VERSION_M4, GRIZ_BUGS_M4, GRIZ_NAME_M4)
@@ -125,6 +125,7 @@ AC_DEFINE([PACKAGE_NAME], ["GRIZ_NAME_M4"], [Name of release])
 AC_DEFINE([PACKAGE_DATE], ["GRIZ_DATE_M4"], [Date of release])
 AC_DEFINE([PACKAGE_TIME], ["GRIZ_TIME_M4"], [Time of release])
 AC_DEFINE([PACKAGE_DATETIME], ["GRIZ_DATETIME_M4"], [Date and time of release])
+AC_DEFINE([PACKAGE_BUGREPORT_ALT],["Kevin Durrenberger ext:4-3015 email:durrenberger1@llnl.gov"],[Alternate contact for bugs])
 PACKAGE_DATETIME="GRIZ_DATE_M4 GRIZ_TIME_M4"
 AC_SUBST([PACKAGE_DATETIME])
 
@@ -290,7 +291,7 @@ AC_SEARCH_LIBS([isnan],[m],[AC_DEFINE(HAVE_ISNAN, 1, [Math Lib has isNaN funtion
 CFLAGS_DEBUG="$DEBUG_CFLAG_OPTIONS $GPROF_FLAGS"
 CFLAGS_OPT="$OPT_CFLAG_OPTIONS $GPROF_FLAGS"
 
-AC_CONFIG_HEADERS([griz_config.h:scripts/config.h.in])
+AC_CONFIG_HEADERS([$PATH_NAME/include/griz_config.h:scripts/config.h.in])
 # Look for scripts in ./scripts
 
 #############################################################################
