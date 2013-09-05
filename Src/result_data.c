@@ -638,7 +638,7 @@ elem_get_minmax( float *val_elem, int qty, Analysis *analy )
       ? analy->state_p->elem_class_sand[p_elem_class->elem_class_index]
       : NULL;
 
-    if ( qty!=(int)NULL )
+    if ( qty != 0 )
          elem_qty = qty;
 
     /* Prepare to extract elem min/max (values init'd in load_result()). */
@@ -652,7 +652,7 @@ elem_get_minmax( float *val_elem, int qty, Analysis *analy )
     for ( i = 0; i < elem_qty; i++ )
     {
         /* Get the elem identifier. */
-      if ( qty==(int)NULL )
+      if ( qty == 0 )
 	     elem_id = p_so->object_ids ? p_so->object_ids[i] : i;
 	else
 	     elem_id = i;

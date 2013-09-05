@@ -65,6 +65,7 @@
 
 #define OK 0
 
+
 static int create_st_variable( Famid fid, Hash_table *p_sv_ht, char *p_name,
                                State_variable **pp_svar );
 static int create_derived_results( Analysis *analy, int srec_id, int subrec_id, 
@@ -174,7 +175,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
     int mesh_qty, qty_classes;
     int obj_qty;
     int i, j, k, l;
-    int idx;
+    int idx, index;
     int int_args[3];
     int dims;
     static int elem_sclasses[] = 
@@ -387,7 +388,57 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 }
                 else
                 {
-                     p_mocd->labels_found = FALSE;
+                     /* no labels were found so create them here */
+                     block_qty = 1;
+                     block_range = (int *) malloc(2);
+                     if(block_range == NULL)
+                     {
+                        popup_fatal( "Unable to allocate block_range" );
+                     }
+
+                     for(index = 0; index < obj_qty; index++)
+                     {
+                        temp_labels[index] = index + 1;
+                     } 
+
+                     block_range[0] = 1;
+                     block_range[1] = obj_qty;
+ 
+		     p_mocd->labels = NEW_N( MO_class_labels, obj_qty, "Class labels " );
+                     if ( p_mocd->labels == NULL )
+                          popup_fatal( "Unable to allocate labels on class load" );
+
+                     p_mocd->labels_index = NEW_N( int, obj_qty, "Class labels index" );
+                     if ( p_mocd->labels_index == NULL )
+                          popup_fatal( "Unable to allocate labels index on class load" );
+
+                     p_mocd->labels_found = TRUE;
+
+                     for (obj_id=0;
+                          obj_id<p_mocd->qty;
+                          obj_id++)
+                     {
+                          p_mocd->labels[obj_id].local_id  = obj_id;
+                          p_mocd->labels[obj_id].label_num = temp_labels[obj_id];
+                          if ( temp_labels[obj_id] > p_mocd->labels_max )
+                               p_mocd->labels_max = temp_labels[obj_id];
+                          if ( temp_labels[obj_id] <= p_mocd->labels_min )
+                               p_mocd->labels_min = temp_labels[obj_id];
+                     }
+
+                     /* Sort the labels */
+
+                     qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels), 
+                          (void *) mili_compare_labels);
+
+                     /* Create a mapping for the 1-n label index */
+
+                     for (obj_id=0;
+                          obj_id<obj_qty;
+                          obj_id++)
+                          p_mocd->labels_index[p_mocd->labels[obj_id].local_id] = obj_id;
+                     
+
                 }
 
                 p_mocd->label_blocking.block_qty = 0;
@@ -583,9 +634,11 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
 
                      /* Sort the labels */
 
-                     qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels), 
-                           (void *) mili_compare_labels);
+                     /*qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels), 
+                           (void *) mili_compare_labels); */
 
+                     qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels), 
+                           mili_compare_labels);
                      /* Create a mapping for the 1-n label index */
 
                      for (obj_id=0;
@@ -598,7 +651,60 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                           }
                 }
                 else
-                      p_mocd->labels_found = FALSE;
+                {
+                     /* no labels were found so create them here */
+                     block_qty = 1;
+                     block_range = (int *) malloc(2);
+                     if(block_range == NULL)
+                     {
+                        popup_fatal( "Unable to allocate block_range" );
+                     }
+
+                     for(index = 0; index < obj_qty; index++)
+                     {
+                        temp_labels[index] = index + 1;
+                        temp_elems[index] = index + 1;
+                     } 
+
+                     block_range[0] = 1;
+                     block_range[1] = obj_qty;
+                     p_mocd->labels_found = TRUE;
+
+                     /* Allocate space for object labels  */
+                     p_mocd->labels = NEW_N( MO_class_labels, obj_qty, "Class labels " );
+                     if ( p_mocd->labels == NULL )
+                          popup_fatal( "Unable to allocate labels on class load" );
+
+                     p_mocd->labels_index = NEW_N( int, obj_qty, "Class labels index" );
+                     if ( p_mocd->labels_index == NULL )
+                          popup_fatal( "Unable to allocate labels index on class load" );
+
+
+                     for (obj_id=0;
+                          obj_id<p_mocd->qty;
+                          obj_id++)
+                     {
+                          p_mocd->labels[obj_id].local_id  = temp_elems[obj_id]-1;
+                          p_mocd->labels[obj_id].label_num = temp_labels[obj_id];
+
+                          if ( temp_labels[obj_id] > p_mocd->labels_max )
+                               p_mocd->labels_max = temp_labels[obj_id];
+                          if ( temp_labels[obj_id] <= p_mocd->labels_min )
+                               p_mocd->labels_min = temp_labels[obj_id];
+		     }
+
+                     qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels), 
+                           mili_compare_labels);
+
+                     for (obj_id=0;
+                          obj_id<obj_qty;
+                          obj_id++) {
+                          p_mocd->labels_index[p_mocd->labels[obj_id].local_id] = obj_id;
+                          mat_index = p_mocd->labels[obj_id].local_id;
+                          if ( p_mocd->labels[obj_id].local_id<0 || p_mocd->labels[obj_id].local_id>=obj_qty )
+                               mat_index = p_mocd->labels[obj_id].local_id;
+                          }
+                }
 
                 free( temp_labels );
 		free( temp_elems );
@@ -657,7 +763,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
 
                         break;
 
-#ifdef HAVE_WEDGE_PYRAMID
+/* #ifdef HAVE_WEDGE_PYRAMID */ 
                     case M_WEDGE:
                         popup_dialog( INFO_POPUP, "%s\n%s (class \"%s\")",
                                       "Checking for degenerate wedge elements",
@@ -687,7 +793,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                         p_lh->qty++;
                         p_lh->list = (void *) mo_classes;
                         break;
-#endif
+/* #endif */
                     case M_TET:
                         popup_dialog( INFO_POPUP, "%s\n%s (class \"%s\")",
                                       "Checking for degenerate tet elements",
@@ -4237,7 +4343,7 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                         p_lh->qty++;
                         p_lh->list = (void *) mo_classes;
                         break;
-#ifdef HAVE_WEDGE_PYRAMID
+/* #ifdef HAVE_WEDGE_PYRAMID */
                     case M_WEDGE:
                         popup_dialog( INFO_POPUP, "%s\n%s (class \"%s\")",
                                       "Checking for degenerate wedge elements",
@@ -4267,7 +4373,7 @@ taurus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                         p_lh->qty++;
                         p_lh->list = (void *) mo_classes;
                         break;
-#endif
+/* #endif */
                     case M_TET:
                         popup_dialog( INFO_POPUP, "%s\n%s (class \"%s\")",
                                       "Checking for degenerate tet elements",

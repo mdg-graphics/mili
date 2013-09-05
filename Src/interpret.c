@@ -225,6 +225,7 @@
 #include "traction_force.h"
 #include "misc.h"
 #include "io_wrap.h"
+#include <errno.h>
 
 #ifdef VIDEO_FRAMER
 extern void vid_select( /* int select */ );
@@ -248,6 +249,8 @@ extern void update_current_color_property();
 
 extern Bool_type history_inputCB_cmd;
 
+char newtokens[MAXTOKENS][TOKENLENGTH];
+int  new_token_cnt;
 
 /*****************************************************************
  * TAG( Alias_obj )
@@ -799,6 +802,8 @@ parse_single_command( char *buf, Analysis *analy )
     int *p_hide_qty, *p_hide_qty2, *p_disable_qty, p_hide_qty_temp_int=0;
     int *p_hide_elem_qty, *p_hide_elem_qty2, *p_disable_elem_qty;
     int label_num=0;
+    int incr = 0;
+    long pos;
 
     /* initialize tokens */
     for(i = 0; i < MAXTOKENS; i++)
@@ -893,6 +898,20 @@ parse_single_command( char *buf, Analysis *analy )
     renorm = FALSE;
     valid_command = TRUE;
 
+    if(env.history_input_active == FALSE)
+    {
+       if(analy->p_histfile == NULL)
+       {
+         analy->p_histfile = fopen(analy->hist_fname, "at");
+       }
+       if(analy->p_histfile != NULL)
+       { 
+          fseek(analy->p_histfile, 0L, SEEK_CUR);
+          pos = ftell(analy->p_histfile);
+          model_history_log_update(buf, analy);
+       }
+    }
+
     if ( strcmp( tokens[0], "rx" ) == 0 )
     {
         sscanf( tokens[1], "%f", &val );
@@ -975,6 +994,7 @@ parse_single_command( char *buf, Analysis *analy )
         if ( token_cnt != 4 )
         {
             popup_dialog( USAGE_POPUP, "scalax <x scale> <y scale> <z scale>" );
+            history_command("scalax <x scale> <y scale> <z scale>" );
             valid_command = FALSE;
         }
         else
@@ -1607,7 +1627,8 @@ parse_single_command( char *buf, Analysis *analy )
             }
             else if (!selection_cleared)
             {
-                popup_dialog( USAGE_POPUP, 
+                 
+                 popup_dialog( USAGE_POPUP, 
                               "clrsel [<class name> [<ident>...]]" );
                 valid_command = FALSE;
             }
@@ -1700,7 +1721,12 @@ parse_single_command( char *buf, Analysis *analy )
         manage_timer( 8, 1 );
 #endif
         if ( analy->p_histfile )
-	     fclose ( analy->p_histfile ); 
+        {
+          strcpy(comment, "rm ");
+          strcat(comment, analy->hist_fname);
+	  fclose ( analy->p_histfile );
+          system(comment);
+        } 
         quit( 0 );
     }
     else if ( strcmp( tokens[0], "help" ) == 0 || strcmp( tokens[0], "man" ) == 0 ||  strcmp( tokens[0], "grizman" ) == 0 ||
@@ -3087,6 +3113,8 @@ parse_single_command( char *buf, Analysis *analy )
           }
         }
  
+       
+ 
         if( (i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
         {
 
@@ -3251,8 +3279,34 @@ parse_single_command( char *buf, Analysis *analy )
 					 setval, vis_selected, mat_selected );
 
 	     /* now get all the element classes associated with this material, but only if token_cnt == 2 */
-             if(token_cnt == 2)
+             strcpy(comment, tokens[1]);
+             comment[1] = '\0';
+             i = atoi(comment);
+             if(token_cnt == 2  || ((token_cnt > 2 && i > 0) || !strcmp(tokens[1], "allb")))
 	     {
+                
+                if(!strcmp(tokens[1], "allb"))
+                {
+                  incr = 1;
+                  new_token_cnt = 1;
+                  strcpy(newtokens[0], tokens[0]);
+                  p_uc2 = MESH(analy).hide_material;
+                  /* p_uc2 is of type unsigned char * */
+                  
+                  for(i = 0; i < mat_qty; i++)
+                  {
+                      if(p_uc2[i])
+                      {
+                         sprintf(newtokens[incr],"%d", i + 1);
+                         incr++;
+                         new_token_cnt++;
+                      }
+                  }
+                   
+                }
+                idx = 0;
+                mat_selected = FALSE;
+                class_selected = TRUE;
        
 	        for(i = 0; i < MESH(analy).qty_class_selections; i++)
                 {
@@ -3265,18 +3319,27 @@ parse_single_command( char *buf, Analysis *analy )
 	            elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
 	            p_hide_elem_qty =  &MESH( analy ).by_class_select[i].hide_class_elem_qty;
 	            p_elem          = MESH( analy ).by_class_select[i].hide_class_elem;
-	            mat_selected = FALSE;
-                    class_selected = TRUE;
-                    idx = 0;
                    
-                    process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-					 elem_qty, p_class,
-					 p_elem, p_hide_qty, p_hide_elem_qty, 
-					 p_uc, 
-					 setval, vis_selected, mat_selected );
+                    if(!strcmp(tokens[1], "allb"))
+                    {
+                      process_mat_obj_selection ( analy,  newtokens, idx, new_token_cnt, mat_qty,
+					          elem_qty, p_class,
+					          p_elem, p_hide_qty, p_hide_elem_qty, 
+					          p_uc, 
+					          setval, vis_selected, mat_selected );
+                    } else
+                    {
+                      process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+					          elem_qty, p_class,
+					          p_elem, p_hide_qty, p_hide_elem_qty, 
+					          p_uc, 
+					          setval, vis_selected, mat_selected );
+                    }
+                    
+     
                   }
                 }
-	     }
+	     } 
 
 
 	  }
@@ -3668,9 +3731,9 @@ parse_single_command( char *buf, Analysis *analy )
 	    mat_selected = FALSE;
             class_selected = TRUE;
             idx++;
-          } else if(token_cnt > 2 && strcmp(tokens[0], "include") && strcmp(tokens[1], "all") && isdigit(tokens[1]))
+          } else if(token_cnt > 2 && strcmp(tokens[0], "include") && strcmp(tokens[1], "all")&& isdigit(atoi(tokens[1])))
           {
-	      return;
+                 return;
           }
           
 
@@ -5626,7 +5689,7 @@ parse_single_command( char *buf, Analysis *analy )
             popup_dialog( USAGE_POPUP, "savhis <filename>" );
 
         /* Don't want to save _this_ command. */
-        valid_command = FALSE;
+        valid_command = FALSE; 
     }
     else if ( strcmp( tokens[0], "endhis" ) == 0 )
     {
@@ -6669,9 +6732,19 @@ parse_single_command( char *buf, Analysis *analy )
     }
 
     analy->result_mod = FALSE;
-    
-    if ( valid_command )
-         history_command( buf );
+   
+   if(valid_command)
+   {
+       history_command(buf);
+   } else
+   { 
+    if(env.history_input_active == FALSE)
+    {
+      fclose(analy->p_histfile);
+      i = truncate(analy->hist_fname, pos);
+      analy->p_histfile = fopen(analy->hist_fname, "at"); 
+    }
+   }
 
     if ( strcmp( tokens[0], "r" ) != 0 )
          strcpy( last_command, buf );

@@ -350,6 +350,13 @@ static void draw_grid_2d( Analysis * );
 
 static void draw_hexs( Bool_type, Bool_type, Bool_type, MO_class_data *, 
                        Analysis * );
+
+static void draw_pyramids( Bool_type, Bool_type, Bool_type, MO_class_data *, 
+                       Analysis * );
+
+static void draw_wedges( Bool_type, Bool_type, Bool_type, MO_class_data *, 
+                       Analysis * );
+
 static void draw_tets( Bool_type, Bool_type, Bool_type, MO_class_data *, 
                        Analysis * );
 
@@ -2465,6 +2472,13 @@ draw_grid( Analysis *analy )
         draw_tris_3d( show_node_result, show_mat_result, show_mesh_result,
                       mo_classes[i], analy );
 
+    /* Pyramid element classes. */
+    qty_classes = p_mesh->classes_by_sclass[G_PYRAMID].qty;
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PYRAMID].list;
+    for ( i = 0; i < qty_classes; i++ )
+        draw_pyramids( show_node_result, show_mat_result, show_mesh_result,
+                   mo_classes[i], analy );
+
     /* Turn lighting off (back to the default). */
     if ( v_win->lighting )
         glDisable( GL_LIGHTING );
@@ -3221,6 +3235,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     float *data_array;
     int *p_index_source;
     Interp_mode_type save_interp_mode;
+    Bool_type hidden_poly;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
          analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -3348,7 +3363,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
         {
             for ( j = 0; j < 3; j++ )
             {
-                nd = connects[el][ fc_nd_nums[fc][j] ];
+                nd = connects[el][ tet_fc_nd_nums[fc][j] ];
 
                 for ( k = 0; k < 3; k++ )
                     norms[j][k] = p_vd->face_norm[j][k][i];
@@ -3371,7 +3386,8 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
             }
         }
 
-        draw_poly( cnt, verts, norms, cols, res, matl, p_mesh, analy, FALSE );
+	hidden_poly = hide_by_object_type( p_tet_class, matl, el, analy, data_array );
+        draw_poly( cnt, verts, norms, cols, res, matl, p_mesh, analy, hidden_poly );
     }
 
     /* Back to the defaults. */
@@ -3988,6 +4004,273 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
 
     antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
+}
+
+
+
+
+/************************************************************
+ * TAG( draw_pyramids )
+ *
+ * Draw the external faces of pyramid volume elements in the model.
+ */
+static void
+draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
+           Bool_type show_mesh_result, MO_class_data *p_pyramid_class, 
+           Analysis *analy )
+{
+    Bool_type show_result;
+    float verts[4][3];
+    float norms[4][3];
+    float cols[4][4];
+    float res[4];  /* "val" was formerly declared but never referenced  LAS */
+    float rmin, rmax;
+    float tverts[4][3], v1[3], v2[3], nor[3], ray[3];
+    float *activity=NULL;
+
+    int matl, el, fc, nd, ord[4], cnt, face_qty, mesh_idx;
+    int i, j, k;
+    int (*connects)[5];
+    int *face_el, *face_fc;
+    int *mtl;
+    int *p_index_source;
+    float *data_array;
+    unsigned char *disable_mtl;
+    Mesh_data *p_mesh;
+    Visibility_data *p_vd;
+    Interp_mode_type save_interp_mode;
+    unsigned char *hide_mtl;
+    int *p_mats;
+
+    Bool_type hidden_poly=FALSE, 
+              hidden_poly_elem=FALSE, 
+              hidden_poly_elem_wft=FALSE,
+              hidden_poly_mat=FALSE,
+              disable_flag=FALSE;
+    Bool_type showgs=TRUE;
+
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+         analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+         return;
+
+    if ( is_particle_class(analy, p_pyramid_class->superclass, p_pyramid_class->short_name) )
+         return;
+
+    p_mesh = MESH_P( analy );
+    connects = (int (*)[5]) p_pyramid_class->objects.elems->nodes;
+    mtl = p_pyramid_class->objects.elems->mat;
+    p_vd = p_pyramid_class->p_vis_data;
+
+    /* until the visibality data is there just return */
+    /*return; */
+    if(p_vd == NULL)
+    {
+       return;
+    }
+    face_qty = p_vd->face_cnt;
+    face_el = p_vd->face_el;
+    face_fc = p_vd->face_fc;
+    disable_mtl = p_mesh->disable_material;
+    hide_mtl    = p_mesh->hide_material;
+    p_mats      = p_mesh->particle_mats;
+
+    /* Override interpolation mode for material and mesh results. */
+    save_interp_mode = analy->interp_mode;
+    if ( show_mat_result || show_mesh_result )
+        analy->interp_mode = NO_INTERP;
+    
+    activity = analy->state_p->sand_present
+               ? analy->state_p->elem_class_sand[p_pyramid_class->elem_class_index]
+               : NULL;
+
+    /* Abstract the source array for data values and its index. */
+    if ( analy->interp_mode == GOOD_INTERP )
+    {
+        data_array = NODAL_RESULT_BUFFER( analy );
+        p_index_source = &nd;
+    }
+    else if ( show_mat_result )
+    {
+        data_array = ((MO_class_data **) 
+                      p_mesh->classes_by_sclass[G_MAT].list)[0]->data_buffer;
+        p_index_source = &matl;
+    }
+    else if ( show_mesh_result )
+    {
+        mesh_idx = 0;
+        data_array = ((MO_class_data **) 
+                      p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
+        p_index_source = &mesh_idx;
+    }
+    else if ( analy->interp_mode == NO_INTERP && !show_node_result )
+    {
+        data_array = p_pyramid_class->data_buffer;
+        p_index_source = &el;
+    }
+    else
+    {
+        data_array = NODAL_RESULT_BUFFER( analy );
+        p_index_source = &nd;
+    }
+
+    show_result = show_node_result
+                  || result_has_class( analy->cur_result, p_pyramid_class, analy )
+                  || show_mat_result
+                  || show_mesh_result;
+
+   /* If we are drawing particles then look for a particle result and map onto hexes
+     *
+     */
+    /* if ( show_result && analy->free_particles )
+           data_array = analy->pn_buffer_ptr[0]; */
+
+    get_min_max( analy, FALSE, &rmin, &rmax );
+
+    /* Enable color to change AMBIENT & DIFFUSE property of the material. */
+    glEnable( GL_COLOR_MATERIAL );
+
+    /* Throw away backward-facing faces. */
+    glEnable( GL_CULL_FACE );
+
+    /* Set up for polygon drawing. */
+    begin_draw_poly( analy );
+
+    for ( i = 0; i < face_qty; i++ )
+    {
+        el = face_el[i];
+        fc = face_fc[i];
+
+        /*
+         * Remove faces that are shared with quad elements, so
+         * the polygons are not drawn twice.
+         */
+        if ( analy->shared_faces 
+             && p_mesh->classes_by_sclass[G_QUAD].qty > 0 
+             && face_matches_quad( el, fc, p_pyramid_class, p_mesh, analy ) )
+            continue;
+
+ 	/* Check for inactive elements. */
+	if ( activity ) {
+	     if ( activity[el] != 0.0 && analy->show_only_deleted_elements )
+	          continue;
+	     if ( activity[el] == 0.0 && !analy->show_deleted_elements && !analy->show_only_deleted_elements )
+	          continue;
+	}
+        
+        get_pyramid_face_verts( el, fc, p_pyramid_class, analy, verts );
+
+        /* Cull backfacing polygons by hand to speed things up. */
+        if ( !analy->reflect && analy->manual_backface_cull )
+        {
+            for ( j = 0; j < 4; j++ )
+                point_transform( tverts[j], verts[j], &cur_view_mat );
+            VEC_SUB( v1, tverts[2], tverts[0] );
+            VEC_SUB( v2, tverts[3], tverts[1] );
+            VEC_CROSS( nor, v1, v2 );
+            if ( v_win->orthographic )
+            {
+                VEC_SET( ray, 0.0, 0.0, -1.0 );
+            }
+            else
+            {
+                for ( k = 0; k < 3; k++ )
+                    ray[k] = 0.25 * ( tverts[0][k] + tverts[1][k] +
+                                      tverts[2][k] + tverts[3][k] );
+            }
+
+            if ( VEC_DOT( ray, nor ) >= 0.0 )
+                continue;
+        }
+
+        /*
+         * Check for triangular (degenerate) face and reorder nodes
+         * if needed.
+         */
+        cnt = check_for_tri_face( fc, el, p_pyramid_class, verts, ord );
+
+        matl = mtl[el]; 
+
+        if ( v_win->mesh_materials.current_index != matl )
+             change_current_color_property( &v_win->mesh_materials, matl );
+
+
+        /* Colorflag is TRUE if displaying a result, otherwise
+         * polygons are drawn in the material color.
+         */
+	disable_flag = disable_by_object_type( p_pyramid_class, matl, el, analy, data_array );
+
+        colorflag = show_result && !disable_mtl[matl] && !disable_by_object_type( p_pyramid_class, matl, el, analy, data_array );
+
+        colorflag = show_result && !disable_mtl[matl];
+        colorflag = show_result && !disable_mtl[matl] && !disable_by_object_type( p_pyramid_class, matl, el, analy, data_array );
+
+ 	if ( analy->material_greyscale && disable_mtl[matl])
+	     showgs = TRUE;
+	else
+	     showgs = FALSE;  
+
+         /*
+         * Array "ord[4]" represents a map from the order of vertex data
+         * specified by the per-face node ordering to the order needed for
+         * rendering.  For quad's, there is no difference (i.e., "ord"
+         * contains [0, 1, 2, 3].  For tri's, which are actually degenerate
+         * quads with one node repeated, we want the repeated node to be last
+         * as we will only render the first three, so there is potentially
+         * a re-ordering.  This requires all the associated data to be re-
+         * ordered, so the data arrays passed to draw_poly() all have their
+         * data stored taking the original data at position set by "ord[j]" and 
+         * storing it in position "j".
+         */
+        if ( analy->interp_mode == GOOD_INTERP )
+        {
+            for ( j = 0; j < 4; j++ )
+            {
+                nd = connects[el][ fc_nd_nums[fc][ord[j]] ];
+
+                for ( k = 0; k < 3; k++ )
+                    norms[j][k] = p_vd->face_norm[ ord[j] ][k][i];
+                
+                res[j] = data_array[nd];
+            }
+        }
+        else
+        {
+            for ( j = 0; j < 4; j++ )
+            {
+                nd = connects[el][ pyramid_fc_nd_nums[fc][ord[j]] ];
+
+                for ( k = 0; k < 3; k++ )
+                    norms[j][k] = p_vd->face_norm[ ord[j] ][k][i];
+                
+                color_lookup( cols[j], data_array[*p_index_source],
+                              rmin, rmax, analy->zero_result, matl,
+                              analy->logscale, showgs );
+            }
+        }
+
+	hidden_poly_mat = hide_mtl[matl];
+
+	hidden_poly_elem = hide_by_object_type( p_pyramid_class, matl, el, analy, data_array );
+        if ( analy->mesh_view_mode == RENDER_WIREFRAMETRANS )
+	     hidden_poly_elem_wft = disable_by_object_type( p_pyramid_class, matl, el, analy, data_array );
+
+	if ( hidden_poly_mat || hidden_poly_elem || hidden_poly_elem_wft )
+	     hidden_poly = TRUE;
+	else
+	     hidden_poly = FALSE;
+
+	if ( analy->particle_nodes_hide_background && p_mats )
+	     if ( p_mats[matl] )
+	          hidden_poly = TRUE;
+
+        draw_poly( cnt, verts, norms, cols, res, matl, p_mesh, analy, hidden_poly );
+    }
+
+    /* Back to the defaults. */
+    end_draw_poly( analy );
+    glDisable( GL_CULL_FACE );
+    glDisable( GL_COLOR_MATERIAL );
+    analy->interp_mode = save_interp_mode;
 }
 
 
@@ -6082,6 +6365,81 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
 
             break;
 
+        case G_PYRAMID:
+            /* Highlight a pyramid element. */
+
+ 	    /*if ( analy->particle_nodes_enabled && is_particle_class(analy, p_mo_class->superclass, p_mo_class->short_name) )
+	    {
+  	         pn_hilite = TRUE;
+
+                 if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
+		      val = get_free_node_result( analy, p_mo_class, hilite_num, &result_defined, &valid_free_node ); 
+		 else 
+		      val = get_ml_result( analy, p_mo_class, hilite_num, &result_defined );
+
+                 if ( result_defined ) 
+ 		 {
+		      if ( analy->perform_unit_conversion )
+		           val = val * analy->conversion_scale + analy->conversion_offset;
+ 		      sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, val );
+		 }
+		 else
+		      sprintf( label, " %s %d", cname, hilite_label );
+		 
+		 if ( analy->particle_nodes_enabled && is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
+		      get_node_vert_2d_3d( analy->hilite_ml_node, p_mo_class, analy, verts[0] );
+		 else
+		      get_node_vert_2d_3d( hilite_num, p_mo_class, analy, verts[0] );
+		 
+		 vert_cnt = 1;
+		 
+                 for ( i = 0; i < dim; i++ )
+                       leng[i] = analy->bbox[1][i] - analy->bbox[0][i];
+
+                 node_base_radius = 0.01 * (leng[0] + leng[1] + leng[2]) / 3.0;
+
+                 radius = node_base_radius*analy->free_nodes_scale_factor*1.2;
+		 break;
+	    } */
+	    
+            if ( result_has_superclass( analy->cur_result, G_PYRAMID, analy ) )
+	      {
+                val = analy->perform_unit_conversion
+		  ? data_array[hilite_num] * analy->conversion_scale
+		  + analy->conversion_offset
+		  : data_array[hilite_num];
+                sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, 
+                         val );
+	      }
+            else
+	      sprintf( label, " %s %d", cname, hilite_label );
+	    
+            get_pyramid_verts( hilite_num, p_mo_class, analy, verts );
+            vert_cnt = 5;
+	    
+            VEC_SUB( vec, verts[1], verts[0] );
+            leng[0] = VEC_LENGTH( vec );
+            VEC_SUB( vec, verts[3], verts[0] );
+            leng[1] = VEC_LENGTH( vec );
+            VEC_SUB( vec, verts[4], verts[0] );
+            leng[2] = VEC_LENGTH( vec );
+            radius = rfac * (leng[0] + leng[1] + leng[2]) / 3.0;
+
+            /* Outline the element. */
+            glDepthFunc( GL_ALWAYS );
+
+	    /* Set particle select color to a greyscale */
+            glColor3fv( hilite_col );
+            glBegin( GL_LINES );
+            for ( i = 0; i < 8; i++ )
+            {
+                glVertex3fv( verts[pyramid_edge_node_nums[i][0]] );
+                glVertex3fv( verts[pyramid_edge_node_nums[i][1]] );
+            }
+            glEnd();
+            glDepthFunc( GL_LEQUAL );
+
+            break;
         case G_SURFACE:
             /* Highlight a surface facet. */
             p_surface = p_mo_class->objects.surfaces;
@@ -14245,6 +14603,9 @@ Bool_type
 is_elem_class(int superclass)
 {
     if((superclass > M_NODE) && (superclass <= M_HEX))
+    {
+	return TRUE;
+    }else if(superclass == M_PARTICLE)
     {
 	return TRUE;
     }

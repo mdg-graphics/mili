@@ -753,7 +753,7 @@ build_extended_svar_name( char *svdesc, State_variable *p_sv, int * namesize )
                                                     will be required at the end. */
             for( k = p_sv->rank - 1; k >= 0; k--)
             {
-               size += strlen(num_digits(p_sv->dims[k])) + 2; 
+               size += num_digits(p_sv->dims[k]) + 2; 
             }
             
             if(size > *namesize)
@@ -786,7 +786,7 @@ build_extended_svar_name( char *svdesc, State_variable *p_sv, int * namesize )
             
             for ( k = 1; k < p_sv->vec_size; k++ )
             {   
-              size =+  num_digits(p_sv->components[k]) ;
+              size =+  num_digits(strlen(p_sv->components[k])) ;
 
             }
 

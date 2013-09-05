@@ -153,6 +153,9 @@
 /* Macro complement to get_max_state() function. */
 #define GET_MIN_STATE( a ) ( (a)->limit_min_state ? (a)->min_state : 0 )
 
+#ifndef HAVE_WEDGE_PYRAMID
+#define HAVE_WEDGE_PYRAMID
+#endif
 
 /* OpenGL windows. */
 typedef enum
@@ -1770,9 +1773,11 @@ extern Database_type_griz db_type;
 /* faces.c */
 extern int fc_nd_nums[6][4];
 extern int tet_fc_nd_nums[4][3];
+extern int pyramid_fc_nd_nums[5][4];
 extern int edge_face_nums[12][2];
 extern int edge_node_nums[12][2];
 extern int tet_edge_node_nums[6][2];
+extern int pyramid_edge_node_nums[8][2];
 extern void update_hex_adj( Analysis *analy );
 extern void create_hex_adj( MO_class_data *, Analysis * );
 extern void init_hex_visibility( MO_class_data *, Analysis * );
@@ -1783,16 +1788,22 @@ extern void set_tet_visibility( MO_class_data *, Analysis * );
 extern void get_tet_faces( MO_class_data *, Analysis * );
 extern void create_quad_adj( MO_class_data *p_mocd, Analysis *analy );
 extern void create_tri_adj( MO_class_data *p_mocd, Analysis *analy );
+extern void create_pyramid_adj( MO_class_data *p_mocd, Analysis *analy );
+extern void set_pyramid_visibility( MO_class_data *, Analysis * );
+extern void get_pyramid_faces( MO_class_data *, Analysis * );
 extern void free_vis_data( Visibility_data **, int );
 extern void reset_face_visibility( Analysis *analy );
 extern void get_tet_face_verts( int, int, MO_class_data *, Analysis *, 
                                 float [][3] );
 extern void get_hex_face_verts( int, int, MO_class_data *, Analysis *, 
                                 float [][3] );
+extern void get_pyramid_face_verts( int, int, MO_class_data *, Analysis *, 
+                                float [][3] );
 void
 get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class, 
                     Analysis *analy, int *faceNodes );
 extern void get_hex_verts( int, MO_class_data *, Analysis *, float [][3] );
+extern void get_pyramid_verts( int, MO_class_data *, Analysis *, float [][3] );
 extern void get_particle_verts( int, MO_class_data *, Analysis *, float [][3] );
 extern void get_tet_verts( int, MO_class_data *, Analysis *, float [][3] );
 extern void get_tri_verts_3d( int, MO_class_data *, Analysis *, float[][3] );
@@ -1818,6 +1829,7 @@ extern void create_hex_blocks( MO_class_data *, Analysis * );
 extern void create_tet_blocks( MO_class_data *, Analysis * );
 extern void create_quad_blocks( MO_class_data *, Analysis * );
 extern void create_tri_blocks( MO_class_data *, Analysis * );
+extern void create_pyramid_blocks( MO_class_data *, Analysis *);
 extern void free_elem_block( Elem_block_obj **, int );
 extern void write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt, 
                             Analysis *analy );
@@ -2232,6 +2244,9 @@ extern void compute_hex_principal_stress( Analysis *, float *, Bool_type );
 extern void compute_shell_principal_stress( Analysis *, float *, Bool_type );
 extern void compute_shell_surface_stress( Analysis *, float *, Bool_type );
 extern void compute_shell_stress( Analysis *, float *, Bool_type );
+extern void compute_particle_press( Analysis *, float *, Bool_type );
+extern void compute_particle_effstress( Analysis *, float *, Bool_type );
+extern void compute_particle_principal_stress( Analysis *, float *, Bool_type );
 
 /* node.c */
 extern void compute_node_displacement( Analysis *, float *, Bool_type );

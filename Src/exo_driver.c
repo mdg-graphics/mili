@@ -505,10 +505,10 @@ exodus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 case G_TRI:
                 case G_BEAM:
                 case G_TRUSS:
-#ifdef HAVE_WEDGE_PYRAMID
+/*#ifdef HAVE_WEDGE_PYRAMID */
                 case G_WEDGE:
                 case G_PYRAMID:
-#endif
+/* #endif */
                     /* Decrement node id's to put on zero base. */
                     nodes = p_mocd->objects.elems->nodes;
                     node_count = p_mocd->qty * qty_connects[p_mocd->superclass];

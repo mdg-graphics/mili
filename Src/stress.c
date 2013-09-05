@@ -466,6 +466,315 @@ compute_hex_principal_stress( Analysis *analy, float *resultArr,
                       object_ids, analy );
 }
 
+/************************************************************
+ * TAG( compute_particle_press )
+ *
+ * Computes the pressure at a particle given the current stress
+ * tensor for an element.
+ *
+ * Requires a primal vector result "stress[sx, sy, sz, sxy, syz, szx]", 
+ * but only uses the first three components.
+ */
+void 
+compute_particle_press( Analysis *analy, float *resultArr, Bool_type interpolate )
+{
+
+    float *resultElem;
+    float (*stress)[6];
+    int i;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
+
+    /* Just use analy->tmp_result as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) result_buf );
+    
+    /* Compute pressure. */
+    stress = (float (*)[6]) result_buf;
+    
+    if ( object_ids )
+        for ( i = 0; i < obj_qty; i++ )
+            resultElem[object_ids[i]] = -( stress[i][0] + stress[i][1] 
+                                           + stress[i][2] ) 
+                                        * ONETHIRD ;
+    else
+        for ( i = 0; i < obj_qty; i++ )
+            resultElem[i] = -( stress[i][0] + stress[i][1] + stress[i][2] ) 
+                             * ONETHIRD ;
+    
+    /*if ( interpolate )
+        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty, 
+                      object_ids, analy ); */
+
+}
+
+
+/************************************************************
+ * TAG( compute_particle_effstress )
+ *
+ * Computes the effective stress at a particle.
+ */
+void 
+compute_particle_effstress( Analysis *analy, float *resultArr, 
+                       Bool_type interpolate )
+{
+    float *resultElem;
+    /* float *particleStress[6]; */
+    float *particleStress;
+    float devStress[3];
+    float pressure;
+    int obj_qty;
+    int i,j;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int index, elem_idx;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
+
+    /* Just use analy->tmp_result as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) result_buf );
+    
+    for ( i = 0, particleStress = result_buf; i < obj_qty; i++, particleStress += 6 )
+    {
+        pressure = -( particleStress[0] + 
+                      particleStress[1] +  
+                      particleStress[2] ) * ONETHIRD;
+
+        for ( j = 0; j < 3; j++ )
+            devStress[j] = particleStress[j] + pressure;
+
+        elem_idx = ( object_ids ) ? object_ids[i] : i;
+
+        /* 
+         * Calculate effective stress from deviatoric components.
+         * Updated derivation avoids negative square root operand
+         * (UNICOS, of course).
+         */
+        resultElem[elem_idx] = 0.5 * ( devStress[0]*devStress[0]
+                                       + devStress[1]*devStress[1]
+                                       + devStress[2]*devStress[2] )
+                               + particleStress[3]*particleStress[3]
+                               + particleStress[4]*particleStress[4]
+                               + particleStress[5]*particleStress[5] ;
+
+        resultElem[elem_idx] = sqrt( (double)(3.0*resultElem[elem_idx]) );
+    }
+
+    /*if ( interpolate )
+        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty, 
+                      object_ids, analy ); */
+
+}
+
+
+
+/************************************************************
+ * TAG( compute_particle_principal_stress )
+ *
+ * Computes the principal deviatoric stresses and principal
+ * stresses.
+ */
+void
+compute_particle_principal_stress( Analysis *analy, float *resultArr, 
+                              Bool_type interpolate )
+{
+    float *resultElem;               /* Element results vector. */
+    float  *particleStressFlt;            /* Ptr to element stresses. */
+
+    double particleStress[6];
+    double devStress[3];             /* Deviatoric stresses,
+                                        only need diagonal terms. */
+    double Invariant[3];             /* Invariants of tensor. */
+    float  princStress[3];           /* Principal values. */
+    double pressure;
+    float alpha, angle, value;
+    int i, j;
+    float *result_buf;
+    Result *p_result;
+    char **primals;
+    int subrec, srec;
+    int obj_qty;
+    int index, res_index, elem_idx;
+    Subrec_obj *p_subrec;
+    int *object_ids;
+
+    double limit_check=0.0;
+
+
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_result->primals[index];
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    resultElem = p_subrec->p_object_class->data_buffer;
+    
+    if ( strcmp( p_result->name, "pdev1" ) == 0 )
+        res_index = 0;
+    else if ( strcmp( p_result->name, "pdev2" ) == 0 )
+        res_index = 1;
+    else if ( strcmp( p_result->name, "pdev3" ) == 0 )
+        res_index = 2;
+    else if ( strcmp( p_result->name, "maxshr" ) == 0 )
+        res_index = 3;
+    else if ( strcmp( p_result->name, "prin1" ) == 0 )
+        res_index = 4;
+    else if ( strcmp( p_result->name, "prin2" ) == 0 )
+        res_index = 5;
+    else if ( strcmp( p_result->name, "prin3" ) == 0 )
+        res_index = 6;
+    
+    obj_qty = p_subrec->subrec.qty_objects;
+
+    /* Just use analy->tmp_result[0] as an extra long buffer. */
+    result_buf = analy->tmp_result[0];
+    
+    /* Read the database. */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1, 
+                           primals, (void *) result_buf );
+
+    /* Calculate deviatoric stresses. */
+    for ( i = 0, particleStressFlt = result_buf; 
+	  i < obj_qty; i++, 
+	    particleStressFlt += 6 )
+    {
+
+        for ( j=0;
+	      j<6;
+	      j++ )
+	      particleStress[j] = particleStressFlt[j];
+	      
+        /* Calculate pressure. */
+        pressure =  - ( particleStress[0] +
+                        particleStress[1] + 
+                        particleStress[2] ) * ONETHIRD;
+
+        devStress[0] = particleStress[0] + pressure;
+        devStress[1] = particleStress[1] + pressure;
+        devStress[2] = particleStress[2] + pressure;
+
+        /* Calculate invariants of deviatoric tensor. */
+        /* Invariant[0] = 0.0 */
+        Invariant[0] = devStress[0] + devStress[1] + devStress[2];
+        Invariant[1] = 0.5 * ( devStress[0] * devStress[0] 
+                               + devStress[1] * devStress[1] 
+                               + devStress[2] * devStress[2] ) 
+                       + particleStress[3] * particleStress[3] 
+                       + particleStress[4] * particleStress[4] 
+                       + particleStress[5] * particleStress[5];
+        Invariant[2] = -devStress[0] * devStress[1] * devStress[2]
+                       - 2.0 * particleStress[3] * particleStress[4] 
+                         * particleStress[5] 
+                       + devStress[0] * particleStress[4] * particleStress[4]
+                       + devStress[1] * particleStress[5] * particleStress[5] 
+                       + devStress[2] * particleStress[3] * particleStress[3];
+
+
+        /* Check to see if we can have non-zero divisor, if not 
+         * set principal stress to 0.
+         */
+
+	if (Invariant[1]>0.0)
+	    limit_check = fabs(Invariant[2]/Invariant[1]);
+	else limit_check = 0.0;
+
+        if ( limit_check >= 1e-12 )  /* IRC: February 12, 2009 */
+        {
+            alpha = -0.5*sqrt( (double)27.0/Invariant[1])*
+                              Invariant[2]/Invariant[1];
+            if ( alpha < 0 ) 
+                alpha = MAX( alpha, -1.0 );
+            else if ( alpha > 0 )
+                alpha = MIN( alpha, 1.0 );
+            angle = acos((double)alpha) * ONETHIRD;
+            value = 2.0 * sqrt( (double)Invariant[1] * ONETHIRD);
+            princStress[0] = value*cos((double)angle);
+            angle = angle - 2.0*PI * ONETHIRD ;
+            princStress[1] = value*cos((double)angle);
+            angle = angle + 4.0*PI * ONETHIRD;
+            princStress[2] = value*cos((double)angle);
+        }
+        else
+        {
+            princStress[0] = 0.0;
+            princStress[1] = 0.0;
+            princStress[2] = 0.0;
+        }
+
+        elem_idx = ( object_ids ) ? object_ids[i] : i;
+
+        switch ( res_index )
+        {
+            case 0:
+                resultElem[elem_idx] = princStress[0];
+                break;
+            case 1:
+                resultElem[elem_idx] = princStress[1];
+                break;
+            case 2:
+                resultElem[elem_idx] = princStress[2];
+                break;
+            case 3:
+                resultElem[elem_idx] = (princStress[0] - princStress[2])  * ONEHALF;
+                break;
+            case 4:
+                resultElem[elem_idx] = princStress[0] - pressure;
+                break;
+            case 5:
+                resultElem[elem_idx] = princStress[1] - pressure;
+                break;
+            case 6:
+                resultElem[elem_idx] = princStress[2] - pressure;
+                break;
+            default:
+                popup_dialog( WARNING_POPUP,
+                              "Principal stress result index is invalid." );
+        }
+    }
+
+    /* if ( interpolate )
+        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty, 
+                      object_ids, analy ); */
+
+}
+
+
 
 /************************************************************
  * TAG( compute_shell_stress )

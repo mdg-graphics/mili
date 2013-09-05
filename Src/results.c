@@ -805,6 +805,56 @@ static int fnmass_primal_sclasses[] =
 {
     G_NODE
 };
+static char *particle_press_shorts[] = 
+{
+    "press", NULL 
+};
+static char *particle_press_longs[] = 
+{
+    "Pressure", NULL
+};
+static char *particle_press_primals[] = 
+{
+    "stress", NULL 
+};
+static int particle_press_primal_sclasses[] = 
+{
+    G_PARTICLE
+};
+static char *particle_effs_shorts[] = 
+{
+    "seff", NULL 
+};
+static char *particle_effs_longs[] = 
+{
+    "Effective Stress", NULL 
+};
+static char *particle_effs_primals[] = 
+{
+    "stress", NULL 
+};
+static int particle_effs_primal_sclasses[] = 
+{
+    G_PARTICLE
+};
+static char *particle_prin_shorts[] = 
+{
+    "pdev1", "pdev2", "pdev3", "maxshr", "prin1", "prin2", "prin3", NULL 
+};
+static char *particle_prin_longs[] = 
+{
+    "Prin Dev Stress 1", "Prin Dev Stress 2", "Prin Dev Stress 3", 
+    "Maximum Shear Stress", "Principal Stress 1", "Principal Stress 2", 
+    "Principal Stress 3", NULL 
+};
+static char *particle_prin_primals[] = 
+{
+    "stress", NULL 
+};
+static int particle_prin_primal_sclasses[] = 
+{
+    G_PARTICLE
+};
 
 
 Result_candidate possible_results[] = 
@@ -1668,6 +1718,48 @@ Result_candidate possible_results[] =
         fnmass_primal_sclasses
     },
 
+    {
+        G_PARTICLE, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_particle_press,   
+        NULL,
+        particle_press_shorts, 
+        particle_press_longs, 
+        particle_press_primals,
+        particle_press_primal_sclasses
+    }, 
+
+    {
+        G_PARTICLE, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_particle_effstress,   
+        NULL,
+        particle_effs_shorts, 
+        particle_effs_longs, 
+        particle_effs_primals,
+        particle_effs_primal_sclasses
+    },
+
+    {
+        G_PARTICLE, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_particle_principal_stress,   
+        NULL,
+        particle_prin_shorts, 
+        particle_prin_longs, 
+        particle_prin_primals,
+        particle_prin_primal_sclasses
+    }, 
+ 
     {   /* Array terminator */
         QTY_SCLASS, 
         { 0, 0 }, 
@@ -3065,7 +3157,7 @@ load_primal_result_double( Analysis *analy, float *resultArr,
         }
         else
         {
-	    elem_get_minmax( resultElem, (int)NULL, analy );
+	    elem_get_minmax( resultElem, 0 , analy );
         }
     }
     else if ( !p_result->origin.is_node_result )

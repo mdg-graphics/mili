@@ -1,6 +1,4 @@
-/* $Id$ */
-/*
- * faces.c - Routines for generating and modifying the mesh face tables.
+ /* faces.c - Routines for generating and modifying the mesh face tables.
  *
  *      Donald J. Dovey
  *      Lawrence Livermore National Laboratory
@@ -53,6 +51,8 @@ static void tet_face_avg_norm( int, int, MO_class_data *, Analysis *,
                                float * );
 static void hex_face_avg_norm( int, int, MO_class_data *, Analysis *, 
                                float * );
+static void pyramid_face_avg_norm( int, int, MO_class_data *, Analysis *, 
+                               float * );
 /* static void shell_aver_norm(); */
 static void tri_avg_norm( int, MO_class_data *, Analysis *, float * );
 static void quad_avg_norm( int, MO_class_data *, Analysis *, float * );
@@ -61,11 +61,16 @@ static int check_for_triangle( int nodes[4] );
 /* static void face_normals(); */
 static void tet_face_normals( Mesh_data *, Analysis * );
 static void hex_face_normals( Mesh_data *, Analysis * );
+static void pyramid_face_normals( Mesh_data *, Analysis * );
 /* static void shell_normals(); */
 static void quad_normals( Mesh_data *, Analysis * );
 static void surface_normals( Mesh_data *, Analysis * );
 static void tri_normals( Mesh_data *, Analysis * );
 static void select_hex( Analysis *analy, Mesh_data *p_mesh, 
+                        MO_class_data *p_mo_class, float line_pt[3], 
+                        float line_dir[3], int *p_near );
+
+static void select_pyramid( Analysis *analy, Mesh_data *p_mesh, 
                         MO_class_data *p_mo_class, float line_pt[3], 
                         float line_dir[3], int *p_near );
 void
@@ -103,6 +108,8 @@ static void edge_heapsort( int n, int *arrin[3], int *indx, int *face_el,
 static int edge_compare( int, int, int *[3], int *, int *, float *[3] );
 static Edge_list_obj * get_hex_class_edges( float *[3], MO_class_data *, 
                                             Analysis * );
+static Edge_list_obj * get_pyramid_class_edges( float *[3], MO_class_data *, 
+                                            Analysis * );
 static Edge_list_obj * get_tet_class_edges( float *[3], MO_class_data *, 
                                             Analysis * );
 static Edge_list_obj * get_quad_class_edges( float *[3], MO_class_data *, 
@@ -122,7 +129,8 @@ extern float calc_particle_radius( Analysis *analy, float scale_factor_input );
  */
 float crease_threshold = 0.927;
 
-/* Default angle for explicit edge detection is 44 degrees. */
+/* Default angle for explicit edge detection is 44 degrees. Note that 
+ * cos(44) = 0.719 which is the explicit_threshold*/
 float explicit_threshold = 0.719;
 
 /* Used in load_hex_adj(). */
@@ -151,6 +159,29 @@ int tet_fc_nd_nums[4][3] = { {0, 1, 3},
  */
 int tet_edge_node_nums[6][2] = { {0,1}, {0,2}, {0,3}, {1,2}, {1,3}, {2,3} };
 
+/**/
+/* Check if Dyna has anything to say about pyramid face definition */
+/*****************************************************************
+ * TAG( pyramid_fc_nd_nums )
+ *
+ * Table which gives the nodes corresponding to each face of a
+ * pyramid element.
+ *
+ */
+int pyramid_fc_nd_nums[5][4] = { {0, 3, 2, 1},
+                                 {0, 1, 4, 4},
+                                 {3, 0, 4, 4},
+                                 {1, 2, 4, 4},
+                                 {2, 3, 4, 4} };
+
+/*****************************************************************
+ * TAG( pyramid_edge_node_nums )
+ *
+ * Table which gives the numbers of the nodes at the ends of
+ * each edge on a pyramid element.
+ */
+int pyramid_edge_node_nums[8][2] = { {0,1}, {0,3}, {1,2}, {2,3},
+                                 {0,4}, {1,4}, {2,4}, {3,4} };
 
 /*****************************************************************
  * TAG( fc_nd_nums )
@@ -403,6 +434,44 @@ create_hex_adj( MO_class_data *p_mocd, Analysis *analy )
      *      Computer Graphics and Flow Visualization in Computational
      *      Fluid Dynamics, VKI Lecture Series #10, Brussels, Sept 16-20
      *      1991.
+     *
+     * "The face table to be constructed has six or seven entries for each face.  The first four
+     * entries are the indices of the four nodes that define the face.  The elements supported
+     * have either quadrilateral or triangular faces.  The fifth contains the face number.  The 
+     * sixth entry is a pointer to the next face in the list which contains the same minimum 
+     * node index (a zero indicates the end of the list).  This produces a 'threaded list' based
+     * on the lowest numbered node of each face.  This list can be quickly processed and a face
+     * can be found without extensive searching.  In addition to the face table there is a 
+     * node table with one entry per node which points to the first face which involved that node.
+     *
+     * When the initialization process begins, the node and face tables are all zeros.  They 
+     * are filled up progressively by processing all of the cells in the domain.  Each cell
+     * has four to six faces that have pointers to the three or four nodes which define the faces.
+     * For each face the process is as follows:
+     *
+     * Let n1, n2, n3, and optionally n4 be the indices of the nodes that define the new face.
+     * Nmin is the minimum of the node numbers. The node table is used to see if there is already
+     * a face in the face table which involves node Nmin.  This not, then this new face is added
+     * to the face table by setting the first four entries equal to n1, n2, n3, and n4 and the
+     * fifth to the cell index with a face number flag.  The node table entry for Nmin is 
+     * adjusted to point to the new face.
+     *
+     * If there is an entry in the node table, then all the nodes of that entry in the table are
+     * compared to n1, n2, n3, and n4.  Th these match, then the table face is the same as the new
+     * face. The appropriate entries in the connectivity tables for the current face/cell and the
+     * face/cell stored in the table entry are set to point to each other.  The fifth entry of
+     * the face table is also set to indicate that the face is complete.
+     *
+     * If the table face does not match then the whole process is repeated with the next face in
+     * the table which uses the node Nmin, by using the pointer in entry six. This continues until
+     * one either finds a match for the new face, or runs out of faces which use the node Nmin. In
+     * the latter case the new face does not currently exist in the face table and so it is added.
+     * Also, the sixth entry of the face that used to be the last involving node Nmin is set to
+     * point to the new face in the table which is now the last entry.
+     *
+     * When all the cells have been process, those entries in the face table that still have cell
+     * numbers in the fifth position are faces that bound the volume.  These are compared against
+     * the programmer-supplied bounding surface face definitions for consistency."
      */
     
     hex_adj = p_mocd->p_vis_data->adjacency;
@@ -1248,6 +1317,157 @@ create_tri_adj( MO_class_data *p_mocd, Analysis *analy )
 }
 
 
+
+/************************************************************
+ * TAG( create_pryamid_adj )
+ *
+ * Compute pyramidal element adjacency information and create
+ * the element adjacency table.  The routine uses a bucket
+ * sort with approximately linear complexity.
+ */
+void
+create_pyramid_adj( MO_class_data *p_mocd, Analysis *analy )
+{
+    int (*connects)[5];
+    Bool_type has_degen;
+    int **pyramid_adj;
+    int *node_tbl;
+    int *face_tbl[7];
+    int face_entry[6];
+    int pcnt, ncnt, tbl_sz, free_ptr;
+    int *idx, new_idx, tmp;
+    int el, fc, elem1, face1, elem2, face2;
+    int i, j;
+
+    /*
+     * The table face_tbl contains for each face entry
+     *
+     *     node1 node2 node3 node4 element face next
+     *
+     * The table pyramid_adj contains for each pyramid element
+     
+     *     neighbor_elem1 n_elem2 n_elem3 n_elem4 n_elem5 
+     *
+     * If a pyramid element has no neighbor adjacent to one of its faces,
+     * that face neighbor is marked with a -1 in the pyramid_adj table.
+     *
+     * For algorithm see:
+     *
+     *      "Visual3 - A Software Environment for Flow Visualization,"
+     *      Computer Graphics and Flow Visualization in Computational
+     *      Fluid Dynamics, VKI Lecture Series #10, Brussels, Sept 16-20
+     *      1991.
+     */
+    
+    connects = (int (*)[5]) p_mocd->objects.elems->nodes;
+    pyramid_adj = p_mocd->p_vis_data->adjacency;
+    pcnt = p_mocd->qty;
+    ncnt = analy->mesh_table[p_mocd->mesh_id].node_geom->qty;
+    has_degen = p_mocd->objects.elems->has_degen;
+
+    /* Arbitrarily set the table size. */
+    if ( p_mocd->p_elem_block->num_blocks > 1 )
+        tbl_sz = 5 * pcnt / 10;
+    else
+        tbl_sz = 5 * pcnt;
+
+    /* Allocate the tables and initialize table pointers. */
+    node_tbl = NEW_N( int, ncnt, "Node table" );
+    for ( i = 0; i < ncnt; i++ )
+        node_tbl[i] = -1;
+
+    for ( i = 0; i < 7; i++ )
+        face_tbl[i] = NEW_N( int, tbl_sz, "Face table" );
+    for ( i = 0; i < tbl_sz; i++ )
+        face_tbl[6][i] = i + 1;
+    face_tbl[6][tbl_sz-1] = -1;
+    free_ptr = 0;
+    /*
+     * Initialize the adjacency table so all neighbors are NULL.
+     */
+    for ( i = 0; i < pcnt; i++ )
+        for ( j = 0; j < 5; j++ )
+            pyramid_adj[j][i] = -1;
+
+    /*
+     * Table generation loop.
+     */
+    for ( el = 0; el < pcnt; el++ )
+        for ( fc = 0; fc < 5; fc++ )
+        {
+            /* Get nodes for a face. */
+            for ( i = 0; i < 4; i++ )
+                face_entry[i] = connects[el][ pyramid_fc_nd_nums[fc][i] ];
+            face_entry[4] = el;
+            face_entry[5] = fc;
+
+            /* Order the node numbers in ascending order. */
+            for ( i = 0; i < 3; i++ )
+                for ( j = i+1; j < 4; j++ )
+                    if ( face_entry[i] > face_entry[j] )
+                        SWAP( tmp, face_entry[i], face_entry[j] );
+
+            /* Check for degenerate element faces. */
+            if ( has_degen )
+            {
+                /* If face is degenerate (pt or line), skip it. */
+                if ( face_entry[0] == face_entry[1]
+                     || face_entry[1] == face_entry[2] )
+                    continue;
+            }
+
+            /* Search chain for first node and seek a face match. */
+            idx = &node_tbl[face_entry[0]];
+            while ( *idx >= 0 )
+            {
+                if ( face_entry[0] != face_tbl[0][*idx] 
+                     || face_entry[1] != face_tbl[1][*idx] 
+                     || face_entry[2] != face_tbl[2][*idx]
+                     || face_entry[3] != face_tbl[3][*idx] )
+                    idx = &face_tbl[6][*idx];
+            }
+
+            if ( *idx >= 0 )
+            {
+                /*
+                 * The face is repeated, so make the two elements
+                 * that share the face point to each other.
+                 */
+                elem1 = face_entry[3];
+                face1 = face_entry[4];
+                elem2 = face_tbl[3][ *idx ];
+                face2 = face_tbl[4][ *idx ];
+                pyramid_adj[ face1 ][ elem1 ] = elem2;
+                pyramid_adj[ face2 ][ elem2 ] = elem1;
+
+                /* Put the face entry on the free list. */
+                tmp = face_tbl[5][*idx];
+                face_tbl[5][*idx] = free_ptr;
+                free_ptr = *idx;
+                *idx = tmp;
+            }
+            else
+            {
+                /* Create a new face entry and append it to node list. */
+                if ( free_ptr < 0 )
+                    double_table_size( &tbl_sz, face_tbl, &free_ptr, 6 );
+                new_idx = free_ptr;
+                free_ptr = face_tbl[6][free_ptr];
+
+                for ( i = 0; i < 6; i++ )
+                    face_tbl[i][new_idx] = face_entry[i];
+                face_tbl[6][new_idx] = -1;
+                *idx = new_idx;
+            }
+        }
+
+    /* Free the tables. */
+    free( node_tbl );
+    for ( i = 0; i < 6; i++ )
+        free( face_tbl[i] );
+}
+
+
 /************************************************************
  * TAG( double_table_size )
  *
@@ -1805,6 +2025,117 @@ set_particle_visibility( MO_class_data *p_part_class, Analysis *analy )
     }
 }
 
+
+
+ /************************************************************
+ * TAG( set_pyramid_visibility )
+ *
+ * Set the visibility flag for each element.  Takes into
+ * account element activity, invisible materials and roughcut
+ * planes.
+ */
+void
+set_pyramid_visibility( MO_class_data *p_pyramid_class, Analysis *analy ) 
+{
+    Plane_obj *plane;
+    unsigned char *pyramid_visib, *pyramid_visib_damage, *hide_mtl;
+    int *materials;
+    float *activity;
+    Bool_type hidden_matls;
+    int pyramid_qty, mtl_qty;
+    int i;
+    
+    Bool_type hide_obj=FALSE;
+
+    int hide_qty = 0;
+    int damage_count = 0;
+   
+    pyramid_visib        = p_pyramid_class->p_vis_data->visib;
+    pyramid_visib_damage = p_pyramid_class->p_vis_data->visib_damage;
+
+    hide_qty = analy->mesh_table[p_pyramid_class->mesh_id].hide_brick_elem_qty +
+               analy->mesh_table[p_pyramid_class->mesh_id].hide_shell_elem_qty +
+               analy->mesh_table[p_pyramid_class->mesh_id].hide_truss_elem_qty +
+               analy->mesh_table[p_pyramid_class->mesh_id].hide_beam_elem_qty;
+
+    if ( hide_qty>0 )
+         hide_obj=TRUE;
+    
+    hide_mtl = analy->mesh_table[p_pyramid_class->mesh_id].hide_material;
+    materials = p_pyramid_class->objects.elems->mat;
+    pyramid_qty = p_pyramid_class->qty;
+    activity = analy->state_p->sand_present
+               ? analy->state_p->elem_class_sand[p_pyramid_class->elem_class_index] 
+                 : NULL;
+
+    /* Initialize all elements to be visible. */
+    for ( i = 0; i < pyramid_qty; i++ )
+          pyramid_visib[i] = TRUE;
+
+    if ( analy->draw_wireframe_trans )
+         return;
+
+    /*
+     * If pyramid element is inactive (0.0) then it is invisible.
+     */
+    if ( activity )
+    {
+         for ( i = 0; i < pyramid_qty; i++ ) {
+               if ( activity[i] == 0.0 )
+                    pyramid_visib[i] = FALSE;
+	       if ( activity[i] == 0.0 && (analy->show_deleted_elements || analy->show_only_deleted_elements) )
+	            pyramid_visib[i] = TRUE; 
+	       if ( activity[i] != 0.0 && analy->show_only_deleted_elements )
+	            pyramid_visib[i] = FALSE;
+	 }
+    }
+
+    /*
+     * If pyramid element material is hidden then it is invisible.
+     */
+    hidden_matls = FALSE;
+    mtl_qty = analy->mesh_table[p_pyramid_class->mesh_id].material_qty;
+    for ( i = 0; i < mtl_qty; i++ )
+          if ( hide_mtl[i] )
+               hidden_matls = TRUE;
+
+    if ( hidden_matls || hide_obj )
+    {
+        for ( i = 0; i < pyramid_qty; i++ )
+            if ( hide_mtl[materials[i]] 
+		 || hide_by_object_type( p_pyramid_class, materials[i], i, analy, NULL ) )
+                    pyramid_visib[i] = FALSE;
+    }
+
+    /*
+     * Perform the roughcuts.
+     */
+    /*if ( analy->show_roughcut )
+    {
+        for ( plane = analy->cut_planes; plane != NULL; plane = plane->next )
+            pyramid_rough_cut( plane->pt, plane->norm, p_pyramid_class,
+                           analy->state_p->nodes.nodes3d, pyramid_visib );
+    } */
+
+    /*
+     * Set the visibility for damaged elements.
+     */
+
+    /* Added 09/15/04: IRC - The field visib_damage is used to control the 
+     * display of damaged elements. 
+     */
+    if (analy->damage_hide && analy->damage_result)
+      {
+        pyramid_visib_damage = p_pyramid_class->p_vis_data->visib_damage;
+        for ( i = 0; i < pyramid_qty; i++ )
+            if ( pyramid_visib_damage[i] )
+               {
+               pyramid_visib[i] = FALSE;
+               damage_count++;
+               }
+      }
+}
+
 /************************************************************
  * TAG( tet_rough_cut )
  *
@@ -2134,6 +2465,113 @@ get_tet_faces( MO_class_data *p_tet_class, Analysis *analy )
 }
 
 
+
+/************************************************************
+ * TAG( get_pyramid_faces )
+ *
+ * Regenerate the volume element face lists from the element
+ * adjacency information.  Assumes that pyramid adjacency has been
+ * computed and pyramid visibility has been set.
+ */
+void
+get_pyramid_faces( MO_class_data *p_pyramid_class, Analysis *analy )
+{
+    int **pyramid_adj;
+    unsigned char *pyramid_visib;
+    int *face_el;
+    int *face_fc;
+    int pcnt, fcnt, m1, m2;
+    int i, j;
+    Visibility_data *p_vd;
+    Mesh_data *p_md;
+    int *mat;
+
+    pcnt = p_pyramid_class->qty;
+    p_vd = p_pyramid_class->p_vis_data;
+    p_md = analy->mesh_table + p_pyramid_class->mesh_id;
+    mat = p_pyramid_class->objects.elems->mat;
+
+    /* Free up old face lists. */
+    if ( p_vd->face_el != NULL )
+    {
+        free( p_vd->face_el );
+        free( p_vd->face_fc );
+        for ( i = 0; i < 4; i++ )
+            for ( j = 0; j < 3; j++ )
+                free( p_vd->face_norm[i][j] );
+    }
+
+    /* Faster references. */
+    pyramid_adj = p_vd->adjacency;
+    pyramid_visib = p_vd->visib;
+
+    /* Count the number of external faces. */
+    for ( fcnt = 0, i = 0; i < pcnt; i++ )
+        if ( pyramid_visib[i] )
+            for ( j = 0; j < 5; j++ )
+            {
+                if ( pyramid_adj[j][i] < 0 || !pyramid_visib[ pyramid_adj[j][i] ] )
+                    fcnt++;
+                else if ( p_md->translate_material )
+                {
+                    /* Material translations can expose faces. */
+                    m1 = mat[i];
+                    m2 = mat[ pyramid_adj[j][i] ];
+                    if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
+                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
+                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
+                        fcnt++;
+                }
+            }
+    p_vd->face_cnt = fcnt;
+
+    /* Allocate new face lists. */
+    p_vd->face_el = NEW_N( int, fcnt, "Face element table" );
+    p_vd->face_fc = NEW_N( int, fcnt, "Face side table" );
+    for ( i = 0; i < 4; i++ )
+        for ( j = 0; j < 3; j++ )
+            p_vd->face_norm[i][j] = NEW_N( float, fcnt, "Face normals" );
+
+    /* Faster references. */
+    face_el = p_vd->face_el;
+    face_fc = p_vd->face_fc;
+
+    /* Build the tables. */
+    for ( fcnt = 0, i = 0; i < pcnt; i++ )
+        if ( pyramid_visib[i] )
+            for ( j = 0; j < 5; j++ )
+            {
+                if ( pyramid_adj[j][i] < 0 || !pyramid_visib[ pyramid_adj[j][i] ] )
+                {
+                    face_el[fcnt] = i;
+                    face_fc[fcnt] = j;
+                    fcnt++;
+                }
+                else if ( p_md->translate_material )
+                {
+                    /* Material translations can expose faces. */
+                    m1 = mat[i];
+                    m2 = mat[ pyramid_adj[j][i] ];
+                    if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
+                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
+                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
+                    {
+                        face_el[fcnt] = i;
+                        face_fc[fcnt] = j;
+                        fcnt++;
+                    }
+                }
+            }
+
+   /*
+    * Keep in mind that the face normals still need to be computed.
+    * This routine allocates space for the face normals but does not
+    * compute them.
+    */
+}
+
+
+
 /************************************************************
  * TAG( reset_face_visibility )
  *
@@ -2347,6 +2785,86 @@ get_hex_verts( int elem, MO_class_data *p_hex_class, Analysis *analy,
     }
 }
 
+
+/************************************************************
+ * TAG( get_pyramid_verts )
+ *
+ * Return the vertices of a pyramid element.
+ */
+void
+get_pyramid_verts( int elem, MO_class_data *p_pyramid_class, Analysis *analy, 
+               float verts[][3] )
+{
+    GVec3D *nodes, *onodes;
+    int (*connects)[5];
+    float orig;
+    int nd, i, j;
+
+    nodes = analy->state_p->nodes.nodes3d;
+    onodes = (GVec3D *) analy->cur_ref_state_data;
+    connects = (int (*)[5]) p_pyramid_class->objects.elems->nodes;
+
+    for ( i = 0; i < 5; i++ )
+    {
+        nd = connects[elem][i];
+
+        if ( analy->displace_exag )
+        {
+            /* Scale the node displacements. */
+            for ( j = 0; j < 3; j++ )
+            {
+                orig = onodes[nd][j];
+                verts[i][j] = orig + analy->displace_scale[j]
+                              * (nodes[nd][j] - orig);
+            }
+        }
+        else
+        {
+            for ( j = 0; j < 3; j++ )
+                verts[i][j] = nodes[nd][j];
+        }
+    }
+}
+
+/************************************************************
+ * TAG( get_pyramid_face_verts )
+ *
+ * Return the vertices of a pyramid element face.
+ */
+void
+get_pyramid_face_verts( int elem, int face, MO_class_data *p_pyramid_class, 
+                    Analysis *analy, float verts[][3] )
+{
+    float orig;
+    int nd, i, j;
+    int (*connects)[5];
+    GVec3D *nodes, *onodes;
+    
+    connects = (int (*)[5]) p_pyramid_class->objects.elems->nodes;
+    nodes = analy->state_p->nodes.nodes3d;
+    onodes = (GVec3D *) analy->cur_ref_state_data;
+   
+    for ( i = 0; i < 4; i++ )
+    {
+        nd = connects[elem][ pyramid_fc_nd_nums[face][i] ];
+
+        if ( analy->displace_exag )
+        {
+            /* Scale the node displacements. */
+            for ( j = 0; j < 3; j++ )
+            {
+                orig = onodes[nd][j];
+                verts[i][j] = orig + analy->displace_scale[j]*
+                              (nodes[nd][j] - orig);
+            }
+        }
+        else
+        {
+            for ( j = 0; j < 3; j++ )
+                verts[i][j] = nodes[nd][j];
+        }
+    }
+}
 
 /************************************************************
  * TAG( get_particle_verts )
@@ -2886,6 +3404,29 @@ hex_face_avg_norm( int elem, int face, MO_class_data *p_hex_class,
     vec_norm( norm );
 }
 
+/************************************************************
+ * TAG( pyramid_face_avg_norm )
+ *
+ * Return the average normal of a pyramid face.
+ */
+static void
+pyramid_face_avg_norm( int elem, int face, MO_class_data *p_pyramid_class, 
+                   Analysis *analy, float *norm )
+{
+    float vert[4][3];
+    float v1[3], v2[3];
+
+    get_pyramid_face_verts( elem, face, p_pyramid_class, analy, vert );
+
+    /*
+     * Get an average normal by taking the cross-product of the
+     * diagonals.  This handles triangular faces correctly.
+     */
+    VEC_SUB( v1, vert[2], vert[0] );
+    VEC_SUB( v2, vert[3], vert[1] );
+    VEC_CROSS( norm, v1, v2 );
+    vec_norm( norm );
+}
 
 /************************************************************
  * TAG( tri_avg_norm )
@@ -3515,6 +4056,175 @@ hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
 
 
 /************************************************************
+ * TAG( pyramid_face_normals )
+ *
+ * Recalculate the vertex normals for the pyramid element faces.
+ */
+static void
+pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
+{
+    float **node_norm;
+    int *face_el;
+    int *face_fc;
+    int face_qty;
+    float f_norm[3], n_norm[3];
+    float dot;
+    int i, j, k, l, el, face, nd, nds[4], num_nds;
+    int (*connects)[5];
+    MO_class_data **pp_mocd;
+    MO_class_data *p_mocd;
+    int class_qty;
+    Visibility_data *p_vd;
+    Bool_type has_degen;
+
+    /*
+     * Steps are as follows:
+     *
+     * 1.) Calculate face normals.
+     * 2.) Calculate averaged node normals.
+     * 3.) Plug either the average face normal or the average node normal
+     *     into the face node normals.
+     */
+    
+    pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_PYRAMID].list;
+    class_qty = p_mesh->classes_by_sclass[G_PYRAMID].qty;
+    node_norm = analy->node_norm;
+ 
+    /*
+     * Compute an average normal for each face.
+     */
+    for ( i = 0; i < class_qty; i++ )
+    {
+        p_mocd = pp_mocd[i];
+        p_vd = p_mocd->p_vis_data;
+        face_qty = p_vd->face_cnt;
+        face_el = p_vd->face_el;
+        face_fc = p_vd->face_fc;
+        
+        for ( j = 0; j < face_qty; j++ )
+        {
+            el = face_el[j];
+            face = face_fc[j];
+
+            pyramid_face_avg_norm( el, face, p_mocd, analy, f_norm );
+
+            /* Stick the average normal into the first vertex normal. */
+            for ( k = 0; k < 3; k++ )
+                p_vd->face_norm[0][k][j] = f_norm[k];
+
+            /* If flat shading, put average into all four vertex normals. */
+            if ( !analy->normals_smooth )
+                for ( k = 1; k < 4; k++ )
+                    for ( l = 0; l < 3; l++ )
+                        p_vd->face_norm[k][l][j] = f_norm[l];
+        }
+    }
+    /*
+     * For flat shading, we're done so return.
+     */
+    if ( !analy->normals_smooth )
+        return;
+
+    /*
+     * We must be smooth shading.  Zero out the node normals array.
+     */
+    for ( i = 0; i < 3; i++ )
+        memset( node_norm[i], 0, p_mesh->node_geom->qty * sizeof( float ) );
+ 
+    /*
+     * Compute average normals at each of the nodes.
+     */
+    for ( i = 0; i < class_qty; i++ )
+    {
+        p_mocd = pp_mocd[i];
+        connects = (int (*)[5]) p_mocd->objects.elems->nodes;
+        has_degen = p_mocd->objects.elems->has_degen;
+        p_vd = p_mocd->p_vis_data;
+        face_qty = p_vd->face_cnt;
+        face_el = p_vd->face_el;
+        face_fc = p_vd->face_fc;
+        
+        for ( j = 0; j < face_qty; j++ )
+        {
+            el = face_el[j];
+            face = face_fc[j];
+
+            for ( k = 0; k < 4; k++ )
+                nds[k] = connects[el][ fc_nd_nums[face][k] ];
+
+            /* Check for triangular (degenerate) face. */
+            num_nds = 4;
+            if ( has_degen )
+                num_nds = check_for_triangle( nds );
+
+            for ( k = 0; k < num_nds; k++ )
+            {
+                for ( l = 0; l < 3; l++ )
+                    node_norm[l][nds[k]] += p_vd->face_norm[0][l][j];
+            }
+        }
+
+        /*
+         * Note that the node normals still need to be normalized.
+         */
+    }
+ 
+    /*
+     * Compare average normals at nodes with average normals on faces
+     * to determine which normal to store for each face vertex.
+     */
+    for ( i = 0; i < class_qty; i++ )
+    {
+        p_mocd = pp_mocd[i];
+        connects = (int (*)[5]) p_mocd->objects.elems->nodes;
+        p_vd = p_mocd->p_vis_data;
+        face_qty = p_vd->face_cnt;
+        face_el = p_vd->face_el;
+        face_fc = p_vd->face_fc;
+        
+        for ( j = 0; j < face_qty; j++ )
+        {
+            el = face_el[j];
+            face = face_fc[j];
+
+            for ( k = 0; k < 3; k++ )
+                f_norm[k] = p_vd->face_norm[0][k][j];
+
+            for ( k = 0; k < 4; k++ )
+            {
+                nd = connects[el][ fc_nd_nums[face][k] ];
+
+                for ( l = 0; l < 3; l++ )
+                    n_norm[l] = node_norm[l][nd];
+                vec_norm( n_norm );
+     
+                /*
+                 * Dot product test.
+                 */
+                dot = VEC_DOT( f_norm, n_norm );
+     
+                /*
+                 * Magical constant.  An edge is detected when the angle
+                 * between normals is greater than a critical angle.
+                 */
+                if ( dot < crease_threshold )
+                {
+                    /* Edge detected, use face normal. */
+                    for ( l = 0; l < 3; l++ )
+                        p_vd->face_norm[k][l][j] = f_norm[l];
+                }
+                else
+                {
+                    /* No edge, use node normal. */
+                    for ( l = 0; l < 3; l++ )
+                        p_vd->face_norm[k][l][j] = n_norm[l];
+                }
+           }
+        }
+    }
+}
+
+/************************************************************
  * TAG( tri_normals )
  *
  * Recalculate the vertex normals for the tri elements.
@@ -3618,7 +4328,7 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
             for ( k = 0; k < 3; k++ )
                 f_norm[k] = p_vd->face_norm[0][k][j];
      
-            for ( k = 0; k < 4; k++ )
+            for ( k = 0; k < 3; k++ )
             {
                 nd = connects[j][k];
 
@@ -3959,7 +4669,7 @@ compute_normals( Analysis *analy )
     Mesh_data *p_md;
     static int eval_order[] = 
     {
-        G_TRI, G_QUAD, G_TET, G_HEX, G_SURFACE
+        G_TRI, G_QUAD, G_TET, G_PYRAMID, G_HEX, G_SURFACE
     };
     
     for ( i = 0; i < analy->mesh_qty; i++ )
@@ -3981,6 +4691,10 @@ compute_normals( Analysis *analy )
                 case G_TET:
                     if ( p_md->classes_by_sclass[G_TET].qty != 0 )
                         tet_face_normals( p_md, analy );
+                    break;
+                case G_PYRAMID:
+                    if ( p_md->classes_by_sclass[G_PYRAMID].qty != 0 )
+                        pyramid_face_normals( p_md, analy );
                     break;
                 case G_HEX:
                     if ( p_md->classes_by_sclass[G_HEX].qty != 0 )
@@ -4542,6 +5256,10 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
             select_tet( analy, MESH_P( analy ), p_mo_class, line_pt, line_dir, 
                         &near_num );
             break;
+        case G_PYRAMID:
+            select_pyramid( analy, MESH_P( analy ), p_mo_class, line_pt, line_dir, 
+                        &near_num );
+            break;
         case G_PARTICLE:
 	  select_node( analy, MESH_P( analy ), TRUE, line_pt, line_dir, &near_num );
             break;
@@ -4618,6 +5336,129 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
  */
 static void
 select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class, 
+            float line_pt[3], float line_dir[3], int *p_near )
+{
+    float verts[4][3];
+    GVec3D *nodes3d, *onodes3d;
+    int (*connects)[5];
+    int j, k, l;
+    int *face_el, *face_fc;
+    int face_cnt;
+    int el, fc, nd, near_num;
+    Visibility_data *p_vd;
+    float pt[3], vec[3], v1[3], v2[3];
+    float near_dist, orig, dist;
+    
+    near_dist = MAXFLOAT;
+    
+    connects = (int (*)[5]) p_mo_class->objects.elems->nodes;
+    nodes3d = analy->state_p->nodes.nodes3d;
+    p_vd = p_mo_class->p_vis_data;
+    face_el = p_vd->face_el;
+    face_fc = p_vd->face_fc;
+    face_cnt = p_vd->face_cnt;
+
+    if ( analy->displace_exag )
+    {
+        onodes3d = (GVec3D *) analy->cur_ref_state_data;
+        
+        for ( j = 0; j < face_cnt; j++ )
+        {
+            el = face_el[j];
+            fc = face_fc[j];
+
+            /* Scale the node displacements. */
+            for ( l = 0; l < 4; l++ )
+            {
+                nd = connects[el][ pyramid_fc_nd_nums[fc][l] ];
+                for ( k = 0; k < 3; k++ )
+                {
+                    orig = onodes3d[nd][k];
+                    verts[l][k] = orig + analy->displace_scale[k]*
+                                  (nodes3d[nd][k] - orig);
+                }
+            }
+
+            VEC_SUB( v1, verts[2], verts[0] );
+            VEC_SUB( v2, verts[3], verts[1] );
+            VEC_CROSS( vec, v1, v2 );
+            vec_norm( vec );
+
+            /* Test for backfacing face. */
+            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
+                continue;
+            
+            if ( intersect_line_quad( verts, line_pt, line_dir, pt ) )
+            {
+                VEC_SUB( vec, pt, line_pt );
+                dist = VEC_DOT( vec, vec );     /* Skip the sqrt. */
+
+                if ( dist < near_dist )
+                {
+                    near_num = el;
+                    near_dist = dist;
+                }
+            }
+        }
+    }
+    else /* No displacement scaling. */
+    {
+        for ( j = 0; j < face_cnt; j++ )
+        {
+            el = face_el[j];
+            fc = face_fc[j];
+
+            for ( l = 0; l < 4; l++ )
+            {
+                nd = connects[el][ pyramid_fc_nd_nums[fc][l] ];
+                for ( k = 0; k < 3; k++ )
+                    verts[l][k] = nodes3d[nd][k];
+            }
+
+            VEC_SUB( v1, verts[2], verts[0] );
+            VEC_SUB( v2, verts[3], verts[1] );
+            VEC_CROSS( vec, v1, v2 );
+            vec_norm( vec );
+
+            /* Test for backfacing face. */
+            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
+                continue;
+              
+            if ( intersect_line_quad( verts, line_pt, line_dir, pt ) )
+            {
+                VEC_SUB( vec, pt, line_pt );
+                dist = VEC_DOT( vec, vec );     /* Skip the sqrt. */
+
+                if ( dist < near_dist )
+                {
+                    near_num = el;
+                    near_dist = dist;
+                }
+            }
+        }
+    }
+
+    /* If we didn't hit an element. */
+    if ( near_dist == MAXFLOAT )
+    {
+        parse_command( "clrhil", env.curr_analy );
+        popup_dialog( INFO_POPUP, "No %s (%s) element hit.", 
+                      p_mo_class->short_name, p_mo_class->long_name );
+        *p_near = 0;
+    }
+    else
+        *p_near = near_num + 1;
+}
+
+
+
+/************************************************************
+ * TAG( select_pyramid )
+ *
+ * Select a pyramid element from a screen pick.
+ */
+static void
+select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class, 
             float line_pt[3], float line_dir[3], int *p_near )
 {
     float verts[4][3];
@@ -4731,7 +5572,6 @@ select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     else
         *p_near = near_num + 1;
 }
-
 
 /************************************************************
  * TAG( select_tet )
@@ -6076,7 +6916,7 @@ get_mesh_edges( int mesh_id, Analysis *analy )
     Mesh_data *p_md;
     static int eval_order[] = 
     {
-        G_TRI, G_QUAD, G_TET, G_HEX
+        G_TRI, G_QUAD, G_TET, G_PYRAMID, G_HEX
     };
     List_head *p_lh;
     Edge_list_obj *p_elo, *p_mesh_elo;
@@ -6109,6 +6949,10 @@ get_mesh_edges( int mesh_id, Analysis *analy )
             case G_TET:
                 p_lh = p_md->classes_by_sclass + G_TET;
                 edge_func = get_tet_class_edges;
+                break;
+            case G_PYRAMID:
+                p_lh = p_md->classes_by_sclass + G_PYRAMID;
+                edge_func = get_pyramid_class_edges;
                 break;
             case G_HEX:
                 p_lh = p_md->classes_by_sclass + G_HEX;
@@ -6300,6 +7144,163 @@ get_hex_class_edges( float *mtl_trans[3], MO_class_data *p_hex_class,
 
 
 /************************************************************
+ * TAG( get_pyramid_class_edges )
+ *
+ * Generate the mesh edge list for the currently displayed
+ * faces.  Looks for boundaries of material regions and
+ * for crease edges which exceed a threshold angle.
+ */
+static Edge_list_obj *
+get_pyramid_class_edges( float *mtl_trans[3], MO_class_data *p_pyramid_class, 
+                     Analysis *analy )
+{
+    float norm[3], norm_next[3], dot;
+    int *edge_tbl[3];
+    int *m_edges[2], *m_edge_mtl;
+    int *ord;
+    int *mat;
+    int el, fc, el_next, fc_next, node1, node2, tmp;
+    int fcnt, ecnt, m_edges_cnt;
+    int i, j;
+    Visibility_data *p_vd;
+    int (*connects)[5];
+    Edge_list_obj *p_elo;
+    
+    p_vd = p_pyramid_class->p_vis_data;
+    connects = (int (*)[5]) p_pyramid_class->objects.elems->nodes;
+    mat = p_pyramid_class->objects.elems->mat;
+
+    if ( p_vd->face_cnt == 0 )
+        return NULL;
+
+    /* Create the edge table. */
+    fcnt = p_vd->face_cnt;
+    /* We need to treat the edge count as a hex with one degenerate face */
+    ecnt = fcnt*5 - 5;
+    for ( i = 0; i < 3; i++ )
+        edge_tbl[i] = NEW_N( int, ecnt, "Pyramid edge table" );
+
+    /*
+     * The edge_tbl contains for each edge
+     *
+     *     node1 node2 face
+     */
+    for ( i = 0; i < fcnt; i++ )
+    {
+        el = p_vd->face_el[i];
+        fc = p_vd->face_fc[i];
+
+        for ( j = 0; j < 4; j++ )
+        {
+            node1 = connects[el][ pyramid_fc_nd_nums[fc][j] ];
+            node2 = connects[el][ pyramid_fc_nd_nums[fc][(j+1)%4] ];
+
+            /* Order the node numbers in ascending order. */
+            if ( node1 > node2 )
+                SWAP( tmp, node1, node2 );
+
+            edge_tbl[0][i*4 + j] = node1;
+            edge_tbl[1][i*4 + j] = node2;
+            edge_tbl[2][i*4 + j] = i;
+        }
+    }
+
+    /* Sort the edge table. */
+    ord = NEW_N( int, ecnt, "Sort ordering table" );
+    edge_heapsort( ecnt, edge_tbl, ord, p_vd->face_el, mat, mtl_trans );
+
+    /* Put boundary edges in the edge list. */
+    m_edges[0] = NEW_N( int, ecnt, "Pyramid edges" );
+    m_edges[1] = NEW_N( int, ecnt, "Pyramid edges" );
+    m_edge_mtl = NEW_N( int, ecnt, "Pyramid edge materials" );
+    m_edges_cnt = 0;
+
+    /* For pyramid faces, all edges should be in the sorted list twice. */
+    for ( i = 0; i < ecnt - 1; i++ )
+    {
+        j = edge_tbl[2][ord[i]];
+        el = p_vd->face_el[j];
+        fc = p_vd->face_fc[j];
+
+        if ( edge_tbl[0][ord[i]] == edge_tbl[0][ord[i+1]]
+             && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
+        {
+            j = edge_tbl[2][ord[i+1]];
+            el_next = p_vd->face_el[j];
+            fc_next = p_vd->face_fc[j];
+
+            if ( mat[el] != mat[el_next] )
+            {
+                /* 
+                 * Edge detected for material boundary. Put edge in for
+                 * each material to cover material translations. 
+                 */
+                m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
+                m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
+                m_edge_mtl[m_edges_cnt] = mat[el];
+                m_edges_cnt++;
+                
+                m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
+                m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
+                m_edge_mtl[m_edges_cnt] = mat[el_next];
+                m_edges_cnt++;
+            }
+            else
+            {
+                /* Get face normals for both faces. */
+                pyramid_face_avg_norm( el, fc, p_pyramid_class, analy, norm );
+                pyramid_face_avg_norm( el_next, fc_next, p_pyramid_class, analy, 
+                                   norm_next );
+                vec_norm( norm );
+                vec_norm( norm_next );
+
+                /*
+                 * Dot product test.
+                 */
+                dot = VEC_DOT( norm, norm_next );
+
+                /*
+                 * Magical constant.  An edge is detected when the angle
+                 * between normals is greater than a critical angle.
+                 */
+                if ( dot < explicit_threshold )
+                {
+                    m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
+                    m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
+                    m_edge_mtl[m_edges_cnt] = mat[el];
+                    m_edges_cnt++;
+                }
+            }
+
+            /* Skip past the redundant edge. */
+            i++;
+        }
+        else
+            popup_dialog( WARNING_POPUP, 
+                          "Unexpected behavior in pyramid edge detection." );
+    }
+
+    /* Check for unused last edge. */
+    if ( i < ecnt )
+        popup_dialog( WARNING_POPUP, 
+                      "Unexpected behavior in pyramid edge detection." );
+
+    for ( i = 0; i < 3; i++ )
+        free( edge_tbl[i] );
+    free( ord );
+    
+    /* Create Edge_list_obj for return. */
+    p_elo = create_compressed_edge_list( m_edges, m_edge_mtl, m_edges_cnt );
+
+    free( m_edges[0] );
+    free( m_edges[1] );
+    free( m_edge_mtl );
+    
+    return p_elo;
+}
+
+
+/************************************************************
  * TAG( get_tet_class_edges )
  *
  * Generate the mesh edge list for the currently displayed
@@ -6347,8 +7348,8 @@ get_tet_class_edges( float *mtl_trans[3], MO_class_data *p_tet_class,
 
         for ( j = 0; j < 3; j++ )
         {
-            node1 = connects[el][ fc_nd_nums[fc][j] ];
-            node2 = connects[el][ fc_nd_nums[fc][(j+1)%3] ];
+            node1 = connects[el][ tet_fc_nd_nums[fc][j] ];
+            node2 = connects[el][ tet_fc_nd_nums[fc][(j+1)%3] ];
 
             /* Order the node numbers in ascending order. */
             if ( node1 > node2 )
@@ -7687,7 +8688,7 @@ create_tet_blocks( MO_class_data *p_tet_class, Analysis *analy )
     }
 
     /* Allocate block tables. */
-    p_ebo = NEW( Elem_block_obj, "Hex elem block" );
+    p_ebo = NEW( Elem_block_obj, "Tet elem block" );
     p_ebo->num_blocks = block_cnt;
     p_ebo->block_lo = NEW_N( int, block_cnt, "Blocks low elem" );
     p_ebo->block_hi = NEW_N( int, block_cnt, "Blocks high elem" );
@@ -7741,6 +8742,95 @@ create_tet_blocks( MO_class_data *p_tet_class, Analysis *analy )
     p_tet_class->p_elem_block = p_ebo;
 }
 
+/************************************************************
+ * TAG( create_pyramid_tblocks )
+ *
+ * Group elements into smaller blocks in order to make face
+ * table generation and vector drawing routines more efficient.
+ */
+void
+create_pyramid_blocks( MO_class_data *p_pyramid_class, Analysis *analy )
+{
+    int block_sz, block_cnt;
+    int lo, hi, nd;
+    int i, j, k, m;
+    GVec3D *nodes;
+    int (*connects)[5];
+    int pyramid_qty;
+    Elem_block_obj *p_ebo;
+
+    connects = (int (*)[5]) p_pyramid_class->objects.elems->nodes;
+    nodes = analy->mesh_table[p_pyramid_class->mesh_id].node_geom->objects.nodes3d;
+    pyramid_qty = p_pyramid_class->qty;
+
+    if ( pyramid_qty > 5000 )
+    {
+        block_sz = 2 * (int) sqrt( (double) pyramid_qty );
+        block_cnt = pyramid_qty / block_sz;
+        if ( pyramid_qty % block_sz > 0 )
+            block_cnt++;
+    }
+    else
+    {
+        /* For small grids, just use one big block. */
+        block_cnt = 1;
+        block_sz = pyramid_qty;
+    }
+
+    /* Allocate block tables. */
+    p_ebo = NEW( Elem_block_obj, "Pyramid elem block" );
+    p_ebo->num_blocks = block_cnt;
+    p_ebo->block_lo = NEW_N( int, block_cnt, "Blocks low elem" );
+    p_ebo->block_hi = NEW_N( int, block_cnt, "Blocks high elem" );
+    for ( i = 0; i < 2; i++ )
+        for ( j = 0; j < 3; j++ )
+            p_ebo->block_bbox[i][j] =
+                    NEW_N( float, block_cnt, "Block bboxes" );
+
+    /* Get low and high element of each block. */
+    lo = 0;
+    hi = block_sz - 1;
+    for ( i = 0; i < block_cnt; i++ )
+    {
+        if ( hi >= pyramid_qty )
+            hi = pyramid_qty - 1;
+
+        p_ebo->block_lo[i] = lo;
+        p_ebo->block_hi[i] = hi;
+
+        lo = hi + 1;
+        hi = lo + block_sz - 1;
+    }
+
+    /* Get a bbox for all nodes in each block. */
+    for ( i = 0; i < block_cnt; i++ )
+    {
+        /* Initialize min and max. */
+        nd = connects[ p_ebo->block_lo[i] ][0];
+        for ( k = 0; k < 3; k++ )
+        {
+            p_ebo->block_bbox[0][k][i] = nodes[nd][k];
+            p_ebo->block_bbox[1][k][i] = nodes[nd][k];
+        }
+
+        for ( j = p_ebo->block_lo[i]; j <= p_ebo->block_hi[i]; j++ )
+        {
+            for ( m = 0; m < 5; m++ )
+            {
+                nd = connects[j][m];
+                for ( k = 0; k < 3; k++ )
+                {
+                    if ( nodes[nd][k] < p_ebo->block_bbox[0][k][i] )
+                        p_ebo->block_bbox[0][k][i] = nodes[nd][k];
+                    if ( nodes[nd][k] > p_ebo->block_bbox[1][k][i] )
+                        p_ebo->block_bbox[1][k][i] = nodes[nd][k];
+                }
+            }
+        }
+    }
+    
+    p_pyramid_class->p_elem_block = p_ebo;
+}
 
 /************************************************************
  * TAG( create_quad_blocks )

@@ -468,6 +468,7 @@ main( int argc, char *argv[] )
      * All other modes (at least for time being -- 03-10-00)
      */
     gui_start( argc, argv, analy );
+   
 
 #ifdef TIME_GRIZ
     manage_timer( 8, 1 );
@@ -736,6 +737,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     int pos;
     char *first_token, copy_command[512], timestamp[64], timestr[64];
     char hist_fname[256];
+    char * datetime = NULL;
     char header[] = "# This is the history file for debugging purposes only\
 \n# and is for use by the griz team. Do not modify or alter in any way.\n";
     time_t curtime;
@@ -998,7 +1000,10 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     VEC_SET( analy->displace_scale, 1.0, 1.0, 1.0 );
 
     /* Load in TI TOC if TI data is found */
-
+    if(db_type == TAURUS)
+    {
+       env.ti_enable = FALSE;
+    }
     if ( env.ti_enable )
          /*if ( mc_ti_check_if_data_found( analy->db_ident ) )*/ /* Check if we found a TI
 							      * data file.
@@ -1692,6 +1697,32 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			     face_qty += p_mocd->p_vis_data->face_cnt;
 			}
                         break;
+                    case G_PYRAMID:
+			if ( p_mocd->qty > max_sz)
+                        {
+                           max_sz = p_mocd->qty;
+                        }
+                        
+			  create_pyramid_blocks( p_mocd, analy );
+
+                        p_vd = NEW( Visibility_data, 
+                                    "Elem class Visibility_data" );
+                        p_mocd->p_vis_data = p_vd;
+
+                        p_vd->adjacency = NEW_N( int *, 5,   
+                                                 "Hex adjacency array" );
+                        for ( k = 0; k < 5; k++ )
+                            p_vd->adjacency[k] = NEW_N( int, p_mocd->qty,
+                                                        "Hex adjacency" );
+                        p_vd->visib = NEW_N( unsigned char, p_mocd->qty,
+                                             "Hex visibility" );
+
+                        create_pyramid_adj( p_mocd, analy ); 
+			set_pyramid_visibility( p_mocd, analy );
+			get_pyramid_faces( p_mocd, analy );
+			face_qty += p_mocd->p_vis_data->face_cnt;
+
+                        break;
 
                     case G_SURFACE:
 
@@ -1865,11 +1896,32 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
            timeinfo = localtime(&curtime);
            sprintf(timestr, "%s", asctime(timeinfo));
            strcpy(timestamp, &timestr[4]);
+
+           datetime = (char *) malloc(strlen(timestamp));
+           if(datetime == NULL)
+           {
+              printf("Out of Memory, exiting\n");
+              exit(1);
+           }
+
+           strcpy(datetime, timestamp);
+           datetime[strlen(datetime) - 1] = '\0'; 
+
+           for(i = 0; i <= strlen(datetime); i++)
+           {
+              if(datetime[i] == ' ' || datetime[i] == ':')
+              {
+                  datetime[i] = '_';
+              }
+           }
+
+
            strcpy(timestr, timestamp);
            /* Remove ending NL */
            timestr[strlen(timestr)-1] = '\0';
            sprintf(timestamp, "[%s]", timestr);
   	   strcpy( hist_fname, analy->root_name );
+           strcat( hist_fname, datetime);
 	   strcat( hist_fname, ".grizhist" );
 	   analy->p_histfile = fopen( hist_fname, "at");
            strcpy(analy->hist_fname, hist_fname);
@@ -2135,16 +2187,6 @@ history_command( char *command_str )
 	 history_log[history_log_index++] = (char *) strdup(command_str);
 
 	 p_analy = get_analy_ptr();
-         /* Do not call model_history_log_update if we are reading in the same file we
-	    are logging to. */
-	 if(env.history_input_active == FALSE)
-	 { 
-	    model_history_log_update( command_str, p_analy );
-         }
-	 else if(strcmp(p_analy->hist_filename, p_analy->hist_fname) != 0)
-	 {
-	    model_history_log_update( command_str, p_analy );
-	 }
     }
   
     if ( env.save_history )
@@ -2307,18 +2349,6 @@ model_history_log_update( char *command, Analysis *analy )
       /*
        * Write timestamped command to model history file.
        */
-      /* time ( &curtime );
-      timeinfo = localtime ( &curtime );
-      sprintf(timestr, "%s", asctime( timeinfo ) );
-      strcpy( timestamp, &timestr[4] );
-      strcpy( timestr,   timestamp ); */
-      
-      /* Remove ending NL 
-      timestr[strlen(timestr)-1] = '\0'; */
-      
-      /*sprintf(timestamp, "[%s]", timestr ); */
-      /* strcpy( copy_command, timestamp ); */
-      /*strcat( copy_command, command ); */
 
       if ( !analy->p_histfile ) {
            time(&curtime);
@@ -2333,15 +2363,8 @@ model_history_log_update( char *command, Analysis *analy )
 	   strcat( hist_fname, ".grizhist" );
 	   analy->p_histfile = fopen( hist_fname, "at");
            strcpy(analy->hist_fname, hist_fname);
-           /*fseek(analy->p_histfile, 0L, SEEK_END);
-	     pos = ftell(analy->p_histfile);*/ 
            fprintf(analy->p_histfile, "#");
            fprintf(analy->p_histfile, "%s\n", timestamp);
-           /*if(pos == 0)
-           {
-             fprintf(analy->p_histfile, "%s", header);
-	     }*/
- 
       }
       
       first_token = strtok( copy_command, "\t " );

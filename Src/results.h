@@ -393,7 +393,7 @@ typedef enum
     VAL_SHARE_SIGYZ,       /* YZ stress */
     VAL_SHARE_SIGZX,       /* ZX stress */
     VAL_SHARE_SIG_EFF,     /* Effective stress */
-    VAL_SHARE_SIG_PD1,     /* 1st prinicipal deviatoric stress */
+    VAL_SHARE_SIG_PD1,     /* 1st prinicipal deviatoric stress */ 
     VAL_SHARE_SIG_PD2,     /* 2nd prinicipal deviatoric stress */
     VAL_SHARE_SIG_PD3,     /* 3rd prinicipal deviatoric stress */
     VAL_SHARE_SIG_MAX_SHEAR,/* Maximum shear stress */
@@ -410,6 +410,19 @@ typedef enum
     VAL_SHARE_PRESS,       /* Pressure */
 
     VAL_SHARE_END,         /* DUMMY */
+
+    
+    VAL_PARTICLE_SIG_EFF,     /* Effective particle stress */
+    VAL_PARTICLE_SIG_PD1,     /* 1st prinicipal deviatoric particle stress */ 
+    VAL_PARTICLE_SIG_PD2,     /* 2nd prinicipal deviatoric particle stress */
+    VAL_PARTICLE_SIG_PD3,     /* 3rd prinicipal deviatoric particle stress */
+    VAL_PARTICLE_SIG_MAX_SHEAR,/* Maximum shear particle stress */
+    VAL_PARTICLE_SIG_P1,      /* 1st principal particle stress */
+    VAL_PARTICLE_SIG_P2,      /* 2nd principal particle stress */
+    VAL_PARTICLE_SIG_P3,      /* 3rd principal particle stress */
+    VAL_PARTICLE_PRESS,       /* Particle pressure */
+
+    VAL_PARTICLE_END,         /* DUMMY */
 
     /*
      * For file reader only.  Due to the file format, these

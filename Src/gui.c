@@ -1,4 +1,5 @@
 /* $Id$ */
+
 /* 
  *
  * gui.c - Graphical user interface routines.
@@ -5314,6 +5315,11 @@ init_gui( void )
     char *home, home_path[512], home_hist[512];
     
     char init_cmd[100];
+    if(MESH(env.curr_analy).material_qty == 0)
+    {
+       env.curr_analy->draw_wireframe = TRUE;
+       env.curr_analy->mesh_view_mode = RENDER_WIREFRAME;
+    }
 
 
 /*
