@@ -252,6 +252,11 @@ extern Bool_type history_inputCB_cmd;
 char newtokens[MAXTOKENS][TOKENLENGTH];
 int  new_token_cnt;
 
+#define BUFSIZE 2000
+#define LASTCMD 200
+
+char newcmd[LASTCMD];
+
 /*****************************************************************
  * TAG( Alias_obj )
  *
@@ -305,7 +310,7 @@ int jpeg_quality = 75;
 
 char *griz_home=NULL;
 
-static char last_command[200] = "\n";
+static char last_command[LASTCMD] = "\n";
 
 /* Local routines. */
 static void tokenize_line( char *buf, char tokens[MAXTOKENS][TOKENLENGTH], 
@@ -650,7 +655,7 @@ extern Bool_type mtl_color_active;
 void
 parse_command( char *input_buf, Analysis *analy )
 {
-  char buf[2000], command_buf[2000];
+  char buf[BUFSIZE], command_buf[BUFSIZE];
   int  i, j;
   int  len_buf;
   int  num_cmds = 1;
@@ -660,7 +665,11 @@ parse_command( char *input_buf, Analysis *analy )
   int  token_cnt=0;
 
   len_buf = strlen(buf);
-
+  if(strlen(input_buf) > BUFSIZE - 1)
+  {
+      popup_dialog(USAGE_POPUP, "Command size too large, bad format");
+      return;
+  } 
   next_cmd_index[0]=0;
 
   history_inputCB_cmd = FALSE;
@@ -778,7 +787,7 @@ parse_single_command( char *buf, Analysis *analy )
     static Bool_type cutting_plane_defined = FALSE;
     int sz[3], nodes[3];
     int i_args[4];
-    int idx, ival, temp_ival, i, j, dim, qty;
+    int idx, ival, temp_ival, i, j, n, dim, qty;
     int start_state, stop_state, max_state, min_state;
     char result_variable[1];
     Redraw_mode_type tellmm_redraw;
@@ -1032,7 +1041,7 @@ parse_single_command( char *buf, Analysis *analy )
 	    else
  	         temp_ival = ival;
 
-            if ( ival == analy->hilite_num
+            if ( (ival - 1) == analy->hilite_num
                  && p_mo_class == analy->hilite_class )
             {
                 /* Hilited existing hilit object -> de-hilite. */
@@ -1059,9 +1068,10 @@ parse_single_command( char *buf, Analysis *analy )
         analy->hilite_class = NULL;
         redraw = BINDING_MESH_VISUAL;
     }
-    else if ( strcmp( tokens[0], "select" ) == 0 || strcmp( tokens[0], "unselect" ) == 0 )
+    else if ( strcmp( tokens[0], "select" ) == 0 || strcmp( tokens[0], "unselect" ) == 0 
+              || strcmp(tokens[0], "deselect") == 0)
     {
-        if ( strcmp( tokens[0], "unselect" ) == 0 )
+        if ( strcmp( tokens[0], "unselect" ) == 0 || strcmp (tokens[0], "deselect") == 0)
 	     unselect = TRUE;
 	else
 	     unselect = FALSE;
@@ -3042,6 +3052,7 @@ parse_single_command( char *buf, Analysis *analy )
             vis_selected = TRUE;
         }
 
+
 	idx = 0;
  
 	mat_selected    = TRUE;
@@ -3088,26 +3099,11 @@ parse_single_command( char *buf, Analysis *analy )
         }
 
 	class_selected = FALSE;
-	/*if ( is_elem_class( analy, tokens[1] ) ) {
-	     p_class = NULL;
-             class_select_index = get_class_select_index( analy, tokens[1] );
-	     if ( class_select_index>=0 ) {
-	          p_class  =  MESH( analy ).by_class_select[class_select_index].p_class;
-	          elem_qty = MESH( analy ).by_class_select[class_select_index].p_class->qty;
-		  p_hide_elem_qty =  &MESH( analy ).by_class_select[class_select_index].hide_class_elem_qty;
-		  p_elem          = MESH( analy ).by_class_select[class_select_index].hide_class_elem;
-		  mat_selected = FALSE;
-	     }
-
-	     if ( p_class )
-	          class_selected = TRUE;
-	     idx++;
-	} */
 
         for(i = 0; i < MESH(analy).qty_class_selections; i++)
         {
 	  p_class = MESH(analy).by_class_select[i].p_class;
-          if(!strcmp(tokens[1], p_class->short_name))
+          if(!strcmp(tokens[1], p_class->short_name) )
           {
 	    break;
           }
@@ -3343,7 +3339,36 @@ parse_single_command( char *buf, Analysis *analy )
 
 
 	  }
-	
+        
+        /* for element class G_PARTICLE the user can affect the visibility of these particles by typing
+ *      vis pn   or
+ *      invis pn  
+ *      Code added by Bill Oliver on 9/13/2013
+        */ 	
+        if ( !strcmp(tokens[1], "pn"))
+        {
+           for(i = 0; i < MESH(analy).qty_class_selections; i++)
+           {
+              p_class = MESH(analy).by_class_select[i].p_class;
+              if(p_class->superclass == G_PARTICLE)
+              {
+                p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
+                p_elem = MESH(analy).by_class_select[i].hide_class_elem;
+                for(j = 0; j < p_class->qty; j++)
+                {
+                  if(!vis_selected)
+                  {
+                    p_elem[j] = TRUE;
+                    (*p_hide_elem_qty)++;
+                  } else
+                  {
+                    p_elem[j] = FALSE;
+                    (*p_hide_elem_qty)--;
+                  }
+                }
+              }
+           }
+        }        
 
         reset_face_visibility( analy );
         if ( analy->dimension == 3 ) renorm = TRUE;
@@ -3984,7 +4009,28 @@ parse_single_command( char *buf, Analysis *analy )
     else if ( strcmp( tokens[0], "mtl" ) == 0 ||
               strcmp( tokens[0], "matl") == 0 )
     {
-        parse_mtl_cmd( analy, tokens, token_cnt, TRUE, &redraw, &renorm );
+        if((token_cnt > 1) && (!strcmp(tokens[1], "invis") || !strcmp(tokens[1], "vis") ||
+           !strcmp(tokens[1], "disable") || !strcmp(tokens[1], "enable")))
+        {
+           strncpy(newcmd, tokens[1], LASTCMD - 2);
+           strcat(newcmd, " ");
+           for( i = 2; i < token_cnt; i++)
+           {
+              if((strlen(tokens[i] + 1) < LASTCMD - strlen(newcmd) - 2))
+              {
+                 strcat(newcmd, tokens[i]);
+                 if ( i < token_cnt - 1)
+                 {
+                    strcat(newcmd, " ");
+                 }
+              }
+           } 
+           parse_single_command(&newcmd[0], analy);
+        } else
+        {    
+           parse_mtl_cmd( analy, tokens, token_cnt, TRUE, &redraw, &renorm );
+
+        }
     }
     else if ( strcmp( tokens[0], "surf" ) == 0 )
     {
@@ -4370,6 +4416,11 @@ parse_single_command( char *buf, Analysis *analy )
     }
     else if ( strcmp( tokens[0], "plot" ) == 0 )
     {
+      if(analy->selected_objects == NULL)
+      {
+  	popup_dialog(INFO_POPUP, "Must select an object before using the plot command");
+	return;    
+      }
       /* Delete the plot for this result if computing an EI result */
       if ( analy->ei_result && strlen(analy->ei_result_name)>0 )
       {
@@ -4395,7 +4446,7 @@ parse_single_command( char *buf, Analysis *analy )
     else if ( strcmp( tokens[0], "timhis" ) == 0 )
     {
         parse_command( "plot", analy );
-        valid_command = FALSE;
+        /*valid_command = FALSE;*/
     }
     else if ( strcmp( tokens[0], "outth" ) == 0 
               || strcmp( tokens[0],  "thsave" ) == 0 )
@@ -6199,7 +6250,50 @@ parse_single_command( char *buf, Analysis *analy )
 */
     else if ( strcmp( tokens[0], "title" ) == 0 )
     {
-        strcpy( analy->title, tokens[1] );
+        /* analy->title is a hard coded char array of size G_MAX_STRING_LEN which is 512 */
+        /* first lets find out the size of the string to copy which depends on the token count */
+        n = 0;
+        for(i = 0; i < token_cnt; i++)
+        {
+           n += strlen(tokens[i]) + 1;
+           /* account for a single space between tokens if the token count > 2 */
+           if(token_cnt > 2 && i < token_cnt - 1)
+           {
+              n++;
+           } 
+        }
+        /* now n has the correct value for strcpy that is guaranteed not to cause a buffer overflow */
+        if(n < G_MAX_STRING_LEN)
+        {
+          strcpy(analy->title, tokens[1]); 
+          
+          for(i = 2; i < token_cnt; i++)
+          {  
+             strcat(analy->title, " "); 
+             strcat( analy->title, tokens[i] );
+          }
+        
+        } else
+        {
+            if(strlen(tokens[1]) < G_MAX_STRING_LEN)
+            {
+               strcpy(analy->title, tokens[1]);
+            } else
+            {
+               popup_dialog(USAGE_POPUP, "The string enter for the title is too long, try something that will fit on one line.");
+            }
+       
+            for(i = 2; i < token_cnt; i++)
+            {
+               if(strlen(analy->title) + tokens[i] < G_MAX_STRING_LEN)
+               {
+                  strcpy(analy->title, tokens[i]);
+               }               
+            }
+           
+        } 
+
+ 
         if ( analy->show_title )
             redraw = redraw_for_render_mode( FALSE, RENDER_ANY, analy );
     }
@@ -6747,7 +6841,10 @@ parse_single_command( char *buf, Analysis *analy )
    }
 
     if ( strcmp( tokens[0], "r" ) != 0 )
-         strcpy( last_command, buf );
+         if(strlen(buf) < LASTCMD)
+         {
+            strcpy( last_command, buf );
+         }
 }
 
 /****************************************************************
@@ -7040,7 +7137,7 @@ parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int cnt,
     static Bool_type reading_cprop[MTL_PROP_QTY];
     static Material_property_obj props;
     static int current_mtl_qty;
-    int i, limit, mtl, mqty, k;
+    int i, limit, mtl, mqty, k, l;
     Material_property_type j;
     unsigned char *disable_mtl, *hide_mtl;
 

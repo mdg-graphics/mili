@@ -188,6 +188,71 @@ global_to_local_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem,
     }
 }
 
+
+/************************************************************
+ * TAG( global_to_local_tri_mtx )
+ *
+ * Computes the matrix for transforming global stress to local
+ * element stress for shells with a superclass of G_TRI.
+ */
+void
+global_to_local_tri_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem, 
+                     Bool_type map_timehist_coords, GVec3D2P *new_nodes,
+		     float localMat[3][3] )
+{
+    float x[3], y[3], z[3];
+    float xn[3], yn[3], zn[3];
+    int i;
+    int nd;
+    GVec3D *coords;
+    int (*connects)[3];
+    int index;
+
+    connects = (int (*)[3]) p_mo_class->objects.elems->nodes;
+    coords = analy->state_p->nodes.nodes3d;
+
+    /* Get the quad element geometry. */
+    for ( i = 0; i < 3; i++ )
+    {
+      if ( !map_timehist_coords )
+      {
+           x[i] = coords[ connects[elem][i] ][0];
+	   y[i] = coords[ connects[elem][i] ][1];
+	   z[i] = coords[ connects[elem][i] ][2];
+      }
+      else
+	{
+	   nd = connects[elem][i];
+
+           x[i] = new_nodes[nd][0];
+	   y[i] = new_nodes[nd][1];
+	   z[i] = new_nodes[nd][2];
+	}
+    }
+
+    /* Get average vectors for the sides of the element. */
+    xn[0] = -x[0] + x[1];
+    xn[1] = -y[0] + y[1];
+    xn[2] = -z[0] + z[1];
+    yn[0] = -x[0] - x[1] + x[2] + x[2];
+    yn[1] = -y[0] - y[1] + y[2] + y[2];
+    yn[2] = -z[0] - z[1] + z[2] + z[2]; 
+
+    /* Get normal to element (assumes element is planar). */
+    VEC_CROSS( zn, xn, yn );
+
+    /* An orthonormal basis is what we need. */
+    vec_norm( zn );
+    vec_norm( yn );
+    VEC_CROSS( xn, yn, zn)
+
+    for ( i = 0; i < 3; i++ )    
+    {
+        localMat[i][0] =  xn[i];
+        localMat[i][1] =  yn[i];
+        localMat[i][2] =  zn[i];
+    }
+}
        
 /************************************************************
  * TAG( transform_tensors )

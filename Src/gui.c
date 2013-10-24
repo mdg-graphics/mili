@@ -7073,7 +7073,6 @@ static void
 parse_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     char text[200];
-
     string_convert( ((XmCommandCallbackStruct *) call_data)->value, text );
 
     /* pushpop_window( PUSHPOP_ABOVE ); */
@@ -10153,6 +10152,7 @@ string_convert( XmString str, char *buf )
     XmStringCharSet charset;
     XmStringDirection direction;
     Boolean separator;
+    int size = 0;
 
     if ( !XmStringInitContext( &context, str ) )
     {
@@ -10160,14 +10160,22 @@ string_convert( XmString str, char *buf )
         return;
     }
 
-    /* The running pointer is p. */
     p = buf;
-
+    
     while ( XmStringGetNextSegment( context, &text, &charset, &direction,
                                     &separator ) )
     {
-        p += (strlen(strcpy(p, text)));
-
+        size += strlen(text);
+        if(size < 198)
+        {
+           p += (strlen(strcpy(p, text)));
+        }else
+        {
+           p += (strlen(strncpy(p, text, 197 - strlen(buf))));
+           *p++ = '"';
+           separator = TRUE;
+        }
+          
         if ( separator == TRUE )
         {
             /* Add newline and null-terminate. */
@@ -10178,6 +10186,7 @@ string_convert( XmString str, char *buf )
         XtFree( text );
     }
 
+ 
     XmStringFreeContext( context );
 }
 

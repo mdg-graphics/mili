@@ -2126,7 +2126,7 @@ set_ref_state( Analysis *analy, int new_ref_state )
 	    
 	    /* Assign the reference pointer to the data that was just read in. */
 	    analy->cur_ref_state_dataDp = tmp_nodesDp;;
-	    analy->cur_ref_state_dataDp = analy->ref_state_dataDp;
+	    /*analy->cur_ref_state_dataDp = analy->ref_state_dataDp;*/
 	}
 
     }

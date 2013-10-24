@@ -2193,8 +2193,11 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
             if ( !found )
             {
                 /* Token was not a result, assume there are no results left. */
-                free( p_r );
-                p_r = NULL;
+                if( strcmp(tokens[idx], "vs"))
+                {
+                   free( p_r );
+                   p_r = NULL;
+                }
 
                 if ( res_list == NULL )
                 {

@@ -454,6 +454,10 @@ static int shell_stress_primal_sclasses[] =
     G_QUAD, G_QUAD, G_QUAD
 };
 
+static int shell_stress_tri_primal_sclasses[] = 
+{
+    G_TRI, G_TRI, G_TRI
+};
 
 static char *shell_press_shorts[] =  
 {
@@ -472,6 +476,10 @@ static int shell_press_primal_sclasses[] =
     G_QUAD, G_QUAD, G_QUAD
 };
 
+static int shell_press_tri_primal_sclasses[] = 
+{
+    G_TRI, G_TRI, G_TRI
+};
 
 static char *shell_effs_shorts[] = 
 {
@@ -490,6 +498,10 @@ static int shell_effs_primal_sclasses[] =
     G_QUAD, G_QUAD, G_QUAD
 };
 
+static int shell_effs_tri_primal_sclasses[] = 
+{
+    G_TRI, G_TRI, G_TRI
+};
 
 static char *shell_prin_shorts[] = 
 {
@@ -510,6 +522,10 @@ static int shell_prin_primal_sclasses[] =
     G_QUAD, G_QUAD, G_QUAD
 };
 
+static int shell_prin_tri_primal_sclasses[] = 
+{
+    G_TRI, G_TRI, G_TRI
+};
 
 static char *shell_surf_shorts[] = 
 {
@@ -532,6 +548,10 @@ static int shell_surf_primal_sclasses[] =
     G_QUAD, G_QUAD, G_QUAD, G_QUAD
 };
 
+static int shell_surf_tri_primal_sclasses[] = 
+{
+    G_TRI, G_TRI, G_TRI, G_TRI
+};
 
 static char *shell_strain_shorts[] = 
 {
@@ -551,6 +571,10 @@ static int shell_strain_primal_sclasses[] =
     G_QUAD, G_QUAD
 };
 
+static int shell_strain_tri_primal_sclasses[] = 
+{
+    G_TRI, G_TRI
+};
 
 static char *shell_eeff_shorts[] = 
 {
@@ -1423,6 +1447,90 @@ Result_candidate possible_results[] =
         beam_tae_primal_sclasses
     }, 
 
+    {
+        G_TRI, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_stress,   
+        NULL,
+        shell_stress_shorts,
+        shell_stress_longs,
+        shell_stress_primals,
+        shell_stress_tri_primal_sclasses
+    },
+ 
+    {
+        G_TRI, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_press,   
+        NULL,
+        shell_press_shorts,
+        shell_press_longs,
+        shell_press_primals,
+        shell_press_tri_primal_sclasses
+    },
+ 
+    {
+        G_TRI, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_effstress,   
+        NULL,
+        shell_effs_shorts,
+        shell_effs_longs,
+        shell_effs_primals,
+        shell_effs_tri_primal_sclasses
+    },
+ 
+    {
+        G_TRI, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_principal_stress,   
+        NULL,
+        shell_prin_shorts,
+        shell_prin_longs,
+        shell_prin_primals,
+        shell_prin_tri_primal_sclasses
+    },
+    
+    {
+        G_TRI, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_surface_stress,   
+        NULL,
+        shell_surf_shorts,
+        shell_surf_longs,
+        shell_surf_primals,
+        shell_surf_tri_primal_sclasses
+    }, 
+    
+    {
+        G_TRI, 
+        { 0, 1 }, 
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },      
+        TRUE, 
+        FALSE,
+        compute_shell_strain,   
+        NULL,
+        shell_strain_shorts,
+        shell_strain_longs,
+        shell_strain_primals,
+        shell_strain_tri_primal_sclasses
+    }, 
+ 
     {
         G_QUAD, 
         { 0, 1 }, 

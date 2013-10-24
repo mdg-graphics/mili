@@ -2133,8 +2133,8 @@ compute_beam_axial_strain( Analysis *analy, float *resultArr,
                            Bool_type interpolate )
 {
     float *resultElem, *res_array;
-    static char d_str[64] = "Ax beam strain, dia =             ",
-         *ym_str = ", Young's Mod =              ";
+    static char d_str[64] = "Ax beam strain, dia =             ";
+    static char ym_str[32] = ", Young's Mod =              ";
     int res_index, i, index, subrec, obj_qty;
     int *object_ids;
     double coeff, axf_coeff, mom_coeff;

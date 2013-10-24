@@ -955,9 +955,18 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
             for ( i = 0; i < obj_qty; i++ )
             {
                 elem_idx = object_ids[i];
-                global_to_local_mtx( analy, p_mo_class, elem_idx, 
-				     map_timehist_coords, new_nodes,
-				     localMat );
+                if(p_mo_class->superclass == G_QUAD)
+                {
+                  global_to_local_mtx( analy, p_mo_class, elem_idx, 
+				       map_timehist_coords, new_nodes,
+				       localMat );
+                } else if(p_mo_class->superclass == G_TRI)
+                {
+
+                  global_to_local_tri_mtx( analy, p_mo_class, elem_idx, 
+				       map_timehist_coords, new_nodes,
+				       localMat );
+                }
                 
                 /*
                  * Corrects a bug in pre-merge MGriz which used elem_idx to
@@ -971,9 +980,19 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
         {
             for ( i = 0; i < obj_qty; i++ )
             {
-                global_to_local_mtx( analy, p_mo_class, i, 
-				     map_timehist_coords, new_nodes,
-				     localMat );
+                if(p_mo_class->superclass == G_QUAD)
+                {
+                   global_to_local_mtx( analy, p_mo_class, i, 
+				        map_timehist_coords, new_nodes,
+				        localMat );
+                } else if(p_mo_class->superclass == G_TRI)
+                {
+
+                  global_to_local_tri_mtx( analy, p_mo_class, i, 
+				       map_timehist_coords, new_nodes,
+				       localMat );
+
+                }
                 transform_tensors_1p( 1, sigma + i, localMat );
                 resultElem[i] = sigma[i][idx];
             }
@@ -987,8 +1006,15 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
     p_result->modifiers.ref_surf = analy->ref_surf;
 
     if ( interpolate )
-        quad_to_nodal( resultElem, resultArr, p_mo_class, obj_qty, object_ids, 
-                       analy, TRUE );
+        if(p_mo_class->superclass == G_QUAD)
+        {
+          quad_to_nodal( resultElem, resultArr, p_mo_class, obj_qty, object_ids, 
+                         analy, TRUE );
+        } else if(p_mo_class->superclass == G_TRI)
+        {
+          tri_to_nodal( resultElem, resultArr, p_mo_class, obj_qty, object_ids,
+                         analy, TRUE ); 
+        }
 }
 
 
@@ -1013,6 +1039,7 @@ compute_shell_press( Analysis *analy, float *resultArr, Bool_type interpolate )
     int *object_ids;
     Subrec_obj *p_subrec;
     char *primal_list[1];
+    MO_class_data *p_mo_class;
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -1023,7 +1050,7 @@ compute_shell_press( Analysis *analy, float *resultArr, Bool_type interpolate )
     object_ids = p_subrec->object_ids;
     obj_qty = p_subrec->subrec.qty_objects;
     resultElem = p_subrec->p_object_class->data_buffer;
-
+    p_mo_class = p_subrec->p_object_class;
     ref_surf = analy->ref_surf;
 
     /*
@@ -1077,8 +1104,16 @@ compute_shell_press( Analysis *analy, float *resultArr, Bool_type interpolate )
     p_result->modifiers.ref_surf = analy->ref_surf;
 
     if ( interpolate )
-        quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
-                       object_ids, analy, TRUE );
+        if(p_mo_class->superclass == G_QUAD)
+        {
+           quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+        } else if(p_mo_class->superclass == G_TRI)
+        {
+
+           tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+        }
 }
 
 
@@ -1107,6 +1142,7 @@ compute_shell_effstress( Analysis *analy, float *resultArr,
     Subrec_obj *p_subrec;
     char *primal_list[1];
     double interm_result;
+    MO_class_data *p_mo_class;
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -1117,6 +1153,7 @@ compute_shell_effstress( Analysis *analy, float *resultArr,
     object_ids = p_subrec->object_ids;
     obj_qty = p_subrec->subrec.qty_objects;
     resultElem = p_subrec->p_object_class->data_buffer;
+    p_mo_class = p_subrec->p_object_class;    
 
     ref_surf = analy->ref_surf;
 
@@ -1178,8 +1215,16 @@ compute_shell_effstress( Analysis *analy, float *resultArr,
     p_result->modifiers.ref_surf = analy->ref_surf;
     
     if ( interpolate )
-        quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
-                       object_ids, analy, TRUE );
+        if(p_mo_class->superclass == G_QUAD) 
+        {
+           quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+        } else if (p_mo_class->superclass == G_TRI)
+        {
+
+           tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+        }
 }
 
 
@@ -1212,6 +1257,7 @@ compute_shell_principal_stress( Analysis *analy, float *resultArr,
     int index, res_index, elem_idx;
     Subrec_obj *p_subrec;
     int *object_ids;
+    MO_class_data *p_mo_class;
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -1222,6 +1268,7 @@ compute_shell_principal_stress( Analysis *analy, float *resultArr,
     object_ids = p_subrec->object_ids;
     obj_qty = p_subrec->subrec.qty_objects;
     resultElem = p_subrec->p_object_class->data_buffer;
+    p_mo_class = p_subrec->p_object_class;
 
     ref_surf = analy->ref_surf;
 
@@ -1354,8 +1401,16 @@ compute_shell_principal_stress( Analysis *analy, float *resultArr,
     p_result->modifiers.ref_surf = analy->ref_surf;
 
     if ( interpolate )
-        quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
-                       object_ids, analy, TRUE );
+        if(p_mo_class->superclass == G_QUAD)
+        {
+           quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+        } else if(p_mo_class->superclass == G_TRI)
+        {
+           tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+        }
+
 }
 
 

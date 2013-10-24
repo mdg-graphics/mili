@@ -2271,6 +2271,9 @@ extern void compute_global_acceleration( Analysis *, float *, Bool_type );
 extern void global_to_local_mtx( Analysis *, MO_class_data *, int, 
                                  Bool_type, GVec3D2P *, 
 				 float [3][3] );
+extern void global_to_local_tri_mtx( Analysis *, MO_class_data *, int, 
+                                 Bool_type, GVec3D2P *, 
+				 float [3][3] );
 extern Bool_type transform_stress_strain( char **, int, Analysis *, 
                                           float [3][3], float * );
 extern void transform_tensors( int, double (*)[6], float [][3] );

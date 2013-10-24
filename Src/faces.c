@@ -801,10 +801,14 @@ create_tet_adj( MO_class_data *p_mocd, Analysis *analy )
             idx = &node_tbl[face_entry[0]];
             while ( *idx >= 0 )
             {
-                if ( face_entry[0] != face_tbl[0][*idx] 
-                     || face_entry[1] != face_tbl[1][*idx] 
-                     || face_entry[2] != face_tbl[2][*idx] )
+                if ( face_entry[0] == face_tbl[0][*idx] 
+                     && face_entry[1] == face_tbl[1][*idx] 
+                     && face_entry[2] == face_tbl[2][*idx] )
+                {
+                    break;
+                } else {
                     idx = &face_tbl[5][*idx];
+                }
             }
 
             if ( *idx >= 0 )
@@ -1317,7 +1321,6 @@ create_tri_adj( MO_class_data *p_mocd, Analysis *analy )
 }
 
 
-
 /************************************************************
  * TAG( create_pryamid_adj )
  *
@@ -1420,11 +1423,15 @@ create_pyramid_adj( MO_class_data *p_mocd, Analysis *analy )
             idx = &node_tbl[face_entry[0]];
             while ( *idx >= 0 )
             {
-                if ( face_entry[0] != face_tbl[0][*idx] 
-                     || face_entry[1] != face_tbl[1][*idx] 
-                     || face_entry[2] != face_tbl[2][*idx]
-                     || face_entry[3] != face_tbl[3][*idx] )
+                if ( face_entry[0] == face_tbl[0][*idx] 
+                     && face_entry[1] == face_tbl[1][*idx] 
+                     && face_entry[2] == face_tbl[2][*idx]
+                     && face_entry[3] == face_tbl[3][*idx] )
+                    break;
+                {
+                    
                     idx = &face_tbl[6][*idx];
+                }
             }
 
             if ( *idx >= 0 )
@@ -2490,6 +2497,112 @@ get_pyramid_faces( MO_class_data *p_pyramid_class, Analysis *analy )
     p_vd = p_pyramid_class->p_vis_data;
     p_md = analy->mesh_table + p_pyramid_class->mesh_id;
     mat = p_pyramid_class->objects.elems->mat;
+
+    /* Free up old face lists. */
+    if ( p_vd->face_el != NULL )
+    {
+        free( p_vd->face_el );
+        free( p_vd->face_fc );
+        for ( i = 0; i < 4; i++ )
+            for ( j = 0; j < 3; j++ )
+                free( p_vd->face_norm[i][j] );
+    }
+
+    /* Faster references. */
+    pyramid_adj = p_vd->adjacency;
+    pyramid_visib = p_vd->visib;
+
+    /* Count the number of external faces. */
+    for ( fcnt = 0, i = 0; i < pcnt; i++ )
+        if ( pyramid_visib[i] )
+            for ( j = 0; j < 5; j++ )
+            {
+                if ( pyramid_adj[j][i] < 0 || !pyramid_visib[ pyramid_adj[j][i] ] )
+                    fcnt++;
+                else if ( p_md->translate_material )
+                {
+                    /* Material translations can expose faces. */
+                    m1 = mat[i];
+                    m2 = mat[ pyramid_adj[j][i] ];
+                    if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
+                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
+                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
+                        fcnt++;
+                }
+            }
+    p_vd->face_cnt = fcnt;
+
+    /* Allocate new face lists. */
+    p_vd->face_el = NEW_N( int, fcnt, "Face element table" );
+    p_vd->face_fc = NEW_N( int, fcnt, "Face side table" );
+    for ( i = 0; i < 4; i++ )
+        for ( j = 0; j < 3; j++ )
+            p_vd->face_norm[i][j] = NEW_N( float, fcnt, "Face normals" );
+
+    /* Faster references. */
+    face_el = p_vd->face_el;
+    face_fc = p_vd->face_fc;
+
+    /* Build the tables. */
+    for ( fcnt = 0, i = 0; i < pcnt; i++ )
+        if ( pyramid_visib[i] )
+            for ( j = 0; j < 5; j++ )
+            {
+                if ( pyramid_adj[j][i] < 0 || !pyramid_visib[ pyramid_adj[j][i] ] )
+                {
+                    face_el[fcnt] = i;
+                    face_fc[fcnt] = j;
+                    fcnt++;
+                }
+                else if ( p_md->translate_material )
+                {
+                    /* Material translations can expose faces. */
+                    m1 = mat[i];
+                    m2 = mat[ pyramid_adj[j][i] ];
+                    if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
+                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
+                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
+                    {
+                        face_el[fcnt] = i;
+                        face_fc[fcnt] = j;
+                        fcnt++;
+                    }
+                }
+            }
+
+   /*
+    * Keep in mind that the face normals still need to be computed.
+    * This routine allocates space for the face normals but does not
+    * compute them.
+    */
+}
+
+
+
+/************************************************************
+ * TAG( reset_face_visibility )
+ *
+ * Reset the visibility of hex elements and then regenerate
+ * the face lists.  Note that the face normals are not computed
+ * by this routine and will need to be recomputed after the
+ * routine is called.
+ */
+void
+reset_face_visibility( Analysis *analy )
+{
+    int srec_id;
+    Mesh_data *p_mesh;
+    MO_class_data **mo_classes;
+    int class_qty;
+    int i;
+    int state;
+        
+    /* Get the current state record format and its mesh. */
+    state = analy->cur_state + 1;
+    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &state, NULL,
+                     &srec_id );
+
+    p_mesh = MESH_P( analy );
 
     /* Free up old face lists. */
     if ( p_vd->face_el != NULL )
@@ -5340,129 +5453,6 @@ select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
 {
     float verts[4][3];
     GVec3D *nodes3d, *onodes3d;
-    int (*connects)[5];
-    int j, k, l;
-    int *face_el, *face_fc;
-    int face_cnt;
-    int el, fc, nd, near_num;
-    Visibility_data *p_vd;
-    float pt[3], vec[3], v1[3], v2[3];
-    float near_dist, orig, dist;
-    
-    near_dist = MAXFLOAT;
-    
-    connects = (int (*)[5]) p_mo_class->objects.elems->nodes;
-    nodes3d = analy->state_p->nodes.nodes3d;
-    p_vd = p_mo_class->p_vis_data;
-    face_el = p_vd->face_el;
-    face_fc = p_vd->face_fc;
-    face_cnt = p_vd->face_cnt;
-
-    if ( analy->displace_exag )
-    {
-        onodes3d = (GVec3D *) analy->cur_ref_state_data;
-        
-        for ( j = 0; j < face_cnt; j++ )
-        {
-            el = face_el[j];
-            fc = face_fc[j];
-
-            /* Scale the node displacements. */
-            for ( l = 0; l < 4; l++ )
-            {
-                nd = connects[el][ pyramid_fc_nd_nums[fc][l] ];
-                for ( k = 0; k < 3; k++ )
-                {
-                    orig = onodes3d[nd][k];
-                    verts[l][k] = orig + analy->displace_scale[k]*
-                                  (nodes3d[nd][k] - orig);
-                }
-            }
-
-            VEC_SUB( v1, verts[2], verts[0] );
-            VEC_SUB( v2, verts[3], verts[1] );
-            VEC_CROSS( vec, v1, v2 );
-            vec_norm( vec );
-
-            /* Test for backfacing face. */
-            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
-                continue;
-            
-            if ( intersect_line_quad( verts, line_pt, line_dir, pt ) )
-            {
-                VEC_SUB( vec, pt, line_pt );
-                dist = VEC_DOT( vec, vec );     /* Skip the sqrt. */
-
-                if ( dist < near_dist )
-                {
-                    near_num = el;
-                    near_dist = dist;
-                }
-            }
-        }
-    }
-    else /* No displacement scaling. */
-    {
-        for ( j = 0; j < face_cnt; j++ )
-        {
-            el = face_el[j];
-            fc = face_fc[j];
-
-            for ( l = 0; l < 4; l++ )
-            {
-                nd = connects[el][ pyramid_fc_nd_nums[fc][l] ];
-                for ( k = 0; k < 3; k++ )
-                    verts[l][k] = nodes3d[nd][k];
-            }
-
-            VEC_SUB( v1, verts[2], verts[0] );
-            VEC_SUB( v2, verts[3], verts[1] );
-            VEC_CROSS( vec, v1, v2 );
-            vec_norm( vec );
-
-            /* Test for backfacing face. */
-            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
-                continue;
-              
-            if ( intersect_line_quad( verts, line_pt, line_dir, pt ) )
-            {
-                VEC_SUB( vec, pt, line_pt );
-                dist = VEC_DOT( vec, vec );     /* Skip the sqrt. */
-
-                if ( dist < near_dist )
-                {
-                    near_num = el;
-                    near_dist = dist;
-                }
-            }
-        }
-    }
-
-    /* If we didn't hit an element. */
-    if ( near_dist == MAXFLOAT )
-    {
-        parse_command( "clrhil", env.curr_analy );
-        popup_dialog( INFO_POPUP, "No %s (%s) element hit.", 
-                      p_mo_class->short_name, p_mo_class->long_name );
-        *p_near = 0;
-    }
-    else
-        *p_near = near_num + 1;
-}
-
-
-
-/************************************************************
- * TAG( select_pyramid )
- *
- * Select a pyramid element from a screen pick.
- */
-static void
-select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class, 
-            float line_pt[3], float line_dir[3], int *p_near )
-{
-    float verts[4][3];
-    GVec3D *nodes3d, *onodes3d;
     int (*connects)[8];
     int j, k, l;
     int *face_el, *face_fc;
@@ -5534,6 +5524,129 @@ select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
             for ( l = 0; l < 4; l++ )
             {
                 nd = connects[el][ fc_nd_nums[fc][l] ];
+                for ( k = 0; k < 3; k++ )
+                    verts[l][k] = nodes3d[nd][k];
+            }
+
+            VEC_SUB( v1, verts[2], verts[0] );
+            VEC_SUB( v2, verts[3], verts[1] );
+            VEC_CROSS( vec, v1, v2 );
+            vec_norm( vec );
+
+            /* Test for backfacing face. */
+            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
+                continue;
+              
+            if ( intersect_line_quad( verts, line_pt, line_dir, pt ) )
+            {
+                VEC_SUB( vec, pt, line_pt );
+                dist = VEC_DOT( vec, vec );     /* Skip the sqrt. */
+
+                if ( dist < near_dist )
+                {
+                    near_num = el;
+                    near_dist = dist;
+                }
+            }
+        }
+    }
+
+    /* If we didn't hit an element. */
+    if ( near_dist == MAXFLOAT )
+    {
+        parse_command( "clrhil", env.curr_analy );
+        popup_dialog( INFO_POPUP, "No %s (%s) element hit.", 
+                      p_mo_class->short_name, p_mo_class->long_name );
+        *p_near = 0;
+    }
+    else
+        *p_near = near_num + 1;
+}
+
+
+
+/************************************************************
+ * TAG( select_pyramid )
+ *
+ * Select a pyramid element from a screen pick.
+ */
+static void
+select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class, 
+            float line_pt[3], float line_dir[3], int *p_near )
+{
+    float verts[4][3];
+    GVec3D *nodes3d, *onodes3d;
+    int (*connects)[5];
+    int j, k, l;
+    int *face_el, *face_fc;
+    int face_cnt;
+    int el, fc, nd, near_num;
+    Visibility_data *p_vd;
+    float pt[3], vec[3], v1[3], v2[3];
+    float near_dist, orig, dist;
+    
+    near_dist = MAXFLOAT;
+    
+    connects = (int (*)[5]) p_mo_class->objects.elems->nodes;
+    nodes3d = analy->state_p->nodes.nodes3d;
+    p_vd = p_mo_class->p_vis_data;
+    face_el = p_vd->face_el;
+    face_fc = p_vd->face_fc;
+    face_cnt = p_vd->face_cnt;
+
+    if ( analy->displace_exag )
+    {
+        onodes3d = (GVec3D *) analy->cur_ref_state_data;
+        
+        for ( j = 0; j < face_cnt; j++ )
+        {
+            el = face_el[j];
+            fc = face_fc[j];
+
+            /* Scale the node displacements. */
+            for ( l = 0; l < 4; l++ )
+            {
+                nd = connects[el][ pyramid_fc_nd_nums[fc][l] ];
+                for ( k = 0; k < 3; k++ )
+                {
+                    orig = onodes3d[nd][k];
+                    verts[l][k] = orig + analy->displace_scale[k]*
+                                  (nodes3d[nd][k] - orig);
+                }
+            }
+
+            VEC_SUB( v1, verts[2], verts[0] );
+            VEC_SUB( v2, verts[3], verts[1] );
+            VEC_CROSS( vec, v1, v2 );
+            vec_norm( vec );
+
+            /* Test for backfacing face. */
+            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
+                continue;
+            
+            if ( intersect_line_quad( verts, line_pt, line_dir, pt ) )
+            {
+                VEC_SUB( vec, pt, line_pt );
+                dist = VEC_DOT( vec, vec );     /* Skip the sqrt. */
+
+                if ( dist < near_dist )
+                {
+                    near_num = el;
+                    near_dist = dist;
+                }
+            }
+        }
+    }
+    else /* No displacement scaling. */
+    {
+        for ( j = 0; j < face_cnt; j++ )
+        {
+            el = face_el[j];
+            fc = face_fc[j];
+
+            for ( l = 0; l < 4; l++ )
+            {
+                nd = connects[el][ pyramid_fc_nd_nums[fc][l] ];
                 for ( k = 0; k < 3; k++ )
                     verts[l][k] = nodes3d[nd][k];
             }
@@ -7176,7 +7289,7 @@ get_pyramid_class_edges( float *mtl_trans[3], MO_class_data *p_pyramid_class,
     /* Create the edge table. */
     fcnt = p_vd->face_cnt;
     /* We need to treat the edge count as a hex with one degenerate face */
-    ecnt = fcnt*5 - 5;
+    ecnt = fcnt*4;
     for ( i = 0; i < 3; i++ )
         edge_tbl[i] = NEW_N( int, ecnt, "Pyramid edge table" );
 

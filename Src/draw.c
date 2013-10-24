@@ -14512,7 +14512,7 @@ is_particle_class( Analysis *analy, int superclass, char *class_name )
 
   if ( !strcmp( short_name_upper, "PARTICLE" )       || 
        !strcmp( short_name_upper, "PARTICLE_ELEM" )  ||
-       !strcmp( short_name_upper, "NTET" ) )
+       !strcmp( short_name_upper, "NTET" )) 
        return ( TRUE );
   
   return ( FALSE );
@@ -14530,7 +14530,7 @@ is_dbc_class( Analysis *analy, int superclass, char *class_name )
 
   string_to_upper( short_name, short_name_upper );
 
-  if ( !strncmp( short_name_upper, "DBC", 3 )  )
+  if ( !strncmp( short_name_upper, "DBC", 3 ) )
        return ( TRUE );
 
   return ( FALSE );
