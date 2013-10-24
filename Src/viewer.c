@@ -1,5 +1,6 @@
 
 /* $Id$ */
+
 /*
  * viewer.c - MDG mesh viewer.
  *
@@ -770,7 +771,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     int  num_entries = 0;
     int  superclass, datatype, datalength, meshid;
     int  state, matid;
-    char *wildcard_list[1500], temp_name[128], class[32];
+    char **wildcard_list, temp_name[128], class[32];
     char particle_class_name[128];
 
     Bool_type isMeshvar=FALSE;
@@ -949,15 +950,17 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->th_filter_width = 1;
     analy->th_filter_type = BOX_FILTER;
     if ( num_states > 0 )
+    {
         analy->show_particle_class = FALSE;
-        create_class_list( &analy->bbox_source_qty, &analy->bbox_source,
-                           MESH_P( analy ), 6, G_TRUSS, G_BEAM, G_TRI, G_QUAD,
-                           G_HEX, G_PARTICLE );
-        if ( analy->bbox_source == NULL )
-        {
-             popup_dialog( WARNING_POPUP, 
+    }
+    create_class_list( &analy->bbox_source_qty, &analy->bbox_source,
+                       MESH_P( analy ), 6, G_TRUSS, G_BEAM, G_TRI, G_QUAD,
+                       G_HEX, G_PARTICLE );
+    if ( analy->bbox_source == NULL )
+    {
+        popup_dialog( WARNING_POPUP, 
 	                   "Failed to find object classes for initial bbox.- NO Element Classes Found" );
-        }
+    }
     analy->vec_scale = 1.0;
     analy->vec_head_scale = 1.0;
     analy->mouse_mode = MOUSE_HILITE;
@@ -1005,10 +1008,18 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
        env.ti_enable = FALSE;
     }
     if ( env.ti_enable )
-         /*if ( mc_ti_check_if_data_found( analy->db_ident ) )*/ /* Check if we found a TI
-							      * data file.
-							      */
+    {
+         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+						         "*", "NULL", "NULL",
+						         NULL );
+                           
+         wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+         
+         if(wildcard_list == NULL)
          {
+             return ALLOC_FAILED;
+         }
+
 	      num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
 						         "M_", "NULL", "NULL",
 						         wildcard_list );
@@ -1017,151 +1028,169 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
               analy->ti_var_count = num_entries;
 	      analy->ti_vars      = (TI_Var *) malloc( num_entries*sizeof(TI_Var) );
  
-              for ( i=0;
-		    i<num_entries;
-		    i++ )
-      	      {
-		    /* Extract the long name (with class info in name) 
-		     * and short name of the TI variable. 
-		     */
-		    status = mc_ti_get_metadata_from_name( wildcard_list[i],
-							   class, &meshid, &state,
-							   &matid, &superclass,
-							   &isMeshvar, &isNodal);
+         for ( i=0;
+		         i<num_entries;
+		         i++ )
+      	{
+		       /* Extract the long name (with class info in name) 
+		        * and short name of the TI variable. 
+		        */
+		        status = mc_ti_get_metadata_from_name( wildcard_list[i],
+							       class, &meshid, &state,
+							       &matid, &superclass,
+							       &isMeshvar, &isNodal);
 		    
-		    status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
-						 &datatype, &datalength );
+		        status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
+						                        &datatype, &datalength );
 
-		    analy->ti_vars[i].long_name  = (char *) strdup(wildcard_list[i]);
-		    analy->ti_vars[i].short_name = (char *) strdup( class );
-		    analy->ti_vars[i].superclass = superclass;		  
-		    analy->ti_vars[i].type       = datatype;		  
-		    analy->ti_vars[i].length     = datalength;
-		    analy->ti_vars[i].nodal      = isNodal;
+		        analy->ti_vars[i].long_name  = (char *) strdup(wildcard_list[i]);
+		        analy->ti_vars[i].short_name = (char *) strdup( class );
+		        analy->ti_vars[i].superclass = superclass;		  
+		        analy->ti_vars[i].type       = datatype;		  
+		        analy->ti_vars[i].length     = datalength;
+		        analy->ti_vars[i].nodal      = isNodal;
 	      }
 
-              htable_delete_wildcard_list( num_entries, wildcard_list ) ;
-              analy->ti_data_found = TRUE;
+         htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+         analy->ti_data_found = TRUE;
 
 	      /* Load particle element names from list if available */
 	      num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
 							 "particle_element", "NULL", "NULL",
 							 wildcard_list );
+                      
 	      if ( num_entries>0 ) {
-		   status = mc_ti_undef_class( analy->db_ident );
-	  	   analy->mesh_table->particle_class_names = NEW_N( char *, num_entries, "Particle Class Titles" );
-		   analy->mesh_table->num_particle_classes = num_entries;
-		   for ( i=0;
-			 i<num_entries;
-			 i++ )
-		   {
-		         status = mc_ti_read_string( analy->db_ident, wildcard_list[i], particle_class_name );
-		         analy->mesh_table->particle_class_names[i] = (char *) strdup( particle_class_name );	    
-		   }
-		   htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+		       status = mc_ti_undef_class( analy->db_ident );
+	  	       analy->mesh_table->particle_class_names = NEW_N( char *, num_entries, "Particle Class Titles" );
+		       analy->mesh_table->num_particle_classes = num_entries;
+		       for ( i=0;
+			          i<num_entries;
+			          i++ )
+		       {
+		           status = mc_ti_read_string( analy->db_ident, wildcard_list[i], particle_class_name );
+		           analy->mesh_table->particle_class_names[i] = (char *) strdup( particle_class_name );	    
+		       }
+		       htable_delete_wildcard_list( num_entries, wildcard_list ) ;
 	      }
-         }
+     
 
          /* Get Modal analysis variables if they exist */
          num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
 						    "analysis_type", "NULL", "NULL",
 						    wildcard_list );
-	 if ( num_entries==1 ) {
-	      char tmp_string[256];
-	      status = mc_ti_read_string( analy->db_ident, wildcard_list[0], tmp_string );
-	      if ( !strcmp( tmp_string, "modal" ) )
-		   analy->analysis_type = MODAL;
-	      htable_delete_wildcard_list( num_entries, wildcard_list ) ;
-	 }
+	      if ( num_entries==1 ) 
+         {
+	          char tmp_string[256];
+	          status = mc_ti_read_string( analy->db_ident, wildcard_list[0], tmp_string );
+	          if ( !strcmp( tmp_string, "modal" ) )
+             {
+		           analy->analysis_type = MODAL;
+             }
+	          
+	      }
+         
+         if( num_entries >0)
+         {
+            htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+         }
  
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-						    "changevar_timestep", "NULL", "NULL",
-						    wildcard_list );
-	 if ( num_entries==1 ) {
-	      char tmp_string[256];
-	      status = mc_ti_read_string( analy->db_ident, wildcard_list[0], tmp_string );
-	      analy->time_name = strdup( tmp_string ); 
-	      htable_delete_wildcard_list( num_entries, wildcard_list ) ;
-	 }
-
-         else    
+         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+						         "changevar_timestep", "NULL", "NULL",
+						         wildcard_list );
+                           
+	      if ( num_entries==1 ) 
+         {
+	          char tmp_string[256];
+	          status = mc_ti_read_string( analy->db_ident, wildcard_list[0], tmp_string );
+	          analy->time_name = strdup( tmp_string ); 
+	          htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+	      }else 
+         {   
               analy->ti_data_found = FALSE;
+         }
 
-	 /* Shell Integration Point Labels */
+	      /* Shell Integration Point Labels */
 
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-						    "IntLabel", "NULL", "NULL",
-						    wildcard_list );
-
-	analy->es_cnt = 0;
-	if ( num_entries>0 ) {
-   	     analy->es_intpoints = NEW_N( Integration_points, num_entries, "Integration Point Data" );
+         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+						     "IntLabel", "NULL", "NULL",
+						     wildcard_list );
+         analy->es_cnt = 0;
+       
+	
+	      if ( num_entries>0 ) 
+         {
+   	       analy->es_intpoints = NEW_N( Integration_points, num_entries, "Integration Point Data" );
              analy->es_cnt       = num_entries ;
  
-	     for ( i=0;
-		   i<num_entries;
-		   i++ )
-	     {
-		   int num_items_read=0;
-		   int datatype=0, datalength=0;
-		   char *es_ptr=NULL;
+	          for ( i=0;
+		             i<num_entries;
+		             i++ )
+	          { 
+		       int num_items_read=0;
+		       int datatype=0, datalength=0;
+		       char *es_ptr=NULL;
 		   
-		   status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
-						&datatype, &datalength );
-		   /* Read int the integration point labels. The last element of the array is
-		    * the total number of integration points. 
-		    * For example:
-		    *  5 10 25 32 51
-		    *             ^- This element set has a max of 51 integration points.
-		    *
-		    *             Inner  =  5
-		    *             Middle = 25 
-		    *             Outer  = 32
-		    */
-		   analy->es_intpoints[i].in_mid_out_default[0] = -1; /* -1 = undefined inner integration point */
-		   analy->es_intpoints[i].in_mid_out_default[1] = -1;
-		   analy->es_intpoints[i].in_mid_out_default[2] = -1;
+		       status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
+						    &datatype, &datalength );
+		       /* Read int the integration point labels. The last element of the array is
+		        * the total number of integration points. 
+		        * For example:
+		        *  5 10 25 32 51
+		        *             ^- This element set has a max of 51 integration points.
+		        *      
+		        *             Inner  =  5
+		        *             Middle = 25 
+		        *             Outer  = 32
+		        */
+		        analy->es_intpoints[i].in_mid_out_default[0] = -1; /* -1 = undefined inner integration point */
+		        analy->es_intpoints[i].in_mid_out_default[1] = -1;
+		        analy->es_intpoints[i].in_mid_out_default[2] = -1;
 
-		   analy->es_intpoints[i].labels =  NEW_N( int, datalength, "Element Set Labels" );
+              analy->es_intpoints[i].labels =  NEW_N( int, datalength, "Element Set Labels" );
 
-                   status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
+              status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
 					     (void **) & analy->es_intpoints[i].labels, &num_items_read );
 
-		   analy->es_intpoints[i].labels_cnt      = datalength-1;
-		   analy->es_intpoints[i].intpoints_total = analy->es_intpoints[i].labels[datalength-2];
+		        analy->es_intpoints[i].labels_cnt      = datalength-1;
+		        analy->es_intpoints[i].intpoints_total = analy->es_intpoints[i].labels[datalength-2];
 
-		   /* Strip off the element set uid from the end of the name field */
-		   es_ptr = strstr( wildcard_list[i], "_es_" );
-		   if ( es_ptr ) {
-		        analy->es_intpoints[i].es_id = get_element_set_id( wildcard_list[i] );
-		   }
-		   else continue;
-		   set_default_intpoints ( analy->es_intpoints[i].intpoints_total, analy->es_intpoints[i].labels_cnt,
-					   analy->es_intpoints[i].labels, analy->es_intpoints[i].in_mid_out_default );
+		        /* Strip off the element set uid from the end of the name field */
+		        es_ptr = strstr( wildcard_list[i], "_es_" );
+		        if ( es_ptr ) 
+              {
+		            analy->es_intpoints[i].es_id = get_element_set_id( wildcard_list[i] );
+		        }else 
+              {
+                  continue;
+              }
+		        set_default_intpoints ( analy->es_intpoints[i].intpoints_total, analy->es_intpoints[i].labels_cnt,
+              analy->es_intpoints[i].labels, analy->es_intpoints[i].in_mid_out_default );
 
-		   analy->es_intpoints[i].in_mid_out_set[0] = analy->es_intpoints[i].in_mid_out_default[0];
-		   analy->es_intpoints[i].in_mid_out_set[1] = analy->es_intpoints[i].in_mid_out_default[1];
-		   analy->es_intpoints[i].in_mid_out_set[2] = analy->es_intpoints[i].in_mid_out_default[2];
-	     }
-	     htable_delete_wildcard_list( num_entries, wildcard_list ) ;
-	}
+		        analy->es_intpoints[i].in_mid_out_set[0] = analy->es_intpoints[i].in_mid_out_default[0];
+		        analy->es_intpoints[i].in_mid_out_set[1] = analy->es_intpoints[i].in_mid_out_default[1];
+		        analy->es_intpoints[i].in_mid_out_set[2] = analy->es_intpoints[i].in_mid_out_default[2];
+              }
+	           
+	       }
+          htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+      }
+      free(wildcard_list);
+      /*
+       * Loop over meshes to complete mesh-specific initializations.
+       */
 
-    /*
-     * Loop over meshes to complete mesh-specific initializations.
-     */
+      mat_sz = 0;
+      max_sz = 0;
+      surf_max_sz = 0;
 
-    mat_sz = 0;
-    max_sz = 0;
-    surf_max_sz = 0;
+      max_face_qty = 0;
 
-        max_face_qty = 0;
-
-        for ( i = 0; i < analy->mesh_qty; i++ )
-        {
-            p_md = analy->mesh_table + i;
+      for ( i = 0; i < analy->mesh_qty; i++ )
+      {
+          p_md = analy->mesh_table + i;
         
-            cur_mesh_mat_qty = 0;
-            cur_mesh_surf_qty = 0;
+          cur_mesh_mat_qty = 0;
+          cur_mesh_surf_qty = 0;
         
 #ifdef NEWMILI
             stat = htable_get_data( p_md->class_table, 
