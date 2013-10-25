@@ -6,38 +6,38 @@
  *      Lawrence Livermore National Laboratory
  *      Jun 5 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
+ *
+ * This work was produced at the University of California, Lawrence
+ * Livermore National Laboratory (UC LLNL) under contract no.
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy
+ * (DOE) and The Regents of the University of California (University)
+ * for the operation of UC LLNL. Copyright is reserved to the University
+ * for purposes of controlled dissemination, commercialization through
+ * formal licensing, or other disposition under terms of Contract 48;
+ * DOE policies, regulations and orders; and U.S. statutes. The rights
+ * of the Federal Government are reserved under Contract 48 subject to
+ * the restrictions agreed upon by the DOE and University as allowed
  * under DOE Acquisition Letter 97-1.
- * 
- * 
+ *
+ *
  * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
+ *
+ * This work was prepared as an account of work sponsored by an agency
+ * of the United States Government. Neither the United States Government
+ * nor the University of California nor any of their employees, makes
+ * any warranty, express or implied, or assumes any liability or
+ * responsibility for the accuracy, completeness, or usefulness of any
+ * information, apparatus, product, or process disclosed, or represents
+ * that its use would not infringe privately-owned rights.  Reference
+ * herein to any specific commercial products, process, or service by
+ * trade name, trademark, manufacturer or otherwise does not necessarily
+ * constitute or imply its endorsement, recommendation, or favoring by
+ * the United States Government or the University of California. The
+ * views and opinions of authors expressed herein do not necessarily
+ * state or reflect those of the United States Government or the
+ * University of California, and shall not be used for advertising or
  * product endorsement purposes.
- * 
+ *
  ************************************************************************
  * Modifications:
  *
@@ -55,26 +55,26 @@
 #define THREE2RAD (0.0523598776)
 #define MAX_CON_DL_FACTOR (128.0)
 
-static void gen_hex_class_contours( Analysis *analy, 
+static void gen_hex_class_contours( Analysis *analy,
                                     MO_class_data *p_hex_class, float *c_vals );
-static void gen_tet_class_contours( Analysis *analy, 
+static void gen_tet_class_contours( Analysis *analy,
                                     MO_class_data *p_tet_class, float *c_vals );
-static void gen_quad_class_contours_3d( Analysis *analy, 
-                                        MO_class_data *p_quad_class, 
+static void gen_quad_class_contours_3d( Analysis *analy,
+                                        MO_class_data *p_quad_class,
                                         float *c_vals );
-static void gen_quad_class_contours_2d( Analysis *analy, 
-                                        MO_class_data *p_quad_class, 
+static void gen_quad_class_contours_2d( Analysis *analy,
+                                        MO_class_data *p_quad_class,
                                         float *c_vals );
-static void gen_tri_class_contours_3d( Analysis *analy, 
-                                       MO_class_data *p_tri_class, 
+static void gen_tri_class_contours_3d( Analysis *analy,
+                                       MO_class_data *p_tri_class,
                                        float *c_vals );
-static void gen_tri_class_contours_2d( Analysis *analy, 
-                                       MO_class_data *p_tri_class, 
+static void gen_tri_class_contours_2d( Analysis *analy,
+                                       MO_class_data *p_tri_class,
                                        float *c_vals );
 static Contour_obj *contour_poly( int, float *, float [4][3], float [4] );
 static Contour_obj *contour_poly_level( float, float [4][3], float [4] );
-static void trace_contour( Contour_obj *, float, float [4][3], float [4], 
-                           float *, float ); 
+static void trace_contour( Contour_obj *, float, float [4][3], float [4],
+                           float *, float );
 
 
 /************************************************************
@@ -84,16 +84,16 @@ static void trace_contour( Contour_obj *, float, float [4][3], float [4],
  * Contour levels are stored as percentages.
  */
 void
-set_contour_vals( int num_contours, Analysis *analy ) 
+set_contour_vals( int num_contours, Analysis *analy )
 {
     int i;
- 
+
     if ( num_contours < 1 )
         return;
 
     if ( analy->contour_cnt > 0 )
         free( analy->contour_vals );
- 
+
     analy->contour_vals = NEW_N( float, num_contours, "Contour levels" );
     for ( i = 0; i < num_contours; i++ )
         analy->contour_vals[i] = (i+1)/(float)(num_contours+1);
@@ -108,7 +108,7 @@ set_contour_vals( int num_contours, Analysis *analy )
  * Contour levels are stored as percentages.
  */
 void
-add_contour_val( float val, Analysis *analy ) 
+add_contour_val( float val, Analysis *analy )
 {
     float *c_vals;
     int i;
@@ -116,7 +116,7 @@ add_contour_val( float val, Analysis *analy )
     if ( val < 0.0 || val > 1.0 )
         return;
 
-    /* 
+    /*
      * Should use realloc, but this works.
      * The contour values are not stored in any order.
      */
@@ -151,7 +151,7 @@ report_contour_vals( Analysis *analy )
         wrt_text( "    (none)\n\n" );
         return;
     }
-    else if ( analy->result_mm[0] >= analy->result_mm[1] 
+    else if ( analy->result_mm[0] >= analy->result_mm[1]
               || analy->cur_result == NULL )
         show_result_val = FALSE;
     else
@@ -205,9 +205,9 @@ report_contour_vals( Analysis *analy )
 
             /* Apply units conversion if applicable. */
             if ( analy->perform_unit_conversion )
-                r_val = (analy->conversion_scale * r_val) 
+                r_val = (analy->conversion_scale * r_val)
                         + analy->conversion_offset;
-            
+
             wrt_text( "       %10.3e\n", r_val );
         }
         else
@@ -225,7 +225,7 @@ report_contour_vals( Analysis *analy )
  * Free the list of contour objects.
  */
 void
-free_contours( Analysis *analy ) 
+free_contours( Analysis *analy )
 {
     Contour_obj *cont_list, *cont;
 
@@ -248,7 +248,7 @@ free_contours( Analysis *analy )
  * Generate contours for display on the mesh.
  */
 void
-gen_contours( Analysis *analy ) 
+gen_contours( Analysis *analy )
 {
     float diff, base;
     float *c_vals;
@@ -259,7 +259,7 @@ gen_contours( Analysis *analy )
     MO_class_data **p_mo_classes;
     int srec_id, sub, sclass;
     void (**con_funcs)();
-    void (*con_funcs_3d[])( Analysis *, MO_class_data *, float * ) = 
+    void (*con_funcs_3d[])( Analysis *, MO_class_data *, float * ) =
     {
         NULL,       /* G_UNIT */
         NULL,       /* G_NODE */
@@ -274,7 +274,7 @@ gen_contours( Analysis *analy )
         NULL,       /* G_MAT */
         NULL,       /* G_MESH */
     };
-    void (*con_funcs_2d[])( Analysis *, MO_class_data *, float * ) = 
+    void (*con_funcs_2d[])( Analysis *, MO_class_data *, float * ) =
     {
         NULL,       /* G_UNIT */
         NULL,       /* G_NODE */
@@ -292,15 +292,15 @@ gen_contours( Analysis *analy )
 
     free_contours( analy );
 
-    if ( !analy->show_contours 
-         || analy->contour_cnt < 1
-         || analy->result_mm[0] >= analy->result_mm[1] 
-         || ( analy->cur_result->origin.is_elem_result != 1
-              && analy->cur_result->origin.is_node_result != 1 ) )
+    if ( !analy->show_contours
+            || analy->contour_cnt < 1
+            || analy->result_mm[0] >= analy->result_mm[1]
+            || ( analy->cur_result->origin.is_elem_result != 1
+                 && analy->cur_result->origin.is_node_result != 1 ) )
         return;
 
     check_interp_mode( analy );
-    
+
     c_vals = NEW_N( float, analy->contour_cnt, "Temp contour values" );
 
     /* Convert from percentages to actual contour values. */
@@ -308,11 +308,11 @@ gen_contours( Analysis *analy )
     base = analy->result_mm[0];
     for ( i = 0; i < analy->contour_cnt; i++ )
         c_vals[i] = diff*analy->contour_vals[i] + base;
-    
+
     p_mesh = MESH_P( analy );
     p_res = analy->cur_result;
     srec_id = p_res->srec_id;
-    
+
     /* Assign function pointers array by mesh dimensionality. */
     con_funcs = ( analy->dimension == 3 ) ? con_funcs_3d : con_funcs_2d;
 
@@ -341,9 +341,9 @@ gen_contours( Analysis *analy )
                 if ( con_funcs[j] != NULL )
                 {
                     c_qty = p_mesh->classes_by_sclass[j].qty;
-                    p_mo_classes = (MO_class_data **) 
+                    p_mo_classes = (MO_class_data **)
                                    p_mesh->classes_by_sclass[j].list;
-                    
+
                     for ( k = 0; k < c_qty; k++ )
                         con_funcs[j]( analy, p_mo_classes[k], c_vals );
                 }
@@ -361,7 +361,7 @@ gen_contours( Analysis *analy )
  * Generate contours for faces of hex elements.
  */
 void
-gen_hex_class_contours( Analysis *analy, MO_class_data *p_hex_class, 
+gen_hex_class_contours( Analysis *analy, MO_class_data *p_hex_class,
                         float *c_vals )
 {
     GVec3D *nodes;
@@ -373,7 +373,7 @@ gen_hex_class_contours( Analysis *analy, MO_class_data *p_hex_class,
     float verts[4][3], vert_vals[4];
     float *nodal_data;
     Contour_obj *cont;
-    
+
     p_vd = p_hex_class->p_vis_data;
     face_el = p_vd->face_el;
     face_fc = p_vd->face_fc;
@@ -409,10 +409,10 @@ gen_hex_class_contours( Analysis *analy, MO_class_data *p_hex_class,
  * Generate contours for faces of tet elements.
  */
 void
-gen_tet_class_contours( Analysis *analy, MO_class_data *p_tet_class, 
+gen_tet_class_contours( Analysis *analy, MO_class_data *p_tet_class,
                         float *c_vals )
 {
-#ifdef HAVE_TRI_CONTOUR 
+#ifdef HAVE_TRI_CONTOUR
     GVec3D *nodes;
     int (*connects)[4];
     int i, j, k;
@@ -444,7 +444,7 @@ gen_tet_class_contours( Analysis *analy, MO_class_data *p_tet_class,
                 verts[j][k] = nodes[nd][k];
             vert_vals[j] = nodal_data[nd];
         }
-/*** Need a flag to indicate tri poly vs. quad poly (see alg paper) ***/
+        /*** Need a flag to indicate tri poly vs. quad poly (see alg paper) ***/
         cont = contour_poly( analy->contour_cnt, c_vals, verts, vert_vals );
         if ( cont != NULL )
             APPEND( cont, analy->contours );
@@ -463,7 +463,7 @@ gen_tet_class_contours( Analysis *analy, MO_class_data *p_tet_class,
  * Generate contours for faces of 3D quad elements.
  */
 void
-gen_quad_class_contours_3d( Analysis *analy, MO_class_data *p_quad_class, 
+gen_quad_class_contours_3d( Analysis *analy, MO_class_data *p_quad_class,
                             float *c_vals )
 {
     GVec3D *nodes;
@@ -474,11 +474,11 @@ gen_quad_class_contours_3d( Analysis *analy, MO_class_data *p_quad_class,
     float *nodal_data;
     Contour_obj *cont;
     float *activity;
-    
+
     quad_cnt = p_quad_class->qty;
     nodes = analy->state_p->nodes.nodes3d;
     connects = (int (*)[4]) p_quad_class->objects.elems->nodes;
-    activity = analy->state_p->sand_present 
+    activity = analy->state_p->sand_present
                ? analy->state_p->elem_class_sand[p_quad_class->elem_class_index]
                : NULL;
     nodal_data = NODAL_RESULT_BUFFER( analy );
@@ -510,7 +510,7 @@ gen_quad_class_contours_3d( Analysis *analy, MO_class_data *p_quad_class,
  * Generate contours for faces of 2D quad elements.
  */
 void
-gen_quad_class_contours_2d( Analysis *analy, MO_class_data *p_quad_class, 
+gen_quad_class_contours_2d( Analysis *analy, MO_class_data *p_quad_class,
                             float *c_vals )
 {
     GVec2D *nodes;
@@ -521,11 +521,11 @@ gen_quad_class_contours_2d( Analysis *analy, MO_class_data *p_quad_class,
     float *nodal_data;
     Contour_obj *cont;
     float *activity;
-    
+
     quad_cnt = p_quad_class->qty;
     nodes = analy->state_p->nodes.nodes2d;
     connects = (int (*)[4]) p_quad_class->objects.elems->nodes;
-    activity = analy->state_p->sand_present 
+    activity = analy->state_p->sand_present
                ? analy->state_p->elem_class_sand[p_quad_class->elem_class_index]
                : NULL;
     nodal_data = NODAL_RESULT_BUFFER( analy );
@@ -558,10 +558,10 @@ gen_quad_class_contours_2d( Analysis *analy, MO_class_data *p_quad_class,
  * Generate contours for faces of 3D tri elements.
  */
 void
-gen_tri_class_contours_3d( Analysis *analy, MO_class_data *p_tri_class, 
+gen_tri_class_contours_3d( Analysis *analy, MO_class_data *p_tri_class,
                            float *c_vals )
 {
-#ifdef HAVE_TRI_CONTOUR 
+#ifdef HAVE_TRI_CONTOUR
     GVec3D *nodes;
     int (*connects)[3];
     int i, j, k;
@@ -570,11 +570,11 @@ gen_tri_class_contours_3d( Analysis *analy, MO_class_data *p_tri_class,
     float *nodal_data;
     Contour_obj *cont;
     float *activity;
-    
+
     tri_cnt = p_tri_class->qty;
     nodes = analy->state_p->nodes.nodes3d;
     connects = (int (*)[3]) p_tri_class->objects.elems->nodes;
-    activity = analy->state_p->sand_present 
+    activity = analy->state_p->sand_present
                ? analy->state_p->elem_class_sand[p_tri_class->elem_class_index]
                : NULL;
     nodal_data = NODAL_RESULT_BUFFER( analy );
@@ -593,7 +593,7 @@ gen_tri_class_contours_3d( Analysis *analy, MO_class_data *p_tri_class,
             vert_vals[j] = nodal_data[nd];
         }
 
-/*** Need a flag to indicate tri poly vs. quad poly (see alg paper) ***/
+        /*** Need a flag to indicate tri poly vs. quad poly (see alg paper) ***/
         cont = contour_poly( analy->contour_cnt, c_vals, verts, vert_vals );
         if ( cont != NULL )
             APPEND( cont, analy->contours );
@@ -612,10 +612,10 @@ gen_tri_class_contours_3d( Analysis *analy, MO_class_data *p_tri_class,
  * Generate contours for faces of 2D tri elements.
  */
 void
-gen_tri_class_contours_2d( Analysis *analy, MO_class_data *p_tri_class, 
+gen_tri_class_contours_2d( Analysis *analy, MO_class_data *p_tri_class,
                            float *c_vals )
 {
-#ifdef HAVE_TRI_CONTOUR 
+#ifdef HAVE_TRI_CONTOUR
     GVec2D *nodes;
     int (*connects)[3];
     int i, j, k;
@@ -624,11 +624,11 @@ gen_tri_class_contours_2d( Analysis *analy, MO_class_data *p_tri_class,
     float *nodal_data;
     Contour_obj *cont;
     float *activity;
-    
+
     tri_cnt = p_tri_class->qty;
     nodes = analy->state_p->nodes.nodes2d;
     connects = (int (*)[3]) p_tri_class->objects.elems->nodes;
-    activity = analy->state_p->sand_present 
+    activity = analy->state_p->sand_present
                ? analy->state_p->elem_class_sand[p_tri_class->elem_class_index]
                : NULL;
     nodal_data = NODAL_RESULT_BUFFER( analy );
@@ -648,7 +648,7 @@ gen_tri_class_contours_2d( Analysis *analy, MO_class_data *p_tri_class,
             vert_vals[j] = nodal_data[nd];
         }
 
-/*** Need a flag to indicate tri poly vs. quad poly (see alg paper) ***/
+        /*** Need a flag to indicate tri poly vs. quad poly (see alg paper) ***/
         cont = contour_poly( analy->contour_cnt, c_vals, verts, vert_vals );
         if ( cont != NULL )
             APPEND( cont, analy->contours );
@@ -668,8 +668,8 @@ gen_tri_class_contours_2d( Analysis *analy, MO_class_data *p_tri_class,
  * quadrilateral.  Returns a list of contour objects.
  */
 static Contour_obj *
-contour_poly( int num_contours, float *contour_vals, float verts[4][3], 
-              float vert_vals[4] ) 
+contour_poly( int num_contours, float *contour_vals, float verts[4][3],
+              float vert_vals[4] )
 {
     Contour_obj *cont, *poly_cont;
     int i;
@@ -694,7 +694,7 @@ contour_poly( int num_contours, float *contour_vals, float verts[4][3],
  * quadrilateral.  Returns a list of contour objects.
  */
 static Contour_obj *
-contour_poly_level( float contour_v, float verts[4][3], float vert_v[4] ) 
+contour_poly_level( float contour_v, float verts[4][3], float vert_v[4] )
 {
     Contour_obj *cont, *cp2, *poly_cont, *start_cont;
     float eps, ratio;
@@ -718,20 +718,20 @@ contour_poly_level( float contour_v, float verts[4][3], float vert_v[4] )
     if ( ns == 1 )
     {
         cont = NEW( Contour_obj, "Contour object" );
-	cont->contour_value = 0.0;
+        cont->contour_value = 0.0;
 
         if ( side[0] == 1 )
-            v1 = 2; 
+            v1 = 2;
         else if ( side[1] == 1 )
-            v1 = 3; 
+            v1 = 3;
         else if ( side[2] == 1 )
-            v1 = 0; 
+            v1 = 0;
         else
-            v1 = 1; 
+            v1 = 1;
         v2 = (v1+1)%4;
 
         if ( (vert_v[v1] < contour_v && vert_v[v2] < contour_v) ||
-             (vert_v[v1] > contour_v && vert_v[v2] > contour_v) )
+                (vert_v[v1] > contour_v && vert_v[v2] > contour_v) )
         {
             cont->pts = NEW_N( float, 2*3, "Contour points" );
             cont->cnt = 2;
@@ -757,7 +757,7 @@ contour_poly_level( float contour_v, float verts[4][3], float vert_v[4] )
     else if ( ns == 2 )
     {
         cont = NEW( Contour_obj, "Contour object" );
-	cont->contour_value = 0.0;
+        cont->contour_value = 0.0;
 
         for ( i = 0; i < 4; i++ )
             if ( vert_v[i] != contour_v )
@@ -792,47 +792,47 @@ contour_poly_level( float contour_v, float verts[4][3], float vert_v[4] )
         ii = (i+1)%4;
 
         if ( (contour_v >= vert_v[i] && contour_v < vert_v[ii]) ||
-             (contour_v <= vert_v[i] && contour_v > vert_v[ii]) )
+                (contour_v <= vert_v[i] && contour_v > vert_v[ii]) )
         {
             /* Add this start point to the start_list. */
             cont = NEW( Contour_obj, "Contour object" );
-  	    cont->contour_value = 0.0;
+            cont->contour_value = 0.0;
 
             /* Get the starting point (r,s). */
             ratio = (contour_v-vert_v[i]) / (vert_v[ii]-vert_v[i]);
             switch ( i )
             {
-                case 0:
-                    cont->start[0] = ratio*2.0 - 1.0;
-                    cont->start[1] = -1.0;
-                    break;
-                case 1:
-                    cont->start[0] = 1.0;
-                    cont->start[1] = ratio*2.0 - 1.0;
-                    break;
-                case 2:
-                    cont->start[0] = 1.0 - ratio*2.0;
-                    cont->start[1] = 1.0;
-                    break;
-                case 3:
-                    cont->start[0] = -1.0;
-                    cont->start[1] = 1.0 - ratio*2.0;
-                    break;
+            case 0:
+                cont->start[0] = ratio*2.0 - 1.0;
+                cont->start[1] = -1.0;
+                break;
+            case 1:
+                cont->start[0] = 1.0;
+                cont->start[1] = ratio*2.0 - 1.0;
+                break;
+            case 2:
+                cont->start[0] = 1.0 - ratio*2.0;
+                cont->start[1] = 1.0;
+                break;
+            case 3:
+                cont->start[0] = -1.0;
+                cont->start[1] = 1.0 - ratio*2.0;
+                break;
             }
             cont->contour_value = contour_v;
 
 #ifdef DEBUG
             if ( cont->start[0] < -1.0 || cont->start[0] > 1.0 ||
-                 cont->start[1] < -1.0 || cont->start[1] > 1.0 )
-                popup_dialog( WARNING_POPUP, 
-                    "Contouring -- (r,s) start point is out of bounds!" );
+                    cont->start[1] < -1.0 || cont->start[1] > 1.0 )
+                popup_dialog( WARNING_POPUP,
+                              "Contouring -- (r,s) start point is out of bounds!" );
 #endif
 
             APPEND( cont, start_cont );
             ns++;
         }
     }
-        
+
     if ( ns == 0 )
         return NULL;
 
@@ -846,13 +846,13 @@ contour_poly_level( float contour_v, float verts[4][3], float vert_v[4] )
     poly_cont = NULL;
     for ( cont = start_cont, factor = 1.0; cont != NULL; cont = start_cont )
     {
-        /* 
+        /*
          * If two intersections found, assume they're the same contour
          * and pass the second as the end point for use in step-size
-         * calculation. 
+         * calculation.
          */
         next = ( ns == 2 && cont->next ) ? cont->next->start : NULL;
-        
+
         trace_contour( cont, contour_v, verts, vert_v, next, factor );
 
         if ( cont->cnt < 2 )
@@ -865,23 +865,23 @@ contour_poly_level( float contour_v, float verts[4][3], float vert_v[4] )
         else
         {
             matched = FALSE;
-            
+
             /* Delete redundant contour if there is one. */
             for ( cp2 = cont->next; cp2 != NULL; cp2 = cp2->next )
             {
                 if ( fabs((double)(cont->end[0] - cp2->start[0])) < eps &&
-                     fabs((double)(cont->end[1] - cp2->start[1])) < eps )
+                        fabs((double)(cont->end[1] - cp2->start[1])) < eps )
                 {
                     DELETE( cp2, start_cont );
                     matched = TRUE;
                 }
             }
-            
+
             if ( ns == 2 && !matched && factor <= MAX_CON_DL_FACTOR )
             {
-/*
-                wrt_text( "Contour end merge failed - decreasing step.\n" );
-*/
+                /*
+                                wrt_text( "Contour end merge failed - decreasing step.\n" );
+                */
                 cont->cnt = 0;
                 free( cont->pts );
                 cont->pts = NULL;
@@ -908,7 +908,7 @@ contour_poly_level( float contour_v, float verts[4][3], float vert_v[4] )
  *
  * Trace out a contour on a quadrilateral face, beginning with
  * the specified starting point.
- * 
+ *
  * cont       | The contour object in which contour is returned.
  *            | Should contain the starting point in (r,s).
  * contour_v  | Contour value
@@ -916,7 +916,7 @@ contour_poly_level( float contour_v, float verts[4][3], float vert_v[4] )
  * vert_v     | Vertex values
  * next       | Assumed endpoint for contour on quadilateral face.
  *            | May be null.
- * factor     | A correction factor the calling program may use to 
+ * factor     | A correction factor the calling program may use to
  *            | scale down the step size.
  *
  * Algorithm: See "An Improved Method for Contouring on Isoparametric
@@ -925,8 +925,8 @@ contour_poly_level( float contour_v, float verts[4][3], float vert_v[4] )
  *            pp 451-472 (1979).
  */
 static void
-trace_contour( Contour_obj *cont, float contour_v, float verts[4][3], 
-               float vert_v[4], float *next, float factor ) 
+trace_contour( Contour_obj *cont, float contour_v, float verts[4][3],
+               float vert_v[4], float *next, float factor )
 {
     float c_verts[CONTOUR_MAX_VERTS][3];
     float r_old, s_old, r_new, s_new, val, sgn;
@@ -937,14 +937,14 @@ trace_contour( Contour_obj *cont, float contour_v, float verts[4][3],
     float arclen, vlen, dotp, steps;
     double rot;
 
-    /* Get starting point. */ 
+    /* Get starting point. */
     r_old = cont->start[0];
     s_old = cont->start[1];
     shape_fns_quad( r_old, s_old, h );
     for ( i = 0; i < 3; i++ )
         c_verts[0][i] = verts[0][i]*h[0] + verts[1][i]*h[1] +
                         verts[2][i]*h[2] + verts[3][i]*h[3];
-               
+
     cnt = 1;
     quit = FALSE;
 
@@ -963,14 +963,14 @@ trace_contour( Contour_obj *cont, float contour_v, float verts[4][3],
         {
             /*
              * Guesstimate the integration step-size necessary based on
-             * the distance to the end point and the azimuth from the start 
-             * direction to the direction of the end point, if the end point 
+             * the distance to the end point and the azimuth from the start
+             * direction to the direction of the end point, if the end point
              * is available, else punt.
-             * 
+             *
              * Alternative idea - calc curvature at start point and set dl
              * directly based on that.
              */
-    
+
             /* If an (assumed) endpoint exists... */
             if ( next != NULL )
             {
@@ -979,29 +979,29 @@ trace_contour( Contour_obj *cont, float contour_v, float verts[4][3],
                 vlen = VEC_LENGTH_2D( dirvec );
                 dirvec[0] /= vlen;
                 dirvec[1] /= vlen;
-    
+
                 VEC_SUB_2D( linvec, next, cont->start );
                 vlen = VEC_LENGTH_2D( linvec );
                 linvec[0] /= vlen;
                 linvec[1] /= vlen;
-    
+
                 dotp = VEC_DOT_2D( linvec, dirvec );
                 dotp = (float) fabs( (double) dotp );
-        
+
                 if ( dotp >= 0.99999 ) /* arccos(.99999) = 0.25 degrees */
                     /* Straight shot - one step (when factor is 1). */
                     dl = vlen * 1.0001 / factor;
-                else 
+                else
                 {
                     /*
-                     * Calculate number of steps as one plus 
+                     * Calculate number of steps as one plus
                      * one_per_3_degrees of azimuth (times factor).
                      */
                     rot = acos( dotp );
                     steps = (ceil( rot / THREE2RAD ) + 1.0) * factor;
-            
-                    /* 
-                     * Assume a circular arc to estimate dl (bad???). 
+
+                    /*
+                     * Assume a circular arc to estimate dl (bad???).
                      * Angle subtended by arc is twice the azimuth angle.
                      */
                     arclen = (rot / sin( rot )) * vlen;
@@ -1010,15 +1010,15 @@ trace_contour( Contour_obj *cont, float contour_v, float verts[4][3],
             }
             else
             {
-/*
-                wrt_text( "Unpaired contour intersection of element.\n" );
-*/
+                /*
+                                wrt_text( "Unpaired contour intersection of element.\n" );
+                */
                 dl = 0.1 / factor;
             }
 
-            /* 
+            /*
              * Make sure we are walking along the contour in the correct
-             * direction.  Want to walk into the quadrilateral, not away 
+             * direction.  Want to walk into the quadrilateral, not away
              * from it.
              */
             if ( s_old == -1.0 )
@@ -1086,7 +1086,7 @@ trace_contour( Contour_obj *cont, float contour_v, float verts[4][3],
         for ( i = 0; i < 3; i++ )
             c_verts[cnt][i] = verts[0][i]*h[0] + verts[1][i]*h[1] +
                               verts[2][i]*h[2] + verts[3][i]*h[3];
-        
+
         cnt++;
 
         /* Prepare for next step. */

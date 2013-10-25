@@ -1,58 +1,58 @@
- /* faces.c - Routines for generating and modifying the mesh face tables.
- *
- *      Donald J. Dovey
- *      Lawrence Livermore National Laboratory
- *      Dec 27 1991
- *
- ************************************************************************
- * Modifications:
- *  I. R. Corey - Sept 15, 2004: Added new option "damage_hide" which 
- *  controls if damaged elements are displayed.
- *
- *  I. R. Corey - Jan   7, 2005: Added logic to support selecting objects
- *                for failed elements when the free_nodes option is enabled.
- *                See SRC#: 286
- *
- *  I. R. Corey - Jan  12, 2006: Added test for no free nodes.
- *                See SRC#: 286
- *                
- *  I. R. Corey - Aug  14, 2007: Added call to re-compute idx (pointer 
- *
- *  I. R. Corey - April 23, 2009: Fixed problem with qty not being inc-
- *                creased when the first set of edges is largest.
- *                See SRC#: 599
- *                
- *  I. R. Corey - Dec 28, 2009: Fixed several problems releated to drawing
- *                ML particles.
- *                See SRC#648
- ************************************************************************
- */
+/* faces.c - Routines for generating and modifying the mesh face tables.
+*
+*      Donald J. Dovey
+*      Lawrence Livermore National Laboratory
+*      Dec 27 1991
+*
+************************************************************************
+* Modifications:
+*  I. R. Corey - Sept 15, 2004: Added new option "damage_hide" which
+*  controls if damaged elements are displayed.
+*
+*  I. R. Corey - Jan   7, 2005: Added logic to support selecting objects
+*                for failed elements when the free_nodes option is enabled.
+*                See SRC#: 286
+*
+*  I. R. Corey - Jan  12, 2006: Added test for no free nodes.
+*                See SRC#: 286
+*
+*  I. R. Corey - Aug  14, 2007: Added call to re-compute idx (pointer
+*
+*  I. R. Corey - April 23, 2009: Fixed problem with qty not being inc-
+*                creased when the first set of edges is largest.
+*                See SRC#: 599
+*
+*  I. R. Corey - Dec 28, 2009: Fixed several problems releated to drawing
+*                ML particles.
+*                See SRC#648
+************************************************************************
+*/
 
 #include <stdlib.h>
 #include "viewer.h"
 #include "mdg.h"
 
 /* Local routines. */
-static void load_hex_adj( MO_class_data *p_mocd, int *node_tbl, 
-                          int *face_tbl[7], int *p_tbl_sz, 
+static void load_hex_adj( MO_class_data *p_mocd, int *node_tbl,
+                          int *face_tbl[7], int *p_tbl_sz,
                           int start, int stop );
-static void double_table_size( int *tbl_sz, int **face_tbl, int *free_ptr, 
+static void double_table_size( int *tbl_sz, int **face_tbl, int *free_ptr,
                                int row_qty );
 static int *check_match( int *face_entry, int *node_tbl, int **face_tbl );
 static Bool_type check_degen_face( int *nodes );
-static void hex_rough_cut( float *ppt, float *norm, MO_class_data *p_hex_class, 
+static void hex_rough_cut( float *ppt, float *norm, MO_class_data *p_hex_class,
                            GVec3D *nodes, unsigned char *hex_visib );
 static void tet_rough_cut( float *ppt, float *norm, MO_class_data *p_tet_class,
                            GVec3D *nodes, unsigned char *tet_visib );
 static int test_plane_hex_elem( float *, float *, int, int [][8], GVec3D * );
 static int test_plane_tet_elem( float *, float *, int, int [][4], GVec3D * );
 /* static void face_aver_norm(); */
-static void tet_face_avg_norm( int, int, MO_class_data *, Analysis *, 
+static void tet_face_avg_norm( int, int, MO_class_data *, Analysis *,
                                float * );
-static void hex_face_avg_norm( int, int, MO_class_data *, Analysis *, 
+static void hex_face_avg_norm( int, int, MO_class_data *, Analysis *,
                                float * );
-static void pyramid_face_avg_norm( int, int, MO_class_data *, Analysis *, 
-                               float * );
+static void pyramid_face_avg_norm( int, int, MO_class_data *, Analysis *,
+                                   float * );
 /* static void shell_aver_norm(); */
 static void tri_avg_norm( int, MO_class_data *, Analysis *, float * );
 static void quad_avg_norm( int, MO_class_data *, Analysis *, float * );
@@ -66,59 +66,59 @@ static void pyramid_face_normals( Mesh_data *, Analysis * );
 static void quad_normals( Mesh_data *, Analysis * );
 static void surface_normals( Mesh_data *, Analysis * );
 static void tri_normals( Mesh_data *, Analysis * );
-static void select_hex( Analysis *analy, Mesh_data *p_mesh, 
-                        MO_class_data *p_mo_class, float line_pt[3], 
+static void select_hex( Analysis *analy, Mesh_data *p_mesh,
+                        MO_class_data *p_mo_class, float line_pt[3],
                         float line_dir[3], int *p_near );
 
-static void select_pyramid( Analysis *analy, Mesh_data *p_mesh, 
-                        MO_class_data *p_mo_class, float line_pt[3], 
-                        float line_dir[3], int *p_near );
+static void select_pyramid( Analysis *analy, Mesh_data *p_mesh,
+                            MO_class_data *p_mo_class, float line_pt[3],
+                            float line_dir[3], int *p_near );
 void
-select_meshless_elem( Analysis *analy, Mesh_data *p_mesh, 
-		      MO_class_data *p_ml_class, int near_node, 
-		      int *p_near );
+select_meshless_elem( Analysis *analy, Mesh_data *p_mesh,
+                      MO_class_data *p_ml_class, int near_node,
+                      int *p_near );
 void
-select_meshless_node( Analysis *analy, Mesh_data *p_mesh, 
-		      MO_class_data *p_ml_class, int elem_id, 
-		      int *p_near );
+select_meshless_node( Analysis *analy, Mesh_data *p_mesh,
+                      MO_class_data *p_ml_class, int elem_id,
+                      int *p_near );
 
-static void select_tet( Analysis *analy, Mesh_data *p_mesh, 
-                        MO_class_data *p_mo_class, float line_pt[3], 
+static void select_tet( Analysis *analy, Mesh_data *p_mesh,
+                        MO_class_data *p_mo_class, float line_pt[3],
                         float line_dir[3], int *p_near );
-static void select_planar( Analysis *analy, Mesh_data *p_mesh, 
-                           MO_class_data *p_mo_class, float line_pt[3], 
+static void select_planar( Analysis *analy, Mesh_data *p_mesh,
+                           MO_class_data *p_mo_class, float line_pt[3],
                            float line_dir[3], int *p_near );
 static void select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
                                 MO_class_data *p_mo_class, float line_pt[3],
                                 float line_dir[3], int *p_near );
-static void select_linear( Analysis *analy, Mesh_data *p_mesh, 
-                           MO_class_data *p_mo_class, float line_pt[3], 
+static void select_linear( Analysis *analy, Mesh_data *p_mesh,
+                           MO_class_data *p_mo_class, float line_pt[3],
                            float line_dir[3], int *p_near );
 
 static void select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
-			 float line_pt[3],
+                         float line_pt[3],
                          float line_dir[3], int *p_near );
 
-static void select_particle( Analysis *analy, Mesh_data *p_mesh, 
-                             MO_class_data *p_mo_class, float line_pt[3], 
+static void select_particle( Analysis *analy, Mesh_data *p_mesh,
+                             MO_class_data *p_mo_class, float line_pt[3],
                              float line_dir[3], int *p_near );
 
-static void edge_heapsort( int n, int *arrin[3], int *indx, int *face_el, 
+static void edge_heapsort( int n, int *arrin[3], int *indx, int *face_el,
                            int *mat, float *mtl_trans[3] );
 static int edge_compare( int, int, int *[3], int *, int *, float *[3] );
-static Edge_list_obj * get_hex_class_edges( float *[3], MO_class_data *, 
-                                            Analysis * );
-static Edge_list_obj * get_pyramid_class_edges( float *[3], MO_class_data *, 
-                                            Analysis * );
-static Edge_list_obj * get_tet_class_edges( float *[3], MO_class_data *, 
-                                            Analysis * );
-static Edge_list_obj * get_quad_class_edges( float *[3], MO_class_data *, 
-                                             Analysis * );
-static Edge_list_obj * get_tri_class_edges( float *[3], MO_class_data *, 
-                                            Analysis * );
+static Edge_list_obj * get_hex_class_edges( float *[3], MO_class_data *,
+        Analysis * );
+static Edge_list_obj * get_pyramid_class_edges( float *[3], MO_class_data *,
+        Analysis * );
+static Edge_list_obj * get_tet_class_edges( float *[3], MO_class_data *,
+        Analysis * );
+static Edge_list_obj * get_quad_class_edges( float *[3], MO_class_data *,
+        Analysis * );
+static Edge_list_obj * get_tri_class_edges( float *[3], MO_class_data *,
+        Analysis * );
 static Edge_list_obj * create_compressed_edge_list( int *[2], int *, int );
-static Edge_list_obj * merge_and_free_edge_lists( Edge_list_obj *, 
-                                                Edge_list_obj * );
+static Edge_list_obj * merge_and_free_edge_lists( Edge_list_obj *,
+        Edge_list_obj * );
 static void find_extents( MO_class_data *, int, float *, Bool_type [],
                           unsigned char *, float [], float [] );
 
@@ -129,7 +129,7 @@ extern float calc_particle_radius( Analysis *analy, float scale_factor_input );
  */
 float crease_threshold = 0.927;
 
-/* Default angle for explicit edge detection is 44 degrees. Note that 
+/* Default angle for explicit edge detection is 44 degrees. Note that
  * cos(44) = 0.719 which is the explicit_threshold*/
 float explicit_threshold = 0.719;
 
@@ -145,10 +145,11 @@ static int free_ptr;
  * Table which gives the nodes corresponding to each face of a
  * tet element.
  */
-int tet_fc_nd_nums[4][3] = { {0, 1, 3}, 
-                             {1, 2, 3},
-                             {2, 0, 3},
-                             {0, 2, 1} };
+int tet_fc_nd_nums[4][3] = { {0, 1, 3},
+    {1, 2, 3},
+    {2, 0, 3},
+    {0, 2, 1}
+};
 
 
 /*****************************************************************
@@ -169,10 +170,11 @@ int tet_edge_node_nums[6][2] = { {0,1}, {0,2}, {0,3}, {1,2}, {1,3}, {2,3} };
  *
  */
 int pyramid_fc_nd_nums[5][4] = { {0, 3, 2, 1},
-                                 {0, 1, 4, 4},
-                                 {3, 0, 4, 4},
-                                 {1, 2, 4, 4},
-                                 {2, 3, 4, 4} };
+    {0, 1, 4, 4},
+    {3, 0, 4, 4},
+    {1, 2, 4, 4},
+    {2, 3, 4, 4}
+};
 
 /*****************************************************************
  * TAG( pyramid_edge_node_nums )
@@ -181,7 +183,8 @@ int pyramid_fc_nd_nums[5][4] = { {0, 3, 2, 1},
  * each edge on a pyramid element.
  */
 int pyramid_edge_node_nums[8][2] = { {0,1}, {0,3}, {1,2}, {2,3},
-                                 {0,4}, {1,4}, {2,4}, {3,4} };
+    {0,4}, {1,4}, {2,4}, {3,4}
+};
 
 /*****************************************************************
  * TAG( fc_nd_nums )
@@ -206,12 +209,13 @@ int pyramid_edge_node_nums[8][2] = { {0,1}, {0,3}, {1,2}, {2,3},
  *       010      4               011      8
  *
  */
-int fc_nd_nums[6][4] = { {1, 2, 6, 5}, 
-                         {2, 3, 7, 6},
-                         {0, 4, 7, 3},
-                         {1, 5, 4, 0},
-                         {4, 5, 6, 7},
-                         {0, 3, 2, 1} };
+int fc_nd_nums[6][4] = { {1, 2, 6, 5},
+    {2, 3, 7, 6},
+    {0, 4, 7, 3},
+    {1, 5, 4, 0},
+    {4, 5, 6, 7},
+    {0, 3, 2, 1}
+};
 
 
 /*****************************************************************
@@ -221,7 +225,8 @@ int fc_nd_nums[6][4] = { {1, 2, 6, 5},
  * to each edge on a hexahedral element.
  */
 int edge_face_nums[12][2] = { {2,3}, {0,3}, {0,1}, {1,2}, {3,5}, {1,5},
-                              {1,4}, {3,4}, {2,5}, {2,4}, {4,0}, {0,5} };
+    {1,4}, {3,4}, {2,5}, {2,4}, {4,0}, {0,5}
+};
 
 
 /*****************************************************************
@@ -231,7 +236,8 @@ int edge_face_nums[12][2] = { {2,3}, {0,3}, {0,1}, {1,2}, {3,5}, {1,5},
  * each edge on a hexahedral element.
  */
 int edge_node_nums[12][2] = { {0,4}, {1,5}, {2,6}, {3,7}, {0,1}, {3,2},
-                              {7,6}, {4,5}, {0,3}, {4,7}, {5,6}, {1,2} };
+    {7,6}, {4,5}, {0,3}, {4,7}, {5,6}, {1,2}
+};
 
 
 #ifdef DUMP_TABLES
@@ -255,7 +261,7 @@ start_table_dump( int node_qty )
 /************************************************************
  * TAG( stop_table_dump )
  *
- * 
+ *
  */
 static void
 stop_table_dump()
@@ -380,7 +386,7 @@ update_hex_adj( Analysis *analy )
         p_mesh = analy->mesh_table + i;
 
         class_qty = p_mesh->classes_by_sclass[G_HEX].qty;
-        p_hex_classes = (MO_class_data **) 
+        p_hex_classes = (MO_class_data **)
                         p_mesh->classes_by_sclass[G_HEX].list;
 
         for ( j = 0; j < class_qty; j++ )
@@ -395,7 +401,7 @@ update_hex_adj( Analysis *analy )
  * Create element adjacency table for a hex class.  Dependent
  * on "hex_overlap" boolean value (which for best performance
  * and most meshes should be FALSE), coincident elements of
- * different materials may have their adjacency configured 
+ * different materials may have their adjacency configured
  * such that each material instance is allowed to provide
  * external faces independently.  The performance hit in
  * permitting this is that each coincident face is rendered,
@@ -437,14 +443,14 @@ create_hex_adj( MO_class_data *p_mocd, Analysis *analy )
      *
      * "The face table to be constructed has six or seven entries for each face.  The first four
      * entries are the indices of the four nodes that define the face.  The elements supported
-     * have either quadrilateral or triangular faces.  The fifth contains the face number.  The 
-     * sixth entry is a pointer to the next face in the list which contains the same minimum 
+     * have either quadrilateral or triangular faces.  The fifth contains the face number.  The
+     * sixth entry is a pointer to the next face in the list which contains the same minimum
      * node index (a zero indicates the end of the list).  This produces a 'threaded list' based
      * on the lowest numbered node of each face.  This list can be quickly processed and a face
-     * can be found without extensive searching.  In addition to the face table there is a 
+     * can be found without extensive searching.  In addition to the face table there is a
      * node table with one entry per node which points to the first face which involved that node.
      *
-     * When the initialization process begins, the node and face tables are all zeros.  They 
+     * When the initialization process begins, the node and face tables are all zeros.  They
      * are filled up progressively by processing all of the cells in the domain.  Each cell
      * has four to six faces that have pointers to the three or four nodes which define the faces.
      * For each face the process is as follows:
@@ -453,7 +459,7 @@ create_hex_adj( MO_class_data *p_mocd, Analysis *analy )
      * Nmin is the minimum of the node numbers. The node table is used to see if there is already
      * a face in the face table which involves node Nmin.  This not, then this new face is added
      * to the face table by setting the first four entries equal to n1, n2, n3, and n4 and the
-     * fifth to the cell index with a face number flag.  The node table entry for Nmin is 
+     * fifth to the cell index with a face number flag.  The node table entry for Nmin is
      * adjusted to point to the new face.
      *
      * If there is an entry in the node table, then all the nodes of that entry in the table are
@@ -473,7 +479,7 @@ create_hex_adj( MO_class_data *p_mocd, Analysis *analy )
      * numbers in the fifth position are faces that bound the volume.  These are compared against
      * the programmer-supplied bounding surface face definitions for consistency."
      */
-    
+
     hex_adj = p_mocd->p_vis_data->adjacency;
     hcnt = p_mocd->qty;
     ncnt = analy->mesh_table[p_mocd->mesh_id].node_geom->qty;
@@ -505,14 +511,14 @@ create_hex_adj( MO_class_data *p_mocd, Analysis *analy )
 
     if ( analy->hex_overlap )
     {
-        /* 
-         * Process elements by material, skipping materials for which the 
+        /*
+         * Process elements by material, skipping materials for which the
          * elements don't belong to the current hex class.
          */
 
         /* Get material data. */
         p_mesh = analy->mesh_table + p_mocd->mesh_id;
-        p_mat_class = ((MO_class_data **) 
+        p_mat_class = ((MO_class_data **)
                        (p_mesh->classes_by_sclass[G_MAT].list))[0];
         qty_mats = p_mat_class->qty;
         p_mats = p_mat_class->objects.materials;
@@ -576,7 +582,7 @@ create_hex_adj( MO_class_data *p_mocd, Analysis *analy )
  * sort with approximately linear complexity.
  */
 static void
-load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7], 
+load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
               int *p_tbl_sz, int start, int stop )
 {
     int (*connects)[8];
@@ -622,7 +628,7 @@ load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
     {
         for ( fc = 0; fc < 6; fc++ )
         {
-    
+
             /* Get nodes for a face. */
             for ( i = 0; i < 4; i++ )
                 face_entry[i] = connects[el][ fc_nd_nums[fc][i] ];
@@ -670,18 +676,18 @@ load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
             {
                 /* Create a new face entry and append to node list. */
                 if ( free_ptr < 0 )
-		{
-                     double_table_size( p_tbl_sz, face_tbl, &free_ptr, 7 );
+                {
+                    double_table_size( p_tbl_sz, face_tbl, &free_ptr, 7 );
 
-		     /* IRC - Aug. 14, 2007 - Added call to re-compute address for idx */
-                     idx = check_match( face_entry, node_tbl, face_tbl );
-		}
+                    /* IRC - Aug. 14, 2007 - Added call to re-compute address for idx */
+                    idx = check_match( face_entry, node_tbl, face_tbl );
+                }
 
                 new_idx = free_ptr;
                 free_ptr = face_tbl[6][free_ptr];
 
                 for ( i = 0; i < 6; i++ )
-                      face_tbl[i][new_idx] = face_entry[i];
+                    face_tbl[i][new_idx] = face_entry[i];
                 face_tbl[6][new_idx] = -1;
                 *idx = new_idx;
             }
@@ -726,7 +732,7 @@ create_tet_adj( MO_class_data *p_mocd, Analysis *analy )
      *
      * The table tet_adj contains for each tet element
      *
-     *     neighbor_elem1 n_elem2 n_elem3 n_elem4 
+     *     neighbor_elem1 n_elem2 n_elem3 n_elem4
      *
      * If a tet element has no neighbor adjacent to one of its faces,
      * that face neighbor is marked with a -1 in the tet_adj table.
@@ -738,7 +744,7 @@ create_tet_adj( MO_class_data *p_mocd, Analysis *analy )
      *      Fluid Dynamics, VKI Lecture Series #10, Brussels, Sept 16-20
      *      1991.
      */
-    
+
     connects = (int (*)[4]) p_mocd->objects.elems->nodes;
     tet_adj = p_mocd->p_vis_data->adjacency;
     tcnt = p_mocd->qty;
@@ -793,7 +799,7 @@ create_tet_adj( MO_class_data *p_mocd, Analysis *analy )
             {
                 /* If face is degenerate (pt or line), skip it. */
                 if ( face_entry[0] == face_entry[1]
-                     || face_entry[1] == face_entry[2] )
+                        || face_entry[1] == face_entry[2] )
                     continue;
             }
 
@@ -801,12 +807,14 @@ create_tet_adj( MO_class_data *p_mocd, Analysis *analy )
             idx = &node_tbl[face_entry[0]];
             while ( *idx >= 0 )
             {
-                if ( face_entry[0] == face_tbl[0][*idx] 
-                     && face_entry[1] == face_tbl[1][*idx] 
-                     && face_entry[2] == face_tbl[2][*idx] )
+                if ( face_entry[0] == face_tbl[0][*idx]
+                        && face_entry[1] == face_tbl[1][*idx]
+                        && face_entry[2] == face_tbl[2][*idx] )
                 {
                     break;
-                } else {
+                }
+                else
+                {
                     idx = &face_tbl[5][*idx];
                 }
             }
@@ -872,7 +880,7 @@ create_quad_adj( MO_class_data *p_mocd, Analysis *analy )
     int *idx, new_idx, tmp;
     int el, edg, elem1, edge1, elem2, edge2;
     int i, j, k;
-    static int quad_edg_nd_nums[4][2] = 
+    static int quad_edg_nd_nums[4][2] =
     {
         { 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 }
     };
@@ -884,7 +892,7 @@ create_quad_adj( MO_class_data *p_mocd, Analysis *analy )
      *
      * The table quad_adj contains for each quad element
      *
-     *     neighbor_elem1 n_elem2 n_elem3 n_elem4 
+     *     neighbor_elem1 n_elem2 n_elem3 n_elem4
      *
      * If a quad element has no neighbor adjacent to one of its edges,
      * that edge neighbor is marked with a -1 in the quad_adj table.
@@ -896,10 +904,10 @@ create_quad_adj( MO_class_data *p_mocd, Analysis *analy )
      *      Fluid Dynamics, VKI Lecture Series #10, Brussels, Sept 16-20
      *      1991.
      */
-    
+
     if ( p_mocd->p_vis_data->adjacency != NULL )
         return;
-    
+
     quad_adj = NEW_N( int *, 4, "Quad adjacency array" );
     for ( k = 0; k < 4; k++ )
         quad_adj[k] = NEW_N( int, p_mocd->qty, "Quad adjacency" );
@@ -962,8 +970,8 @@ create_quad_adj( MO_class_data *p_mocd, Analysis *analy )
             idx = &node_tbl[edge_entry[0]];
             while ( *idx >= 0 )
             {
-                if ( edge_entry[0] != edge_tbl[0][*idx] 
-                     || edge_entry[1] != edge_tbl[1][*idx] )
+                if ( edge_entry[0] != edge_tbl[0][*idx]
+                        || edge_entry[1] != edge_tbl[1][*idx] )
                     idx = &edge_tbl[4][*idx];
             }
 
@@ -1029,7 +1037,7 @@ create_surf_adj( MO_class_data *p_mocd, Analysis *analy )
     int *idx, new_idx, tmp;
     int el, edg, elem1, edge1, elem2, edge2;
     int i, j, k;
-    static int surf_edg_nd_nums[4][2] = 
+    static int surf_edg_nd_nums[4][2] =
     {
         { 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 }
     };
@@ -1041,7 +1049,7 @@ create_surf_adj( MO_class_data *p_mocd, Analysis *analy )
      *
      * The table surf_adj contains for each surf element
      *
-     *     neighbor_elem1 n_elem2 n_elem3 n_elem4 
+     *     neighbor_elem1 n_elem2 n_elem3 n_elem4
      *
      * If a surf element has no neighbor adjacent to one of its edges,
      * that edge neighbor is marked with a -1 in the surf_adj table.
@@ -1053,10 +1061,10 @@ create_surf_adj( MO_class_data *p_mocd, Analysis *analy )
      *      Fluid Dynamics, VKI Lecture Series #10, Brussels, Sept 16-20
      *      1991.
      */
-    
+
     if ( p_mocd->p_vis_data->adjacency != NULL )
         return;
-    
+
     surf_adj = NEW_N( int *, 4, "surf adjacency array" );
     for ( k = 0; k < 4; k++ )
         surf_adj[k] = NEW_N( int, p_mocd->qty, "Surf adjacency" );
@@ -1119,8 +1127,8 @@ create_surf_adj( MO_class_data *p_mocd, Analysis *analy )
             idx = &node_tbl[edge_entry[0]];
             while ( *idx >= 0 )
             {
-                if ( edge_entry[0] != edge_tbl[0][*idx] 
-                     || edge_entry[1] != edge_tbl[1][*idx] )
+                if ( edge_entry[0] != edge_tbl[0][*idx]
+                        || edge_entry[1] != edge_tbl[1][*idx] )
                     idx = &edge_tbl[4][*idx];
             }
 
@@ -1185,7 +1193,7 @@ create_tri_adj( MO_class_data *p_mocd, Analysis *analy )
     int *idx, new_idx, tmp;
     int el, edg, elem1, edge1, elem2, edge2;
     int i, j, k;
-    static int tri_edg_nd_nums[3][2] = 
+    static int tri_edg_nd_nums[3][2] =
     {
         { 0, 1 }, { 1, 2 }, { 2, 0 }
     };
@@ -1209,10 +1217,10 @@ create_tri_adj( MO_class_data *p_mocd, Analysis *analy )
      *      Fluid Dynamics, VKI Lecture Series #10, Brussels, Sept 16-20
      *      1991.
      */
-    
+
     if ( p_mocd->p_vis_data->adjacency != NULL )
         return;
-    
+
     tri_adj = NEW_N( int *, 3, "Tri adjacency array" );
     for ( k = 0; k < 3; k++ )
         tri_adj[k] = NEW_N( int, p_mocd->qty, "Tri adjacency" );
@@ -1275,8 +1283,8 @@ create_tri_adj( MO_class_data *p_mocd, Analysis *analy )
             idx = &node_tbl[edge_entry[0]];
             while ( *idx >= 0 )
             {
-                if ( edge_entry[0] != edge_tbl[0][*idx] 
-                     || edge_entry[1] != edge_tbl[1][*idx] )
+                if ( edge_entry[0] != edge_tbl[0][*idx]
+                        || edge_entry[1] != edge_tbl[1][*idx] )
                     idx = &edge_tbl[4][*idx];
             }
 
@@ -1349,8 +1357,8 @@ create_pyramid_adj( MO_class_data *p_mocd, Analysis *analy )
      *     node1 node2 node3 node4 element face next
      *
      * The table pyramid_adj contains for each pyramid element
-     
-     *     neighbor_elem1 n_elem2 n_elem3 n_elem4 n_elem5 
+
+     *     neighbor_elem1 n_elem2 n_elem3 n_elem4 n_elem5
      *
      * If a pyramid element has no neighbor adjacent to one of its faces,
      * that face neighbor is marked with a -1 in the pyramid_adj table.
@@ -1362,7 +1370,7 @@ create_pyramid_adj( MO_class_data *p_mocd, Analysis *analy )
      *      Fluid Dynamics, VKI Lecture Series #10, Brussels, Sept 16-20
      *      1991.
      */
-    
+
     connects = (int (*)[5]) p_mocd->objects.elems->nodes;
     pyramid_adj = p_mocd->p_vis_data->adjacency;
     pcnt = p_mocd->qty;
@@ -1416,7 +1424,7 @@ create_pyramid_adj( MO_class_data *p_mocd, Analysis *analy )
             {
                 /* If face is degenerate (pt or line), skip it. */
                 if ( face_entry[0] == face_entry[1]
-                     || face_entry[1] == face_entry[2] )
+                        || face_entry[1] == face_entry[2] )
                     continue;
             }
 
@@ -1424,13 +1432,13 @@ create_pyramid_adj( MO_class_data *p_mocd, Analysis *analy )
             idx = &node_tbl[face_entry[0]];
             while ( *idx >= 0 )
             {
-                if ( face_entry[0] == face_tbl[0][*idx] 
-                     && face_entry[1] == face_tbl[1][*idx] 
-                     && face_entry[2] == face_tbl[2][*idx]
-                     && face_entry[3] == face_tbl[3][*idx] )
+                if ( face_entry[0] == face_tbl[0][*idx]
+                        && face_entry[1] == face_tbl[1][*idx]
+                        && face_entry[2] == face_tbl[2][*idx]
+                        && face_entry[3] == face_tbl[3][*idx] )
                     break;
                 {
-                    
+
                     idx = &face_tbl[6][*idx];
                 }
             }
@@ -1513,15 +1521,15 @@ double_table_size( int *tbl_sz, int **face_tbl, int *free_ptr, int row_qty )
 static int *
 check_match( int *face_entry, int *node_tbl, int **face_tbl )
 {
-  int *idx;
+    int *idx;
 
     idx = &node_tbl[face_entry[0]];
     while ( *idx >= 0 )
     {
         if ( face_entry[0] == face_tbl[0][*idx] &&
-             face_entry[1] == face_tbl[1][*idx] &&
-             face_entry[2] == face_tbl[2][*idx] &&
-             face_entry[3] == face_tbl[3][*idx] )
+                face_entry[1] == face_tbl[1][*idx] &&
+                face_entry[2] == face_tbl[2][*idx] &&
+                face_entry[3] == face_tbl[3][*idx] )
             return idx;
         else
             idx = &face_tbl[6][*idx];
@@ -1538,7 +1546,7 @@ check_match( int *face_entry, int *node_tbl, int **face_tbl )
  *
  * Check whether an element face is degenerate.  Face may
  * degenerate to a triangle, a line segment, or a point.
- * If the face is a quadrilateral or triangle, the routine 
+ * If the face is a quadrilateral or triangle, the routine
  * returns 1; otherwise the routine returns 0.
  *
  * NOTE:
@@ -1593,46 +1601,46 @@ free_vis_data( Visibility_data **pp_vis_data, int superclass )
 
     switch ( superclass )
     {
-        case G_TRI:
-            face_qty = 0;
-            break;
-        case G_QUAD:
-            face_qty = 0;
-            break;
-        case G_TET:
-            face_qty = 4;
-            break;
-        case G_HEX:
-            face_qty = 6;
-            break;
-        case G_SURFACE:
-            face_qty = 0;
-            break;
-        default:
-            popup_dialog( WARNING_POPUP, 
-                          "Un-implemented superclass in free_vis_data()." );
-            return;
+    case G_TRI:
+        face_qty = 0;
+        break;
+    case G_QUAD:
+        face_qty = 0;
+        break;
+    case G_TET:
+        face_qty = 4;
+        break;
+    case G_HEX:
+        face_qty = 6;
+        break;
+    case G_SURFACE:
+        face_qty = 0;
+        break;
+    default:
+        popup_dialog( WARNING_POPUP,
+                      "Un-implemented superclass in free_vis_data()." );
+        return;
     }
 
     p_vd = *pp_vis_data;
-    
+
     if ( p_vd->adjacency != NULL )
     {
         for ( i = 0; i < face_qty; i++ )
             free( p_vd->adjacency[i] );
-        
+
         free( p_vd->adjacency );
     }
-    
+
     if ( p_vd->visib != NULL )
         free( p_vd->visib );
-    
+
     if ( p_vd->face_el != NULL )
         free( p_vd->face_el );
-    
+
     if ( p_vd->face_fc != NULL )
         free( p_vd->face_fc );
-    
+
     if ( p_vd->face_norm != NULL )
     {
         for ( i = 0; i < 4; i++ )
@@ -1640,9 +1648,9 @@ free_vis_data( Visibility_data **pp_vis_data, int superclass )
                 if ( p_vd->face_norm[i][j] != NULL )
                     free( p_vd->face_norm[i][j] );
     }
-    
+
     free( p_vd );
-    
+
     *pp_vis_data = NULL;
 }
 
@@ -1655,7 +1663,7 @@ free_vis_data( Visibility_data **pp_vis_data, int superclass )
  * planes.
  */
 void
-set_tet_visibility( MO_class_data *p_tet_class, Analysis *analy ) 
+set_tet_visibility( MO_class_data *p_tet_class, Analysis *analy )
 {
     Plane_obj *plane;
     unsigned char *tet_visib, *hide_mtl;
@@ -1664,35 +1672,36 @@ set_tet_visibility( MO_class_data *p_tet_class, Analysis *analy )
     Bool_type hidden_matls;
     int tet_qty, mtl_qty;
     int i;
-    
+
     tet_visib = p_tet_class->p_vis_data->visib;
     hide_mtl = analy->mesh_table[p_tet_class->mesh_id].hide_material;
     materials = p_tet_class->objects.elems->mat;
     tet_qty = p_tet_class->qty;
     activity = analy->state_p->sand_present
-               ? analy->state_p->elem_class_sand[p_tet_class->elem_class_index] 
-                 : NULL;
+               ? analy->state_p->elem_class_sand[p_tet_class->elem_class_index]
+               : NULL;
 
     /* Initialize all elements to be visible. */
     for ( i = 0; i < tet_qty; i++ )
-          tet_visib[i] = TRUE;
+        tet_visib[i] = TRUE;
 
     if ( analy->draw_wireframe_trans )
-         return;
+        return;
 
     /*
      * If tet element is inactive (0.0) then it is invisible.
      */
     if ( activity )
     {
-         for ( i = 0; i < tet_qty; i++ ) { 
-	       if ( activity[i] == 0.0 )
-                    tet_visib[i] = FALSE;
-	       if ( activity[i] == 0.0 && (analy->show_deleted_elements || analy->show_only_deleted_elements) )
-	            tet_visib[i] = TRUE; 
-	       if ( activity[i] != 0.0 && analy->show_only_deleted_elements )
-	            tet_visib[i] = FALSE;
-      }
+        for ( i = 0; i < tet_qty; i++ )
+        {
+            if ( activity[i] == 0.0 )
+                tet_visib[i] = FALSE;
+            if ( activity[i] == 0.0 && (analy->show_deleted_elements || analy->show_only_deleted_elements) )
+                tet_visib[i] = TRUE;
+            if ( activity[i] != 0.0 && analy->show_only_deleted_elements )
+                tet_visib[i] = FALSE;
+        }
     }
 
     /*
@@ -1722,20 +1731,20 @@ set_tet_visibility( MO_class_data *p_tet_class, Analysis *analy )
     }
 }
 
- /************************************************************
- * TAG( init_hex_visibility )
- *
- * Set the visibility flag for each element.  Takes into
- * account element activity, invisible materials and roughcut
- * planes.
- */
+/************************************************************
+* TAG( init_hex_visibility )
+*
+* Set the visibility flag for each element.  Takes into
+* account element activity, invisible materials and roughcut
+* planes.
+*/
 void
-init_hex_visibility( MO_class_data *p_hex_class, Analysis *analy ) 
+init_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
 {
     int hex_qty;
     int i;
     unsigned char *hex_visib_damage;
-    
+
     hex_visib_damage = p_hex_class->p_vis_data->visib_damage;
     hex_qty          = p_hex_class->qty;
 
@@ -1745,13 +1754,13 @@ init_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
 }
 
 
- /************************************************************
- * TAG( init_particle_visibility )
- *
- * Set the visibility flag for each particle.  
- */
+/************************************************************
+* TAG( init_particle_visibility )
+*
+* Set the visibility flag for each particle.
+*/
 void
-init_particle_visibility( MO_class_data *p_particle_class, Analysis *analy ) 
+init_particle_visibility( MO_class_data *p_particle_class, Analysis *analy )
 {
     int particle_qty;
     int mat, *all_mats;
@@ -1768,23 +1777,24 @@ init_particle_visibility( MO_class_data *p_particle_class, Analysis *analy )
     all_mats           = p_particle_class->objects.elems->mat;
 
     /* Initialize all elements to be visible. */
-    for ( i = 0; i < particle_qty; i++ ) {
-          particle_visib[i]     = TRUE;
-	  mat                   = all_mats[i];
-          p_mats[mat]           = TRUE; 
+    for ( i = 0; i < particle_qty; i++ )
+    {
+        particle_visib[i]     = TRUE;
+        mat                   = all_mats[i];
+        p_mats[mat]           = TRUE;
     }
 }
 
- 
- /************************************************************
- * TAG( set_hex_visibility )
- *
- * Set the visibility flag for each element.  Takes into
- * account element activity, invisible materials and roughcut
- * planes.
- */
+
+/************************************************************
+* TAG( set_hex_visibility )
+*
+* Set the visibility flag for each element.  Takes into
+* account element activity, invisible materials and roughcut
+* planes.
+*/
 void
-set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy ) 
+set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
 {
     Plane_obj *plane;
     unsigned char *hex_visib, *hex_visib_damage, *hide_mtl;
@@ -1793,12 +1803,12 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
     Bool_type hidden_matls;
     int hex_qty, mtl_qty;
     int i;
-    
+
     Bool_type hide_obj=FALSE;
 
     int hide_qty = 0;
     int damage_count = 0;
-   
+
     hex_visib        = p_hex_class->p_vis_data->visib;
     hex_visib_damage = p_hex_class->p_vis_data->visib_damage;
 
@@ -1808,35 +1818,36 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
                analy->mesh_table[p_hex_class->mesh_id].hide_beam_elem_qty;
 
     if ( hide_qty>0 )
-         hide_obj=TRUE;
-    
+        hide_obj=TRUE;
+
     hide_mtl = analy->mesh_table[p_hex_class->mesh_id].hide_material;
     materials = p_hex_class->objects.elems->mat;
     hex_qty = p_hex_class->qty;
     activity = analy->state_p->sand_present
-               ? analy->state_p->elem_class_sand[p_hex_class->elem_class_index] 
-                 : NULL;
+               ? analy->state_p->elem_class_sand[p_hex_class->elem_class_index]
+               : NULL;
 
     /* Initialize all elements to be visible. */
     for ( i = 0; i < hex_qty; i++ )
-          hex_visib[i] = TRUE;
+        hex_visib[i] = TRUE;
 
     if ( analy->draw_wireframe_trans )
-         return;
+        return;
 
     /*
      * If hex element is inactive (0.0) then it is invisible.
      */
     if ( activity )
     {
-         for ( i = 0; i < hex_qty; i++ ) {
-               if ( activity[i] == 0.0 )
-                    hex_visib[i] = FALSE;
-	       if ( activity[i] == 0.0 && (analy->show_deleted_elements || analy->show_only_deleted_elements) )
-	            hex_visib[i] = TRUE; 
-	       if ( activity[i] != 0.0 && analy->show_only_deleted_elements )
-	            hex_visib[i] = FALSE;
-	 }
+        for ( i = 0; i < hex_qty; i++ )
+        {
+            if ( activity[i] == 0.0 )
+                hex_visib[i] = FALSE;
+            if ( activity[i] == 0.0 && (analy->show_deleted_elements || analy->show_only_deleted_elements) )
+                hex_visib[i] = TRUE;
+            if ( activity[i] != 0.0 && analy->show_only_deleted_elements )
+                hex_visib[i] = FALSE;
+        }
     }
 
     /*
@@ -1845,15 +1856,15 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
     hidden_matls = FALSE;
     mtl_qty = analy->mesh_table[p_hex_class->mesh_id].material_qty;
     for ( i = 0; i < mtl_qty; i++ )
-          if ( hide_mtl[i] )
-               hidden_matls = TRUE;
+        if ( hide_mtl[i] )
+            hidden_matls = TRUE;
 
     if ( hidden_matls || hide_obj )
     {
         for ( i = 0; i < hex_qty; i++ )
-            if ( hide_mtl[materials[i]] 
-		 || hide_by_object_type( p_hex_class, materials[i], i, analy, NULL ) )
-                    hex_visib[i] = FALSE;
+            if ( hide_mtl[materials[i]]
+                    || hide_by_object_type( p_hex_class, materials[i], i, analy, NULL ) )
+                hex_visib[i] = FALSE;
     }
 
     /*
@@ -1870,19 +1881,19 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
      * Set the visibility for damaged elements.
      */
 
-    /* Added 09/15/04: IRC - The field visib_damage is used to control the 
-     * display of damaged elements. 
+    /* Added 09/15/04: IRC - The field visib_damage is used to control the
+     * display of damaged elements.
      */
     if (analy->damage_hide && analy->damage_result)
-      {
+    {
         hex_visib_damage = p_hex_class->p_vis_data->visib_damage;
         for ( i = 0; i < hex_qty; i++ )
             if ( hex_visib_damage[i] )
-               {
-               hex_visib[i] = FALSE;
-               damage_count++;
-               }
-      }
+            {
+                hex_visib[i] = FALSE;
+                damage_count++;
+            }
+    }
 }
 
 /************************************************************
@@ -1900,13 +1911,13 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
  * hex_visib    | Hex element visibility
  */
 static void
-hex_rough_cut( float *ppt, float *norm, MO_class_data *p_hex_class, 
+hex_rough_cut( float *ppt, float *norm, MO_class_data *p_hex_class,
                GVec3D *nodes, unsigned char *hex_visib )
 {
     int test, i;
     int hex_qty;
     int (*connects)[8];
-    
+
     hex_qty = p_hex_class->qty;
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
 
@@ -1914,7 +1925,7 @@ hex_rough_cut( float *ppt, float *norm, MO_class_data *p_hex_class,
     {
         /* If element is on exterior side of plane (in normal direction),
          * mark it as invisible.
-         */ 
+         */
         test = test_plane_hex_elem( ppt, norm, i, connects, nodes );
         if ( test <= 0 )
             hex_visib[i] = FALSE;
@@ -1934,66 +1945,70 @@ hex_rough_cut( float *ppt, float *norm, MO_class_data *p_hex_class,
  * particle_visib   | particle element visibility
  */
 void
-particle_rough_cut( Analysis *analy, float *plane_ppt, float *norm, MO_class_data *p_particle_class, 
+particle_rough_cut( Analysis *analy, float *plane_ppt, float *norm, MO_class_data *p_particle_class,
                     GVec3D *nodes, unsigned char *particle_visib )
 {
-  int i, j;
+    int i, j;
     int node, particle_qty;
     int (*connects)[8];
     float node_radius=0.0, ppt[3];
     double distance=0.0, distance_abs=0.0;
     Bool_type set_cut_width=FALSE;
 
-    analy->show_particle_cut = TRUE; 
+    analy->show_particle_cut = TRUE;
 
     node_radius = calc_particle_radius( analy, 0.0 );
-    if ( analy->free_nodes_cut_width>0. ) {
-         node_radius = calc_particle_radius( analy, analy->free_nodes_cut_width );
-	 set_cut_width = TRUE;
+    if ( analy->free_nodes_cut_width>0. )
+    {
+        node_radius = calc_particle_radius( analy, analy->free_nodes_cut_width );
+        set_cut_width = TRUE;
     }
- 
+
     particle_qty = p_particle_class->qty;
     connects     = (int (*)[8]) p_particle_class->objects.elems->nodes;
 
     for ( i = 0; i < particle_qty; i++ )
     {
-          node = connects[i][0]; /* All nodes at same point for particles so
+        node = connects[i][0]; /* All nodes at same point for particles so
 				  * just need to consider 1 node.
 				  */
 
-	  /* Get position of the node */
-	  get_node_vert_2d_3d( node, NULL, analy, ppt );
+        /* Get position of the node */
+        get_node_vert_2d_3d( node, NULL, analy, ppt );
 
-	  ppt[0] = ppt[0] - plane_ppt[0]; 
-	  ppt[1] = ppt[1] - plane_ppt[1];
- 	  ppt[2] = ppt[2] - plane_ppt[2]; 
+        ppt[0] = ppt[0] - plane_ppt[0];
+        ppt[1] = ppt[1] - plane_ppt[1];
+        ppt[2] = ppt[2] - plane_ppt[2];
 
-	  distance     = VEC_DOT( norm, ppt );
-	  distance_abs = fabs( distance );
+        distance     = VEC_DOT( norm, ppt );
+        distance_abs = fabs( distance );
 
-	  /* If particle intersects plane then mark it as invisible.
-	   */ 
-	  if ( distance<=0 )
-	       if ( set_cut_width ) {
-	            if ( distance_abs<=node_radius ) {
-		         particle_visib[i]     = TRUE;
-		    }
-	    }
-	    else {
-	         particle_visib[i]     = TRUE;
-	    }
+        /* If particle intersects plane then mark it as invisible.
+         */
+        if ( distance<=0 )
+            if ( set_cut_width )
+            {
+                if ( distance_abs<=node_radius )
+                {
+                    particle_visib[i]     = TRUE;
+                }
+            }
+            else
+            {
+                particle_visib[i]     = TRUE;
+            }
     }
 }
 
- /************************************************************
- * TAG( set_particle_visibility )
- *
- * Set the visibility flag for each particle.  Takes into
- * account element activity, invisible materials and roughcut
- * planes.
- */
+/************************************************************
+* TAG( set_particle_visibility )
+*
+* Set the visibility flag for each particle.  Takes into
+* account element activity, invisible materials and roughcut
+* planes.
+*/
 void
-set_particle_visibility( MO_class_data *p_part_class, Analysis *analy ) 
+set_particle_visibility( MO_class_data *p_part_class, Analysis *analy )
 {
     Plane_obj *plane;
     unsigned char *part_visib, *hide_mtl;
@@ -2002,48 +2017,49 @@ set_particle_visibility( MO_class_data *p_part_class, Analysis *analy )
     Bool_type hidden_matls;
     int part_qty, mtl_qty, plane_qty=0;
     int i;
-    
+
     Bool_type hide_obj=FALSE;
 
     int hide_qty = 0;
     int damage_count = 0;
-   
+
     part_visib = p_part_class->p_vis_data->visib;
-       
+
     part_qty = p_part_class->qty;
 
     /* Initialize all elements to be visible. */
     for ( i = 0; i < part_qty; i++ )
-          part_visib[i] = TRUE;
+        part_visib[i] = TRUE;
 
     /*
      * Perform the cuts.
      */
     if ( analy->show_roughcut || analy->show_cut )
     {
-      for ( plane = analy->cut_planes; plane != NULL; plane = plane->next ) {
-	    if ( plane_qty==0 )
-	         for ( i = 0; i < part_qty; i++ )
-		       part_visib[i] = FALSE;
+        for ( plane = analy->cut_planes; plane != NULL; plane = plane->next )
+        {
+            if ( plane_qty==0 )
+                for ( i = 0; i < part_qty; i++ )
+                    part_visib[i] = FALSE;
 
-	         particle_rough_cut( analy, plane->pt, plane->norm, p_part_class,
-				     analy->state_p->nodes.nodes3d, part_visib );
-		 plane_qty++;
-      }
+            particle_rough_cut( analy, plane->pt, plane->norm, p_part_class,
+                                analy->state_p->nodes.nodes3d, part_visib );
+            plane_qty++;
+        }
     }
 }
 
 
 
- /************************************************************
- * TAG( set_pyramid_visibility )
- *
- * Set the visibility flag for each element.  Takes into
- * account element activity, invisible materials and roughcut
- * planes.
- */
+/************************************************************
+* TAG( set_pyramid_visibility )
+*
+* Set the visibility flag for each element.  Takes into
+* account element activity, invisible materials and roughcut
+* planes.
+*/
 void
-set_pyramid_visibility( MO_class_data *p_pyramid_class, Analysis *analy ) 
+set_pyramid_visibility( MO_class_data *p_pyramid_class, Analysis *analy )
 {
     Plane_obj *plane;
     unsigned char *pyramid_visib, *pyramid_visib_damage, *hide_mtl;
@@ -2052,12 +2068,12 @@ set_pyramid_visibility( MO_class_data *p_pyramid_class, Analysis *analy )
     Bool_type hidden_matls;
     int pyramid_qty, mtl_qty;
     int i;
-    
+
     Bool_type hide_obj=FALSE;
 
     int hide_qty = 0;
     int damage_count = 0;
-   
+
     pyramid_visib        = p_pyramid_class->p_vis_data->visib;
     pyramid_visib_damage = p_pyramid_class->p_vis_data->visib_damage;
 
@@ -2067,35 +2083,36 @@ set_pyramid_visibility( MO_class_data *p_pyramid_class, Analysis *analy )
                analy->mesh_table[p_pyramid_class->mesh_id].hide_beam_elem_qty;
 
     if ( hide_qty>0 )
-         hide_obj=TRUE;
-    
+        hide_obj=TRUE;
+
     hide_mtl = analy->mesh_table[p_pyramid_class->mesh_id].hide_material;
     materials = p_pyramid_class->objects.elems->mat;
     pyramid_qty = p_pyramid_class->qty;
     activity = analy->state_p->sand_present
-               ? analy->state_p->elem_class_sand[p_pyramid_class->elem_class_index] 
-                 : NULL;
+               ? analy->state_p->elem_class_sand[p_pyramid_class->elem_class_index]
+               : NULL;
 
     /* Initialize all elements to be visible. */
     for ( i = 0; i < pyramid_qty; i++ )
-          pyramid_visib[i] = TRUE;
+        pyramid_visib[i] = TRUE;
 
     if ( analy->draw_wireframe_trans )
-         return;
+        return;
 
     /*
      * If pyramid element is inactive (0.0) then it is invisible.
      */
     if ( activity )
     {
-         for ( i = 0; i < pyramid_qty; i++ ) {
-               if ( activity[i] == 0.0 )
-                    pyramid_visib[i] = FALSE;
-	       if ( activity[i] == 0.0 && (analy->show_deleted_elements || analy->show_only_deleted_elements) )
-	            pyramid_visib[i] = TRUE; 
-	       if ( activity[i] != 0.0 && analy->show_only_deleted_elements )
-	            pyramid_visib[i] = FALSE;
-	 }
+        for ( i = 0; i < pyramid_qty; i++ )
+        {
+            if ( activity[i] == 0.0 )
+                pyramid_visib[i] = FALSE;
+            if ( activity[i] == 0.0 && (analy->show_deleted_elements || analy->show_only_deleted_elements) )
+                pyramid_visib[i] = TRUE;
+            if ( activity[i] != 0.0 && analy->show_only_deleted_elements )
+                pyramid_visib[i] = FALSE;
+        }
     }
 
     /*
@@ -2104,15 +2121,15 @@ set_pyramid_visibility( MO_class_data *p_pyramid_class, Analysis *analy )
     hidden_matls = FALSE;
     mtl_qty = analy->mesh_table[p_pyramid_class->mesh_id].material_qty;
     for ( i = 0; i < mtl_qty; i++ )
-          if ( hide_mtl[i] )
-               hidden_matls = TRUE;
+        if ( hide_mtl[i] )
+            hidden_matls = TRUE;
 
     if ( hidden_matls || hide_obj )
     {
         for ( i = 0; i < pyramid_qty; i++ )
-            if ( hide_mtl[materials[i]] 
-		 || hide_by_object_type( p_pyramid_class, materials[i], i, analy, NULL ) )
-                    pyramid_visib[i] = FALSE;
+            if ( hide_mtl[materials[i]]
+                    || hide_by_object_type( p_pyramid_class, materials[i], i, analy, NULL ) )
+                pyramid_visib[i] = FALSE;
     }
 
     /*
@@ -2129,19 +2146,19 @@ set_pyramid_visibility( MO_class_data *p_pyramid_class, Analysis *analy )
      * Set the visibility for damaged elements.
      */
 
-    /* Added 09/15/04: IRC - The field visib_damage is used to control the 
-     * display of damaged elements. 
+    /* Added 09/15/04: IRC - The field visib_damage is used to control the
+     * display of damaged elements.
      */
     if (analy->damage_hide && analy->damage_result)
-      {
+    {
         pyramid_visib_damage = p_pyramid_class->p_vis_data->visib_damage;
         for ( i = 0; i < pyramid_qty; i++ )
             if ( pyramid_visib_damage[i] )
-               {
-               pyramid_visib[i] = FALSE;
-               damage_count++;
-               }
-      }
+            {
+                pyramid_visib[i] = FALSE;
+                damage_count++;
+            }
+    }
 }
 
 /************************************************************
@@ -2159,13 +2176,13 @@ set_pyramid_visibility( MO_class_data *p_pyramid_class, Analysis *analy )
  * tet_visib    | Tet element visibility
  */
 static void
-tet_rough_cut( float *ppt, float *norm, MO_class_data *p_tet_class, 
+tet_rough_cut( float *ppt, float *norm, MO_class_data *p_tet_class,
                GVec3D *nodes, unsigned char *tet_visib )
 {
     int test, i;
     int tet_qty;
     int (*connects)[4];
-    
+
     tet_qty = p_tet_class->qty;
     connects = (int (*)[4]) p_tet_class->objects.elems->nodes;
 
@@ -2173,7 +2190,7 @@ tet_rough_cut( float *ppt, float *norm, MO_class_data *p_tet_class,
     {
         /* If element is on exterior side of plane (in normal direction),
          * mark it as invisible.
-         */ 
+         */
         test = test_plane_tet_elem( ppt, norm, i, connects, nodes );
         if ( test <= 0 )
             tet_visib[i] = FALSE;
@@ -2191,7 +2208,7 @@ tet_rough_cut( float *ppt, float *norm, MO_class_data *p_tet_class,
  * Plane is defined by a point on the plane and a normal vector.
  */
 static int
-test_plane_hex_elem( float *ppt, float *norm, int el, int connects[][8], 
+test_plane_hex_elem( float *ppt, float *norm, int el, int connects[][8],
                      GVec3D *nodes )
 {
     int i, j, nnum, result;
@@ -2232,7 +2249,7 @@ test_plane_hex_elem( float *ppt, float *norm, int el, int connects[][8],
  * Plane is defined by a point on the plane and a normal vector.
  */
 static int
-test_plane_tet_elem( float *ppt, float *norm, int el, int connects[][4], 
+test_plane_tet_elem( float *ppt, float *norm, int el, int connects[][4],
                      GVec3D *nodes )
 {
     int i, j, nnum, result;
@@ -2315,8 +2332,8 @@ get_hex_faces( MO_class_data *p_hex_class, Analysis *analy )
                     m1 = mat[i];
                     m2 = mat[ hex_adj[j][i] ];
                     if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
-                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
-                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
+                            p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
+                            p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
                         fcnt++;
                 }
             }
@@ -2350,8 +2367,8 @@ get_hex_faces( MO_class_data *p_hex_class, Analysis *analy )
                     m1 = mat[i];
                     m2 = mat[ hex_adj[j][i] ];
                     if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
-                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
-                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
+                            p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
+                            p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
                     {
                         face_el[fcnt] = i;
                         face_fc[fcnt] = j;
@@ -2360,11 +2377,11 @@ get_hex_faces( MO_class_data *p_hex_class, Analysis *analy )
                 }
             }
 
-   /*
-    * Keep in mind that the face normals still need to be computed.
-    * This routine allocates space for the face normals but does not
-    * compute them.
-    */
+    /*
+     * Keep in mind that the face normals still need to be computed.
+     * This routine allocates space for the face normals but does not
+     * compute them.
+     */
 }
 
 
@@ -2420,8 +2437,8 @@ get_tet_faces( MO_class_data *p_tet_class, Analysis *analy )
                     m1 = mat[i];
                     m2 = mat[ tet_adj[j][i] ];
                     if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
-                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
-                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
+                            p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
+                            p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
                         fcnt++;
                 }
             }
@@ -2455,8 +2472,8 @@ get_tet_faces( MO_class_data *p_tet_class, Analysis *analy )
                     m1 = mat[i];
                     m2 = mat[ tet_adj[j][i] ];
                     if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
-                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
-                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
+                            p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
+                            p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
                     {
                         face_el[fcnt] = i;
                         face_fc[fcnt] = j;
@@ -2465,11 +2482,11 @@ get_tet_faces( MO_class_data *p_tet_class, Analysis *analy )
                 }
             }
 
-   /*
-    * Keep in mind that the face normals still need to be computed.
-    * This routine allocates space for the face normals but does not
-    * compute them.
-    */
+    /*
+     * Keep in mind that the face normals still need to be computed.
+     * This routine allocates space for the face normals but does not
+     * compute them.
+     */
 }
 
 
@@ -2526,8 +2543,8 @@ get_pyramid_faces( MO_class_data *p_pyramid_class, Analysis *analy )
                     m1 = mat[i];
                     m2 = mat[ pyramid_adj[j][i] ];
                     if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
-                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
-                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
+                            p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
+                            p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
                         fcnt++;
                 }
             }
@@ -2561,8 +2578,8 @@ get_pyramid_faces( MO_class_data *p_pyramid_class, Analysis *analy )
                     m1 = mat[i];
                     m2 = mat[ pyramid_adj[j][i] ];
                     if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
-                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
-                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
+                            p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
+                            p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
                     {
                         face_el[fcnt] = i;
                         face_fc[fcnt] = j;
@@ -2571,11 +2588,11 @@ get_pyramid_faces( MO_class_data *p_pyramid_class, Analysis *analy )
                 }
             }
 
-   /*
-    * Keep in mind that the face normals still need to be computed.
-    * This routine allocates space for the face normals but does not
-    * compute them.
-    */
+    /*
+     * Keep in mind that the face normals still need to be computed.
+     * This routine allocates space for the face normals but does not
+     * compute them.
+     */
 }
 
 
@@ -2597,7 +2614,7 @@ reset_face_visibility( Analysis *analy )
     int class_qty;
     int i;
     int state;
-        
+
     /* Get the current state record format and its mesh. */
     state = analy->cur_state + 1;
     analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &state, NULL,
@@ -2610,38 +2627,40 @@ reset_face_visibility( Analysis *analy )
 #else
     class_qty = htable_get_data( p_mesh->class_table, (void ***) &mo_classes);
 #endif
-   
+
     /* Manage visibility for volumetric element classes. */
     for ( i = 0; i < class_qty; i++ )
     {
         switch ( mo_classes[i]->superclass )
         {
-	    case G_HEX:
-	      if ( !is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) ) {
-                     set_hex_visibility( mo_classes[i], analy );
-                     get_hex_faces( mo_classes[i], analy );
-		}
-		if ( (analy->particle_nodes_enabled || analy->free_nodes_enabled) &&
-		     is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) ) {
-		     set_particle_visibility( mo_classes[i], analy );
-		}
-                break;
-            case G_PARTICLE:
-	        set_particle_visibility( mo_classes[i], analy );
-	        break;
-            case G_TET:
-                set_tet_visibility( mo_classes[i], analy );
-                get_tet_faces( mo_classes[i], analy );
-                break;
-            case G_PYRAMID:
-            case G_WEDGE:
-                /* not implemented */
-                break;
-            default:
-                ;/* Do nothing for non-volumetric mesh object types. */
+        case G_HEX:
+            if ( !is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) )
+            {
+                set_hex_visibility( mo_classes[i], analy );
+                get_hex_faces( mo_classes[i], analy );
+            }
+            if ( (analy->particle_nodes_enabled || analy->free_nodes_enabled) &&
+                    is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) )
+            {
+                set_particle_visibility( mo_classes[i], analy );
+            }
+            break;
+        case G_PARTICLE:
+            set_particle_visibility( mo_classes[i], analy );
+            break;
+        case G_TET:
+            set_tet_visibility( mo_classes[i], analy );
+            get_tet_faces( mo_classes[i], analy );
+            break;
+        case G_PYRAMID:
+        case G_WEDGE:
+            /* not implemented */
+            break;
+        default:
+            ;/* Do nothing for non-volumetric mesh object types. */
         }
     }   /* for each class in mesh */
-    
+
     free( mo_classes );
 }
 
@@ -2652,18 +2671,18 @@ reset_face_visibility( Analysis *analy )
  * Return the vertices of a tet element face.
  */
 void
-get_tet_face_verts( int elem, int face, MO_class_data *p_tet_class, 
+get_tet_face_verts( int elem, int face, MO_class_data *p_tet_class,
                     Analysis *analy, float verts[][3] )
 {
     float orig;
     int nd, i, j;
     int (*connects)[4];
     GVec3D *nodes, *onodes;
-    
+
     connects = (int (*)[4]) p_tet_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes3d;
     onodes = (GVec3D *) analy->cur_ref_state_data;
-   
+
     for ( i = 0; i < 3; i++ )
     {
         nd = connects[elem][ tet_fc_nd_nums[face][i] ];
@@ -2693,18 +2712,18 @@ get_tet_face_verts( int elem, int face, MO_class_data *p_tet_class,
  * Return the vertices of a hex element face.
  */
 void
-get_hex_face_verts( int elem, int face, MO_class_data *p_hex_class, 
+get_hex_face_verts( int elem, int face, MO_class_data *p_hex_class,
                     Analysis *analy, float verts[][3] )
 {
     float orig;
     int nd, i, j;
     int (*connects)[8];
     GVec3D *nodes, *onodes;
-    
+
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes3d;
     onodes = (GVec3D *) analy->cur_ref_state_data;
-   
+
     for ( i = 0; i < 4; i++ )
     {
         nd = connects[elem][ fc_nd_nums[face][i] ];
@@ -2733,24 +2752,24 @@ get_hex_face_verts( int elem, int face, MO_class_data *p_hex_class,
  * Return the  of a hex element face.
  */
 void
-get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class, 
+get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class,
                     Analysis *analy, int *faceNodes )
 {
     float orig;
     int nd, i;
     int (*connects)[8];
     GVec3D *nodes, *onodes;
-    
+
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes3d;
     onodes = (GVec3D *) analy->cur_ref_state_data;
-   
-    for ( i = 0; 
-	  i < 4;
-	  i++ )
+
+    for ( i = 0;
+            i < 4;
+            i++ )
     {
-          faceNodes[i] = connects[elem][ fc_nd_nums[face][i] ];
-    } 
+        faceNodes[i] = connects[elem][ fc_nd_nums[face][i] ];
+    }
 }
 
 /************************************************************
@@ -2759,7 +2778,7 @@ get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class,
  * Return the vertices of a hex element.
  */
 void
-get_hex_verts( int elem, MO_class_data *p_hex_class, Analysis *analy, 
+get_hex_verts( int elem, MO_class_data *p_hex_class, Analysis *analy,
                float verts[][3] )
 {
     GVec3D *nodes, *onodes;
@@ -2800,8 +2819,8 @@ get_hex_verts( int elem, MO_class_data *p_hex_class, Analysis *analy,
  * Return the vertices of a pyramid element.
  */
 void
-get_pyramid_verts( int elem, MO_class_data *p_pyramid_class, Analysis *analy, 
-               float verts[][3] )
+get_pyramid_verts( int elem, MO_class_data *p_pyramid_class, Analysis *analy,
+                   float verts[][3] )
 {
     GVec3D *nodes, *onodes;
     int (*connects)[5];
@@ -2840,18 +2859,18 @@ get_pyramid_verts( int elem, MO_class_data *p_pyramid_class, Analysis *analy,
  * Return the vertices of a pyramid element face.
  */
 void
-get_pyramid_face_verts( int elem, int face, MO_class_data *p_pyramid_class, 
-                    Analysis *analy, float verts[][3] )
+get_pyramid_face_verts( int elem, int face, MO_class_data *p_pyramid_class,
+                        Analysis *analy, float verts[][3] )
 {
     float orig;
     int nd, i, j;
     int (*connects)[5];
     GVec3D *nodes, *onodes;
-    
+
     connects = (int (*)[5]) p_pyramid_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes3d;
     onodes = (GVec3D *) analy->cur_ref_state_data;
-   
+
     for ( i = 0; i < 4; i++ )
     {
         nd = connects[elem][ pyramid_fc_nd_nums[face][i] ];
@@ -2880,8 +2899,8 @@ get_pyramid_face_verts( int elem, int face, MO_class_data *p_pyramid_class,
  * Return the vertices of a hex element.
  */
 void
-get_particle_verts( int elem, MO_class_data *p_class, Analysis *analy, 
-		    float verts[][3] )
+get_particle_verts( int elem, MO_class_data *p_class, Analysis *analy,
+                    float verts[][3] )
 {
     GVec3D *nodes, *onodes;
     int (*connects)[1];
@@ -2894,7 +2913,7 @@ get_particle_verts( int elem, MO_class_data *p_class, Analysis *analy,
 
     nd = connects[elem][0];
     for ( j = 0; j < 3; j++ )
-          verts[0][j] = nodes[nd][j];
+        verts[0][j] = nodes[nd][j];
 }
 
 /************************************************************
@@ -2903,7 +2922,7 @@ get_particle_verts( int elem, MO_class_data *p_class, Analysis *analy,
  * Return the vertices of a tetrahedral element.
  */
 void
-get_tet_verts( int elem, MO_class_data *p_tet_class, Analysis *analy, 
+get_tet_verts( int elem, MO_class_data *p_tet_class, Analysis *analy,
                float verts[][3] )
 {
     GVec3D *nodes, *onodes;
@@ -2944,14 +2963,14 @@ get_tet_verts( int elem, MO_class_data *p_tet_class, Analysis *analy,
  * Return the vertices of a tri element.
  */
 void
-get_tri_verts_3d( int elem, MO_class_data *p_tri_class, Analysis *analy, 
-                   float verts[][3] )
+get_tri_verts_3d( int elem, MO_class_data *p_tri_class, Analysis *analy,
+                  float verts[][3] )
 {
     float orig;
     int nd, i, j;
     GVec3D *nodes, *onodes;
     int (*connects)[3];
-    
+
     connects = (int (*)[3]) p_tri_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes3d;
     onodes = (GVec3D *) analy->cur_ref_state_data;
@@ -2985,14 +3004,14 @@ get_tri_verts_3d( int elem, MO_class_data *p_tri_class, Analysis *analy,
  * Return the vertices of a tri element.
  */
 void
-get_tri_verts_2d( int elem, MO_class_data *p_tri_class, Analysis *analy, 
+get_tri_verts_2d( int elem, MO_class_data *p_tri_class, Analysis *analy,
                   float verts[][3] )
 {
     float orig;
     int nd, i;
     GVec2D *nodes, *onodes;
     int (*connects)[3];
-    
+
     connects = (int (*)[3]) p_tri_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes2d;
     onodes = (GVec2D *) analy->cur_ref_state_data;
@@ -3006,11 +3025,11 @@ get_tri_verts_2d( int elem, MO_class_data *p_tri_class, Analysis *analy,
             /* Scale the node displacements. */
             orig = onodes[nd][0];
             verts[i][0] = orig + analy->displace_scale[0]
-                                 * (nodes[nd][0] - orig);
+                          * (nodes[nd][0] - orig);
 
             orig = onodes[nd][1];
             verts[i][1] = orig + analy->displace_scale[1]
-                                 * (nodes[nd][1] - orig);
+                          * (nodes[nd][1] - orig);
         }
         else
         {
@@ -3028,18 +3047,18 @@ get_tri_verts_2d( int elem, MO_class_data *p_tri_class, Analysis *analy,
  */
 void
 /*** ORIGINAL:
-get_quad_verts_3d( int elem, MO_class_data *p_quad_class, Analysis *analy, 
+get_quad_verts_3d( int elem, MO_class_data *p_quad_class, Analysis *analy,
                    float verts[][3] )
 ***/
 
-get_quad_verts_3d( int elem, int *p_connectivity, int mesh_id, Analysis *analy, 
+get_quad_verts_3d( int elem, int *p_connectivity, int mesh_id, Analysis *analy,
                    float verts[][3] )
 {
     float orig;
     int nd, i, j;
     GVec3D *nodes, *onodes;
     int (*connects)[4];
-    
+
     /*
      * ORIGINAL:
     connects = (int (*)[4]) p_quad_class->objects.elems->nodes;
@@ -3084,14 +3103,14 @@ get_quad_verts_3d( int elem, int *p_connectivity, int mesh_id, Analysis *analy,
  */
 void
 get_surface_verts_3d( int elem, int *p_connectivity, int mesh_id,
-                      Analysis *analy, 
+                      Analysis *analy,
                       float verts[][3] )
 {
     float orig;
     int nd, i, j;
     GVec3D *nodes, *onodes;
     int (*connects)[4];
-    
+
     connects = (int (*)[4]) p_connectivity;
     nodes = analy->state_p->nodes.nodes3d;
     onodes = (GVec3D *) analy->cur_ref_state_data;
@@ -3125,14 +3144,14 @@ get_surface_verts_3d( int elem, int *p_connectivity, int mesh_id,
  * Return the vertices of a quad element.
  */
 void
-get_quad_verts_2d( int elem, MO_class_data *p_quad_class, Analysis *analy, 
+get_quad_verts_2d( int elem, MO_class_data *p_quad_class, Analysis *analy,
                    float verts[][3] )
 {
     float orig;
     int nd, i;
     GVec2D *nodes, *onodes;
     int (*connects)[4];
-    
+
     connects = (int (*)[4]) p_quad_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes2d;
     onodes = (GVec2D *) analy->cur_ref_state_data;
@@ -3146,11 +3165,11 @@ get_quad_verts_2d( int elem, MO_class_data *p_quad_class, Analysis *analy,
             /* Scale the node displacements. */
             orig = onodes[nd][0];
             verts[i][0] = orig + analy->displace_scale[0]
-                                 * (nodes[nd][0] - orig);
+                          * (nodes[nd][0] - orig);
 
             orig = onodes[nd][1];
             verts[i][1] = orig + analy->displace_scale[1]
-                                 * (nodes[nd][1] - orig);
+                          * (nodes[nd][1] - orig);
         }
         else
         {
@@ -3167,14 +3186,14 @@ get_quad_verts_2d( int elem, MO_class_data *p_quad_class, Analysis *analy,
  * Return the vertices of a surface element.
  */
 void
-get_surface_verts_2d( int elem, MO_class_data *p_surface_class, Analysis *analy, 
-                   float verts[][3] )
+get_surface_verts_2d( int elem, MO_class_data *p_surface_class, Analysis *analy,
+                      float verts[][3] )
 {
     float orig;
     int nd, i;
     GVec2D *nodes, *onodes;
     int (*connects)[4];
-    
+
     connects = (int (*)[4]) p_surface_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes2d;
     onodes = (GVec2D *) analy->cur_ref_state_data;
@@ -3188,11 +3207,11 @@ get_surface_verts_2d( int elem, MO_class_data *p_surface_class, Analysis *analy,
             /* Scale the node displacements. */
             orig = onodes[nd][0];
             verts[i][0] = orig + analy->displace_scale[0]
-                                 * (nodes[nd][0] - orig);
+                          * (nodes[nd][0] - orig);
 
             orig = onodes[nd][1];
             verts[i][1] = orig + analy->displace_scale[1]
-                                 * (nodes[nd][1] - orig);
+                          * (nodes[nd][1] - orig);
         }
         else
         {
@@ -3209,7 +3228,7 @@ get_surface_verts_2d( int elem, MO_class_data *p_surface_class, Analysis *analy,
  * Return the vertices of a beam element.
  */
 Bool_type
-get_beam_verts_2d_3d( int elem, MO_class_data *p_beam_class, Analysis *analy, 
+get_beam_verts_2d_3d( int elem, MO_class_data *p_beam_class, Analysis *analy,
                       float verts[][3] )
 {
     float *nodes, *onodes;
@@ -3218,7 +3237,7 @@ get_beam_verts_2d_3d( int elem, MO_class_data *p_beam_class, Analysis *analy,
     float orig;
     int node_qty;
     int nd, i, j, dim;
-    
+
     connects = (int (*)[3]) p_beam_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes;
     p_node_geom = analy->mesh_table[p_beam_class->mesh_id].node_geom;
@@ -3229,7 +3248,7 @@ get_beam_verts_2d_3d( int elem, MO_class_data *p_beam_class, Analysis *analy,
     for ( i = 0; i < 2; i++ )
     {
         nd = connects[elem][i];
-        
+
         if ( nd < 0 || nd > node_qty - 1 )
             return FALSE;
 
@@ -3259,8 +3278,8 @@ get_beam_verts_2d_3d( int elem, MO_class_data *p_beam_class, Analysis *analy,
  * Return the vertices of a discrete element.
  */
 extern Bool_type
-get_truss_verts_2d_3d( int elem, MO_class_data *p_truss_class, Analysis *analy, 
-                      float verts[][3] )
+get_truss_verts_2d_3d( int elem, MO_class_data *p_truss_class, Analysis *analy,
+                       float verts[][3] )
 {
     float *nodes, *onodes;
     int (*connects)[2];
@@ -3268,7 +3287,7 @@ get_truss_verts_2d_3d( int elem, MO_class_data *p_truss_class, Analysis *analy,
     float orig;
     int node_qty;
     int nd, i, j, dim;
-    
+
     connects = (int (*)[2]) p_truss_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes;
     p_node_geom = analy->mesh_table[p_truss_class->mesh_id].node_geom;
@@ -3279,7 +3298,7 @@ get_truss_verts_2d_3d( int elem, MO_class_data *p_truss_class, Analysis *analy,
     for ( i = 0; i < 2; i++ )
     {
         nd = connects[elem][i];
-        
+
         if ( nd < 0 || nd > node_qty - 1 )
             return FALSE;
 
@@ -3299,7 +3318,7 @@ get_truss_verts_2d_3d( int elem, MO_class_data *p_truss_class, Analysis *analy,
                 verts[i][j] = nodes[nd * dim + j];
         }
     }
-    
+
     return TRUE;
 }
 
@@ -3369,7 +3388,7 @@ face_aver_norm( int elem, int face, Analysis *analy, float *norm )
  * Return the average normal of a tet face.
  */
 static void
-tet_face_avg_norm( int elem, int face, MO_class_data *p_tet_class, 
+tet_face_avg_norm( int elem, int face, MO_class_data *p_tet_class,
                    Analysis *analy, float *norm )
 {
     float vert[3][3];
@@ -3394,7 +3413,7 @@ tet_face_avg_norm( int elem, int face, MO_class_data *p_tet_class,
  * Return the average normal of a hex face.
  */
 static void
-hex_face_avg_norm( int elem, int face, MO_class_data *p_hex_class, 
+hex_face_avg_norm( int elem, int face, MO_class_data *p_hex_class,
                    Analysis *analy, float *norm )
 {
     float vert[4][3];
@@ -3418,8 +3437,8 @@ hex_face_avg_norm( int elem, int face, MO_class_data *p_hex_class,
  * Return the average normal of a pyramid face.
  */
 static void
-pyramid_face_avg_norm( int elem, int face, MO_class_data *p_pyramid_class, 
-                   Analysis *analy, float *norm )
+pyramid_face_avg_norm( int elem, int face, MO_class_data *p_pyramid_class,
+                       Analysis *analy, float *norm )
 {
     float vert[4][3];
     float v1[3], v2[3];
@@ -3605,9 +3624,9 @@ face_normals( Analysis *analy )
      *     into the face node normals.
      */
 
-/*
- * Need to take into account element type.
- */
+    /*
+     * Need to take into account element type.
+     */
 
     fcnt = analy->face_cnt;
     face_el = analy->face_el;
@@ -3648,7 +3667,7 @@ face_normals( Analysis *analy )
      */
     for ( i = 0; i < 3; i++ )
         memset( node_norm[i], 0, nodes->cnt*sizeof( float ) );
- 
+
     /*
      * Compute average normals at each of the nodes.
      */
@@ -3695,12 +3714,12 @@ face_normals( Analysis *analy )
             for ( k = 0; k < 3; k++ )
                 n_norm[k] = node_norm[k][nd];
             vec_norm( n_norm );
- 
+
             /*
              * Dot product test.
              */
             dot = VEC_DOT( f_norm, n_norm );
- 
+
             /*
              * Magical constant.  An edge is detected when the angle
              * between normals is greater than a critical angle.
@@ -3752,11 +3771,11 @@ tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
      * 3.) Plug either the average face normal or the average node normal
      *     into the face node normals.
      */
-    
+
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_TET].list;
     class_qty = p_mesh->classes_by_sclass[G_TET].qty;
     node_norm = analy->node_norm;
- 
+
     /*
      * Compute an average normal for each face.
      */
@@ -3767,7 +3786,7 @@ tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
         face_el = p_vd->face_el;
         face_fc = p_vd->face_fc;
         face_qty = p_vd->face_cnt;
-        
+
         for ( j = 0; j < face_qty; j++ )
         {
             el = face_el[j];
@@ -3797,7 +3816,7 @@ tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
      */
     for ( i = 0; i < 3; i++ )
         memset( node_norm[i], 0, p_mesh->node_geom->qty * sizeof( float ) );
- 
+
     /*
      * Compute average normals at each of the nodes.
      */
@@ -3809,7 +3828,7 @@ tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
         face_qty = p_vd->face_cnt;
         face_el = p_vd->face_el;
         face_fc = p_vd->face_fc;
-        
+
         for ( j = 0; j < face_qty; j++ )
         {
             el = face_el[j];
@@ -3821,8 +3840,8 @@ tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
             /* Check for degenerate (line) face. */
             num_nds = 3;
             if ( nds[0] == nds[1]
-                 || nds[0] == nds[2]
-                 || nds[1] == nds[2] )
+                    || nds[0] == nds[2]
+                    || nds[1] == nds[2] )
                 num_nds = 0; /* Inhibit any contribution from a "line" face. */
 
             for ( k = 0; k < num_nds; k++ )
@@ -3836,7 +3855,7 @@ tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
          * Note that the node normals still need to be normalized.
          */
     }
- 
+
     /*
      * Compare average normals at nodes with average normals on faces
      * to determine which normal to store for each face vertex.
@@ -3849,7 +3868,7 @@ tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
         face_qty = p_vd->face_cnt;
         face_el = p_vd->face_el;
         face_fc = p_vd->face_fc;
-        
+
         for ( j = 0; j < face_qty; j++ )
         {
             el = face_el[j];
@@ -3865,12 +3884,12 @@ tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
                 for ( l = 0; l < 3; l++ )
                     n_norm[l] = node_norm[l][nd];
                 vec_norm( n_norm );
-     
+
                 /*
                  * Dot product test.
                  */
                 dot = VEC_DOT( f_norm, n_norm );
-     
+
                 /*
                  * Magical constant.  An edge is detected when the angle
                  * between normals is greater than a critical angle.
@@ -3923,11 +3942,11 @@ hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
      * 3.) Plug either the average face normal or the average node normal
      *     into the face node normals.
      */
-    
+
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_HEX].list;
     class_qty = p_mesh->classes_by_sclass[G_HEX].qty;
     node_norm = analy->node_norm;
- 
+
     /*
      * Compute an average normal for each face.
      */
@@ -3938,7 +3957,7 @@ hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
         face_qty = p_vd->face_cnt;
         face_el = p_vd->face_el;
         face_fc = p_vd->face_fc;
-        
+
         for ( j = 0; j < face_qty; j++ )
         {
             el = face_el[j];
@@ -3968,7 +3987,7 @@ hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
      */
     for ( i = 0; i < 3; i++ )
         memset( node_norm[i], 0, p_mesh->node_geom->qty * sizeof( float ) );
- 
+
     /*
      * Compute average normals at each of the nodes.
      */
@@ -3981,7 +4000,7 @@ hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
         face_qty = p_vd->face_cnt;
         face_el = p_vd->face_el;
         face_fc = p_vd->face_fc;
-        
+
         for ( j = 0; j < face_qty; j++ )
         {
             el = face_el[j];
@@ -4006,7 +4025,7 @@ hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
          * Note that the node normals still need to be normalized.
          */
     }
- 
+
     /*
      * Compare average normals at nodes with average normals on faces
      * to determine which normal to store for each face vertex.
@@ -4019,7 +4038,7 @@ hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
         face_qty = p_vd->face_cnt;
         face_el = p_vd->face_el;
         face_fc = p_vd->face_fc;
-        
+
         for ( j = 0; j < face_qty; j++ )
         {
             el = face_el[j];
@@ -4035,12 +4054,12 @@ hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
                 for ( l = 0; l < 3; l++ )
                     n_norm[l] = node_norm[l][nd];
                 vec_norm( n_norm );
-     
+
                 /*
                  * Dot product test.
                  */
                 dot = VEC_DOT( f_norm, n_norm );
-     
+
                 /*
                  * Magical constant.  An edge is detected when the angle
                  * between normals is greater than a critical angle.
@@ -4093,11 +4112,11 @@ pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
      * 3.) Plug either the average face normal or the average node normal
      *     into the face node normals.
      */
-    
+
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_PYRAMID].list;
     class_qty = p_mesh->classes_by_sclass[G_PYRAMID].qty;
     node_norm = analy->node_norm;
- 
+
     /*
      * Compute an average normal for each face.
      */
@@ -4108,7 +4127,7 @@ pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
         face_qty = p_vd->face_cnt;
         face_el = p_vd->face_el;
         face_fc = p_vd->face_fc;
-        
+
         for ( j = 0; j < face_qty; j++ )
         {
             el = face_el[j];
@@ -4138,7 +4157,7 @@ pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
      */
     for ( i = 0; i < 3; i++ )
         memset( node_norm[i], 0, p_mesh->node_geom->qty * sizeof( float ) );
- 
+
     /*
      * Compute average normals at each of the nodes.
      */
@@ -4151,7 +4170,7 @@ pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
         face_qty = p_vd->face_cnt;
         face_el = p_vd->face_el;
         face_fc = p_vd->face_fc;
-        
+
         for ( j = 0; j < face_qty; j++ )
         {
             el = face_el[j];
@@ -4176,7 +4195,7 @@ pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
          * Note that the node normals still need to be normalized.
          */
     }
- 
+
     /*
      * Compare average normals at nodes with average normals on faces
      * to determine which normal to store for each face vertex.
@@ -4189,7 +4208,7 @@ pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
         face_qty = p_vd->face_cnt;
         face_el = p_vd->face_el;
         face_fc = p_vd->face_fc;
-        
+
         for ( j = 0; j < face_qty; j++ )
         {
             el = face_el[j];
@@ -4205,12 +4224,12 @@ pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
                 for ( l = 0; l < 3; l++ )
                     n_norm[l] = node_norm[l][nd];
                 vec_norm( n_norm );
-     
+
                 /*
                  * Dot product test.
                  */
                 dot = VEC_DOT( f_norm, n_norm );
-     
+
                 /*
                  * Magical constant.  An edge is detected when the angle
                  * between normals is greater than a critical angle.
@@ -4227,7 +4246,7 @@ pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
                     for ( l = 0; l < 3; l++ )
                         p_vd->face_norm[k][l][j] = n_norm[l];
                 }
-           }
+            }
         }
     }
 }
@@ -4250,11 +4269,11 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
     int class_qty, tri_qty;
     Visibility_data *p_vd;
     Bool_type has_degen;
-    
+
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_TRI].list;
     class_qty = p_mesh->classes_by_sclass[G_TRI].qty;
     node_norm = analy->node_norm;
- 
+
     /*
      * Compute an average polygon normal for each tri element.
      */
@@ -4263,7 +4282,7 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
         p_mocd = pp_mocd[i];
         tri_qty = p_mocd->qty;
         p_vd = p_mocd->p_vis_data;
-        
+
         for ( j = 0; j < tri_qty; j++ )
         {
             tri_avg_norm( j, p_mocd, analy, f_norm );
@@ -4291,7 +4310,7 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
      */
     for ( i = 0; i < 3; i++ )
         memset( node_norm[i], 0, p_mesh->node_geom->qty * sizeof( float ) );
- 
+
     /*
      * Compute average normals at each of the nodes.
      */
@@ -4302,7 +4321,7 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
         p_vd = p_mocd->p_vis_data;
         connects = (int (*)[3]) p_mocd->objects.elems->nodes;
         has_degen = p_mocd->objects.elems->has_degen;
-        
+
         for ( j = 0; j < tri_qty; j++ )
         {
             num_nd = 3;
@@ -4319,7 +4338,7 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
             }
         }
     }
- 
+
     /*
      * Compare average normals at nodes with average normals on tris
      * to determine which normal to store for each tri vertex.
@@ -4330,12 +4349,12 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
         tri_qty = p_mocd->qty;
         p_vd = p_mocd->p_vis_data;
         connects = (int (*)[3]) p_mocd->objects.elems->nodes;
-        
+
         for ( j = 0; j < tri_qty; j++ )
         {
             for ( k = 0; k < 3; k++ )
                 f_norm[k] = p_vd->face_norm[0][k][j];
-     
+
             for ( k = 0; k < 3; k++ )
             {
                 nd = connects[j][k];
@@ -4344,15 +4363,15 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
                     n_norm[l] = node_norm[l][nd];
                 vec_norm( n_norm );
 
-                /*                  
+                /*
                  * Dot product test.
                  */
-/*
-                Try this if adjacent shell elements have opposite
-                directed normals (i.e., normals are inconsistent).
+                /*
+                                Try this if adjacent shell elements have opposite
+                                directed normals (i.e., normals are inconsistent).
 
-                dot = fabsf( VEC_DOT( f_norm, n_norm ) );
-*/
+                                dot = fabsf( VEC_DOT( f_norm, n_norm ) );
+                */
                 dot = VEC_DOT( f_norm, n_norm );
 
                 /*
@@ -4360,7 +4379,7 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
                  * between normals is greater than a critical angle.
                  */
                 if ( dot < crease_threshold )
-                {  
+                {
                     /* Edge detected, use face normal. */
                     for ( l = 0; l < 3; l++ )
                         p_vd->face_norm[k][l][j] = f_norm[l];
@@ -4395,11 +4414,11 @@ quad_normals( Mesh_data *p_mesh, Analysis *analy )
     int class_qty, quad_qty;
     Visibility_data *p_vd;
     Bool_type has_degen;
-    
+
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
     class_qty = p_mesh->classes_by_sclass[G_QUAD].qty;
     node_norm = analy->node_norm;
- 
+
     /*
      * Compute an average polygon normal for each quad element.
      */
@@ -4408,7 +4427,7 @@ quad_normals( Mesh_data *p_mesh, Analysis *analy )
         p_mocd = pp_mocd[i];
         quad_qty = p_mocd->qty;
         p_vd = p_mocd->p_vis_data;
-        
+
         for ( j = 0; j < quad_qty; j++ )
         {
             quad_avg_norm( j, p_mocd, analy, f_norm );
@@ -4436,7 +4455,7 @@ quad_normals( Mesh_data *p_mesh, Analysis *analy )
      */
     for ( i = 0; i < 3; i++ )
         memset( node_norm[i], 0, p_mesh->node_geom->qty * sizeof( float ) );
- 
+
     /*
      * Compute average normals at each of the nodes.
      */
@@ -4447,7 +4466,7 @@ quad_normals( Mesh_data *p_mesh, Analysis *analy )
         p_vd = p_mocd->p_vis_data;
         connects = (int (*)[4]) p_mocd->objects.elems->nodes;
         has_degen = p_mocd->objects.elems->has_degen;
-        
+
         for ( j = 0; j < quad_qty; j++ )
         {
             num_nd = 4;
@@ -4464,7 +4483,7 @@ quad_normals( Mesh_data *p_mesh, Analysis *analy )
             }
         }
     }
- 
+
     /*
      * Compare average normals at nodes with average normals on shells
      * to determine which normal to store for each shell vertex.
@@ -4475,12 +4494,12 @@ quad_normals( Mesh_data *p_mesh, Analysis *analy )
         quad_qty = p_mocd->qty;
         p_vd = p_mocd->p_vis_data;
         connects = (int (*)[4]) p_mocd->objects.elems->nodes;
-        
+
         for ( j = 0; j < quad_qty; j++ )
         {
             for ( k = 0; k < 3; k++ )
                 f_norm[k] = p_vd->face_norm[0][k][j];
-     
+
             for ( k = 0; k < 4; k++ )
             {
                 nd = connects[j][k];
@@ -4489,15 +4508,15 @@ quad_normals( Mesh_data *p_mesh, Analysis *analy )
                     n_norm[l] = node_norm[l][nd];
                 vec_norm( n_norm );
 
-                /*                  
+                /*
                  * Dot product test.
                  */
-/*
-                Try this if adjacent shell elements have opposite
-                directed normals (i.e., normals are inconsistent).
+                /*
+                                Try this if adjacent shell elements have opposite
+                                directed normals (i.e., normals are inconsistent).
 
-                dot = fabsf( VEC_DOT( f_norm, n_norm ) );
-*/
+                                dot = fabsf( VEC_DOT( f_norm, n_norm ) );
+                */
                 dot = VEC_DOT( f_norm, n_norm );
 
                 /*
@@ -4505,7 +4524,7 @@ quad_normals( Mesh_data *p_mesh, Analysis *analy )
                  * between normals is greater than a critical angle.
                  */
                 if ( dot < crease_threshold )
-                {  
+                {
                     /* Edge detected, use face normal. */
                     for ( l = 0; l < 3; l++ )
                         p_vd->face_norm[k][l][j] = f_norm[l];
@@ -4541,11 +4560,11 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
     Visibility_data *p_vd;
     Surface_data *p_surface;
     Bool_type has_degen;
-    
+
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_SURFACE].list;
     class_qty = p_mesh->classes_by_sclass[G_SURFACE].qty;
     node_norm = analy->node_norm;
- 
+
     /*
      * Compute an average polygon normal for each surface facet.
      */
@@ -4553,7 +4572,7 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
     {
         p_mocd = pp_mocd[i];
         surface_qty = p_mocd->qty;
-        
+
         for ( j = 0; j < surface_qty; j++ )
         {
             p_surface = p_mocd->objects.surfaces + j;
@@ -4583,7 +4602,7 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
      */
     for ( i = 0; i < 3; i++ )
         memset( node_norm[i], 0, p_mesh->node_geom->qty * sizeof( float ) );
- 
+
     /*
      * Compute average normals at each of the nodes.
      */
@@ -4591,7 +4610,7 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
     {
         p_mocd = pp_mocd[i];
         surface_qty = p_mocd->qty;
-        
+
         for ( j = 0; j < surface_qty; j++ )
         {
             p_surface = p_mocd->objects.surfaces + j;
@@ -4611,7 +4630,7 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
             }
         }
     }
- 
+
     /*
      * Compare average normals at nodes with average normals on shells
      * to determine which normal to store for each shell vertex.
@@ -4620,7 +4639,7 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
     {
         p_mocd = pp_mocd[i];
         surface_qty = p_mocd->qty;
-        
+
         for ( j = 0; j < surface_qty; j++ )
         {
             p_surface = p_mocd->objects.surfaces + j;
@@ -4628,7 +4647,7 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
             p_vd = p_surface->p_vis_data;
             for ( k = 0; k < 3; k++ )
                 f_norm[k] = p_vd->face_norm[0][k][j];
-     
+
             for ( k = 0; k < 4; k++ )
             {
                 nd = connects[j][k];
@@ -4637,7 +4656,7 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
                     n_norm[l] = node_norm[l][nd];
                 vec_norm( n_norm );
 
-                /*                  
+                /*
                  * Dot product test.
                  */
                 dot = VEC_DOT( f_norm, n_norm );
@@ -4647,7 +4666,7 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
                  * between normals is greater than a critical angle.
                  */
                 if ( dot < crease_threshold )
-                {  
+                {
                     /* Edge detected, use face normal. */
                     for ( l = 0; l < 3; l++ )
                         p_vd->face_norm[k][l][j] = f_norm[l];
@@ -4671,15 +4690,15 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
  * elements.
  */
 void
-compute_normals( Analysis *analy ) 
+compute_normals( Analysis *analy )
 {
     int i, j;
     Mesh_data *p_md;
-    static int eval_order[] = 
+    static int eval_order[] =
     {
         G_TRI, G_QUAD, G_TET, G_PYRAMID, G_HEX, G_SURFACE
     };
-    
+
     for ( i = 0; i < analy->mesh_qty; i++ )
     {
         p_md = analy->mesh_table + i;
@@ -4688,30 +4707,30 @@ compute_normals( Analysis *analy )
         {
             switch ( eval_order[j] )
             {
-                case G_TRI:
-                    if ( p_md->classes_by_sclass[G_TRI].qty != 0 )
-                        tri_normals( p_md, analy );
-                    break;
-                case G_QUAD:
-                    if ( p_md->classes_by_sclass[G_QUAD].qty != 0 )
-                        quad_normals( p_md, analy );
-                    break;
-                case G_TET:
-                    if ( p_md->classes_by_sclass[G_TET].qty != 0 )
-                        tet_face_normals( p_md, analy );
-                    break;
-                case G_PYRAMID:
-                    if ( p_md->classes_by_sclass[G_PYRAMID].qty != 0 )
-                        pyramid_face_normals( p_md, analy );
-                    break;
-                case G_HEX:
-                    if ( p_md->classes_by_sclass[G_HEX].qty != 0 )
-                        hex_face_normals( p_md, analy );
-                    break;
-                case G_SURFACE:
-                    if ( p_md->classes_by_sclass[G_SURFACE].qty != 0 )
-                        surface_normals( p_md, analy );
-                    break;
+            case G_TRI:
+                if ( p_md->classes_by_sclass[G_TRI].qty != 0 )
+                    tri_normals( p_md, analy );
+                break;
+            case G_QUAD:
+                if ( p_md->classes_by_sclass[G_QUAD].qty != 0 )
+                    quad_normals( p_md, analy );
+                break;
+            case G_TET:
+                if ( p_md->classes_by_sclass[G_TET].qty != 0 )
+                    tet_face_normals( p_md, analy );
+                break;
+            case G_PYRAMID:
+                if ( p_md->classes_by_sclass[G_PYRAMID].qty != 0 )
+                    pyramid_face_normals( p_md, analy );
+                break;
+            case G_HEX:
+                if ( p_md->classes_by_sclass[G_HEX].qty != 0 )
+                    hex_face_normals( p_md, analy );
+                break;
+            case G_SURFACE:
+                if ( p_md->classes_by_sclass[G_SURFACE].qty != 0 )
+                    surface_normals( p_md, analy );
+                break;
             }
         }
     }
@@ -4723,13 +4742,13 @@ compute_normals( Analysis *analy )
  *
  * Compute the bounding box defined by the nodes referenced
  * by the mesh object classes referenced in array src_classes.
- * There should only be one class if it is from the G_NODE 
+ * There should only be one class if it is from the G_NODE
  * superclass, as processing stops when such a class is
- * encountered.  Lower and upper bounding coords are returned in 
+ * encountered.  Lower and upper bounding coords are returned in
  * bb_lo and bb_hi.
  */
 void
-bbox_nodes( Analysis *analy, MO_class_data **src_classes, Bool_type use_geom, 
+bbox_nodes( Analysis *analy, MO_class_data **src_classes, Bool_type use_geom,
             float bb_lo[], float bb_hi[] )
 {
     int i, j, k;
@@ -4740,18 +4759,18 @@ bbox_nodes( Analysis *analy, MO_class_data **src_classes, Bool_type use_geom,
     MO_class_data *p_node_class;
     float vert_lo[3], vert_hi[3];
     unsigned char *hide_mat;
-    
+
     dim = analy->dimension;
     p_node_class = MESH( analy ).node_geom;
     node_qty = p_node_class->qty;
-    
+
     nodes = ( use_geom ) ? p_node_class->objects.nodes
-                           : analy->state_p->nodes.nodes;
+            : analy->state_p->nodes.nodes;
 
     for ( i = 0; i < dim; i++ )
     {
-        vert_lo[i] = MAXFLOAT;    
-        vert_hi[i] = -MAXFLOAT;    
+        vert_lo[i] = MAXFLOAT;
+        vert_hi[i] = -MAXFLOAT;
     }
 
     el_nodes_ok = TRUE;
@@ -4774,52 +4793,52 @@ bbox_nodes( Analysis *analy, MO_class_data **src_classes, Bool_type use_geom,
 
         switch ( src_classes[i]->superclass )
         {
-            case G_NODE:
- 	    case G_PARTICLE:
-                for ( j = 0; j < node_qty; j++ )
-                    for ( k = 0; k < dim; k++ )
-                    {
-                        offset = j * dim + k;
-                        if ( nodes[offset] < vert_lo[k] )
-                            vert_lo[k] = nodes[offset];
-                        else if ( nodes[offset] > vert_hi[k] )
-                            vert_hi[k] = nodes[offset];
-                    }
-                
-                el_nodes_ok = FALSE;
-                break;
-                
-            case G_TRUSS:
-            case G_BEAM:
-            case G_TRI:
-            case G_QUAD:
-            case G_TET:
-            case G_PYRAMID:
-            case G_WEDGE:
-            case G_HEX:
-                if ( tested == NULL )
-                    tested = NEW_N( Bool_type, node_qty, "Node visit flags" );
-                find_extents( src_classes[i], dim, nodes, tested, NULL, 
-                              vert_lo, vert_hi );
-                break;
-                
-            default:
-                popup_dialog( WARNING_POPUP, "Invalid source class %s\n%s",
-                              "for bounding box determination;", 
-                              "action aborted." );
-                if ( tested != NULL )
-                    free( tested );
-                return;
+        case G_NODE:
+        case G_PARTICLE:
+            for ( j = 0; j < node_qty; j++ )
+                for ( k = 0; k < dim; k++ )
+                {
+                    offset = j * dim + k;
+                    if ( nodes[offset] < vert_lo[k] )
+                        vert_lo[k] = nodes[offset];
+                    else if ( nodes[offset] > vert_hi[k] )
+                        vert_hi[k] = nodes[offset];
+                }
+
+            el_nodes_ok = FALSE;
+            break;
+
+        case G_TRUSS:
+        case G_BEAM:
+        case G_TRI:
+        case G_QUAD:
+        case G_TET:
+        case G_PYRAMID:
+        case G_WEDGE:
+        case G_HEX:
+            if ( tested == NULL )
+                tested = NEW_N( Bool_type, node_qty, "Node visit flags" );
+            find_extents( src_classes[i], dim, nodes, tested, NULL,
+                          vert_lo, vert_hi );
+            break;
+
+        default:
+            popup_dialog( WARNING_POPUP, "Invalid source class %s\n%s",
+                          "for bounding box determination;",
+                          "action aborted." );
+            if ( tested != NULL )
+                free( tested );
+            return;
         }
     }
- 
+
     if ( tested != NULL )
         free( tested );
 
     for ( i = 0; i < dim; i++ )
     {
-        bb_lo[i] = vert_lo[i];    
-        bb_hi[i] = vert_hi[i];    
+        bb_lo[i] = vert_lo[i];
+        bb_hi[i] = vert_hi[i];
     }
 }
 
@@ -4828,12 +4847,12 @@ bbox_nodes( Analysis *analy, MO_class_data **src_classes, Bool_type use_geom,
  * TAG( find_extents )
  *
  * Find geometric extents of nodes referenced by the passed
- * elements.  If material invisibility array "mat_invis" is non-NULL, 
+ * elements.  If material invisibility array "mat_invis" is non-NULL,
  * only test the nodes of an element it its material is visible.
  */
 static void
 find_extents( MO_class_data *p_mo_class, int dim, float *coords,
-              Bool_type tested[], unsigned char *mat_invis, 
+              Bool_type tested[], unsigned char *mat_invis,
               float bb_lo[], float bb_hi[] )
 {
     int i, j, k, nd, offset;
@@ -4841,14 +4860,14 @@ find_extents( MO_class_data *p_mo_class, int dim, float *coords,
     int qty_elems, qty_el_nodes, qty_usable_nodes;
     Bool_type mat_fail;
     int *elem_mat;
-    
+
     qty_el_nodes = qty_connects[p_mo_class->superclass];
-    qty_usable_nodes = ( p_mo_class->superclass == G_BEAM ) ? qty_el_nodes - 1 
-                                                            : qty_el_nodes;
+    qty_usable_nodes = ( p_mo_class->superclass == G_BEAM ) ? qty_el_nodes - 1
+                       : qty_el_nodes;
     connects = p_mo_class->objects.elems->nodes;
     qty_elems = p_mo_class->qty;
     elem_mat = p_mo_class->objects.elems->mat;
-    
+
     for ( j = 0; j < qty_elems; j++ )
     {
         mat_fail = ( mat_invis == NULL ) ? FALSE : mat_invis[elem_mat[j]];
@@ -4882,12 +4901,12 @@ find_extents( MO_class_data *p_mo_class, int dim, float *coords,
  * Find geometric extents of all nodes in the mesh. Only
  * visible materials are counted in finding the extents
  * if hide_mats is TRUE.
- * 
+ *
  */
 void
 get_extents(  Analysis *analy,
-	      Bool_type use_geom, Bool_type hide_mats,
-	      float vert_lo[], float vert_hi[] )
+              Bool_type use_geom, Bool_type hide_mats,
+              float vert_lo[], float vert_hi[] )
 {
     int i, j;
     int           dim=3, node_qty=0;
@@ -4898,15 +4917,15 @@ get_extents(  Analysis *analy,
 
     Bool_type     *tested=NULL;
     unsigned char *hide_mat;
-    
+
     dim          = analy->dimension;
     p_mesh       = MESH_P( analy );
     p_node_class = MESH( analy ).node_geom;
     p_node_class = MESH( analy ).node_geom;
     node_qty = p_node_class->qty;
-    
+
     nodes = ( use_geom ) ? p_node_class->objects.nodes
-                           : analy->state_p->nodes.nodes;
+            : analy->state_p->nodes.nodes;
     node_qty     = p_node_class->qty;
     tested       = NEW_N( Bool_type, node_qty, "Node visit flags" );
 
@@ -4914,42 +4933,42 @@ get_extents(  Analysis *analy,
         hide_mat     = MESH_P( analy )->hide_material;
     else
         hide_mat = NULL;
-    
+
     for ( i = 0; i < dim; i++ )
     {
-        vert_lo[i] = MAXFLOAT;    
-        vert_hi[i] = -MAXFLOAT;    
+        vert_lo[i] = MAXFLOAT;
+        vert_hi[i] = -MAXFLOAT;
     }
 
     for ( i = 0; i < QTY_SCLASS; i++ )
     {
         if ( !IS_ELEMENT_SCLASS( i ) )
-             continue;
-        
+            continue;
+
         p_lh = p_mesh->classes_by_sclass + i;
-        
+
         /* If classes exist from current superclass... */
         if ( p_lh->qty > 0 )
         {
             mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[i].list;
-            
+
             /* Loop over each class. */
-            for ( j = 0; 
-                  j < p_lh->qty; 
-                  j++ )
+            for ( j = 0;
+                    j < p_lh->qty;
+                    j++ )
             {
                 p_mo_class = mo_classes[j];
 
-                find_extents( p_mo_class, dim, nodes, tested, hide_mat, 
+                find_extents( p_mo_class, dim, nodes, tested, hide_mat,
                               vert_lo, vert_hi );
 
-	    }
-	}
+            }
+        }
     }
     free ( tested );
 }
 
- 
+
 #ifdef OLD_MAT_COUNT
 /************************************************************
  * TAG( count_materials )
@@ -5010,7 +5029,7 @@ count_materials( Analysis *analy )
  * position but not by node number.
  */
 Bool_type
-face_matches_shell( int el, int face, Analysis *analy ) 
+face_matches_shell( int el, int face, Analysis *analy )
 {
     Shell_geom *shells;
     Hex_geom *bricks;
@@ -5038,7 +5057,7 @@ face_matches_shell( int el, int face, Analysis *analy )
     {
         /* Skip this shell if it is hidden or inactive. */
         if ( (activity && activity[i] == 0.0) ||
-             analy->hide_material[materials[i]] )
+                analy->hide_material[materials[i]] )
             continue;
 
         /* Get the shell nodes & order in ascending order. */
@@ -5053,7 +5072,7 @@ face_matches_shell( int el, int face, Analysis *analy )
         /* Test for a match. */
         for ( match = 0, j = 0; j < 4; j++ )
             if ( fnodes[j] == snodes[j] )
-                match++; 
+                match++;
         if ( match == 4 )
             return( TRUE );
     }
@@ -5073,8 +5092,8 @@ face_matches_shell( int el, int face, Analysis *analy )
  * position but not by node number.
  */
 Bool_type
-face_matches_quad( int el, int face, MO_class_data *p_hex_class, 
-                   Mesh_data *p_mesh, Analysis *analy ) 
+face_matches_quad( int el, int face, MO_class_data *p_hex_class,
+                   Mesh_data *p_mesh, Analysis *analy )
 {
     float *activity;
     int *mat;
@@ -5095,7 +5114,7 @@ face_matches_quad( int el, int face, MO_class_data *p_hex_class,
         for ( k = j+1; k < 4; k++ )
             if ( fnodes[j] > fnodes[k] )
                 SWAP( tmp, fnodes[j], fnodes[k] );
-    
+
     quad_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
     class_qty = p_mesh->classes_by_sclass[G_QUAD].qty;
 
@@ -5112,7 +5131,7 @@ face_matches_quad( int el, int face, MO_class_data *p_hex_class,
         {
             /* Skip this quad if it is hidden or inactive. */
             if ( (activity && activity[i] == 0.0) ||
-                 p_mesh->hide_material[mat[i]] )
+                    p_mesh->hide_material[mat[i]] )
                 continue;
 
             /* Get the quad nodes & order in ascending order. */
@@ -5127,7 +5146,7 @@ face_matches_quad( int el, int face, MO_class_data *p_hex_class,
             /* Test for a match. */
             for ( match = 0, j = 0; j < 4; j++ )
                 if ( fnodes[j] == snodes[j] )
-                    match++; 
+                    match++;
             if ( match == 4 )
                 return( TRUE );
         }
@@ -5147,8 +5166,8 @@ face_matches_quad( int el, int face, MO_class_data *p_hex_class,
  * position but not by node number.
  */
 Bool_type
-face_matches_tri( int el, int face, MO_class_data *p_tet_class, 
-                  Mesh_data *p_mesh, Analysis *analy ) 
+face_matches_tri( int el, int face, MO_class_data *p_tet_class,
+                  Mesh_data *p_mesh, Analysis *analy )
 {
     float *activity;
     int *mat;
@@ -5169,7 +5188,7 @@ face_matches_tri( int el, int face, MO_class_data *p_tet_class,
         for ( k = j+1; k < 3; k++ )
             if ( fnodes[j] > fnodes[k] )
                 SWAP( tmp, fnodes[j], fnodes[k] );
-    
+
     tri_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRI].list;
     class_qty = p_mesh->classes_by_sclass[G_TRI].qty;
 
@@ -5186,7 +5205,7 @@ face_matches_tri( int el, int face, MO_class_data *p_tet_class,
         {
             /* Skip this tri if it is hidden or inactive. */
             if ( (activity && activity[i] == 0.0) ||
-                 p_mesh->hide_material[mat[i]] )
+                    p_mesh->hide_material[mat[i]] )
                 continue;
 
             /* Get the tri nodes & order in ascending order. */
@@ -5201,7 +5220,7 @@ face_matches_tri( int el, int face, MO_class_data *p_tet_class,
             /* Test for a match. */
             for ( match = 0, j = 0; j < 3; j++ )
                 if ( fnodes[j] == snodes[j] )
-                    match++; 
+                    match++;
             if ( match == 3 )
                 return( TRUE );
         }
@@ -5241,99 +5260,101 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
 
     switch ( p_mo_class->superclass )
     {
-        case G_NODE:
-	    select_node( analy, MESH_P( analy ), FALSE, line_pt, line_dir, &near_num );
-            break;
-        case G_TRUSS:
-            select_linear( analy, MESH_P( analy ), p_mo_class , line_pt, 
-                           line_dir, &near_num );
-            break;
-        case G_BEAM:
-            select_linear( analy, MESH_P( analy ), p_mo_class, line_pt, 
-                           line_dir, &near_num );
-            break;
-        case G_TRI:
-            select_planar( analy, MESH_P( analy ), p_mo_class, line_pt, 
-                           line_dir, &near_num );
-            break;
-        case G_QUAD:
-            select_planar( analy, MESH_P( analy ), p_mo_class, line_pt, 
-                           line_dir, &near_num );
-            break;
-        case G_TET:
-            select_tet( analy, MESH_P( analy ), p_mo_class, line_pt, line_dir, 
+    case G_NODE:
+        select_node( analy, MESH_P( analy ), FALSE, line_pt, line_dir, &near_num );
+        break;
+    case G_TRUSS:
+        select_linear( analy, MESH_P( analy ), p_mo_class , line_pt,
+                       line_dir, &near_num );
+        break;
+    case G_BEAM:
+        select_linear( analy, MESH_P( analy ), p_mo_class, line_pt,
+                       line_dir, &near_num );
+        break;
+    case G_TRI:
+        select_planar( analy, MESH_P( analy ), p_mo_class, line_pt,
+                       line_dir, &near_num );
+        break;
+    case G_QUAD:
+        select_planar( analy, MESH_P( analy ), p_mo_class, line_pt,
+                       line_dir, &near_num );
+        break;
+    case G_TET:
+        select_tet( analy, MESH_P( analy ), p_mo_class, line_pt, line_dir,
+                    &near_num );
+        break;
+    case G_PYRAMID:
+        select_pyramid( analy, MESH_P( analy ), p_mo_class, line_pt, line_dir,
                         &near_num );
-            break;
-        case G_PYRAMID:
-            select_pyramid( analy, MESH_P( analy ), p_mo_class, line_pt, line_dir, 
-                        &near_num );
-            break;
-        case G_PARTICLE:
-	  select_node( analy, MESH_P( analy ), TRUE, line_pt, line_dir, &near_num );
-            break;
+        break;
+    case G_PARTICLE:
+        select_node( analy, MESH_P( analy ), TRUE, line_pt, line_dir, &near_num );
+        break;
     case G_HEX:
-	  if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) && analy->particle_nodes_enabled ) {
-	       select_node( analy, MESH_P( analy ), TRUE, line_pt, line_dir, &near_num );
-	    break;
-	  }
-	    else
-	       select_hex( analy, MESH_P( analy ), p_mo_class, line_pt, line_dir, 
-			   &near_num );
+        if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) && analy->particle_nodes_enabled )
+        {
+            select_node( analy, MESH_P( analy ), TRUE, line_pt, line_dir, &near_num );
             break;
-        case G_SURFACE:
-            select_surf_planar( analy, MESH_P( analy ), p_mo_class, line_pt, 
-                           line_dir, &near_num );
-            break;
-        case G_UNIT:
-            if ( strcmp( p_mo_class->short_name, "part" ) == 0 )
-                 select_particle( analy, MESH_P( analy ), p_mo_class, line_pt, 
-				  line_dir, &near_num );
-            break;
-        default:
-            popup_dialog( INFO_POPUP, "Unknown object type for pick." );
+        }
+        else
+            select_hex( analy, MESH_P( analy ), p_mo_class, line_pt, line_dir,
+                        &near_num );
+        break;
+    case G_SURFACE:
+        select_surf_planar( analy, MESH_P( analy ), p_mo_class, line_pt,
+                            line_dir, &near_num );
+        break;
+    case G_UNIT:
+        if ( strcmp( p_mo_class->short_name, "part" ) == 0 )
+            select_particle( analy, MESH_P( analy ), p_mo_class, line_pt,
+                             line_dir, &near_num );
+        break;
+    default:
+        popup_dialog( INFO_POPUP, "Unknown object type for pick." );
     }
 
-    if ( !find_only && near_num != 0 ) 
+    if ( !find_only && near_num != 0 )
     {
         /* Translate index into a label number */
         node_near_num = near_num;
-	near_num = get_class_label( p_mo_class, near_num );
+        near_num = get_class_label( p_mo_class, near_num );
 
-	if ( is_particle_class( analy, p_mo_class->superclass,  p_mo_class->short_name ) && p_mo_class->labels_found &&
-	     analy->particle_nodes_enabled ) {
-	     p_mesh = MESH_P( analy );
-	     select_meshless_elem( analy, p_mesh, 
-				   p_mo_class, node_near_num,
-				   &p_near );
-	     near_num = p_near;
+        if ( is_particle_class( analy, p_mo_class->superclass,  p_mo_class->short_name ) && p_mo_class->labels_found &&
+                analy->particle_nodes_enabled )
+        {
+            p_mesh = MESH_P( analy );
+            select_meshless_elem( analy, p_mesh,
+                                  p_mo_class, node_near_num,
+                                  &p_near );
+            near_num = p_near;
 
-	     if ( p_near<=0 )
-	          return p_near;
+            if ( p_near<=0 )
+                return p_near;
 
-	     near_num = get_class_label( p_mo_class, p_near );
+            near_num = get_class_label( p_mo_class, p_near );
 
-	     analy->hilite_ml_node = node_near_num;
-	}
+            analy->hilite_ml_node = node_near_num;
+        }
 
-    }  
+    }
 
     if ( near_num<=0 )
-         return near_num;
+        return near_num;
 
     /* Hilite or select the picked element or node. */
-  
-    if ( analy->mouse_mode == MOUSE_HILITE )
-        {
-            sprintf( comstr, "hilite %s %d", p_mo_class->short_name, near_num );
-        }
-        else if ( analy->mouse_mode == MOUSE_SELECT )
-        {
-            sprintf( comstr, "select %s %d", p_mo_class->short_name, near_num );
-        }
 
-        parse_command( comstr, env.curr_analy );
-    
-    return near_num; 
+    if ( analy->mouse_mode == MOUSE_HILITE )
+    {
+        sprintf( comstr, "hilite %s %d", p_mo_class->short_name, near_num );
+    }
+    else if ( analy->mouse_mode == MOUSE_SELECT )
+    {
+        sprintf( comstr, "select %s %d", p_mo_class->short_name, near_num );
+    }
+
+    parse_command( comstr, env.curr_analy );
+
+    return near_num;
 }
 
 
@@ -5343,7 +5364,7 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
  * Select a hex element from a screen pick.
  */
 static void
-select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class, 
+select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
             float line_pt[3], float line_dir[3], int *p_near )
 {
     float verts[4][3];
@@ -5356,9 +5377,9 @@ select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     Visibility_data *p_vd;
     float pt[3], vec[3], v1[3], v2[3];
     float near_dist, orig, dist;
-    
+
     near_dist = MAXFLOAT;
-    
+
     connects = (int (*)[8]) p_mo_class->objects.elems->nodes;
     nodes3d = analy->state_p->nodes.nodes3d;
     p_vd = p_mo_class->p_vis_data;
@@ -5369,7 +5390,7 @@ select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     if ( analy->displace_exag )
     {
         onodes3d = (GVec3D *) analy->cur_ref_state_data;
-        
+
         for ( j = 0; j < face_cnt; j++ )
         {
             el = face_el[j];
@@ -5393,9 +5414,9 @@ select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
             vec_norm( vec );
 
             /* Test for backfacing face. */
-            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
+            if ( VEC_DOT( vec, line_dir ) > 0.0 )
                 continue;
-            
+
             if ( intersect_line_quad( verts, line_pt, line_dir, pt ) )
             {
                 VEC_SUB( vec, pt, line_pt );
@@ -5429,9 +5450,9 @@ select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
             vec_norm( vec );
 
             /* Test for backfacing face. */
-            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
+            if ( VEC_DOT( vec, line_dir ) > 0.0 )
                 continue;
-              
+
             if ( intersect_line_quad( verts, line_pt, line_dir, pt ) )
             {
                 VEC_SUB( vec, pt, line_pt );
@@ -5450,7 +5471,7 @@ select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     if ( near_dist == MAXFLOAT )
     {
         parse_command( "clrhil", env.curr_analy );
-        popup_dialog( INFO_POPUP, "No %s (%s) element hit.", 
+        popup_dialog( INFO_POPUP, "No %s (%s) element hit.",
                       p_mo_class->short_name, p_mo_class->long_name );
         *p_near = 0;
     }
@@ -5466,8 +5487,8 @@ select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
  * Select a pyramid element from a screen pick.
  */
 static void
-select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class, 
-            float line_pt[3], float line_dir[3], int *p_near )
+select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
+                float line_pt[3], float line_dir[3], int *p_near )
 {
     float verts[4][3];
     GVec3D *nodes3d, *onodes3d;
@@ -5479,9 +5500,9 @@ select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     Visibility_data *p_vd;
     float pt[3], vec[3], v1[3], v2[3];
     float near_dist, orig, dist;
-    
+
     near_dist = MAXFLOAT;
-    
+
     connects = (int (*)[5]) p_mo_class->objects.elems->nodes;
     nodes3d = analy->state_p->nodes.nodes3d;
     p_vd = p_mo_class->p_vis_data;
@@ -5492,7 +5513,7 @@ select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     if ( analy->displace_exag )
     {
         onodes3d = (GVec3D *) analy->cur_ref_state_data;
-        
+
         for ( j = 0; j < face_cnt; j++ )
         {
             el = face_el[j];
@@ -5516,9 +5537,9 @@ select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
             vec_norm( vec );
 
             /* Test for backfacing face. */
-            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
+            if ( VEC_DOT( vec, line_dir ) > 0.0 )
                 continue;
-            
+
             if ( intersect_line_quad( verts, line_pt, line_dir, pt ) )
             {
                 VEC_SUB( vec, pt, line_pt );
@@ -5552,9 +5573,9 @@ select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
             vec_norm( vec );
 
             /* Test for backfacing face. */
-            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
+            if ( VEC_DOT( vec, line_dir ) > 0.0 )
                 continue;
-              
+
             if ( intersect_line_quad( verts, line_pt, line_dir, pt ) )
             {
                 VEC_SUB( vec, pt, line_pt );
@@ -5573,7 +5594,7 @@ select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     if ( near_dist == MAXFLOAT )
     {
         parse_command( "clrhil", env.curr_analy );
-        popup_dialog( INFO_POPUP, "No %s (%s) element hit.", 
+        popup_dialog( INFO_POPUP, "No %s (%s) element hit.",
                       p_mo_class->short_name, p_mo_class->long_name );
         *p_near = 0;
     }
@@ -5587,7 +5608,7 @@ select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
  * Select a tet element from a screen pick.
  */
 static void
-select_tet( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class, 
+select_tet( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
             float line_pt[3], float line_dir[3], int *p_near )
 {
     float verts[3][3];
@@ -5600,9 +5621,9 @@ select_tet( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     Visibility_data *p_vd;
     float pt[3], vec[3], v1[3], v2[3];
     float near_dist, dist, orig;
-    
+
     near_dist = MAXFLOAT;
-    
+
     connects = (int (*)[4]) p_mo_class->objects.elems->nodes;
     nodes3d = analy->state_p->nodes.nodes3d;
     p_vd = p_mo_class->p_vis_data;
@@ -5613,7 +5634,7 @@ select_tet( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     if ( analy->displace_exag )
     {
         onodes3d = (GVec3D *) analy->cur_ref_state_data;
-        
+
         for ( j = 0; j < face_cnt; j++ )
         {
             el = face_el[j];
@@ -5637,9 +5658,9 @@ select_tet( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
             vec_norm( vec );
 
             /* Test for backfacing face. */
-            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
+            if ( VEC_DOT( vec, line_dir ) > 0.0 )
                 continue;
-            
+
             if ( intersect_line_tri( verts, line_pt, line_dir, pt ) )
             {
                 VEC_SUB( vec, pt, line_pt );
@@ -5673,9 +5694,9 @@ select_tet( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
             vec_norm( vec );
 
             /* Test for backfacing face. */
-            if ( VEC_DOT( vec, line_dir ) > 0.0 ) 
+            if ( VEC_DOT( vec, line_dir ) > 0.0 )
                 continue;
-              
+
             if ( intersect_line_tri( verts, line_pt, line_dir, pt ) )
             {
                 VEC_SUB( vec, pt, line_pt );
@@ -5694,7 +5715,7 @@ select_tet( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     if ( near_dist == MAXFLOAT )
     {
         parse_command( "clrhil", env.curr_analy );
-        popup_dialog( INFO_POPUP, "No %s (%s) element hit.", 
+        popup_dialog( INFO_POPUP, "No %s (%s) element hit.",
                       p_mo_class->short_name, p_mo_class->long_name );
         *p_near = 0;
     }
@@ -5709,7 +5730,7 @@ select_tet( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
  * Select a tri or quad element from a screen pick.
  */
 static void
-select_planar( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class, 
+select_planar( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
                float line_pt[3], float line_dir[3], int *p_near )
 {
     int mo_qty;
@@ -5737,22 +5758,22 @@ select_planar( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
         conn_qty = 3;
         intersect_func = intersect_line_tri;
     }
-    
+
     hide_mtl = p_mesh->hide_material;
     near_dist = MAXFLOAT;
-    
+
     mo_qty = p_mo_class->qty;
     connects = p_mo_class->objects.elems->nodes;
     mat = p_mo_class->objects.elems->mat;
-    
+
     if ( analy->dimension == 3 )
     {
         nodes3d = analy->state_p->nodes.nodes3d;
-        
+
         if ( analy->displace_exag )
         {
             onodes3d = (GVec3D *) analy->cur_ref_state_data;
-            
+
             for ( j = 0; j < mo_qty; j++ )
             {
                 if ( hide_mtl[mat[j]] )
@@ -5770,7 +5791,7 @@ select_planar( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
                                       (nodes3d[nd][k] - orig);
                     }
                 }
-                
+
                 if ( intersect_func( verts, line_pt, line_dir, pt ) )
                 {
                     VEC_SUB( vec, pt, line_pt );
@@ -5798,7 +5819,7 @@ select_planar( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
                     for ( k = 0; k < 3; k++ )
                         verts[l][k] = nodes3d[nd][k];
                 }
-                 
+
                 if ( intersect_func( verts, line_pt, line_dir, pt ) )
                 {
                     VEC_SUB( vec, pt, line_pt );
@@ -5817,11 +5838,11 @@ select_planar( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     {
         nodes2d = analy->state_p->nodes.nodes2d;
         verts[0][2] = verts[1][2] = verts[2][2] = verts[3][2] = 0.0;
-        
+
         if ( analy->displace_exag )
         {
             onodes2d = (GVec2D *) analy->cur_ref_state_data;
-            
+
             for ( j = 0; j < mo_qty; j++ )
             {
                 if ( hide_mtl[mat[j]] )
@@ -5839,7 +5860,7 @@ select_planar( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
                                       (nodes2d[nd][k] - orig);
                     }
                 }
-                
+
                 if ( intersect_func( verts, line_pt, zdir, pt ) )
                 {
                     VEC_SUB_2D( vec, pt, line_pt );
@@ -5867,7 +5888,7 @@ select_planar( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
                     for ( k = 0; k < 2; k++ )
                         verts[l][k] = nodes2d[nd][k];
                 }
-                 
+
                 if ( intersect_func( verts, line_pt, zdir, pt ) )
                 {
                     VEC_SUB_2D( vec, pt, line_pt );
@@ -5883,11 +5904,11 @@ select_planar( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
         }
     }
 
-   /* If we didn't hit an element. */
+    /* If we didn't hit an element. */
     if ( near_dist == MAXFLOAT )
     {
         parse_command( "clrhil", env.curr_analy );
-        popup_dialog( INFO_POPUP, "No %s (%s) element hit.", 
+        popup_dialog( INFO_POPUP, "No %s (%s) element hit.",
                       p_mo_class->short_name, p_mo_class->long_name );
         *p_near = 0;
     }
@@ -5903,7 +5924,7 @@ select_planar( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
  */
 static void
 select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
-                    MO_class_data *p_mo_class, 
+                    MO_class_data *p_mo_class,
                     float line_pt[3], float line_dir[3], int *p_near )
 {
     int mo_qty;
@@ -5927,18 +5948,18 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
     intersect_func = intersect_line_quad;
     hide_surf = p_mesh->hide_surface;
     near_dist = MAXFLOAT;
-    
+
     mo_qty = p_mo_class->qty;
     p_surf = p_mo_class->objects.surfaces;
-    
+
     if ( analy->dimension == 3 )
     {
         nodes3d = analy->state_p->nodes.nodes3d;
-        
+
         if ( analy->displace_exag )
         {
             onodes3d = (GVec3D *) analy->cur_ref_state_data;
-            
+
             for ( j = 0; j < mo_qty; j++ )
             {
                 if ( hide_surf[j] )
@@ -5959,10 +5980,10 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
                         {
                             orig = onodes3d[nd][ii];
                             verts[l][ii] = orig + analy->displace_scale[ii]*
-                                      (nodes3d[nd][ii] - orig);
+                                           (nodes3d[nd][ii] - orig);
                         }
                     }
-                
+
                     if ( intersect_func( verts, line_pt, line_dir, pt ) )
                     {
                         VEC_SUB( vec, pt, line_pt );
@@ -5996,7 +6017,7 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
                         for ( ii = 0; ii < 3; ii++ )
                             verts[l][ii] = nodes3d[nd][ii];
                     }
-                 
+
                     if ( intersect_func( verts, line_pt, line_dir, pt ) )
                     {
                         VEC_SUB( vec, pt, line_pt );
@@ -6016,11 +6037,11 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
     {
         nodes2d = analy->state_p->nodes.nodes2d;
         verts[0][2] = verts[1][2] = verts[2][2] = verts[3][2] = 0.0;
-        
+
         if ( analy->displace_exag )
         {
             onodes2d = (GVec2D *) analy->cur_ref_state_data;
-            
+
             for ( j = 0; j < mo_qty; j++ )
             {
                 if ( hide_surf[j] )
@@ -6038,7 +6059,7 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
                                       (nodes2d[nd][k] - orig);
                     }
                 }
-                
+
                 if ( intersect_func( verts, line_pt, zdir, pt ) )
                 {
                     VEC_SUB_2D( vec, pt, line_pt );
@@ -6066,7 +6087,7 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
                     for ( k = 0; k < 2; k++ )
                         verts[l][k] = nodes2d[nd][k];
                 }
-                 
+
                 if ( intersect_func( verts, line_pt, zdir, pt ) )
                 {
                     VEC_SUB_2D( vec, pt, line_pt );
@@ -6082,11 +6103,11 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
         }
     }
 
-   /* If we didn't hit an element. */
+    /* If we didn't hit an element. */
     if ( near_dist == MAXFLOAT )
     {
         parse_command( "clrhil", env.curr_analy );
-        popup_dialog( INFO_POPUP, "No %s (%s) element hit.", 
+        popup_dialog( INFO_POPUP, "No %s (%s) element hit.",
                       p_mo_class->short_name, p_mo_class->long_name );
         *p_near = 0;
         p_surf->sel_facet_num = -1;
@@ -6101,7 +6122,7 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
  * Select a beam or truss element from a screen pick.
  */
 static void
-select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class, 
+select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
                float line_pt[3], float line_dir[3], int *p_near )
 {
     int mo_qty;
@@ -6121,22 +6142,22 @@ select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
         conn_qty = 3;
     else
         conn_qty = 2;
-    
+
     hide_mtl = p_mesh->hide_material;
     near_dist = MAXFLOAT;
-    
+
     mo_qty = p_mo_class->qty;
     connects = p_mo_class->objects.elems->nodes;
     mat = p_mo_class->objects.elems->mat;
-    
+
     if ( analy->dimension == 3 )
     {
         nodes3d = analy->state_p->nodes.nodes3d;
-        
+
         if ( analy->displace_exag )
         {
             onodes3d = (GVec3D *) analy->cur_ref_state_data;
-            
+
             for ( j = 0; j < mo_qty; j++ )
             {
                 if ( hide_mtl[mat[j]] )
@@ -6153,7 +6174,7 @@ select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
                                       * (nodes3d[nd][k] - orig);
                     }
                 }
- 
+
                 dist = sqr_dist_seg_to_line( verts[0], verts[1],
                                              line_pt, line_dir );
 
@@ -6178,7 +6199,7 @@ select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
                     for ( k = 0; k < 3; k++ )
                         verts[l][k] = nodes3d[nd][k];
                 }
-                
+
                 dist = sqr_dist_seg_to_line( verts[0], verts[1],
                                              line_pt, line_dir );
 
@@ -6194,11 +6215,11 @@ select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     {
         nodes2d = analy->state_p->nodes.nodes2d;
         verts[0][2] = verts[1][2] = 0.0;
-        
+
         if ( analy->displace_exag )
         {
             onodes2d = (GVec2D *) analy->cur_ref_state_data;
-            
+
             for ( j = 0; j < mo_qty; j++ )
             {
                 if ( hide_mtl[mat[j]] )
@@ -6215,7 +6236,7 @@ select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
                                       * (nodes2d[nd][k] - orig);
                     }
                 }
-                
+
                 dist = sqr_dist_seg_to_line( verts[0], verts[1],
                                              line_pt, zdir );
 
@@ -6240,7 +6261,7 @@ select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
                     for ( k = 0; k < 2; k++ )
                         verts[l][k] = nodes2d[nd][k];
                 }
-                
+
                 dist = sqr_dist_seg_to_line( verts[0], verts[1],
                                              line_pt, zdir );
 
@@ -6257,7 +6278,7 @@ select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     if ( near_dist == MAXFLOAT )
     {
         parse_command( "clrhil", env.curr_analy );
-        popup_dialog( INFO_POPUP, "No %s (%s) element hit.", 
+        popup_dialog( INFO_POPUP, "No %s (%s) element hit.",
                       p_mo_class->short_name, p_mo_class->long_name );
         *p_near = 0;
     }
@@ -6273,7 +6294,7 @@ select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
  */
 static void
 select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
-	     float line_pt[3], 
+             float line_pt[3],
              float line_dir[3], int *p_near )
 {
     float pt[3], near_pt[3], vec[3];
@@ -6295,46 +6316,47 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
     GVec2D *nodes2d, *onodes2d;
     int dims;
     float orig;
-    
-    int *free_nodes; 
+
+    int *free_nodes;
 
     Bool_type ml_found=FALSE;
 
     p_node_class = p_mesh->node_geom;
     node_qty = p_node_class->qty;
-   
-    /* Init to ensure update. */ 
+
+    /* Init to ensure update. */
     near_dist = MAXFLOAT;
 
     /* Mark all nodes that are on the surface of the mesh. */
     onsurf = analy->tmp_result[0];
 
-    for ( i = 0; i < node_qty; i++ ) {
-          onsurf[i] = 0.0;
-	  if ( ml_node )
-	    onsurf[i] = 1.0;
+    for ( i = 0; i < node_qty; i++ )
+    {
+        onsurf[i] = 0.0;
+        if ( ml_node )
+            onsurf[i] = 1.0;
     }
-    
+
     dims = analy->dimension;
-    
+
     if ( dims == 3 )
     {
         /* Mark nodes shared by visible hex faces. */
 
         mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_HEX].list;
         class_qty = p_mesh->classes_by_sclass[G_HEX].qty;
-        
+
         for ( i = 0; i < class_qty; i++ )
         {
             face_el = mo_classes[i]->p_vis_data->face_el;
             face_fc = mo_classes[i]->p_vis_data->face_fc;
             face_cnt = mo_classes[i]->p_vis_data->face_cnt;
             connects8 = (int (*)[8]) mo_classes[i]->objects.elems->nodes;
-  
-	    if ( is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) )
-	         ml_found = TRUE;
 
-	    for ( j = 0; j < face_cnt; j++ )
+            if ( is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) )
+                ml_found = TRUE;
+
+            for ( j = 0; j < face_cnt; j++ )
             {
                 el = face_el[j];
                 fc = face_fc[j];
@@ -6342,7 +6364,7 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
                 hex_face_avg_norm( el, fc, mo_classes[i], analy, vec );
 
                 /* Test for backfacing face. */
-                if ( VEC_DOT( vec, line_dir ) > 0 ) 
+                if ( VEC_DOT( vec, line_dir ) > 0 )
                     continue;
 
                 for ( k = 0; k < 4; k++ )
@@ -6353,22 +6375,22 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
             }
         }
 
-	if ( ml_found ) /* Consider all nodes */
-             for ( i = 0; i < node_qty; i++ )
-	     onsurf[i] = 1.0; 
+        if ( ml_found ) /* Consider all nodes */
+            for ( i = 0; i < node_qty; i++ )
+                onsurf[i] = 1.0;
 
         /* Mark nodes shared by visible tet faces. */
 
         mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TET].list;
         class_qty = p_mesh->classes_by_sclass[G_TET].qty;
-        
+
         for ( i = 0; i < class_qty; i++ )
         {
             face_el = mo_classes[i]->p_vis_data->face_el;
             face_fc = mo_classes[i]->p_vis_data->face_fc;
             face_cnt = mo_classes[i]->p_vis_data->face_cnt;
             connects4 = (int (*)[4]) mo_classes[i]->objects.elems->nodes;
-            
+
             for ( j = 0; j < face_cnt; j++ )
             {
                 el = face_el[j];
@@ -6377,7 +6399,7 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
                 tet_face_avg_norm( el, fc, mo_classes[i], analy, vec );
 
                 /* Test for backfacing face. */
-                if ( VEC_DOT( vec, line_dir ) > 0 ) 
+                if ( VEC_DOT( vec, line_dir ) > 0 )
                     continue;
 
                 for ( k = 0; k < 3; k++ )
@@ -6388,20 +6410,20 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
             }
         }
     }
-    
+
     hide_mtl = p_mesh->hide_material;
 
     /* Mark nodes shared by quad elements. */
 
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
     class_qty = p_mesh->classes_by_sclass[G_QUAD].qty;
-    
+
     for ( i = 0; i < class_qty; i++ )
     {
         face_cnt = mo_classes[i]->qty;
         connects4 = (int (*)[4]) mo_classes[i]->objects.elems->nodes;
         mat = mo_classes[i]->objects.elems->mat;
-        
+
         for ( j = 0; j < face_cnt; j++ )
         {
             if ( hide_mtl[mat[j]] )
@@ -6416,13 +6438,13 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
 
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRI].list;
     class_qty = p_mesh->classes_by_sclass[G_TRI].qty;
-    
+
     for ( i = 0; i < class_qty; i++ )
     {
         face_cnt = mo_classes[i]->qty;
         connects3 = (int (*)[3]) mo_classes[i]->objects.elems->nodes;
         mat = mo_classes[i]->objects.elems->mat;
-        
+
         for ( j = 0; j < face_cnt; j++ )
         {
             if ( hide_mtl[mat[i]] )
@@ -6437,13 +6459,13 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
 
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
     class_qty = p_mesh->classes_by_sclass[G_BEAM].qty;
-    
+
     for ( i = 0; i < class_qty; i++ )
     {
         face_cnt = mo_classes[i]->qty;
         connects3 = (int (*)[3]) mo_classes[i]->objects.elems->nodes;
         mat = mo_classes[i]->objects.elems->mat;
-        
+
         for ( j = 0; j < face_cnt; j++ )
         {
             if ( hide_mtl[mat[i]] )
@@ -6458,13 +6480,13 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
 
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRUSS].list;
     class_qty = p_mesh->classes_by_sclass[G_TRUSS].qty;
-    
+
     for ( i = 0; i < class_qty; i++ )
     {
         face_cnt = mo_classes[i]->qty;
         connects2 = (int (*)[2]) mo_classes[i]->objects.elems->nodes;
         mat = mo_classes[i]->objects.elems->mat;
-        
+
         for ( j = 0; j < face_cnt; j++ )
         {
             if ( hide_mtl[mat[i]] )
@@ -6476,23 +6498,23 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
     }
 
 
-    /* If free nodes are enabled - then allow user to 
+    /* If free nodes are enabled - then allow user to
      * select them.
      */
     if ( analy->free_nodes_enabled ||  analy->particle_nodes_enabled )
     {
-       free_nodes = get_free_nodes( analy );
-       if (free_nodes!=NULL)
-       {
-          for ( i = 0; 
-                i < node_qty; 
-                i++ )
-	    if (free_nodes[i] > 0 || analy->particle_nodes_enabled )
+        free_nodes = get_free_nodes( analy );
+        if (free_nodes!=NULL)
+        {
+            for ( i = 0;
+                    i < node_qty;
+                    i++ )
+                if (free_nodes[i] > 0 || analy->particle_nodes_enabled )
                     onsurf[i] = 1.0;
-          free(free_nodes);
-       }
+            free(free_nodes);
+        }
     }
-    
+
 
     /* Choose node whose distance from line is smallest. */
 
@@ -6500,7 +6522,7 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
     {
         nodes3d = analy->state_p->nodes.nodes3d;
         onodes3d = (GVec3D *) analy->cur_ref_state_data;
-        
+
         if ( analy->displace_exag )
         {
             for ( i = 0; i < node_qty; i++ )
@@ -6514,7 +6536,7 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
                         pt[j] = orig + analy->displace_scale[j]
                                 * (nodes3d[i][j] - orig);
                     }
-                
+
                     near_pt_on_line( pt, line_pt, line_dir, near_pt );
 
                     VEC_SUB( vec, pt, near_pt );
@@ -6536,7 +6558,7 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
                 {
                     for ( j = 0; j < 3; j++ )
                         pt[j] = nodes3d[i][j];
- 
+
                     near_pt_on_line( pt, line_pt, line_dir, near_pt );
 
                     VEC_SUB( vec, pt, near_pt );
@@ -6555,13 +6577,13 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
     {
         nodes2d = analy->state_p->nodes.nodes2d;
         onodes2d = (GVec2D *) analy->cur_ref_state_data;
-        
+
         if ( analy->displace_exag )
         {
             for ( i = 0; i < node_qty; i++ )
             {
                 if ( onsurf[i] == 1.0 )
-                {        
+                {
                     /* Include displacement scaling. */
                     orig = onodes2d[i][0];
                     pt[0] = orig + analy->displace_scale[0]
@@ -6602,7 +6624,7 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
             }
         }
     }
-    
+
     *p_near = near_num + 1;
 }
 
@@ -6613,8 +6635,8 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
  * Select a particle from a screen pick.
  */
 static void
-select_particle( Analysis *analy, Mesh_data *p_mesh, 
-                 MO_class_data *p_part_class, float line_pt[3], 
+select_particle( Analysis *analy, Mesh_data *p_mesh,
+                 MO_class_data *p_part_class, float line_pt[3],
                  float line_dir[3], int *p_near )
 {
     float pt[3], near_pt[3], vec[3];
@@ -6629,12 +6651,12 @@ select_particle( Analysis *analy, Mesh_data *p_mesh,
     float orig;
 #endif
     int dims;
-    
+
     part_qty = p_part_class->qty;
-   
-    /* Init to ensure update. */ 
+
+    /* Init to ensure update. */
     near_dist = MAXFLOAT;
-    
+
     dims = analy->dimension;
 
     /* Choose node whose distance from line is smallest. */
@@ -6644,7 +6666,7 @@ select_particle( Analysis *analy, Mesh_data *p_mesh,
         particles3d = analy->state_p->particles.particles3d;
 
 #ifdef HAVE_PART_INIT_POS
-/* When/if we store particle initial positions we can scale displacements. */
+        /* When/if we store particle initial positions we can scale displacements. */
         oparticles3d = p_part_class->objects.particles3d;
 
         if ( analy->displace_exag )
@@ -6658,7 +6680,7 @@ select_particle( Analysis *analy, Mesh_data *p_mesh,
                     pt[j] = orig + analy->displace_scale[j]
                             * (particles3d[i][j] - orig);
                 }
-            
+
                 near_pt_on_line( pt, line_pt, line_dir, near_pt );
 
                 VEC_SUB( vec, pt, near_pt );
@@ -6690,16 +6712,16 @@ select_particle( Analysis *analy, Mesh_data *p_mesh,
                     near_dist = dist;
                 }
             }
-#ifdef HAVE_PART_INIT_POS        
+#ifdef HAVE_PART_INIT_POS
         }
 #endif
     }
     else /* 2D database */
     {
         particles2d = analy->state_p->particles.particles2d;
-        
+
 #ifdef HAVE_PART_INIT_POS
-/* When/if we store particle initial positions we can scale displacements. */
+        /* When/if we store particle initial positions we can scale displacements. */
         oparticles2d = p_part_class->objects.particles2d;
 
         if ( analy->displace_exag )
@@ -6745,7 +6767,7 @@ select_particle( Analysis *analy, Mesh_data *p_mesh,
         }
 #endif
     }
-    
+
     *p_near = near_num + 1;
 }
 
@@ -6756,9 +6778,9 @@ select_particle( Analysis *analy, Mesh_data *p_mesh,
  * Select a meshless object element from a screen pick.
  */
 void
-select_meshless_elem( Analysis *analy, Mesh_data *p_mesh, 
-		      MO_class_data *p_ml_class, int near_node, 
-		      int *p_near )
+select_meshless_elem( Analysis *analy, Mesh_data *p_mesh,
+                      MO_class_data *p_ml_class, int near_node,
+                      int *p_near )
 {
     int ml_qty;
     int i, j, near_num;
@@ -6772,34 +6794,35 @@ select_meshless_elem( Analysis *analy, Mesh_data *p_mesh,
     MO_class_data *p_nodes;
 
     p_nodes = p_mesh->node_geom;
-   
+
     num_ml    = p_ml_class->qty;
     num_nodes = p_nodes->qty;
 
-    if ( p_ml_class->superclass==G_PARTICLE ) 
-         connects_particle = (int (*)[1]) p_ml_class->objects.elems->nodes;
+    if ( p_ml_class->superclass==G_PARTICLE )
+        connects_particle = (int (*)[1]) p_ml_class->objects.elems->nodes;
     else
-         connects_ml = (int (*)[8]) p_ml_class->objects.elems->nodes;
+        connects_ml = (int (*)[8]) p_ml_class->objects.elems->nodes;
 
     nodes3d     = analy->state_p->nodes.nodes3d;
 
     /* Choose node whose distance from line is smallest. */
 
-    for ( i = 0; 
-	  i < num_ml; 
-	  i++ )
+    for ( i = 0;
+            i < num_ml;
+            i++ )
     {
-          if ( p_ml_class->superclass==G_PARTICLE )
-	       ml_node = connects_particle[i][0];
-	  else
-               ml_node = connects_ml[i][0];
-	  if ( ml_node == near_node-1 ) {
-	       *p_near = i+1;
-	       return;
-	  }
+        if ( p_ml_class->superclass==G_PARTICLE )
+            ml_node = connects_particle[i][0];
+        else
+            ml_node = connects_ml[i][0];
+        if ( ml_node == near_node-1 )
+        {
+            *p_near = i+1;
+            return;
+        }
     }
 
-   *p_near = -1;
+    *p_near = -1;
 }
 
 /************************************************************
@@ -6808,9 +6831,9 @@ select_meshless_elem( Analysis *analy, Mesh_data *p_mesh,
  * Select a meshless object element from a screen pick.
  */
 void
-select_meshless_node( Analysis *analy, Mesh_data *p_mesh, 
-		      MO_class_data *p_ml_class, int elem_id, 
-		      int *p_near )
+select_meshless_node( Analysis *analy, Mesh_data *p_mesh,
+                      MO_class_data *p_ml_class, int elem_id,
+                      int *p_near )
 {
     int ml_qty;
     int i, j, near_num;
@@ -6824,25 +6847,24 @@ select_meshless_node( Analysis *analy, Mesh_data *p_mesh,
     MO_class_data *p_nodes;
 
     p_nodes = p_mesh->node_geom;
-   
+
     num_ml    = p_ml_class->qty;
     num_nodes = p_nodes->qty;
 
     if ( p_ml_class->superclass==G_PARTICLE )
-         connects_particle = (int (*)[1]) p_ml_class->objects.elems->nodes;
+        connects_particle = (int (*)[1]) p_ml_class->objects.elems->nodes;
     else
-         connects_ml = (int (*)[8]) p_ml_class->objects.elems->nodes;
+        connects_ml = (int (*)[8]) p_ml_class->objects.elems->nodes;
     nodes3d     = analy->state_p->nodes.nodes3d;
 
     /* Choose node whose distance from line is smallest. */
 
     if ( elem_id>=num_ml )
-         *p_near = 0;
-    else 
-         if ( p_ml_class->superclass==G_PARTICLE )
-	      *p_near = connects_particle[elem_id][0];
-	 else      
-              *p_near = connects_ml[elem_id][0];
+        *p_near = 0;
+    else if ( p_ml_class->superclass==G_PARTICLE )
+        *p_near = connects_particle[elem_id][0];
+    else
+        *p_near = connects_ml[elem_id][0];
 
     return;
 }
@@ -6854,8 +6876,8 @@ select_meshless_node( Analysis *analy, Mesh_data *p_mesh,
  * Select a meshless object from a screen pick.
  */
 static void
-select_meshless( Analysis *analy, Mesh_data *p_mesh, 
-                 MO_class_data *p_ml_class, float line_pt[3], 
+select_meshless( Analysis *analy, Mesh_data *p_mesh,
+                 MO_class_data *p_ml_class, float line_pt[3],
                  float line_dir[3], int *p_near )
 {
     float pt[3], pt_near[3], near_pt[3], vec[3];
@@ -6872,40 +6894,40 @@ select_meshless( Analysis *analy, Mesh_data *p_mesh,
 
     p_ml    = p_mesh->p_ml_class;
     p_nodes = p_mesh->node_geom;
-   
+
     num_ml    = p_ml->qty;
     num_nodes = p_nodes->qty;
 
     connects_ml = (int (*)[8]) p_ml->objects.elems->nodes;
     nodes3d     = analy->state_p->nodes.nodes3d;
 
-    /* Init to ensure update. */ 
+    /* Init to ensure update. */
     near_dist = MAXFLOAT;
-    
+
     /* Choose node whose distance from line is smallest. */
 
-    for ( i = 0; 
-	  i < num_ml; 
-	  i++ )
+    for ( i = 0;
+            i < num_ml;
+            i++ )
     {
-          ml_node = connects_ml[i][0];
+        ml_node = connects_ml[i][0];
 
-	  for ( j = 0; j < 3; j++ )
-	        pt[j] = nodes3d[ml_node][j];
-	
-	near_pt_on_line( pt, line_pt, line_dir, near_pt );
-	
-	VEC_SUB( vec, pt, near_pt );
-	dist = VEC_DOT( vec, vec );     /* Skip the sqrt. */
-	
-	if ( dist < near_dist )
-	{
-	    near_num = i;
-	    near_dist = dist;
-	    pt_near[0] = pt[0];
-	    pt_near[1] = pt[1];
-	    pt_near[2] = pt[2];
-	}
+        for ( j = 0; j < 3; j++ )
+            pt[j] = nodes3d[ml_node][j];
+
+        near_pt_on_line( pt, line_pt, line_dir, near_pt );
+
+        VEC_SUB( vec, pt, near_pt );
+        dist = VEC_DOT( vec, vec );     /* Skip the sqrt. */
+
+        if ( dist < near_dist )
+        {
+            near_num = i;
+            near_dist = dist;
+            pt_near[0] = pt[0];
+            pt_near[1] = pt[1];
+            pt_near[2] = pt[2];
+        }
     }
     *p_near = near_num + 1;
 }
@@ -6922,7 +6944,7 @@ get_mesh_edges( int mesh_id, Analysis *analy )
 {
     int i, j;
     Mesh_data *p_md;
-    static int eval_order[] = 
+    static int eval_order[] =
     {
         G_TRI, G_QUAD, G_TET, G_PYRAMID, G_HEX
     };
@@ -6946,32 +6968,32 @@ get_mesh_edges( int mesh_id, Analysis *analy )
     {
         switch ( eval_order[j] )
         {
-            case G_TRI:
-                p_lh = p_md->classes_by_sclass + G_TRI;
-                edge_func = get_tri_class_edges;
-                break;
-            case G_QUAD:
-                p_lh = p_md->classes_by_sclass + G_QUAD;
-                edge_func = get_quad_class_edges;
-                break;
-            case G_TET:
-                p_lh = p_md->classes_by_sclass + G_TET;
-                edge_func = get_tet_class_edges;
-                break;
-            case G_PYRAMID:
-                p_lh = p_md->classes_by_sclass + G_PYRAMID;
-                edge_func = get_pyramid_class_edges;
-                break;
-            case G_HEX:
-                p_lh = p_md->classes_by_sclass + G_HEX;
-                edge_func = get_hex_class_edges;
-                break;
+        case G_TRI:
+            p_lh = p_md->classes_by_sclass + G_TRI;
+            edge_func = get_tri_class_edges;
+            break;
+        case G_QUAD:
+            p_lh = p_md->classes_by_sclass + G_QUAD;
+            edge_func = get_quad_class_edges;
+            break;
+        case G_TET:
+            p_lh = p_md->classes_by_sclass + G_TET;
+            edge_func = get_tet_class_edges;
+            break;
+        case G_PYRAMID:
+            p_lh = p_md->classes_by_sclass + G_PYRAMID;
+            edge_func = get_pyramid_class_edges;
+            break;
+        case G_HEX:
+            p_lh = p_md->classes_by_sclass + G_HEX;
+            edge_func = get_hex_class_edges;
+            break;
         }
-        
+
         for ( i = 0; i < p_lh->qty; i++ )
         {
             /* Get edge list for this element class. */
-            p_elo = edge_func( p_md->mtl_trans, 
+            p_elo = edge_func( p_md->mtl_trans,
                                ((MO_class_data **) p_lh->list)[i], analy );
 
             if ( p_elo == NULL )
@@ -6987,8 +7009,8 @@ get_mesh_edges( int mesh_id, Analysis *analy )
             {
                 /* Merge with existing list. */
                 p_mesh_elo = p_md->edge_list;
-                p_md->edge_list = merge_and_free_edge_lists( p_mesh_elo, 
-                                                             p_elo );
+                p_md->edge_list = merge_and_free_edge_lists( p_mesh_elo,
+                                  p_elo );
             }
         }
     }
@@ -7003,7 +7025,7 @@ get_mesh_edges( int mesh_id, Analysis *analy )
  * for crease edges which exceed a threshold angle.
  */
 static Edge_list_obj *
-get_hex_class_edges( float *mtl_trans[3], MO_class_data *p_hex_class, 
+get_hex_class_edges( float *mtl_trans[3], MO_class_data *p_hex_class,
                      Analysis *analy )
 {
     float norm[3], norm_next[3], dot;
@@ -7017,7 +7039,7 @@ get_hex_class_edges( float *mtl_trans[3], MO_class_data *p_hex_class,
     Visibility_data *p_vd;
     int (*connects)[8];
     Edge_list_obj *p_elo;
-    
+
     p_vd = p_hex_class->p_vis_data;
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
     mat = p_hex_class->objects.elems->mat;
@@ -7074,7 +7096,7 @@ get_hex_class_edges( float *mtl_trans[3], MO_class_data *p_hex_class,
         fc = p_vd->face_fc[j];
 
         if ( edge_tbl[0][ord[i]] == edge_tbl[0][ord[i+1]]
-             && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
+                && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
         {
             j = edge_tbl[2][ord[i+1]];
             el_next = p_vd->face_el[j];
@@ -7082,15 +7104,15 @@ get_hex_class_edges( float *mtl_trans[3], MO_class_data *p_hex_class,
 
             if ( mat[el] != mat[el_next] )
             {
-                /* 
+                /*
                  * Edge detected for material boundary. Put edge in for
-                 * each material to cover material translations. 
+                 * each material to cover material translations.
                  */
                 m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
                 m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
                 m_edge_mtl[m_edges_cnt] = mat[el];
                 m_edges_cnt++;
-                
+
                 m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
                 m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
                 m_edge_mtl[m_edges_cnt] = mat[el_next];
@@ -7100,7 +7122,7 @@ get_hex_class_edges( float *mtl_trans[3], MO_class_data *p_hex_class,
             {
                 /* Get face normals for both faces. */
                 hex_face_avg_norm( el, fc, p_hex_class, analy, norm );
-                hex_face_avg_norm( el_next, fc_next, p_hex_class, analy, 
+                hex_face_avg_norm( el_next, fc_next, p_hex_class, analy,
                                    norm_next );
                 vec_norm( norm );
                 vec_norm( norm_next );
@@ -7127,26 +7149,26 @@ get_hex_class_edges( float *mtl_trans[3], MO_class_data *p_hex_class,
             i++;
         }
         else
-            popup_dialog( WARNING_POPUP, 
+            popup_dialog( WARNING_POPUP,
                           "Unexpected behavior in hex edge detection." );
     }
 
     /* Check for unused last edge. */
     if ( i < ecnt )
-        popup_dialog( WARNING_POPUP, 
+        popup_dialog( WARNING_POPUP,
                       "Unexpected behavior in hex edge detection." );
 
     for ( i = 0; i < 3; i++ )
         free( edge_tbl[i] );
     free( ord );
-    
+
     /* Create Edge_list_obj for return. */
     p_elo = create_compressed_edge_list( m_edges, m_edge_mtl, m_edges_cnt );
 
     free( m_edges[0] );
     free( m_edges[1] );
     free( m_edge_mtl );
-    
+
     return p_elo;
 }
 
@@ -7159,8 +7181,8 @@ get_hex_class_edges( float *mtl_trans[3], MO_class_data *p_hex_class,
  * for crease edges which exceed a threshold angle.
  */
 static Edge_list_obj *
-get_pyramid_class_edges( float *mtl_trans[3], MO_class_data *p_pyramid_class, 
-                     Analysis *analy )
+get_pyramid_class_edges( float *mtl_trans[3], MO_class_data *p_pyramid_class,
+                         Analysis *analy )
 {
     float norm[3], norm_next[3], dot;
     int *edge_tbl[3];
@@ -7173,7 +7195,7 @@ get_pyramid_class_edges( float *mtl_trans[3], MO_class_data *p_pyramid_class,
     Visibility_data *p_vd;
     int (*connects)[5];
     Edge_list_obj *p_elo;
-    
+
     p_vd = p_pyramid_class->p_vis_data;
     connects = (int (*)[5]) p_pyramid_class->objects.elems->nodes;
     mat = p_pyramid_class->objects.elems->mat;
@@ -7231,7 +7253,7 @@ get_pyramid_class_edges( float *mtl_trans[3], MO_class_data *p_pyramid_class,
         fc = p_vd->face_fc[j];
 
         if ( edge_tbl[0][ord[i]] == edge_tbl[0][ord[i+1]]
-             && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
+                && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
         {
             j = edge_tbl[2][ord[i+1]];
             el_next = p_vd->face_el[j];
@@ -7239,15 +7261,15 @@ get_pyramid_class_edges( float *mtl_trans[3], MO_class_data *p_pyramid_class,
 
             if ( mat[el] != mat[el_next] )
             {
-                /* 
+                /*
                  * Edge detected for material boundary. Put edge in for
-                 * each material to cover material translations. 
+                 * each material to cover material translations.
                  */
                 m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
                 m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
                 m_edge_mtl[m_edges_cnt] = mat[el];
                 m_edges_cnt++;
-                
+
                 m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
                 m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
                 m_edge_mtl[m_edges_cnt] = mat[el_next];
@@ -7257,8 +7279,8 @@ get_pyramid_class_edges( float *mtl_trans[3], MO_class_data *p_pyramid_class,
             {
                 /* Get face normals for both faces. */
                 pyramid_face_avg_norm( el, fc, p_pyramid_class, analy, norm );
-                pyramid_face_avg_norm( el_next, fc_next, p_pyramid_class, analy, 
-                                   norm_next );
+                pyramid_face_avg_norm( el_next, fc_next, p_pyramid_class, analy,
+                                       norm_next );
                 vec_norm( norm );
                 vec_norm( norm_next );
 
@@ -7284,26 +7306,26 @@ get_pyramid_class_edges( float *mtl_trans[3], MO_class_data *p_pyramid_class,
             i++;
         }
         else
-            popup_dialog( WARNING_POPUP, 
+            popup_dialog( WARNING_POPUP,
                           "Unexpected behavior in pyramid edge detection." );
     }
 
     /* Check for unused last edge. */
     if ( i < ecnt )
-        popup_dialog( WARNING_POPUP, 
+        popup_dialog( WARNING_POPUP,
                       "Unexpected behavior in pyramid edge detection." );
 
     for ( i = 0; i < 3; i++ )
         free( edge_tbl[i] );
     free( ord );
-    
+
     /* Create Edge_list_obj for return. */
     p_elo = create_compressed_edge_list( m_edges, m_edge_mtl, m_edges_cnt );
 
     free( m_edges[0] );
     free( m_edges[1] );
     free( m_edge_mtl );
-    
+
     return p_elo;
 }
 
@@ -7316,7 +7338,7 @@ get_pyramid_class_edges( float *mtl_trans[3], MO_class_data *p_pyramid_class,
  * for crease edges which exceed a threshold angle.
  */
 static Edge_list_obj *
-get_tet_class_edges( float *mtl_trans[3], MO_class_data *p_tet_class, 
+get_tet_class_edges( float *mtl_trans[3], MO_class_data *p_tet_class,
                      Analysis *analy )
 {
     float norm[3], norm_next[3], dot;
@@ -7330,7 +7352,7 @@ get_tet_class_edges( float *mtl_trans[3], MO_class_data *p_tet_class,
     Visibility_data *p_vd;
     int (*connects)[4];
     Edge_list_obj *p_elo;
-    
+
     p_vd = p_tet_class->p_vis_data;
     connects = (int (*)[4]) p_tet_class->objects.elems->nodes;
     mat = p_tet_class->objects.elems->mat;
@@ -7387,7 +7409,7 @@ get_tet_class_edges( float *mtl_trans[3], MO_class_data *p_tet_class,
         fc = p_vd->face_fc[j];
 
         if ( edge_tbl[0][ord[i]] == edge_tbl[0][ord[i+1]]
-             && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
+                && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
         {
             j = edge_tbl[2][ord[i+1]];
             el_next = p_vd->face_el[j];
@@ -7395,15 +7417,15 @@ get_tet_class_edges( float *mtl_trans[3], MO_class_data *p_tet_class,
 
             if ( mat[el] != mat[el_next] )
             {
-                /* 
+                /*
                  * Edge detected for material boundary. Put edge in for
-                 * each material to cover material translations. 
+                 * each material to cover material translations.
                  */
                 m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
                 m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
                 m_edge_mtl[m_edges_cnt] = mat[el];
                 m_edges_cnt++;
-                
+
                 m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
                 m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
                 m_edge_mtl[m_edges_cnt] = mat[el_next];
@@ -7413,7 +7435,7 @@ get_tet_class_edges( float *mtl_trans[3], MO_class_data *p_tet_class,
             {
                 /* Get face normals for both faces. */
                 tet_face_avg_norm( el, fc, p_tet_class, analy, norm );
-                tet_face_avg_norm( el_next, fc_next, p_tet_class, analy, 
+                tet_face_avg_norm( el_next, fc_next, p_tet_class, analy,
                                    norm_next );
                 vec_norm( norm );
                 vec_norm( norm_next );
@@ -7440,26 +7462,26 @@ get_tet_class_edges( float *mtl_trans[3], MO_class_data *p_tet_class,
             i++;
         }
         else
-            popup_dialog( WARNING_POPUP, 
+            popup_dialog( WARNING_POPUP,
                           "Unexpected behavior in tet edge detection." );
     }
 
     /* Check for unused last edge. */
     if ( i < ecnt )
-        popup_dialog( WARNING_POPUP, 
+        popup_dialog( WARNING_POPUP,
                       "Unexpected behavior in tet edge detection." );
 
     for ( i = 0; i < 3; i++ )
         free( edge_tbl[i] );
     free( ord );
-    
+
     /* Create Edge_list_obj for return. */
     p_elo = create_compressed_edge_list( m_edges, m_edge_mtl, m_edges_cnt );
 
     free( m_edges[0] );
     free( m_edges[1] );
     free( m_edge_mtl );
-    
+
     return p_elo;
 }
 
@@ -7507,14 +7529,14 @@ create_compressed_edge_list( int *enodes[2], int *emtls, int eqty )
         else
         {
             /*
-             * Same - queue a reference to current edge mtl in previous edge. 
-             * 
+             * Same - queue a reference to current edge mtl in previous edge.
+             *
              * Don't sweat multiple references to same material; shouldn't
              * be common, and can be dealt with during rendering.
              */
-            
+
             oqty = p_elo->overflow_qty;
-            p_elo->overflow = RENEWC_N( Int_2tuple, p_elo->overflow, oqty, 1, 
+            p_elo->overflow = RENEWC_N( Int_2tuple, p_elo->overflow, oqty, 1,
                                         "Edge overflow entry" );
             p_elo->overflow[oqty][0] = emtls[i];
             p_elo->overflow[oqty][1] = p_eo[j].addl_mtl;
@@ -7522,16 +7544,16 @@ create_compressed_edge_list( int *enodes[2], int *emtls, int eqty )
             p_elo->overflow_qty++;
         }
     }
-    
-    /* 
+
+    /*
      * Want to let memory manager have excess back so we don't have to
      * manage it.
      */
     p_eo = RENEW_N( Edge_obj, p_eo, eqty, qty - eqty, "Free excess edge objs" );
-    
+
     p_elo->list = p_eo;
     p_elo->size = qty;
-    
+
     return p_elo;
 }
 
@@ -7558,9 +7580,9 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
 
     /*
      * Let edge list 1 provide the "source" overflow list (if extant) and
-     * edge list 2 provide the "add" overflow list.  Since overflow for the 
-     * merged list will be a superset of the overflow lists of the input 
-     * edge lists, start with overflow list 1, extend it, and copy overflow 
+     * edge list 2 provide the "add" overflow list.  Since overflow for the
+     * merged list will be a superset of the overflow lists of the input
+     * edge lists, start with overflow list 1, extend it, and copy overflow
      * list 2 into the extension, modifying the index fields (which aren't -1)
      * by the size of overflow list 1 to reflect their indices in the
      * newly extended list.
@@ -7573,7 +7595,7 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
             p_elo->overflow = p_elo2->overflow;
             p_elo->overflow_qty = p_elo2->overflow_qty;
             offset = 0;
-            
+
             p_elo2->overflow = NULL;
             p_elo2->overflow_qty = 0;
         }
@@ -7583,13 +7605,13 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
         p_elo->overflow = p_elo1->overflow;
         p_elo->overflow_qty = p_elo1->overflow_qty;
         offset = 0;
-        
+
         if ( p_elo2->overflow != NULL )
         {
             /* Both overflows non-NULL, so extend 1 and copy 2... */
-            p_elo->overflow = RENEW_N( Int_2tuple, p_elo1->overflow, 
-                                       p_elo1->overflow_qty, 
-                                       p_elo2->overflow_qty, 
+            p_elo->overflow = RENEW_N( Int_2tuple, p_elo1->overflow,
+                                       p_elo1->overflow_qty,
+                                       p_elo2->overflow_qty,
                                        "Merged overflow list" );
             offset = p_elo->overflow_qty;
             src_q = p_elo->overflow + offset;
@@ -7600,20 +7622,20 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
                 (*src_q)[1] = ( (*add_q)[1] != -1 ) ? (*add_q)[1] + offset : -1;
                 src_q++;
             }
-            
+
             p_elo->overflow_qty += p_elo2->overflow_qty;
         }
     }
-    
+
     /* Traverse and merge the two lists. */
-    
+
     p_eo1 = p_elo1->list;
     bound1 = p_eo1 + p_elo1->size;
     p_eo2 = p_elo2->list;
     bound2 = p_eo2 + p_elo2->size;
-    
+
     p_eo = p_elo->list;
-   
+
     qty = 0;
 
     while ( p_eo1 < bound1 && p_eo2 < bound2 )
@@ -7650,20 +7672,20 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
             }
             else
             {
-                /* 
+                /*
                  * Edge match.
                  *
                  * Deal with four overflow cases: (1) neither has overflow;
                  * (2) & (3) one or the other but not both has overflow;
                  * (4) both have overflow.
                  */
-                
+
                 /* Always need one new overflow entry. */
                 oqty = p_elo->overflow_qty;
                 p_elo->overflow = RENEW_N( Int_2tuple, p_elo->overflow, oqty, 1,
                                            "Edge overflow entry" );
                 src_q = p_elo->overflow;
-                
+
                 if ( p_eo1->addl_mtl == -1 && p_eo2->addl_mtl == -1 )
                 {
                     /* Add 2 as overflow to 1. */
@@ -7690,42 +7712,43 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
                 }
                 else
                 {
-                    /* 
+                    /*
                      * Enqueue 2 as additional overflow to _2_, the enqueue
                      * 2's overflow as additional overflow to 1.
                      */
                     src_q[oqty][0] = p_eo2->mtl;
                     src_q[oqty][1] = p_eo2->addl_mtl + offset;
-                    
+
                     /* Find end of 2 queue. */
                     for ( p_i2t = src_q + src_q[oqty][1];
-                          (*p_i2t)[1] != -1; p_i2t = src_q + (*p_i2t)[1] );
-                    
+                            (*p_i2t)[1] != -1; p_i2t = src_q + (*p_i2t)[1] );
+
                     *p_eo = *p_eo1;
                     (*p_i2t)[1] = p_eo->addl_mtl;
                     p_eo->addl_mtl = oqty;
                 }
-                
+
                 p_eo1++;
                 p_eo2++;
 
                 p_elo->overflow_qty++;
             }
         }
-        
+
         qty++;
-        p_eo++; 
+        p_eo++;
     }
-    
-    /* 
-     * Finish any leftover (at least one of p_eo1 or p_eo2 will be 
-     * maxed out, so no merge required). 
+
+    /*
+     * Finish any leftover (at least one of p_eo1 or p_eo2 will be
+     * maxed out, so no merge required).
      */
 
-    for ( ; p_eo1 < bound1; *p_eo++ = *p_eo1++ ) {
-          qty++;
+    for ( ; p_eo1 < bound1; *p_eo++ = *p_eo1++ )
+    {
+        qty++;
     }
-    
+
     for ( ; p_eo2 < bound2; p_eo2++ )
     {
         *p_eo = *p_eo2;
@@ -7734,14 +7757,14 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
         p_eo++;
         qty++;
     }
-    
+
     p_elo->size = qty;
-    
+
     if ( p_elo2->overflow != NULL )
         free( p_elo2->overflow );
     free( p_elo2->list );
     free( p_elo2 );
-    
+
     free( p_elo1->list );
     free( p_elo1 );
 
@@ -7786,7 +7809,7 @@ old_get_brick_edges( Analysis *analy )
         {
             vis_cnt = 0;
             for ( j = 0; j < 6; j++ )
-            {  
+            {
                 if ( hex_adj[j][i] < 0 || !hex_visib[ hex_adj[j][i] ] )
                 {
                     vis[j] = TRUE;
@@ -7798,8 +7821,8 @@ old_get_brick_edges( Analysis *analy )
                     m1 = bricks->mat[i];
                     m2 = bricks->mat[ hex_adj[j][i] ];
                     if ( analy->mtl_trans[0][m1] != analy->mtl_trans[0][m2] ||
-                         analy->mtl_trans[1][m1] != analy->mtl_trans[1][m2] ||
-                         analy->mtl_trans[2][m1] != analy->mtl_trans[2][m2] )
+                            analy->mtl_trans[1][m1] != analy->mtl_trans[1][m2] ||
+                            analy->mtl_trans[2][m1] != analy->mtl_trans[2][m2] )
                     {
                         vis[j] = TRUE;
                         vis_cnt++;
@@ -7814,7 +7837,7 @@ old_get_brick_edges( Analysis *analy )
             if ( vis_cnt > 1 )
                 for ( j = 0; j < 12; j++ )
                     if ( vis[ edge_face_nums[j][0] ] &&
-                         vis[ edge_face_nums[j][1] ] )
+                            vis[ edge_face_nums[j][1] ] )
                         edge_cnt++;
         }
     }
@@ -7831,20 +7854,20 @@ old_get_brick_edges( Analysis *analy )
         {
             vis_cnt = 0;
             for ( j = 0; j < 6; j++ )
-            {  
+            {
                 if ( hex_adj[j][i] < 0 || !hex_visib[ hex_adj[j][i] ] )
                 {
                     vis[j] = TRUE;
-                    vis_cnt++;  
-                }   
+                    vis_cnt++;
+                }
                 else if ( analy->translate_material )
                 {
                     /* Material translations can expose faces. */
                     m1 = bricks->mat[i];
                     m2 = bricks->mat[ hex_adj[j][i] ];
                     if ( analy->mtl_trans[0][m1] != analy->mtl_trans[0][m2] ||
-                         analy->mtl_trans[1][m1] != analy->mtl_trans[1][m2] ||
-                         analy->mtl_trans[2][m1] != analy->mtl_trans[2][m2] )
+                            analy->mtl_trans[1][m1] != analy->mtl_trans[1][m2] ||
+                            analy->mtl_trans[2][m1] != analy->mtl_trans[2][m2] )
                     {
                         vis[j] = TRUE;
                         vis_cnt++;
@@ -7855,18 +7878,18 @@ old_get_brick_edges( Analysis *analy )
                 else
                     vis[j] = FALSE;
             }
- 
+
             if ( vis_cnt > 1 )
                 for ( j = 0; j < 12; j++ )
                     if ( vis[ edge_face_nums[j][0] ] &&
-                         vis[ edge_face_nums[j][1] ] )
+                            vis[ edge_face_nums[j][1] ] )
                     {
                         analy->m_edge_mtl[edge_cnt] = bricks->mat[i];
                         nd = bricks->nodes[ edge_node_nums[j][0] ][i];
                         analy->m_edges[0][edge_cnt] = nd;
                         nd = bricks->nodes[ edge_node_nums[j][1] ][i];
                         analy->m_edges[1][edge_cnt] = nd;
-                        edge_cnt++; 
+                        edge_cnt++;
                     }
         }
     }
@@ -7882,7 +7905,7 @@ old_get_brick_edges( Analysis *analy )
  * the list.
  */
 static Edge_list_obj *
-get_quad_class_edges( float *mtl_trans[3], MO_class_data *p_quad_class, 
+get_quad_class_edges( float *mtl_trans[3], MO_class_data *p_quad_class,
                       Analysis *analy )
 {
     Bool_type vis_this, vis_next, three_d;
@@ -7898,7 +7921,7 @@ get_quad_class_edges( float *mtl_trans[3], MO_class_data *p_quad_class,
     int ec_idx;
     unsigned char *hide_material;
     Edge_list_obj *p_elo;
-    
+
     connects = (int (*)[4]) p_quad_class->objects.elems->nodes;
     mat = p_quad_class->objects.elems->mat;
     ec_idx = p_quad_class->elem_class_index;
@@ -7949,16 +7972,16 @@ get_quad_class_edges( float *mtl_trans[3], MO_class_data *p_quad_class,
         el_this = edge_tbl[2][ord[i]];
         vis_this = TRUE;
         if ( ( activity && activity[el_this] == 0.0 )
-                 || hide_material[mat[el_this]] )
+                || hide_material[mat[el_this]] )
             vis_this = FALSE;
 
         if ( edge_tbl[0][ord[i]] == edge_tbl[0][ord[i+1]]
-             && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
+                && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
         {
             el_next = edge_tbl[2][ord[i+1]];
             vis_next = TRUE;
             if ( ( activity && activity[el_next] == 0.0 )
-                     || hide_material[mat[el_next]] )
+                    || hide_material[mat[el_next]] )
                 vis_next = FALSE;
 
             if ( mat[el_this] != mat[el_next] )
@@ -8011,7 +8034,7 @@ get_quad_class_edges( float *mtl_trans[3], MO_class_data *p_quad_class,
                 /*
                  * Magical constant.  An edge is detected when the angle
                  * between normals is greater than a critical angle.
-                         * 
+                         *
                          * Need absolute value of dot product for shells because
                          * normals can be parallel but opposite.
                  */
@@ -8042,7 +8065,7 @@ get_quad_class_edges( float *mtl_trans[3], MO_class_data *p_quad_class,
         el_this = edge_tbl[2][ord[i]];
 
         if ( !( (activity && activity[edge_tbl[2][ord[i]]] == 0.0)
-                 || hide_material[mat[el_this]] ) )
+                || hide_material[mat[el_this]] ) )
         {
             m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
             m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
@@ -8061,7 +8084,7 @@ get_quad_class_edges( float *mtl_trans[3], MO_class_data *p_quad_class,
     free( m_edges[0] );
     free( m_edges[1] );
     free( m_edge_mtl );
-    
+
     return p_elo;
 }
 
@@ -8074,7 +8097,7 @@ get_quad_class_edges( float *mtl_trans[3], MO_class_data *p_quad_class,
  * the list.
  */
 static Edge_list_obj *
-get_tri_class_edges( float *mtl_trans[3], MO_class_data *p_tri_class, 
+get_tri_class_edges( float *mtl_trans[3], MO_class_data *p_tri_class,
                      Analysis *analy )
 {
     Bool_type vis_this, vis_next, three_d;
@@ -8090,7 +8113,7 @@ get_tri_class_edges( float *mtl_trans[3], MO_class_data *p_tri_class,
     int ec_idx;
     unsigned char *hide_material;
     Edge_list_obj *p_elo;
-    
+
     connects = (int (*)[3]) p_tri_class->objects.elems->nodes;
     mat = p_tri_class->objects.elems->mat;
     ec_idx = p_tri_class->elem_class_index;
@@ -8141,16 +8164,16 @@ get_tri_class_edges( float *mtl_trans[3], MO_class_data *p_tri_class,
         el_this = edge_tbl[2][ord[i]];
         vis_this = TRUE;
         if ( ( activity && activity[el_this] == 0.0 )
-                 || hide_material[mat[el_this]] )
+                || hide_material[mat[el_this]] )
             vis_this = FALSE;
 
         if ( edge_tbl[0][ord[i]] == edge_tbl[0][ord[i+1]]
-             && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
+                && edge_tbl[1][ord[i]] == edge_tbl[1][ord[i+1]] )
         {
             el_next = edge_tbl[2][ord[i+1]];
             vis_next = TRUE;
             if ( ( activity && activity[el_next] == 0.0 )
-                     || hide_material[mat[el_next]] )
+                    || hide_material[mat[el_next]] )
                 vis_next = FALSE;
 
             if ( mat[el_this] != mat[el_next] )
@@ -8203,7 +8226,7 @@ get_tri_class_edges( float *mtl_trans[3], MO_class_data *p_tri_class,
                 /*
                  * Magical constant.  An edge is detected when the angle
                  * between normals is greater than a critical angle.
-                         * 
+                         *
                          * Need absolute value of dot product for shells because
                          * normals can be parallel but opposite.
                  */
@@ -8234,7 +8257,7 @@ get_tri_class_edges( float *mtl_trans[3], MO_class_data *p_tri_class,
         el_this = edge_tbl[2][ord[i]];
 
         if ( !( (activity && activity[edge_tbl[2][ord[i]]] == 0.0)
-                 || hide_material[mat[el_this]] ) )
+                || hide_material[mat[el_this]] ) )
         {
             m_edges[0][m_edges_cnt] = edge_tbl[0][ord[i]];
             m_edges[1][m_edges_cnt] = edge_tbl[1][ord[i]];
@@ -8253,7 +8276,7 @@ get_tri_class_edges( float *mtl_trans[3], MO_class_data *p_tri_class,
     free( m_edges[0] );
     free( m_edges[1] );
     free( m_edge_mtl );
-    
+
     return p_elo;
 }
 
@@ -8265,7 +8288,7 @@ get_tri_class_edges( float *mtl_trans[3], MO_class_data *p_tri_class,
  * is arrin and the sorted ordering is returned in the indx array.
  */
 static void
-edge_heapsort( int n, int *arrin[3], int *indx, int *face_el, int *mat, 
+edge_heapsort( int n, int *arrin[3], int *indx, int *face_el, int *mat,
                float *mtl_trans[3] )
 {
     int l, j, ir, indxt, i;
@@ -8297,16 +8320,16 @@ edge_heapsort( int n, int *arrin[3], int *indx, int *face_el, int *mat,
 
         i = l;
         j = 2*l + 1;
-        while ( j <= ir ) 
+        while ( j <= ir )
         {
-            if ( j < ir 
-                 && edge_compare( indx[j], indx[j+1], arrin, face_el, mat, 
-                                   mtl_trans ) 
+            if ( j < ir
+                    && edge_compare( indx[j], indx[j+1], arrin, face_el, mat,
+                                     mtl_trans )
                     < 0 )
                 j++;
             if ( edge_compare( indxt, indx[j], arrin, face_el, mat,
-                                mtl_trans ) 
-                 < 0 )
+                               mtl_trans )
+                    < 0 )
             {
                 indx[i] = indx[j];
                 i = j;
@@ -8325,13 +8348,13 @@ edge_heapsort( int n, int *arrin[3], int *indx, int *face_el, int *mat,
  *
  * Differentiates two edges on the basis of (1) defining nodes,
  * (2) material inequality, or (3) material translation
- * inequality.  Called by the sorting routine to sort shell 
- * and element face edges.  Assumes that the node numbers are 
+ * inequality.  Called by the sorting routine to sort shell
+ * and element face edges.  Assumes that the node numbers are
  * stored in the first two entries of n_arr, and face or
  * element number in the third entry.
  */
 static int
-edge_compare( int indx1, int indx2, int *n_arr[3], int *face_el, int *mat, 
+edge_compare( int indx1, int indx2, int *n_arr[3], int *face_el, int *mat,
               float *mtl_trans[3] )
 {
     int i;
@@ -8347,7 +8370,7 @@ edge_compare( int indx1, int indx2, int *n_arr[3], int *face_el, int *mat,
             return 1;
     }
 
-    /* 
+    /*
      * Edge matches.  Sort further on material and  material translation
      * distance to prevent equating different materials which have
      * unequal translations.  Without this distinction, opposing faces
@@ -8361,7 +8384,7 @@ edge_compare( int indx1, int indx2, int *n_arr[3], int *face_el, int *mat,
 
     if ( face_el != NULL )
     {
-        /* 
+        /*
          * For hexes, n_arr holds the face number; get the element id
          * from face_el.
          */
@@ -8389,7 +8412,7 @@ edge_compare( int indx1, int indx2, int *n_arr[3], int *face_el, int *mat,
             return -1;
         else if ( trans1y > trans2y )
             return 1;
-        
+
         trans1z = mtl_trans[2][mat1];
         trans2z = mtl_trans[2][mat2];
 
@@ -8447,7 +8470,7 @@ create_elem_blocks( Analysis *analy )
         for ( i = 0; i < 2; i++ )
             for ( j = 0; j < 3; j++ )
                 analy->block_bbox[i][j] =
-                        NEW_N( float, block_cnt, "Block bboxes" );
+                    NEW_N( float, block_cnt, "Block bboxes" );
 
         /* Get low and high element of each block. */
         lo = 0;
@@ -8521,7 +8544,7 @@ create_elem_blocks( Analysis *analy )
         for ( i = 0; i < 2; i++ )
             for ( j = 0; j < 3; j++ )
                 analy->block_bbox[i][j] =
-                        NEW_N( float, block_cnt, "Block bboxes" );
+                    NEW_N( float, block_cnt, "Block bboxes" );
 
         /* Get low and high element of each block. */
         lo = 0;
@@ -8612,7 +8635,7 @@ create_hex_blocks( MO_class_data *p_hex_class, Analysis *analy )
     for ( i = 0; i < 2; i++ )
         for ( j = 0; j < 3; j++ )
             p_ebo->block_bbox[i][j] =
-                    NEW_N( float, block_cnt, "Block bboxes" );
+                NEW_N( float, block_cnt, "Block bboxes" );
 
     /* Get low and high element of each block. */
     lo = 0;
@@ -8655,7 +8678,7 @@ create_hex_blocks( MO_class_data *p_hex_class, Analysis *analy )
             }
         }
     }
-    
+
     p_hex_class->p_elem_block = p_ebo;
 }
 
@@ -8703,7 +8726,7 @@ create_tet_blocks( MO_class_data *p_tet_class, Analysis *analy )
     for ( i = 0; i < 2; i++ )
         for ( j = 0; j < 3; j++ )
             p_ebo->block_bbox[i][j] =
-                    NEW_N( float, block_cnt, "Block bboxes" );
+                NEW_N( float, block_cnt, "Block bboxes" );
 
     /* Get low and high element of each block. */
     lo = 0;
@@ -8746,7 +8769,7 @@ create_tet_blocks( MO_class_data *p_tet_class, Analysis *analy )
             }
         }
     }
-    
+
     p_tet_class->p_elem_block = p_ebo;
 }
 
@@ -8793,7 +8816,7 @@ create_pyramid_blocks( MO_class_data *p_pyramid_class, Analysis *analy )
     for ( i = 0; i < 2; i++ )
         for ( j = 0; j < 3; j++ )
             p_ebo->block_bbox[i][j] =
-                    NEW_N( float, block_cnt, "Block bboxes" );
+                NEW_N( float, block_cnt, "Block bboxes" );
 
     /* Get low and high element of each block. */
     lo = 0;
@@ -8836,7 +8859,7 @@ create_pyramid_blocks( MO_class_data *p_pyramid_class, Analysis *analy )
             }
         }
     }
-    
+
     p_pyramid_class->p_elem_block = p_ebo;
 }
 
@@ -8890,7 +8913,7 @@ create_quad_blocks( MO_class_data *p_quad_class, Analysis *analy )
     for ( i = 0; i < 2; i++ )
         for ( j = 0; j < 2; j++ )       /* Change limit to 3 if 3D added. */
             p_ebo->block_bbox[i][j] =
-                    NEW_N( float, block_cnt, "Block bboxes" );
+                NEW_N( float, block_cnt, "Block bboxes" );
 
     /* Get low and high element of each block. */
     lo = 0;
@@ -8933,7 +8956,7 @@ create_quad_blocks( MO_class_data *p_quad_class, Analysis *analy )
             }
         }
     }
-    
+
     p_quad_class->p_elem_block = p_ebo;
 }
 
@@ -8988,7 +9011,7 @@ create_tri_blocks( MO_class_data *p_tri_class, Analysis *analy )
     for ( i = 0; i < 2; i++ )
         for ( j = 0; j < 2; j++ )       /* Change limit to 3 if 3D added. */
             p_ebo->block_bbox[i][j] =
-                    NEW_N( float, block_cnt, "Block bboxes" );
+                NEW_N( float, block_cnt, "Block bboxes" );
 
     /* Get low and high element of each block. */
     lo = 0;
@@ -9031,7 +9054,7 @@ create_tri_blocks( MO_class_data *p_tri_class, Analysis *analy )
             }
         }
     }
-    
+
     p_tri_class->p_elem_block = p_ebo;
 }
 
@@ -9048,19 +9071,19 @@ free_elem_block( Elem_block_obj **pp_elem_block, int dim )
     Elem_block_obj *p_ebo;
 
     p_ebo = *pp_elem_block;
-    
+
     if ( p_ebo == NULL )
         return;
 
     for ( i = 0; i < 2; i++ )
         for ( j = 0; j < dim; j++ )
             free( p_ebo->block_bbox[i][j] );
-    
+
     free( p_ebo->block_hi );
     free( p_ebo->block_lo );
-    
+
     free( p_ebo );
-    
+
     *pp_elem_block = NULL;
 }
 
@@ -9072,7 +9095,7 @@ free_elem_block( Elem_block_obj **pp_elem_block, int dim )
  * as a reference surface file.
  */
 void
-write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt, 
+write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
                 Analysis *analy )
 {
     FILE *ofile;
@@ -9097,19 +9120,19 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
         popup_dialog( USAGE_POPUP, "outref <filename> [x|y|z <coord>]..." );
         return;
     }
-    
+
     ofile = fopen( tokens[1], "w" );
     if ( ofile == NULL )
     {
         popup_dialog( WARNING_POPUP, "Unable to open file \"%s\".", tokens[1] );
         return;
     }
-    
-    /* Get hex class list. */    
+
+    /* Get hex class list. */
     p_lh = MESH_P( analy )->classes_by_sclass + G_HEX;
     p_hex_classes = (MO_class_data **) p_lh->list;
     face_total = 0;
-    
+
     if ( token_cnt == 2 )
     {
         /* No constraints; dump all external faces. */
@@ -9118,7 +9141,7 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
         for ( i = 0; i < p_lh->qty; i++ )
             face_total += p_hex_classes[i]->p_vis_data->face_cnt;
         fprintf( ofile, "%d\n", face_total );
-        
+
         /* Output faces for each hex class. */
         for ( i = 0; i < p_lh->qty; i++ )
         {
@@ -9131,11 +9154,11 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
             {
                 el = face_el[j];
                 fc = face_fc[j];
-        
-                fprintf( ofile, "%d %d %d %d\n", 
-                         connects[el][ fc_nd_nums[fc][0] ] + 1, 
-                         connects[el][ fc_nd_nums[fc][1] ] + 1, 
-                         connects[el][ fc_nd_nums[fc][2] ] + 1, 
+
+                fprintf( ofile, "%d %d %d %d\n",
+                         connects[el][ fc_nd_nums[fc][0] ] + 1,
+                         connects[el][ fc_nd_nums[fc][1] ] + 1,
+                         connects[el][ fc_nd_nums[fc][2] ] + 1,
                          connects[el][ fc_nd_nums[fc][3] ] + 1 );
             }
         }
@@ -9149,16 +9172,16 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
             popup_dialog( USAGE_POPUP, "outref <filename> [x|y|z <coord>]..." );
             return;
         }
-        
+
         constraints = NEW_N( float, c_qty, "Outref constraint list" );
-        
+
         /* Loop to find x, y, and z constraints sequentially. */
         p_f = constraints;
         for ( i = 0; i < 3; i++ )
         {
             xyz_cons[i] = p_f;
             xyz_qtys[i] = 0;
-            
+
             /* Scan entire constraints list for current coord constraints. */
             for ( j = 2; j < token_cnt; j += 2 )
                 if ( tokens[j][0] == xyz_chars[i] )
@@ -9168,18 +9191,18 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
                     xyz_qtys[i]++;
                 }
         }
-        
+
         if ( p_f - constraints != c_qty )
         {
             free( constraints );
             popup_dialog( USAGE_POPUP, "outref <filename> [x|y|z <coord>]..." );
             return;
         }
-        
+
         /*
          * Now write the file.
          */
-        
+
         /* Write a blank first line since we don't know the count yet. */
         fwrite( "          \n", 1, 11, ofile );
 
@@ -9195,7 +9218,7 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
             {
                 el = face_el[j];
                 fc = face_fc[j];
-            
+
                 get_hex_face_verts( el, fc, p_hex_classes[i], analy, verts );
 
                 /* For each dimension... */
@@ -9205,34 +9228,34 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
                     for ( k = 0; k < xyz_qtys[l]; k++ )
                     {
                         con = xyz_cons[l][k];
-                        
+
                         /* Compare coord for all four nodes. */
                         if ( fabs( verts[0][l] - con ) < 0.001
-                             && fabs( verts[1][l] - con ) < 0.001
-                             && fabs( verts[2][l] - con ) < 0.001
-                             && fabs( verts[3][l] - con ) < 0.001 )
+                                && fabs( verts[1][l] - con ) < 0.001
+                                && fabs( verts[2][l] - con ) < 0.001
+                                && fabs( verts[3][l] - con ) < 0.001 )
                         {
                             /* Face matches constraint; write it out. */
-                            fprintf( ofile, "%d %d %d %d\n", 
-                                     connects[el][ fc_nd_nums[fc][0] ] + 1, 
-                                     connects[el][ fc_nd_nums[fc][1] ] + 1, 
-                                     connects[el][ fc_nd_nums[fc][2] ] + 1, 
+                            fprintf( ofile, "%d %d %d %d\n",
+                                     connects[el][ fc_nd_nums[fc][0] ] + 1,
+                                     connects[el][ fc_nd_nums[fc][1] ] + 1,
+                                     connects[el][ fc_nd_nums[fc][2] ] + 1,
                                      connects[el][ fc_nd_nums[fc][3] ] + 1 );
-                            
+
                             face_total++;
                         }
                     }
                 }
             }
         }
-        
+
         /* Now overwrite the first line with the correct face count. */
         fseek( ofile, 0, SEEK_SET );
         fprintf( ofile, "%d", face_total );
     }
-    
+
     free( constraints );
-    
+
     fclose( ofile );
 }
 

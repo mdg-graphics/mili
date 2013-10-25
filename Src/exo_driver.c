@@ -8,38 +8,38 @@
  *      Lawrence Livermore National Laboratory
  *      2 Sep 1999
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
+ *
+ * This work was produced at the University of California, Lawrence
+ * Livermore National Laboratory (UC LLNL) under contract no.
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy
+ * (DOE) and The Regents of the University of California (University)
+ * for the operation of UC LLNL. Copyright is reserved to the University
+ * for purposes of controlled dissemination, commercialization through
+ * formal licensing, or other disposition under terms of Contract 48;
+ * DOE policies, regulations and orders; and U.S. statutes. The rights
+ * of the Federal Government are reserved under Contract 48 subject to
+ * the restrictions agreed upon by the DOE and University as allowed
  * under DOE Acquisition Letter 97-1.
- * 
- * 
+ *
+ *
  * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
+ *
+ * This work was prepared as an account of work sponsored by an agency
+ * of the United States Government. Neither the United States Government
+ * nor the University of California nor any of their employees, makes
+ * any warranty, express or implied, or assumes any liability or
+ * responsibility for the accuracy, completeness, or usefulness of any
+ * information, apparatus, product, or process disclosed, or represents
+ * that its use would not infringe privately-owned rights.  Reference
+ * herein to any specific commercial products, process, or service by
+ * trade name, trademark, manufacturer or otherwise does not necessarily
+ * constitute or imply its endorsement, recommendation, or favoring by
+ * the United States Government or the University of California. The
+ * views and opinions of authors expressed herein do not necessarily
+ * state or reflect those of the United States Government or the
+ * University of California, and shall not be used for advertising or
  * product endorsement purposes.
- * 
+ *
  */
 
 /*
@@ -112,15 +112,15 @@ exodus_db_open( char *path_root, int *p_dbid )
     float exo_version;
     float fdum;
     char cdum[1];
-    
+
     CPU_word_size = sizeof( float );
     IO_word_size = 0;
     exo_id = ex_open( path_root, EX_READ, &CPU_word_size, &IO_word_size,
                       &exo_version );
-    
+
     if ( exo_id < 0 )
         return exo_id;
-    
+
     /* Read times. */
     status = ex_inquire( exo_id, EX_INQ_TIME, &qty_states, &fdum, cdum );
     if ( status < 0 )
@@ -128,24 +128,24 @@ exodus_db_open( char *path_root, int *p_dbid )
         ex_close( exo_id );
         return status;
     }
-    
+
     if ( qty_states > 0 )
     {
         state_times = NEW_N( float, qty_states, "State times array" );
-        
+
         status = ex_get_all_times( exo_id, state_times );
-        
+
         if ( status < 0 )
         {
             ex_close( exo_id );
             free( state_times );
-            
+
             return status;
         }
     }
-    
+
     /*
-     * Perform basic initialization of mesh object classes and the 
+     * Perform basic initialization of mesh object classes and the
      * state record format now to create a repository of information
      * to enable the ExodusII driver to act like a Mili db for several
      * upcoming GIO calls and (potentially) db_query calls (which
@@ -157,7 +157,7 @@ exodus_db_open( char *path_root, int *p_dbid )
      */
     status = init_geom_classes( exo_id );
     status = gen_state_description( exo_id );
-    
+
     *p_dbid = exo_id;
     return 0;
 }
@@ -168,7 +168,7 @@ exodus_db_open( char *path_root, int *p_dbid )
  *
  * Perform initial examination of ExodusII data to allocate
  * mesh object classes.  Performs enough initialization to
- * permit building a state record description; does not read 
+ * permit building a state record description; does not read
  * in coordinates or element connectivities.
  */
 static int
@@ -191,70 +191,70 @@ init_geom_classes( int dbid )
 
     if ( !called_ex_get_init )
     {
-        status = ex_get_init( dbid, title, &dims, &node_qty, &elem_qty, 
+        status = ex_get_init( dbid, title, &dims, &node_qty, &elem_qty,
                               &elem_blk_qty, &node_set_qty, &side_set_qty );
-        
+
         if ( status < 0 )
             return status;
         else
             called_ex_get_init = TRUE;
     }
-    
+
     /*
      * ExodusII db's will always (?) have one mesh, but a coherent naming scheme
      * could potentially be used to "knit" several together, demanding
-     * multi-mesh capability.  This code follows the pattern of 
+     * multi-mesh capability.  This code follows the pattern of
      * mili_db_get_geom() (since Griz is set up for an array of meshes) but
      * hard-codes the qty to one.
      */
-    
+
     mesh_qty = 1;
 
     /* Allocate array of pointers to mesh geom hash tables. */
     p_mesh_array = NEW_N( Mesh_data, mesh_qty, "Mesh data array" );
-    
+
     for ( i = 0; i < mesh_qty; i++ )
     {
         /* Allocate a hash table for the mesh geometry. */
         p_md = p_mesh_array + i;
         p_ht = htable_create( 151 );
         p_md->class_table = p_ht;
-            
-        /* 
-         * Create mesh geometry table entry. 
+
+        /*
+         * Create mesh geometry table entry.
          * Hard-code class names consistent with Taurus nodal class names.
          */
 
         htable_search( p_ht, node_class_short_name, ENTER_ALWAYS, &p_hte );
-        
+
         p_mocd = NEW( MO_class_data, "Nodes geom table entry" );
-        
+
         p_mocd->mesh_id = i;
         griz_str_dup( &p_mocd->short_name, node_class_short_name );
         griz_str_dup( &p_mocd->long_name, node_class_long_name );
         p_mocd->superclass = M_NODE;
         p_mocd->elem_class_index = -1;
         p_mocd->qty = node_qty;
-        
+
         p_hte->data = (void *) p_mocd;
         p_md->node_geom = p_mocd;
- 
+
         /*
          * Prepare to init element classes.
          */
         elem_class_count = 0;
-        
+
         elem_block_data = NEW_N( Elem_block_data, elem_blk_qty,
                                  "Element block data structs" );
         elem_block_ids = NEW_N( int, elem_blk_qty, "Element block ids" );
-        
+
         status = ex_get_elem_blk_ids( dbid, elem_block_ids );
         if ( status < 0 )
             return status;
-        
-        /* 
-         * Process element block data to identify the element classes 
-         * and their sizes. 
+
+        /*
+         * Process element block data to identify the element classes
+         * and their sizes.
          */
         for ( j = 0; j < elem_blk_qty; j++ )
         {
@@ -271,12 +271,12 @@ init_geom_classes( int dbid )
             else
             {
                 p_mocd = NEW( MO_class_data, "New elem geom table entry" );
-                
+
                 p_mocd->mesh_id = i;
                 griz_str_dup( &p_mocd->short_name, elem_type );
                 griz_str_dup( &p_mocd->long_name, elem_type );
-                
-                identify_exodus_superclass( elem_type, qty_nodes_per_elem, 
+
+                identify_exodus_superclass( elem_type, qty_nodes_per_elem,
                                             &sclass );
                 p_mocd->superclass = sclass;
                 if ( sclass != G_UNIT )
@@ -286,10 +286,10 @@ init_geom_classes( int dbid )
                     p_mocd->elem_class_index = -1;
                     p_mocd->simple_start = 1;
                 }
-                
+
                 p_hte->data = (void *) p_mocd;
             }
-            
+
             elem_block_data[j].p_class = p_mocd;
             elem_block_data[j].block_id = elem_block_ids[j];
             elem_block_data[j].block_size = qty_elems_in_blk;
@@ -300,18 +300,18 @@ init_geom_classes( int dbid )
         }
 
         free( elem_block_ids );
-        
+
         /* Update the Mesh_data struct with element class info. */
         p_md->elem_class_qty = elem_class_count;
-        
-        /* 
+
+        /*
          * Create a mesh class - Griz needs it, and ExodusII does allow
-         * global state variables. 
+         * global state variables.
          */
-        rval = htable_search( p_ht, mesh_class_short_name, ENTER_MERGE, 
+        rval = htable_search( p_ht, mesh_class_short_name, ENTER_MERGE,
                               &p_hte );
         p_mocd = NEW( MO_class_data, "New elem geom table entry" );
-        
+
         p_mocd->mesh_id = i;
         griz_str_dup( &p_mocd->short_name, mesh_class_short_name );
         griz_str_dup( &p_mocd->long_name, mesh_class_long_name );
@@ -320,22 +320,22 @@ init_geom_classes( int dbid )
         p_mocd->simple_start = 1;
         p_mocd->simple_stop = 1;
         p_mocd->qty = 1;
-        
+
         p_hte->data = (void *) p_mocd;
-        
+
         /*
          * ExodusII doesn't support G_MAT as a class for data output,
-         * but create it anyway since Griz may rely on it as a necessary 
+         * but create it anyway since Griz may rely on it as a necessary
          * part of a mesh definition.
          */
 
-        /* 
+        /*
          * Material class - Exodus element blocks appear to correspond
          * most accurately to Dyna/Nike materials.
          */
         rval = htable_search( p_ht, mat_class_name, ENTER_MERGE, &p_hte );
         p_mocd = NEW( MO_class_data, "New elem geom table entry" );
-        
+
         p_mocd->mesh_id = i;
         griz_str_dup( &p_mocd->short_name, mat_class_name );
         griz_str_dup( &p_mocd->long_name, mat_class_name );
@@ -347,7 +347,7 @@ init_geom_classes( int dbid )
         p_matd = NEW_N( Material_data, elem_blk_qty, "Material data array" );
         p_mocd->objects.materials = p_matd;
         gen_material_data( p_mocd, p_md );
-        
+
         p_hte->data = (void *) p_mocd;
     }
 
@@ -381,22 +381,22 @@ exodus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
     int first, last;
     List_head *p_lh;
     int node_count;
-    
+
     if ( *p_mtable != NULL )
     {
         popup_dialog( WARNING_POPUP,
                       "Mesh table pointer not NULL at initialization." );
         return 1;
     }
-    
+
     for ( i = 0; i < mesh_qty; i++ )
     {
         /* Allocate a hash table for the mesh geometry. */
         p_md = p_mesh_array + i;
         p_ht = p_md->class_table;
-        
-        /* 
-         * Load nodal coordinates. 
+
+        /*
+         * Load nodal coordinates.
          */
 
         htable_search( p_ht, node_class_short_name, FIND_ENTRY, &p_hte );
@@ -418,20 +418,20 @@ exodus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
             nodes2d = NEW_N( GVec2D, node_qty, "2D node coord array" );
             p_mocd->objects.nodes2d = nodes2d;
         }
-        
-        status = ex_get_coord( dbid, (void *) node_x, (void *) node_y, 
+
+        status = ex_get_coord( dbid, (void *) node_x, (void *) node_y,
                                (void *) node_z );
         if ( status < 0 )
         {
             free( node_x );
             free( p_mocd->objects.nodes3d );
-            
+
             return status;
         }
-        
+
         /* Interleave the coordinates into node class memory. */
         interleave_node_vals( p_mocd->objects.nodes );
-            
+
         /* Load connectivities, material numbers, and part numbers. */
         for ( j = 0; j < elem_blk_qty; j++ )
         {
@@ -440,7 +440,7 @@ exodus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
 
             if ( sclass == G_UNIT )
                 continue;
-            
+
             /* Allocate structures if first block for this class. */
             if ( p_mocd->objects.elems == NULL )
             {
@@ -453,9 +453,9 @@ exodus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
             }
             else
                 p_ed = p_mocd->objects.elems;
-            
+
             /*
-             * Load the connectivities into the correct location. 
+             * Load the connectivities into the correct location.
              * Note that these are 1-based and still need to be
              * decremented for consistency with Griz's interpretation.
              */
@@ -465,7 +465,7 @@ exodus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
 
             if ( status < 0 )
                 return status;
-            
+
             /* Init material and part for elements in the block. */
             mat = p_ed->mat;
             part = p_ed->part;
@@ -480,17 +480,17 @@ exodus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
 
         /* Prepare for class-specific initializations. */
         qty_classes = htable_get_data( p_ht, (void ***) &p_mo_classes );
-        
+
         for ( j = 0; j < qty_classes; j++ )
         {
             p_mocd = p_mo_classes[j];
-            
+
             /* Add reference in the classes-by-superclass list. */
             p_lh = p_md->classes_by_sclass + p_mocd->superclass;
             mo_classes = (MO_class_data **) p_lh->list;
             mo_classes = (void *)
                          RENEW_N( MO_class_data *,
-                                  mo_classes, p_lh->qty, 1, 
+                                  mo_classes, p_lh->qty, 1,
                                   "Extend sclass array" );
             mo_classes[p_lh->qty] = p_mocd;
             p_lh->qty++;
@@ -499,34 +499,35 @@ exodus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
             /* Superclass-specific actions. */
             switch ( p_mocd->superclass )
             {
-                case G_HEX:
-                case G_TET:
-                case G_QUAD:
-                case G_TRI:
-                case G_BEAM:
-                case G_TRUSS:
-/*#ifdef HAVE_WEDGE_PYRAMID */
-                case G_WEDGE:
-                case G_PYRAMID:
-/* #endif */
-                    /* Decrement node id's to put on zero base. */
-                    nodes = p_mocd->objects.elems->nodes;
-                    node_count = p_mocd->qty * qty_connects[p_mocd->superclass];
-                    for ( k = 0; k < node_count; k++ )
-                        nodes[k]--;
-                    
-                    break;
-                default:
-                    /* do nothing */;
+            case G_HEX:
+            case G_TET:
+            case G_QUAD:
+            case G_TRI:
+            case G_BEAM:
+            case G_TRUSS:
+                /*#ifdef HAVE_WEDGE_PYRAMID */
+            case G_WEDGE:
+            case G_PYRAMID:
+                /* #endif */
+                /* Decrement node id's to put on zero base. */
+                nodes = p_mocd->objects.elems->nodes;
+                node_count = p_mocd->qty * qty_connects[p_mocd->superclass];
+                for ( k = 0; k < node_count; k++ )
+                    nodes[k]--;
+
+                break;
+            default:
+                /* do nothing */
+                ;
             }
 
             /* Allocate the data buffer for scalar I/O and result derivation. */
-            p_mocd->data_buffer = NEW_N( float, p_mocd->qty, 
+            p_mocd->data_buffer = NEW_N( float, p_mocd->qty,
                                          "Class data buffer" );
             if ( p_mocd->data_buffer == NULL )
                 popup_fatal( "Unable to allocate data buffer on class load" );
         }
-        
+
         free( p_mo_classes );
     }
 
@@ -545,99 +546,99 @@ exodus_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
  * superclass is always assigned (G_UNIT by default) so that
  * unidentified and unsupported types can be handled if only
  * in a rudimentary fashion.
- * 
+ *
  * Attempt to identify superclass first by evaluating the
  * first three characters of the Exodus II element type, which
  * should be unique.  Fall back on determination based on the
- * number of nodes (could do this first, but I'm not clear 
- * about some of the Exodus element types, so this may be 
+ * number of nodes (could do this first, but I'm not clear
+ * about some of the Exodus element types, so this may be
  * less reliable than the text analysis).
  */
-static void 
+static void
 identify_exodus_superclass( char *elem_type, int qty_nodes, int *superclass )
 {
     int sclass;
-    
+
     /* Default. */
     sclass = G_UNIT;
 
     /* Just update the ones Griz supports. */
     switch ( elem_type[0] )
     {
-        case 'H':
-            if ( elem_type[1] == 'E' && elem_type[2] == 'X' )
-                if ( qty_nodes == 8 )
-                    sclass = G_HEX;
-            break;
-            
-        case 'S':
-            if ( elem_type[1] == 'H' && elem_type[2] == 'E' )
+    case 'H':
+        if ( elem_type[1] == 'E' && elem_type[2] == 'X' )
+            if ( qty_nodes == 8 )
+                sclass = G_HEX;
+        break;
+
+    case 'S':
+        if ( elem_type[1] == 'H' && elem_type[2] == 'E' )
+            if ( qty_nodes == 4 )
+                sclass = G_QUAD;
+        break;
+
+    case 'B':
+        if ( elem_type[1] == 'E' && elem_type[2] == 'A' )
+            if ( qty_nodes == 3 )
+                sclass = G_BEAM;
+        break;
+
+    case 'T':
+        if ( elem_type[1] == 'E' )
+        {
+            if ( elem_type[2] == 'T' )
                 if ( qty_nodes == 4 )
-                    sclass = G_QUAD;
-            break;
-            
-        case 'B':
-            if ( elem_type[1] == 'E' && elem_type[2] == 'A' )
+                    sclass = G_TET;
+        }
+        else if ( elem_type[1] == 'R' )
+        {
+            if ( elem_type[2] == 'I' )
+            {
+                if ( qty_nodes == 3 )
+                    sclass = G_TRI;
+            }
+            else if ( elem_type[2] == 'U' )
+            {
                 if ( qty_nodes == 3 )
                     sclass = G_BEAM;
-            break;
-            
-        case 'T':
-            if ( elem_type[1] == 'E' )
-            {
-                if ( elem_type[2] == 'T' )
-                    if ( qty_nodes == 4 )
-                        sclass = G_TET;
-            }
-            else if ( elem_type[1] == 'R' )
-            {
-                if ( elem_type[2] == 'I' )
-                {
-                    if ( qty_nodes == 3 )
-                        sclass = G_TRI;
-                }
-                else if ( elem_type[2] == 'U' )
-                {
-                    if ( qty_nodes == 3 )
-                        sclass = G_BEAM;
-                    else if ( qty_nodes == 2 )
-                        sclass = G_TRUSS;
-                }
-            }
-            break;
-            
-        case 'Q':
-            if ( elem_type[1] == 'U' && elem_type[2] == 'A' )
-                if ( qty_nodes == 4 )
-                    sclass = G_QUAD;
-            break;
-            
-        default:
-            /* 
-             * Couldn't identfy explicitly by the ExodusII type
-             * name, but a few types can be unambiguously 
-             * identified by the node quantity (and maybe mesh
-             * dimensionality).
-             */
-            switch ( qty_nodes )
-            {
-                case 2:
+                else if ( qty_nodes == 2 )
                     sclass = G_TRUSS;
-                    break;
-                    
-                case 4:
-                    if ( dims == 2 )
-                        sclass = G_QUAD;
-                    break;
-                    
-                case 8:
-                    sclass = G_HEX;
-                    break;
             }
+        }
+        break;
 
+    case 'Q':
+        if ( elem_type[1] == 'U' && elem_type[2] == 'A' )
+            if ( qty_nodes == 4 )
+                sclass = G_QUAD;
+        break;
+
+    default:
+        /*
+         * Couldn't identfy explicitly by the ExodusII type
+         * name, but a few types can be unambiguously
+         * identified by the node quantity (and maybe mesh
+         * dimensionality).
+         */
+        switch ( qty_nodes )
+        {
+        case 2:
+            sclass = G_TRUSS;
             break;
+
+        case 4:
+            if ( dims == 2 )
+                sclass = G_QUAD;
+            break;
+
+        case 8:
+            sclass = G_HEX;
+            break;
+        }
+
+        break;
     }
-    
+
     *superclass = sclass;
 }
 
@@ -656,7 +657,7 @@ gen_material_data( MO_class_data *p_mat_class, Mesh_data *p_mesh )
 {
     Material_data *p_mtld;
     int i;
-    
+
     p_mtld = p_mat_class->objects.materials;
 
     for ( i = 0; i < elem_blk_qty; i++ )
@@ -696,24 +697,24 @@ gen_state_description( int dbid )
     MO_class_data *p_class;
     List_head *p_block_list;
     int *mo_block;
-    Subrecord empty_subrec = 
+    Subrecord empty_subrec =
     {
         NULL, -1, 0, NULL, NULL, 0, 0, NULL
     };
-    List_head empty_list_head = 
+    List_head empty_list_head =
     {
         0, NULL
     };
     char cbuf[64];
     char *subrec_name_fmt = "%s%02d";
-    
+
     /*
      * ExodusII does not permit variations in output variables
      * over time, so there'll only be one output format.
      */
-    
+
     max_name_len = MAX_STR_LENGTH + 1;
-    
+
     /* Get quantities of state variables in the db. */
     status = ex_get_var_param( dbid, "g", &qty_global_vars );
     if ( status < 0 )
@@ -726,9 +727,9 @@ gen_state_description( int dbid )
         for ( i = 0; i < qty_global_vars; i++ )
             p_global_names[i] = global_name_data + i * max_name_len;
         status = ex_get_var_names( dbid, "g", qty_global_vars, p_global_names );
-        
+
         /* Allocate an input buffer for global data. */
-        global_data_buffer = NEW_N( float, qty_global_vars, 
+        global_data_buffer = NEW_N( float, qty_global_vars,
                                     "Exodus global data buffer" );
     }
     if ( status < 0 )
@@ -741,7 +742,7 @@ gen_state_description( int dbid )
     {
         p_nodal_names = NEW_N( char *, qty_nodal_vars, "Nodal name ptrs" );
         nodal_name_data = NEW_N( char, qty_nodal_vars * max_name_len,
-                                  "Nodal name array" );
+                                 "Nodal name array" );
         for ( i = 0; i < qty_nodal_vars; i++ )
             p_nodal_names[i] = nodal_name_data + i * max_name_len;
         status = ex_get_var_names( dbid, "n", qty_nodal_vars, p_nodal_names );
@@ -771,18 +772,18 @@ gen_state_description( int dbid )
      *   each unique set of element variables shared by one or more
      *     element blocks associated with the same element class;
      */
-    
+
     qty_subrecs = 0;
     p_subrecs = NULL;
     subrec_var_htables = NULL;
-    
+
     if ( qty_global_vars > 0 )
     {
         p_subrecs = RENEWC_N( Subrecord, p_subrecs, qty_subrecs, 1,
                               "Extend subrecord object array" );
-        
+
         /* Create hash table to map var names to indices. */
-        subrec_var_htables = RENEW_N( Hash_table *, subrec_var_htables, 
+        subrec_var_htables = RENEW_N( Hash_table *, subrec_var_htables,
                                       qty_subrecs, 1, "Subrec var htable ptr" );
         var_ht = htable_create( 151 );
         subrec_var_htables[qty_subrecs] = var_ht;
@@ -792,7 +793,7 @@ gen_state_description( int dbid )
 
         p_subr = p_subrecs + qty_subrecs;
         qty_subrecs++;
-        
+
         /* Load the Subrecord struct. */
         sprintf( cbuf, subrec_name_fmt, mesh_class_long_name, qty_subrecs );
         griz_str_dup( &p_subr->name, cbuf );
@@ -812,28 +813,28 @@ gen_state_description( int dbid )
         p_subr->mo_blocks = NEW_N( int, 2, "Global subrecord object block" );
         p_subr->mo_blocks[0] = 1;
         p_subr->mo_blocks[1] = 1;
-        
+
         free( p_global_names );
         free( global_name_data );
     }
-        
+
     if ( qty_nodal_vars > 0 )
     {
         p_subrecs = RENEWC_N( Subrecord, p_subrecs, qty_subrecs, 1,
                               "Extend subrecord object array" );
-        
+
         /* Create hash table to map var names to indices. */
-        subrec_var_htables = RENEW_N( Hash_table *, subrec_var_htables, 
+        subrec_var_htables = RENEW_N( Hash_table *, subrec_var_htables,
                                       qty_subrecs, 1, "Subrec var htable ptr" );
         var_ht = htable_create( 151 );
         subrec_var_htables[qty_subrecs] = var_ht;
-        
+
         /* Initialize. */
         p_subrecs[qty_subrecs] = empty_subrec;
-        
+
         p_subr = p_subrecs + qty_subrecs;
         qty_subrecs++;
-        
+
         /* Load the Subrecord struct. */
         sprintf( cbuf, subrec_name_fmt, node_class_long_name, qty_subrecs );
         griz_str_dup( &p_subr->name, cbuf );
@@ -852,7 +853,7 @@ gen_state_description( int dbid )
         p_subr->mo_blocks = NEW_N( int, 2, "Nodal subrecord object block" );
         p_subr->mo_blocks[0] = 1;
         p_subr->mo_blocks[1] = node_qty;
-        
+
         free( p_nodal_names );
         free( nodal_name_data );
     }
@@ -867,10 +868,10 @@ gen_state_description( int dbid )
         if ( status < 0 )
             return status;
 
-        /* 
+        /*
          * For each class, create a subrecord for each set of element
-         * blocks that has a unique set of state variables.  Maintain a 
-         * record of all blocks that make up each subrecord for later use 
+         * blocks that has a unique set of state variables.  Maintain a
+         * record of all blocks that make up each subrecord for later use
          * in result input.
          *
          * In code and comments below, we must differentiate between
@@ -883,62 +884,62 @@ gen_state_description( int dbid )
         qty_elem_subrecs = 0;
         non_elem_subrec_qty = qty_subrecs;
         nonproper_class_qty = 0;
-        nonproper_classes = NEW_N( MO_class_data *, 
+        nonproper_classes = NEW_N( MO_class_data *,
                                    p_mesh_array->elem_class_qty,
                                    "Nonproper class list" );
-        
+
         for ( i = 0; i < elem_blk_qty; i++ )
         {
             if ( bound_flags[i] )
                 continue;
             else
                 bound_flags[i] = TRUE;
-            
+
             /* An unbound block begins a new subrecord definition. */
             p_subrecs = RENEWC_N( Subrecord, p_subrecs, qty_subrecs, 1,
                                   "Extend subrecord object array" );
-        
+
             /* Create hash table to map var names to indices. */
-            subrec_var_htables = RENEW_N( Hash_table *, subrec_var_htables, 
-                                          qty_subrecs, 1, 
+            subrec_var_htables = RENEW_N( Hash_table *, subrec_var_htables,
+                                          qty_subrecs, 1,
                                           "Subrec var htable ptr" );
             var_ht = htable_create( 151 );
             subrec_var_htables[qty_subrecs] = var_ht;
 
             /* Clear. */
             p_subrecs[qty_subrecs] = empty_subrec;
-            
+
             p_class = elem_block_data[i].p_class;
-            
+
             /*
-             * Initialize the Subrecord struct. 
+             * Initialize the Subrecord struct.
              */
 
             p_subr = p_subrecs + qty_subrecs;
             qty_subrecs++;
             p_subr->organization = RESULT_ORDERED;
-            
+
             sprintf( cbuf, subrec_name_fmt, p_class->long_name, qty_subrecs );
             griz_str_dup( &p_subr->name, cbuf );
-            
+
             /* Increment subrecord count. */
-            
+
             /* Build name list by checking truth table. */
             subrec_svar_qty = 0;
             for ( j = 0; j < qty_elem_vars; j++ )
             {
                 if ( truth_table[i * qty_elem_vars + j] )
                 {
-                    p_subr->svar_names = RENEW_N( char *, 
+                    p_subr->svar_names = RENEW_N( char *,
                                                   p_subr->svar_names,
                                                   subrec_svar_qty, 1,
                                                   "New subrec svar name" );
                     griz_str_dup( p_subr->svar_names + subrec_svar_qty,
                                   p_elem_names[j] );
                     subrec_svar_qty++;
-                    
+
                     /* Save variable index. */
-                    htable_search( var_ht, p_elem_names[j], ENTER_UNIQUE, 
+                    htable_search( var_ht, p_elem_names[j], ENTER_UNIQUE,
                                    &p_hte );
                     p_hte->data = (void *) (j + 1);
                 }
@@ -948,16 +949,16 @@ gen_state_description( int dbid )
             griz_str_dup( &p_subr->class_name, p_class->short_name );
             p_subr->qty_objects = elem_block_data[i].block_size;
             p_subr->qty_blocks = 1;
-            p_subr->mo_blocks = NEW_N( int, 2, 
+            p_subr->mo_blocks = NEW_N( int, 2,
                                        "Elem subrecord object block" );
             p_subr->mo_blocks[0] = 1;
             p_subr->mo_blocks[1] = elem_block_data[i].block_size;
-            
+
             /*
              * Initiate a list of ExodusII element blocks which will
              * effectively be bound to the new subrecord.
              */
-            
+
             /* Create new list for this subrecord's bound elem blocks. */
             subrec_block_lists = RENEWC_N( List_head, subrec_block_lists,
                                            qty_elem_subrecs, 1,
@@ -967,38 +968,38 @@ gen_state_description( int dbid )
             /* Save reference to current subrecord's elem block list. */
             p_block_list = subrec_block_lists + qty_elem_subrecs;
             qty_elem_subrecs++;
-            
+
             /* Add elem block to elem block list. */
             p_block_list->list = RENEW_N( int, p_block_list->list,
                                           p_block_list->qty, 1,
                                           "New block list entry" );
             ((int *) p_block_list->list)[p_block_list->qty] = i;
             p_block_list->qty++;
-            
-            /* 
-             * Search rest of elem blocks for one with a matching set of 
+
+            /*
+             * Search rest of elem blocks for one with a matching set of
              * variables and that belongs to the same class.
              */
 
             for ( j = i + 1; j < elem_blk_qty; j++ )
             {
-                if ( elem_block_data[j].p_class 
-                     != elem_block_data[i].p_class )
+                if ( elem_block_data[j].p_class
+                        != elem_block_data[i].p_class )
                     continue;
-                
-                if ( bool_compare_array( qty_elem_vars, 
+
+                if ( bool_compare_array( qty_elem_vars,
                                          truth_table + i * qty_elem_vars,
                                          truth_table + j * qty_elem_vars ) )
                 {
-                    /* 
-                     * Same set of variables, same class -> add to subrec. 
+                    /*
+                     * Same set of variables, same class -> add to subrec.
                      */
-                    
+
                     p_subr->qty_objects += elem_block_data[j].block_size;
 
                     /* Get last mesh object block from subrecord. */
                     mo_block = p_subr->mo_blocks + (p_subr->qty_blocks - 1) * 2;
-                    
+
                     /* Try to merge new idents into last subrec mo block. */
                     if ( mo_block[1] + 1 == elem_block_data[j].class_id_base )
                         mo_block[1] += elem_block_data[j].block_size;
@@ -1010,14 +1011,14 @@ gen_state_description( int dbid )
                                                      "Addl elem subr obj blk" );
                         mo_block = p_subr->mo_blocks + p_subr->qty_blocks * 2;
                         mo_block[0] = elem_block_data[j].class_id_base;
-                        mo_block[1] = mo_block[0] 
+                        mo_block[1] = mo_block[0]
                                       + elem_block_data[j].block_size - 1;
                         p_subr->qty_blocks++;
                     }
 
                     /* Element block is now bound to a subrecord def. */
                     bound_flags[j] = TRUE;
-                    
+
                     /* Add elem block to bound elem block list. */
                     p_block_list->list = RENEW_N( int, p_block_list->list,
                                                   p_block_list->qty, 1,
@@ -1027,28 +1028,28 @@ gen_state_description( int dbid )
                 }
                 else
                 {
-                    /* 
+                    /*
                      * Different set of variables, so all subrecords of this
                      * class will be nonproper since elements can only
                      * appear in one block and a block will only bind to
-                     * one subrecord.  Indicate by saving class pointer 
+                     * one subrecord.  Indicate by saving class pointer
                      * in a list for that purpose.
                      */
                     nonproper_classes[nonproper_class_qty++] = p_class;
                 }
             }
         }
-        
+
         free( bound_flags );
         free( truth_table );
-        
+
         free( p_elem_names );
         free( elem_name_data );
     }
-    
+
     format_subrecs = p_subrecs;
     format_subrec_qty = qty_subrecs;
-    
+
     return OK;
 }
 
@@ -1103,7 +1104,7 @@ exodus_db_get_st_descriptors( Analysis *analy, int dbid )
     p_sro->qty = qty_subrecs;
     p_sro->subrecs = NEW_N( Subrec_obj, qty_subrecs, "Exodus subrecs" );
     p_so = p_sro->subrecs;
-    
+
     for ( i = 0; i < qty_subrecs; i++ )
     {
         p_s = &p_so[i].subrec;
@@ -1122,9 +1123,9 @@ exodus_db_get_st_descriptors( Analysis *analy, int dbid )
     }
 
     status_var_index = NEW_N( int, qty_subrecs, "Subr status var index array" );
-        
+
     /* Finish initializing Subrec_obj structs.  */
-    
+
     mesh_node_qty = analy->mesh_table[0].node_geom->qty;
     node_work_array = NEW_N( int, mesh_node_qty, "Temp node array" );
 
@@ -1133,15 +1134,15 @@ exodus_db_get_st_descriptors( Analysis *analy, int dbid )
         p_s = &p_so[i].subrec;
 
         /* Get the mesh object class pointer. */
-        rval = htable_search( analy->mesh_table[0].class_table, 
+        rval = htable_search( analy->mesh_table[0].class_table,
                               p_s->class_name, FIND_ENTRY, &p_hte );
         p_so[i].p_object_class = (MO_class_data *) p_hte->data;
-        
+
         /* If class is on the non-proper list, generate object ids array. */
         for ( j = 0; j < nonproper_class_qty; j++ )
             if ( p_so[i].p_object_class == nonproper_classes[j] )
                 break;
-        
+
         if ( j < nonproper_class_qty )
         {
             p_so[i].object_ids = NEW_N( int, p_s->qty_objects,
@@ -1149,12 +1150,12 @@ exodus_db_get_st_descriptors( Analysis *analy, int dbid )
             blocks_to_list( p_s->qty_blocks, p_s->mo_blocks,
                             p_so[i].object_ids, TRUE );
         }
-        
+
         /* Generate referenced nodes list. */
-        create_subrec_node_list( node_work_array, mesh_node_qty, 
+        create_subrec_node_list( node_work_array, mesh_node_qty,
                                  p_so + i );
-        
-        /* 
+
+        /*
          * M_NODE class "node" is special - need it for node positions
          * and velocities.
          */
@@ -1163,7 +1164,7 @@ exodus_db_get_st_descriptors( Analysis *analy, int dbid )
         else
             nodal = FALSE;
 
-        /* 
+        /*
          * Loop over svars and create state variable and primal result
          * table entries.
          */
@@ -1173,7 +1174,7 @@ exodus_db_get_st_descriptors( Analysis *analy, int dbid )
         for ( j = 0; j < p_s->qty_svars; j++ )
         {
             exodus_create_st_variable( dbid, p_sv_ht, svar_names[j] );
-            create_primal_result( analy->mesh_table, 0, i, p_so + i, 
+            create_primal_result( analy->mesh_table, 0, i, p_so + i,
                                   p_primal_ht, 1, svar_names[j], p_sv_ht );
 
             if ( nodal )
@@ -1211,18 +1212,18 @@ exodus_db_get_st_descriptors( Analysis *analy, int dbid )
         if ( vel_cnt == dims )
             p_sro->node_vel_subrec = i;
     }
-    
+
     free( node_work_array );
-    
-    /* 
+
+    /*
      * Return the subrecord tree,state variable hash table, and primal result
-     * hash table. 
+     * hash table.
      */
     analy->srec_tree = p_sro;
     analy->qty_srec_fmts = 1;
     analy->st_var_table = p_sv_ht;
     analy->primal_results = p_primal_ht;
-    
+
     return OK;
 }
 
@@ -1232,22 +1233,22 @@ exodus_db_get_st_descriptors( Analysis *analy, int dbid )
  *
  * Create State_variable table entries for a db.
  */
-static int 
+static int
 exodus_create_st_variable( int dbid, Hash_table *p_sv_ht, char *p_name )
 {
     int rval;
     Hash_action op;
     Htable_entry *p_hte;
     State_variable *p_sv;
-    
+
     /* Only enter svar if not already present in table. */
     if( strcmp( p_name, "sand" ) == 0 )
         op = ENTER_ALWAYS;
     else
-       op = ENTER_UNIQUE;
+        op = ENTER_UNIQUE;
 
     rval = htable_search( p_sv_ht, p_name, op, &p_hte );
-    
+
     /* If this is a new entry in the state variable table... */
     if ( rval == OK )
     {
@@ -1267,11 +1268,11 @@ exodus_create_st_variable( int dbid, Hash_table *p_sv_ht, char *p_name )
 /************************************************************
  * TAG( exodus_db_get_state )
  *
- * Seek to a particular state in an Exodus database and 
+ * Seek to a particular state in an Exodus database and
  * update nodal positions for the mesh.
  */
 extern int
-exodus_db_get_state( Analysis *analy, int state_no, State2 *p_st, 
+exodus_db_get_state( Analysis *analy, int state_no, State2 *p_st,
                      State2 **pp_new_st, int *state_qty )
 {
     int st_qty;
@@ -1300,32 +1301,32 @@ exodus_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     if ( st_qty > qty_states )
     {
         /* Update times array. */
-        state_times = RENEW_N( float, state_times, qty_states, 
+        state_times = RENEW_N( float, state_times, qty_states,
                                st_qty - qty_states,
                                "Extend state times array" );
-        
+
         for ( i = qty_states; i < st_qty; i++ )
             status = ex_get_time( dbid, i + 1, state_times + i );
-        
+
         qty_states = st_qty;
     }
-    
+
     /* Pass back the current quantity of states in the db. */
     if ( state_qty != NULL )
         *state_qty = qty_states;
-    
+
     p_md = analy->mesh_table;
-    
+
     if ( qty_states == 0 )
     {
         if ( p_st == NULL )
             p_st = mk_state2( analy, NULL, dims, 0, qty_states, p_st );
-        
+
         /* No states, so use node positions from geometry definition. */
         p_st->nodes = p_md->node_geom->objects;
-        
+
         p_st->position_constant = TRUE;
- 
+
         *pp_new_st = p_st;
 
         return OK;
@@ -1333,9 +1334,9 @@ exodus_db_get_state( Analysis *analy, int state_no, State2 *p_st,
 
     if ( state_no < 0 || state_no >= qty_states )
     {
-        popup_dialog( WARNING_POPUP, 
+        popup_dialog( WARNING_POPUP,
                       "Get-state request for nonexistent state." );
-        
+
         *pp_new_st = p_st;
 
         return GRIZ_FAIL;
@@ -1346,12 +1347,12 @@ exodus_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     srec_id = 0;
     p_sro = analy->srec_tree + srec_id;
     p_subrecs = p_sro->subrecs;
-    
+
     /* Update or create State2 struct. */
     p_st = mk_state2( analy, p_sro, dims, srec_id, qty_states, p_st );
-    
+
     p_st->state_no = state_no;
-    
+
     p_st->time = state_times[state_no];
 
     /* Read node position arrays if they exist. */
@@ -1360,13 +1361,13 @@ exodus_db_get_state( Analysis *analy, int state_no, State2 *p_st,
         /* Read node displacement arrays. */
         status = ex_get_nodal_var( dbid, st, node_x_index, node_qty, node_x );
         status = ex_get_nodal_var( dbid, st, node_y_index, node_qty, node_y );
-        
+
         if ( dims == 3 )
-            status = ex_get_nodal_var( dbid, st, node_z_index, node_qty, 
+            status = ex_get_nodal_var( dbid, st, node_z_index, node_qty,
                                        node_z );
-        
+
         interleave_node_vals( p_st->nodes.nodes );
-        
+
         /* Convert displacements to positions. */
         orig_nodes = analy->mesh_table[0].node_geom->objects.nodes;
         cur_nodes = p_st->nodes.nodes;
@@ -1383,7 +1384,7 @@ exodus_db_get_state( Analysis *analy, int state_no, State2 *p_st,
             /*
              * Don't need to pay attention to object_ids because
              * Exodus elements will always be in order within the
-             * block and we can just use the class_id_base to locate 
+             * block and we can just use the class_id_base to locate
              * where in the sand data array to write flag values.
              */
 
@@ -1399,7 +1400,7 @@ exodus_db_get_state( Analysis *analy, int state_no, State2 *p_st,
                 elem_qty = p_ebd->block_size;
                 ex_get_elem_var( dbid, st, status_var_index[i], p_ebd->block_id,
                                  elem_qty, (void *) p_sand );
-                
+
                 /* Need to toggle the values for interpretation by Griz. */
                 for ( k = 0; k < elem_qty; k++ )
                     if ( p_sand[k] > 0.0 )
@@ -1414,12 +1415,12 @@ exodus_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     if ( p_sro->node_pos_subrec == -1 )
     {
         p_st->nodes = p_md->node_geom->objects;
-        
+
         p_st->position_constant = TRUE;
     }
-    
+
     *pp_new_st = p_st;
-    
+
     return OK;
 }
 
@@ -1430,7 +1431,7 @@ exodus_db_get_state( Analysis *analy, int state_no, State2 *p_st,
  * Fill a Subrecord structure for a Exodus database.
  */
 extern int
-exodus_db_get_subrec_def( int dbid, int srec_id, int subrec_id, 
+exodus_db_get_subrec_def( int dbid, int srec_id, int subrec_id,
                           Subrecord *p_subrec )
 {
     Subrecord *p_s;
@@ -1438,24 +1439,24 @@ exodus_db_get_subrec_def( int dbid, int srec_id, int subrec_id,
 
     if ( srec_id != 0 )
         return INVALID_SREC_INDEX;
-    
+
     if ( subrec_id < 0 || subrec_id  > format_subrec_qty - 1 )
         return INVALID_SUBREC_INDEX;
-    
+
     /* Get pointer to source Subrecord. */
     p_s = format_subrecs + subrec_id;
 
     griz_str_dup( &p_subrec->name, p_s->name );
     p_subrec->organization = p_s->organization;
     p_subrec->qty_svars = p_s->qty_svars;
-    p_subrec->svar_names = NEW_N( char *, p_subrec->qty_svars, 
+    p_subrec->svar_names = NEW_N( char *, p_subrec->qty_svars,
                                   "Subr svar nam ptrs" );
     for ( j = 0; j < p_subrec->qty_svars; j++ )
         griz_str_dup( p_subrec->svar_names + j, p_s->svar_names[j] );
     griz_str_dup( &p_subrec->class_name, p_s->class_name );
     p_subrec->qty_objects = p_s->qty_objects;
     p_subrec->qty_blocks = p_s->qty_blocks;
-    p_subrec->mo_blocks = NEW_N( int, p_subrec->qty_blocks * 2, 
+    p_subrec->mo_blocks = NEW_N( int, p_subrec->qty_blocks * 2,
                                  "Subr mo blocks" );
     for ( j = 0; j < 2 * p_s->qty_blocks; j++ )
         p_subrec->mo_blocks[j] = p_s->mo_blocks[j];
@@ -1468,11 +1469,11 @@ exodus_db_get_subrec_def( int dbid, int srec_id, int subrec_id,
  * TAG( exodus_db_cleanse_subrec )
  *
  * Free dynamically allocated memory for a Subrecord structure.
- * 
+ *
  * This logic copied from mc_cleanse_subrec(), and must be kept
- * current with it.  Under AIX's dynamic linking, this code 
+ * current with it.  Under AIX's dynamic linking, this code
  * couldn't resolve Mili symbols without linking in the Mili
- * object files that define them.  It might be possible to 
+ * object files that define them.  It might be possible to
  * create a file of Mili function wrappers in Griz, and link
  * that object file in building libgex.so, then call the
  * wrapper functions from exo_driver.
@@ -1481,16 +1482,16 @@ extern int
 exodus_db_cleanse_subrec( Subrecord *p_subrec )
 {
     int i;
-    
+
     free( p_subrec->name );
     free( p_subrec->class_name );
     free( p_subrec->mo_blocks );
-    
+
     for ( i = 0; i < p_subrec->qty_svars; i++ )
         free( p_subrec->svar_names[i] );
-    
+
     free( p_subrec->svar_names );
-    
+
     return OK;
 }
 
@@ -1499,7 +1500,7 @@ exodus_db_cleanse_subrec( Subrecord *p_subrec )
  * TAG( exodus_db_cleanse_state_var )
  *
  * Free dynamically allocated memory from a State_variable struct.
- * 
+ *
  * Comment above about mc_cleanse_subrec() applies equally here
  * regarding mc_cleanse_svar().
  */
@@ -1507,23 +1508,23 @@ extern int
 exodus_db_cleanse_state_var( State_variable *p_svar )
 {
     int i;
-    
+
     free( p_svar->short_name );
     free( p_svar->long_name );
-    
+
     if ( p_svar->agg_type != 0 )
     {
         free( p_svar->dims );
-        
+
         if ( p_svar->agg_type == VEC_ARRAY || p_svar->agg_type == VECTOR )
         {
             for ( i = 0; i < p_svar->vec_size; i++ )
                 free( p_svar->components[i] );
-        
+
             free( p_svar->components );
         }
     }
-    
+
     return OK;
 }
 
@@ -1534,7 +1535,7 @@ exodus_db_cleanse_state_var( State_variable *p_svar )
  * Load primal results from an Exodus database.
  */
 extern int
-exodus_db_get_results( int dbid, int state, int subrec_id, int qty, 
+exodus_db_get_results( int dbid, int state, int subrec_id, int qty,
                        char **results, void *data )
 {
     int status;
@@ -1549,97 +1550,97 @@ exodus_db_get_results( int dbid, int state, int subrec_id, int qty,
     Elem_block_data *p_ebd;
     Htable_entry *p_hte;
     Hash_table *p_ht;
-    
+
     p_subrec = env.curr_analy->srec_tree[0].subrecs + subrec_id;
     superclass = p_subrec->p_object_class->superclass;
     p_ht = subrec_var_htables[subrec_id];
-    
+
     switch ( superclass )
     {
-        case G_UNIT:
-        case G_TRUSS:
-        case G_BEAM:
-        case G_TRI:
-        case G_QUAD:
-        case G_TET:
-        case G_PYRAMID:
-        case G_WEDGE:
-        case G_HEX:
-            res_stride = p_subrec->subrec.qty_objects;
-            list_index = subrec_id - non_elem_subrec_qty;
-            blk_cnt = subrec_block_lists[list_index].qty;
-            p_eblks = (int *) subrec_block_lists[list_index].list;
-            p_stride_start = (float *) data;
+    case G_UNIT:
+    case G_TRUSS:
+    case G_BEAM:
+    case G_TRI:
+    case G_QUAD:
+    case G_TET:
+    case G_PYRAMID:
+    case G_WEDGE:
+    case G_HEX:
+        res_stride = p_subrec->subrec.qty_objects;
+        list_index = subrec_id - non_elem_subrec_qty;
+        blk_cnt = subrec_block_lists[list_index].qty;
+        p_eblks = (int *) subrec_block_lists[list_index].list;
+        p_stride_start = (float *) data;
 
-            /*
-             * Loop over results fastest and blocks slowest under the 
-             * assumption that it's fastest to read all within a block 
-             * before changing blocks.
-             */
+        /*
+         * Loop over results fastest and blocks slowest under the
+         * assumption that it's fastest to read all within a block
+         * before changing blocks.
+         */
 
-            for ( i = 0; i < blk_cnt; i++ )
+        for ( i = 0; i < blk_cnt; i++ )
+        {
+            p_ebd = elem_block_data + p_eblks[i];
+            obj_qty = p_ebd->block_size;
+
+            for ( j = 0; j < qty; j++ )
             {
-                p_ebd = elem_block_data + p_eblks[i];
-                obj_qty = p_ebd->block_size;
-                
-                for ( j = 0; j < qty; j++ )
-                {
-                    p_dest = p_stride_start + j * res_stride;
-                    
-                    htable_search( p_ht, results[j], FIND_ENTRY, &p_hte );
-                    var_index = (int) p_hte->data;
+                p_dest = p_stride_start + j * res_stride;
 
-                    status = ex_get_elem_var( dbid, state, var_index, 
-                                              p_ebd->block_id, obj_qty, 
-                                              (void *) p_dest );
-                    if ( status < 0 )
-                        break;
-                }
-                
-                if ( j < qty )
-                    break;
-                
-                p_stride_start += obj_qty;
-            }
-            
-            break;
-            
-        case G_NODE:
-            p_dest = (float *) data;
-            
-            for ( i = 0; i < qty; i++ )
-            {
-                /* Need index of requested var among all nodal vars. */
-                htable_search( p_ht, results[i], FIND_ENTRY, &p_hte );
+                htable_search( p_ht, results[j], FIND_ENTRY, &p_hte );
                 var_index = (int) p_hte->data;
 
-                status = ex_get_nodal_var( dbid, state, var_index, node_qty, 
-                                           p_dest );
-
+                status = ex_get_elem_var( dbid, state, var_index,
+                                          p_ebd->block_id, obj_qty,
+                                          (void *) p_dest );
                 if ( status < 0 )
                     break;
-
-                p_dest += node_qty;
             }
-            break;
-            
-        case G_MESH:
-            status = ex_get_glob_vars( dbid, state, qty_global_vars,
-                                       global_data_buffer );
+
+            if ( j < qty )
+                break;
+
+            p_stride_start += obj_qty;
+        }
+
+        break;
+
+    case G_NODE:
+        p_dest = (float *) data;
+
+        for ( i = 0; i < qty; i++ )
+        {
+            /* Need index of requested var among all nodal vars. */
+            htable_search( p_ht, results[i], FIND_ENTRY, &p_hte );
+            var_index = (int) p_hte->data;
+
+            status = ex_get_nodal_var( dbid, state, var_index, node_qty,
+                                       p_dest );
+
             if ( status < 0 )
                 break;
 
-            p_dest = (float *) data;
-            
-            /* Copy requested variables into databuffer. */
-            for ( i = 0; i < qty; i++ )
-            {
-                /* Need index of requested var among all global vars. */
-                htable_search( p_ht, results[i], FIND_ENTRY, &p_hte );
-                var_index = (int) p_hte->data - 1;
-                p_dest[i] = global_data_buffer[var_index];
-            }
+            p_dest += node_qty;
+        }
+        break;
+
+    case G_MESH:
+        status = ex_get_glob_vars( dbid, state, qty_global_vars,
+                                   global_data_buffer );
+        if ( status < 0 )
             break;
+
+        p_dest = (float *) data;
+
+        /* Copy requested variables into databuffer. */
+        for ( i = 0; i < qty; i++ )
+        {
+            /* Need index of requested var among all global vars. */
+            htable_search( p_ht, results[i], FIND_ENTRY, &p_hte );
+            var_index = (int) p_hte->data - 1;
+            p_dest[i] = global_data_buffer[var_index];
+        }
+        break;
     }
 
     return status;
@@ -1653,7 +1654,7 @@ exodus_db_get_results( int dbid, int state, int subrec_id, int qty,
  */
 extern int
 exodus_db_query( int dbid, int query_type, void *num_args, char *char_arg,
-               void *p_info )
+                 void *p_info )
 {
     int rval, status;
     int srec_idx, subrec_idx;
@@ -1671,214 +1672,214 @@ exodus_db_query( int dbid, int query_type, void *num_args, char *char_arg,
     int idx;
     float fdum;
     char cdum[1];
-    
+
     rval = OK;
-   
-    /* Most queries expect integer numeric arguments. */ 
+
+    /* Most queries expect integer numeric arguments. */
     int_args = (int *) num_args;
-    
+
     switch( query_type )
     {
-        case QRY_QTY_STATES:
-            status = ex_inquire( dbid, EX_INQ_TIME, &qty, &fdum, cdum );
-            if ( qty > qty_states )
-            {
-                /* Update times array. */
-                
-                state_times = RENEW_N( float, state_times, qty_states, 
-                                       qty - qty_states,
-                                       "Extend state times array" );
-                
-                for ( i = qty_states; i < qty; i++ )
-                    status = ex_get_time( dbid, i + 1, state_times + i );
-                
-                qty_states = qty;
-            }
-            *((int *) p_info) = qty_states;
-            break;
-        case QRY_QTY_DIMENSIONS:
-            *((int *) p_info) = dims;
-            break;
-        case QRY_QTY_MESHES:
-            *((int *) p_info) = 1;
-            break;
-        case QRY_QTY_SREC_FMTS:
-            *((int *) p_info) = 1;
-            break;
-        case QRY_QTY_SUBRECS:
-            rval = calc_subrec_qty( dbid, &qty );
-            *((int *) p_info) = qty;
-            break;
-        case QRY_QTY_SUBREC_SVARS:
-            srec_idx = int_args[0];
-            if ( srec_idx != 0 )
-                rval = (int) INVALID_SREC_INDEX;
+    case QRY_QTY_STATES:
+        status = ex_inquire( dbid, EX_INQ_TIME, &qty, &fdum, cdum );
+        if ( qty > qty_states )
+        {
+            /* Update times array. */
+
+            state_times = RENEW_N( float, state_times, qty_states,
+                                   qty - qty_states,
+                                   "Extend state times array" );
+
+            for ( i = qty_states; i < qty; i++ )
+                status = ex_get_time( dbid, i + 1, state_times + i );
+
+            qty_states = qty;
+        }
+        *((int *) p_info) = qty_states;
+        break;
+    case QRY_QTY_DIMENSIONS:
+        *((int *) p_info) = dims;
+        break;
+    case QRY_QTY_MESHES:
+        *((int *) p_info) = 1;
+        break;
+    case QRY_QTY_SREC_FMTS:
+        *((int *) p_info) = 1;
+        break;
+    case QRY_QTY_SUBRECS:
+        rval = calc_subrec_qty( dbid, &qty );
+        *((int *) p_info) = qty;
+        break;
+    case QRY_QTY_SUBREC_SVARS:
+        srec_idx = int_args[0];
+        if ( srec_idx != 0 )
+            rval = (int) INVALID_SREC_INDEX;
+        else
+        {
+            subrec_idx = int_args[1];
+            if ( subrec_idx < 0
+                    || subrec_idx > format_subrec_qty - 1 )
+                rval = (int) INVALID_SUBREC_INDEX;
             else
-            {
-                subrec_idx = int_args[1];
-                if ( subrec_idx < 0 
-                     || subrec_idx > format_subrec_qty - 1 )
-                    rval = (int) INVALID_SUBREC_INDEX;
-                else
-                    *((int *) p_info) = format_subrecs[subrec_idx].qty_svars;
-            }
-            break;
-        case QRY_QTY_SVARS:
-            *((int *) p_info) = qty_global_vars + qty_nodal_vars 
-                                + qty_elem_vars;
-            break;
-        case QRY_QTY_NODE_BLKS:
-            *((int *) p_info) = 1;
-            break;
-        case QRY_QTY_NODES_IN_BLK:
-            *((int *) p_info) = node_qty;
-            break;
-        case QRY_QTY_CLASS_IN_SCLASS:
-            /* Access the mesh_table even though the app owns it. */
-            *((int *) p_info) = 
-                p_mesh_array->classes_by_sclass[int_args[1]].qty;
-            break;
-        case QRY_QTY_ELEM_CONN_DEFS:
-            /* Treat each block as a conn def entry. */
-            *((int *) p_info) = elem_blk_qty;
-            break;
-        case QRY_QTY_ELEMS_IN_DEF:
-            /* Interpret the index as an index among element blocks. */
-            if ( int_args[0] != 0 )
-                rval = NO_MESH;
-            else if ( int_args[1] < 0 || int_args[1] > elem_blk_qty - 1 )
-                rval = INVALID_INDEX;
+                *((int *) p_info) = format_subrecs[subrec_idx].qty_svars;
+        }
+        break;
+    case QRY_QTY_SVARS:
+        *((int *) p_info) = qty_global_vars + qty_nodal_vars
+                            + qty_elem_vars;
+        break;
+    case QRY_QTY_NODE_BLKS:
+        *((int *) p_info) = 1;
+        break;
+    case QRY_QTY_NODES_IN_BLK:
+        *((int *) p_info) = node_qty;
+        break;
+    case QRY_QTY_CLASS_IN_SCLASS:
+        /* Access the mesh_table even though the app owns it. */
+        *((int *) p_info) =
+            p_mesh_array->classes_by_sclass[int_args[1]].qty;
+        break;
+    case QRY_QTY_ELEM_CONN_DEFS:
+        /* Treat each block as a conn def entry. */
+        *((int *) p_info) = elem_blk_qty;
+        break;
+    case QRY_QTY_ELEMS_IN_DEF:
+        /* Interpret the index as an index among element blocks. */
+        if ( int_args[0] != 0 )
+            rval = NO_MESH;
+        else if ( int_args[1] < 0 || int_args[1] > elem_blk_qty - 1 )
+            rval = INVALID_INDEX;
+        else
+            *((int *) p_info) = elem_block_data[int_args[1]].block_size;
+        break;
+    case QRY_SREC_FMT_ID:
+        *((int *) p_info) = 0;
+        break;
+    case QRY_SUBREC_CLASS:
+        srec_idx = int_args[0];
+        if ( srec_idx != 0 )
+            rval = (int) INVALID_SREC_INDEX;
+        else
+        {
+            subrec_idx = int_args[1];
+            if ( subrec_idx < 0 || subrec_idx > format_subrec_qty - 1 )
+                rval = (int) INVALID_SUBREC_INDEX;
             else
-                *((int *) p_info) = elem_block_data[int_args[1]].block_size;
-            break;
-        case QRY_SREC_FMT_ID:
-            *((int *) p_info) = 0;
-            break;
-        case QRY_SUBREC_CLASS:
-            srec_idx = int_args[0];
-            if ( srec_idx != 0 )
-                rval = (int) INVALID_SREC_INDEX;
+                strcpy( (char *) p_info,
+                        format_subrecs[subrec_idx].class_name );
+        }
+        break;
+    case QRY_SREC_MESH:
+        *((int *) p_info) = 0;
+        break;
+    case QRY_CLASS_SUPERCLASS:
+        mesh_id = int_args[0];
+        if ( mesh_id != 0 )
+            rval = NO_MESH;
+        else
+        {
+            p_ht = p_mesh_array[mesh_id].class_table;
+            status = htable_search( p_ht, char_arg, FIND_ENTRY, &p_hte );
+            if ( status == OK )
+                *((int *) p_info) =
+                    ((MO_class_data *) p_hte->data)->superclass;
             else
-            {
-                subrec_idx = int_args[1];
-                if ( subrec_idx < 0 || subrec_idx > format_subrec_qty - 1 )
-                    rval = (int) INVALID_SUBREC_INDEX;
-                else
-                    strcpy( (char *) p_info, 
-                            format_subrecs[subrec_idx].class_name );
-            }
+                rval = status;
+        }
+        break;
+    case QRY_STATE_TIME:
+        state_no = int_args[0];
+        if ( state_no < 1 || state_no > qty_states )
+            rval = INVALID_STATE;
+        else
+            *((float *) p_info) = state_times[state_no - 1];
+        break;
+    case QRY_SERIES_TIMES:
+        state_no = int_args[0];
+        max_st = int_args[1];
+        if ( state_no < 1 || state_no > qty_states
+                || max_st < 1 || max_st > qty_states )
+        {
+            rval = INVALID_STATE;
             break;
-        case QRY_SREC_MESH:
-            *((int *) p_info) = 0;
-            break;
-        case QRY_CLASS_SUPERCLASS:
-            mesh_id = int_args[0];
-            if ( mesh_id != 0 )
-                rval = NO_MESH;
-            else
-            {
-                p_ht = p_mesh_array[mesh_id].class_table;
-                status = htable_search( p_ht, char_arg, FIND_ENTRY, &p_hte );
-                if ( status == OK )
-                    *((int *) p_info) = 
-                        ((MO_class_data *) p_hte->data)->superclass;
-                else
-                    rval = status;
-            }
-            break;
-        case QRY_STATE_TIME:
-            state_no = int_args[0];
-            if ( state_no < 1 || state_no > qty_states )
-                rval = INVALID_STATE;
-            else
-                *((float *) p_info) = state_times[state_no - 1];
-            break;
-        case QRY_SERIES_TIMES:
-            state_no = int_args[0];
-            max_st = int_args[1];
-            if ( state_no < 1 || state_no > qty_states
-                 || max_st < 1 || max_st > qty_states )
+        }
+        state_no--;
+        max_st--;
+        p_f = (float *) p_info;
+        add = ( (max_st - state_no & 0x80000000) == 0 ) ? 1 : -1;
+        for ( i = state_no, j = 0; i != max_st; i += add, j++ )
+            p_f[j] = state_times[i];
+        p_f[j] = state_times[i];
+        break;
+    case QRY_MULTIPLE_TIMES:
+        qty = int_args[0];
+        for ( i = 1; i <= qty; i++ )
+            if ( int_args[i] < 1 || int_args[i] > qty_states )
             {
                 rval = INVALID_STATE;
                 break;
             }
-            state_no--;
-            max_st--;
+        if ( rval == OK )
+        {
             p_f = (float *) p_info;
-            add = ( (max_st - state_no & 0x80000000) == 0 ) ? 1 : -1;
-            for ( i = state_no, j = 0; i != max_st; i += add, j++ )
-                p_f[j] = state_times[i];
-            p_f[j] = state_times[i];
-            break;
-        case QRY_MULTIPLE_TIMES:
-            qty = int_args[0];
             for ( i = 1; i <= qty; i++ )
-                if ( int_args[i] < 1 || int_args[i] > qty_states )
-                {
-                    rval = INVALID_STATE;
-                    break;
-                }
-            if ( rval == OK )
+                p_f[i - 1] = state_times[int_args[i] - 1];
+        }
+        break;
+    case QRY_SERIES_SREC_FMTS:
+        for ( i = 0; i < 2; i++ )
+            if ( int_args[i] < 1 || int_args[i] > qty_states )
             {
-                p_f = (float *) p_info;
-                for ( i = 1; i <= qty; i++ )
-                    p_f[i - 1] = state_times[int_args[i] - 1];
+                rval = INVALID_STATE;
+                break;
             }
-            break;
-        case QRY_SERIES_SREC_FMTS:
-            for ( i = 0; i < 2; i++ )
-                if ( int_args[i] < 1 || int_args[i] > qty_states )
-                {
-                    rval = INVALID_STATE;
-                    break;
-                }
-            if ( rval == OK )
-            {
-                p_i = (int *) p_info;
-                max_st = int_args[1];
-                for ( i = int_args[0] - 1, idx = 0; i < max_st; i++ )
-                    p_i[idx++] = 0;
-            }
-            break;
-        case QRY_STATE_OF_TIME:
-            time = ((float *) num_args)[0];
+        if ( rval == OK )
+        {
             p_i = (int *) p_info;
+            max_st = int_args[1];
+            for ( i = int_args[0] - 1, idx = 0; i < max_st; i++ )
+                p_i[idx++] = 0;
+        }
+        break;
+    case QRY_STATE_OF_TIME:
+        time = ((float *) num_args)[0];
+        p_i = (int *) p_info;
+        i = 0;
+        if ( qty_states > 1 )
+        {
             i = 0;
-            if ( qty_states > 1 )
+            while ( i < qty_states && time >= state_times[i] )
+                i++;
+            if ( i == 0 )
             {
-                i = 0;
-                while ( i < qty_states && time >= state_times[i] )
-                    i++;
-                if ( i == 0 )
-                {
-                    /* Time precedes first state time. */
-                    rval = INVALID_TIME;
-                }
-                else if ( i < qty_states )
-                {
-                    /* The "usual" case, time somewhere in the middle. */
-                    p_i[0] = i;
-                    p_i[1] = i + 1;
-                }
-                else if ( time == state_times[i - 1] )
-                {
-                    /* Time matches last state time. */
-                    p_i[0] = i - 1;
-                    p_i[1] = i;
-                }
-                else
-                {
-                    /* Time exceeds last state time. */
-                    rval = INVALID_TIME;
-                }
-            }
-            else if ( qty_states == 1 && time == state_times[0] )
-                p_i[0] = p_i[1] = 1;
-            else /* qty_states == 0 -> no state data */
+                /* Time precedes first state time. */
                 rval = INVALID_TIME;
-            break;
-        default:
-            rval = UNKNOWN_QUERY_TYPE;
+            }
+            else if ( i < qty_states )
+            {
+                /* The "usual" case, time somewhere in the middle. */
+                p_i[0] = i;
+                p_i[1] = i + 1;
+            }
+            else if ( time == state_times[i - 1] )
+            {
+                /* Time matches last state time. */
+                p_i[0] = i - 1;
+                p_i[1] = i;
+            }
+            else
+            {
+                /* Time exceeds last state time. */
+                rval = INVALID_TIME;
+            }
+        }
+        else if ( qty_states == 1 && time == state_times[0] )
+            p_i[0] = p_i[1] = 1;
+        else /* qty_states == 0 -> no state data */
+            rval = INVALID_TIME;
+        break;
+    default:
+        rval = UNKNOWN_QUERY_TYPE;
     }
 
     return (int) rval;
@@ -1895,22 +1896,22 @@ exodus_db_get_title( int dbid, char *title_bufr )
 {
     int status;
     size_t cpy_len;
-    
-    status = ex_get_init( dbid, title, &dims, &node_qty, &elem_qty, 
+
+    status = ex_get_init( dbid, title, &dims, &node_qty, &elem_qty,
                           &elem_blk_qty, &node_set_qty, &side_set_qty );
-    
+
     if ( status < 0 )
         return status;
-    
+
     cpy_len = strlen( title );
 
     if ( cpy_len >= G_MAX_STRING_LEN )
         cpy_len = G_MAX_STRING_LEN - 1;
 
     strncpy( title_bufr, title, cpy_len );
-    
+
     called_ex_get_init = TRUE;
-    
+
     return 0;
 }
 
@@ -1927,17 +1928,17 @@ exodus_db_get_dimension( int dbid, int *p_dim )
 
     if ( !called_ex_get_init )
     {
-        status = ex_get_init( dbid, title, &dims, &node_qty, &elem_qty, 
+        status = ex_get_init( dbid, title, &dims, &node_qty, &elem_qty,
                               &elem_blk_qty, &node_set_qty, &side_set_qty );
-        
+
         if ( status < 0 )
             return status;
         else
             called_ex_get_init = TRUE;
     }
-    
+
     *p_dim = dims;
-    
+
     return 0;
 }
 
@@ -1958,7 +1959,7 @@ exodus_db_set_buffer_qty( int dbid, int mesh_id, char *class_name, int buf_qty )
  * TAG( exodus_st_var_delete )
  *
  * Function to clean and delete a State_variable struct.  Designed
- * as a hash table data deletion function for htable_delete().  
+ * as a hash table data deletion function for htable_delete().
  *
  * This function created to replace use of st_var_delete for
  * Exodus db's, since, under AIX, that function's reference to
@@ -1976,7 +1977,7 @@ exodus_st_var_delete( void *p_state_variable )
 /************************************************************
  * TAG( exodus_db_close )
  *
- * Free resources associated with an Exodus database and close 
+ * Free resources associated with an Exodus database and close
  * the database.
  *
  * A lot of this should probably be moved into close_analysis(),
@@ -1989,23 +1990,23 @@ exodus_db_close( Analysis *analy )
     State_rec_obj *p_srec;
     Mesh_data *p_mesh;
     int i, j;
-    
+
     dbid = analy->db_ident;
-    
+
     /*
      * Free Griz's structures for managing data from the data base.
      */
-     
+
     /* Free the state record format tree. */
     p_srec = analy->srec_tree;
     for ( i = 0; i < analy->qty_srec_fmts; i++ )
     {
         p_subrec = p_srec[i].subrecs;
-	
+
         for ( j = 0; j < p_srec[i].qty; j++ )
         {
             exodus_db_cleanse_subrec( &p_subrec[j].subrec );
-    
+
             if ( p_subrec[j].object_ids != NULL )
                 free( p_subrec[j].object_ids );
 
@@ -2015,18 +2016,18 @@ exodus_db_close( Analysis *analy )
 
         free( p_subrec );
     }
-    
+
     free( p_srec );
     analy->srec_tree = NULL;
-    
+
     /* Free the state variable hash table. */
     htable_delete( analy->st_var_table, exodus_st_var_delete, TRUE );
     analy->st_var_table = NULL;
-    
+
     /* Free the primal result hash table. */
     htable_delete( analy->primal_results, delete_primal_result, TRUE );
     analy->primal_results = NULL;
-    
+
     /* Free the mesh geometry tree. */
     for ( i = 0; i < analy->mesh_qty; i++ )
     {
@@ -2047,14 +2048,14 @@ exodus_db_close( Analysis *analy )
                 free( p_mesh->edge_list->overflow );
             free( p_mesh->edge_list );
         }
-        
+
         for ( j = 0; j < QTY_SCLASS; j++ )
             if ( p_mesh->classes_by_sclass[j].list != NULL )
                 free( p_mesh->classes_by_sclass[j].list );
     }
     free( analy->mesh_table );
     analy->mesh_table = NULL;
-    
+
     /*
      * Free all the file scope driver stuff.
      */
@@ -2064,19 +2065,19 @@ exodus_db_close( Analysis *analy )
         free( state_times );
         state_times = NULL;
     }
-    
+
     if ( elem_block_data != NULL )
     {
         free( elem_block_data );
         elem_block_data = NULL;
     }
-    
+
     if ( node_x != NULL )
     {
         free( node_x );
         node_x = node_y = node_z = NULL;
     }
-    
+
     if ( format_subrecs != NULL )
     {
         for ( i = 0; i < format_subrec_qty; i++ )
@@ -2088,18 +2089,18 @@ exodus_db_close( Analysis *analy )
         free( format_subrecs );
         format_subrecs = NULL;
         format_subrec_qty = 0;
-        
+
         free( subrec_var_htables );
         subrec_var_htables = NULL;
     }
-    
+
     if ( nonproper_classes != NULL )
     {
         free( nonproper_classes );
         nonproper_classes = NULL;
         nonproper_class_qty = 0;
     }
-    
+
     if ( subrec_block_lists != NULL )
     {
         for ( i = 0; i < format_subrec_qty - non_elem_subrec_qty; i++ )
@@ -2109,7 +2110,7 @@ exodus_db_close( Analysis *analy )
         subrec_block_lists = NULL;
         non_elem_subrec_qty = 0;
     }
-    
+
     if ( status_var_index != NULL )
     {
         free( status_var_index );
@@ -2121,24 +2122,24 @@ exodus_db_close( Analysis *analy )
      */
 
     called_ex_get_init = FALSE;
-    
+
     dims = node_qty = elem_qty = elem_blk_qty = node_set_qty = side_set_qty = 0;
     qty_global_vars = qty_nodal_vars = qty_elem_vars = 0;
     qty_states = 0;
     title[0] = '\0';
     p_mesh_array = NULL;
     mesh_qty = 0;
-   
+
     /*
      * Close the Exodus database.
      */
-    
+
     ex_close( dbid );
-    
+
     return ( 0 );
 }
 
-        
+
 /************************************************************
  * TAG( interleave_node_vals )
  *
@@ -2175,7 +2176,7 @@ interleave_node_vals( float *coords )
     }
 }
 
-        
+
 /************************************************************
  * TAG( calc_subrec_qty )
  *
@@ -2223,47 +2224,47 @@ calc_subrec_qty( int dbid, int *subrec_qty )
         if ( status < 0 )
             return status;
 
-        /* 
+        /*
          * For each class, count a subrecord for each set of element
-         * blocks that has a unique set of state variables. 
+         * blocks that has a unique set of state variables.
          */
 
         bound_flags = NEW_N( Bool_type, elem_blk_qty, "Elem block bools" );
-        
+
         for ( i = 0; i < elem_blk_qty; i++ )
         {
             if ( bound_flags[i] )
                 continue;
             else
                 bound_flags[i] = TRUE;
-            
+
             /* Increment subrec count. */
             qty++;
-            
-            /* 
-             * Search rest of elem blocks for one with a matching set of 
+
+            /*
+             * Search rest of elem blocks for one with a matching set of
              * variables and that belongs to the same class.
              */
 
             for ( j = i + 1; j < elem_blk_qty; j++ )
             {
-                if ( elem_block_data[j].p_class 
-                     != elem_block_data[i].p_class )
+                if ( elem_block_data[j].p_class
+                        != elem_block_data[i].p_class )
                     continue;
-                
-                if ( bool_compare_array( qty_elem_vars, 
+
+                if ( bool_compare_array( qty_elem_vars,
                                          truth_table + i * qty_elem_vars,
                                          truth_table + j * qty_elem_vars ) )
                     bound_flags[j] = TRUE;
             }
         }
-        
+
         free( bound_flags );
         free( truth_table );
     }
 
     *subrec_qty = qty;
-    
+
     return OK;
 }
 

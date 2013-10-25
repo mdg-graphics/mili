@@ -52,13 +52,13 @@
 
 /*****************************************************************
  * TAG( NEW NEW_N )
- * 
+ *
  * Macros for allocating an object or a number of objects.
  */
 #ifndef DEBUG_MEM
-#define NEW(type,descr) ( (type *)calloc( 1, sizeof( type ) ) ) 
-#define NEW_N(type,cnt,descr) ( (type *)calloc( (cnt), sizeof( type ) ) ) 
-#define NEW_N_MALLOC(type,cnt,descr) ( (type *)malloc( (cnt)*sizeof( type ) ) ) 
+#define NEW(type,descr) ( (type *)calloc( 1, sizeof( type ) ) )
+#define NEW_N(type,cnt,descr) ( (type *)calloc( (cnt), sizeof( type ) ) )
+#define NEW_N_MALLOC(type,cnt,descr) ( (type *)malloc( (cnt)*sizeof( type ) ) )
 #define RENEW_N(type,old,cnt,add,descr)                                       \
     ( (type *)realloc( (void *) (old), ((cnt) + (add)) * sizeof( type ) ) )
 #define RENEWC_N(type,old,cnt,add,descr)                                       \
@@ -69,7 +69,7 @@
 #endif
 
 #ifdef DEBUG_MEM
-#define NEW(type,descr) ( (type *)griz_my_calloc( 1, sizeof( type ), descr ) ) 
+#define NEW(type,descr) ( (type *)griz_my_calloc( 1, sizeof( type ), descr ) )
 #define NEW_N(type,cnt,descr) ( (type *)griz_my_calloc( (cnt), sizeof( type ), \
                                 descr ) )
 
@@ -88,14 +88,14 @@
 
 /*****************************************************************
  * TAG( Bool_type )
- * 
+ *
  * A boolean value.
  */
 typedef int Bool_type;
 
 /*****************************************************************
  * TAG( TRUE FALSE )
- * 
+ *
  * The boolean values of true and false.
  */
 #ifndef TRUE
@@ -105,7 +105,7 @@ typedef int Bool_type;
 
 /*****************************************************************
  * TAG( ON OFF )
- * 
+ *
  * The boolean values of on and off.
  */
 #ifndef ON
@@ -133,13 +133,13 @@ typedef int Bool_type;
  */
 typedef enum
 {
-    INFO_POPUP, 
-    USAGE_POPUP, 
+    INFO_POPUP,
+    USAGE_POPUP,
     WARNING_POPUP
 } Popup_Dialog_Type;
 
 /*****************************************************************
- * 
+ *
  * Numerical constants.
  */
 #ifndef AIX
@@ -158,7 +158,7 @@ typedef enum
 
 /*****************************************************************
  * TAG( DEG_TO_RAD RAD_TO_DEG )
- * 
+ *
  * DEG_TO_RAD   Convert degrees to radians.
  * RAD_TO_DEG   Convert radians to degrees.
  */
@@ -167,7 +167,7 @@ typedef enum
 
 /*****************************************************************
  * TAG( SIGN ISIGN SQR CUBE )
- * 
+ *
  * SIGN         Return the sign of a float.
  * ISIGN        Return the sign of an integer.
  * SQR          Square of a number.
@@ -181,7 +181,7 @@ typedef enum
 
 /*****************************************************************
  * TAG( MAX MIN )
- * 
+ *
  * MAX          Return the largest of the two.
  * MIN          Return the smallest of the two.
  */
@@ -194,7 +194,7 @@ typedef enum
 
 /*****************************************************************
  * TAG( BOUND SWAP )
- * 
+ *
  * BOUND        Return X if X is contained in the range (LO, HI),
  *              otherwise return LO if X <= LO or HI if X >= HI.
  * SWAP         Swap X and Y.

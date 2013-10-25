@@ -53,7 +53,7 @@ typedef struct _Family
     int beam_offset;
     int beam_nvar;
     int *result_offsets;
-    
+
     /* Input buffers by mesh object type. */
     Buffer_pool *node_input;
     Buffer_pool *beam_input;
@@ -71,7 +71,7 @@ Family *cur_family = NULL;
 /*
  * Control words in plotfile header:
  *
- *   ndim    = ctl[ 0]     Dimension of data 
+ *   ndim    = ctl[ 0]     Dimension of data
  *   numnp   = ctl[ 1]     Number of nodes
  *   icode   = ctl[ 2]     Flag for old or new database
  *   nglbv   = ctl[ 3]     Number of global variables for each state
@@ -260,7 +260,7 @@ char *root_name;
     else
     {
         narbs = 0;
-       
+
         /* Want activ in a common location. */
         fam->activ = activ;
 
@@ -291,13 +291,13 @@ char *root_name;
 
 #ifdef DEBUG
     wrt_text( "ndim %d nnodes %d nel8 %d nel4 %d nel2 %d\n",
-                  ndim, numnp, nel8, nel4, nel2 );
+              ndim, numnp, nel8, nel4, nel2 );
 #endif
 
     fam->geom_sz = (ndim*numnp + 9*nel8 + 5*nel4 + 6*nel2) * sizeof( float )
                    + narbs * sizeof( int );
-    fam->state_sz = (nvqty*numnp + nel8*nv3dact + 
-                    nel4*nv2dact + nel2*nv1dact + 1 + nglbv) * sizeof( float );
+    fam->state_sz = (nvqty*numnp + nel8*nv3dact +
+                     nel4*nv2dact + nel2*nv1dact + 1 + nglbv) * sizeof( float );
 
 #ifdef DEBUG
     wrt_text( "geom_sz %d state_sz %d\n", fam->geom_sz, fam->state_sz );
@@ -324,7 +324,7 @@ char *root_name;
 
     /*
      * Allocate large enough state arrays to handle the maximum
-     * number of states possible. 
+     * number of states possible.
      */
     fam->st_time = NEW_N( float, max_st, "State times" );
     fam->st_file_num = NEW_N( int, max_st, "State files" );
@@ -345,7 +345,7 @@ char *root_name;
     {
         /*
          * if ( fam->num_files > 1 && fam->state_sz <= fam->file_sz[1] )
-         * 
+         *
          * A Nike family broke above logic, so see how this survives...
          */
         if ( fam->num_files > 1 && fam->state_sz <= fam->file_sz[fnum] - loc )
@@ -438,10 +438,10 @@ char *root_name;
 
     loc = (1 + nglbv)*sizeof(float);
     seg = numnp*sizeof(float);
-    
+
     /* Nodal variable qty. */
     fam->node_nvar = nvqty;
-    
+
     /* Nodal positions. */
     if ( iu )
     {
@@ -489,7 +489,7 @@ char *root_name;
             loc += seg;
         }
     }
-    
+
     /* Node input buffer pool. */
     p_bp = NEW( Buffer_pool, "Node buffer pool" );
     init_buffer_pool( p_bp, DFLT_BUFFER_POOL_SIZE, nvqty * numnp );
@@ -509,7 +509,7 @@ char *root_name;
         fam->result_offsets[VAL_HEX_EPS_EFF] = 6;
         seg = nel8*sizeof(float);
         loc += nv3d*seg;
-        
+
         p_bp = NEW( Buffer_pool, "Hex buffer pool" );
         init_buffer_pool( p_bp, DFLT_BUFFER_POOL_SIZE, nel8 * nv3d );
         fam->hex_input = p_bp;
@@ -528,7 +528,7 @@ char *root_name;
         fam->result_offsets[VAL_BEAM_TOR_MOMENT] = 5;
         seg = nel2*sizeof(float);
         loc += nv1d*seg;
-        
+
         p_bp = NEW( Buffer_pool, "Beam buffer pool" );
         init_buffer_pool( p_bp, DFLT_BUFFER_POOL_SIZE, nel2 * nv1d );
         fam->beam_input = p_bp;
@@ -571,10 +571,10 @@ char *root_name;
         fam->result_offsets[VAL_SHELL_THICKNESS] = 29;
         fam->result_offsets[VAL_SHELL_ELDEP1] = 30;
         fam->result_offsets[VAL_SHELL_ELDEP2] = 31;
-        
+
         if ( nv2d == 33 )
             fam->result_offsets[VAL_SHELL_INT_ENG] = 32;
-        
+
         if ( nv2d == 45 || nv2d == 46 )
         {
             fam->result_offsets[VAL_SHELL_EPSX_IN] = 32;
@@ -593,7 +593,7 @@ char *root_name;
         }
         seg = nel4*sizeof(float);
         loc += nv2d*seg;
-        
+
         p_bp = NEW( Buffer_pool, "Shell buffer pool" );
         init_buffer_pool( p_bp, DFLT_BUFFER_POOL_SIZE, nel4 * nv2d );
         fam->shell_input = p_bp;
@@ -637,31 +637,31 @@ int object_type;
 
     switch ( object_type )
     {
-        case NODE_T:
-            rval = cur_family->node_input->buffer_count;
-            break;
-        case BRICK_T:
-            if ( cur_family->hex_input != NULL )
-                rval = cur_family->hex_input->buffer_count;
-            else
-                rval = -1;
-            break;
-        case SHELL_T:
-            if ( cur_family->shell_input != NULL )
-                rval = cur_family->shell_input->buffer_count;
-            else
-                rval = -1;
-            break;
-        case BEAM_T:
-            if ( cur_family->beam_input != NULL )
-                rval = cur_family->beam_input->buffer_count;
-            else
-                rval = -1;
-            break;
-        default:
+    case NODE_T:
+        rval = cur_family->node_input->buffer_count;
+        break;
+    case BRICK_T:
+        if ( cur_family->hex_input != NULL )
+            rval = cur_family->hex_input->buffer_count;
+        else
             rval = -1;
+        break;
+    case SHELL_T:
+        if ( cur_family->shell_input != NULL )
+            rval = cur_family->shell_input->buffer_count;
+        else
+            rval = -1;
+        break;
+    case BEAM_T:
+        if ( cur_family->beam_input != NULL )
+            rval = cur_family->beam_input->buffer_count;
+        else
+            rval = -1;
+        break;
+    default:
+        rval = -1;
     }
-    
+
     return rval;
 }
 
@@ -678,37 +678,37 @@ int qty;
 {
     int nv1d, nv2d, nv3d, nvqty;
     int nel2, nel4, nel8, numnp;
-    
+
     if ( object_type == NODE_T || object_type == ALL_OBJECT_T )
     {
         numnp   = cur_family->ctl[ 1];
         nvqty   = cur_family->node_nvar;
         init_buffer_pool( cur_family->node_input, qty, nvqty * numnp );
     }
-    
+
     if ( object_type == BRICK_T || object_type == ALL_OBJECT_T )
     {
         nel8    = cur_family->ctl[ 8];
         nv3d    = cur_family->ctl[12];
-        
+
         if ( nel8 > 0 )
             init_buffer_pool( cur_family->hex_input, qty, nv3d * nel8 );
     }
-    
+
     if ( object_type == SHELL_T || object_type == ALL_OBJECT_T )
     {
         nel4    = cur_family->ctl[16];
         nv2d    = cur_family->ctl[18];
-        
+
         if ( nel4 > 0 )
             init_buffer_pool( cur_family->shell_input, qty, nv2d * nel4 );
     }
-    
+
     if ( object_type == BEAM_T || object_type == ALL_OBJECT_T )
     {
         nel2    = cur_family->ctl[13];
         nv1d    = cur_family->ctl[15];
-        
+
         if ( nel2 > 0 )
             init_buffer_pool( cur_family->beam_input, qty, nv1d * nel2 );
     }
@@ -733,12 +733,12 @@ int bufsize;
     Bool_type new_memory;
     int save, gone;
 
-    /* 
-     * Attempt to allocate memory first if necessary to capture any 
+    /*
+     * Attempt to allocate memory first if necessary to capture any
      * allocation failures before modifying existing structures.
-     * 
+     *
      * Note that if changing a buffer size, this will result in both
-     * the old buffers and the new ones being allocated 
+     * the old buffers and the new ones being allocated
      * simultaneously, and so could conceivably cause an alloc failure
      * unnecessarily.
      */
@@ -747,17 +747,17 @@ int bufsize;
     {
         cnt = bufqty - p_bp->buffer_count;
         p_tmp_dat = NEW_N( float *, cnt, "Temp input buffer array" );
-        
+
         for ( i = 0; i < cnt; i++ )
         {
             p_tmp_dat[i] = NEW_N( float, bufsize, "Input buffer" );
-            
+
             if ( p_tmp_dat[i] == NULL )
             {
                 /* Failure - clean-up and return. */
-                
-                popup_dialog( WARNING_POPUP, 
-                              "Input buffer allocation failure;\n%s", 
+
+                popup_dialog( WARNING_POPUP,
+                              "Input buffer allocation failure;\n%s",
                               "buffer queue not modified." );
                 for ( j = 0; j < i; j++ )
                     free( p_tmp_dat[j] );
@@ -765,27 +765,27 @@ int bufsize;
                 return;
             }
         }
-        
+
         new_memory = TRUE;
     }
-    
+
     /* If buffer already used and buffer size changes or no buffering... */
-    if ( p_bp->buffer_count != 0 
-         && ( p_bp->buffer_size != bufsize || bufqty == 0 ) )
+    if ( p_bp->buffer_count != 0
+            && ( p_bp->buffer_size != bufsize || bufqty == 0 ) )
     {
         /* Free everything to start from scratch. */
-        
+
         for ( i = 0; i < p_bp->buffer_count; i++ )
             free( p_bp->data_buffers[i] );
         free( p_bp->data_buffers );
         free( p_bp->state_numbers );
         p_bp->buffer_count = 0;
     }
-    
+
     if ( p_bp->buffer_count == 0 )
     {
         /* A clean Buffer_pool - create the queue. */
-        
+
         p_bp->data_buffers = NEW_N( float *, bufqty, "Input buffer queue" );
         p_bp->state_numbers = NEW_N( int, bufqty, "Input queue states" );
         for ( i = 0; i < bufqty; i++ )
@@ -801,80 +801,80 @@ int bufsize;
     else if ( p_bp->buffer_count > bufqty )
     {
         /* Shrink the queue */
-        
+
         /* Free the excess data buffers. */
         for ( i = 0, gone = p_bp->recent; i < p_bp->buffer_count - bufqty; i++ )
         {
             gone = (gone + 1) % p_bp->buffer_count;
             free( p_bp->data_buffers[gone] );
-            
+
             if ( p_bp->state_numbers[gone] == -1 )
                 p_bp->new_count--;
         }
-        
+
         /* Migrate remaining buffers to low end of queue. */
-        
+
         p_swap_dat = NEW_N( float *, bufqty, "Temp input buffer array" );
         p_tmp_st = NEW_N( int, bufqty, "Temp buffer state array" );
-        
+
         /* Move the keepers to temporary storage. */
         for ( i = 0, save = gone; i < bufqty; i++ )
         {
             save = (save + 1) % p_bp->buffer_count;
-            
+
             p_swap_dat[i] = p_bp->data_buffers[save];
             p_tmp_st[i] = p_bp->state_numbers[save];
         }
-        
+
         /* Now move them back to the Buffer_pool. */
         for ( i = 0; i < bufqty; i++ )
         {
             p_bp->data_buffers[i] = p_swap_dat[i];
             p_bp->state_numbers[i] = p_tmp_st[i];
         }
-        
+
         free( p_swap_dat );
         free( p_tmp_st );
-        
+
         /* Free up unused ends of queue arrays. */
-        p_bp->data_buffers = RENEW_N( float *, p_bp->data_buffers, 
-                                      p_bp->buffer_count, 
-                                      bufqty - p_bp->buffer_count, 
+        p_bp->data_buffers = RENEW_N( float *, p_bp->data_buffers,
+                                      p_bp->buffer_count,
+                                      bufqty - p_bp->buffer_count,
                                       "Reduced input buffer queue" );
-        p_bp->state_numbers = RENEW_N( int, p_bp->state_numbers, 
-                                       p_bp->buffer_count, 
-                                       bufqty - p_bp->buffer_count, 
+        p_bp->state_numbers = RENEW_N( int, p_bp->state_numbers,
+                                       p_bp->buffer_count,
+                                       bufqty - p_bp->buffer_count,
                                        "Reduced input queue states" );
     }
     else if ( p_bp->buffer_count < bufqty )
     {
         /* Extend the queue. */
-        
+
         cnt = bufqty - p_bp->buffer_count;
-        
-        p_bp->data_buffers = RENEW_N( float *, p_bp->data_buffers, 
-                                      p_bp->buffer_count, cnt, 
+
+        p_bp->data_buffers = RENEW_N( float *, p_bp->data_buffers,
+                                      p_bp->buffer_count, cnt,
                                       "Extended input buffer queue" );
-        p_bp->state_numbers = RENEW_N( int, p_bp->state_numbers, 
-                                       p_bp->buffer_count, cnt, 
+        p_bp->state_numbers = RENEW_N( int, p_bp->state_numbers,
+                                       p_bp->buffer_count, cnt,
                                        "Extended input queue states" );
-        
+
         /* Move the previously allocated new buffers to the Buffer_pool. */
         for ( i = p_bp->buffer_count; i < bufqty; i++ )
         {
             p_bp->data_buffers[i] = p_tmp_dat[i - p_bp->buffer_count];
             p_bp->state_numbers[i] = -1;
         }
-        
+
         p_bp->buffer_count = bufqty;
         p_bp->new_count = cnt;
     }
     else
     {
-        popup_dialog( WARNING_POPUP, "Re-initializing with same buffer\n%s", 
+        popup_dialog( WARNING_POPUP, "Re-initializing with same buffer\n%s",
                       "size and quantity is not implemented." );
     }
-    
+
     if ( new_memory )
         free( p_tmp_dat );
 }
@@ -890,7 +890,7 @@ delete_buffer_pool( p_bp )
 Buffer_pool *p_bp;
 {
     int i;
-    
+
     /* Sanity check. */
     if ( p_bp == NULL )
         return;
@@ -900,7 +900,7 @@ Buffer_pool *p_bp;
 
     free( p_bp->data_buffers );
     free( p_bp->state_numbers );
-    
+
     free( p_bp );
 }
 
@@ -922,7 +922,7 @@ close_family()
         free( cur_family->st_file_num );
         free( cur_family->st_file_loc );
         free( cur_family->result_offsets );
-        
+
         delete_buffer_pool( cur_family->node_input );
         delete_buffer_pool( cur_family->hex_input );
         delete_buffer_pool( cur_family->shell_input );
@@ -1035,7 +1035,7 @@ Geom *geo;
     geo->nodes->cnt = numnp;
     for ( i = 0; i < numnp; i++ )
     {
-        geo->nodes->xyz[0][i] = tmp1[ndim*i]; 
+        geo->nodes->xyz[0][i] = tmp1[ndim*i];
         geo->nodes->xyz[1][i] = tmp1[ndim*i+1];
         if ( ndim == 3 )
             geo->nodes->xyz[2][i] = tmp1[ndim*i+2];
@@ -1053,7 +1053,7 @@ Geom *geo;
         geo->bricks->cnt = nel8;
         for ( i = 0; i < nel8; i++ )
         {
-            geo->bricks->nodes[0][i] = tmp2[9*i] - 1; 
+            geo->bricks->nodes[0][i] = tmp2[9*i] - 1;
             geo->bricks->nodes[1][i] = tmp2[9*i+1] - 1;
             geo->bricks->nodes[2][i] = tmp2[9*i+2] - 1;
             geo->bricks->nodes[3][i] = tmp2[9*i+3] - 1;
@@ -1098,7 +1098,7 @@ Geom *geo;
         geo->shells->cnt = nel4;
         for ( i = 0; i < nel4; i++)
         {
-            geo->shells->nodes[0][i] = tmp2[5*i] - 1; 
+            geo->shells->nodes[0][i] = tmp2[5*i] - 1;
             geo->shells->nodes[1][i] = tmp2[5*i+1] - 1;
             geo->shells->nodes[2][i] = tmp2[5*i+2] - 1;
             geo->shells->nodes[3][i] = tmp2[5*i+3] - 1;
@@ -1133,14 +1133,14 @@ State *st_ptr;
 {
     int ndim, numnp, nel8, nel2, nel4, nglbv, iu, activ;
     float *tmp, *x, *y, *z, *tmp_ptr;
-    int fnum, loc, i; 
+    int fnum, loc, i;
 
     /* If no states, just return node positions from geometry. */
     if ( cur_family->num_states <= 0 )
     {
         /* Allocate space for state if needed. */
         if ( st_ptr == NULL )
-            st_ptr = mk_state( 0, 0, 0, 0, FALSE ); 
+            st_ptr = mk_state( 0, 0, 0, 0, FALSE );
 
         /* Sleazy. */
         st_ptr->nodes = cur_family->geom_p->nodes;
@@ -1152,7 +1152,7 @@ State *st_ptr;
     /* Check for state number out-of-bounds. */
     if ( st_num < 0 || st_num >= cur_family->num_states )
     {
-        popup_dialog( WARNING_POPUP, 
+        popup_dialog( WARNING_POPUP,
                       "Request to get_state, state number out of bounds!" );
         return( st_ptr );
     }
@@ -1175,9 +1175,9 @@ State *st_ptr;
     {
         /* Don't allocate space for node positions if they aren't present. */
         if ( iu )
-            st_ptr = mk_state( numnp, nel8, nel4, nel2, activ ); 
+            st_ptr = mk_state( numnp, nel8, nel4, nel2, activ );
         else
-            st_ptr = mk_state( 0, nel8, nel4, nel2, activ ); 
+            st_ptr = mk_state( 0, nel8, nel4, nel2, activ );
     }
 
     st_ptr->state_id = st_num;
@@ -1222,12 +1222,12 @@ State *st_ptr;
     }
 
 #ifdef DEBUG
-/*
-    wrt_text( "\nNodal data:\n" );
-    for ( i = 0; i <= 10; i++ )
-        wrt_text( "%d %f %f %f\n\n",i, st_ptr->nodes->xyz[0][i],
-                  st_ptr->nodes->xyz[1][i], st_ptr->nodes->xyz[2][i] );
-*/
+    /*
+        wrt_text( "\nNodal data:\n" );
+        for ( i = 0; i <= 10; i++ )
+            wrt_text( "%d %f %f %f\n\n",i, st_ptr->nodes->xyz[0][i],
+                      st_ptr->nodes->xyz[1][i], st_ptr->nodes->xyz[2][i] );
+    */
 #endif
 
     /* Hex data. */
@@ -1282,7 +1282,7 @@ float *result_arr;
         wrt_text( "Result (ID = %d) not in database.\n", result_id );
         return;
     }
-    
+
     if ( is_nodal_result( result_id ) )
     {
         p_bp = cur_family->node_input;
@@ -1310,22 +1310,22 @@ float *result_arr;
         obj_qty = cur_family->ctl[13];
         nvar = cur_family->beam_nvar;
     }
-    
+
     buffered = FALSE;
 
     if ( p_bp->buffer_count != 0 )
     {
         buffered = TRUE;
-        
+
         /* Attempt to match requested state among buffered states. */
         for ( i = 0; i < p_bp->buffer_count; i++ )
             if ( p_bp->state_numbers[i] == st_num )
                 break;
-            
+
         if ( i == p_bp->buffer_count )
         {
             /* State not in memory - read it into next buffer in queue. */
-            
+
             /* Check for unused buffers first. */
             if ( p_bp->new_count > 0 )
             {
@@ -1333,27 +1333,27 @@ float *result_arr;
                 for ( i = 0; i < p_bp->buffer_count; i++ )
                     if ( p_bp->state_numbers[i] == -1 )
                         break;
-                    
+
                 next = i;
                 p_bp->new_count--;
             }
             else
                 /* No unused buffers, so overwrite the one after "recent". */
                 next = (p_bp->recent + 1) % p_bp->buffer_count;
-        
+
             /*
              * Calculate location of data for requested object type and
              * read into a buffer.
              */
             fnum = cur_family->st_file_num[st_num];
             loc = cur_family->st_file_loc[st_num] + offset;
-            mdg_read( fnum, loc, p_bp->buffer_size * sizeof( float ), 
+            mdg_read( fnum, loc, p_bp->buffer_size * sizeof( float ),
                       p_bp->data_buffers[next] );
-            
+
             /* Update pool. */
             p_bp->state_numbers[next] = st_num;
             p_bp->recent = next;
-            
+
             /* Save buffer index. */
             idx = next;
         }
@@ -1368,14 +1368,14 @@ float *result_arr;
          * Temperature is a special case since it is currently
          * treated as a scalar, not a vector.  What a kluge.
          */
-        
+
         if ( buffered )
         {
             /* Copy data from buffer into result array. */
             tmp_arr = p_bp->data_buffers[idx]
                       + (cur_family->result_offsets[VAL_NODE_TEMP] - offset)
-                        / sizeof( float );
-            
+                      / sizeof( float );
+
             memcpy( result_arr, tmp_arr, obj_qty * sizeof( float ) );
         }
         else
@@ -1384,7 +1384,7 @@ float *result_arr;
             fnum = cur_family->st_file_num[st_num];
 
             /* Get the proper offset from the X value identifier. */
-            loc = cur_family->st_file_loc[st_num] + 
+            loc = cur_family->st_file_loc[st_num] +
                   cur_family->result_offsets[result_id];
 
             mdg_read( fnum, loc, obj_qty * sizeof(float), result_arr );
@@ -1401,11 +1401,11 @@ float *result_arr;
             jmp = 1;
         else if ( cur_family->result_offsets[result_id] == -3 )
             jmp = 2;
-        
+
         /* For turbulence results, stride is not a function of dimensionality */
         if ( result_id == VAL_NODE_K
-             || result_id == VAL_NODE_EPSILON
-             || result_id == VAL_NODE_A2 )
+                || result_id == VAL_NODE_EPSILON
+                || result_id == VAL_NODE_A2 )
         {
             ixd = cur_family->ctl[24];
             stride = ( ixd & K_EPSILON_MASK ) ? 2 : 0;
@@ -1413,17 +1413,17 @@ float *result_arr;
         }
         else
             stride = ndim;
-        
+
         if ( buffered )
         {
             tmp_arr = p_bp->data_buffers[idx]
                       + (cur_family->result_offsets[result_id - jmp] - offset)
-                        / sizeof( float );
+                      / sizeof( float );
         }
         else
         {
             /* Get the proper offset from the X value identifier. */
-            loc = cur_family->st_file_loc[st_num] + 
+            loc = cur_family->st_file_loc[st_num] +
                   cur_family->result_offsets[result_id - jmp];
 
             tmp_arr = NEW_N( float, stride * obj_qty, "Tmp read result arr" );
@@ -1441,7 +1441,7 @@ float *result_arr;
         /* Element results are stored in element order, have to
          * to jump when reading.
          */
-        
+
         if ( buffered )
             tmp_arr = p_bp->data_buffers[idx];
         else
@@ -1498,7 +1498,7 @@ float *arr_z;
         if ( cur_family->result_offsets[result_id] < -1 )
             popup_fatal( err_msg );
 
-        loc = cur_family->st_file_loc[st_num] + 
+        loc = cur_family->st_file_loc[st_num] +
               cur_family->result_offsets[result_id];
 
         tmp_arr = NEW_N( float, ndim*sz, "Tmp read result arr" );
@@ -1526,8 +1526,8 @@ float *arr_z;
 /*****************************************************************
  * TAG( get_tensor_result )
  *
- * Get stress tensors for hex or shell data from the plotfile 
- * family.  The "which" argument must be one of the four SIGX 
+ * Get stress tensors for hex or shell data from the plotfile
+ * family.  The "which" argument must be one of the four SIGX
  * results or the two EPSX results.
  */
 Bool_type
@@ -1542,13 +1542,13 @@ float *tensor_array;
 
     /* Sanity. */
     if ( which != VAL_HEX_SIGX
-         && which != VAL_SHELL_SIGX_MID
-         && which != VAL_SHELL_SIGX_IN
-         && which != VAL_SHELL_SIGX_OUT
-         && which != VAL_SHELL_EPSX_IN
-         && which != VAL_SHELL_EPSX_OUT )
+            && which != VAL_SHELL_SIGX_MID
+            && which != VAL_SHELL_SIGX_IN
+            && which != VAL_SHELL_SIGX_OUT
+            && which != VAL_SHELL_EPSX_IN
+            && which != VAL_SHELL_EPSX_OUT )
         return FALSE;
-    
+
     if ( cur_family->result_offsets[which] == -1 )
         return FALSE;
 
@@ -1568,15 +1568,15 @@ float *tensor_array;
               + cur_family->shell_offset;
         offset = cur_family->result_offsets[which];
     }
-    
+
     tmp = NEW_N( float, qty * stride, "Temp tensor array" );
     if ( tmp == NULL )
         return FALSE;
-    
+
     /* Read in the element data. */
     fnum = cur_family->st_file_num[st_num];
     mdg_read( fnum, loc, qty * stride * sizeof(float), tmp );
-    
+
     /* Extract the stress tensors from the element data. */
     p_src = tmp + offset;
     p_dest = tensor_array;
@@ -1584,11 +1584,11 @@ float *tensor_array;
     {
         for ( j = 0; j < 6; j++ )
             p_dest[j] = p_src[j];
-        
+
         p_dest += 6;
         p_src += stride;
     }
-    
+
     free( tmp );
 
     return TRUE;
@@ -1694,7 +1694,7 @@ fix_title( title )
 char *title;
 {
     int j, loc;
- 
+
     for ( loc = 0, j = 0; j <= 5; j++, loc++ )
         title[loc] = title[j];
     for ( j = 8; j <= 13; j++, loc++ )
@@ -1724,7 +1724,7 @@ get_state_times( state_times )
 float *state_times;
 {
     int i;
- 
+
     for ( i = 0; i < cur_family->num_states; i++ )
         state_times[i] = cur_family->st_time[i];
 }
@@ -1765,8 +1765,8 @@ Hex_geom *bricks;
     for ( i = 0; i < bricks->cnt; i++ )
     {
         if ( bricks->nodes[4][i] == bricks->nodes[5][i] &&
-             bricks->nodes[5][i] == bricks->nodes[6][i] &&
-             bricks->nodes[6][i] == bricks->nodes[7][i] )
+                bricks->nodes[5][i] == bricks->nodes[6][i] &&
+                bricks->nodes[6][i] == bricks->nodes[7][i] )
         {
             if ( bricks->nodes[3][i] == bricks->nodes[4][i] )
             {
@@ -1813,22 +1813,22 @@ Shell_geom *shells;
         if ( shells->nodes[0][i] == shells->nodes[1][i] )
         {
             shift = 2;
-            shells->degen_elems = TRUE; 
+            shells->degen_elems = TRUE;
         }
         else if ( shells->nodes[1][i] == shells->nodes[2][i] )
         {
             shift = 1;
-            shells->degen_elems = TRUE; 
+            shells->degen_elems = TRUE;
         }
         else if ( shells->nodes[2][i] == shells->nodes[3][i] )
         {
             shift = 0;
-            shells->degen_elems = TRUE; 
+            shells->degen_elems = TRUE;
         }
         else if ( shells->nodes[0][i] == shells->nodes[3][i] )
         {
             shift = 3;
-            shells->degen_elems = TRUE; 
+            shells->degen_elems = TRUE;
         }
         else
             continue;

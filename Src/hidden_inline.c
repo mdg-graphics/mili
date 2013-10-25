@@ -1,11 +1,11 @@
 
 /* $Id$ */
 
-/* 
+/*
  ***************************************************************
  * hidden_inline.c - Create a hidden line drawing of a mesh.
  *
- * This is a new inline version of the standalone version 
+ * This is a new inline version of the standalone version
  * of hidden.c. This version will run directly from GRIZ when
  * the command outhid is executed.
  ***************************************************************
@@ -14,7 +14,7 @@
  * 	Sep 16 1993
  *
  * Modified:
- *      I.R. Corey: 10/12/04: Added input and output filenames 
+ *      I.R. Corey: 10/12/04: Added input and output filenames
  *      to command line. Also added help option.
  *
  *
@@ -99,11 +99,11 @@ static void hidden_vec_norm( Real_type *vec );
 static void hidden_point_transform( Real_type *res, Real_type *vec, Transf_mat *mat);
 static void griz_heapsort( int n, int *arrin[2], int *indx );
 static int node_cmp( int indx1, int indx2, int *n_arr[2] );
-static Real_type par_test_pt_plane( Real_type plane_pt[3], 
-                                    Real_type plane_norm[3], 
+static Real_type par_test_pt_plane( Real_type plane_pt[3],
+                                    Real_type plane_norm[3],
                                     Real_type test_pt[3] );
-static int clip_line_seg_plane( Real_type plane_pt[3], Real_type plane_norm[3], 
-                                Real_type line_pt[3], Real_type line_dir[3], 
+static int clip_line_seg_plane( Real_type plane_pt[3], Real_type plane_norm[3],
+                                Real_type line_pt[3], Real_type line_dir[3],
                                 Real_type bounds[2] );
 static void copy_frag( Edge_frag *fr_frag, Edge_frag *to_frag );
 static void project_frag_ends( Edge_frag *frag );
@@ -113,7 +113,7 @@ static int shadow_edge_poly( int npoly, Edge_frag *frag, Edge_frag **nfrag2 );
 
 /*****************************************************************
  * TAG( hidden_inline )
- * 
+ *
  * General purpose routine to read a token (delimited by white space)
  * from a file.
  */
@@ -138,7 +138,7 @@ void hidden_inline ( char *input_filename )
 
 /*****************************************************************
  * TAG( read_token )
- * 
+ *
  * General purpose routine to read a token (delimited by white space)
  * from a file.
  */
@@ -695,10 +695,10 @@ bbox_polys()
 
 /*****************************************************************
  * TAG( hidden_vec_norm )
- * 
+ *
  * Normalize a vector.
  */
-static void 
+static void
 hidden_vec_norm( Real_type *vec )
 {
     Real_type len;
@@ -707,7 +707,7 @@ hidden_vec_norm( Real_type *vec )
     if ( len == 0.0 )
         return;
     else
-	VEC_SCALE( vec, 1.0/len, vec );
+        VEC_SCALE( vec, 1.0/len, vec );
 }
 
 
@@ -725,12 +725,12 @@ hidden_vec_norm( Real_type *vec )
 static void
 hidden_point_transform( Real_type *res, Real_type *vec, Transf_mat *mat)
 {
-    res[0] = mat->mat[0][0] * vec[0] + mat->mat[1][0] * vec[1] 
-        + mat->mat[2][0] * vec[2] + mat->mat[3][0];
-    res[1] = mat->mat[0][1] * vec[0] + mat->mat[1][1] * vec[1] 
-        + mat->mat[2][1] * vec[2] + mat->mat[3][1];
-    res[2] = mat->mat[0][2] * vec[0] + mat->mat[1][2] * vec[1] 
-        + mat->mat[2][2] * vec[2] + mat->mat[3][2];
+    res[0] = mat->mat[0][0] * vec[0] + mat->mat[1][0] * vec[1]
+             + mat->mat[2][0] * vec[2] + mat->mat[3][0];
+    res[1] = mat->mat[0][1] * vec[0] + mat->mat[1][1] * vec[1]
+             + mat->mat[2][1] * vec[2] + mat->mat[3][1];
+    res[2] = mat->mat[0][2] * vec[0] + mat->mat[1][2] * vec[1]
+             + mat->mat[2][2] * vec[2] + mat->mat[3][2];
 }
 
 
@@ -743,7 +743,7 @@ hidden_point_transform( Real_type *res, Real_type *vec, Transf_mat *mat)
  * the normal, and zero if the point is in the plane.
  */
 static Real_type
-par_test_pt_plane( Real_type plane_pt[3], Real_type plane_norm[3], 
+par_test_pt_plane( Real_type plane_pt[3], Real_type plane_norm[3],
                    Real_type test_pt[3] )
 {
     return( VEC_DOT( plane_norm, test_pt ) -
@@ -763,8 +763,8 @@ par_test_pt_plane( Real_type plane_pt[3], Real_type plane_norm[3],
  * otherwise returns 1.
  */
 static int
-clip_line_seg_plane( Real_type plane_pt[3], Real_type plane_norm[3], 
-                     Real_type line_pt[3], Real_type line_dir[3], 
+clip_line_seg_plane( Real_type plane_pt[3], Real_type plane_norm[3],
+                     Real_type line_pt[3], Real_type line_dir[3],
                      Real_type bounds[2] )
 {
     Real_type pt1[3], pt2[3];
@@ -773,16 +773,16 @@ clip_line_seg_plane( Real_type plane_pt[3], Real_type plane_norm[3],
 
     VEC_ADDS( pt1, bounds[0], line_dir, line_pt );
     VEC_ADDS( pt2, bounds[1], line_dir, line_pt );
-    
+
     t1 = par_test_pt_plane( plane_pt, plane_norm, pt1 );
     t2 = par_test_pt_plane( plane_pt, plane_norm, pt2 );
 
     /* Line segment completely on outside of plane. */
-/*    if ( !DEF_LT( t1, 0.0 ) && !DEF_LT( t2, 0.0 ) ) */
+    /*    if ( !DEF_LT( t1, 0.0 ) && !DEF_LT( t2, 0.0 ) ) */
     if ( !DEF_LT( t1, 0.0 ) && !DEF_LT( t2, 0.0 ) )
         return( 0 );
 
-    /* 
+    /*
      * Calculate intersection only if end points are on opposite
      * sides of the plane.
      */
@@ -1112,9 +1112,9 @@ gen_hidden()
              */
             for ( done = FALSE, k = 0; k < 4; k++ )
                 if ( ( edge[0][i] == hidden_poly[k][j] &&
-                       edge[1][i] == hidden_poly[(k+1)%4][j] ) ||
-                     ( edge[1][i] == hidden_poly[k][j] &&
-                       edge[0][i] == hidden_poly[(k+1)%4][j] ) )
+                        edge[1][i] == hidden_poly[(k+1)%4][j] ) ||
+                        ( edge[1][i] == hidden_poly[k][j] &&
+                          edge[0][i] == hidden_poly[(k+1)%4][j] ) )
                     done = TRUE;
             if ( done )
                 continue;
@@ -1124,7 +1124,7 @@ gen_hidden()
              */
             for ( frag = frag_list; frag != NULL; )
             {
-                /* 
+                /*
                  * Test edge fragment against bbox of projected poly for
                  * trivial reject.
                  */
@@ -1231,7 +1231,7 @@ output_hidden( char *filename )
 
     FILE *outfile;
 
-    
+
     if ( ( outfile = fopen(filename, "w+") ) == NULL )
     {
         fprintf( stderr, "Couldn't open output file %s.\n", filename );
@@ -1267,8 +1267,8 @@ output_hidden( char *filename )
     if ( landscape || (view_aspect > 1.0 && !portrait) )
     {
         for ( draw_edge = draw_edge_list;
-              draw_edge != NULL;
-              draw_edge = draw_edge->next )
+                draw_edge != NULL;
+                draw_edge = draw_edge->next )
         {
             for ( i = 0; i < 2; i++ )
             {
@@ -1302,8 +1302,8 @@ output_hidden( char *filename )
      * viewport.
      */
     for ( draw_edge = draw_edge_list;
-          draw_edge != NULL;
-          draw_edge = draw_edge->next )
+            draw_edge != NULL;
+            draw_edge = draw_edge->next )
     {
         for ( i = 0; i < 2; i++ )
             for ( j = 0; j < 2; j++ )
@@ -1326,20 +1326,20 @@ output_hidden( char *filename )
     fprintf( outfile, "newpath\n" );
 
     for ( draw_edge = draw_edge_list, pointcount = 0;
-          draw_edge != NULL;
-          draw_edge = draw_edge->next )
+            draw_edge != NULL;
+            draw_edge = draw_edge->next )
     {
         fprintf( outfile, " %.2f %.2f m  %.2f %.2f l\n",
                  draw_edge->pts[0][0], draw_edge->pts[0][1],
                  draw_edge->pts[1][0], draw_edge->pts[1][1] );
         pointcount++;
-	
+
         /*
          * if the point count exceeds the path limit, stroke it
          * and initiate a new path
          */
         if ( pointcount == PS_ACTIVE_PATH_LIMIT - 1 )
-	{
+        {
             pointcount = 0;
             fprintf( outfile, "stroke newpath\n" );
         }

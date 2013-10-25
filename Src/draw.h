@@ -1,7 +1,7 @@
 /* $Id$ */
-/* 
+/*
  * draw.h - Definitions for display routines.
- * 
+ *
  *      Donald J. Dovey
  *      Lawrence Livermore National Laboratory
  *      Oct 23 1991
@@ -37,7 +37,7 @@ typedef struct
      * to give the current size
      * of the allocated property arrays.  It should not be used generically
      * as the number of mesh materials because neither create_mat_prop_arrays()
-     * nor extend_mat_prop_arrays() synchronize everything that depends on 
+     * nor extend_mat_prop_arrays() synchronize everything that depends on
      * material quantity (such as p_mesh->hide_mtl...).
      */
     int      current_index;
@@ -50,7 +50,7 @@ typedef struct
     GLfloat *gslevel;
 }  Color_property;
 
-typedef struct 
+typedef struct
 {
     int win_x;
     int win_y;

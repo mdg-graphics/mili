@@ -6,38 +6,38 @@
  *      Lawrence Livermore National Laboratory
  *      Sept 24 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
+ *
+ * This work was produced at the University of California, Lawrence
+ * Livermore National Laboratory (UC LLNL) under contract no.
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy
+ * (DOE) and The Regents of the University of California (University)
+ * for the operation of UC LLNL. Copyright is reserved to the University
+ * for purposes of controlled dissemination, commercialization through
+ * formal licensing, or other disposition under terms of Contract 48;
+ * DOE policies, regulations and orders; and U.S. statutes. The rights
+ * of the Federal Government are reserved under Contract 48 subject to
+ * the restrictions agreed upon by the DOE and University as allowed
  * under DOE Acquisition Letter 97-1.
- * 
- * 
+ *
+ *
  * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
+ *
+ * This work was prepared as an account of work sponsored by an agency
+ * of the United States Government. Neither the United States Government
+ * nor the University of California nor any of their employees, makes
+ * any warranty, express or implied, or assumes any liability or
+ * responsibility for the accuracy, completeness, or usefulness of any
+ * information, apparatus, product, or process disclosed, or represents
+ * that its use would not infringe privately-owned rights.  Reference
+ * herein to any specific commercial products, process, or service by
+ * trade name, trademark, manufacturer or otherwise does not necessarily
+ * constitute or imply its endorsement, recommendation, or favoring by
+ * the United States Government or the University of California. The
+ * views and opinions of authors expressed herein do not necessarily
+ * state or reflect those of the United States Government or the
+ * University of California, and shall not be used for advertising or
  * product endorsement purposes.
- * 
+ *
  */
 
 #include "viewer.h"
@@ -112,13 +112,13 @@ hex_g2l_mtx(Analysis *analy, MO_class_data *p_mo_class, int elem,
     VEC_CROSS( vj, vk, vi );
 
     /* column vectors */
-    for ( i = 0; i < 3; i++ )    
+    for ( i = 0; i < 3; i++ )
     {
         localMat[i][0] =  vi[i];
         localMat[i][1] =  vj[i];
         localMat[i][2] =  vk[i];
     }
-    
+
     return;
 
 }
@@ -130,9 +130,9 @@ hex_g2l_mtx(Analysis *analy, MO_class_data *p_mo_class, int elem,
  * element stress for shells.
  */
 void
-global_to_local_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem, 
+global_to_local_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem,
                      Bool_type map_timehist_coords, GVec3D2P *new_nodes,
-		     float localMat[3][3] )
+                     float localMat[3][3] )
 {
     float x[4], y[4], z[4];
     float xn[3], yn[3], zn[3];
@@ -148,20 +148,20 @@ global_to_local_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem,
     /* Get the quad element geometry. */
     for ( i = 0; i < 4; i++ )
     {
-      if ( !map_timehist_coords )
-      {
-           x[i] = coords[ connects[elem][i] ][0];
-	   y[i] = coords[ connects[elem][i] ][1];
-	   z[i] = coords[ connects[elem][i] ][2];
-      }
-      else
-	{
-	   nd = connects[elem][i];
+        if ( !map_timehist_coords )
+        {
+            x[i] = coords[ connects[elem][i] ][0];
+            y[i] = coords[ connects[elem][i] ][1];
+            z[i] = coords[ connects[elem][i] ][2];
+        }
+        else
+        {
+            nd = connects[elem][i];
 
-           x[i] = new_nodes[nd][0];
-	   y[i] = new_nodes[nd][1];
-	   z[i] = new_nodes[nd][2];
-	}
+            x[i] = new_nodes[nd][0];
+            y[i] = new_nodes[nd][1];
+            z[i] = new_nodes[nd][2];
+        }
     }
 
     /* Get average vectors for the sides of the element. */
@@ -180,7 +180,7 @@ global_to_local_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem,
     vec_norm( yn );
     VEC_CROSS( xn, yn, zn)
 
-    for ( i = 0; i < 3; i++ )    
+    for ( i = 0; i < 3; i++ )
     {
         localMat[i][0] =  xn[i];
         localMat[i][1] =  yn[i];
@@ -196,9 +196,9 @@ global_to_local_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem,
  * element stress for shells with a superclass of G_TRI.
  */
 void
-global_to_local_tri_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem, 
-                     Bool_type map_timehist_coords, GVec3D2P *new_nodes,
-		     float localMat[3][3] )
+global_to_local_tri_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem,
+                         Bool_type map_timehist_coords, GVec3D2P *new_nodes,
+                         float localMat[3][3] )
 {
     float x[3], y[3], z[3];
     float xn[3], yn[3], zn[3];
@@ -214,20 +214,20 @@ global_to_local_tri_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem,
     /* Get the quad element geometry. */
     for ( i = 0; i < 3; i++ )
     {
-      if ( !map_timehist_coords )
-      {
-           x[i] = coords[ connects[elem][i] ][0];
-	   y[i] = coords[ connects[elem][i] ][1];
-	   z[i] = coords[ connects[elem][i] ][2];
-      }
-      else
-	{
-	   nd = connects[elem][i];
+        if ( !map_timehist_coords )
+        {
+            x[i] = coords[ connects[elem][i] ][0];
+            y[i] = coords[ connects[elem][i] ][1];
+            z[i] = coords[ connects[elem][i] ][2];
+        }
+        else
+        {
+            nd = connects[elem][i];
 
-           x[i] = new_nodes[nd][0];
-	   y[i] = new_nodes[nd][1];
-	   z[i] = new_nodes[nd][2];
-	}
+            x[i] = new_nodes[nd][0];
+            y[i] = new_nodes[nd][1];
+            z[i] = new_nodes[nd][2];
+        }
     }
 
     /* Get average vectors for the sides of the element. */
@@ -236,7 +236,7 @@ global_to_local_tri_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem,
     xn[2] = -z[0] + z[1];
     yn[0] = -x[0] - x[1] + x[2] + x[2];
     yn[1] = -y[0] - y[1] + y[2] + y[2];
-    yn[2] = -z[0] - z[1] + z[2] + z[2]; 
+    yn[2] = -z[0] - z[1] + z[2] + z[2];
 
     /* Get normal to element (assumes element is planar). */
     VEC_CROSS( zn, xn, yn );
@@ -246,18 +246,18 @@ global_to_local_tri_mtx( Analysis *analy, MO_class_data *p_mo_class, int elem,
     vec_norm( yn );
     VEC_CROSS( xn, yn, zn)
 
-    for ( i = 0; i < 3; i++ )    
+    for ( i = 0; i < 3; i++ )
     {
         localMat[i][0] =  xn[i];
         localMat[i][1] =  yn[i];
         localMat[i][2] =  zn[i];
     }
 }
-       
+
 /************************************************************
  * TAG( transform_tensors )
  *
- * Transform a double-precision input array of stress/strain 
+ * Transform a double-precision input array of stress/strain
  * tensors with a change-of-coordinates transformation matrix.
  *
  *                  t
@@ -278,25 +278,25 @@ transform_tensors( int qty, double (*tensors)[6], float mat[][3] )
         p_ten = tensors[i];
 
         /* Compute common sub-expressions. */
-        sub1[0] = p_ten[0]*mat[0][0] + p_ten[3]*mat[1][0] 
+        sub1[0] = p_ten[0]*mat[0][0] + p_ten[3]*mat[1][0]
                   + p_ten[5]*mat[2][0];
-        sub1[1] = p_ten[3]*mat[0][0] + p_ten[1]*mat[1][0] 
+        sub1[1] = p_ten[3]*mat[0][0] + p_ten[1]*mat[1][0]
                   + p_ten[4]*mat[2][0];
-        sub1[2] = p_ten[5]*mat[0][0] + p_ten[4]*mat[1][0] 
+        sub1[2] = p_ten[5]*mat[0][0] + p_ten[4]*mat[1][0]
                   + p_ten[2]*mat[2][0];
 
-        sub2[0] = p_ten[0]*mat[0][1] + p_ten[3]*mat[1][1] 
+        sub2[0] = p_ten[0]*mat[0][1] + p_ten[3]*mat[1][1]
                   + p_ten[5]*mat[2][1];
-        sub2[1] = p_ten[3]*mat[0][1] + p_ten[1]*mat[1][1] 
+        sub2[1] = p_ten[3]*mat[0][1] + p_ten[1]*mat[1][1]
                   + p_ten[4]*mat[2][1];
-        sub2[2] = p_ten[5]*mat[0][1] + p_ten[4]*mat[1][1] 
+        sub2[2] = p_ten[5]*mat[0][1] + p_ten[4]*mat[1][1]
                   + p_ten[2]*mat[2][1];
 
-        sub3[0] = p_ten[0]*mat[0][2] + p_ten[3]*mat[1][2] 
+        sub3[0] = p_ten[0]*mat[0][2] + p_ten[3]*mat[1][2]
                   + p_ten[5]*mat[2][2];
-        sub3[1] = p_ten[3]*mat[0][2] + p_ten[1]*mat[1][2] 
+        sub3[1] = p_ten[3]*mat[0][2] + p_ten[1]*mat[1][2]
                   + p_ten[4]*mat[2][2];
-        sub3[2] = p_ten[5]*mat[0][2] + p_ten[4]*mat[1][2] 
+        sub3[2] = p_ten[5]*mat[0][2] + p_ten[4]*mat[1][2]
                   + p_ten[2]*mat[2][2];
 
         /* Get the transformed vector. */
@@ -312,11 +312,11 @@ transform_tensors( int qty, double (*tensors)[6], float mat[][3] )
     }
 }
 
-       
+
 /************************************************************
  * TAG( transform_tensors_1p )
  *
- * Transform a single-precision input array of stress/strain 
+ * Transform a single-precision input array of stress/strain
  * tensors with a change-of-coordinates transformation matrix.
  *
  *                  t
@@ -337,25 +337,25 @@ transform_tensors_1p( int qty, float (*tensors)[6], float mat[][3] )
         p_ten = tensors[i];
 
         /* Compute common sub-expressions. */
-        sub1[0] = (double) p_ten[0]*mat[0][0] + (double) p_ten[3]*mat[1][0] 
+        sub1[0] = (double) p_ten[0]*mat[0][0] + (double) p_ten[3]*mat[1][0]
                   + (double) p_ten[5]*mat[2][0];
-        sub1[1] = (double) p_ten[3]*mat[0][0] + (double) p_ten[1]*mat[1][0] 
+        sub1[1] = (double) p_ten[3]*mat[0][0] + (double) p_ten[1]*mat[1][0]
                   + (double) p_ten[4]*mat[2][0];
-        sub1[2] = (double) p_ten[5]*mat[0][0] + (double) p_ten[4]*mat[1][0] 
+        sub1[2] = (double) p_ten[5]*mat[0][0] + (double) p_ten[4]*mat[1][0]
                   + (double) p_ten[2]*mat[2][0];
 
-        sub2[0] = (double) p_ten[0]*mat[0][1] + (double) p_ten[3]*mat[1][1] 
+        sub2[0] = (double) p_ten[0]*mat[0][1] + (double) p_ten[3]*mat[1][1]
                   + (double) p_ten[5]*mat[2][1];
-        sub2[1] = (double) p_ten[3]*mat[0][1] + (double) p_ten[1]*mat[1][1] 
+        sub2[1] = (double) p_ten[3]*mat[0][1] + (double) p_ten[1]*mat[1][1]
                   + (double) p_ten[4]*mat[2][1];
-        sub2[2] = (double) p_ten[5]*mat[0][1] + (double) p_ten[4]*mat[1][1] 
+        sub2[2] = (double) p_ten[5]*mat[0][1] + (double) p_ten[4]*mat[1][1]
                   + (double) p_ten[2]*mat[2][1];
 
-        sub3[0] = (double) p_ten[0]*mat[0][2] + (double) p_ten[3]*mat[1][2] 
+        sub3[0] = (double) p_ten[0]*mat[0][2] + (double) p_ten[3]*mat[1][2]
                   + (double) p_ten[5]*mat[2][2];
-        sub3[1] = (double) p_ten[3]*mat[0][2] + (double) p_ten[1]*mat[1][2] 
+        sub3[1] = (double) p_ten[3]*mat[0][2] + (double) p_ten[1]*mat[1][2]
                   + (double) p_ten[4]*mat[2][2];
-        sub3[2] = (double) p_ten[5]*mat[0][2] + (double) p_ten[4]*mat[1][2] 
+        sub3[2] = (double) p_ten[5]*mat[0][2] + (double) p_ten[4]*mat[1][2]
                   + (double) p_ten[2]*mat[2][2];
 
         /* Get the transformed vector. */
@@ -375,37 +375,37 @@ transform_tensors_1p( int qty, float (*tensors)[6], float mat[][3] )
 /************************************************************
  * TAG( transform_stress_strain )
  *
- * Transform single-precision stress or strain tensors for hex or shell 
- * elements at the current state according to the currently 
+ * Transform single-precision stress or strain tensors for hex or shell
+ * elements at the current state according to the currently
  * defined coordinate transformation matrix.
  *
  * The transformed components are left in analy->tmp_result.
  */
 Bool_type
-transform_stress_strain( char **primals, int primal_index, Analysis *analy, 
+transform_stress_strain( char **primals, int primal_index, Analysis *analy,
                          float trans_matrix[3][3], float *res_array )
 {
     int qty;
     int rval;
     Result *p_res;
     int subr_id;
-    
+
     p_res = analy->cur_result;
     subr_id = p_res->subrecs[analy->result_index];
 
     /* Load the tensors for the elements in the current subrecord. */
-    rval = analy->db_get_results( analy->db_ident, analy->cur_state + 1, 
-                                  subr_id, 1, primals + primal_index, 
+    rval = analy->db_get_results( analy->db_ident, analy->cur_state + 1,
+                                  subr_id, 1, primals + primal_index,
                                   (void *) analy->tmp_result[0] );
     if ( rval != OK )
         return FALSE;
-    
+
     /* Do it... */
     qty = analy->srec_tree[p_res->srec_id].subrecs[subr_id].subrec.qty_objects;
 
     transform_tensors_1p( qty, (float (*)[6]) analy->tmp_result[0],
-                                     trans_matrix );
-    
+                          trans_matrix );
+
     /* Extract requested component. */
     return transpose_tensors( qty, analy, res_array );
 }
@@ -424,11 +424,11 @@ transpose_tensors( int qty, Analysis *analy, float *res_array )
     int comp_idx, i;
     float (*tens)[6];
     char *name;
-    
+
     name = analy->cur_result->name;
-    
-    /* 
-     * Hack to get the correct tensor component index (component name 
+
+    /*
+     * Hack to get the correct tensor component index (component name
      * is one of sx, sy, sz, sxy, syz, szx, OR ex, ey, ez, exy, eyz, ezx,
      * OR gamxy, gamyz, gamzx).
      */
@@ -438,12 +438,12 @@ transpose_tensors( int qty, Analysis *analy, float *res_array )
         comp_idx = (int) name[3] - (int) 'x' + 3;
     else
         return FALSE;
-        
+
     /* Extract the requested component into the result array. */
     tens = (float (*)[6]) analy->tmp_result[0];
     for ( i = 0; i < qty; i++ )
         res_array[i] = tens[i][comp_idx];
-    
+
     return TRUE;
 }
 

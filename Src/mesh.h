@@ -1,14 +1,14 @@
 /* $Id$ */
 
- /*
- ************************************************************************
- * Modifications:
- *
- *  I. R. Corey - October 24, 2007: Added element and nodal labels.
- *                See SCR #418.
- *
- ************************************************************************
- */
+/*
+************************************************************************
+* Modifications:
+*
+*  I. R. Corey - October 24, 2007: Added element and nodal labels.
+*                See SCR #418.
+*
+************************************************************************
+*/
 
 #ifndef MESH_H
 #define MESH_H
@@ -164,7 +164,7 @@ typedef struct _mo_class_labels
 {
     int local_id;
     int label_num;
-} MO_class_labels; 
+} MO_class_labels;
 
 
 /*****************************************************************
@@ -174,17 +174,17 @@ typedef struct _mo_class_labels
  */
 typedef struct _Label_Block_Data
 {
-  int       label_mat;
-  int       label_start;
-  int       label_stop;
+    int       label_mat;
+    int       label_start;
+    int       label_stop;
 } Label_block_data;
 
 typedef struct _Label_Blocks
 {
-  int              block_qty;
-  int              block_total_objects;
-  int              block_min, block_max;
-  Label_block_data *block_objects;
+    int              block_qty;
+    int              block_total_objects;
+    int              block_min, block_max;
+    Label_block_data *block_objects;
 } Label_blocks;
 
 typedef struct _mo_class_data
@@ -223,7 +223,7 @@ typedef struct _mo_class_data
  */
 typedef struct _Class_Select
 {
-    MO_class_data *p_class;    
+    MO_class_data *p_class;
     Bool_type hide_by_mat;
     Bool_type hide_class_by_result;
     Bool_type disable_class_by_mat;
@@ -240,8 +240,8 @@ typedef struct _Class_Select
     unsigned char *disable_class;      /* List of disabled materials for classs */
     unsigned char *exclude_class;      /* List of disabled materials for classs */
     unsigned char *hide_class_elem;    /* A flag for each class - TRUE if hidden   */
-    unsigned char *disable_class_elem; /* A flag for each class - TRUE if disabled */ 
-    unsigned char *exclude_class_elem; /* A flag for each class - TRUE if excluded */ 
+    unsigned char *disable_class_elem; /* A flag for each class - TRUE if disabled */
+    unsigned char *exclude_class_elem; /* A flag for each class - TRUE if excluded */
 } Class_Select;
 
 /*****************************************************************
@@ -294,23 +294,23 @@ typedef struct _mesh_data
      */
     int mat_hide_qty;
     int mat_disable_qty;
- 
+
     /* BRICKS */
     int brick_qty;      /* Total number of bricks */
-    int brick_hide_qty; /* Number of current hidden 
-                         * materials for bricks 
+    int brick_hide_qty; /* Number of current hidden
+                         * materials for bricks
                          */
-    int brick_disable_qty; /* Number of current disabled 
-                            * materials for bricks 
+    int brick_disable_qty; /* Number of current disabled
+                            * materials for bricks
 			    */
-    int brick_exclude_qty; /* Number of current excluded 
-                            * materials for bricks 
+    int brick_exclude_qty; /* Number of current excluded
+                            * materials for bricks
                             */
 
     unsigned char *hide_brick;    /* List of hidden materials for bricks   */
     unsigned char *disable_brick; /* List of disabled materials for bricks */
     unsigned char *exclude_brick; /* List of disabled materials for bricks */
-    
+
     /* February 20, 2007: IRC Added array to track individual bricks that are
      * hidden or enabled.
      */
@@ -327,15 +327,15 @@ typedef struct _mesh_data
     int exclude_brick_elem_qty;
 
     unsigned char *hide_brick_elem;    /* A flag for each brick - TRUE if hidden   */
-    unsigned char *disable_brick_elem; /* A flag for each brick - TRUE if disabled */ 
-    unsigned char *exclude_brick_elem; /* A flag for each brick - TRUE if excluded */ 
+    unsigned char *disable_brick_elem; /* A flag for each brick - TRUE if disabled */
+    unsigned char *exclude_brick_elem; /* A flag for each brick - TRUE if excluded */
 
     /* SHELLS */
     int shell_qty;
     int shell_hide_qty;
     int shell_disable_qty;
-    int shell_exclude_qty; 
- 
+    int shell_exclude_qty;
+
     unsigned char *hide_shell;
     unsigned char *disable_shell;
     unsigned char *exclude_shell;
@@ -356,8 +356,8 @@ typedef struct _mesh_data
     int exclude_shell_elem_qty;
 
     unsigned char *hide_shell_elem;    /* A flag for each shell - TRUE if hidden   */
-    unsigned char *disable_shell_elem; /* A flag for each shell - TRUE if disabled */ 
-    unsigned char *exclude_shell_elem; /* A flag for each shell - TRUE if excluded */ 
+    unsigned char *disable_shell_elem; /* A flag for each shell - TRUE if disabled */
+    unsigned char *exclude_shell_elem; /* A flag for each shell - TRUE if excluded */
 
 
     /* BEAMS */
@@ -386,14 +386,14 @@ typedef struct _mesh_data
     int exclude_beam_elem_qty;
 
     unsigned char *hide_beam_elem;    /* A flag for each beam - TRUE if hidden   */
-    unsigned char *disable_beam_elem; /* A flag for each beam - TRUE if disabled */ 
-    unsigned char *exclude_beam_elem; /* A flag for each beam - TRUE if excluded */ 
+    unsigned char *disable_beam_elem; /* A flag for each beam - TRUE if disabled */
+    unsigned char *exclude_beam_elem; /* A flag for each beam - TRUE if excluded */
 
     /* TRUSS */
     int truss_qty;
-    int truss_hide_qty; 
-    int truss_disable_qty; 
-    int truss_exclude_qty; 
+    int truss_hide_qty;
+    int truss_disable_qty;
+    int truss_exclude_qty;
 
     unsigned char *hide_truss;
     unsigned char *disable_truss;
@@ -415,15 +415,15 @@ typedef struct _mesh_data
     int exclude_truss_elem_qty;
 
     unsigned char *hide_truss_elem;    /* A flag for each truss - TRUE if hidden   */
-    unsigned char *disable_truss_elem; /* A flag for each truss - TRUE if disabled */ 
-    unsigned char *exclude_truss_elem; /* A flag for each truss - TRUE if excluded */ 
+    unsigned char *disable_truss_elem; /* A flag for each truss - TRUE if disabled */
+    unsigned char *exclude_truss_elem; /* A flag for each truss - TRUE if excluded */
 
 
     /* PARTICLES */
-    int particle_qty;    
-    int particle_hide_qty;    
-    int particle_disable_qty;    
-    MO_class_data *p_ml_class;    
+    int particle_qty;
+    int particle_hide_qty;
+    int particle_disable_qty;
+    MO_class_data *p_ml_class;
 
     unsigned char *hide_particle;
     unsigned char *disable_particle;
@@ -431,10 +431,10 @@ typedef struct _mesh_data
     int hide_particle_elem_qty;
     int disable_particle_elem_qty;
     int exclude_particle_elem_qty;
-        
+
     float     particle_result_min;
     float     particle_result_max;
-    
+
     Bool_type hide_particle_by_mat;
     Bool_type hide_particle_by_result;
     Bool_type disable_particle_by_mat;
@@ -442,8 +442,8 @@ typedef struct _mesh_data
     Bool_type *particle_mats;
 
     unsigned char *hide_particle_elem;    /* A flag for each particle - TRUE if hidden   */
-    unsigned char *disable_particle_elem; /* A flag for each particle - TRUE if disabled */ 
-    unsigned char *exclude_particle_elem; /* A flag for each particle - TRUE if excluded */ 
+    unsigned char *disable_particle_elem; /* A flag for each particle - TRUE if disabled */
+    unsigned char *exclude_particle_elem; /* A flag for each particle - TRUE if excluded */
 
     /* CLASSES */
 
@@ -457,20 +457,20 @@ typedef struct _mesh_data
     float *mtl_trans[3];
     Edge_list_obj *edge_list;
 
-    /* January 15, 2009: IRC added capability to define particle class names 
+    /* January 15, 2009: IRC added capability to define particle class names
      * from a list specified in the TI file.
      */
-   int  num_particle_classes;
-   char **particle_class_names;
-   
-   /* June 16, 2009: IRC - New array for enabling/disabling by NODE.
-    */
-   short     *disable_nodes; 
-   Bool_type disable_nodes_init;
+    int  num_particle_classes;
+    char **particle_class_names;
 
-   int           num_elem_classes;
-   MO_class_data **p_elem_classes;
-   float *hex_vol_sums;
+    /* June 16, 2009: IRC - New array for enabling/disabling by NODE.
+     */
+    short     *disable_nodes;
+    Bool_type disable_nodes_init;
+
+    int           num_elem_classes;
+    MO_class_data **p_elem_classes;
+    float *hex_vol_sums;
 } Mesh_data;
 
 
@@ -484,10 +484,10 @@ typedef struct
 {
     int state_no;
     int srec_id;
-  int sph_srec_id;
-    
+    int sph_srec_id;
+
     float time;
-    
+
     int position_constant;
     int sand_present;
     int sph_present;
@@ -495,7 +495,7 @@ typedef struct
     Object_data nodes;
     float **elem_class_sand;
     int   *sph_class_itype;
-    
+
     Object_data particles;
 } State2;
 

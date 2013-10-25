@@ -32,13 +32,13 @@
  *                          See SRC#: 514
  *
  * 01/17/2008 I. R. Corey   Compute rotations for Shell Strains correctly for
- *                          TH databases - need to get c ooords from TH 
+ *                          TH databases - need to get c ooords from TH
  *                          nodes.
  *                          See SRC#: 523
  *
  * 08/27/2008 I. R. Corey   Strain rotations not computed correctly for
  *                          data organized by object ids in rotate_quad_
- *                          result. 
+ *                          result.
  *                          See SRC#: 546
  *
  * 11/10/2008 I. R. Corey   Fixed an indexing problem for strain rotations
@@ -51,20 +51,20 @@
  *                          See SRC#: 605
  *
  * 09/29/2009 I. R. Corey   Fixed a problem with computing strains for
- *                          shared result with multiple Hex element 
+ *                          shared result with multiple Hex element
  *                          sets.
  *                          See SRC#: 629
  *
  * 09/07/2011 I. R. Corey   Fixed a problem with computing hex strain
- *                          rate. 
+ *                          rate.
  *
- * 01/29/2013 I. R. Corey   Fixed a problem with computing hex strain 
+ * 01/29/2013 I. R. Corey   Fixed a problem with computing hex strain
  *                          for TH databases.
  *
  *************************************************************************
  *
  */
- 
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -73,7 +73,7 @@
 #define ONETHIRD .3333333333333333
 #define ONEHALF .5
 
-static void hex_partial_deriv( double [8], double [8], double [8], double [8], 
+static void hex_partial_deriv( double [8], double [8], double [8], double [8],
                                double [8], double [8] );
 static void extract_strain_vec( double *, double [9], Strain_type );
 static void hex_principal_strain( double *, double * );
@@ -103,7 +103,7 @@ free_static_strain_data( void )
             cleanse_result( velx + i );
 
         free( velx );
-        
+
         velx = vely = velz = NULL;
     }
 
@@ -144,7 +144,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
     double xv[8], yv[8], zv[8];      /* Current node velocities. */
     double px[8], py[8], pz[8];      /* Global derivates dN/dx,dN/dy,dN/dz. */
     double F[9];                     /* Element deformation gradient. */
-    double detF;                     /* Determinant of element 
+    double detF;                     /* Determinant of element
                                         deformation gradient. */
     double eps[6];                   /* Calculated strain. */
     float *resultElem;               /* Array for the element data. */
@@ -174,17 +174,17 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
     int status=OK;
 
-    /* IRC: Added March 29, 2005 - Support strain 
-     *      calculations for timehistory databases 
+    /* IRC: Added March 29, 2005 - Support strain
+     *      calculations for timehistory databases
      */
     Bool_type map_timehist_coords = FALSE;
     int       elem_index;
     int       obj_cnt=0, obj_num=0, *obj_ids=NULL;
-    GVec3D2P  *new_nodes; 
+    GVec3D2P  *new_nodes;
 
     p_result = analy->cur_result;
     ref_frame = analy->ref_frame;
-    
+
     if (!analy->stateDB)
         map_timehist_coords = TRUE;
 
@@ -227,22 +227,22 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
     single_prec_pos = !(MESH_P( analy )->double_precision_nodpos);
 
 
-    /* IRC: Added March 29, 2005 - Support strain 
-     *      calculations for timehistory databases 
+    /* IRC: Added March 29, 2005 - Support strain
+     *      calculations for timehistory databases
      */
     if (map_timehist_coords)
     {
         /* Save current result */
         p_result = analy->cur_result;
 
-        status = load_hex_nodpos_timehist( analy, analy->cur_state+1, single_prec_pos, 
-					   &obj_cnt, &obj_ids, &new_nodes);
+        status = load_hex_nodpos_timehist( analy, analy->cur_state+1, single_prec_pos,
+                                           &obj_cnt, &obj_ids, &new_nodes);
 
         analy->cur_result = p_result;
 
-	if (status!=OK)
-	    return;   
-    }  
+        if (status!=OK)
+            return;
+    }
 
 
     /* Get nodal velocities if strain rate is desired. */
@@ -258,7 +258,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
             x_rval = find_result( analy, ALL, TRUE, velx, "nodvel[vx]" );
             y_rval = find_result( analy, ALL, TRUE, vely, "nodvel[vy]" );
             z_rval = find_result( analy, ALL, TRUE, velz, "nodvel[vz]" );
-        
+
             if ( !x_rval || !y_rval || !z_rval )
             {
                 popup_dialog( INFO_POPUP, "%s\n%s",
@@ -274,7 +274,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
         }
         else
         {
-            /* 
+            /*
              * Alread have Results, so just update them.
              * We're assuming that if velocity was available in any state
              * format, it'll be available in all formats.
@@ -283,13 +283,13 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
             update_result( analy, vely );
             update_result( analy, velz );
         }
-            
+
         /* Capture velocity precision. */
-        single_prec_vel = ( ((Primal_result *) 
+        single_prec_vel = ( ((Primal_result *)
                              velx->original_result)->var->num_type
-                            == G_FLOAT4 
+                            == G_FLOAT4
                             ||
-                            ((Primal_result *) 
+                            ((Primal_result *)
                              velx->original_result)->var->num_type
                             == G_FLOAT );
 
@@ -304,17 +304,17 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                 nxv = analy->tmp_result[0];
                 nyv = analy->tmp_result[1];
                 nzv = analy->tmp_result[2];
-                
+
                 /* Load nodal velocities for current state. */
 
                 analy->cur_result = velx;
                 NODAL_RESULT_BUFFER( analy ) = nxv;
                 load_result( analy, TRUE, FALSE, FALSE );
-                
+
                 analy->cur_result = vely;
                 NODAL_RESULT_BUFFER( analy ) = nyv;
                 load_result( analy, TRUE, FALSE, FALSE );
-                
+
                 analy->cur_result = velz;
                 NODAL_RESULT_BUFFER( analy ) = nzv;
                 load_result( analy, TRUE, FALSE, FALSE );
@@ -326,7 +326,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
             {
                 if ( !mixed_prec_warn )
                 {
-                    popup_dialog( INFO_POPUP, 
+                    popup_dialog( INFO_POPUP,
                                   "Strain RATE not available for single "
                                   "precision\nnode positions and double "
                                   "precision velocities; aborting.\n(This "
@@ -335,7 +335,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                 }
 
                 for ( i = 0; i < 3; i++ )
-                      cleanse_result( velx + i );
+                    cleanse_result( velx + i );
                 free( velx );
                 velx = vely = velz = NULL;
 
@@ -356,7 +356,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                 if ( strain_vel == NULL )
                 {
                     /* Allocate arrays for velocities into a static pointer. */
-                    strain_vel = NEW_N( float, qty * 3, 
+                    strain_vel = NEW_N( float, qty * 3,
                                         "Temp node vel buffers" );
                     if ( strain_vel == NULL )
                     {
@@ -369,17 +369,17 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                 nxv = strain_vel;
                 nyv = nxv + qty;
                 nzv = nyv + qty;
-                
+
                 /* Load nodal velocities for current state. */
 
                 analy->cur_result = velx;
                 NODAL_RESULT_BUFFER( analy ) = nxv;
                 load_result( analy, TRUE, FALSE, FALSE );
-                
+
                 analy->cur_result = vely;
                 NODAL_RESULT_BUFFER( analy ) = nyv;
                 load_result( analy, TRUE, FALSE, FALSE );
-                
+
                 analy->cur_result = velz;
                 NODAL_RESULT_BUFFER( analy ) = nzv;
                 load_result( analy, TRUE, FALSE, FALSE );
@@ -399,7 +399,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                 if ( strain_vel_2p == NULL )
                 {
                     /* Allocate arrays for velocities into a static pointer. */
-                    strain_vel_2p = NEW_N( double, qty * 3, 
+                    strain_vel_2p = NEW_N( double, qty * 3,
                                            "Temp node vel buffers" );
                     if ( strain_vel_2p == NULL )
                     {
@@ -412,10 +412,10 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                 nxv_2p = strain_vel_2p;
                 nyv_2p = nxv_2p + qty;
                 nzv_2p = nyv_2p + qty;
-                
+
                 /* Load nodal velocities for current state. */
 
-                /* 
+                /*
                  * Cast the double arrays to floats; the I/O library just
                  * needs an address referencing enough space to write to.
                  */
@@ -423,11 +423,11 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                 analy->cur_result = velx;
                 NODAL_RESULT_BUFFER( analy ) = (float *) nxv_2p;
                 load_result( analy, TRUE, FALSE, FALSE );
-                
+
                 analy->cur_result = vely;
                 NODAL_RESULT_BUFFER( analy ) = (float *) nyv_2p;
                 load_result( analy, TRUE, FALSE, FALSE );
-                
+
                 analy->cur_result = velz;
                 NODAL_RESULT_BUFFER( analy ) = (float *) nzv_2p;
                 load_result( analy, TRUE, FALSE, FALSE );
@@ -446,7 +446,7 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
     }
     else
     {
-        /* 
+        /*
          * Load and save node positions for the first state, which is the
          * reference state for this calculation in double precision.
          */
@@ -454,39 +454,39 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
         {
             if ( reference_nodes == NULL )
             {
-               /* Save current result */
-               p_result = analy->cur_result;
+                /* Save current result */
+                p_result = analy->cur_result;
 
-               status = load_hex_nodpos_timehist( analy, 1, single_prec_pos,
-						  &obj_cnt, &obj_ids, &reference_nodes);
-	       if (status!=OK)
-		   return;   
+                status = load_hex_nodpos_timehist( analy, 1, single_prec_pos,
+                                                   &obj_cnt, &obj_ids, &reference_nodes);
+                if (status!=OK)
+                    return;
             }
-               onodes3d2p = reference_nodes;
+            onodes3d2p = reference_nodes;
         }
         else
-           {
-             if ( reference_nodes == NULL )
-                  load_reference_node_pos( analy );
-    
-             onodes3d2p = reference_nodes;
+        {
+            if ( reference_nodes == NULL )
+                load_reference_node_pos( analy );
 
-             /* 
-              * Read in the double precision coordinates at the current state. 
-              * Can't use analy->state_p->nodes because that is converted to single
-              * precision immediately when read in at state change.
-              */
-             p_sro = analy->srec_tree + analy->state_p->srec_id;
-             load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension, 
-                          analy->cur_state + 1, FALSE, 
-                          (void *) analy->tmp_result[0] );
-             nodes3d2p = (GVec3D2P *) analy->tmp_result[0];
-           }
+            onodes3d2p = reference_nodes;
+
+            /*
+             * Read in the double precision coordinates at the current state.
+             * Can't use analy->state_p->nodes because that is converted to single
+             * precision immediately when read in at state change.
+             */
+            p_sro = analy->srec_tree + analy->state_p->srec_id;
+            load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                         analy->cur_state + 1, FALSE,
+                         (void *) analy->tmp_result[0] );
+            nodes3d2p = (GVec3D2P *) analy->tmp_result[0];
+        }
     }
-    
+
 
     /* Prepare access to material data. */
-    p_mat_class = ((MO_class_data **) 
+    p_mat_class = ((MO_class_data **)
                    MESH( analy ).classes_by_sclass[G_MAT].list)[0];
     p_mats = p_mat_class->objects.materials;
     disable_mat = MESH( analy ).disable_material;
@@ -498,12 +498,12 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
     for ( l = 0; l < class_qty; l++ )
     {
-        p_hex_class = ((MO_class_data **) 
+        p_hex_class = ((MO_class_data **)
                        MESH( analy ).classes_by_sclass[G_HEX].list)[l];
 
-	particle_class = FALSE;
-	if (is_particle_class( analy, p_hex_class->superclass, p_hex_class->short_name) )
-	    particle_class = TRUE;
+        particle_class = FALSE;
+        if (is_particle_class( analy, p_hex_class->superclass, p_hex_class->short_name) )
+            particle_class = TRUE;
 
         connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
         resultElem = p_hex_class->data_buffer;
@@ -516,22 +516,23 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
             if ( p_mats[m].elem_class == p_hex_class && !disable_mat[m] )
                 active_mats[active_qty++] = m;
         }
-        
+
         /* Loop over the active materials. */
         for ( m = 0; m < active_qty; m++ )
         {
             cur_mat = active_mats[m];
             elem_block_qty = p_mats[cur_mat].elem_block_qty;
 
-            /* IRC: Added March 29, 2005 - Support strain 
-             *      calculations for timehistory databases 
+            /* IRC: Added March 29, 2005 - Support strain
+             *      calculations for timehistory databases
              */
             if (map_timehist_coords)
-               elem_block_qty = 1;
+                elem_block_qty = 1;
 
-	    if ( class_qty>1 && elem_block_qty>1 ) {
-	         elem_block_qty = 1;
-	    }
+            if ( class_qty>1 && elem_block_qty>1 )
+            {
+                elem_block_qty = 1;
+            }
 
             /* Loop over the element blocks of the current active material. */
             for ( n = 0; n < elem_block_qty; n++ )
@@ -539,53 +540,56 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                 start = p_mats[cur_mat].elem_blocks[n][0];
                 stop  = p_mats[cur_mat].elem_blocks[n][1];
 
-		if ( class_qty>1 && stop>=p_hex_class->qty ) {
-		     start = 0;
-		     stop  = p_hex_class->qty-1;
-		}
+                if ( class_qty>1 && stop>=p_hex_class->qty )
+                {
+                    start = 0;
+                    stop  = p_hex_class->qty-1;
+                }
 
-		if ( obj_ids && obj_cnt>0 ) {
-		     for ( i = start; i <= stop; i++ )
-		           resultElem[i] = 0.0;     
-		     start = 0;
-		     stop  = obj_cnt-1;
-		}
+                if ( obj_ids && obj_cnt>0 )
+                {
+                    for ( i = start; i <= stop; i++ )
+                        resultElem[i] = 0.0;
+                    start = 0;
+                    stop  = obj_cnt-1;
+                }
 
                 /* Loop over the elements in the current element block. */
                 for ( i = start; i <= stop; i++ )
+                {
+                    if ( particle_class )
                     {
-		      if ( particle_class ) {
 
-                           elem_index = i;
-			   
-			   if ( obj_ids )
-			   {
-			        if (map_timehist_coords && obj_ids[i] == -1)
-				    continue;
-			        else
-				    elem_index = obj_ids[i];
-			   }
-			   resultElem[elem_index] = 0.0;
-		      }
+                        elem_index = i;
+
+                        if ( obj_ids )
+                        {
+                            if (map_timehist_coords && obj_ids[i] == -1)
+                                continue;
+                            else
+                                elem_index = obj_ids[i];
+                        }
+                        resultElem[elem_index] = 0.0;
+                    }
 
                     /*
-                     * Since we're calculating volume element results from 
-                     * nodal data, loop over the hex element class, not the 
+                     * Since we're calculating volume element results from
+                     * nodal data, loop over the hex element class, not the
                      * subrecord.
                      *
-                     * Assumptions: 
-                     * - complete nodal data (at least with respect to the 
-                     * nodes referenced by the hex class) is available.  We 
-                     * don't read the subrecord directly, only the state_p 
-                     * position arrays and the node class initial position 
-                     * arrays, which are "proper" arrays for the class (or 
+                     * Assumptions:
+                     * - complete nodal data (at least with respect to the
+                     * nodes referenced by the hex class) is available.  We
+                     * don't read the subrecord directly, only the state_p
+                     * position arrays and the node class initial position
+                     * arrays, which are "proper" arrays for the class (or
                      * velocities from nodal data arrays which are also proper
-                     * after the load_result() call), but the data must be 
-                     * available for this calculation to give correct results; 
-                     * in fact, the nodal subrecord should be complete and 
-                     * there should only be one, otherwise this function will 
-                     * be called multiple times, only to repeat the same 
-                     * calculation each time.  
+                     * after the load_result() call), but the data must be
+                     * available for this calculation to give correct results;
+                     * in fact, the nodal subrecord should be complete and
+                     * there should only be one, otherwise this function will
+                     * be called multiple times, only to repeat the same
+                     * calculation each time.
                      */
 
                     /*
@@ -603,8 +607,8 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                      * where we're loading the data above.
                      */
 
-		    if (map_timehist_coords && !obj_ids)
-			continue;
+                    if (map_timehist_coords && !obj_ids)
+                        continue;
 
                     if ( analy->strain_variety != RATE )
                     {
@@ -614,30 +618,31 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                             for ( j = 0; j < 8; j++ )
                             {
                                 nd = connects[i][j];
-                                if (map_timehist_coords) 
+                                if (map_timehist_coords)
                                 {
-				    if ( obj_ids ) {
-				         elem_index = obj_ids[i];
-                                         nd = connects[elem_index][j];
-				    }
-				}
+                                    if ( obj_ids )
+                                    {
+                                        elem_index = obj_ids[i];
+                                        nd = connects[elem_index][j];
+                                    }
+                                }
                                 x[j] = (double) onodes3d[nd][0];
                                 y[j] = (double) onodes3d[nd][1];
                                 z[j] = (double) onodes3d[nd][2];
 
                                 /* Obtain coordinates from timehistory subrecords */
-                                if (map_timehist_coords) 
-                                   {
+                                if (map_timehist_coords)
+                                {
                                     xx[j] = new_nodes[nd][0];
                                     yy[j] = new_nodes[nd][1];
                                     zz[j] = new_nodes[nd][2];
-                                   }
+                                }
                                 else
-                                   {
+                                {
                                     xx[j] = (double) nodes3d[nd][0];
                                     yy[j] = (double) nodes3d[nd][1];
                                     zz[j] = (double) nodes3d[nd][2];
-                                   }
+                                }
                             }
                         }
                         else
@@ -646,35 +651,36 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                             for ( j = 0; j < 8; j++ )
                             {
                                 nd = connects[i][j];
-                                if (map_timehist_coords) 
+                                if (map_timehist_coords)
                                 {
-				    if ( obj_ids ) {
-				         elem_index = obj_ids[i];
-                                         nd = connects[elem_index][j];
-				    }
-				}
+                                    if ( obj_ids )
+                                    {
+                                        elem_index = obj_ids[i];
+                                        nd = connects[elem_index][j];
+                                    }
+                                }
 
                                 x[j] = onodes3d2p[nd][0];
                                 y[j] = onodes3d2p[nd][1];
                                 z[j] = onodes3d2p[nd][2];
 
                                 /* Obtain coordinates from timehistory subrecords */
-                                if (map_timehist_coords) 
-                                   {
+                                if (map_timehist_coords)
+                                {
                                     xx[j] = new_nodes[nd][0];
                                     yy[j] = new_nodes[nd][1];
                                     zz[j] = new_nodes[nd][2];
-                                   }
+                                }
                                 else
-                                   {
+                                {
                                     xx[j] = nodes3d2p[nd][0];
                                     yy[j] = nodes3d2p[nd][1];
                                     zz[j] = nodes3d2p[nd][2];
-                                   }
+                                }
                             }
                         }
                     }
-                    else 
+                    else
                     {
                         /* Strain RATE calculation */
 
@@ -683,32 +689,33 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                             /* Single prec pos, must be single prec vel */
                             for ( j = 0; j < 8; j++ )
                             {
-                                 nd = connects[i][j];
-                                 if (map_timehist_coords) 
-                                 {
-				     if ( obj_ids ) {
-				          elem_index = obj_ids[i];
-                                          nd = connects[elem_index][j];
-				    }
-				 }
+                                nd = connects[i][j];
+                                if (map_timehist_coords)
+                                {
+                                    if ( obj_ids )
+                                    {
+                                        elem_index = obj_ids[i];
+                                        nd = connects[elem_index][j];
+                                    }
+                                }
 
-                                 xv[j] = nxv[nd];
-                                 yv[j] = nyv[nd];
-                                 zv[j] = nzv[nd];
-                                    
-                                 /* Obtain coordinates from timehistory subrecords */
-                                 if (map_timehist_coords) 
-                                    {
-                                     xx[j] = new_nodes[nd][0];
-                                     yy[j] = new_nodes[nd][1];
-                                     zz[j] = new_nodes[nd][2];
-                                    }
-                                 else
-                                    {
-                                     xx[j] = nodes3d[nd][0];
-                                     yy[j] = nodes3d[nd][1];
-                                     zz[j] = nodes3d[nd][2];
-                                    }
+                                xv[j] = nxv[nd];
+                                yv[j] = nyv[nd];
+                                zv[j] = nzv[nd];
+
+                                /* Obtain coordinates from timehistory subrecords */
+                                if (map_timehist_coords)
+                                {
+                                    xx[j] = new_nodes[nd][0];
+                                    yy[j] = new_nodes[nd][1];
+                                    zz[j] = new_nodes[nd][2];
+                                }
+                                else
+                                {
+                                    xx[j] = nodes3d[nd][0];
+                                    yy[j] = nodes3d[nd][1];
+                                    zz[j] = nodes3d[nd][2];
+                                }
                             }
                         }
                         else
@@ -719,31 +726,32 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                                 for ( j = 0; j < 8; j++ )
                                 {
                                     nd = connects[i][j];
-                                    if (map_timehist_coords) 
+                                    if (map_timehist_coords)
                                     {
-				        if ( obj_ids ) {
-				             elem_index = obj_ids[i];
-                                             nd = connects[elem_index][j];
-					}
-				    }
+                                        if ( obj_ids )
+                                        {
+                                            elem_index = obj_ids[i];
+                                            nd = connects[elem_index][j];
+                                        }
+                                    }
 
                                     xv[j] = (double) nxv[nd];
                                     yv[j] = (double) nyv[nd];
                                     zv[j] = (double) nzv[nd];
-                                    
+
                                     /* Obtain coordinates from timehistory subrecords */
-                                    if (map_timehist_coords) 
-                                       {
+                                    if (map_timehist_coords)
+                                    {
                                         xx[j] = new_nodes[nd][0];
                                         yy[j] = new_nodes[nd][1];
                                         zz[j] = new_nodes[nd][2];
-                                       }
+                                    }
                                     else
-                                       {
+                                    {
                                         xx[j] = nodes3d2p[nd][0];
                                         yy[j] = nodes3d2p[nd][1];
                                         zz[j] = nodes3d2p[nd][2];
-                                       }
+                                    }
                                 }
                             }
                             else
@@ -752,31 +760,32 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
                                 for ( j = 0; j < 8; j++ )
                                 {
                                     nd = connects[i][j];
-                                    if (map_timehist_coords) 
-				    {
-				        if ( obj_ids ) {
-					     elem_index = obj_ids[i];
-					     nd = connects[elem_index][j];
-					}
-				    }
+                                    if (map_timehist_coords)
+                                    {
+                                        if ( obj_ids )
+                                        {
+                                            elem_index = obj_ids[i];
+                                            nd = connects[elem_index][j];
+                                        }
+                                    }
 
                                     xv[j] = nxv_2p[nd];
                                     yv[j] = nyv_2p[nd];
                                     zv[j] = nzv_2p[nd];
 
                                     /* Obtain coordinates from timehistory subrecords */
-                                    if (map_timehist_coords) 
-                                       {
+                                    if (map_timehist_coords)
+                                    {
                                         xx[j] = new_nodes[nd][0];
                                         yy[j] = new_nodes[nd][1];
                                         zz[j] = new_nodes[nd][2];
-                                       }
+                                    }
                                     else
-                                       {
+                                    {
                                         xx[j] = nodes3d2p[nd][0];
                                         yy[j] = nodes3d2p[nd][1];
                                         zz[j] = nodes3d2p[nd][2];
-                                       }
+                                    }
                                 }
                             }
                         }
@@ -786,161 +795,161 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
                     switch ( analy->strain_variety )
                     {
-                        case INFINITESIMAL: 
-                        case GREEN_LAGRANGE: 
-			  hex_partial_deriv( px, py, pz, x, y, z);
-                            for ( k = 0; k < 8; k++ )
-                            {
-                                F[0] = F[0] + px[k]*xx[k];
-                                F[1] = F[1] + py[k]*xx[k];
-                                F[2] = F[2] + pz[k]*xx[k];
-                                F[3] = F[3] + px[k]*yy[k];
-                                F[4] = F[4] + py[k]*yy[k];
-                                F[5] = F[5] + pz[k]*yy[k];
-                                F[6] = F[6] + px[k]*zz[k];
-                                F[7] = F[7] + py[k]*zz[k];
-                                F[8] = F[8] + pz[k]*zz[k];
-                            }
-                            detF = F[0]*F[4]*F[8] + F[1]*F[5]*F[6] 
-                                   + F[2]*F[3]*F[7] 
-                                   - F[2]*F[4]*F[6] - F[1]*F[3]*F[8] 
-                                   - F[0]*F[5]*F[7];
-                            detF = fabs( detF );
-                            break;
+                    case INFINITESIMAL:
+                    case GREEN_LAGRANGE:
+                        hex_partial_deriv( px, py, pz, x, y, z);
+                        for ( k = 0; k < 8; k++ )
+                        {
+                            F[0] = F[0] + px[k]*xx[k];
+                            F[1] = F[1] + py[k]*xx[k];
+                            F[2] = F[2] + pz[k]*xx[k];
+                            F[3] = F[3] + px[k]*yy[k];
+                            F[4] = F[4] + py[k]*yy[k];
+                            F[5] = F[5] + pz[k]*yy[k];
+                            F[6] = F[6] + px[k]*zz[k];
+                            F[7] = F[7] + py[k]*zz[k];
+                            F[8] = F[8] + pz[k]*zz[k];
+                        }
+                        detF = F[0]*F[4]*F[8] + F[1]*F[5]*F[6]
+                               + F[2]*F[3]*F[7]
+                               - F[2]*F[4]*F[6] - F[1]*F[3]*F[8]
+                               - F[0]*F[5]*F[7];
+                        detF = fabs( detF );
+                        break;
 
-                        case ALMANSI: 
-                            hex_partial_deriv( px, py, pz, xx, yy, zz );
-                            for ( k = 0; k < 8; k++ )
-                            {
-                                F[0] = F[0] + px[k]*x[k];
-                                F[1] = F[1] + py[k]*x[k];
-                                F[2] = F[2] + pz[k]*x[k];
-                                F[3] = F[3] + px[k]*y[k];
-                                F[4] = F[4] + py[k]*y[k];
-                                F[5] = F[5] + pz[k]*y[k];
-                                F[6] = F[6] + px[k]*z[k];
-                                F[7] = F[7] + py[k]*z[k];
-                                F[8] = F[8] + pz[k]*z[k];
-                            }
-                            detF = F[0]*F[4]*F[8] + F[1]*F[5]*F[6] 
-                                   + F[2]*F[3]*F[7] 
-                                   - F[2]*F[4]*F[6] - F[1]*F[3]*F[8] 
-                                   - F[0]*F[5]*F[7];
-                            detF = fabs( detF );
-                            break;
+                    case ALMANSI:
+                        hex_partial_deriv( px, py, pz, xx, yy, zz );
+                        for ( k = 0; k < 8; k++ )
+                        {
+                            F[0] = F[0] + px[k]*x[k];
+                            F[1] = F[1] + py[k]*x[k];
+                            F[2] = F[2] + pz[k]*x[k];
+                            F[3] = F[3] + px[k]*y[k];
+                            F[4] = F[4] + py[k]*y[k];
+                            F[5] = F[5] + pz[k]*y[k];
+                            F[6] = F[6] + px[k]*z[k];
+                            F[7] = F[7] + py[k]*z[k];
+                            F[8] = F[8] + pz[k]*z[k];
+                        }
+                        detF = F[0]*F[4]*F[8] + F[1]*F[5]*F[6]
+                               + F[2]*F[3]*F[7]
+                               - F[2]*F[4]*F[6] - F[1]*F[3]*F[8]
+                               - F[0]*F[5]*F[7];
+                        detF = fabs( detF );
+                        break;
 
-                        case RATE: 
-                            hex_partial_deriv( px, py, pz, xx, yy, zz );
-                            for ( k = 0; k < 8; k++ )
-                            {
-                                F[0] = F[0] + px[k]*xv[k];
-                                F[1] = F[1] + py[k]*xv[k];
-                                F[2] = F[2] + pz[k]*xv[k];
-                                F[3] = F[3] + px[k]*yv[k];
-                                F[4] = F[4] + py[k]*yv[k];
-                                F[5] = F[5] + pz[k]*yv[k];
-                                F[6] = F[6] + px[k]*zv[k];
-                                F[7] = F[7] + py[k]*zv[k];
-                                F[8] = F[8] + pz[k]*zv[k];
-                            }
-                            detF = F[0]*F[4]*F[8] + F[1]*F[5]*F[6] 
-                                   + F[2]*F[3]*F[7]
-                                   - F[2]*F[4]*F[6] - F[1]*F[3]*F[8] 
-                                   - F[0]*F[5]*F[7];
-                            detF = fabs( detF );
-                            break;
+                    case RATE:
+                        hex_partial_deriv( px, py, pz, xx, yy, zz );
+                        for ( k = 0; k < 8; k++ )
+                        {
+                            F[0] = F[0] + px[k]*xv[k];
+                            F[1] = F[1] + py[k]*xv[k];
+                            F[2] = F[2] + pz[k]*xv[k];
+                            F[3] = F[3] + px[k]*yv[k];
+                            F[4] = F[4] + py[k]*yv[k];
+                            F[5] = F[5] + pz[k]*yv[k];
+                            F[6] = F[6] + px[k]*zv[k];
+                            F[7] = F[7] + py[k]*zv[k];
+                            F[8] = F[8] + pz[k]*zv[k];
+                        }
+                        detF = F[0]*F[4]*F[8] + F[1]*F[5]*F[6]
+                               + F[2]*F[3]*F[7]
+                               - F[2]*F[4]*F[6] - F[1]*F[3]*F[8]
+                               - F[0]*F[5]*F[7];
+                        detF = fabs( detF );
+                        break;
                     }
 
                     extract_strain_vec( eps, F, analy->strain_variety );
 
                     if ( ref_frame == GLOBAL )
-                    {    
+                    {
                         if ( analy->do_tensor_transform )
                             if ( res_index >= 0 && res_index <= 5 )
-                                transform_tensors( 1, (double (*)[6]) &eps, 
-                                    analy->tensor_transform_matrix );
+                                transform_tensors( 1, (double (*)[6]) &eps,
+                                                   analy->tensor_transform_matrix );
                     }
                     else if ( ref_frame == LOCAL )
                     {
                         if ( res_index >= 0 && res_index <= 5 )
                         {
-                            hex_g2l_mtx( analy, p_hex_class, i, 0, 1, 3, 
+                            hex_g2l_mtx( analy, p_hex_class, i, 0, 1, 3,
                                          localMat );
-                            transform_tensors( 1, (double (*)[6]) &eps, 
-                                                      localMat );
+                            transform_tensors( 1, (double (*)[6]) &eps,
+                                               localMat );
                         }
                     }
 
                     elem_index = i;
 
-		    if ( obj_ids )
-		    {
-                         if (map_timehist_coords && obj_ids[i] == -1)
-                             continue;
-                         else
-                             elem_index = obj_ids[i];
-		    }
+                    if ( obj_ids )
+                    {
+                        if (map_timehist_coords && obj_ids[i] == -1)
+                            continue;
+                        else
+                            elem_index = obj_ids[i];
+                    }
 
                     switch( res_index )
                     {
-                        case 0:
-                            resultElem[elem_index] = (float) eps[0];        
-                            break;
-                        case 1:
-                            resultElem[elem_index] = (float) eps[1];        
-                            break;
-                        case 2:
-                            resultElem[elem_index] = (float) eps[2];        
-                            break;
-                        case 3:
-                            resultElem[elem_index] = (float) eps[3];        
-                            break;
-                        case 4:
-                            resultElem[elem_index] = (float) eps[4];        
-                            break;
-                        case 5:
-                            resultElem[elem_index] = (float) eps[5];        
-                            break;
-                        case 6:
-                            hex_principal_strain( eps, &meanStrain );
-                            resultElem[elem_index] = (float) eps[0];
-                            break;
-                        case 7:
-                            hex_principal_strain( eps, &meanStrain );
-                            resultElem[elem_index] = (float) eps[1];
-                            break;
-                        case 8:
-                            hex_principal_strain( eps, &meanStrain );
-                            resultElem[elem_index] = (float) eps[2];
-                            break;
-                        case 9:
-                            hex_principal_strain( eps, &meanStrain );
-                            resultElem[elem_index] = (float) (eps[0] - eps[2]);
-                            break;
-                        case 10:
-                            hex_principal_strain( eps, &meanStrain );
-                            resultElem[elem_index] = (float) (eps[0] - meanStrain);
-                            break;
-                        case 11:
-                            hex_principal_strain( eps, &meanStrain );
-                            resultElem[elem_index] = (float) (eps[1] - meanStrain);
-                            break;
-                        case 12:
-                            hex_principal_strain( eps, &meanStrain );
-                            resultElem[elem_index] = (float) (eps[2] - meanStrain);
-                            break;
-                        case 13:
-                            resultElem[elem_index] = (float) eps[3] * 2.0;        
-                            break;
-                        case 14:
-                            resultElem[elem_index] = (float) eps[4] * 2.0;        
-                            break;
-                        case 15:
-                            resultElem[elem_index] = (float) eps[5] * 2.0;        
-                            break;
-                        default:
-                            popup_dialog( WARNING_POPUP, 
-                                          "Unknown strain result requested!" );
+                    case 0:
+                        resultElem[elem_index] = (float) eps[0];
+                        break;
+                    case 1:
+                        resultElem[elem_index] = (float) eps[1];
+                        break;
+                    case 2:
+                        resultElem[elem_index] = (float) eps[2];
+                        break;
+                    case 3:
+                        resultElem[elem_index] = (float) eps[3];
+                        break;
+                    case 4:
+                        resultElem[elem_index] = (float) eps[4];
+                        break;
+                    case 5:
+                        resultElem[elem_index] = (float) eps[5];
+                        break;
+                    case 6:
+                        hex_principal_strain( eps, &meanStrain );
+                        resultElem[elem_index] = (float) eps[0];
+                        break;
+                    case 7:
+                        hex_principal_strain( eps, &meanStrain );
+                        resultElem[elem_index] = (float) eps[1];
+                        break;
+                    case 8:
+                        hex_principal_strain( eps, &meanStrain );
+                        resultElem[elem_index] = (float) eps[2];
+                        break;
+                    case 9:
+                        hex_principal_strain( eps, &meanStrain );
+                        resultElem[elem_index] = (float) (eps[0] - eps[2]);
+                        break;
+                    case 10:
+                        hex_principal_strain( eps, &meanStrain );
+                        resultElem[elem_index] = (float) (eps[0] - meanStrain);
+                        break;
+                    case 11:
+                        hex_principal_strain( eps, &meanStrain );
+                        resultElem[elem_index] = (float) (eps[1] - meanStrain);
+                        break;
+                    case 12:
+                        hex_principal_strain( eps, &meanStrain );
+                        resultElem[elem_index] = (float) (eps[2] - meanStrain);
+                        break;
+                    case 13:
+                        resultElem[elem_index] = (float) eps[3] * 2.0;
+                        break;
+                    case 14:
+                        resultElem[elem_index] = (float) eps[4] * 2.0;
+                        break;
+                    case 15:
+                        resultElem[elem_index] = (float) eps[5] * 2.0;
+                        break;
+                    default:
+                        popup_dialog( WARNING_POPUP,
+                                      "Unknown strain result requested!" );
                     }
 
                 } /* elements in block loop */
@@ -949,16 +958,16 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
         if ( analy->ei_result || (interpolate && active_qty > 0) )
             /* Interpolate to the nodes by class and active materials. */
-            hex_to_nodal_by_mat( resultElem, resultArr, p_hex_class, 
+            hex_to_nodal_by_mat( resultElem, resultArr, p_hex_class,
                                  active_qty, active_mats, p_mats, analy );
     } /* hex class loop */
 
     free( active_mats );
-    
+
     p_result->modifiers.use_flags.use_strain_variety = 1;
     p_result->modifiers.strain_variety = analy->strain_variety;
-    if ( analy->do_tensor_transform 
-         && res_index >= 0 && res_index <= 5 )
+    if ( analy->do_tensor_transform
+            && res_index >= 0 && res_index <= 5 )
         p_result->modifiers.use_flags.coord_transform = 1;
     if (  res_index >= 0 && res_index <= 5 )
     {
@@ -968,9 +977,9 @@ compute_hex_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
     if (!analy->stateDB && analy->cur_state>0)
     {
-      free(obj_ids);
-      free(new_nodes);
-    }  
+        free(obj_ids);
+        free(new_nodes);
+    }
 }
 
 
@@ -988,11 +997,14 @@ hex_partial_deriv( double dNx[8], double dNy[8], double dNz[8], double coorX[8],
 {
     /* Local shape function derivatives evaluated at node points. */
     static double dN1[8] = { -.125, -.125, .125, .125,
-                            -.125, -.125, .125, .125 };
+                             -.125, -.125, .125, .125
+                           };
     static double dN2[8] = { -.125, -.125, -.125, -.125,
-                            .125, .125, .125, .125 };
+                             .125, .125, .125, .125
+                           };
     static double dN3[8] = { -.125, .125, .125, -.125,
-                            -.125, .125, .125, -.125};
+                             -.125, .125, .125, -.125
+                           };
     double jacob[9], invJacob[9], detJacob;
     int k;
 
@@ -1008,19 +1020,19 @@ hex_partial_deriv( double dNx[8], double dNy[8], double dNz[8], double coorX[8],
         jacob[6] += dN3[k]*coorX[k];
         jacob[7] += dN3[k]*coorY[k];
         jacob[8] += dN3[k]*coorZ[k];
-    }  
-    detJacob =   jacob[0]*jacob[4]*jacob[8] + jacob[1]*jacob[5]*jacob[6] 
-               + jacob[2]*jacob[3]*jacob[7] - jacob[2]*jacob[4]*jacob[6] 
-               - jacob[1]*jacob[3]*jacob[8] - jacob[0]*jacob[5]*jacob[7];
+    }
+    detJacob =   jacob[0]*jacob[4]*jacob[8] + jacob[1]*jacob[5]*jacob[6]
+                 + jacob[2]*jacob[3]*jacob[7] - jacob[2]*jacob[4]*jacob[6]
+                 - jacob[1]*jacob[3]*jacob[8] - jacob[0]*jacob[5]*jacob[7];
 
     if ( fabs( detJacob ) < 1.0e-20 )
     {
-         popup_dialog( WARNING_POPUP, 
-		       "Element is degenerate! Result is invalid!" );
-	 detJacob = 1.0;
+        popup_dialog( WARNING_POPUP,
+                      "Element is degenerate! Result is invalid!" );
+        detJacob = 1.0;
     }
 
-    /* Develop inverse of mapping. */ 
+    /* Develop inverse of mapping. */
     detJacob = 1.0 / detJacob;
 
     /* Cofactors of the jacobian matrix. */
@@ -1045,60 +1057,60 @@ hex_partial_deriv( double dNx[8], double dNy[8], double dNz[8], double coorX[8],
 
 
 /************************************************************
- * TAG( extract_strain_vec ) 
+ * TAG( extract_strain_vec )
  *
  * Calculates the strain components as double precision.
  */
 static void
 extract_strain_vec( double *strain, double F[9], Strain_type s_type )
 {
-    switch ( s_type ) 
+    switch ( s_type )
     {
-        case INFINITESIMAL:
-            strain[0] = F[0] - 1.0;
-            strain[1] = F[4] - 1.0; 
-            strain[2] = F[8] - 1.0; 
-            strain[3] = 0.5 * ( F[1] + F[3] );
-            strain[4] = 0.5 * ( F[5] + F[7] );
-            strain[5] = 0.5 * ( F[2] + F[6] );
-            break;
-        case RATE:
-            strain[0] = F[0];
-            strain[1] = F[4]; 
-            strain[2] = F[8]; 
-            strain[3] = 0.5 * ( F[1] + F[3] );
-            strain[4] = 0.5 * ( F[5] + F[7] );
-            strain[5] = 0.5 * ( F[2] + F[6] );
-            break;
-        case GREEN_LAGRANGE:
-            strain[0] = 0.5*(F[0]*F[0] + F[3]*F[3] + F[6]*F[6] - 1.0);
-            strain[1] = 0.5*(F[1]*F[1] + F[4]*F[4] + F[7]*F[7] - 1.0);
-            strain[2] = 0.5*(F[2]*F[2] + F[5]*F[5] + F[8]*F[8] - 1.0);
-            strain[3] = 0.5*(F[0]*F[1] + F[3]*F[4] + F[6]*F[7] );
-            strain[4] = 0.5*(F[1]*F[2] + F[4]*F[5] + F[7]*F[8] );
-            strain[5] = 0.5*(F[0]*F[2] + F[3]*F[5] + F[6]*F[8] );
-            break;
-        case ALMANSI:
-            strain[0] = -0.5*(F[0]*F[0] + F[3]*F[3] + F[6]*F[6] - 1.0);
-            strain[1] = -0.5*(F[1]*F[1] + F[4]*F[4] + F[7]*F[7] - 1.0);
-            strain[2] = -0.5*(F[2]*F[2] + F[5]*F[5] + F[8]*F[8] - 1.0);
-            strain[3] = -0.5*(F[0]*F[1] + F[3]*F[4] + F[6]*F[7] );
-            strain[4] = -0.5*(F[1]*F[2] + F[4]*F[5] + F[7]*F[8] );
-            strain[5] = -0.5*(F[0]*F[2] + F[3]*F[5] + F[6]*F[8] );
-            break;
+    case INFINITESIMAL:
+        strain[0] = F[0] - 1.0;
+        strain[1] = F[4] - 1.0;
+        strain[2] = F[8] - 1.0;
+        strain[3] = 0.5 * ( F[1] + F[3] );
+        strain[4] = 0.5 * ( F[5] + F[7] );
+        strain[5] = 0.5 * ( F[2] + F[6] );
+        break;
+    case RATE:
+        strain[0] = F[0];
+        strain[1] = F[4];
+        strain[2] = F[8];
+        strain[3] = 0.5 * ( F[1] + F[3] );
+        strain[4] = 0.5 * ( F[5] + F[7] );
+        strain[5] = 0.5 * ( F[2] + F[6] );
+        break;
+    case GREEN_LAGRANGE:
+        strain[0] = 0.5*(F[0]*F[0] + F[3]*F[3] + F[6]*F[6] - 1.0);
+        strain[1] = 0.5*(F[1]*F[1] + F[4]*F[4] + F[7]*F[7] - 1.0);
+        strain[2] = 0.5*(F[2]*F[2] + F[5]*F[5] + F[8]*F[8] - 1.0);
+        strain[3] = 0.5*(F[0]*F[1] + F[3]*F[4] + F[6]*F[7] );
+        strain[4] = 0.5*(F[1]*F[2] + F[4]*F[5] + F[7]*F[8] );
+        strain[5] = 0.5*(F[0]*F[2] + F[3]*F[5] + F[6]*F[8] );
+        break;
+    case ALMANSI:
+        strain[0] = -0.5*(F[0]*F[0] + F[3]*F[3] + F[6]*F[6] - 1.0);
+        strain[1] = -0.5*(F[1]*F[1] + F[4]*F[4] + F[7]*F[7] - 1.0);
+        strain[2] = -0.5*(F[2]*F[2] + F[5]*F[5] + F[8]*F[8] - 1.0);
+        strain[3] = -0.5*(F[0]*F[1] + F[3]*F[4] + F[6]*F[7] );
+        strain[4] = -0.5*(F[1]*F[2] + F[4]*F[5] + F[7]*F[8] );
+        strain[5] = -0.5*(F[0]*F[2] + F[3]*F[5] + F[6]*F[8] );
+        break;
     }
 }
 
- 
+
 /************************************************************
  * TAG( compute_hex_eff_strain )
  *
- * If strain variety is RATE, uses central differences to 
+ * If strain variety is RATE, uses central differences to
  * compute the rate of result "eeff", else just reads and
  * passes back primal data.
  */
-void 
-compute_hex_eff_strain( Analysis *analy,float *resultArr, 
+void
+compute_hex_eff_strain( Analysis *analy,float *resultArr,
                         Bool_type interpolate )
 {
     int cur_st, obj_qty, index, subrec, st_num, last_st;
@@ -1109,7 +1121,7 @@ compute_hex_eff_strain( Analysis *analy,float *resultArr,
     int *object_ids;
     Result *p_result;
     Subrec_obj *p_subrec;
-    
+
     p_result = analy->cur_result;
     index = analy->result_index;
     subrec = p_result->subrecs[index];
@@ -1118,49 +1130,49 @@ compute_hex_eff_strain( Analysis *analy,float *resultArr,
     obj_qty = p_subrec->subrec.qty_objects;
     object_ids = p_subrec->object_ids;
     resultElem = p_subrec->p_object_class->data_buffer;
-    
+
     e0 = ( object_ids == NULL ) ? resultElem : analy->tmp_result[2];
-    
+
     if ( analy->strain_variety != RATE )
-        analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 
+        analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec,
                                1, p_result->primals[index], (void *) e0 );
     else
     {
         e1 = analy->tmp_result[0];
         e2 = analy->tmp_result[1];
-        
+
         if ( cur_st == 0 )
             /* Rate is zero at first state. */
             memset( e0, 0, obj_qty * sizeof( float ) );
         else
         {
             /* Calculate rate from backward difference. */
-            
-            analy->db_get_results( analy->db_ident, analy->cur_state, 
-                                   subrec, 1, p_result->primals[index], 
+
+            analy->db_get_results( analy->db_ident, analy->cur_state,
+                                   subrec, 1, p_result->primals[index],
                                    (void *) e0 );
-            analy->db_get_results( analy->db_ident, analy->cur_state + 1, 
-                                   subrec, 1, p_result->primals[index], 
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1,
+                                   subrec, 1, p_result->primals[index],
                                    (void *) e1 );
-            
+
             st_num = analy->cur_state;
-            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num, 
+            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num,
                              NULL, (void *) &time0 );
             st_num++;
-            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num, 
+            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num,
                              NULL, (void *) &time1 );
-            
+
             dt1_inv = 1.0 / ((double) time1 - time0);
-            
+
             for ( i = 0; i < obj_qty; i++ )
                 e0[i] = ((double) e1[i] - e0[i]) * dt1_inv;
 
-            /* 
+            /*
              * Need last state.  Don't use get_max_state() since we don't
              * need to consider any max state constraint the user may
              * have specified.
              */
-            analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL, 
+            analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL,
                              &last_st );
             last_st--;
 
@@ -1168,35 +1180,35 @@ compute_hex_eff_strain( Analysis *analy,float *resultArr,
             {
                 /*
                  * Not at last state, so calculate rate from forward
-                 * difference and average to get final value. 
+                 * difference and average to get final value.
                  * (Time steps are not constant so this is not the
                  * simpler typical central difference expression.)
                  */
-                analy->db_get_results( analy->db_ident, analy->cur_state + 2, 
-                                       subrec, 1, p_result->primals[index], 
+                analy->db_get_results( analy->db_ident, analy->cur_state + 2,
+                                       subrec, 1, p_result->primals[index],
                                        (void *) e2 );
-                
+
                 st_num++;
-                analy->db_query( analy->db_ident, QRY_STATE_TIME, 
+                analy->db_query( analy->db_ident, QRY_STATE_TIME,
                                  (void *) &st_num, NULL, (void *) &time2 );
                 dt2_inv = 1.0 / ((double) time2 - time1);
-                
+
                 for ( i = 0; i < obj_qty; i++ )
                     e0[i] = (e0[i] + ((double) e2[i] - e1[i]) * dt2_inv) * 0.5;
             }
         }
     }
-    
+
     if ( object_ids )
     {
         for ( i = 0; i < obj_qty; i++ )
-              resultElem[object_ids[i]] = e0[i];
+            resultElem[object_ids[i]] = e0[i];
     }
-    
+
     if ( interpolate )
-        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty, 
+        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
                       object_ids, analy );
-    
+
     /*
      * Strain type = RATE is not actually supported for this result, but
      * we perform the time derivative when that is set; set the
@@ -1206,7 +1218,7 @@ compute_hex_eff_strain( Analysis *analy,float *resultArr,
         p_result->modifiers.use_flags.time_derivative = 1;
 }
 
- 
+
 /************************************************************
  * TAG( compute_hex_relative_volume )
  *
@@ -1215,8 +1227,8 @@ compute_hex_eff_strain( Analysis *analy,float *resultArr,
  * Since this hex result is calculated from nodal primal data, all
  * the comments in compute_hex_strain() above apply.
  */
-void 
-compute_hex_relative_volume( Analysis *analy, float *resultArr, 
+void
+compute_hex_relative_volume( Analysis *analy, float *resultArr,
                              Bool_type interpolate )
 {
     int i, j, l, m, n;
@@ -1224,7 +1236,7 @@ compute_hex_relative_volume( Analysis *analy, float *resultArr,
     double xx[8], yy[8], zz[8];      /* Current element geom. */
     double dNx[8], dNy[8], dNz[8];   /* Global derivates dN/dx, dN/dy, dN/dz. */
     double F[9];                     /* Element deformation gradient. */
-    double detF;                     /* Determinant of element 
+    double detF;                     /* Determinant of element
                                        deformation gradient. */
     float *resultElem;              /* Array for the element data. */
     register Bool_type vol_strain;
@@ -1256,29 +1268,29 @@ compute_hex_relative_volume( Analysis *analy, float *resultArr,
     }
     else
     {
-        /* 
+        /*
          * Load and save node positions for the first state, which is the
          * reference state for this calculation in double precision.
          */
         if ( reference_nodes == NULL )
             load_reference_node_pos( analy );
-    
+
         onodes3d2p = reference_nodes;
 
-        /* 
-         * Read in the double precision coordinates at the current state. 
+        /*
+         * Read in the double precision coordinates at the current state.
          * Can't use analy->state_p->nodes because that is converted to single
          * precision immediately when read in at state change.
          */
         p_sro = analy->srec_tree + analy->state_p->srec_id;
-        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension, 
-                     analy->cur_state + 1, FALSE, 
+        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                     analy->cur_state + 1, FALSE,
                      (void *) analy->tmp_result[0] );
         nodes3d2p = (GVec3D2P *) analy->tmp_result[0];
     }
 
     /* Prepare access to material data. */
-    p_mat_class = ((MO_class_data **) 
+    p_mat_class = ((MO_class_data **)
                    MESH( analy ).classes_by_sclass[G_MAT].list)[0];
     p_mats = p_mat_class->objects.materials;
     disable_mat = MESH( analy ).disable_material;
@@ -1290,12 +1302,12 @@ compute_hex_relative_volume( Analysis *analy, float *resultArr,
 
     for ( l = 0; l < class_qty; l++ )
     {
-        p_hex_class = ((MO_class_data **) 
+        p_hex_class = ((MO_class_data **)
                        MESH( analy ).classes_by_sclass[G_HEX].list)[l];
 
-	particle_class = FALSE;
-	if (is_particle_class( analy, p_hex_class->superclass, p_hex_class->short_name) )
-	    particle_class = TRUE;
+        particle_class = FALSE;
+        if (is_particle_class( analy, p_hex_class->superclass, p_hex_class->short_name) )
+            particle_class = TRUE;
 
         connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
         resultElem = p_hex_class->data_buffer;
@@ -1308,7 +1320,7 @@ compute_hex_relative_volume( Analysis *analy, float *resultArr,
             if ( p_mats[m].elem_class == p_hex_class && !disable_mat[m] )
                 active_mats[active_qty++] = m;
         }
-        
+
         /* Loop over the active materials. */
         for ( m = 0; m < active_qty; m++ )
         {
@@ -1320,19 +1332,21 @@ compute_hex_relative_volume( Analysis *analy, float *resultArr,
             {
                 start = p_mats[cur_mat].elem_blocks[n][0];
                 stop = p_mats[cur_mat].elem_blocks[n][1];
-		
-		if ( class_qty>1 && stop>=p_hex_class->qty ) {
-		     start = 0;
-		     stop  = p_hex_class->qty-1;
-		}
+
+                if ( class_qty>1 && stop>=p_hex_class->qty )
+                {
+                    start = 0;
+                    stop  = p_hex_class->qty-1;
+                }
 
                 /* Loop over the elements in the current element block. */
                 for ( i = start; i <= stop; i++ )
                 {
-		      if ( particle_class ) {
-			   resultElem[i] = 0.0;
-			   continue;
-		      }
+                    if ( particle_class )
+                    {
+                        resultElem[i] = 0.0;
+                        continue;
+                    }
 
                     /* Get the initial and current geometries. */
                     if ( single_prec_pos )
@@ -1377,14 +1391,14 @@ compute_hex_relative_volume( Analysis *analy, float *resultArr,
                         F[7] = F[7] + dNy[j]*zz[j];
                         F[8] = F[8] + dNz[j]*zz[j];
                     }
-                    detF =  F[0]*F[4]*F[8] + F[1]*F[5]*F[6] + F[2]*F[3]*F[7] 
+                    detF =  F[0]*F[4]*F[8] + F[1]*F[5]*F[6] + F[2]*F[3]*F[7]
                             -F[2]*F[4]*F[6] - F[1]*F[3]*F[8] - F[0]*F[5]*F[7];
-                    
+
                     /*
                      * Foolishly assuming detF will never be negative, we won't
                      * test to ensure it's positive as required by log().
                      */
-		    resultElem[i] = (float) (vol_strain ? log( detF ) : detF);
+                    resultElem[i] = (float) (vol_strain ? log( detF ) : detF);
 
                 } /* for element in block */
             } /* for element block in material */
@@ -1392,9 +1406,9 @@ compute_hex_relative_volume( Analysis *analy, float *resultArr,
 
         if ( interpolate )
             /* Interpolate to the nodes by class and active materials. */
-            hex_to_nodal_by_mat( resultElem, resultArr, p_hex_class, 
+            hex_to_nodal_by_mat( resultElem, resultArr, p_hex_class,
                                  active_qty, active_mats, p_mats, analy );
-    } /* for hex element class */ 
+    } /* for hex element class */
 
     free( active_mats );
 }
@@ -1414,7 +1428,7 @@ hex_principal_strain( double strainVec[6], double *avgStrain )
     double Invariant[3];
     double alpha, angle, value, avg_e;
 
-    avg_e = - ( strainVec[0] + strainVec[1] + strainVec[2] ) 
+    avg_e = - ( strainVec[0] + strainVec[1] + strainVec[2] )
             * ONETHIRD;
 
     devStrain[0] = strainVec[0] + avg_e;
@@ -1427,10 +1441,10 @@ hex_principal_strain( double strainVec[6], double *avgStrain )
     Invariant[1] = -( devStrain[0] * devStrain[1] +
                       devStrain[1] * devStrain[2] +
                       devStrain[0] * devStrain[2] ) +
-                      SQR( strainVec[3] ) + SQR( strainVec[4] ) +
-                      SQR( strainVec[5] );
+                   SQR( strainVec[3] ) + SQR( strainVec[4] ) +
+                   SQR( strainVec[5] );
     Invariant[2] = -devStrain[0] * devStrain[1] * devStrain[2]
-                   - 2.0 * strainVec[3] * strainVec[4] * strainVec[5] 
+                   - 2.0 * strainVec[3] * strainVec[4] * strainVec[5]
                    + devStrain[0] * SQR( strainVec[4] )
                    + devStrain[1] * SQR( strainVec[5] )
                    + devStrain[2] * SQR( strainVec[3] ) ;
@@ -1457,19 +1471,19 @@ hex_principal_strain( double strainVec[6], double *avgStrain )
         strainVec[1] = 0.0;
         strainVec[2] = 0.0;
     }
-    
-    *avgStrain = avg_e; 
+
+    *avgStrain = avg_e;
 }
 
 /************************************************************
  * TAG( load_reference_node_pos )
  *
- * Read node positions for the _strain_ reference state into 
+ * Read node positions for the _strain_ reference state into
  * memory (not to be confused with the reference state for
  * displacement calculations).
  *
  * When/if double precision nodal positions in the mesh definition
- * are available, this logic and its utilization should be 
+ * are available, this logic and its utilization should be
  * updated to "do the right thing".
  */
 static void
@@ -1489,13 +1503,13 @@ load_reference_node_pos( Analysis *analy )
         return;
     }
 
-    /* 
+    /*
      * Get srec format and mesh_id for the first state, which,
      * however unlikely, could be different than those for the
      * current state.
      */
     i = 1;
-    rval = analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, 
+    rval = analy->db_query( analy->db_ident, QRY_SREC_FMT_ID,
                             (void *) &i, NULL, (void *) &srec_id );
     if ( rval != 0 )
     {
@@ -1504,8 +1518,8 @@ load_reference_node_pos( Analysis *analy )
         return;
     }
 
-    rval = analy->db_query( analy->db_ident, QRY_SREC_MESH, 
-                            (void *) &srec_id, NULL, 
+    rval = analy->db_query( analy->db_ident, QRY_SREC_MESH,
+                            (void *) &srec_id, NULL,
                             (void *) &mesh_id );
     if ( rval != 0 )
     {
@@ -1518,10 +1532,10 @@ load_reference_node_pos( Analysis *analy )
     p_md = analy->mesh_table + mesh_id;
 
     qty = p_md->node_geom->qty;
-    reference_nodes = NEW_N( GVec3D2P, qty, 
+    reference_nodes = NEW_N( GVec3D2P, qty,
                              "Double prec ref. nodpos buffer" );
 
-    load_nodpos( analy, p_sro, p_md, analy->dimension, 1, FALSE, 
+    load_nodpos( analy, p_sro, p_md, analy->dimension, 1, FALSE,
                  (void *) reference_nodes );
 }
 
@@ -1541,7 +1555,7 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
     float eps[6];
     double (*p_tensors)[6];
     float localMat[3][3];
-    int comp_idx, i, j, obj_qty, obj_id, obj_index, 
+    int comp_idx, i, j, obj_qty, obj_id, obj_index,
         index;
     int srec, subrec;
     char **comp_names;
@@ -1555,12 +1569,12 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
     char primal1[32], primal2[32];
     Bool_type engr_strain;
 
-    /* IRC: Added February 22, 2008 - Support strain 
-     *      calculations for timehistory databases 
+    /* IRC: Added February 22, 2008 - Support strain
+     *      calculations for timehistory databases
      */
     Bool_type map_timehist_coords = FALSE;
     int       obj_cnt, obj_num, *obj_ids=NULL;
-    GVec3D2P  *new_nodes; 
+    GVec3D2P  *new_nodes;
     Bool_type single_prec_pos;
 
     /*
@@ -1581,10 +1595,10 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
     if (!analy->stateDB)
         map_timehist_coords = TRUE;
- 
-   ref_surf = analy->ref_surf;
+
+    ref_surf = analy->ref_surf;
     ref_frame = analy->ref_frame;
-    
+
     /* Determine a result index. */
     if ( strcmp( p_result->name, "ex" ) == 0 )
     {
@@ -1631,31 +1645,31 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
         comp_idx = 5;
         engr_strain = TRUE;
     }
-    
+
     /* Get state variable to provide array of component names. */
-    htable_search( analy->st_var_table, primals[0], FIND_ENTRY, 
+    htable_search( analy->st_var_table, primals[0], FIND_ENTRY,
                    &p_hte );
     comp_names = ((State_variable *) p_hte->data)->components;
 
     primal_list[0] = primal1;
     primal_list[1] = primal2;
 
-    /* IRC: Added March 29, 2005 - Support strain 
-     *      calculations for timehistory databases 
+    /* IRC: Added March 29, 2005 - Support strain
+     *      calculations for timehistory databases
      */
     if (map_timehist_coords)
     {
         /* Save current result */
         p_result = analy->cur_result;
 
-	/* Get node position data precision. */
-	single_prec_pos = !(MESH_P( analy )->double_precision_nodpos);
+        /* Get node position data precision. */
+        single_prec_pos = !(MESH_P( analy )->double_precision_nodpos);
 
         load_quad_nodpos_timehist( analy, analy->cur_state+1, single_prec_pos,
-				   &obj_cnt, &obj_ids, &new_nodes);
+                                   &obj_cnt, &obj_ids, &new_nodes);
 
         analy->cur_result = p_result;
-    }  
+    }
 
     if ( ref_frame == GLOBAL )
     {
@@ -1663,96 +1677,96 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
         {
             switch ( ref_surf )
             {
-                case MIDDLE:
-                    /* Get transformed inner surface strain. */
-                    res1 = NEW_N( float, obj_qty, "Temp shell stress" );
-                    transform_stress_strain( primals, 0, analy, 
-                                             analy->tensor_transform_matrix,
-                                             res1 );
-                    
-                    /* Get transformed outer surface strain. */
-                    res2 = analy->tmp_result[6];
-                    transform_stress_strain( primals, 1, analy, 
-                                             analy->tensor_transform_matrix, 
-                                             res2 );
+            case MIDDLE:
+                /* Get transformed inner surface strain. */
+                res1 = NEW_N( float, obj_qty, "Temp shell stress" );
+                transform_stress_strain( primals, 0, analy,
+                                         analy->tensor_transform_matrix,
+                                         res1 );
 
-                    if ( object_ids == NULL )
-                        for ( i = 0; i < obj_qty; i++ )
-                            resultElem[i] = 0.5 * ( (double) res1[i] + res2[i]);
-                    else
-                    {
-                        for ( i = 0; i < obj_qty; i++ )
-                            resultElem[object_ids[i]] = 0.5 
-                                                        * ( (double) res1[i] 
-                                                            + res2[i]);
-                    }
-                    
-                    free( res1 );
+                /* Get transformed outer surface strain. */
+                res2 = analy->tmp_result[6];
+                transform_stress_strain( primals, 1, analy,
+                                         analy->tensor_transform_matrix,
+                                         res2 );
 
-                    break;
-                case INNER:
-                    res2 = ( object_ids == NULL ) 
-                           ? resultElem : analy->tmp_result[6];
-                    transform_stress_strain( primals, 0, analy, 
-                                             analy->tensor_transform_matrix, 
-                                             res2 );
-                    break;
-                case OUTER:
-                    res2 = ( object_ids == NULL ) 
-                           ? resultElem : analy->tmp_result[6];
-                    transform_stress_strain( primals, 1, analy, 
-                                             analy->tensor_transform_matrix, 
-                                             res2 );
-                    break;
+                if ( object_ids == NULL )
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultElem[i] = 0.5 * ( (double) res1[i] + res2[i]);
+                else
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultElem[object_ids[i]] = 0.5
+                                                    * ( (double) res1[i]
+                                                        + res2[i]);
+                }
+
+                free( res1 );
+
+                break;
+            case INNER:
+                res2 = ( object_ids == NULL )
+                       ? resultElem : analy->tmp_result[6];
+                transform_stress_strain( primals, 0, analy,
+                                         analy->tensor_transform_matrix,
+                                         res2 );
+                break;
+            case OUTER:
+                res2 = ( object_ids == NULL )
+                       ? resultElem : analy->tmp_result[6];
+                transform_stress_strain( primals, 1, analy,
+                                         analy->tensor_transform_matrix,
+                                         res2 );
+                break;
             }
         }
         else
         {
             switch ( ref_surf )
             {
-                case MIDDLE:
-                    sprintf( primal1, "%s[%s]", primals[0], 
-                             comp_names[comp_idx] );
-                    sprintf( primal2, "%s[%s]", primals[1], 
-                             comp_names[comp_idx] );
-                    res1 = analy->tmp_result[0];
-                    res2 = res1 + obj_qty;
-                    analy->db_get_results( analy->db_ident, 
-                                           analy->cur_state + 1, subrec, 
-                                           2, primal_list, res1 );
+            case MIDDLE:
+                sprintf( primal1, "%s[%s]", primals[0],
+                         comp_names[comp_idx] );
+                sprintf( primal2, "%s[%s]", primals[1],
+                         comp_names[comp_idx] );
+                res1 = analy->tmp_result[0];
+                res2 = res1 + obj_qty;
+                analy->db_get_results( analy->db_ident,
+                                       analy->cur_state + 1, subrec,
+                                       2, primal_list, res1 );
 
-                    if ( object_ids == NULL )
-                        for ( i = 0; i < obj_qty; i++ )
-                            resultElem[i] = 0.5 * ((double) res1[i] + res2[i]);
-                    else
-                    {
-                        for ( i = 0; i < obj_qty; i++ )
-                            resultElem[object_ids[i]] = 0.5 
-                                                        * ( (double) res1[i] 
-                                                            + res2[i]);
-                    }
-                    break;
-                case INNER:
-                    sprintf( primal1, "%s[%s]", primals[0], 
-                             comp_names[comp_idx] );
-                    res2 = ( object_ids == NULL ) 
-                           ? resultElem : analy->tmp_result[6];
-                    analy->db_get_results( analy->db_ident, 
-                                           analy->cur_state + 1, subrec, 
-                                           1, primal_list, res2 );
-                    break;
-                case OUTER:
-                    sprintf( primal1, "%s[%s]", primals[1], 
-                             comp_names[comp_idx] );
-                    res2 = ( object_ids == NULL ) 
-                           ? resultElem : analy->tmp_result[6];
-                    analy->db_get_results( analy->db_ident, 
-                                           analy->cur_state + 1, subrec, 
-                                           1, primal_list, res2 );
-                    break;
+                if ( object_ids == NULL )
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultElem[i] = 0.5 * ((double) res1[i] + res2[i]);
+                else
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                        resultElem[object_ids[i]] = 0.5
+                                                    * ( (double) res1[i]
+                                                        + res2[i]);
+                }
+                break;
+            case INNER:
+                sprintf( primal1, "%s[%s]", primals[0],
+                         comp_names[comp_idx] );
+                res2 = ( object_ids == NULL )
+                       ? resultElem : analy->tmp_result[6];
+                analy->db_get_results( analy->db_ident,
+                                       analy->cur_state + 1, subrec,
+                                       1, primal_list, res2 );
+                break;
+            case OUTER:
+                sprintf( primal1, "%s[%s]", primals[1],
+                         comp_names[comp_idx] );
+                res2 = ( object_ids == NULL )
+                       ? resultElem : analy->tmp_result[6];
+                analy->db_get_results( analy->db_ident,
+                                       analy->cur_state + 1, subrec,
+                                       1, primal_list, res2 );
+                break;
             }
         }
-            
+
         /* Put data into class order if necessary. */
         if ( ref_surf != MIDDLE && object_ids != NULL )
             for ( i = 0; i < obj_qty; i++ )
@@ -1763,167 +1777,167 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
         /* Need to transform global quantities to local quantities.
          * The full tensor must be transformed.
          */
-/**/
-/* 
- * These might benefit from being updated with calls to
- * get_tensor_result() then transpose_tensors().
- */
+        /**/
+        /*
+         * These might benefit from being updated with calls to
+         * get_tensor_result() then transpose_tensors().
+         */
 
         switch ( ref_surf )
         {
-            case MIDDLE:
-                /*
-                 * Get individual components sequentially.  Could get
+        case MIDDLE:
+            /*
+             * Get individual components sequentially.  Could get
+             * whole vectors in one access, but would need to allocate
+             * another large array to have both INNER and OUTER surface
+             * results in memory simultaneously.
+             */
+            for ( i = 0; i < 6; i++ )
+            {
+                res1 = analy->tmp_result[i];
+                res2 = res1 + obj_qty;
+
+                sprintf( primal1, "%s[%s]", primals[0], comp_names[i] );
+                sprintf( primal2, "%s[%s]", primals[1], comp_names[i] );
+
+                analy->db_get_results( analy->db_ident,
+                                       analy->cur_state + 1, subrec,
+                                       2, primal_list, res1 );
+                for ( j = 0; j < obj_qty; j++ )
+                    res1[j] = 0.5 * ((double) res1[j] + res2[j]);
+            }
+
+            /*
+             * Transform MIDDLE result here.  Above logic creates six
+             * sequential, result-ordered component arrays in
+             * analy->tmp_result.  Logic below for INNER and OUTER
+             * surfaces leaves the components object-ordered which can
+             * be transposed without the copying step performed here.
+             */
+            obj_index = 0;
+            for ( i = 0;
+                    i < obj_qty;
+                    i++ )
+            {
+                obj_id = ( object_ids == NULL ) ? i : object_ids[i];
+                if ( map_timehist_coords )
+                {
+                    for ( j = 0; j < 6; j++ )
+                        eps[j] = analy->tmp_result[j][i];
+                }
+                else
+                {
+                    for ( j = 0; j < 6; j++ )
+                        eps[j] = analy->tmp_result[j][i];
+                }
+
+                global_to_local_mtx( analy, p_quad_class, obj_id,
+                                     map_timehist_coords, new_nodes,
+                                     localMat );
+                transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
+                resultElem[obj_id] = eps[comp_idx];
+            }
+            break;
+        case INNER:
+            /* Get individual components sequentially.  Could get
                  * whole vectors in one access, but would need to allocate
                  * another large array to have both INNER and OUTER surface
                  * results in memory simultaneously.
                  */
-                for ( i = 0; i < 6; i++ )
+
+            for ( i = 0; i < 6; i++ )
+            {
+                res1 = analy->tmp_result[i];
+                res2 = res1 + obj_qty;
+
+                sprintf( primal1, "%s[%s]", primals[0], comp_names[i] );
+
+                analy->db_get_results( analy->db_ident,
+                                       analy->cur_state + 1, subrec,
+                                       1, primal_list, res1 );
+            }
+
+            /*
+             * Transform INNER result here.  Above logic creates six
+             * sequential, result-ordered component arrays in
+             * analy->tmp_result.
+             */
+            obj_index = 0;
+            for ( i = 0;
+                    i < obj_qty;
+                    i++ )
+            {
+                obj_id = ( object_ids == NULL ) ? i : object_ids[i];
+
+                if ( map_timehist_coords )
                 {
-                    res1 = analy->tmp_result[i];
-                    res2 = res1 + obj_qty;
-
-                    sprintf( primal1, "%s[%s]", primals[0], comp_names[i] );
-                    sprintf( primal2, "%s[%s]", primals[1], comp_names[i] );
-
-                    analy->db_get_results( analy->db_ident, 
-                                           analy->cur_state + 1, subrec, 
-                                           2, primal_list, res1 );
-                    for ( j = 0; j < obj_qty; j++ )
-                          res1[j] = 0.5 * ((double) res1[j] + res2[j]);
+                    for ( j = 0; j < 6; j++ )
+                        eps[j] = analy->tmp_result[j][i];
                 }
-                
-                /*
-                 * Transform MIDDLE result here.  Above logic creates six
-                 * sequential, result-ordered component arrays in 
-                 * analy->tmp_result.  Logic below for INNER and OUTER
-                 * surfaces leaves the components object-ordered which can
-                 * be transposed without the copying step performed here.
-                 */
-		obj_index = 0;
-                for ( i = 0; 
-		      i < obj_qty;
-		      i++ )
+                else
                 {
-		    obj_id = ( object_ids == NULL ) ? i : object_ids[i];
-		    if ( map_timehist_coords )
-		    {
-                         for ( j = 0; j < 6; j++ )
-                               eps[j] = analy->tmp_result[j][i];
-		     }  
-		     else
-		     {
-                         for ( j = 0; j < 6; j++ )
-                               eps[j] = analy->tmp_result[j][i];
-		     }
-
-                    global_to_local_mtx( analy, p_quad_class, obj_id, 
-					 map_timehist_coords, new_nodes,
-					 localMat );
-                    transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
-                    resultElem[obj_id] = eps[comp_idx];
-                }
-                break;
-            case INNER:
-	        /* Get individual components sequentially.  Could get
-                 * whole vectors in one access, but would need to allocate
-                 * another large array to have both INNER and OUTER surface
-                 * results in memory simultaneously.
-                 */
-
-                for ( i = 0; i < 6; i++ )
-                {
-                    res1 = analy->tmp_result[i];
-                    res2 = res1 + obj_qty;
-
-                    sprintf( primal1, "%s[%s]", primals[0], comp_names[i] );
-
-                    analy->db_get_results( analy->db_ident, 
-                                           analy->cur_state + 1, subrec, 
-                                           1, primal_list, res1 );
-                }
-                
-                /*
-                 * Transform INNER result here.  Above logic creates six
-                 * sequential, result-ordered component arrays in 
-                 * analy->tmp_result.
-                 */
-		obj_index = 0;
-                for ( i = 0; 
-		      i < obj_qty; 
-		      i++ )
-                {
-                    obj_id = ( object_ids == NULL ) ? i : object_ids[i];
-
-		    if ( map_timehist_coords )
-		    {
-                         for ( j = 0; j < 6; j++ )
-                               eps[j] = analy->tmp_result[j][i];
-		    }
-		    else
-		      {
-                          for ( j = 0; j < 6; j++ )
-                                eps[j] = analy->tmp_result[j][i];
-		      }
-
-                    global_to_local_mtx( analy, p_quad_class, obj_id, 
-					 map_timehist_coords, new_nodes,
-					 localMat );
-                    transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
-                    resultElem[obj_id] = eps[comp_idx];
+                    for ( j = 0; j < 6; j++ )
+                        eps[j] = analy->tmp_result[j][i];
                 }
 
-	        /* OLD inner - IRC analy->db_get_results( analy->db_ident,
+                global_to_local_mtx( analy, p_quad_class, obj_id,
+                                     map_timehist_coords, new_nodes,
+                                     localMat );
+                transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
+                resultElem[obj_id] = eps[comp_idx];
+            }
+
+            /* OLD inner - IRC analy->db_get_results( analy->db_ident,
                                        analy->cur_state + 1, subrec,
                                        1, primals, analy->tmp_result[0] ); */
-                break;
-            case OUTER:
-                /* Get individual components sequentially.  Could get
-                 * whole vectors in one access, but would need to allocate
-                 * another large array to have both INNER and OUTER surface
-                 * results in memory simultaneously.
-                 */
-                for ( i = 0; i < 6; i++ )
+            break;
+        case OUTER:
+            /* Get individual components sequentially.  Could get
+             * whole vectors in one access, but would need to allocate
+             * another large array to have both INNER and OUTER surface
+             * results in memory simultaneously.
+             */
+            for ( i = 0; i < 6; i++ )
+            {
+                res1 = analy->tmp_result[i];
+                res2 = res1 + obj_qty;
+
+                sprintf( primal1, "%s[%s]", primals[1], comp_names[i] );
+
+                analy->db_get_results( analy->db_ident,
+                                       analy->cur_state + 1, subrec,
+                                       1, primal_list, res1 );
+            }
+
+            /*
+             * Transform OUTER result here.  Above logic creates six
+             * sequential, result-ordered component arrays in
+             * analy->tmp_result
+             */
+            obj_index = 0;
+            for ( i = 0;
+                    i < obj_qty;
+                    i++ )
+            {
+                obj_id = ( object_ids == NULL ) ? i : object_ids[i];
+                if ( map_timehist_coords )
                 {
-                    res1 = analy->tmp_result[i];
-                    res2 = res1 + obj_qty;
-
-                    sprintf( primal1, "%s[%s]", primals[1], comp_names[i] );
-
-                    analy->db_get_results( analy->db_ident, 
-                                           analy->cur_state + 1, subrec, 
-                                           1, primal_list, res1 );
+                    for ( j = 0; j < 6; j++ )
+                        eps[j] = analy->tmp_result[j][i];
                 }
-                
-                /*
-                 * Transform OUTER result here.  Above logic creates six
-                 * sequential, result-ordered component arrays in 
-                 * analy->tmp_result
-                 */
-		obj_index = 0;
-                for ( i = 0; 
-		      i < obj_qty; 
-		      i++ )
+                else
                 {
-		      obj_id = ( object_ids == NULL ) ? i : object_ids[i];
-		      if ( map_timehist_coords )
-		      {
-                           for ( j = 0; j < 6; j++ )
-                                 eps[j] = analy->tmp_result[j][i];
-		      }  
-		      else
-		      {
-                         for ( j = 0; j < 6; j++ )
-                               eps[j] = analy->tmp_result[j][i];
-		     }
-
-                     global_to_local_mtx( analy, p_quad_class, obj_id, 
-				 	  map_timehist_coords, new_nodes,
-					  localMat );
-		     transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
-		     resultElem[obj_id] = eps[comp_idx];
+                    for ( j = 0; j < 6; j++ )
+                        eps[j] = analy->tmp_result[j][i];
                 }
-                break;
+
+                global_to_local_mtx( analy, p_quad_class, obj_id,
+                                     map_timehist_coords, new_nodes,
+                                     localMat );
+                transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
+                resultElem[obj_id] = eps[comp_idx];
+            }
+            break;
         }
 
         if ( ref_surf != MIDDLE )
@@ -1932,34 +1946,34 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
 
             /* p_tensors = (double (*)[6]) analy->tmp_result[0];
 
-	    obj_id = 0;
+            obj_id = 0;
             for ( i = 0; i < obj_qty; i++ )
             {
                 obj_id = ( object_ids == NULL ) ? i : object_ids[i];
 
                 global_to_local_mtx( analy, p_quad_class, obj_id,
-		                     map_timehist_coords, new_nodes,
-				     localMat );
+                             map_timehist_coords, new_nodes,
+            	     localMat );
                 transform_tensors( 1, p_tengriz4ssors + i, localMat );
 
                 resultElem[obj_id] = p_tensors[i][comp_idx];
-		} */
+            } */
         }
     }
 
     /* Perform the Engineering Strain conversion if necessary. */
     if ( engr_strain )
     {
-        /* 
+        /*
          * If data was from a "non-proper" subrecord, the object quantity
          * must be updated from the subrecord size to the class size
          * because it's now in class-order.
          */
         if ( object_ids != NULL )
-             obj_qty = p_quad_class->qty;
+            obj_qty = p_quad_class->qty;
 
         for ( i = 0; i < obj_qty; i++ )
-             resultElem[i] = (double) 2.0 * resultElem[i];
+            resultElem[i] = (double) 2.0 * resultElem[i];
     }
 
     /* Update modifiers to indicate pertinent ones for this result. */
@@ -1971,7 +1985,7 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
     if ( interpolate )
         quad_to_nodal( resultElem, resultArr, p_quad_class, obj_qty, object_ids,
                        analy, TRUE );
-    
+
     p_result->modifiers.use_flags.use_ref_surface = 1;
     p_result->modifiers.ref_surf = ref_surf;
     p_result->modifiers.use_flags.use_ref_frame = 1;
@@ -1988,7 +2002,7 @@ compute_shell_strain( Analysis *analy, float *resultArr, Bool_type interpolate )
  * INNER/MIDDLE/OUTER flag.  Default: MIDDLE.
  */
 void
-compute_shell_eff_strain( Analysis *analy, float *resultArr, 
+compute_shell_eff_strain( Analysis *analy, float *resultArr,
                           Bool_type interpolate )
 {
     Ref_surf_type ref_surf;
@@ -2001,7 +2015,7 @@ compute_shell_eff_strain( Analysis *analy, float *resultArr,
     Result *p_result;
     Subrec_obj *p_subrec;
     char **primals;
-    
+
     p_result = analy->cur_result;
     index = analy->result_index;
     subrec = p_result->subrecs[index];
@@ -2015,58 +2029,58 @@ compute_shell_eff_strain( Analysis *analy, float *resultArr,
     /* Assume primals are ordered "eeff_mid", "eeff_in", "eeff_out". */
     switch ( ref_surf )
     {
-        case MIDDLE:
-            primals = p_result->primals[index];
-            break;
-        case INNER:
-            primals = p_result->primals[index] + 1;
-            break;
-        case OUTER:
-            primals = p_result->primals[index] + 2;
-            break;
+    case MIDDLE:
+        primals = p_result->primals[index];
+        break;
+    case INNER:
+        primals = p_result->primals[index] + 1;
+        break;
+    case OUTER:
+        primals = p_result->primals[index] + 2;
+        break;
     }
-    
+
     e0 = ( object_ids == NULL ) ? resultElem : analy->tmp_result[2];
-    
+
     if ( analy->strain_variety != RATE )
-        analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 
+        analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec,
                                1, primals, (void *) e0 );
-/*                               1, p_result->primals[index], (void *) e0 ); */
+    /*                               1, p_result->primals[index], (void *) e0 ); */
     else
     {
         e1 = analy->tmp_result[0];
         e2 = analy->tmp_result[1];
-        
+
         if ( cur_st == 0 )
             /* Rate is zero at first state. */
             memset( e0, 0, obj_qty * sizeof( float ) );
         else
         {
             /* Calculate rate from backward difference. */
-            
-            analy->db_get_results( analy->db_ident, analy->cur_state, 
+
+            analy->db_get_results( analy->db_ident, analy->cur_state,
                                    subrec, 1, primals, (void *) e0 );
-            analy->db_get_results( analy->db_ident, analy->cur_state + 1, 
+            analy->db_get_results( analy->db_ident, analy->cur_state + 1,
                                    subrec, 1, primals, (void *) e1 );
-            
+
             st_num = analy->cur_state;
-            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num, 
+            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num,
                              NULL, (void *) &time0 );
             st_num++;
-            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num, 
+            analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &st_num,
                              NULL, (void *) &time1 );
-            
+
             dt1_inv = 1.0 / ((double) time1 - time0);
-            
+
             for ( i = 0; i < obj_qty; i++ )
                 e0[i] = ((double) e1[i] - e0[i]) * dt1_inv;
 
-            /* 
+            /*
              * Need last state.  Don't use get_max_state() since we don't
              * need to consider any max state constraint the user may
              * have specified.
              */
-            analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL, 
+            analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL,
                              &last_st );
             last_st--;
 
@@ -2074,35 +2088,35 @@ compute_shell_eff_strain( Analysis *analy, float *resultArr,
             {
                 /*
                  * Not at last state, so calculate rate from forward
-                 * difference and average to get final value. 
+                 * difference and average to get final value.
                  * (Time steps are not constant so this is not the
                  * simpler typical central difference expression.)
                  */
-                analy->db_get_results( analy->db_ident, analy->cur_state + 2, 
+                analy->db_get_results( analy->db_ident, analy->cur_state + 2,
                                        subrec, 1, primals, (void *) e2 );
-                
+
                 st_num++;
-                analy->db_query( analy->db_ident, QRY_STATE_TIME, 
+                analy->db_query( analy->db_ident, QRY_STATE_TIME,
                                  (void *) &st_num, NULL, (void *) &time2 );
                 dt2_inv = 1.0 / ((double) time2 - time1);
-                
+
                 for ( i = 0; i < obj_qty; i++ )
                     e0[i] = 0.5 * (e0[i] + ((double) e2[i] - e1[i]) * dt2_inv);
             }
         }
-        
+
     }
-    
+
     if ( object_ids )
     {
         for ( i = 0; i < obj_qty; i++ )
             resultElem[object_ids[i]] = e0[i];
     }
-    
+
     if ( interpolate )
         quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
                        object_ids, analy, TRUE );
-    
+
     /* Set appropriate modifiers. */
     p_result->modifiers.use_flags.use_ref_surface = 1;
     p_result->modifiers.ref_surf = ref_surf;
@@ -2124,8 +2138,8 @@ compute_shell_eff_strain( Analysis *analy, float *resultArr,
  */
 
 static float
-    diameter = 1.0,
-    youngs_modulus = 1.0;
+diameter = 1.0,
+youngs_modulus = 1.0;
 static Bool_type new_beam_parameters = TRUE;
 
 void
@@ -2159,7 +2173,7 @@ compute_beam_axial_strain( Analysis *analy, float *resultArr,
         wrt_text( "\n" );
         new_beam_parameters = FALSE;
     }
-    
+
     /* Determine a result index. */
     if ( strcmp( p_result->name, "saep" ) == 0 )
         res_index = 0;
@@ -2172,10 +2186,10 @@ compute_beam_axial_strain( Analysis *analy, float *resultArr,
 
     force = analy->tmp_result[0];
     moment = force + obj_qty;
-    
+
     res_array = ( object_ids == NULL ) ? resultElem : analy->tmp_result[2];
 
-    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec,
                            2, p_result->primals[index], (void *) force );
 
     coeff = 4.0 / ( PI * (double) youngs_modulus );
@@ -2184,21 +2198,21 @@ compute_beam_axial_strain( Analysis *analy, float *resultArr,
 
     switch( res_index )
     {
-        case 0:
-        case 2:
-            for ( i = 0; i < obj_qty; i++ )
-                res_array[i] = coeff * (axf_coeff * force[i]
-                                        + mom_coeff * moment[i] );
-            break;
-        
-        case 1:
-        case 3:
-            for ( i = 0; i < obj_qty; i++ )
-                res_array[i] = coeff * (axf_coeff * force[i]
-                                        - mom_coeff * moment[i] );
-            break;
+    case 0:
+    case 2:
+        for ( i = 0; i < obj_qty; i++ )
+            res_array[i] = coeff * (axf_coeff * force[i]
+                                    + mom_coeff * moment[i] );
+        break;
+
+    case 1:
+    case 3:
+        for ( i = 0; i < obj_qty; i++ )
+            res_array[i] = coeff * (axf_coeff * force[i]
+                                    - mom_coeff * moment[i] );
+        break;
     }
-    
+
     if ( object_ids )
     {
         for ( i = 0; i < obj_qty; i++ )
@@ -2208,7 +2222,7 @@ compute_beam_axial_strain( Analysis *analy, float *resultArr,
     if ( interpolate )
         beam_to_nodal( resultElem, resultArr, p_subrec->p_object_class,
                        obj_qty, object_ids, analy );
- }
+}
 
 
 /************************************************************
@@ -2241,29 +2255,29 @@ set_youngs_mod( float youngs_mod )
 /************************************************************
  * TAG( is_primal_quad_strain_result )
  *
- * 
+ *
  * This function will return TRUE if this result is a
  * primal QUAD strain result.
  */
 Bool_type
 is_primal_quad_strain_result( char *result_name )
 {
-  if ( strstr( result_name, "strain_in[" ) || strstr( result_name, "strain_out[" ) )
-       return ( TRUE );
-  else
-       return ( FALSE );
+    if ( strstr( result_name, "strain_in[" ) || strstr( result_name, "strain_out[" ) )
+        return ( TRUE );
+    else
+        return ( FALSE );
 }
 
 
 /************************************************************
  * TAG( rotate_quad_result )
  *
- * 
+ *
  * This function will calculate a rotated result.
  */
 void
 rotate_quad_result( Analysis *analy, char *primal,
-		    int single_obj_id, float *result )
+                    int single_obj_id, float *result )
 {
     Htable_entry *p_hte;
     Result     *p_result;
@@ -2289,7 +2303,7 @@ rotate_quad_result( Analysis *analy, char *primal,
 
     /* Exit if we are not looging a local reference frame */
     if ( ref_frame == GLOBAL )
-         return;
+        return;
 
     if (!analy->stateDB)
         map_timehist_coords = TRUE;
@@ -2310,18 +2324,18 @@ rotate_quad_result( Analysis *analy, char *primal,
         /* Save current result */
         p_result = analy->cur_result;
 
-        load_quad_nodpos_timehist( analy, analy->cur_state+1, single_prec_pos, 
-				   &obj_qty, &object_ids, &new_nodes);
+        load_quad_nodpos_timehist( analy, analy->cur_state+1, single_prec_pos,
+                                   &obj_qty, &object_ids, &new_nodes);
 
-	if ( new_nodes==NULL) 
-	{
-	     popup_dialog( WARNING_POPUP, "Node Position Required for strain rotation calculation."
-			   "Aborting strain rate rotation." );
-	     return;
-	}
+        if ( new_nodes==NULL)
+        {
+            popup_dialog( WARNING_POPUP, "Node Position Required for strain rotation calculation."
+                          "Aborting strain rate rotation." );
+            return;
+        }
 
         analy->cur_result = p_result;
-    }  
+    }
 
     obj_qty = p_subrec->subrec.qty_objects;
 
@@ -2330,150 +2344,150 @@ rotate_quad_result( Analysis *analy, char *primal,
     p_result->modifiers.use_flags.use_ref_frame      = 1;
 
     strcpy( primal_main, p_result->name );
-    
+
     /* Strip off the sub-name [name] to form the primal name */
     for ( i=0;
-	  i<strlen(primal_main);
-	  i++)
-          if ( primal_main[i]=='[' )
-	       primal_main[i]='\0';
-    
+            i<strlen(primal_main);
+            i++)
+        if ( primal_main[i]=='[' )
+            primal_main[i]='\0';
+
     comp_names[0] = (char *) strdup("ex");
     comp_names[1] = (char *) strdup("ey");
     comp_names[2] = (char *) strdup("ez");
     comp_names[3] = (char *) strdup("exy");
     comp_names[4] = (char *) strdup("eyz");
     comp_names[5] = (char *) strdup("ezx");
-    
+
     /* Determine a result index. */
     if ( strstr( p_result->name, "[ex]" ) )
     {
-	 comp_idx = 0;
-	 engr_strain = FALSE;
+        comp_idx = 0;
+        engr_strain = FALSE;
     }
     else if ( strcmp( p_result->name, "[ey]" ) )
     {
-	      comp_idx = 1;
-	      engr_strain = FALSE;
+        comp_idx = 1;
+        engr_strain = FALSE;
     }
     else if ( strstr( p_result->name, "[ez]" )  )
     {
-              comp_idx = 2;
-	      engr_strain = FALSE;
+        comp_idx = 2;
+        engr_strain = FALSE;
     }
     else if ( strstr( p_result->name, "[exy]" )  )
     {
-	      comp_idx = 3;
-	      engr_strain = FALSE;
+        comp_idx = 3;
+        engr_strain = FALSE;
     }
     else if ( strstr( p_result->name, "[eyz]" ) )
     {
-	      comp_idx = 4;
-	      engr_strain = FALSE;
+        comp_idx = 4;
+        engr_strain = FALSE;
     }
     else if ( strstr( p_result->name, "[ezx]" ) )
     {
-	      comp_idx = 5;
-	      engr_strain = FALSE;
+        comp_idx = 5;
+        engr_strain = FALSE;
     }
     else if ( strstr( p_result->name, "[gamxy]" ) )
     {
-	      comp_idx = 3;
-	      engr_strain = TRUE;
+        comp_idx = 3;
+        engr_strain = TRUE;
     }
     else if ( strstr( p_result->name, "[gamyz]" ) )
-      {
-	comp_idx = 4;
-	engr_strain = TRUE;
-      }
+    {
+        comp_idx = 4;
+        engr_strain = TRUE;
+    }
     else if ( strstr( p_result->name, "[gamzx]" ) )
-      {
-	comp_idx = 5;
-	engr_strain = TRUE;
-      }
-    
+    {
+        comp_idx = 5;
+        engr_strain = TRUE;
+    }
+
     if ( engr_strain )
     {
-	 free (comp_names[3]);
-	 comp_names[3] = (char *) strdup("gamxy");
-	 
-	 free (comp_names[4]);
-	 comp_names[4] = (char *) strdup("gamyz");
-	 
-	 free (comp_names[5]);
-	 comp_names[5] = (char *) strdup("gamzx");
+        free (comp_names[3]);
+        comp_names[3] = (char *) strdup("gamxy");
+
+        free (comp_names[4]);
+        comp_names[4] = (char *) strdup("gamyz");
+
+        free (comp_names[5]);
+        comp_names[5] = (char *) strdup("gamzx");
     }
-    
+
     primals[0]     = (char *) strdup(primal);
     primal_list[0] = primal1;
     primal_list[1] = primal1;
-    
-    for ( i = 0; 
-	  i < 6; 
-	  i++ )
-    {
- 	  sprintf( primal1, "%s[%s]", primal_main, comp_names[i] );
-	
-	  res1[i] = analy->tmp_result[i];
-	  analy->db_get_results( analy->db_ident, 
-				 analy->cur_state + 1, subrec, 
-				 1, primal_list, res1[i] );
-	  
-	  /* Map object data into full result array */
-	  if ( object_ids )
-	  {
-	       temp_result = NEW_N( float, obj_qty, "Temp shell stress" );
-	       for ( j = 0; 
-		     j < obj_qty;
-		     j++ )
-		     temp_result[j] = res1[i][j];
 
-	       for ( j = 0; 
-		     j < obj_qty;
-		     j++ )
-	       {
-		     res1[i][object_ids[j]] = temp_result[j];
-	       }
-	       free( temp_result );
-	  }
+    for ( i = 0;
+            i < 6;
+            i++ )
+    {
+        sprintf( primal1, "%s[%s]", primal_main, comp_names[i] );
+
+        res1[i] = analy->tmp_result[i];
+        analy->db_get_results( analy->db_ident,
+                               analy->cur_state + 1, subrec,
+                               1, primal_list, res1[i] );
+
+        /* Map object data into full result array */
+        if ( object_ids )
+        {
+            temp_result = NEW_N( float, obj_qty, "Temp shell stress" );
+            for ( j = 0;
+                    j < obj_qty;
+                    j++ )
+                temp_result[j] = res1[i][j];
+
+            for ( j = 0;
+                    j < obj_qty;
+                    j++ )
+            {
+                res1[i][object_ids[j]] = temp_result[j];
+            }
+            free( temp_result );
+        }
     }
-    
+
     if ( single_obj_id>=0 )
     {
-	for ( j = 0; 
-	      j < 6; 
-	      j++ )
-	      eps[j] = res1[j][single_obj_id];
-	
-	global_to_local_mtx( analy, p_quad_class, single_obj_id, 
-			     map_timehist_coords, new_nodes,
-			     localMat );
-	transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
-	
-	*result = eps[comp_idx];
-	if ( engr_strain )
-	     *result*=2.0;
-      }
-    else
-      for (i=0;	   
-	   i < obj_qty; 
-	   i++ )
-      {
-	   obj_id = ( object_ids == NULL ) ? i : object_ids[i];
-	  
-	   for ( j = 0; 
-		 j < 6; 
-		 j++ )
-	         eps[j] = res1[j][obj_id];
-	   
-	   global_to_local_mtx( analy, p_quad_class, obj_id, 
-				map_timehist_coords, new_nodes,
-				localMat );
+        for ( j = 0;
+                j < 6;
+                j++ )
+            eps[j] = res1[j][single_obj_id];
 
-	   transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
-	   
-	   result[obj_id] = eps[comp_idx]; 
-	   if ( engr_strain )
-	        result[obj_id]*=2.0;
-      }
+        global_to_local_mtx( analy, p_quad_class, single_obj_id,
+                             map_timehist_coords, new_nodes,
+                             localMat );
+        transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
+
+        *result = eps[comp_idx];
+        if ( engr_strain )
+            *result*=2.0;
+    }
+    else
+        for (i=0;
+                i < obj_qty;
+                i++ )
+        {
+            obj_id = ( object_ids == NULL ) ? i : object_ids[i];
+
+            for ( j = 0;
+                    j < 6;
+                    j++ )
+                eps[j] = res1[j][obj_id];
+
+            global_to_local_mtx( analy, p_quad_class, obj_id,
+                                 map_timehist_coords, new_nodes,
+                                 localMat );
+
+            transform_tensors_1p( 1, (float (*)[6]) &eps, localMat );
+
+            result[obj_id] = eps[comp_idx];
+            if ( engr_strain )
+                result[obj_id]*=2.0;
+        }
 }

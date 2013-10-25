@@ -2,14 +2,14 @@
 /*
  * init_io.c - Database access initialization routines.
  *             Routines in this module hard-code knowledge of database
- *             formats in order to ascertain the type (I/O library of 
+ *             formats in order to ascertain the type (I/O library of
  *             origin) without actually calling the originating library.
  *
  *      Douglas E. Speck
  *      Methods Development Group
  *      Lawrence Livermore National Laboratory
  *      14 Feb 1997
- * 
+ *
  ************************************************************************
  * Modifications:
  *  I. R. Corey - Nov 1, 2004: Put #ifdef EXO_SUPPORT around a dlclose
@@ -97,182 +97,182 @@ init_db_io( Database_type_griz db_type, Analysis *analy )
     int (*exo_db_set_buffer_qty)( int, int, char *, int );
     int (*exo_db_close)( Analysis * );
 #endif
-    
+
     rval = TRUE;
 
     switch ( db_type )
     {
-        case MILI:
-            analy->db_open = mili_db_open;
-            analy->db_get_geom = mili_db_get_geom;
-            analy->db_close = mili_db_close;
-            analy->db_get_st_descriptors = mili_db_get_st_descriptors;
-            analy->db_set_results = mili_db_set_results;
-            analy->db_get_state = mili_db_get_state;
-            analy->db_get_subrec_def = mili_db_get_subrec_def;
-            analy->db_cleanse_subrec = mili_db_cleanse_subrec;
-            analy->db_cleanse_state_var = mili_db_cleanse_state_var;
-            analy->db_get_results = mili_db_get_results;
-            analy->db_get_title = mili_db_get_title;
-            analy->db_get_dimension = mili_db_get_dimension;
-            analy->db_query = mili_db_query;
-            analy->db_set_buffer_qty = mili_db_set_buffer_qty;
-            break;
-            
-        case TAURUS:
-            /* Taurus-specific functions. */
-            analy->db_open = taurus_db_open;
-            analy->db_get_geom = taurus_db_get_geom;
-            analy->db_close = taurus_db_close;
-            analy->db_get_subrec_def = taurus_db_get_subrec_def;
-            analy->db_get_title = taurus_db_get_title;
-            
-            /* Just use Mili functions for these... */
-            analy->db_get_st_descriptors = mili_db_get_st_descriptors;
-            analy->db_cleanse_subrec = mili_db_cleanse_subrec;
-            analy->db_cleanse_state_var = mili_db_cleanse_state_var;
-            analy->db_set_results = mili_db_set_results;
-            analy->db_get_state = mili_db_get_state;
-            analy->db_get_results = mili_db_get_results;
-            analy->db_get_dimension = mili_db_get_dimension;
-            analy->db_query = mili_db_query;
-            analy->db_set_buffer_qty = mili_db_set_buffer_qty;
-            break;
-            
+    case MILI:
+        analy->db_open = mili_db_open;
+        analy->db_get_geom = mili_db_get_geom;
+        analy->db_close = mili_db_close;
+        analy->db_get_st_descriptors = mili_db_get_st_descriptors;
+        analy->db_set_results = mili_db_set_results;
+        analy->db_get_state = mili_db_get_state;
+        analy->db_get_subrec_def = mili_db_get_subrec_def;
+        analy->db_cleanse_subrec = mili_db_cleanse_subrec;
+        analy->db_cleanse_state_var = mili_db_cleanse_state_var;
+        analy->db_get_results = mili_db_get_results;
+        analy->db_get_title = mili_db_get_title;
+        analy->db_get_dimension = mili_db_get_dimension;
+        analy->db_query = mili_db_query;
+        analy->db_set_buffer_qty = mili_db_set_buffer_qty;
+        break;
+
+    case TAURUS:
+        /* Taurus-specific functions. */
+        analy->db_open = taurus_db_open;
+        analy->db_get_geom = taurus_db_get_geom;
+        analy->db_close = taurus_db_close;
+        analy->db_get_subrec_def = taurus_db_get_subrec_def;
+        analy->db_get_title = taurus_db_get_title;
+
+        /* Just use Mili functions for these... */
+        analy->db_get_st_descriptors = mili_db_get_st_descriptors;
+        analy->db_cleanse_subrec = mili_db_cleanse_subrec;
+        analy->db_cleanse_state_var = mili_db_cleanse_state_var;
+        analy->db_set_results = mili_db_set_results;
+        analy->db_get_state = mili_db_get_state;
+        analy->db_get_results = mili_db_get_results;
+        analy->db_get_dimension = mili_db_get_dimension;
+        analy->db_query = mili_db_query;
+        analy->db_set_buffer_qty = mili_db_set_buffer_qty;
+        break;
+
 #ifdef EXO_SUPPORT
-        case EXODUS:
-            exo_db_open = (int (*)( char *, int * )) 
-                          dlsym( exo_handle, "exodus_db_open" );
-            if ( exo_db_open == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_open = exo_db_open;
-
-            exo_db_get_geom = (int (*)( int, Mesh_data **, int * )) 
-                              dlsym( exo_handle, "exodus_db_get_geom" );
-            if ( exo_db_get_geom == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_get_geom = exo_db_get_geom;
-
-            exo_db_get_st_descriptors = (int (*)( Analysis *, int ))
-                                        dlsym( exo_handle, 
-                                              "exodus_db_get_st_descriptors" );
-            if ( exo_db_get_st_descriptors == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_get_st_descriptors = exo_db_get_st_descriptors;
-
-            analy->db_set_results = mili_db_set_results;
-
-            exo_db_get_state = (int (*)( Analysis *, int, State2 *, State2 **,
-                                         int * ) )
-                               dlsym( exo_handle, "exodus_db_get_state" );
-            if ( exo_db_get_state == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_get_state = exo_db_get_state;
-
-            exo_db_get_subrec_def = (int (*)
-                                     ( int, int, int, Subrecord * ))
-                                    dlsym( exo_handle, 
-                                           "exodus_db_get_subrec_def" );
-            if ( exo_db_get_subrec_def == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_get_subrec_def = exo_db_get_subrec_def;
-
-            exo_db_cleanse_subrec = (int (*)
-                                     ( Subrecord * ))
-                                    dlsym( exo_handle, 
-                                           "exodus_db_cleanse_subrec" );
-            if ( exo_db_cleanse_subrec == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_cleanse_subrec = exo_db_cleanse_subrec;
-
-            exo_db_cleanse_state_var = (int (*)
-                                       ( State_variable * ))
-                                       dlsym( exo_handle, 
-                                              "exodus_db_cleanse_state_var" );
-            if ( exo_db_cleanse_state_var == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_cleanse_state_var = exo_db_cleanse_state_var;
-
-            exo_db_get_results = (int (*)
-                                  ( int, int, int, int, char **, void * ))
-                                 dlsym( exo_handle, "exodus_db_get_results" );
-            if ( exo_db_get_results == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_get_results = exo_db_get_results;
-
-            exo_db_close = (int (*)( Analysis * ))
-                           dlsym( exo_handle, "exodus_db_close" );
-            if ( exo_db_close == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_close = exo_db_close;
-
-            exo_db_get_title = (int (*)( int, char * ))
-                               dlsym( exo_handle, "exodus_db_get_title" );
-            if ( exo_db_get_title == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_get_title = exo_db_get_title;
-
-            exo_db_get_dimension = (int (*)( int, int * ))
-                                   dlsym( exo_handle, 
-                                          "exodus_db_get_dimension" );
-            if ( exo_db_get_dimension == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_get_dimension = exo_db_get_dimension;
-
-            exo_db_query = (int (*)( int, int, void *, char *, void * ))
-                           dlsym( exo_handle, "exodus_db_query" );
-            if ( exo_db_query == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_query = exo_db_query;
-
-            exo_db_set_buffer_qty = (int (*)( int, int, char *, int ))
-                                    dlsym( exo_handle, 
-                                           "exodus_db_set_buffer_qty" );
-            if ( exo_db_set_buffer_qty == NULL )
-            {
-                rval = FALSE;
-                break;
-            }
-            analy->db_set_buffer_qty = exo_db_set_buffer_qty;
-            
-            rval = TRUE;
+    case EXODUS:
+        exo_db_open = (int (*)( char *, int * ))
+                      dlsym( exo_handle, "exodus_db_open" );
+        if ( exo_db_open == NULL )
+        {
+            rval = FALSE;
             break;
+        }
+        analy->db_open = exo_db_open;
+
+        exo_db_get_geom = (int (*)( int, Mesh_data **, int * ))
+                          dlsym( exo_handle, "exodus_db_get_geom" );
+        if ( exo_db_get_geom == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_get_geom = exo_db_get_geom;
+
+        exo_db_get_st_descriptors = (int (*)( Analysis *, int ))
+                                    dlsym( exo_handle,
+                                           "exodus_db_get_st_descriptors" );
+        if ( exo_db_get_st_descriptors == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_get_st_descriptors = exo_db_get_st_descriptors;
+
+        analy->db_set_results = mili_db_set_results;
+
+        exo_db_get_state = (int (*)( Analysis *, int, State2 *, State2 **,
+                                     int * ) )
+                           dlsym( exo_handle, "exodus_db_get_state" );
+        if ( exo_db_get_state == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_get_state = exo_db_get_state;
+
+        exo_db_get_subrec_def = (int (*)
+                                 ( int, int, int, Subrecord * ))
+                                dlsym( exo_handle,
+                                       "exodus_db_get_subrec_def" );
+        if ( exo_db_get_subrec_def == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_get_subrec_def = exo_db_get_subrec_def;
+
+        exo_db_cleanse_subrec = (int (*)
+                                 ( Subrecord * ))
+                                dlsym( exo_handle,
+                                       "exodus_db_cleanse_subrec" );
+        if ( exo_db_cleanse_subrec == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_cleanse_subrec = exo_db_cleanse_subrec;
+
+        exo_db_cleanse_state_var = (int (*)
+                                    ( State_variable * ))
+                                   dlsym( exo_handle,
+                                          "exodus_db_cleanse_state_var" );
+        if ( exo_db_cleanse_state_var == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_cleanse_state_var = exo_db_cleanse_state_var;
+
+        exo_db_get_results = (int (*)
+                              ( int, int, int, int, char **, void * ))
+                             dlsym( exo_handle, "exodus_db_get_results" );
+        if ( exo_db_get_results == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_get_results = exo_db_get_results;
+
+        exo_db_close = (int (*)( Analysis * ))
+                       dlsym( exo_handle, "exodus_db_close" );
+        if ( exo_db_close == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_close = exo_db_close;
+
+        exo_db_get_title = (int (*)( int, char * ))
+                           dlsym( exo_handle, "exodus_db_get_title" );
+        if ( exo_db_get_title == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_get_title = exo_db_get_title;
+
+        exo_db_get_dimension = (int (*)( int, int * ))
+                               dlsym( exo_handle,
+                                      "exodus_db_get_dimension" );
+        if ( exo_db_get_dimension == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_get_dimension = exo_db_get_dimension;
+
+        exo_db_query = (int (*)( int, int, void *, char *, void * ))
+                       dlsym( exo_handle, "exodus_db_query" );
+        if ( exo_db_query == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_query = exo_db_query;
+
+        exo_db_set_buffer_qty = (int (*)( int, int, char *, int ))
+                                dlsym( exo_handle,
+                                       "exodus_db_set_buffer_qty" );
+        if ( exo_db_set_buffer_qty == NULL )
+        {
+            rval = FALSE;
+            break;
+        }
+        analy->db_set_buffer_qty = exo_db_set_buffer_qty;
+
+        rval = TRUE;
+        break;
 #endif
     }
 
@@ -283,7 +283,7 @@ init_db_io( Database_type_griz db_type, Analysis *analy )
         dlclose( exo_handle );
     }
 #endif
-    
+
     return rval;
 }
 
@@ -294,20 +294,20 @@ init_db_io( Database_type_griz db_type, Analysis *analy )
  * Clean up loose ends for some db types when a db isn't
  * needed anymore.
  */
-extern void 
+extern void
 reset_db_io( Database_type_griz db_type )
 {
     switch ( db_type )
     {
-        case EXODUS:
+    case EXODUS:
 #ifdef EXO_SUPPORT
-            dlclose( exo_handle );
+        dlclose( exo_handle );
 #endif
-            break;
-            
-        default:
-            /* Do nothing. */
-            break;
+        break;
+
+    default:
+        /* Do nothing. */
+        break;
     }
 }
 
@@ -327,30 +327,30 @@ is_mili_db( char *fname )
     size_t mb_len;
     FILE *p_f;
     Bool_type rval;
-    
+
     /* MILI LIBRARY-DEPENDENT! */
     char *magic_bytes = "mili";
-    
+
     /* Build the "A" file name. */
     sprintf( mili_fname, "%sA", fname );
-    
+
     mb_len = strlen( magic_bytes );
     cbuf = NEW_N( char, mb_len + 1, "Mili magic bytes" );
-    
+
     rval = FALSE;
-    
+
     p_f = fopen( mili_fname, "r" );
     if ( p_f != NULL )
     {
         fread( cbuf, 1, mb_len, p_f );
         if ( strcmp( magic_bytes, cbuf ) == 0 )
             rval = TRUE;
-        
+
         fclose( p_f );
     }
-    
+
     free( cbuf );
-    
+
     return rval;
 }
 
@@ -374,9 +374,9 @@ is_taurus_plot_db( char *fname )
     int i;
     char *p_title;
 #endif
-    
+
     rval = TRUE;
-    
+
     p_f = fopen( fname, "r" );
     if ( p_f != NULL )
     {
@@ -384,7 +384,7 @@ is_taurus_plot_db( char *fname )
         count = fread( ctl, sizeof( int ), CTL_WORDS, p_f );
         if ( count != CTL_WORDS )
             return FALSE;
-        
+
         /* First 10 words should contain only printable characters. */
         title_bytes = 10 * sizeof( int );
 #ifndef KEEP_TITLE_CHECK
@@ -395,7 +395,7 @@ is_taurus_plot_db( char *fname )
             if ( isprint( (int) *p_title ) )
                 prtchar_cnt++;
 #endif
-        
+
         /* Perform checks. */
         if ( (prtchar_cnt < title_bytes -1 ) || (prtchar_cnt > title_bytes ) )
             rval = FALSE;
@@ -417,7 +417,7 @@ is_taurus_plot_db( char *fname )
             rval = FALSE;
         else if ( ctl[22] != 0 && ctl[22] != 1 ) /* node accelerations flag */
             rval = FALSE;
-        
+
         fclose( p_f );
     }
     else
@@ -448,9 +448,9 @@ is_byte_swapped_taurus_plot_db( char *fname )
     char *p_title;
     int i;
 #endif
-    
+
     rval = TRUE;
-    
+
     p_f = fopen( fname, "r" );
     if ( p_f != NULL )
     {
@@ -458,7 +458,7 @@ is_byte_swapped_taurus_plot_db( char *fname )
         count = fread( ctl, sizeof( int ), CTL_WORDS, p_f );
         if ( count != CTL_WORDS )
             return FALSE;
-        
+
         /* First 10 words should contain only printable characters. */
         title_bytes = 10 * sizeof( int );
 #ifndef KEEP_TITLE_CHECK
@@ -469,7 +469,7 @@ is_byte_swapped_taurus_plot_db( char *fname )
             if ( isprint( (int) *p_title ) )
                 prtchar_cnt++;
 #endif
-        
+
         /* Perform checks. */
         if ( prtchar_cnt != title_bytes )
             rval = FALSE;
@@ -491,7 +491,7 @@ is_byte_swapped_taurus_plot_db( char *fname )
             rval = FALSE;
         else if ( ctl[22] != 0 && ctl[22] != 16777216 ) /* node accelerations flag */
             rval = FALSE;
-        
+
         fclose( p_f );
     }
     else
@@ -512,8 +512,8 @@ is_byte_swapped_taurus_plot_db( char *fname )
  * netCDF (unless/until someone at NCAR can identify a way of
  * doing this without the library).  However, if we pass the
  * netCDF test, we have a high probability of success for
- * Exodus, so loading netCDF will likely be required anyway 
- * (even if we do violate the identify-library logic goal of 
+ * Exodus, so loading netCDF will likely be required anyway
+ * (even if we do violate the identify-library logic goal of
  * independence from actual I/O libraries).
  */
 static Bool_type
@@ -545,7 +545,7 @@ is_exodus_db( char *fname )
     c3 = getc( fid );
     if ( c1 == 'C' && c2 == 'D' && c3 == 'F' )
         fclose( fid );
-    
+
     exo_handle = dlopen( "libgex.so", RTLD_LAZY );
     if ( exo_handle == NULL )
     {
@@ -553,7 +553,7 @@ is_exodus_db( char *fname )
         fprintf( stderr, "%s", err_txt );
         return FALSE;
     }
-    
+
     exo_open = (int (*)( char *, int, int *, int *, float * ))
                dlsym( exo_handle, "ex_open" );
     if ( exo_open == NULL )
@@ -564,15 +564,15 @@ is_exodus_db( char *fname )
         return FALSE;
     }
 
-    exo_id = exo_open( fname, EX_READ, &CPU_word_size, &IO_word_size, 
+    exo_id = exo_open( fname, EX_READ, &CPU_word_size, &IO_word_size,
                        &exo_version );
 
     if ( exo_id < 0 )
-	{
+    {
         dlclose( exo_handle );
         return FALSE;
     }
-    
+
     exo_close = (int (*)( int )) dlsym( exo_handle, "ex_close" );
     if ( exo_close == NULL )
     {
@@ -586,7 +586,7 @@ is_exodus_db( char *fname )
         dlclose( exo_handle );
         return FALSE;
     }
-    
+
     return TRUE;
 }
 #endif

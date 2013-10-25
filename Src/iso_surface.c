@@ -1,7 +1,7 @@
 /* $Id$ */
-/* 
+/*
  * iso_surface.c - Construct an isosurface for 3D unstructured cell data.
- * 
+ *
  *      Donald J. Dovey
  *      Lawrence Livermore National Laboratory
  *      Mar 25 1992
@@ -9,7 +9,7 @@
  ************************************************************************
  * Modifications:
  *
- *  I. R. Corey - December 18, 2008: Added test for hidden mats in 
+ *  I. R. Corey - December 18, 2008: Added test for hidden mats in
  *                for cutting plane generation.
  *                See SRC#557
  *
@@ -33,7 +33,7 @@
 #include "cell_cases.h"
 
 static Bool_type is_degen_triangle( Triangle_poly *tri );
-static void hex_isosurface( float isoval, Subrec_obj *p_so, 
+static void hex_isosurface( float isoval, Subrec_obj *p_so,
                             MO_class_data *p_hex_class, Analysis * analy );
 static void hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
                           float plane_pt[3], float plane_norm[3] );
@@ -43,7 +43,7 @@ static void tet_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
 */
 
 void
-particle_rough_cut( Analysis *analy, float *plane_ppt, float *norm, MO_class_data *p_particle_class, 
+particle_rough_cut( Analysis *analy, float *plane_ppt, float *norm, MO_class_data *p_particle_class,
                     GVec3D *nodes, unsigned char *particle_visib );
 
 /*****************************************************************
@@ -60,8 +60,8 @@ is_degen_triangle( Triangle_poly *tri )
     for ( i = 0; i < 3; i++ )
     {
         if ( APX_EQ( tri->vtx[i][0], tri->vtx[(i+1)%3][0] ) &&
-             APX_EQ( tri->vtx[i][1], tri->vtx[(i+1)%3][1] ) &&
-             APX_EQ( tri->vtx[i][2], tri->vtx[(i+1)%3][2] ) )
+                APX_EQ( tri->vtx[i][1], tri->vtx[(i+1)%3][1] ) &&
+                APX_EQ( tri->vtx[i][2], tri->vtx[(i+1)%3][2] ) )
             return TRUE;
     }
 
@@ -84,7 +84,7 @@ gen_isosurfs( Analysis *analy )
     Subrec_obj *p_so;
     Mesh_data *p_mesh;
     MO_class_data **p_mo_classes;
-    void (*iso_funcs[])( float, Subrec_obj *, MO_class_data *, Analysis * ) = 
+    void (*iso_funcs[])( float, Subrec_obj *, MO_class_data *, Analysis * ) =
     {
         NULL,       /* G_UNIT */
         NULL,       /* G_NODE */
@@ -100,22 +100,22 @@ gen_isosurfs( Analysis *analy )
         NULL,       /* G_MESH */
         NULL,       /* G_SURFACE */
     };
-    
+
     p_result = analy->cur_result;
     if ( p_result == NULL )
         return;
- 
+
     DELETE_LIST( analy->isosurf_poly );
 
-    if ( analy->show_isosurfs 
-         && analy->contour_cnt > 0 
-         && ( p_result->origin.is_node_result 
-              || p_result->origin.is_elem_result ) )
+    if ( analy->show_isosurfs
+            && analy->contour_cnt > 0
+            && ( p_result->origin.is_node_result
+                 || p_result->origin.is_elem_result ) )
     {
         check_interp_mode( analy );
-        
+
         p_mesh = MESH_P( analy );
-        
+
         /* Convert from percentages to actual contour values. */
         diff = analy->result_mm[1] - analy->result_mm[0];
         base = analy->result_mm[0];
@@ -123,7 +123,7 @@ gen_isosurfs( Analysis *analy )
         for ( i = 0; i < analy->contour_cnt; i++ )
         {
             iso_val = diff*analy->contour_vals[i] + base;
-            
+
             /*
              * Take a peek at the first superclass to see if it's a
              * nodal result.  If it is, there's no point in looping
@@ -132,7 +132,7 @@ gen_isosurfs( Analysis *analy )
              */
 
             sclass = p_result->superclasses[0];
-            
+
             if ( sclass == G_NODE )
             {
                 /*
@@ -148,11 +148,11 @@ gen_isosurfs( Analysis *analy )
                     if ( iso_funcs[k] != NULL )
                     {
                         c_qty = p_mesh->classes_by_sclass[k].qty;
-                        p_mo_classes = (MO_class_data **) 
+                        p_mo_classes = (MO_class_data **)
                                        p_mesh->classes_by_sclass[k].list;
-                        
+
                         for ( l = 0; l < c_qty; l++ )
-                            iso_funcs[k]( iso_val, NULL, p_mo_classes[l], 
+                            iso_funcs[k]( iso_val, NULL, p_mo_classes[l],
                                           analy );
                     }
                 }
@@ -167,17 +167,17 @@ gen_isosurfs( Analysis *analy )
                         continue;
 
                     subrec_id = p_result->subrecs[j];
-                    
+
                     if ( p_result->indirect_flags[j] )
                     {
-                        /* 
+                        /*
                          * For indirect results, generate isosurfaces on all
                          * classes with correct superclass.
                          */
                         c_qty = p_mesh->classes_by_sclass[sclass].qty;
-                        p_mo_classes = (MO_class_data **) 
+                        p_mo_classes = (MO_class_data **)
                                        p_mesh->classes_by_sclass[sclass].list;
-                        
+
                         for ( k = 0; k < c_qty; k++ )
                             iso_funcs[sclass]( iso_val, NULL, p_mo_classes[k],
                                                analy );
@@ -186,12 +186,12 @@ gen_isosurfs( Analysis *analy )
                     {
                         /*
                          * For direct results, generate isosurfaces
-                         * on volumetric elements bound to the j'th 
-                         * supporting subrecord. 
+                         * on volumetric elements bound to the j'th
+                         * supporting subrecord.
                          */
-                        p_so = analy->srec_tree[p_result->srec_id].subrecs 
+                        p_so = analy->srec_tree[p_result->srec_id].subrecs
                                + subrec_id;
-                        iso_funcs[sclass]( iso_val, p_so, 
+                        iso_funcs[sclass]( iso_val, p_so,
                                            p_so->p_object_class, analy );
                     }
                 }
@@ -207,12 +207,12 @@ gen_isosurfs( Analysis *analy )
  * Generate triangles approximating the isosurface for the given
  * isovalue and the currently displayed variable.
  */
-static void 
-hex_isosurface( float isoval, Subrec_obj *p_so, MO_class_data *p_hex_class, 
+static void
+hex_isosurface( float isoval, Subrec_obj *p_so, MO_class_data *p_hex_class,
                 Analysis * analy )
 {
     float *activ;
-    unsigned char vertex_mask; 
+    unsigned char vertex_mask;
     float v0, v1, v2, v3, v4, v5, v6, v7;
     float interp;
     float xyz[8][3];
@@ -228,7 +228,7 @@ hex_isosurface( float isoval, Subrec_obj *p_so, MO_class_data *p_hex_class,
     int hex_id;
     Visibility_data *p_vd;
     int *object_ids;
-    
+
     p_result = analy->cur_result;
     if ( p_result == NULL )
         return;
@@ -250,8 +250,8 @@ hex_isosurface( float isoval, Subrec_obj *p_so, MO_class_data *p_hex_class,
     coords = analy->state_p->nodes.nodes3d;
     p_vd = p_hex_class->p_vis_data;
     activ = analy->state_p->sand_present
-            ? analy->state_p->elem_class_sand[p_hex_class->elem_class_index] 
-              : NULL;
+            ? analy->state_p->elem_class_sand[p_hex_class->elem_class_index]
+            : NULL;
     data_buffer = NODAL_RESULT_BUFFER( analy );
 
     /*
@@ -273,7 +273,7 @@ hex_isosurface( float isoval, Subrec_obj *p_so, MO_class_data *p_hex_class,
 
         /*
          * Check each vertices which make up cell (i, j) and then set
-         * the corresponding bit in the vertex_mask if the value of 
+         * the corresponding bit in the vertex_mask if the value of
          * that vertex is less than or equal to the threshold value.
          *
          * A cube/cell is labeled thus:
@@ -356,7 +356,7 @@ hex_isosurface( float isoval, Subrec_obj *p_so, MO_class_data *p_hex_class,
         /*
          * Compute the polygon(s) which approximate the iso-surface in
          * the current cell.
-         *  
+         *
          * This implementation of the "Marching Cubes" (see SIGGRAPH '87
          * proceedings) enumerates all 256 cases through a permutation
          * matrix that was constructed painfully by hand by Jeff Kalman.
@@ -365,7 +365,7 @@ hex_isosurface( float isoval, Subrec_obj *p_so, MO_class_data *p_hex_class,
          * vertex lies on.
          */
 
-        /* For each triangle in the triangle list for this case 
+        /* For each triangle in the triangle list for this case
          * (i.e. vertex_mask) compute each vertex.
          */
         for ( t = 0; t < triangle_cases_count[vertex_mask]; t++ )
@@ -378,180 +378,180 @@ hex_isosurface( float isoval, Subrec_obj *p_so, MO_class_data *p_hex_class,
             {
                 switch ( triangle_cases[vertex_mask][t][v] )
                 {
-                    case 0: 
-                        interp = ( v1 - isoval ) /( v1 - v0 );
-                        L_INTERP( tri->vtx[v], interp, xyz[1], xyz[0] );
+                case 0:
+                    interp = ( v1 - isoval ) /( v1 - v0 );
+                    L_INTERP( tri->vtx[v], interp, xyz[1], xyz[0] );
 
-                        /*
-                        compute_gradient( i,     j,   k, g0 );
-                        compute_gradient( i+1,   j,   k, g1 );
-                        linear_interpolate( g1.x, g0.x, interp, normals[v].x );
-                        linear_interpolate( g1.y, g0.y, interp, normals[v].y );
-                        linear_interpolate( g1.z, g0.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i,     j,   k, g0 );
+                    compute_gradient( i+1,   j,   k, g1 );
+                    linear_interpolate( g1.x, g0.x, interp, normals[v].x );
+                    linear_interpolate( g1.y, g0.y, interp, normals[v].y );
+                    linear_interpolate( g1.z, g0.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
-                    case 1:
-                        interp = ( v2 - isoval ) / (v2 - v1 );
-                        L_INTERP( tri->vtx[v], interp, xyz[2], xyz[1] );
+                case 1:
+                    interp = ( v2 - isoval ) / (v2 - v1 );
+                    L_INTERP( tri->vtx[v], interp, xyz[2], xyz[1] );
 
-                        /*
-                        compute_gradient( i+1,   j,   k, g1 );
-                        compute_gradient( i+1,   j+1, k, g2 );
-                        linear_interpolate( g2.x, g1.x, interp, normals[v].x );
-                        linear_interpolate( g2.y, g1.y, interp, normals[v].y );
-                        linear_interpolate( g2.z, g1.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i+1,   j,   k, g1 );
+                    compute_gradient( i+1,   j+1, k, g2 );
+                    linear_interpolate( g2.x, g1.x, interp, normals[v].x );
+                    linear_interpolate( g2.y, g1.y, interp, normals[v].y );
+                    linear_interpolate( g2.z, g1.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
-                    case 2:
-                        interp = ( v3 - isoval ) / (v3 - v2 );
-                        L_INTERP( tri->vtx[v], interp, xyz[3], xyz[2] );
+                case 2:
+                    interp = ( v3 - isoval ) / (v3 - v2 );
+                    L_INTERP( tri->vtx[v], interp, xyz[3], xyz[2] );
 
-                        /*
-                        compute_gradient( i+1,   j+1, k, g2 );
-                        compute_gradient( i,     j+1, k, g3 );
-                        linear_interpolate( g3.x, g2.x, interp, normals[v].x );
-                        linear_interpolate( g3.y, g2.y, interp, normals[v].y );
-                        linear_interpolate( g3.z, g2.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i+1,   j+1, k, g2 );
+                    compute_gradient( i,     j+1, k, g3 );
+                    linear_interpolate( g3.x, g2.x, interp, normals[v].x );
+                    linear_interpolate( g3.y, g2.y, interp, normals[v].y );
+                    linear_interpolate( g3.z, g2.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
-                    case 3:
-                        interp = ( v0 - isoval ) / (v0 - v3 );
-                        L_INTERP( tri->vtx[v], interp, xyz[0], xyz[3] );
+                case 3:
+                    interp = ( v0 - isoval ) / (v0 - v3 );
+                    L_INTERP( tri->vtx[v], interp, xyz[0], xyz[3] );
 
-                        /*
-                        compute_gradient( i,   j+1,   k, g3 );
-                        compute_gradient( i,     j,   k, g0 );
-                        linear_interpolate( g0.x, g3.x, interp, normals[v].x );
-                        linear_interpolate( g0.y, g3.y, interp, normals[v].y );
-                        linear_interpolate( g0.z, g3.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i,   j+1,   k, g3 );
+                    compute_gradient( i,     j,   k, g0 );
+                    linear_interpolate( g0.x, g3.x, interp, normals[v].x );
+                    linear_interpolate( g0.y, g3.y, interp, normals[v].y );
+                    linear_interpolate( g0.z, g3.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
-                    case 4:
-                        interp = ( v5 - isoval ) / ( v5 - v4 );
-                        L_INTERP( tri->vtx[v], interp, xyz[5], xyz[4] );
+                case 4:
+                    interp = ( v5 - isoval ) / ( v5 - v4 );
+                    L_INTERP( tri->vtx[v], interp, xyz[5], xyz[4] );
 
-                        /*
-                        compute_gradient( i,     j, k+1, g4 );
-                        compute_gradient( i+1,   j, k+1, g5 );
-                        linear_interpolate( g5.x, g4.x, interp, normals[v].x );
-                        linear_interpolate( g5.y, g4.y, interp, normals[v].y );
-                        linear_interpolate( g5.z, g4.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i,     j, k+1, g4 );
+                    compute_gradient( i+1,   j, k+1, g5 );
+                    linear_interpolate( g5.x, g4.x, interp, normals[v].x );
+                    linear_interpolate( g5.y, g4.y, interp, normals[v].y );
+                    linear_interpolate( g5.z, g4.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
-                    case 5:
-                        interp = ( v6 - isoval ) / ( v6 - v5 );
-                        L_INTERP( tri->vtx[v], interp, xyz[6], xyz[5] );
+                case 5:
+                    interp = ( v6 - isoval ) / ( v6 - v5 );
+                    L_INTERP( tri->vtx[v], interp, xyz[6], xyz[5] );
 
-                        /*
-                        compute_gradient( i+1,   j, k+1, g5 );
-                        compute_gradient( i+1, j+1, k+1, g6 );
-                        linear_interpolate( g6.x, g5.x, interp, normals[v].x );
-                        linear_interpolate( g6.y, g5.y, interp, normals[v].y );
-                        linear_interpolate( g6.z, g5.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i+1,   j, k+1, g5 );
+                    compute_gradient( i+1, j+1, k+1, g6 );
+                    linear_interpolate( g6.x, g5.x, interp, normals[v].x );
+                    linear_interpolate( g6.y, g5.y, interp, normals[v].y );
+                    linear_interpolate( g6.z, g5.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
-                    case 6:
-                        interp = ( v7 - isoval ) / ( v7 - v6 );
-                        L_INTERP( tri->vtx[v], interp, xyz[7], xyz[6] );
+                case 6:
+                    interp = ( v7 - isoval ) / ( v7 - v6 );
+                    L_INTERP( tri->vtx[v], interp, xyz[7], xyz[6] );
 
-                        /*
-                        compute_gradient( i+1, j+1, k+1, g6 );
-                        compute_gradient(   i, j+1, k+1, g7 );
-                        linear_interpolate( g7.x, g6.x, interp, normals[v].x );
-                        linear_interpolate( g7.y, g6.y, interp, normals[v].y );
-                        linear_interpolate( g7.z, g6.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i+1, j+1, k+1, g6 );
+                    compute_gradient(   i, j+1, k+1, g7 );
+                    linear_interpolate( g7.x, g6.x, interp, normals[v].x );
+                    linear_interpolate( g7.y, g6.y, interp, normals[v].y );
+                    linear_interpolate( g7.z, g6.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
-                    case 7:
-                        interp = ( v4 - isoval ) / ( v4 - v7 );
-                        L_INTERP( tri->vtx[v], interp, xyz[4], xyz[7]);
+                case 7:
+                    interp = ( v4 - isoval ) / ( v4 - v7 );
+                    L_INTERP( tri->vtx[v], interp, xyz[4], xyz[7]);
 
-                        /*
-                        compute_gradient( i,  j+1, k+1, g7 );
-                        compute_gradient( i,    j, k+1, g4 );
-                        linear_interpolate( g4.x, g7.x, interp, normals[v].x );
-                        linear_interpolate( g4.y, g7.y, interp, normals[v].y );
-                        linear_interpolate( g4.z, g7.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i,  j+1, k+1, g7 );
+                    compute_gradient( i,    j, k+1, g4 );
+                    linear_interpolate( g4.x, g7.x, interp, normals[v].x );
+                    linear_interpolate( g4.y, g7.y, interp, normals[v].y );
+                    linear_interpolate( g4.z, g7.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
-                    case 8:
-                        interp = ( v4 - isoval ) / ( v4 - v0 );
-                        L_INTERP( tri->vtx[v], interp, xyz[4], xyz[0]);
+                case 8:
+                    interp = ( v4 - isoval ) / ( v4 - v0 );
+                    L_INTERP( tri->vtx[v], interp, xyz[4], xyz[0]);
 
-                        /*
-                        compute_gradient( i,     j, k,   g0 );
-                        compute_gradient( i,     j, k+1, g4 );
-                        linear_interpolate( g4.x, g0.x, interp, normals[v].x );
-                        linear_interpolate( g4.y, g0.y, interp, normals[v].y );
-                        linear_interpolate( g4.z, g0.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i,     j, k,   g0 );
+                    compute_gradient( i,     j, k+1, g4 );
+                    linear_interpolate( g4.x, g0.x, interp, normals[v].x );
+                    linear_interpolate( g4.y, g0.y, interp, normals[v].y );
+                    linear_interpolate( g4.z, g0.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
-                    case 9:
-                        interp = ( v5 - isoval ) / ( v5 - v1 );
-                        L_INTERP( tri->vtx[v], interp, xyz[5], xyz[1]);
+                case 9:
+                    interp = ( v5 - isoval ) / ( v5 - v1 );
+                    L_INTERP( tri->vtx[v], interp, xyz[5], xyz[1]);
 
-                        /*
-                        compute_gradient( i+1,   j,   k, g1 );
-                        compute_gradient( i+1,   j, k+1, g5 );
-                        linear_interpolate( g5.x, g1.x, interp, normals[v].x );
-                        linear_interpolate( g5.y, g1.y, interp, normals[v].y );
-                        linear_interpolate( g5.z, g1.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i+1,   j,   k, g1 );
+                    compute_gradient( i+1,   j, k+1, g5 );
+                    linear_interpolate( g5.x, g1.x, interp, normals[v].x );
+                    linear_interpolate( g5.y, g1.y, interp, normals[v].y );
+                    linear_interpolate( g5.z, g1.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
-                    case 10:
-                        interp = ( v6 - isoval ) / ( v6 - v2 );
-                        L_INTERP( tri->vtx[v], interp, xyz[6], xyz[2]);
+                case 10:
+                    interp = ( v6 - isoval ) / ( v6 - v2 );
+                    L_INTERP( tri->vtx[v], interp, xyz[6], xyz[2]);
 
-                        /*
-                        compute_gradient( i+1, j+1,   k, g2 );
-                        compute_gradient( i+1, j+1, k+1, g6 );
-                        linear_interpolate( g6.x, g2.x, interp, normals[v].x );
-                        linear_interpolate( g6.y, g2.y, interp, normals[v].y );
-                        linear_interpolate( g6.z, g2.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i+1, j+1,   k, g2 );
+                    compute_gradient( i+1, j+1, k+1, g6 );
+                    linear_interpolate( g6.x, g2.x, interp, normals[v].x );
+                    linear_interpolate( g6.y, g2.y, interp, normals[v].y );
+                    linear_interpolate( g6.z, g2.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
-                    case 11:
-                        interp = ( v7 - isoval ) / ( v7 - v3 );
-                        L_INTERP( tri->vtx[v], interp, xyz[7], xyz[3]);
+                case 11:
+                    interp = ( v7 - isoval ) / ( v7 - v3 );
+                    L_INTERP( tri->vtx[v], interp, xyz[7], xyz[3]);
 
-                        /*
-                        compute_gradient( i, j+1,   k, g3 );
-                        compute_gradient( i, j+1, k+1, g7 );
-                        linear_interpolate( g7.x, g3.x, interp, normals[v].x );
-                        linear_interpolate( g7.y, g3.y, interp, normals[v].y );
-                        linear_interpolate( g7.z, g3.z, interp, normals[v].z );
-                        cartesian_normalize( normals[v], normals[v] );
-                        */
-                        break;
+                    /*
+                    compute_gradient( i, j+1,   k, g3 );
+                    compute_gradient( i, j+1, k+1, g7 );
+                    linear_interpolate( g7.x, g3.x, interp, normals[v].x );
+                    linear_interpolate( g7.y, g3.y, interp, normals[v].y );
+                    linear_interpolate( g7.z, g3.z, interp, normals[v].z );
+                    cartesian_normalize( normals[v], normals[v] );
+                    */
+                    break;
 
                 } /* End case */
             } /* End for v */
 
             /* Handle degenerate elements. */
-            if ( p_hex_class->objects.elems->has_degen 
-                 && is_degen_triangle( tri ) )
+            if ( p_hex_class->objects.elems->has_degen
+                    && is_degen_triangle( tri ) )
             {
                 free( tri );
                 continue;
@@ -594,7 +594,7 @@ hex_isosurface( float isoval, Subrec_obj *p_so, MO_class_data *p_hex_class,
         {
             nd = connects[el][ fc_nd_nums[fc][j] ];
             if ( data_buffer[nd] == isoval )
-                isocnt++; 
+                isocnt++;
         }
 
         if ( isocnt > 2 )
@@ -641,8 +641,8 @@ hex_isosurface( float isoval, Subrec_obj *p_so, MO_class_data *p_hex_class,
                             tri->vtx[1], tri->vtx[2] );
 
             /* Handle degenerate elements. */
-            if ( p_hex_class->objects.elems->has_degen 
-                 && is_degen_triangle( tri ) )
+            if ( p_hex_class->objects.elems->has_degen
+                    && is_degen_triangle( tri ) )
                 free( tri );
             else
             {
@@ -674,46 +674,46 @@ gen_cuts( Analysis *analy )
     Classed_list *p_cl;
     Triangle_poly *p_tp;
     unsigned char *part_visib;
-   
+
     for ( p_cl = analy->cut_poly_lists; p_cl != NULL; NEXT( p_cl ) )
     {
         p_tp = (Triangle_poly *) p_cl->list;
         DELETE_LIST( p_tp );
     }
-    DELETE_LIST( analy->cut_poly_lists ); 
+    DELETE_LIST( analy->cut_poly_lists );
 
     if ( analy->show_cut || analy->show_particle_cut )
     {
         /* Get the current state record format and its mesh. */
         st_num = analy->cur_state + 1;
-        analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &st_num, NULL, 
+        analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &st_num, NULL,
                          &srec_id );
 
-	if ( analy->last_state <= 0 )
-	     mesh_id = analy->cur_mesh_id;
+        if ( analy->last_state <= 0 )
+            mesh_id = analy->cur_mesh_id;
         else
-             mesh_id = analy->srec_tree[srec_id].subrecs[0].p_object_class->mesh_id;
+            mesh_id = analy->srec_tree[srec_id].subrecs[0].p_object_class->mesh_id;
 
         /* Update references to mesh classes if necessary. */
         if ( analy->db_ident != prev_db_ident || mesh_id != prev_mesh_id )
         {
             prev_db_ident = analy->db_ident;
             prev_mesh_id = mesh_id;
-           
+
             p_mesh = analy->mesh_table + mesh_id;
 
             if ( mo_classes != NULL )
                 free( mo_classes );
 #ifdef NEWMILI
-            htable_get_data( p_mesh->class_table, 
+            htable_get_data( p_mesh->class_table,
                              (void ***) &mo_classes ,
                              &class_qty );
 #else
-            class_qty = htable_get_data( p_mesh->class_table, 
-					 (void ***) &mo_classes);
+            class_qty = htable_get_data( p_mesh->class_table,
+                                         (void ***) &mo_classes);
 #endif
         }
-        
+
         for ( plane = analy->cut_planes; plane != NULL; plane = plane->next )
         {
             /* Generate cut planes where volume element types exist in mesh. */
@@ -721,34 +721,34 @@ gen_cuts( Analysis *analy )
             {
                 switch ( mo_classes[i]->superclass )
                 {
-                    case G_HEX:
-		          hex_fine_cut( analy, mo_classes[i], plane->pt, 
-					plane->norm );
-			  if ( is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) ) 
-			       reset_face_visibility( analy );
-                        break;
-                    case G_TET:
-		      /*
+                case G_HEX:
+                    hex_fine_cut( analy, mo_classes[i], plane->pt,
+                                  plane->norm );
+                    if ( is_particle_class( analy, mo_classes[i]->superclass, mo_classes[i]->short_name ) )
+                        reset_face_visibility( analy );
+                    break;
+                case G_TET:
+                    /*
 
-		          tet_fine_cut( analy, mo_classes[i], plane->pt, 
-			                plane->norm );
-		      */
-                        break;
+                        tet_fine_cut( analy, mo_classes[i], plane->pt,
+                                  plane->norm );
+                    */
+                    break;
 
-                    case G_PYRAMID:
-                    case G_WEDGE:
-                        /* not implemented */
-                        if ( warn_once )
-                        {
-                            popup_dialog( INFO_POPUP, "%s\n%s%s", 
-                                          "Cut planes are not implemented on",
-                                          "tetrahedral, pyramid or wedge ",
-                                          "element types." );
-                            warn_once = FALSE;
-                        }
-                        break;
-                    default:
-                        ;/* Do nothing for non-volumetric mesh object types. */
+                case G_PYRAMID:
+                case G_WEDGE:
+                    /* not implemented */
+                    if ( warn_once )
+                    {
+                        popup_dialog( INFO_POPUP, "%s\n%s%s",
+                                      "Cut planes are not implemented on",
+                                      "tetrahedral, pyramid or wedge ",
+                                      "element types." );
+                        warn_once = FALSE;
+                    }
+                    break;
+                default:
+                    ;/* Do nothing for non-volumetric mesh object types. */
                 }
             }   /* for each class in mesh */
         }   /* for each cut plane */
@@ -768,7 +768,7 @@ hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
               float plane_pt[3], float plane_norm[3] )
 {
     float *activ;
-    unsigned char vertex_mask; 
+    unsigned char vertex_mask;
     float v0, v1, v2, v3, v4, v5, v6, v7;
     float interp;
     float xyz[8][3];
@@ -796,13 +796,13 @@ hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
 
     hide_mtl   = p_mesh->hide_material;
     hide_brick = p_mesh->hide_brick_elem;
-        
+
     if ( result_has_superclass( analy->cur_result, G_MAT, analy ) )
     {
 #ifdef OLD_RES_BUFFERS
         result = analy->mat_result;
 #endif
-        result = ((MO_class_data **) 
+        result = ((MO_class_data **)
                   p_mesh->classes_by_sclass[G_MAT].list)[0]->data_buffer;
         p_source_index = &matl;
         do_result_interpolation = FALSE;
@@ -812,7 +812,7 @@ hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
 #ifdef OLD_RES_BUFFERS
         result = &analy->mesh_result;
 #endif
-        result = ((MO_class_data **) 
+        result = ((MO_class_data **)
                   p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         mesh_idx = 0;
         p_source_index = &mesh_idx;
@@ -825,9 +825,9 @@ hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
     }
 
     activ = analy->state_p->sand_present
-            ? analy->state_p->elem_class_sand[p_elem_class->elem_class_index] 
-              : NULL;
-    
+            ? analy->state_p->elem_class_sand[p_elem_class->elem_class_index]
+            : NULL;
+
     for ( p_cl = analy->cut_poly_lists; p_cl != NULL; NEXT( p_cl ) )
         if ( p_cl->mo_class == p_elem_class )
             break;
@@ -846,19 +846,19 @@ hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
     {
         /* Skip inactive elements. */
         if ( activ && activ[i] == 0.0 )
-             continue;
+            continue;
 
-	/* Skip hidden materials */
-	matl = mats[i];
-	if ( hide_mtl[matl] || hide_brick[i] )
-	     continue;
+        /* Skip hidden materials */
+        matl = mats[i];
+        if ( hide_mtl[matl] || hide_brick[i] )
+            continue;
 
-	if ( hide_brick[i])
-	matl = mats[i];
-	   
-       /*
-         * Clear the vertex "value <= threshold" mask.
-         */
+        if ( hide_brick[i])
+            matl = mats[i];
+
+        /*
+          * Clear the vertex "value <= threshold" mask.
+          */
         vertex_mask = 0;
 
         for ( j = 0; j < 8; j++ )
@@ -915,7 +915,7 @@ hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
         if ( !do_result_interpolation )
             val = result[*p_source_index];
 
-        /* For each triangle in the triangle list for this case 
+        /* For each triangle in the triangle list for this case
          * (i.e. vertex_mask) compute each vertex.
          */
 
@@ -936,101 +936,101 @@ hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
                 {
                     switch ( triangle_cases[vertex_mask][t][v] )
                     {
-                        case 0: 
-                            interp = v1 / ( v1 + v0 );
-                            L_INTERP( tri->vtx[v], interp, xyz[1], xyz[0] );
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][1] ] +
-                                   interp*result[ connects[i][0] ];
-                            break;
+                    case 0:
+                        interp = v1 / ( v1 + v0 );
+                        L_INTERP( tri->vtx[v], interp, xyz[1], xyz[0] );
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][1] ] +
+                            interp*result[ connects[i][0] ];
+                        break;
 
-                        case 1:
-                            interp = v2 / (v2 + v1 );
-                            L_INTERP( tri->vtx[v], interp, xyz[2], xyz[1] );
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][2] ] +
-                                   interp*result[ connects[i][1] ];
-                            break;
+                    case 1:
+                        interp = v2 / (v2 + v1 );
+                        L_INTERP( tri->vtx[v], interp, xyz[2], xyz[1] );
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][2] ] +
+                            interp*result[ connects[i][1] ];
+                        break;
 
-                        case 2:
-                            interp = v3 / (v3 + v2 );
-                            L_INTERP( tri->vtx[v], interp, xyz[3], xyz[2] );
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][3] ] +
-                                   interp*result[ connects[i][2] ];
-                            break;
+                    case 2:
+                        interp = v3 / (v3 + v2 );
+                        L_INTERP( tri->vtx[v], interp, xyz[3], xyz[2] );
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][3] ] +
+                            interp*result[ connects[i][2] ];
+                        break;
 
-                        case 3:
-                            interp = v0 / (v0 + v3 );
-                            L_INTERP( tri->vtx[v], interp, xyz[0], xyz[3] );
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][0] ] +
-                                   interp*result[ connects[i][3] ];
-                            break;
+                    case 3:
+                        interp = v0 / (v0 + v3 );
+                        L_INTERP( tri->vtx[v], interp, xyz[0], xyz[3] );
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][0] ] +
+                            interp*result[ connects[i][3] ];
+                        break;
 
-                        case 4:
-                            interp = v5 / ( v5 + v4 );
-                            L_INTERP( tri->vtx[v], interp, xyz[5], xyz[4] );
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][5] ] +
-                                   interp*result[ connects[i][4] ];
-                            break;
+                    case 4:
+                        interp = v5 / ( v5 + v4 );
+                        L_INTERP( tri->vtx[v], interp, xyz[5], xyz[4] );
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][5] ] +
+                            interp*result[ connects[i][4] ];
+                        break;
 
-                        case 5:
-                            interp = v6 / ( v6 + v5 );
-                            L_INTERP( tri->vtx[v], interp, xyz[6], xyz[5] );
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][6] ] +
-                                   interp*result[ connects[i][5] ];
-                            break;
+                    case 5:
+                        interp = v6 / ( v6 + v5 );
+                        L_INTERP( tri->vtx[v], interp, xyz[6], xyz[5] );
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][6] ] +
+                            interp*result[ connects[i][5] ];
+                        break;
 
-                        case 6:
-                            interp = v7 / ( v7 + v6 );
-                            L_INTERP( tri->vtx[v], interp, xyz[7], xyz[6] );
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][7] ] +
-                                   interp*result[ connects[i][6] ];
-                            break;
+                    case 6:
+                        interp = v7 / ( v7 + v6 );
+                        L_INTERP( tri->vtx[v], interp, xyz[7], xyz[6] );
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][7] ] +
+                            interp*result[ connects[i][6] ];
+                        break;
 
-                        case 7:
-                            interp = v4 / ( v4 + v7 );
-                            L_INTERP( tri->vtx[v], interp, xyz[4], xyz[7]);
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][4] ] +
-                                   interp*result[ connects[i][7] ];
-                            break;
+                    case 7:
+                        interp = v4 / ( v4 + v7 );
+                        L_INTERP( tri->vtx[v], interp, xyz[4], xyz[7]);
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][4] ] +
+                            interp*result[ connects[i][7] ];
+                        break;
 
-                        case 8:
-                            interp = v4 / ( v4 + v0 );
-                            L_INTERP( tri->vtx[v], interp, xyz[4], xyz[0]);
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][4] ] +
-                                   interp*result[ connects[i][0] ];
-                            break;
+                    case 8:
+                        interp = v4 / ( v4 + v0 );
+                        L_INTERP( tri->vtx[v], interp, xyz[4], xyz[0]);
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][4] ] +
+                            interp*result[ connects[i][0] ];
+                        break;
 
-                        case 9:
-                            interp = v5 / ( v5 + v1 );
-                            L_INTERP( tri->vtx[v], interp, xyz[5], xyz[1]);
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][5] ] +
-                                   interp*result[ connects[i][1] ];
-                            break;
+                    case 9:
+                        interp = v5 / ( v5 + v1 );
+                        L_INTERP( tri->vtx[v], interp, xyz[5], xyz[1]);
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][5] ] +
+                            interp*result[ connects[i][1] ];
+                        break;
 
-                        case 10:
-                            interp = v6 / ( v6 + v2 );
-                            L_INTERP( tri->vtx[v], interp, xyz[6], xyz[2]);
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][6] ] +
-                                   interp*result[ connects[i][2] ];
-                            break;
+                    case 10:
+                        interp = v6 / ( v6 + v2 );
+                        L_INTERP( tri->vtx[v], interp, xyz[6], xyz[2]);
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][6] ] +
+                            interp*result[ connects[i][2] ];
+                        break;
 
-                        case 11:
-                            interp = v7 / ( v7 + v3 );
-                            L_INTERP( tri->vtx[v], interp, xyz[7], xyz[3]);
-                            tri->result[v] =
-                                   (1.0-interp)*result[ connects[i][7] ] +
-                                   interp*result[ connects[i][3] ];
-                            break;
+                    case 11:
+                        interp = v7 / ( v7 + v3 );
+                        L_INTERP( tri->vtx[v], interp, xyz[7], xyz[3]);
+                        tri->result[v] =
+                            (1.0-interp)*result[ connects[i][7] ] +
+                            interp*result[ connects[i][3] ];
+                        break;
 
                     } /* End case */
                 } /* End for v */
@@ -1043,85 +1043,85 @@ hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
                 {
                     switch ( triangle_cases[vertex_mask][t][v] )
                     {
-                        case 0: 
-                            interp = v1 / ( v1 + v0 );
-                            L_INTERP( tri->vtx[v], interp, xyz[1], xyz[0] );
-                            tri->result[v] = val;
-                            break;
+                    case 0:
+                        interp = v1 / ( v1 + v0 );
+                        L_INTERP( tri->vtx[v], interp, xyz[1], xyz[0] );
+                        tri->result[v] = val;
+                        break;
 
-                        case 1:
-                            interp = v2 / (v2 + v1 );
-                            L_INTERP( tri->vtx[v], interp, xyz[2], xyz[1] );
-                            tri->result[v] = val;
-                            break;
+                    case 1:
+                        interp = v2 / (v2 + v1 );
+                        L_INTERP( tri->vtx[v], interp, xyz[2], xyz[1] );
+                        tri->result[v] = val;
+                        break;
 
-                        case 2:
-                            interp = v3 / (v3 + v2 );
-                            L_INTERP( tri->vtx[v], interp, xyz[3], xyz[2] );
-                            tri->result[v] = val;
-                            break;
+                    case 2:
+                        interp = v3 / (v3 + v2 );
+                        L_INTERP( tri->vtx[v], interp, xyz[3], xyz[2] );
+                        tri->result[v] = val;
+                        break;
 
-                        case 3:
-                            interp = v0 / (v0 + v3 );
-                            L_INTERP( tri->vtx[v], interp, xyz[0], xyz[3] );
-                            tri->result[v] = val;
-                            break;
+                    case 3:
+                        interp = v0 / (v0 + v3 );
+                        L_INTERP( tri->vtx[v], interp, xyz[0], xyz[3] );
+                        tri->result[v] = val;
+                        break;
 
-                        case 4:
-                            interp = v5 / ( v5 + v4 );
-                            L_INTERP( tri->vtx[v], interp, xyz[5], xyz[4] );
-                            tri->result[v] = val;
-                            break;
+                    case 4:
+                        interp = v5 / ( v5 + v4 );
+                        L_INTERP( tri->vtx[v], interp, xyz[5], xyz[4] );
+                        tri->result[v] = val;
+                        break;
 
-                        case 5:
-                            interp = v6 / ( v6 + v5 );
-                            L_INTERP( tri->vtx[v], interp, xyz[6], xyz[5] );
-                            tri->result[v] = val;
-                            break;
+                    case 5:
+                        interp = v6 / ( v6 + v5 );
+                        L_INTERP( tri->vtx[v], interp, xyz[6], xyz[5] );
+                        tri->result[v] = val;
+                        break;
 
-                        case 6:
-                            interp = v7 / ( v7 + v6 );
-                            L_INTERP( tri->vtx[v], interp, xyz[7], xyz[6] );
-                            tri->result[v] = val;
-                            break;
+                    case 6:
+                        interp = v7 / ( v7 + v6 );
+                        L_INTERP( tri->vtx[v], interp, xyz[7], xyz[6] );
+                        tri->result[v] = val;
+                        break;
 
-                        case 7:
-                            interp = v4 / ( v4 + v7 );
-                            L_INTERP( tri->vtx[v], interp, xyz[4], xyz[7]);
-                            tri->result[v] = val;
-                            break;
+                    case 7:
+                        interp = v4 / ( v4 + v7 );
+                        L_INTERP( tri->vtx[v], interp, xyz[4], xyz[7]);
+                        tri->result[v] = val;
+                        break;
 
-                        case 8:
-                            interp = v4 / ( v4 + v0 );
-                            L_INTERP( tri->vtx[v], interp, xyz[4], xyz[0]);
-                            tri->result[v] = val;
-                            break;
+                    case 8:
+                        interp = v4 / ( v4 + v0 );
+                        L_INTERP( tri->vtx[v], interp, xyz[4], xyz[0]);
+                        tri->result[v] = val;
+                        break;
 
-                        case 9:
-                            interp = v5 / ( v5 + v1 );
-                            L_INTERP( tri->vtx[v], interp, xyz[5], xyz[1]);
-                            tri->result[v] = val;
-                            break;
+                    case 9:
+                        interp = v5 / ( v5 + v1 );
+                        L_INTERP( tri->vtx[v], interp, xyz[5], xyz[1]);
+                        tri->result[v] = val;
+                        break;
 
-                        case 10:
-                            interp = v6 / ( v6 + v2 );
-                            L_INTERP( tri->vtx[v], interp, xyz[6], xyz[2]);
-                            tri->result[v] = val;
-                            break;
+                    case 10:
+                        interp = v6 / ( v6 + v2 );
+                        L_INTERP( tri->vtx[v], interp, xyz[6], xyz[2]);
+                        tri->result[v] = val;
+                        break;
 
-                        case 11:
-                            interp = v7 / ( v7 + v3 );
-                            L_INTERP( tri->vtx[v], interp, xyz[7], xyz[3]);
-                            tri->result[v] = val;
-                            break;
+                    case 11:
+                        interp = v7 / ( v7 + v3 );
+                        L_INTERP( tri->vtx[v], interp, xyz[7], xyz[3]);
+                        tri->result[v] = val;
+                        break;
 
                     } /* End case */
                 } /* End for v */
             }
 
             /* Handle degenerate elements. */
-            if ( p_elem_class->objects.elems->has_degen 
-                 && is_degen_triangle( tri ) )
+            if ( p_elem_class->objects.elems->has_degen
+                    && is_degen_triangle( tri ) )
             {
                 free( tri );
                 continue;
@@ -1149,7 +1149,7 @@ hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
 
         } /* End for t */
     } /* End for i */
-    
+
     if ( p_tp != NULL )
     {
         p_cl->mo_class = p_elem_class;
@@ -1180,8 +1180,8 @@ Analysis *analy;
     for ( tri = analy->isosurf_poly; tri != NULL; tri = tri->next, cnt++ )
         area += area_of_triangle( tri->vtx );
     for ( p_cl = analy->cut_poly_lists; p_cl != NULL; NEXT( p_cl ) )
-        for ( tri = (Triangle_poly *) p_cl->list; tri != NULL; 
-              NEXT( tri ), cnt++ )
+        for ( tri = (Triangle_poly *) p_cl->list; tri != NULL;
+                NEXT( tri ), cnt++ )
             area += area_of_triangle( tri->vtx );
 
     if ( cnt > 0 )

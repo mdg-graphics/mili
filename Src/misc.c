@@ -9,22 +9,22 @@
  ************************************************************************
  * Modifications:
  *
- * I. R. Corey (May 18, 2004): Fixed a problem compilation problem 
+ * I. R. Corey (May 18, 2004): Fixed a problem compilation problem
  *  for HP platforms: timeb was not being included yet variables
  *  were defined using struct timeb (wc1 & wc2).
  *
  *  I. R. Corey - Dec 14, 2004: Add new function called get_temp_mem_ptr
- *  that will return a pointer to a chunk of n-bytes of the result temp 
+ *  that will return a pointer to a chunk of n-bytes of the result temp
  *  memory.
  *
  *  I. R. Corey - Nov 2, 2006: Add a new function str_to_upper to convert
  *  strings to all upper case - used when parsing input stream.
  *  memory.
  *
- *  I. R. Corey - March 14, 2007: Added struct and functions to support 
+ *  I. R. Corey - March 14, 2007: Added struct and functions to support
  *                writing and reading session data.
  *                See SRC#: 439
- * 
+ *
  *  I. R. Corey - May 15, 2007: Added more functionality to the session
  *                read-write function.
  *                See SRC#421.
@@ -36,15 +36,15 @@
  *                the AX tracker tool.
  *                See SRC#533.
  *
- * 12/05/2008 I. R. Corey   Add DP calculations for all derived nodal 
+ * 12/05/2008 I. R. Corey   Add DP calculations for all derived nodal
  *                          results. See mili_db_set_results().
  *                          See SRC#: 556
  *
- * 12/05/2010 I. R. Corey   Add DP calculations for all derived nodal 
+ * 12/05/2010 I. R. Corey   Add DP calculations for all derived nodal
  *                          results. See mili_db_set_results().
  *                          See SRC#: 556
  *
- * 12/05/2010 I. R. Corey   Add DP calculations for all derived nodal 
+ * 12/05/2010 I. R. Corey   Add DP calculations for all derived nodal
  *                          results. See mili_db_set_results().
  *                          See SRC#: 556
  ************************************************************************
@@ -76,7 +76,7 @@
 
 extern Bool_type include_util_panel, include_mtl_panel, include_utilmtl_panel;
 
-extern void get_window_attributes( void ); 
+extern void get_window_attributes( void );
 
 #define GET_INDEXED_SREC( pr, idx, drvd ) \
         ( ( drvd ) \
@@ -96,17 +96,17 @@ static int temp_mem_ptr = 0;
 
 /*****************************************************************
  * TAG( qty_connects )
- * 
+ *
  * Quantity of connectivity nodes per superclass.
  */
-int qty_connects[QTY_SCLASS] = 
+int qty_connects[QTY_SCLASS] =
 {
-  0, 1, 2, 3, 3, 4, 4, 5, 6, 8, 0, 0, 4, 1
+    0, 1, 2, 3, 3, 4, 4, 5, 6, 8, 0, 0, 4, 1
 };
 
 /*****************************************************************
  * TAG( griz_my_calloc )
- * 
+ *
  * Calloc instrumented to keep track of allocations.
  */
 char *
@@ -118,7 +118,7 @@ griz_my_calloc( int cnt, int size, char *descr )
 
 #ifdef DEBUG_MEM
     wrt_text( "Allocating memory for %s: %d bytes, total %d K.\n",
-              descr, cnt*size, _mem_total/1024 ); 
+              descr, cnt*size, _mem_total/1024 );
 #endif
 
     arr = (char *)calloc( cnt, size );
@@ -132,7 +132,7 @@ griz_my_calloc( int cnt, int size, char *descr )
 /*****************************************************************
  * TAG( verbose_realloc )
  *
- * Realloc if possible, else calloc and copy.  Warning - call 
+ * Realloc if possible, else calloc and copy.  Warning - call
  * syntax enables caller to have a dangling reference if return
  * value is not assigned to argument passed into "ptr".
  */
@@ -141,21 +141,21 @@ verbose_realloc( void *ptr, int size, int add, char *descr )
 {
     unsigned char *new;
     int new_size;
-    
+
     new_size = size + add;
-    
+
     new = (unsigned char *) realloc( ptr, new_size );
-    
+
     if ( new == NULL )
         popup_fatal( "Can't reallocate additional memory." );
 
 #ifdef DEBUG_MEM
     _mem_total += add;
-    
+
     fprintf( stderr, "Reallocating memory for %s: %d bytes, total %d K.\n",
-              descr, add, _mem_total / 1024 ); 
+             descr, add, _mem_total / 1024 );
 #endif
-    
+
     return (void *) new;
 }
 
@@ -163,7 +163,7 @@ verbose_realloc( void *ptr, int size, int add, char *descr )
 /*****************************************************************
  * TAG( verbose_recalloc )
  *
- * Realloc if possible with clear of new memory.  Warning - call 
+ * Realloc if possible with clear of new memory.  Warning - call
  * syntax enables caller to have a dangling reference if return
  * value is not assigned to argument passed into "ptr".
  */
@@ -172,23 +172,23 @@ verbose_recalloc( void *ptr, size_t size, size_t add, char *descr )
 {
     unsigned char *new;
     size_t new_size;
-    
+
     new_size = size + add;
-    
+
     new = (unsigned char *) realloc( ptr, new_size );
-    
+
     if ( new == NULL )
         popup_fatal( "Can't reallocate additional memory." );
-    
+
     memset( new + size, 0, add );
 
 #ifdef DEBUG_MEM
     _mem_total += add;
-    
+
     fprintf( stderr, "Reallocating memory for %s: %d bytes, total %d K.\n",
-              descr, add, _mem_total / 1024 ); 
+             descr, add, _mem_total / 1024 );
 #endif
-    
+
     return (void *) new;
 }
 
@@ -200,21 +200,21 @@ verbose_recalloc( void *ptr, size_t size, size_t add, char *descr )
  * This is a helper function for get_timing().
  */
 void
-timing_vals( float *ut, float *st, long *maxrs, long *rs, long *minpf, 
+timing_vals( float *ut, float *st, long *maxrs, long *rs, long *minpf,
              long *majpf, long *ns, long *in, long *out )
 {
 #ifndef NO_GETRUSAGE
     int err;
     struct rusage usage;
- 
+
     err = getrusage( RUSAGE_SELF, &usage );
- 
-    if( err != -1 )                         
+
+    if( err != -1 )
     {
-        *ut = usage.ru_utime.tv_sec + 
-              usage.ru_utime.tv_usec*1.0e-6;   
+        *ut = usage.ru_utime.tv_sec +
+              usage.ru_utime.tv_usec*1.0e-6;
         *st = usage.ru_stime.tv_sec +
-              usage.ru_stime.tv_usec*1.0e-6;   
+              usage.ru_stime.tv_usec*1.0e-6;
         *maxrs = usage.ru_maxrss;
         *rs    = usage.ru_idrss;
         *minpf = usage.ru_minflt;
@@ -236,7 +236,7 @@ timing_vals( float *ut, float *st, long *maxrs, long *rs, long *minpf,
     *in    = 0.0;
     *out   = 0.0;
 #endif
-}          
+}
 
 
 /************************************************************
@@ -257,7 +257,7 @@ check_timing( int end_flag )
 #ifdef NO_GETRUSAGE
     return;
 
-#else 
+#else
     static struct timeb wc1, wc2;
     if ( end_flag == 0 )
     {
@@ -266,11 +266,11 @@ check_timing( int end_flag )
                      &ns1, &in1, &out1 );
     }
     else
-    {   
+    {
         timing_vals( &ut2, &st2, &maxrs2, &rs2, &minpf2, &majpf2,
                      &ns2, &in2, &out2 );
         ftime( &wc2 );
-        
+
         mt = wc2.millitm - wc1.millitm;
         if ( mt < 0 )
         {
@@ -279,24 +279,24 @@ check_timing( int end_flag )
         }
         else
             st = wc2.time - wc1.time;
-        
-        wrt_text( "Wall clock time [seconds]               : %d.%03d\n", 
+
+        wrt_text( "Wall clock time [seconds]               : %d.%03d\n",
                   (int) st, (int) mt );
-        wrt_text( "User CPU Time [seconds]                 : %e\n", 
+        wrt_text( "User CPU Time [seconds]                 : %e\n",
                   (float) (ut2-ut1) );
-        wrt_text( "System CPU Time [seconds]               : %e\n", 
+        wrt_text( "System CPU Time [seconds]               : %e\n",
                   (float) (st2-st1) );
         wrt_text( "Maximum Resident Set Size [pages]       : %d, %d\n",
                   (int) maxrs1, (int) maxrs2 );
-        wrt_text( "Memory Residency Integral [page-seconds]: %d\n", 
+        wrt_text( "Memory Residency Integral [page-seconds]: %d\n",
                   (int) (rs2-rs1) );
         wrt_text( "Minor Page Faults [no I/O required]     : %d\n",
                   (int) (minpf2-minpf1) );
         wrt_text( "Major Page Faults [   I/O required]     : %d\n",
                   (int) (majpf2-majpf1) );
-        wrt_text( "Physical Read Requests Honored          : %d\n", 
+        wrt_text( "Physical Read Requests Honored          : %d\n",
                   (int) (in2-in1) );
-        wrt_text( "Physical Write Requests Honored         : %d\n", 
+        wrt_text( "Physical Write Requests Honored         : %d\n",
                   (int) (out2-out1) );
         wrt_text( "\n" );
     }
@@ -307,7 +307,7 @@ check_timing( int end_flag )
 /*****************************************************************
  * TAG( manage_timer )
  *
- * Activate/print program timing data for the user.  Up to 
+ * Activate/print program timing data for the user.  Up to
  * ten timers may be active simultaneously.  Parameter "timer"
  * is an integer on [0,9] which identifies which timer to
  * use.  Parameter "end_flag" is "0" to start the timing
@@ -326,57 +326,57 @@ manage_timer( int timer, int end_flag )
         struct rusage r_begin;
         struct rusage r_end;
     } TimerData;
-    
+
     static TimerData timers[10];
 #endif
     time_t mt, st;
 
-    char tracker_str[1000], walltime_str[20], version[64], 
+    char tracker_str[1000], walltime_str[20], version[64],
          problem_str[512];
-      
+
 #ifdef NO_GETRUSAGE
     return;
 #endif
-    
+
 #ifndef NO_GETRUSAGE
     if ( timer < 0 || timer > 9 )
     {
         popup_dialog( WARNING_POPUP, "Invalid timer number." );
         return;
     }
-    
+
     if ( end_flag == 0 )
     {
         if ( timers[timer].active )
             popup_dialog( WARNING_POPUP, "Resetting active timer." );
         else
             timers[timer].active = TRUE;
-        
+
         ftime( &timers[timer].wall_begin );
         getrusage( RUSAGE_SELF, &timers[timer].r_begin );
     }
     else
     {
-	struct timeb *p_tb, *p_te;
+        struct timeb *p_tb, *p_te;
         struct rusage *p_rb, *p_re;
         TimerData *p_td;
-        
+
         p_td = timers + timer;
-        
+
         if ( !p_td->active )
         {
             popup_dialog( WARNING_POPUP, "Cannot terminate inactive timer." );
             return;
         }
-        
+
         p_tb = &p_td->wall_begin;
         p_te = &p_td->wall_end;
         p_rb = &p_td->r_begin;
         p_re = &p_td->r_end;
-        
+
         getrusage( RUSAGE_SELF, p_re );
         ftime( p_te );
-        
+
         mt = p_te->millitm - p_tb->millitm;
         if ( mt < 0 )
         {
@@ -386,123 +386,123 @@ manage_timer( int timer, int end_flag )
         else
             st = p_te->time - p_tb->time;
 
-        wrt_text( "Wall clock time [seconds]               : %d.%03d\n", 
+        wrt_text( "Wall clock time [seconds]               : %d.%03d\n",
                   (int) st, (int) mt );
-        wrt_text( "User CPU Time [seconds]                 : %e\n", 
+        wrt_text( "User CPU Time [seconds]                 : %e\n",
                   (p_re->ru_utime.tv_sec + p_re->ru_utime.tv_usec * 1.0e-6)
                   - (p_rb->ru_utime.tv_sec + p_rb->ru_utime.tv_usec * 1.0e-6) );
-        wrt_text( "System CPU Time [seconds]               : %e\n", 
+        wrt_text( "System CPU Time [seconds]               : %e\n",
                   (p_re->ru_stime.tv_sec + p_re->ru_stime.tv_usec * 1.0e-6)
                   - (p_rb->ru_stime.tv_sec + p_re->ru_stime.tv_usec * 1.0e-6) );
         wrt_text( "Maximum Resident Set Size [pages]       : %d, %d\n",
                   (int) p_rb->ru_maxrss, (int) p_re->ru_maxrss );
-        wrt_text( "Memory Residency Integral [page-seconds]: %d\n", 
+        wrt_text( "Memory Residency Integral [page-seconds]: %d\n",
                   (int) (p_re->ru_idrss - p_rb->ru_idrss) );
         wrt_text( "Minor Page Faults [no I/O required]     : %d\n",
                   (int) (p_re->ru_minflt - p_rb->ru_minflt) );
         wrt_text( "Major Page Faults [   I/O required]     : %d\n",
                   (int) (p_re->ru_majflt - p_rb->ru_majflt) );
-        wrt_text( "Physical Read Requests Honored          : %d\n", 
+        wrt_text( "Physical Read Requests Honored          : %d\n",
                   (int) (p_re->ru_inblock - p_rb->ru_inblock) );
-        wrt_text( "Physical Write Requests Honored         : %d\n", 
+        wrt_text( "Physical Write Requests Honored         : %d\n",
                   (int) (p_re->ru_oublock - p_rb->ru_oublock) );
-        wrt_text( "\n" ); 
-        
+        wrt_text( "\n" );
+
         p_td->active = FALSE;
 
 
 
 #ifdef TIME_TRACKER
-/************************************************************************************* 
- ** Tracker Usage
-Usage: tracker -n PROG_NAME -v VERSION [options]
+        /*************************************************************************************
+         ** Tracker Usage
+        Usage: tracker -n PROG_NAME -v VERSION [options]
 
-    -h  --help              print this help screen
-    -b  --background        work in the background
-    -d  --delete            unlink FILENAME when done (must precede -f flag)
-    -n  --name PROG_NAME    name of the code that was run (32-char limit; required)
-    -P  --procs INT         total number of processes used (default = 1)
-    -T  --threads INT       number of threads used per process (default = 1)
-    -W  --walltime FLOAT    wall clock time used in seconds (default = 1.0)
-    -I  --problemid ID      problem ID for this run (default = 'No_ID'; 32 char limit)
-    -f  --file FILENAME     file containing KEY VALUE pairs (optional)
-    -r  --runs INT          # runs <= 100; no accumulate (default = 1)
-    -q  --quiet             reduce amount of output printed
-    -u  --uniqueid ID       unique ID (accumulates run's walltime; 255-char limit)
-    -v  --version VERSION   version number of code that was run (16-char limit; required)
-    -V  --verbose           print tracker's status information
+            -h  --help              print this help screen
+            -b  --background        work in the background
+            -d  --delete            unlink FILENAME when done (must precede -f flag)
+            -n  --name PROG_NAME    name of the code that was run (32-char limit; required)
+            -P  --procs INT         total number of processes used (default = 1)
+            -T  --threads INT       number of threads used per process (default = 1)
+            -W  --walltime FLOAT    wall clock time used in seconds (default = 1.0)
+            -I  --problemid ID      problem ID for this run (default = 'No_ID'; 32 char limit)
+            -f  --file FILENAME     file containing KEY VALUE pairs (optional)
+            -r  --runs INT          # runs <= 100; no accumulate (default = 1)
+            -q  --quiet             reduce amount of output printed
+            -u  --uniqueid ID       unique ID (accumulates run's walltime; 255-char limit)
+            -v  --version VERSION   version number of code that was run (16-char limit; required)
+            -V  --verbose           print tracker's status information
 
-Examples:
+        Examples:
 
-tracker -n myProgramName -v 1.0
-tracker -n myProgramName -v 1.0 -P 4 -T 1 -W 10.0
+        tracker -n myProgramName -v 1.0
+        tracker -n myProgramName -v 1.0 -P 4 -T 1 -W 10.0
 
-Notes:
+        Notes:
 
-The -f/--file argument takes a text file that has KEY VALUE pairs.
-Each KEY and VALUE *must* be separated by a space character ' '
-There may only be *one* KEY VALUE per line (pairs are separated by newlines).
-KEY may be any string (32-char limit) that does *not* contain quotes or semicolons.
-VALUE may be an int (32 bit), float (32 bit), string (32 chars), or boolean
-boolean VALUEs are lowercase strings: true, false
+        The -f/--file argument takes a text file that has KEY VALUE pairs.
+        Each KEY and VALUE *must* be separated by a space character ' '
+        There may only be *one* KEY VALUE per line (pairs are separated by newlines).
+        KEY may be any string (32-char limit) that does *not* contain quotes or semicolons.
+        VALUE may be an int (32 bit), float (32 bit), string (32 chars), or boolean
+        boolean VALUEs are lowercase strings: true, false
 
-File example:
+        File example:
 
-time(diffusion) 10.0
-time(hydro) 30.0
-constant -120.046e-12
-hydro true
-sn false
-count 3
-mystr "some string"
+        time(diffusion) 10.0
+        time(hydro) 30.0
+        constant -120.046e-12
+        hydro true
+        sn false
+        count 3
+        mystr "some string"
 
-Usage: tracker-code-report [options]
+        Usage: tracker-code-report [options]
 
-    -h  --help                print this help screen
-    -c  --codeName CODE_NAME  name of code to report or all (required)
-    -C  --includeCodeVersion  include code version in report (default is not)
-    -m  --month n             month (numerical index) (default is current)
-    -d  --day n               day
-    -y  --year n              year
-    -b  --beginReport DATE    begin date for report (e.g. 2008-06-08)
-    -e  --endReport DATE      end date for report (e.g. 20008-06-12)
-    -H  --hostName HOST_NAME  name of host for report (default is all)
-    -u  --user USER_NAME      name of user for report (default is all)
-    -l  --longReport          include detailed run report
-    -B  --database DB_NAME    name of tracker database (default is tracker)
-    -p  --property PROP_NAME  get values of property name
-    -q  --quiet               reduce amount of output printed
-    -V  --verbose             print tracker's status information
-    -T  --timeout             set timeout in (integer) seconds; default = 120
+            -h  --help                print this help screen
+            -c  --codeName CODE_NAME  name of code to report or all (required)
+            -C  --includeCodeVersion  include code version in report (default is not)
+            -m  --month n             month (numerical index) (default is current)
+            -d  --day n               day
+            -y  --year n              year
+            -b  --beginReport DATE    begin date for report (e.g. 2008-06-08)
+            -e  --endReport DATE      end date for report (e.g. 20008-06-12)
+            -H  --hostName HOST_NAME  name of host for report (default is all)
+            -u  --user USER_NAME      name of user for report (default is all)
+            -l  --longReport          include detailed run report
+            -B  --database DB_NAME    name of tracker database (default is tracker)
+            -p  --property PROP_NAME  get values of property name
+            -q  --quiet               reduce amount of output printed
+            -V  --verbose             print tracker's status information
+            -T  --timeout             set timeout in (integer) seconds; default = 120
 
-Examples:
+        Examples:
 
-tracker-code-report -c mycode         | tee report
-tracker-code-report -c mycode -H yana | tee report
-tracker-code-report -c mycode -m 12   | tee report
+        tracker-code-report -c mycode         | tee report
+        tracker-code-report -c mycode -H yana | tee report
+        tracker-code-report -c mycode -m 12   | tee report
 
-Defaults:
-- When no time specifier is used, give monthly report.
-- When a day is specified, give day report.
-- When only a year specified, give yearly report.
+        Defaults:
+        - When no time specifier is used, give monthly report.
+        - When a day is specified, give day report.
+        - When only a year specified, give yearly report.
 
-************************************************************************************************/
+        ************************************************************************************************/
 
-	sprintf(walltime_str," -W %d.%03d ", (int) st, (int) mt ); 
-	strcpy( version, " -v " );
-	strcat( version, GRIZ_VERSION );
-	strcat( version, " " );
-	
-	strcpy( problem_str, " -I ");
-	strcat( problem_str, env.curr_analy->root_name );
-	strcat( version, " " );
+        sprintf(walltime_str," -W %d.%03d ", (int) st, (int) mt );
+        strcpy( version, " -v " );
+        strcat( version, GRIZ_VERSION );
+        strcat( version, " " );
 
-	/* Construct the tracker execute line */
-	strcpy( tracker_str, "/usr/apps/tracker/bin/tracker -q -n Griz " );
-	strcat( tracker_str, version ); 
-	strcat( tracker_str, walltime_str ); 
-	strcat( tracker_str, problem_str );  
-        system( tracker_str );	
+        strcpy( problem_str, " -I ");
+        strcat( problem_str, env.curr_analy->root_name );
+        strcat( version, " " );
+
+        /* Construct the tracker execute line */
+        strcpy( tracker_str, "/usr/apps/tracker/bin/tracker -q -n Griz " );
+        strcat( tracker_str, version );
+        strcat( tracker_str, walltime_str );
+        strcat( tracker_str, problem_str );
+        system( tracker_str );
 #endif
     }
 #endif
@@ -522,7 +522,7 @@ griz_str_dup( char **dest, char *src )
     char *pd, *ps;
 
     for ( ps = src, len = 0; *ps; len++, ps++ );
-    
+
     *dest = (char *) NEW_N( char, len + 1, "String duplicate" );
 
     pd = *dest;
@@ -576,7 +576,7 @@ is_operation_token( char token[TOKENLENGTH], Plot_operation_type *otype )
     {
         if ( otype != NULL )
             *otype = op_type;
-         return TRUE;
+        return TRUE;
     }
     else
         return FALSE;
@@ -593,11 +593,11 @@ all_true( Bool_type *boola, int qty )
 {
     Bool_type accum;
     Bool_type *p_test, *bound;
-    
-    for ( p_test = boola, bound = boola + qty, accum = TRUE; 
-          p_test < bound; 
-          accum &= *p_test++ ); /* Bitwise! True's need a 1-bit in common. */
-    
+
+    for ( p_test = boola, bound = boola + qty, accum = TRUE;
+            p_test < bound;
+            accum &= *p_test++ ); /* Bitwise! True's need a 1-bit in common. */
+
     return accum;
 }
 
@@ -612,11 +612,11 @@ all_true_uc( unsigned char *boola, int qty )
 {
     unsigned char accum;
     unsigned char *p_test, *bound;
-    
-    for ( p_test = boola, bound = boola + qty, accum = TRUE; 
-          p_test < bound; 
-          accum &= *p_test++ ); /* Bitwise! True's need a 1-bit in common. */
-    
+
+    for ( p_test = boola, bound = boola + qty, accum = TRUE;
+            p_test < bound;
+            accum &= *p_test++ ); /* Bitwise! True's need a 1-bit in common. */
+
     return (Bool_type) accum;
 }
 
@@ -631,11 +631,11 @@ all_false( Bool_type *boola, int qty )
 {
     Bool_type accum;
     Bool_type *p_test, *bound;
-    
-    for ( p_test = boola, bound = boola + qty, accum = FALSE; 
-          p_test < bound; 
-          accum |= *p_test++ );
-    
+
+    for ( p_test = boola, bound = boola + qty, accum = FALSE;
+            p_test < bound;
+            accum |= *p_test++ );
+
     return !accum;
 }
 
@@ -650,11 +650,11 @@ all_false_uc( unsigned char *boola, int qty )
 {
     unsigned char accum;
     unsigned char *p_test, *bound;
-    
-    for ( p_test = boola, bound = boola + qty, accum = FALSE; 
-          p_test < bound; 
-          accum |= *p_test++ );
-    
+
+    for ( p_test = boola, bound = boola + qty, accum = FALSE;
+            p_test < bound;
+            accum |= *p_test++ );
+
     return (Bool_type) !accum;
 }
 
@@ -669,7 +669,7 @@ Bool_type
 is_in_iarray( int candidate, int size, int *iarray, int *p_location )
 {
     int *p_int, *bound;
-    
+
     bound = iarray + size;
     for ( p_int = iarray; p_int < bound; p_int++ )
         if ( candidate == *p_int )
@@ -678,7 +678,7 @@ is_in_iarray( int candidate, int size, int *iarray, int *p_location )
                 *p_location = (int) (p_int - iarray);
             break;
         }
-    
+
     return ( p_int != bound );
 }
 
@@ -693,7 +693,7 @@ Bool_type
 bool_compare_array( int size, int *array1, int *array2 )
 {
     int i;
-    
+
     for ( i = 0; i < size; i++ )
     {
         if ( array1[i] )
@@ -707,7 +707,7 @@ bool_compare_array( int size, int *array1, int *array2 )
                 return FALSE;
         }
     }
-    
+
     return TRUE;
 }
 
@@ -723,20 +723,20 @@ object_is_bound( int ident, MO_class_data *p_mo_class, Subrec_obj *p_subrec )
     Int_2tuple *p_block;
     int blk_qty;
     int i;
-    
+
     if ( p_mo_class != p_subrec->p_object_class )
         return FALSE;
 
     blk_qty = p_subrec->subrec.qty_blocks;
-    
-    for ( i = 0, p_block = (Int_2tuple *) p_subrec->subrec.mo_blocks; 
-          i < blk_qty; 
-          i++ )
+
+    for ( i = 0, p_block = (Int_2tuple *) p_subrec->subrec.mo_blocks;
+            i < blk_qty;
+            i++ )
     {
         if ( ident >= p_block[i][0] && ident <= p_block[i][1] )
             return TRUE;
     }
-    
+
     return FALSE;
 }
 
@@ -751,7 +751,7 @@ object_is_bound( int ident, MO_class_data *p_mo_class, Subrec_obj *p_subrec )
  * The line of text is only guaranteed to exist until the next
  * call to find_text().
  */
- 
+
 #define TXT_BUF_SIZE (256)
 
 char *
@@ -759,7 +759,7 @@ find_text( FILE *ifile, char *p_text )
 {
     static char txtline[TXT_BUF_SIZE];
     char *p_str, *p_line;
-    
+
     do
         p_line = fgets( txtline, TXT_BUF_SIZE, ifile );
     while ( p_line != NULL
@@ -781,14 +781,14 @@ calc_fracsz( float min, float max, int intervals )
 {
     double dmin, dmax, big_log, little_log, whole_little_log, dtmp;
     int fracsz;
-    
+
     /* Sanity check. */
     if ( min == max )
         return 2;
 
     /*
-     * Calculate the fraction size as the difference between the ceiling 
-     * of the base-10 log of the largest number to be displayed and the 
+     * Calculate the fraction size as the difference between the ceiling
+     * of the base-10 log of the largest number to be displayed and the
      * ceiling of the base-10 log of the interval between adjacent samples.
      * Note that the number of significant digits in the "e" format
      * representation of the scale tic labels needs to be one more than
@@ -796,33 +796,33 @@ calc_fracsz( float min, float max, int intervals )
      * between adjacent tic labels, so, technically, this routine should
      * add one to the value calculated.  But, we know a priori that the
      * caller is going to treat the number returned as just the quantity
-     * of digits after the decimal point and provide for one digit 
+     * of digits after the decimal point and provide for one digit
      * preceding the decimal point, so we don't perform the increment
      * and let the value returned really be just the length of the fraction.
      */
-    
+
     /* Big_log: log of largest displayed value. */
     dmin = fabs( (double) min );
     dmax = fabs( (double) max );
     if ( dmin > dmax )
         dmax = dmin;
-    
+
     big_log = log10( dmax );
 
     /* Little_log: log of interval magnitude. */
     dtmp = ((double) max - min) / (double) intervals;
     dtmp = fabs( dtmp );
-    
+
     little_log = log10( dtmp );
     whole_little_log = ceil( little_log );
 
     /*
-     * If the interval is a whole power of 10 then its visual string 
+     * If the interval is a whole power of 10 then its visual string
      * representation will require one more character than the log value
      * (i.e. 100 has a log of 2 but requires three characters to write out).
      * This has the effect of reducing the fraction size because, in terms
      * of the number of characters required to represent it, it makes the
-     * interval more like the tic label numbers (i.e., the change in 
+     * interval more like the tic label numbers (i.e., the change in
      * adjacent label numbers is represented by a change in a more significant
      * digit).
      *
@@ -831,7 +831,7 @@ calc_fracsz( float min, float max, int intervals )
      * what ought to be whole powers in this process.
      */
     if ( whole_little_log == little_log
-         || fabs( (double) 1.0 - whole_little_log / little_log ) < EPS )
+            || fabs( (double) 1.0 - whole_little_log / little_log ) < EPS )
         whole_little_log += 1.0;
 
     fracsz = (int) (ceil( big_log ) - whole_little_log + 0.5);
@@ -869,18 +869,18 @@ delete_primal_result( void *p_primal_result )
 {
     Primal_result *p_pr;
     int i;
-    
+
     p_pr = (Primal_result *) p_primal_result;
-    
+
     if ( p_pr->origin.is_alias )
         free( p_pr->long_name );
 
     for ( i = 0; i < env.curr_analy->qty_srec_fmts; i++ )
         if ( p_pr->srec_map[i].qty != 0 )
             free( p_pr->srec_map[i].list );
-    
+
     free( p_pr->srec_map );
-    
+
     free( p_pr );
 }
 
@@ -896,15 +896,15 @@ delete_derived_result( void *p_derived_result )
 {
     Derived_result *p_dr;
     int i;
-    
+
     p_dr = (Derived_result *) p_derived_result;
 
     for ( i = 0; i < env.curr_analy->qty_srec_fmts; i++ )
         if ( p_dr->srec_map[i].qty != 0 )
             free( p_dr->srec_map[i].list );
-    
+
     free( p_dr->srec_map );
-    
+
     free( p_dr );
 }
 
@@ -915,7 +915,7 @@ delete_derived_result( void *p_derived_result )
  * Delete MO_class_data struct and referenced memory.
  * Designed as a hash table data deletion function for htable_delete().
  */
-void 
+void
 delete_mo_class_data( void *p_data )
 {
     MO_class_data *p_mocd;
@@ -924,65 +924,65 @@ delete_mo_class_data( void *p_data )
     Surface_data *p_surface;
     int sclass;
     int i;
-    
+
     p_mocd = (MO_class_data *) p_data;
     sclass = p_mocd->superclass;
-    
+
     switch ( sclass )
     {
-        case G_NODE:
-            free( p_mocd->objects.nodes );
-            break;
-        
-        case G_UNIT:
-            /* do nothing */
-            break;
+    case G_NODE:
+        free( p_mocd->objects.nodes );
+        break;
 
-        case G_MAT:
-            p_mtld = p_mocd->objects.materials;
-            for ( i = 0; i < p_mocd->qty; i++ )
-            {
-                if ( p_mtld[i].elem_qty > 0 )
-                    free( p_mtld[i].elem_blocks );
-                if ( p_mtld[i].node_blocks != NULL )
-                    free( p_mtld[i].node_blocks );
-            }
-            free( p_mtld );
-            break;
-            
-        case G_SURFACE:
-             p_surface = p_mocd->objects.surfaces;
-             for ( i = 0; i < p_mocd->qty; i++ )
-             {
-                  free( p_surface[i].nodes );
-             }
-             free_vis_data( &p_surface->p_vis_data, sclass );
+    case G_UNIT:
+        /* do nothing */
+        break;
 
-             free( p_surface );
-             break;
+    case G_MAT:
+        p_mtld = p_mocd->objects.materials;
+        for ( i = 0; i < p_mocd->qty; i++ )
+        {
+            if ( p_mtld[i].elem_qty > 0 )
+                free( p_mtld[i].elem_blocks );
+            if ( p_mtld[i].node_blocks != NULL )
+                free( p_mtld[i].node_blocks );
+        }
+        free( p_mtld );
+        break;
 
-        case G_TRUSS:
-        case G_BEAM:
-        case G_TRI:
-        case G_QUAD:
-        case G_TET:
-        case G_PYRAMID:
-        case G_WEDGE:
-        case G_HEX:
-            p_ed = p_mocd->objects.elems;
-            free( p_ed->nodes );
-	    p_ed->nodes = NULL;
-            free( p_ed->mat );
-            p_ed->mat = NULL;
-            free( p_ed->part );
-	    p_ed->part = NULL;
-            free( p_ed );
-	    p_ed = NULL;
-            if ( p_mocd->vector_pts != NULL )
-                DELETE_LIST( p_mocd->vector_pts );
-            break;
+    case G_SURFACE:
+        p_surface = p_mocd->objects.surfaces;
+        for ( i = 0; i < p_mocd->qty; i++ )
+        {
+            free( p_surface[i].nodes );
+        }
+        free_vis_data( &p_surface->p_vis_data, sclass );
+
+        free( p_surface );
+        break;
+
+    case G_TRUSS:
+    case G_BEAM:
+    case G_TRI:
+    case G_QUAD:
+    case G_TET:
+    case G_PYRAMID:
+    case G_WEDGE:
+    case G_HEX:
+        p_ed = p_mocd->objects.elems;
+        free( p_ed->nodes );
+        p_ed->nodes = NULL;
+        free( p_ed->mat );
+        p_ed->mat = NULL;
+        free( p_ed->part );
+        p_ed->part = NULL;
+        free( p_ed );
+        p_ed = NULL;
+        if ( p_mocd->vector_pts != NULL )
+            DELETE_LIST( p_mocd->vector_pts );
+        break;
     }
-    
+
     /* Free additional resources for fully implemented superclasses. */
     if ( sclass == G_TRI || sclass == G_QUAD )
     {
@@ -994,15 +994,15 @@ delete_mo_class_data( void *p_data )
         free_elem_block( &p_mocd->p_elem_block, 3 );
         free_vis_data( &p_mocd->p_vis_data, sclass );
     }
-    
+
     free( p_mocd->short_name );
     p_mocd->short_name = NULL;
     free( p_mocd->long_name );
     free( p_mocd->data_buffer );
-    
+
     if ( p_mocd->referenced_nodes != NULL )
         free( p_mocd->referenced_nodes );
-    
+
     free( p_mocd );
 }
 
@@ -1027,16 +1027,16 @@ do_nothing_stub( char *text )
  * into explicit identifiers.
  */
 void
-blocks_to_list( int qty_blocks, int *mo_blocks, int *list, 
+blocks_to_list( int qty_blocks, int *mo_blocks, int *list,
                 Bool_type decrement_indices )
 {
     int i, j;
     int increment, ident;
     int *block, *list_entry;
     int start, stop;
-    
+
     list_entry = list;
-    
+
     for ( i = 0, block = mo_blocks; i < qty_blocks; i++, block += 2 )
     {
         if ( block[0] < block[1] )
@@ -1074,23 +1074,23 @@ get_max_state( Analysis *analy )
     int qty_states;
     int rval;
 
-    rval = analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL, 
+    rval = analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL,
                             &qty_states );
-    
+
     if ( qty_states <= 0 )
-         return 0;
-        
+        return 0;
+
     /*
      * Since this func returns the desired information and not status,
      * pop a diagnostic if there's an error.
      */
     if ( rval != OK )
-        popup_dialog( WARNING_POPUP, 
+        popup_dialog( WARNING_POPUP,
                       "get_max_state() - unable to query QRY_QTY_STATES!" );
-    
+
     if ( analy->limit_max_state )
         return ( qty_states - 1 >= analy->max_state ) ? analy->max_state
-                                                      : qty_states - 1;
+               : qty_states - 1;
     else
         return qty_states - 1;
 }
@@ -1108,7 +1108,7 @@ find_named_class( Mesh_data *p_mesh, char *test_name )
     Htable_entry *p_hte;
 
     rval = htable_search( p_mesh->class_table, test_name, FIND_ENTRY, &p_hte );
-    
+
     if ( rval == OK )
         return (MO_class_data *) p_hte->data;
     else
@@ -1119,7 +1119,7 @@ find_named_class( Mesh_data *p_mesh, char *test_name )
 /*****************************************************************
  * TAG( find_class_by_long_name )
  *
- * Find a mesh object class by long name among a particular mesh's 
+ * Find a mesh object class by long name among a particular mesh's
  * classes.
  */
 MO_class_data *
@@ -1132,11 +1132,11 @@ find_class_by_long_name( Mesh_data *p_mesh, char *test_lname )
     for ( i = 0; i < QTY_SCLASS; i++ )
     {
         p_lh = p_mesh->classes_by_sclass + i;
-        
+
         if ( p_lh->qty != 0 )
         {
             p_mo_classes = (MO_class_data **) p_lh->list;
-            
+
             for ( j = 0; j < p_lh->qty; j++ )
             {
                 if ( strcmp( test_lname, p_mo_classes[j]->long_name ) == 0 )
@@ -1144,7 +1144,7 @@ find_class_by_long_name( Mesh_data *p_mesh, char *test_lname )
             }
         }
     }
-    
+
     return NULL;
 }
 
@@ -1158,7 +1158,7 @@ void
 destroy_time_series_obj( Time_series_obj **pp_tso )
 {
     Time_series_obj *p_tso;
-    
+
     p_tso = *pp_tso;
     if ( p_tso == NULL )
         return;
@@ -1168,9 +1168,9 @@ destroy_time_series_obj( Time_series_obj **pp_tso )
 
     if ( p_tso->data != NULL )
         free( p_tso->data );
-    
+
     free( p_tso );
-    
+
     *pp_tso = NULL;
 
 }
@@ -1196,17 +1196,17 @@ cleanse_tso_data( Time_series_obj *p_tso )
         free( p_tso->data );
         p_tso->data = NULL;
     }
-    
+
     p_tso->qty_states = 0;
-    
+
     /* p_tso->modifiers = empty; */
-    
+
     p_tso->min_val = MAXFLOAT;
     p_tso->max_val = -MAXFLOAT;
-    
+
     p_tso->min_val_state = 0;
     p_tso->max_val_state = 0;
-    
+
     p_tso->min_eval_st = 0;
     p_tso->max_eval_st = 0;
 }
@@ -1218,15 +1218,15 @@ cleanse_tso_data( Time_series_obj *p_tso )
  * Create a result title with pertinent modifiers appended.
  */
 void
-build_oper_series_label( Time_series_obj *p_oper_tso, Bool_type brief, 
+build_oper_series_label( Time_series_obj *p_oper_tso, Bool_type brief,
                          char *label )
 {
     /* These names are aligned with Plot_operation_type values. */
-    char *titles[] = 
+    char *titles[] =
     {
         "Null", "Difference", "Sum", "Product", "Quotient"
     };
-    char *brief_titles[] = 
+    char *brief_titles[] =
     {
         "Null", "Diff", "Sum", "Prod", "Quot"
     };
@@ -1243,18 +1243,18 @@ build_oper_series_label( Time_series_obj *p_oper_tso, Bool_type brief,
         if ( shared_result )
             sprintf( label, "%s(%s%d,%s%d:%s)",
                      brief_titles[p_oper_tso->op_type],
-                     p_oper_tso->operand1->mo_class->short_name, 
+                     p_oper_tso->operand1->mo_class->short_name,
                      p_oper_tso->operand1->ident + 1,
-                     p_oper_tso->operand2->mo_class->short_name, 
+                     p_oper_tso->operand2->mo_class->short_name,
                      p_oper_tso->operand2->ident + 1,
                      p_oper_tso->operand1->result->name );
         else
             sprintf( label, "%s(%s%d:%s,%s%d:%s)",
                      brief_titles[p_oper_tso->op_type],
-                     p_oper_tso->operand1->mo_class->short_name, 
+                     p_oper_tso->operand1->mo_class->short_name,
                      p_oper_tso->operand1->ident + 1,
                      p_oper_tso->operand1->result->name,
-                     p_oper_tso->operand2->mo_class->short_name, 
+                     p_oper_tso->operand2->mo_class->short_name,
                      p_oper_tso->operand2->ident + 1,
                      p_oper_tso->operand2->result->name );
     }
@@ -1263,18 +1263,18 @@ build_oper_series_label( Time_series_obj *p_oper_tso, Bool_type brief,
         if ( shared_result )
             sprintf( label, "%s(%s %d, %s %d : %s)",
                      titles[p_oper_tso->op_type],
-                     p_oper_tso->operand1->mo_class->long_name, 
+                     p_oper_tso->operand1->mo_class->long_name,
                      p_oper_tso->operand1->ident + 1,
-                     p_oper_tso->operand2->mo_class->long_name, 
+                     p_oper_tso->operand2->mo_class->long_name,
                      p_oper_tso->operand2->ident + 1,
                      p_oper_tso->operand1->result->title );
         else
             sprintf( label, "%s(%s%d:%s,%s%d:%s)",
                      titles[p_oper_tso->op_type],
-                     p_oper_tso->operand1->mo_class->long_name, 
+                     p_oper_tso->operand1->mo_class->long_name,
                      p_oper_tso->operand1->ident + 1,
                      p_oper_tso->operand1->result->title,
-                     p_oper_tso->operand2->mo_class->long_name, 
+                     p_oper_tso->operand2->mo_class->long_name,
                      p_oper_tso->operand2->ident + 1,
                      p_oper_tso->operand2->result->title );
     }
@@ -1293,22 +1293,22 @@ build_result_label( Result *p_result, Bool_type for_shells, char *label )
     char cbuf[32];
 
     strcpy( label, p_result->title );
-    
+
     mods = 0;
-/*    if ( (int) p_result->modifiers.use_flags ) */
+    /*    if ( (int) p_result->modifiers.use_flags ) */
     if ( !all_false_uc( (unsigned char *) &p_result->modifiers.use_flags,
                         sizeof( p_result->modifiers.use_flags ) ) )
     {
         mods++;
         strcat( label, " (" );
     }
-    
+
     if ( p_result->modifiers.use_flags.use_strain_variety )
     {
         mods++;
         strcat( label, strain_label[p_result->modifiers.strain_variety] );
     }
-    
+
     if ( p_result->modifiers.use_flags.use_ref_surface && for_shells )
     {
         if ( mods > 1 )
@@ -1317,7 +1317,7 @@ build_result_label( Result *p_result, Bool_type for_shells, char *label )
         mods++;
         strcat( label, ref_surf_label[p_result->modifiers.ref_surf] );
     }
-    
+
     if ( p_result->modifiers.use_flags.use_ref_frame && for_shells )
     {
         if ( mods > 1 )
@@ -1326,7 +1326,7 @@ build_result_label( Result *p_result, Bool_type for_shells, char *label )
         mods++;
         strcat( label, ref_frame_label[p_result->modifiers.ref_frame] );
     }
-    
+
     if ( p_result->modifiers.use_flags.time_derivative )
     {
         if ( mods > 1 )
@@ -1335,7 +1335,7 @@ build_result_label( Result *p_result, Bool_type for_shells, char *label )
         mods++;
         strcat( label, "time deriv" );
     }
-    
+
     if ( p_result->modifiers.use_flags.coord_transform )
     {
         if ( mods > 1 )
@@ -1344,7 +1344,7 @@ build_result_label( Result *p_result, Bool_type for_shells, char *label )
         mods++;
         strcat( label, "coord xform" );
     }
-    
+
     if ( p_result->modifiers.use_flags.use_ref_state )
     {
         if ( mods > 1 )
@@ -1357,20 +1357,20 @@ build_result_label( Result *p_result, Bool_type for_shells, char *label )
             sprintf( cbuf, "ref state=%d", p_result->modifiers.ref_state );
         strcat( label,  cbuf );
     }
-    
+
     /* if ( mods )
         strcat( label, ")" ); */
     switch ( mods )
     {
-        case 0:
-            /* do nothing. */
-            break;
-        case 1:
-            /* We thought we'd have modifiers, but didn't. */
-            label[strlen( label ) - 2] = '\0';
-            break;
-        default:
-            strcat( label, ")" );
+    case 0:
+        /* do nothing. */
+        break;
+    case 1:
+        /* We thought we'd have modifiers, but didn't. */
+        label[strlen( label ) - 2] = '\0';
+        break;
+    default:
+        strcat( label, ")" );
     }
 }
 
@@ -1386,23 +1386,23 @@ svar_field_qty( State_variable *p_sv )
 {
     int qty;
     int k;
-    
+
     qty = 1;
-    
+
     if ( p_sv->agg_type == VECTOR )
     {
         qty = p_sv->vec_size;
     }
-    else if ( p_sv->agg_type == ARRAY 
+    else if ( p_sv->agg_type == ARRAY
               || p_sv->agg_type == VEC_ARRAY )
     {
         for ( k = 0; k < p_sv->rank; k++ )
             qty *= p_sv->dims[k];
-    
+
         if ( p_sv->agg_type == VEC_ARRAY )
             qty *= p_sv->vec_size;
     }
-    
+
     return qty;
 }
 
@@ -1423,8 +1423,8 @@ create_class_list( int *p_qty, MO_class_data ***p_class_list, Mesh_data *p_mesh,
     va_list ap;
     int i, class_qty, cur_class_qty, sclass;
     MO_class_data **mo_classes;
-    
-    /* 
+
+    /*
      * Loop over superclasses specified in arg list and extend current
      * class list to include classes from mesh for each superclass.
      */
@@ -1435,51 +1435,51 @@ create_class_list( int *p_qty, MO_class_data ***p_class_list, Mesh_data *p_mesh,
     for ( i = 0; i < qty_sclasses; i++ )
     {
         sclass = va_arg( ap, int );
-        
+
         cur_class_qty = p_mesh->classes_by_sclass[sclass].qty;
-        
+
         if ( cur_class_qty == 0 )
             continue;
 
         mo_classes = RENEW_N( MO_class_data *, mo_classes, class_qty,
                               cur_class_qty, "Extend class list" );
-        
+
         memcpy( (void *) (mo_classes + class_qty),
                 p_mesh->classes_by_sclass[sclass].list,
                 cur_class_qty * sizeof( MO_class_data * ) );
-        
+
         class_qty += cur_class_qty;
     }
 
     va_end( ap );
-    
+
     *p_qty = class_qty;
     *p_class_list = mo_classes;
 }
- 
+
 
 /*****************************************************************
  * TAG( intersect_srec_maps )
  *
- * Create an availability map which is the intersection of an 
+ * Create an availability map which is the intersection of an
  * arbitrary number of Result availability maps.
  *
- * As implemented, intersect_srec_maps() only identifies subrecords 
- * which support all the specified results.  This implies that no 
- * intersection will exist when results come from different mesh 
- * object classes, since those can only be written into different 
+ * As implemented, intersect_srec_maps() only identifies subrecords
+ * which support all the specified results.  This implies that no
+ * intersection will exist when results come from different mesh
+ * object classes, since those can only be written into different
  * subrecords.
  *
  * The following apply:
- *   -NULL results are treated as always available so they do not 
- *    constrain the intersection, but all results may not be NULL.  
+ *   -NULL results are treated as always available so they do not
+ *    constrain the intersection, but all results may not be NULL.
  *
  * A more general approach could permit intersections that cross
  * classes by considering that different classes do in fact overlap
  * spatially in the mesh (i.e., the progression
  * "node->element->material->mesh" forms a spatial heirarchy), but
  * it could be very tedious to compute exactly the overlap of classes
- * based upon their subrecord bindings, and it's not clear that 
+ * based upon their subrecord bindings, and it's not clear that
  * there would be a useful advantage to such generality.
  */
 
@@ -1487,7 +1487,7 @@ create_class_list( int *p_qty, MO_class_data ***p_class_list, Mesh_data *p_mesh,
 /* Check this with indirect results */
 
 Bool_type
-intersect_srec_maps( List_head **p_srec_map, Result *results[], int result_qty, 
+intersect_srec_maps( List_head **p_srec_map, Result *results[], int result_qty,
                      Analysis *analy )
 {
     int i, j, k, l;
@@ -1496,7 +1496,7 @@ intersect_srec_maps( List_head **p_srec_map, Result *results[], int result_qty,
     Result *p_src;
     List_head *p_lh, *p_src_srec, *p_test_srec;
     Bool_type src_derived, test_derived, have_intersection;
-    
+
     qty_fmts = analy->qty_srec_fmts;
 
     /* Clean up extant map. */
@@ -1511,9 +1511,9 @@ intersect_srec_maps( List_head **p_srec_map, Result *results[], int result_qty,
         free( p_lh );
         *p_srec_map = NULL;
     }
-    
+
     p_lh = NEW_N( List_head, qty_fmts, "Srec map intersection heads" );
-    
+
     /* Find first non-NULL result. */
     leading_nulls = 0;
     for ( first = 0; first < result_qty; first++ )
@@ -1524,14 +1524,14 @@ intersect_srec_maps( List_head **p_srec_map, Result *results[], int result_qty,
         }
         else
             leading_nulls++;
-    
+
     if ( leading_nulls == result_qty )
         return FALSE;
 
     have_intersection = FALSE;
     src_derived = (int) p_src->origin.is_derived;
     next = first + 1;
-    
+
     /*
      * Using the first result as a source, search the srec maps
      * of the other results to determine if they all support their
@@ -1543,22 +1543,22 @@ intersect_srec_maps( List_head **p_srec_map, Result *results[], int result_qty,
     for ( i = 0; i < qty_fmts; i++ )
     {
         p_src_srec = GET_INDEXED_SREC( p_src, i, src_derived );
-        
+
         if ( p_src_srec->qty == 0 )
-            /* 
+            /*
              * This result is not supported anywhere on the srec, so don't
-             * bother checking the other results - i.e., the intersection 
+             * bother checking the other results - i.e., the intersection
              * is empty for _this_ srec format.
              */
             continue;
-        
+
         /* For each subrecord in the srec format... */
         for ( j = 0; j < p_src_srec->qty; j++ )
         {
             src_subrec_id = GET_INDEXED_SUBREC( p_src_srec, j, src_derived );
-            
+
             support_qty = leading_nulls + 1; /* "1" accounts for the source. */
-            
+
             /* For each result after the first... */
             for ( k = next; k < result_qty; k++ )
             {
@@ -1568,19 +1568,19 @@ intersect_srec_maps( List_head **p_srec_map, Result *results[], int result_qty,
                     support_qty++;
                     continue;
                 }
-                
+
                 test_derived = (int) results[k]->origin.is_derived;
 
                 p_test_srec = GET_INDEXED_SREC( results[k], i, test_derived );
-                
+
                 if ( p_test_srec->qty == 0 )
-                    /* 
+                    /*
                      * The result isn't NULL, but it's not supported
                      * anywhere on the current (i'th) srec format.
                      * As above, the intersection must be empty.
                      */
                     break;
-                
+
                 /* Check to find a subrecord matching the "source" result's. */
                 for ( l = 0; l < p_test_srec->qty; l++ )
                 {
@@ -1589,32 +1589,32 @@ intersect_srec_maps( List_head **p_srec_map, Result *results[], int result_qty,
                     if ( test_subrec_id == src_subrec_id )
                         break;
                 }
-                
+
                 if ( l < p_test_srec->qty )
                     /* Broke the loop off; must have found a subrecord match. */
                     support_qty++;
             }
-            
+
             if ( support_qty == result_qty )
             {
-                /* 
+                /*
                  * Success - all results supported on the source's
-                 * j'th subrecord. 
+                 * j'th subrecord.
                  */
-                
+
                 /* Add it to the list. */
                 p_lh[i].list = (void *) RENEW_N( int, p_lh[i].list,
-                                                  p_lh[i].qty, 1,
-                                                  "New common subrecord" );
+                                                 p_lh[i].qty, 1,
+                                                 "New common subrecord" );
                 ((int *) p_lh[i].list)[p_lh[i].qty] = src_subrec_id;
                 p_lh[i].qty++;
-                
+
                 /* Note that the intersection is not empty. */
                 have_intersection = TRUE;
             }
         }
     }
-    
+
     if ( !have_intersection )
     {
         free( p_lh );
@@ -1634,8 +1634,8 @@ intersect_srec_maps( List_head **p_srec_map, Result *results[], int result_qty,
  * Extract the components of a non-scalar primal as scalar results.
  */
 Bool_type
-gen_component_results( Analysis *analy, Primal_result *p_src, int *p_dest_idx, 
-                       int idx_limit, Result dest_array[] ) 
+gen_component_results( Analysis *analy, Primal_result *p_src, int *p_dest_idx,
+                       int idx_limit, Result dest_array[] )
 {
     State_variable *p_sv = p_src->var;
     int idx = *p_dest_idx;
@@ -1644,36 +1644,36 @@ gen_component_results( Analysis *analy, Primal_result *p_src, int *p_dest_idx,
 
     switch ( p_src->var->agg_type )
     {
-        case VECTOR:
-            for ( j = 0; j < p_sv->vec_size && idx < idx_limit; idx++, j++ )
-            {
-                /* Build component name. */
-                sprintf( resnam, "%s[%s]", p_sv->short_name,
-                         p_sv->components[j] );
-                /* Prepare... */
-                cleanse_result( dest_array + j );
-                /* Go get it. */
-                find_result( analy, PRIMAL, TRUE, dest_array + j, resnam );
-            }
-            break;
-        case ARRAY:
-            /* Only 1-D arrays are OK for this. */
-            if ( p_sv->rank > 1 )
-                return FALSE;
-
-            for ( j = 0; j < p_sv->dims[0] && idx < idx_limit; idx++, j++ )
-            {
-                /* Build component name. */
-                sprintf( resnam, "%s[%d]", p_sv->short_name, j );
-                /* Prepare... */
-                cleanse_result( dest_array + j );
-                /* Go get it. */
-                find_result( analy, PRIMAL, TRUE, dest_array + j, resnam );
-            }
-            break;
-        default:
-            /* Don't handle vector arrays... */
+    case VECTOR:
+        for ( j = 0; j < p_sv->vec_size && idx < idx_limit; idx++, j++ )
+        {
+            /* Build component name. */
+            sprintf( resnam, "%s[%s]", p_sv->short_name,
+                     p_sv->components[j] );
+            /* Prepare... */
+            cleanse_result( dest_array + j );
+            /* Go get it. */
+            find_result( analy, PRIMAL, TRUE, dest_array + j, resnam );
+        }
+        break;
+    case ARRAY:
+        /* Only 1-D arrays are OK for this. */
+        if ( p_sv->rank > 1 )
             return FALSE;
+
+        for ( j = 0; j < p_sv->dims[0] && idx < idx_limit; idx++, j++ )
+        {
+            /* Build component name. */
+            sprintf( resnam, "%s[%d]", p_sv->short_name, j );
+            /* Prepare... */
+            cleanse_result( dest_array + j );
+            /* Go get it. */
+            find_result( analy, PRIMAL, TRUE, dest_array + j, resnam );
+        }
+        break;
+    default:
+        /* Don't handle vector arrays... */
+        return FALSE;
     }
 
     /* Update the current result index. */
@@ -1690,7 +1690,7 @@ gen_component_results( Analysis *analy, Primal_result *p_src, int *p_dest_idx,
  * referenced by an element class.
  */
 void
-create_elem_class_node_list( Analysis *analy, MO_class_data *p_elem_class, 
+create_elem_class_node_list( Analysis *analy, MO_class_data *p_elem_class,
                              int *p_list_size, int **p_list )
 {
     int conn_qty, obj_qty, node_cnt, node_tmp_size;
@@ -1698,7 +1698,7 @@ create_elem_class_node_list( Analysis *analy, MO_class_data *p_elem_class,
     int superclass;
     int *connects, *node_list;
     unsigned char *node_tmp;
-    
+
     /* Sanity check. */
     superclass = p_elem_class->superclass;
     if ( !IS_ELEMENT_SCLASS( superclass ) )
@@ -1707,7 +1707,7 @@ create_elem_class_node_list( Analysis *analy, MO_class_data *p_elem_class,
     conn_qty = qty_connects[superclass];
     node_tmp_size = MESH_P( analy )->node_geom->qty;
     node_tmp = NEW_N( unsigned char, node_tmp_size, "Temp node flags" );
-    
+
     /* Mark all nodes referenced by elements; count marked nodes. */
     obj_qty = p_elem_class->qty;
     connects = p_elem_class->objects.elems->nodes;
@@ -1725,7 +1725,7 @@ create_elem_class_node_list( Analysis *analy, MO_class_data *p_elem_class,
             }
         }
     }
-    
+
     *p_list_size = node_cnt;
 
     /* Build list of marked nodes. */
@@ -1741,7 +1741,7 @@ create_elem_class_node_list( Analysis *analy, MO_class_data *p_elem_class,
         }
     }
     *p_list = node_list;
-    
+
     free( node_tmp );
 }
 
@@ -1755,62 +1755,62 @@ create_elem_class_node_list( Analysis *analy, MO_class_data *p_elem_class,
  *
  */
 Bool_type
-reorder_float_array( int index_qty, int *index_list, int vec_size, 
+reorder_float_array( int index_qty, int *index_list, int vec_size,
                      float *data_in, float *data_out )
 {
     int i, j;
     float *vec_in, *vec_out;
     GVec2D *data2_in, *data2_out;
     GVec3D *data3_in, *data3_out;
-    
+
     switch ( vec_size )
     {
-        case 0:
-            return FALSE;
-            
-        case 1:
-            for ( i = 0; i < index_qty; i++ )
-                data_out[index_list[i]] = data_in[i];
-            break;
-        
-        case 2:
-            data2_in = (GVec2D *) data_in;
-            data2_out = (GVec2D *) data_out;
-            for ( i = 0; i < index_qty; i++ )
-            {
-                vec_in = data2_in[i];
-                vec_out = data2_out[index_list[i]];
+    case 0:
+        return FALSE;
 
-                vec_out[0] = vec_in[0];
-                vec_out[1] = vec_in[1];
-            }
-            break;
-        
-        case 3:
-            data3_in = (GVec3D *) data_in;
-            data3_out = (GVec3D *) data_out;
-            for ( i = 0; i < index_qty; i++ )
-            {
-                vec_in = data3_in[i];
-                vec_out = data3_out[index_list[i]];
+    case 1:
+        for ( i = 0; i < index_qty; i++ )
+            data_out[index_list[i]] = data_in[i];
+        break;
 
-                vec_out[0] = vec_in[0];
-                vec_out[1] = vec_in[1];
-                vec_out[2] = vec_in[2];
-            }
-            break;
-            
-        default:
-            for ( i = 0; i < index_qty; i++ )
-            {
-                vec_in = data_in + i * vec_size;
-                vec_out = data_out + index_list[i] * vec_size;
-                
-                for ( j = 0; j < vec_size; j++ )
-                    vec_out[j] = vec_in[j];
-            }
+    case 2:
+        data2_in = (GVec2D *) data_in;
+        data2_out = (GVec2D *) data_out;
+        for ( i = 0; i < index_qty; i++ )
+        {
+            vec_in = data2_in[i];
+            vec_out = data2_out[index_list[i]];
+
+            vec_out[0] = vec_in[0];
+            vec_out[1] = vec_in[1];
+        }
+        break;
+
+    case 3:
+        data3_in = (GVec3D *) data_in;
+        data3_out = (GVec3D *) data_out;
+        for ( i = 0; i < index_qty; i++ )
+        {
+            vec_in = data3_in[i];
+            vec_out = data3_out[index_list[i]];
+
+            vec_out[0] = vec_in[0];
+            vec_out[1] = vec_in[1];
+            vec_out[2] = vec_in[2];
+        }
+        break;
+
+    default:
+        for ( i = 0; i < index_qty; i++ )
+        {
+            vec_in = data_in + i * vec_size;
+            vec_out = data_out + index_list[i] * vec_size;
+
+            for ( j = 0; j < vec_size; j++ )
+                vec_out[j] = vec_in[j];
+        }
     }
-    
+
     return TRUE;
 }
 
@@ -1824,62 +1824,62 @@ reorder_float_array( int index_qty, int *index_list, int vec_size,
  *
  */
 Bool_type
-reorder_double_array( int index_qty, int *index_list, int vec_size, 
+reorder_double_array( int index_qty, int *index_list, int vec_size,
                       double *data_in, double *data_out )
 {
     int i, j;
     double *vec_in, *vec_out;
     GVec2D2P *data2_in, *data2_out;
     GVec3D2P *data3_in, *data3_out;
-    
+
     switch ( vec_size )
     {
-        case 0:
-            return FALSE;
-            
-        case 1:
-            for ( i = 0; i < index_qty; i++ )
-                data_out[index_list[i]] = data_in[i];
-            break;
-        
-        case 2:
-            data2_in = (GVec2D2P *) data_in;
-            data2_out = (GVec2D2P *) data_out;
-            for ( i = 0; i < index_qty; i++ )
-            {
-                vec_in = data2_in[i];
-                vec_out = data2_out[index_list[i]];
+    case 0:
+        return FALSE;
 
-                vec_out[0] = vec_in[0];
-                vec_out[1] = vec_in[1];
-            }
-            break;
-        
-        case 3:
-            data3_in = (GVec3D2P *) data_in;
-            data3_out = (GVec3D2P *) data_out;
-            for ( i = 0; i < index_qty; i++ )
-            {
-                vec_in = data3_in[i];
-                vec_out = data3_out[index_list[i]];
+    case 1:
+        for ( i = 0; i < index_qty; i++ )
+            data_out[index_list[i]] = data_in[i];
+        break;
 
-                vec_out[0] = vec_in[0];
-                vec_out[1] = vec_in[1];
-                vec_out[2] = vec_in[2];
-            }
-            break;
-            
-        default:
-            for ( i = 0; i < index_qty; i++ )
-            {
-                vec_in = data_in + i * vec_size;
-                vec_out = data_out + index_list[i] * vec_size;
-                
-                for ( j = 0; j < vec_size; j++ )
-                    vec_out[j] = vec_in[j];
-            }
+    case 2:
+        data2_in = (GVec2D2P *) data_in;
+        data2_out = (GVec2D2P *) data_out;
+        for ( i = 0; i < index_qty; i++ )
+        {
+            vec_in = data2_in[i];
+            vec_out = data2_out[index_list[i]];
+
+            vec_out[0] = vec_in[0];
+            vec_out[1] = vec_in[1];
+        }
+        break;
+
+    case 3:
+        data3_in = (GVec3D2P *) data_in;
+        data3_out = (GVec3D2P *) data_out;
+        for ( i = 0; i < index_qty; i++ )
+        {
+            vec_in = data3_in[i];
+            vec_out = data3_out[index_list[i]];
+
+            vec_out[0] = vec_in[0];
+            vec_out[1] = vec_in[1];
+            vec_out[2] = vec_in[2];
+        }
+        break;
+
+    default:
+        for ( i = 0; i < index_qty; i++ )
+        {
+            vec_in = data_in + i * vec_size;
+            vec_out = data_out + index_list[i] * vec_size;
+
+            for ( j = 0; j < vec_size; j++ )
+                vec_out[j] = vec_in[j];
+        }
     }
-    
+
     return TRUE;
 }
 
@@ -1929,11 +1929,11 @@ prep_object_class_buffers( Analysis *analy, Result *p_r )
                                         (void *) int_args,
                                         p_mo_class->short_name,
                                         (void *) &qty_facets );
-               limit  += qty_facets;
+                limit  += qty_facets;
             }
         }
         else
-        {        
+        {
             limit = p_mo_class->qty;
         }
 
@@ -1942,16 +1942,17 @@ prep_object_class_buffers( Analysis *analy, Result *p_r )
         p_data_buffer = p_mo_class->data_buffer;
         if(is_particle_class(analy, p_mo_class->superclass,p_mo_class->short_name ))
         {
-          for ( j = 0; j < limit; j++)
-          {
-              if(MESH(analy).disable_particle[j])
-                p_data_buffer[j] = init_val;
-          }
+            for ( j = 0; j < limit; j++)
+            {
+                if(MESH(analy).disable_particle[j])
+                    p_data_buffer[j] = init_val;
+            }
 
-        } else 
+        }
+        else
         {
-          for ( j = 0; j < limit; j++ )
-              p_data_buffer[j] = init_val;
+            for ( j = 0; j < limit; j++ )
+                p_data_buffer[j] = init_val;
         }
     }
 }
@@ -1966,7 +1967,7 @@ void fr_state2( State2 *p_state, Analysis *analy )
 {
     int mesh_id, eclass_qty, i;
     int rval;
-    
+
     if ( p_state != NULL )
     {
         if ( !p_state->position_constant )
@@ -1974,12 +1975,12 @@ void fr_state2( State2 *p_state, Analysis *analy )
 
         if ( p_state->sand_present )
         {
-            rval = analy->db_query( analy->db_ident, QRY_SREC_MESH, 
-                                    (void *) &p_state->srec_id, NULL, 
+            rval = analy->db_query( analy->db_ident, QRY_SREC_MESH,
+                                    (void *) &p_state->srec_id, NULL,
                                     (void *) &mesh_id );
             /* Error status not propagated up; pop a diagnostic. */
             if ( rval != OK )
-                popup_dialog( WARNING_POPUP, 
+                popup_dialog( WARNING_POPUP,
                               "fr_state2() - unable to query QRY_SREC_MESH!" );
 
             eclass_qty = analy->mesh_table[mesh_id].elem_class_qty;
@@ -1988,7 +1989,7 @@ void fr_state2( State2 *p_state, Analysis *analy )
                 free( p_state->elem_class_sand[i] );
             free( p_state->elem_class_sand );
         }
-        
+
         if ( p_state->particles.particles2d != NULL )
             free( p_state->particles.particles2d );
 
@@ -2018,7 +2019,7 @@ set_ref_state( Analysis *analy, int new_ref_state )
     p_node_class = MESH_P( analy )->node_geom;
     num_nodes    = p_node_class->qty;
 
-    /* 
+    /*
      * If new reference state indicates mesh geom data, always make the
      * assignment so this routine can do the right thing at startup.
      */
@@ -2029,32 +2030,32 @@ set_ref_state( Analysis *analy, int new_ref_state )
         analy->reference_state    = 0;
 
         if (MESH_P( analy )->double_precision_nodpos)
-	{
-	    /* Init arguments needed for load_nodpos(). */
+        {
+            /* Init arguments needed for load_nodpos(). */
 
             /* Get the state rec format of the requested state. */
-	    rval = analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, 
-				    (void *) &first_state, NULL, 
-				    (void *) &srec_id );
-	    if ( rval != 0 )
-	         return;
+            rval = analy->db_query( analy->db_ident, QRY_SREC_FMT_ID,
+                                    (void *) &first_state, NULL,
+                                    (void *) &srec_id );
+            if ( rval != 0 )
+                return;
 
-	    p_sro = analy->srec_tree + srec_id;
-	    mesh_id = p_sro->subrecs[0].p_object_class->mesh_id;
-	    p_md = analy->mesh_table + mesh_id;
+            p_sro = analy->srec_tree + srec_id;
+            mesh_id = p_sro->subrecs[0].p_object_class->mesh_id;
+            p_md = analy->mesh_table + mesh_id;
 
-	    if (analy->cur_ref_state_dataDp)
-	        free(analy->cur_ref_state_dataDp);
-	        
-	    tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
-			       "Tmp DP node cache" );
+            if (analy->cur_ref_state_dataDp)
+                free(analy->cur_ref_state_dataDp);
+
+            tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
+                                 "Tmp DP node cache" );
 
             load_nodpos( analy, p_sro, p_md, analy->dimension, 1,
-			 FALSE, (void *) tmp_nodesDp );
-	    
-	    /* Assign the reference pointer to the data that was just read in. */
-	    analy->cur_ref_state_dataDp = tmp_nodesDp;
-	}
+                         FALSE, (void *) tmp_nodesDp );
+
+            /* Assign the reference pointer to the data that was just read in. */
+            analy->cur_ref_state_dataDp = tmp_nodesDp;
+        }
     }
     else if ( new_ref_state == analy->reference_state )
     {
@@ -2071,7 +2072,7 @@ set_ref_state( Analysis *analy, int new_ref_state )
             qty = MESH( analy ).node_geom->qty * analy->dimension;
             analy->ref_state_data = NEW_N( float, qty, "Ref st node buffer" );
         }
-    
+
         /* Get the max state possible (may be a user set limit). */
         qty = get_max_state( analy ) + 1;
         if ( new_ref_state > qty )
@@ -2082,8 +2083,8 @@ set_ref_state( Analysis *analy, int new_ref_state )
         }
 
         /* Get the state rec format of the requested state. */
-        rval = analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, 
-                                (void *) &new_ref_state, NULL, 
+        rval = analy->db_query( analy->db_ident, QRY_SREC_FMT_ID,
+                                (void *) &new_ref_state, NULL,
                                 (void *) &srec_id );
         if ( rval != 0 )
             return;
@@ -2092,7 +2093,7 @@ set_ref_state( Analysis *analy, int new_ref_state )
         p_sro = analy->srec_tree + srec_id;
         mesh_id = p_sro->subrecs[0].p_object_class->mesh_id;
         p_md = analy->mesh_table + mesh_id;
- 
+
         /* Last QC check; there needs to be node position data at the state. */
         if ( p_sro->node_pos_subrec == -1 )
         {
@@ -2101,33 +2102,33 @@ set_ref_state( Analysis *analy, int new_ref_state )
             return;
         }
 
-	/* Go get it... */
-	analy->reference_state = new_ref_state;
+        /* Go get it... */
+        analy->reference_state = new_ref_state;
         if (!MESH_P( analy )->double_precision_nodpos)
-	{
+        {
             load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
-			 TRUE, analy->ref_state_data );
-	    
-	    /* Assign the reference pointer to the data that was just read in. */
-	    analy->cur_ref_state_data = analy->ref_state_data;
-	}
-	else
-	{
-	    if ( analy->cur_ref_state_dataDp )
- 	         free (analy->cur_ref_state_dataDp);
-	    if ( analy->ref_state_dataDp )
- 	         free (analy->ref_state_dataDp);
+                         TRUE, analy->ref_state_data );
 
-	    tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
-			       "Tmp DP node cache" );
+            /* Assign the reference pointer to the data that was just read in. */
+            analy->cur_ref_state_data = analy->ref_state_data;
+        }
+        else
+        {
+            if ( analy->cur_ref_state_dataDp )
+                free (analy->cur_ref_state_dataDp);
+            if ( analy->ref_state_dataDp )
+                free (analy->ref_state_dataDp);
+
+            tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
+                                 "Tmp DP node cache" );
 
             load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
-			 FALSE, tmp_nodesDp );
-	    
-	    /* Assign the reference pointer to the data that was just read in. */
-	    analy->cur_ref_state_dataDp = tmp_nodesDp;;
-	    /*analy->cur_ref_state_dataDp = analy->ref_state_dataDp;*/
-	}
+                         FALSE, tmp_nodesDp );
+
+            /* Assign the reference pointer to the data that was just read in. */
+            analy->cur_ref_state_dataDp = tmp_nodesDp;;
+            /*analy->cur_ref_state_dataDp = analy->ref_state_dataDp;*/
+        }
 
     }
 }
@@ -2161,23 +2162,23 @@ void
 init_data_buffers( int data_buffer_size )
 {
     int i;
-    
+
     buffer_size = data_buffer_size;
-    
-    pre_alloc_bufs[0].buffer = NEW_N( float, 
-                                      TEMP_RESULT_ARRAY_QTY * buffer_size, 
+
+    pre_alloc_bufs[0].buffer = NEW_N( float,
+                                      TEMP_RESULT_ARRAY_QTY * buffer_size,
                                       "Tmp result cache" );
 
     pre_alloc_bufs[0].prev = NULL;
     pre_alloc_bufs[TEMP_RESULT_ARRAY_QTY - 1].next = NULL;
 
-    for ( i = 0; i < TEMP_RESULT_ARRAY_QTY ;i++ )
+    for ( i = 0; i < TEMP_RESULT_ARRAY_QTY ; i++ )
     {
         if ( i < TEMP_RESULT_ARRAY_QTY - 1 )
         {
             pre_alloc_bufs[i].next = pre_alloc_bufs + (i + 1);
         }
-        
+
         pre_alloc_bufs[i].last = &pre_alloc_bufs[i];
         pre_alloc_bufs[i].index = i;
         pre_alloc_bufs[i].contiguous_qty = TEMP_RESULT_ARRAY_QTY - i;
@@ -2185,11 +2186,11 @@ init_data_buffers( int data_buffer_size )
         if ( i > 0 )
         {
             pre_alloc_bufs[i].prev = pre_alloc_bufs + (i - 1);
-            pre_alloc_bufs[i].buffer = pre_alloc_bufs[i - 1].buffer 
+            pre_alloc_bufs[i].buffer = pre_alloc_bufs[i - 1].buffer
                                        + buffer_size;
         }
     }
-    
+
     free_head = &pre_alloc_bufs[0];
     free_tail = &pre_alloc_bufs[TEMP_RESULT_ARRAY_QTY - 1];
     alloc_head = NULL;
@@ -2199,7 +2200,7 @@ init_data_buffers( int data_buffer_size )
 /*****************************************************************
  * TAG( get_data_buffer )
  *
- * Assign one or more contiguous data buffers for the caller, 
+ * Assign one or more contiguous data buffers for the caller,
  * allocating if necessary.
  */
 Bool_type
@@ -2215,7 +2216,7 @@ get_data_buffer( int bufqty, float **p_buffer, char *caller_msg )
         {
             first = p_dbr;
             last = first + (bufqty - 1);
-            
+
             /* Unlink list of free buffers. */
             if ( first->prev != NULL )
                 first->prev->next = last->next;
@@ -2228,11 +2229,11 @@ get_data_buffer( int bufqty, float **p_buffer, char *caller_msg )
 
             first->prev = NULL;
             last->next = NULL;
-            
+
             break;
         }
     }
-            
+
     if ( p_dbr == NULL )
     {
         /* Couldn't accommodate request with pre-allocated buffers. */
@@ -2242,13 +2243,13 @@ get_data_buffer( int bufqty, float **p_buffer, char *caller_msg )
             return FALSE;
 
         p_dbr->index = -1;
-        p_dbr->buffer = NEW_N( float, bufqty * buffer_size, 
+        p_dbr->buffer = NEW_N( float, bufqty * buffer_size,
                                "Dynamic temp buffers" );
         if ( p_dbr->buffer != NULL )
         {
-/**/
+            /**/
             fprintf( stderr, "%s\n\"%s\";\n%s\n",
-                     "Extra result buffer allocation performed for", 
+                     "Extra result buffer allocation performed for",
                      caller_msg, "Please notify MDG." );
             INSERT( p_dbr, extra_head );
             *p_buffer = p_dbr->buffer;
@@ -2260,14 +2261,14 @@ get_data_buffer( int bufqty, float **p_buffer, char *caller_msg )
             return FALSE;
         }
     }
-    
+
     /* Indicate how many contiguous buffers were allocated. */
     for ( i = 0, p_dbr = first; i < bufqty; i++, NEXT( p_dbr ) )
         p_dbr->contiguous_qty = bufqty - i;
-    
+
     /* Quick reference last from first. */
     first->last = last;
-    
+
     /* Insert found pre-allocated buffers into used-buffer list. */
     p_dbr2 = NULL;
     for ( p_dbr = alloc_head; p_dbr != NULL; NEXT( p_dbr ) )
@@ -2287,13 +2288,13 @@ get_data_buffer( int bufqty, float **p_buffer, char *caller_msg )
                 p_dbr->next->prev = last;
                 last->next = p_dbr->next;
             }
-            
+
             break;
         }
-        
+
         p_dbr2 = p_dbr;
     }
-    
+
     if ( p_dbr == NULL )
     {
         if ( p_dbr2 == NULL )
@@ -2304,9 +2305,9 @@ get_data_buffer( int bufqty, float **p_buffer, char *caller_msg )
             p_dbr2->next = first;
         }
     }
-    
+
     *p_buffer = first->buffer;
-    
+
     return TRUE;
 }
 
@@ -2321,7 +2322,7 @@ put_data_buffer( float *buffer )
 {
     Data_buffer_ref *p_dbr;
     int contig_counter;
-    
+
     /* Search among used pre-allocated buffers to match. */
     p_dbr = alloc_head;
     contig_counter = 0;
@@ -2336,12 +2337,12 @@ put_data_buffer( float *buffer )
         }
         else if ( p_dbr->buffer == buffer )
         {
-            /* What goes here? */   
+            /* What goes here? */
         }
 
         contig_counter--;
     }
-    
+
     return TRUE;
 }
 #endif
@@ -2378,7 +2379,7 @@ gen_material_node_list( Mesh_data *p_mesh, int mat, Material_data *p_md )
         {
             for ( k = 0; k < conn_qty; k++ )
                 mat_nodes[elem_conns[k]] = 1;
-            
+
             elem_conns += conn_qty;
         }
     }
@@ -2402,7 +2403,7 @@ gen_material_node_list( Mesh_data *p_mesh, int mat, Material_data *p_md )
         if ( i < node_qty && mat_nodes[i] > 0 )
         {
             /* Record the block start. */
-            p_i2t = RENEW_N( Int_2tuple, p_i2t, block_qty, 1, 
+            p_i2t = RENEW_N( Int_2tuple, p_i2t, block_qty, 1,
                              "Extend mtl node blk" );
             p_i2t[block_qty][0] = i;
 
@@ -2416,7 +2417,7 @@ gen_material_node_list( Mesh_data *p_mesh, int mat, Material_data *p_md )
             block_qty++;
         }
     }
-        
+
     /* Save node blocks in Material data. */
     p_md->node_block_qty = block_qty;
     p_md->node_blocks = p_i2t;
@@ -2427,7 +2428,7 @@ gen_material_node_list( Mesh_data *p_mesh, int mat, Material_data *p_md )
 
 /*****************************************************************
  * TAG( reset_autoimg_count )
- * 
+ *
  * Reset the animation frame count so any subsequent output
  * sequence will begin with suffix 1.
  */
@@ -2440,7 +2441,7 @@ reset_autoimg_count()
 
 /*****************************************************************
  * TAG( output_image )
- * 
+ *
  * Logic to output the current image of an animation.
  */
 extern void
@@ -2452,43 +2453,43 @@ output_image( Analysis *analy )
 
     switch ( analy->autoimg_format )
     {
-        case IMAGE_FORMAT_RGB:
-            suffix = "rgb";
-            break;
+    case IMAGE_FORMAT_RGB:
+        suffix = "rgb";
+        break;
 #ifdef JPEG_SUPPORT
-        case IMAGE_FORMAT_JPEG:
-            suffix = "jpg";
-            break;
+    case IMAGE_FORMAT_JPEG:
+        suffix = "jpg";
+        break;
 #endif
 #ifdef PNG_SUPPORT
-        case IMAGE_FORMAT_PNG:
-            suffix = "png";
-            break;
+    case IMAGE_FORMAT_PNG:
+        suffix = "png";
+        break;
 #endif
-        default:
-            popup_dialog( WARNING_POPUP,
-                          "Unknown/uncompiled output image format requested; "
-                          "aborting." );
-            return;
+    default:
+        popup_dialog( WARNING_POPUP,
+                      "Unknown/uncompiled output image format requested; "
+                      "aborting." );
+        return;
     }
 
-    sprintf( filename, "%s%04d.%s", analy->img_root, autoimg_frame_count, 
+    sprintf( filename, "%s%04d.%s", analy->img_root, autoimg_frame_count,
              suffix );
 
     switch ( analy->autoimg_format )
     {
-        case IMAGE_FORMAT_RGB:
-            screen_to_rgb( filename, FALSE );
-            break;
+    case IMAGE_FORMAT_RGB:
+        screen_to_rgb( filename, FALSE );
+        break;
 #ifdef JPEG_SUPPORT
-        case IMAGE_FORMAT_JPEG:
-            write_JPEG_file( filename, FALSE, jpeg_quality );
-            break;
+    case IMAGE_FORMAT_JPEG:
+        write_JPEG_file( filename, FALSE, jpeg_quality );
+        break;
 #endif
 #ifdef PNG_SUPPORT
-        case IMAGE_FORMAT_PNG:
-            write_PNG_file( filename, FALSE );
-            break;
+    case IMAGE_FORMAT_PNG:
+        write_PNG_file( filename, FALSE );
+        break;
 #endif
     }
 
@@ -2498,57 +2499,57 @@ output_image( Analysis *analy )
 
 /*****************************************************************
  * TAG( rotation_angles )
- * 
+ *
  * compute rotations from transformation matrix
  */
 int
 rotation_angles( float *theta, float *phi, float *psi, Transf_mat transformation )
 {
     float
-          pi
-         ,two_pi;
+    pi
+    ,two_pi;
 
     float
-          radians_to_degrees;
+    radians_to_degrees;
 
     float
-          phi_0
-         ,phi_1
-         ,psi_0
-         ,psi_1
-         ,psi_2
-         ,psi_3
-         ,theta_0
-         ,theta_1
-         ,theta_2
-         ,theta_3;
+    phi_0
+    ,phi_1
+    ,psi_0
+    ,psi_1
+    ,psi_2
+    ,psi_3
+    ,theta_0
+    ,theta_1
+    ,theta_2
+    ,theta_3;
 
     float
-          cosine_phi_0
-         ,cosine_phi_1;
+    cosine_phi_0
+    ,cosine_phi_1;
 
     float
-          cosine_psi
-         ,cosine_theta
-         ,sine_phi
-         ,sine_psi
-         ,sine_theta;
+    cosine_psi
+    ,cosine_theta
+    ,sine_phi
+    ,sine_psi
+    ,sine_theta;
 
     float
-          combination[8][3];
+    combination[8][3];
 
     float
-          f1
-         ,f2
-         ,f3
-         ,f4;
+    f1
+    ,f2
+    ,f3
+    ,f4;
 
     float
-          tolerance;
+    tolerance;
 
     int
-        i
-       ,solved;
+    i
+    ,solved;
 
 
     /* */
@@ -2668,7 +2669,7 @@ rotation_angles( float *theta, float *phi, float *psi, Transf_mat transformation
 
     /*
      * test to determine correct combinationination of angles
-     * by comparing concatenated rotation matrix against 
+     * by comparing concatenated rotation matrix against
      * actual values contained in transformation matrix
      */
 
@@ -2753,7 +2754,7 @@ rotation_angles( float *theta, float *phi, float *psi, Transf_mat transformation
 
 /*****************************************************************
  * TAG( outview )
- * 
+ *
  * option for user to save (in GRIZ command form)
  * the complete state viewing transformation (see "draw_mesh_view" )
  */
@@ -2805,12 +2806,12 @@ outview( FILE *fp, Analysis *analy )
      */
 
     fprintf( fp, "bbox %f %f %f %f %f %f\n"
-                ,analy->bbox[0][0]
-                ,analy->bbox[0][1]
-                ,analy->bbox[0][2]
-                ,analy->bbox[1][0]
-                ,analy->bbox[1][1]
-                ,analy->bbox[1][2] );
+             ,analy->bbox[0][0]
+             ,analy->bbox[0][1]
+             ,analy->bbox[0][2]
+             ,analy->bbox[1][0]
+             ,analy->bbox[1][1]
+             ,analy->bbox[1][2] );
 
 
     /*
@@ -2829,9 +2830,9 @@ outview( FILE *fp, Analysis *analy )
      */
 
     fprintf( fp, "scalax %f %f %f\n"
-                ,v_win->scale[0]
-                ,v_win->scale[1]
-                ,v_win->scale[2] );
+             ,v_win->scale[0]
+             ,v_win->scale[1]
+             ,v_win->scale[2] );
 
 
     /*
@@ -2868,9 +2869,9 @@ outview( FILE *fp, Analysis *analy )
      */
 
     fprintf( fp, "tx %f\nty %f\ntz %f\n"
-                ,v_win->trans[0]
-                ,v_win->trans[1]
-                ,v_win->trans[2] );
+             ,v_win->trans[0]
+             ,v_win->trans[1]
+             ,v_win->trans[2] );
 
 
     /*
@@ -2887,17 +2888,17 @@ outview( FILE *fp, Analysis *analy )
     */
 
     fprintf( fp, "lookfr %f %f %f\nlookat %f %f %f\nlookup %f %f %f\n"
-                ,v_win->look_from[0]
-                ,v_win->look_from[1]
-                ,v_win->look_from[2]
-                ,v_win->look_at[0]
-                ,v_win->look_at[1]
-                ,v_win->look_at[2]
-                ,v_win->look_up[0]
-                ,v_win->look_up[1]
-                ,v_win->look_up[2] );
+             ,v_win->look_from[0]
+             ,v_win->look_from[1]
+             ,v_win->look_from[2]
+             ,v_win->look_at[0]
+             ,v_win->look_at[1]
+             ,v_win->look_at[2]
+             ,v_win->look_up[0]
+             ,v_win->look_up[1]
+             ,v_win->look_up[2] );
 
-    
+
     return;
 }
 
@@ -2905,7 +2906,7 @@ outview( FILE *fp, Analysis *analy )
 /*****************************************************************
  * TAG( get_tmp_mem_ptr )
  *
- * Realloc 
+ * Realloc
  */
 void *
 get_temp_mem_ptr(  void *analy, int num_objects )
@@ -2938,7 +2939,7 @@ init_temp_mem_ptr( )
 /*****************************************************************
  * TAG( string_to_upper )
  *
- * Converts an input string to uppercase. 
+ * Converts an input string to uppercase.
  */
 void
 string_to_upper( char *input_str, char *upper_str )
@@ -2949,10 +2950,10 @@ string_to_upper( char *input_str, char *upper_str )
     len = strlen( input_str );
 
     for ( i=0;
-          i < len;
-          i++)
+            i < len;
+            i++)
     {
-          tmp_str[i] = toupper( input_str[i] );
+        tmp_str[i] = toupper( input_str[i] );
     }
 
     tmp_str[len] = '\0';
@@ -2980,27 +2981,27 @@ write_log_message( void )
     timing_vals( &ut, &st, &maxrs, &rs, &minpf, &majpf, &ns, &in, &out );
     env.time_stop = time( NULL );
     elapsed_time = difftime( env.time_stop, env.time_start );
-    
+
     if ( env.enable_logging)
     {
-         strcpy(logFileName, env.grizlogdir);
-         strcat(logFileName, "/");
-	 strcat(logFileName, env.grizlogfile);
+        strcpy(logFileName, env.grizlogdir);
+        strcat(logFileName, "/");
+        strcat(logFileName, env.grizlogfile);
 
-	 fp = fopen(logFileName, "a" );
+        fp = fopen(logFileName, "a" );
 
-	 fprintf(fp, "\nUSER=[%s] DATE=[%s] TIME=[%s] HOST=[%s] MACHINE=[%s] OS=[%s] ELAPSED_TIME(sec)=[%7.0f] CMD=[%s] VERSION=[%s/Mili=%s]",
-		 env.user_name,
-		 env.date,
-		 env.time,
-		 env.host,
-		 env.arch,
-		 env.systype,
-		 elapsed_time,
-		 env.command_line,
-		 GRIZ_VERSION, MILI_VERSION); 
+        fprintf(fp, "\nUSER=[%s] DATE=[%s] TIME=[%s] HOST=[%s] MACHINE=[%s] OS=[%s] ELAPSED_TIME(sec)=[%7.0f] CMD=[%s] VERSION=[%s/Mili=%s]",
+                env.user_name,
+                env.date,
+                env.time,
+                env.host,
+                env.arch,
+                env.systype,
+                elapsed_time,
+                env.command_line,
+                GRIZ_VERSION, MILI_VERSION);
 
-	 fclose(fp);
+        fclose(fp);
     }
 }
 
@@ -3016,11 +3017,11 @@ void
 get_griz_session( Analysis *analy,  Session *session )
 {
 
-  update_session( GET, NULL );
-  get_window_attributes();
+    update_session( GET, NULL );
+    get_window_attributes();
 }
 
-  
+
 /*****************************************************************
  * TAG( put_griz_session )
  *
@@ -3030,8 +3031,8 @@ get_griz_session( Analysis *analy,  Session *session )
 void
 put_griz_session( Analysis *analy,  Session *session )
 {
-  update_session( PUT, NULL );
-  put_window_attributes();
+    update_session( PUT, NULL );
+    put_window_attributes();
 }
 
 
@@ -3041,89 +3042,95 @@ put_griz_session( Analysis *analy,  Session *session )
  * This function will write all Griz session variables to a file.
  */
 void
-write_griz_session_file( Analysis *analy, Session *session, char *sessionFileName, 
-			 int session_id, Bool_type global )
+write_griz_session_file( Analysis *analy, Session *session, char *sessionFileName,
+                         int session_id, Bool_type global )
 {
     FILE *fp;
     char fullpath[M_MAX_NAME_LEN], session_id_string[16];
-    
-    if ( session_id>0 ) {
-         sprintf( session_id_string, "%d", session_id );
+
+    if ( session_id>0 )
+    {
+        sprintf( session_id_string, "%d", session_id );
     }
 
     get_griz_session( analy, session );
-    
+
     if ( global )
     {
-	/* Open the Global session file */
-	strcpy(fullpath, getenv("HOME"));
-	strcat(fullpath, "/");
-	strcat(fullpath,sessionFileName);
- 
-	if ( session_id>0 ) {
-	     strcat( fullpath, session_id_string );
-	}
+        /* Open the Global session file */
+        strcpy(fullpath, getenv("HOME"));
+        strcat(fullpath, "/");
+        strcat(fullpath,sessionFileName);
 
-	fp = fopen(fullpath, "w" );
-	
-	fprintf(fp, "* Griz session file [global variables] written on: %s\n", env.date);
-	fprintf(fp, "*\n");
+        if ( session_id>0 )
+        {
+            strcat( fullpath, session_id_string );
+        }
 
-	fprintf(fp, "Win-Render-Height\t%d\n",   (int) session->win_render_size[0]);
-	fprintf(fp, "Win-Render-Length\t%d\n",   (int) session->win_render_size[1]);
-	fprintf(fp, "Win-Render-PosX\t\t%d\n",   (int) session->win_render_pos[0]);
-	fprintf(fp, "Win-Render-PosY\t\t%d\n\n", (int) session->win_render_pos[1]);
+        fp = fopen(fullpath, "w" );
 
-	fprintf(fp, "Win-Ctl-Height\t\t%d\n", (int) session->win_ctl_size[0]);
-	fprintf(fp, "Win-Ctl-Length\t\t%d\n", (int) session->win_ctl_size[1]);
-	fprintf(fp, "Win-Ctl-PosX\t\t%d\n",   (int) session->win_ctl_pos[0]);
-	fprintf(fp, "Win-Ctl-PosY\t\t%d\n\n", (int) session->win_ctl_pos[1]);
+        fprintf(fp, "* Griz session file [global variables] written on: %s\n", env.date);
+        fprintf(fp, "*\n");
 
-	/* Material Panel Window */
-        if ( session->win_mtl_active != 0 ) {
-	     fprintf(fp, "Win-Mtl-Active\n");
-   	     fprintf(fp, "Win-Mtl-Height\t\t%d\n", (int) session->win_mtl_size[0]);
-	     fprintf(fp, "Win-Mtl-Length\t\t%d\n", (int) session->win_mtl_size[1]);
-	     fprintf(fp, "Win-Mtl-PosX\t\t%d\n",   (int) session->win_mtl_pos[0]);
-	     fprintf(fp, "Win-Mtl-PosY\t\t%d\n\n", (int) session->win_mtl_pos[1]);
-	}
+        fprintf(fp, "Win-Render-Height\t%d\n",   (int) session->win_render_size[0]);
+        fprintf(fp, "Win-Render-Length\t%d\n",   (int) session->win_render_size[1]);
+        fprintf(fp, "Win-Render-PosX\t\t%d\n",   (int) session->win_render_pos[0]);
+        fprintf(fp, "Win-Render-PosY\t\t%d\n\n", (int) session->win_render_pos[1]);
 
-	/* Utility Panel Window */
-        if ( session->win_util_active != 0 ) {
-	     fprintf(fp, "Win-Util-Active\n");
-	     fprintf(fp, "Win-Util-Height\t\t%d\n", (int) session->win_util_size[0]);
-	     fprintf(fp, "Win-Util-Length\t\t%d\n", (int) session->win_util_size[1]);
-	     fprintf(fp, "Win-Util-PosX\t\t%d\n",   (int) session->win_util_pos[0]);
-	     fprintf(fp, "Win-Util-PosY\t\t%d\n\n", (int) session->win_util_pos[1]);
-	}
+        fprintf(fp, "Win-Ctl-Height\t\t%d\n", (int) session->win_ctl_size[0]);
+        fprintf(fp, "Win-Ctl-Length\t\t%d\n", (int) session->win_ctl_size[1]);
+        fprintf(fp, "Win-Ctl-PosX\t\t%d\n",   (int) session->win_ctl_pos[0]);
+        fprintf(fp, "Win-Ctl-PosY\t\t%d\n\n", (int) session->win_ctl_pos[1]);
 
-	/* Surface Manager Window */
-        if ( session->win_surf_active != 0 ) {
-	     fprintf(fp, "Win-Surf-Active\n");
-	     fprintf(fp, "Win-Surf-Height\t\t%d\n", (int) session->win_surf_size[0]);
-	     fprintf(fp, "Win-Surf-Length\t\t%d\n", (int) session->win_surf_size[1]);
-	     fprintf(fp, "Win-Surf-PosX\t\t%d\n",   (int) session->win_surf_pos[0]);
-	     fprintf(fp, "Win-Surf-PosY\t\t%d\n\n", (int) session->win_surf_pos[1]);
-	}
+        /* Material Panel Window */
+        if ( session->win_mtl_active != 0 )
+        {
+            fprintf(fp, "Win-Mtl-Active\n");
+            fprintf(fp, "Win-Mtl-Height\t\t%d\n", (int) session->win_mtl_size[0]);
+            fprintf(fp, "Win-Mtl-Length\t\t%d\n", (int) session->win_mtl_size[1]);
+            fprintf(fp, "Win-Mtl-PosX\t\t%d\n",   (int) session->win_mtl_pos[0]);
+            fprintf(fp, "Win-Mtl-PosY\t\t%d\n\n", (int) session->win_mtl_pos[1]);
+        }
+
+        /* Utility Panel Window */
+        if ( session->win_util_active != 0 )
+        {
+            fprintf(fp, "Win-Util-Active\n");
+            fprintf(fp, "Win-Util-Height\t\t%d\n", (int) session->win_util_size[0]);
+            fprintf(fp, "Win-Util-Length\t\t%d\n", (int) session->win_util_size[1]);
+            fprintf(fp, "Win-Util-PosX\t\t%d\n",   (int) session->win_util_pos[0]);
+            fprintf(fp, "Win-Util-PosY\t\t%d\n\n", (int) session->win_util_pos[1]);
+        }
+
+        /* Surface Manager Window */
+        if ( session->win_surf_active != 0 )
+        {
+            fprintf(fp, "Win-Surf-Active\n");
+            fprintf(fp, "Win-Surf-Height\t\t%d\n", (int) session->win_surf_size[0]);
+            fprintf(fp, "Win-Surf-Length\t\t%d\n", (int) session->win_surf_size[1]);
+            fprintf(fp, "Win-Surf-PosX\t\t%d\n",   (int) session->win_surf_pos[0]);
+            fprintf(fp, "Win-Surf-PosY\t\t%d\n\n", (int) session->win_surf_pos[1]);
+        }
         update_session( WRITE, fp );
     }
     else
+    {
+        strcpy(fullpath, getenv("HOME"));
+        strcat(fullpath, "/");
+        strcat(fullpath,sessionFileName);
+
+        if ( session_id>0 )
         {
-          strcpy(fullpath, getenv("HOME"));
-          strcat(fullpath, "/");
- 	  strcat(fullpath,sessionFileName);
+            strcat( fullpath, session_id_string );
+        }
 
-	  if ( session_id>0 ) {
-	       strcat( fullpath, session_id_string );
-	  }
+        fp = fopen(fullpath, "w" );
 
-	  fp = fopen(fullpath, "w" );
+        fprintf(fp, "* Griz session file [plot variables] written on: %s\n", env.date);
+        fprintf(fp, "*\n");
 
-	  fprintf(fp, "* Griz session file [plot variables] written on: %s\n", env.date);
-	  fprintf(fp, "*\n");
-
-          update_session( WRITE, fp );
-     }
+        update_session( WRITE, fp );
+    }
 
     fclose(fp);
 }
@@ -3137,20 +3144,20 @@ write_griz_session_file( Analysis *analy, Session *session, char *sessionFileNam
 void
 init_griz_session( Session *session1 )
 {
-     session1->win_mtl_active =  0;
-     session1->win_util_active = 0;
-     session1->win_surf_active = 0;
+    session1->win_mtl_active =  0;
+    session1->win_util_active = 0;
+    session1->win_surf_active = 0;
 }
 
- 
+
 /*****************************************************************
  * TAG( read_griz_session_file )
  *
  * This function will read all Griz session variables from a file.
  */
 int
-read_griz_session_file( Session *session, char *sessionFileName, 
-			int session_id,   Bool_type global )
+read_griz_session_file( Session *session, char *sessionFileName,
+                        int session_id,   Bool_type global )
 {
     FILE *fp;
     char input[120];
@@ -3162,164 +3169,171 @@ read_griz_session_file( Session *session, char *sessionFileName,
     char *session_file_buff[2000];
     int session_file_buff_cnt=0;
 
-     if ( session_id>0 ) {
-          sprintf( session_id_string, "%d", session_id );
-     }
+    if ( session_id>0 )
+    {
+        sprintf( session_id_string, "%d", session_id );
+    }
 
-     if ( global )
-     { 
-          /* Open the Global session file */
-          strcpy(fullpath, getenv("HOME"));
-          strcat(fullpath, "/");
- 	  strcat(fullpath,sessionFileName);
+    if ( global )
+    {
+        /* Open the Global session file */
+        strcpy(fullpath, getenv("HOME"));
+        strcat(fullpath, "/");
+        strcat(fullpath,sessionFileName);
 
-	  if ( session_id>0 ) {
-	       strcat( fullpath, session_id_string );
-	  }
+        if ( session_id>0 )
+        {
+            strcat( fullpath, session_id_string );
+        }
 
-          fp = fopen(fullpath, "r" );
-     }
-     else
-     {
-  	  strcpy(fullpath,sessionFileName);
+        fp = fopen(fullpath, "r" );
+    }
+    else
+    {
+        strcpy(fullpath,sessionFileName);
 
-	  if ( session_id>0 ) {
-	       strcat( fullpath, session_id_string );
-	  }
+        if ( session_id>0 )
+        {
+            strcat( fullpath, session_id_string );
+        }
 
-          fp = fopen(fullpath, "r" );
-     }
+        fp = fopen(fullpath, "r" );
+    }
 
-     /* Exit if the session file is not found */
-     if ( fp==NULL )
-          return (!OK);
+    /* Exit if the session file is not found */
+    if ( fp==NULL )
+        return (!OK);
 
-     /* Initialize the activity flags for all optional widgets */
+    /* Initialize the activity flags for all optional widgets */
 
-     session->win_mtl_active =  0;
-     session->win_util_active = 0;
-     session->win_surf_active = 0;
+    session->win_mtl_active =  0;
+    session->win_util_active = 0;
+    session->win_surf_active = 0;
 
-     fgets(input, 120, fp);
-     while ( !feof( fp ) )
-     { 
-	 fgets(input, 120, fp);
+    fgets(input, 120, fp);
+    while ( !feof( fp ) )
+    {
+        fgets(input, 120, fp);
 
-	 /* Skip comment lines */
-	 if ( input[0]=='*' || input[0]=='#' )
-	 {
-	      continue;
-	 }
+        /* Skip comment lines */
+        if ( input[0]=='*' || input[0]=='#' )
+        {
+            continue;
+        }
 
-	 sscanf(input,"%s %s", var_name, var_value);
-	 
-	 if ( !strcmp("Win-Render-Height", var_name) )
-	      session->win_render_size[0] = atoi(var_value); 
-	 if ( !strcmp("Win-Render-Length", var_name) )
-	      session->win_render_size[1] = atoi(var_value); 
-	 if ( !strcmp("Win-Render-PosX", var_name) )
-	      session->win_render_pos[0] = atoi(var_value); 
-	 if ( !strcmp("Win-Render-PosY", var_name) )
-	      session->win_render_pos[1] = atoi(var_value);
-	 if ( !strcmp("Win-Ctl-Height", var_name) )
-	      session->win_ctl_size[0] = atoi(var_value);
-	 if ( !strcmp("Win-Ctl-Length", var_name) )
-	      session->win_ctl_size[1] = atoi(var_value);   
-	 if ( !strcmp("Win-Ctl-PosX", var_name) )
-	      session->win_ctl_pos[0] = atoi(var_value);   
-	 if ( !strcmp("Win-Ctl-PosY", var_name) )
-	      session->win_ctl_pos[1] = atoi(var_value);   
+        sscanf(input,"%s %s", var_name, var_value);
 
-	 if ( !strcmp("Win-Mtl-Active", var_name) )
-	      session->win_mtl_active = 1;
-	 if ( !strcmp("Win-Mtl-Height", var_name) )
-	      session->win_mtl_size[0] = atoi(var_value);   
-	 if ( !strcmp("Win-Mtl-Length", var_name) )
-	      session->win_mtl_size[1] = atoi(var_value);   
-	 if ( !strcmp("Win-Mtl-PosX", var_name) )
-	      session->win_mtl_pos[0] = atoi(var_value);   
-	 if ( !strcmp("Win-Mtl-PosY", var_name) )
-	      session->win_mtl_pos[1] = atoi(var_value);   
+        if ( !strcmp("Win-Render-Height", var_name) )
+            session->win_render_size[0] = atoi(var_value);
+        if ( !strcmp("Win-Render-Length", var_name) )
+            session->win_render_size[1] = atoi(var_value);
+        if ( !strcmp("Win-Render-PosX", var_name) )
+            session->win_render_pos[0] = atoi(var_value);
+        if ( !strcmp("Win-Render-PosY", var_name) )
+            session->win_render_pos[1] = atoi(var_value);
+        if ( !strcmp("Win-Ctl-Height", var_name) )
+            session->win_ctl_size[0] = atoi(var_value);
+        if ( !strcmp("Win-Ctl-Length", var_name) )
+            session->win_ctl_size[1] = atoi(var_value);
+        if ( !strcmp("Win-Ctl-PosX", var_name) )
+            session->win_ctl_pos[0] = atoi(var_value);
+        if ( !strcmp("Win-Ctl-PosY", var_name) )
+            session->win_ctl_pos[1] = atoi(var_value);
 
-	 if ( !strcmp("Win-Util-Active", var_name) )
-	      session->win_util_active = 1;
-	 if ( !strcmp("Win-Util-Height", var_name) )
-	      session->win_util_size[0] = atoi(var_value);   
-	 if ( !strcmp("Win-Util-Length", var_name) )
-	      session->win_util_size[1] = atoi(var_value);   
-	 if ( !strcmp("Win-Util-PosX", var_name) )
-	      session->win_util_pos[0] = atoi(var_value);   
-	 if ( !strcmp("Win-Util-PosY", var_name) )
-	      session->win_util_pos[1] = atoi(var_value);   
-	 
-	 if ( !strcmp("Win-Surf-Active", var_name) ) {
-	      session->win_surf_active = 1;
-	 } 
-	 if ( !strcmp("Win-Surf-Height", var_name) ) {
-	      session->win_surf_size[0] = atoi(var_value);
-	 }   
-	 if ( !strcmp("Win-Surf-Length", var_name) ) {
-	      session->win_surf_size[1] = atoi(var_value);
-	 }
-	 if ( !strcmp("Win-Surf-PosX", var_name) )
-	      session->win_surf_pos[0] = atoi(var_value);   
-	 if ( !strcmp("Win-Surf-PosY", var_name) )
-	      session->win_surf_pos[1] = atoi(var_value);   
+        if ( !strcmp("Win-Mtl-Active", var_name) )
+            session->win_mtl_active = 1;
+        if ( !strcmp("Win-Mtl-Height", var_name) )
+            session->win_mtl_size[0] = atoi(var_value);
+        if ( !strcmp("Win-Mtl-Length", var_name) )
+            session->win_mtl_size[1] = atoi(var_value);
+        if ( !strcmp("Win-Mtl-PosX", var_name) )
+            session->win_mtl_pos[0] = atoi(var_value);
+        if ( !strcmp("Win-Mtl-PosY", var_name) )
+            session->win_mtl_pos[1] = atoi(var_value);
 
-	 if ( strstr(input, "var_name=" ) )
-	      session_file_buff[session_file_buff_cnt++] = strdup(input);
-     }
+        if ( !strcmp("Win-Util-Active", var_name) )
+            session->win_util_active = 1;
+        if ( !strcmp("Win-Util-Height", var_name) )
+            session->win_util_size[0] = atoi(var_value);
+        if ( !strcmp("Win-Util-Length", var_name) )
+            session->win_util_size[1] = atoi(var_value);
+        if ( !strcmp("Win-Util-PosX", var_name) )
+            session->win_util_pos[0] = atoi(var_value);
+        if ( !strcmp("Win-Util-PosY", var_name) )
+            session->win_util_pos[1] = atoi(var_value);
 
-     update_session( READ, (void *) session_file_buff, session_file_buff_cnt );
-     for ( i=0;
-	   i<session_file_buff_cnt;
-	   i++ )
-           free( session_file_buff[i] );
-     
-     if (fp)
-         fclose(fp);
+        if ( !strcmp("Win-Surf-Active", var_name) )
+        {
+            session->win_surf_active = 1;
+        }
+        if ( !strcmp("Win-Surf-Height", var_name) )
+        {
+            session->win_surf_size[0] = atoi(var_value);
+        }
+        if ( !strcmp("Win-Surf-Length", var_name) )
+        {
+            session->win_surf_size[1] = atoi(var_value);
+        }
+        if ( !strcmp("Win-Surf-PosX", var_name) )
+            session->win_surf_pos[0] = atoi(var_value);
+        if ( !strcmp("Win-Surf-PosY", var_name) )
+            session->win_surf_pos[1] = atoi(var_value);
 
-     return OK;
+        if ( strstr(input, "var_name=" ) )
+            session_file_buff[session_file_buff_cnt++] = strdup(input);
+    }
+
+    update_session( READ, (void *) session_file_buff, session_file_buff_cnt );
+    for ( i=0;
+            i<session_file_buff_cnt;
+            i++ )
+        free( session_file_buff[i] );
+
+    if (fp)
+        fclose(fp);
+
+    return OK;
 }
 
 /*****************************************************************
  * TAG( replace_string )
  *
- * This function will replace sub_str with all occurances of 
+ * This function will replace sub_str with all occurances of
  * replace_str in the input string.
  */
 char *
 replace_string( char *input_str, char *sub_str, char *replace_str )
 {
-  static char str_buffer[512];
-  char tmp_str[1024];
-  char *str_ptr=NULL;
-  int repl_index=0, index2=0;
-  Bool_type string_found=TRUE;
+    static char str_buffer[512];
+    char tmp_str[1024];
+    char *str_ptr=NULL;
+    int repl_index=0, index2=0;
+    Bool_type string_found=TRUE;
 
-  /* Do a quick check to see if the string is in the input.
-   * if not return original string.
-   */
-  str_ptr = strstr( input_str, sub_str );
-  if ( !str_ptr )
-       return ( input_str );
+    /* Do a quick check to see if the string is in the input.
+     * if not return original string.
+     */
+    str_ptr = strstr( input_str, sub_str );
+    if ( !str_ptr )
+        return ( input_str );
 
-  strcpy( tmp_str, input_str );
+    strcpy( tmp_str, input_str );
 
-  while (string_found) {
-         str_ptr = strstr( tmp_str, sub_str );
-	 repl_index = str_ptr-tmp_str;
-         strncpy( str_buffer, tmp_str, repl_index );
-	 strcat( str_buffer, replace_str );
-	 index2=repl_index+strlen(sub_str);
+    while (string_found)
+    {
+        str_ptr = strstr( tmp_str, sub_str );
+        repl_index = str_ptr-tmp_str;
+        strncpy( str_buffer, tmp_str, repl_index );
+        strcat( str_buffer, replace_str );
+        index2=repl_index+strlen(sub_str);
 
-	 strcat( str_buffer, &tmp_str[repl_index+strlen(sub_str)] );
+        strcat( str_buffer, &tmp_str[repl_index+strlen(sub_str)] );
 
-	 str_ptr = strstr( str_buffer, sub_str );
-         if ( !str_ptr )
-	      string_found = FALSE;
-	 else
-	      strcpy( tmp_str, str_buffer );
-  }
-  return ( str_buffer );
+        str_ptr = strstr( str_buffer, sub_str );
+        if ( !str_ptr )
+            string_found = FALSE;
+        else
+            strcpy( tmp_str, str_buffer );
+    }
+    return ( str_buffer );
 }

@@ -1,47 +1,47 @@
 /* $Id$ */
-/* 
+/*
  * show.c - Parser for 'show' command to display analysis results.
- * 
+ *
  *      Donald J. Dovey
  *      Lawrence Livermore National Laboratory
  *      Aug 28 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
+ *
+ * This work was produced at the University of California, Lawrence
+ * Livermore National Laboratory (UC LLNL) under contract no.
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy
+ * (DOE) and The Regents of the University of California (University)
+ * for the operation of UC LLNL. Copyright is reserved to the University
+ * for purposes of controlled dissemination, commercialization through
+ * formal licensing, or other disposition under terms of Contract 48;
+ * DOE policies, regulations and orders; and U.S. statutes. The rights
+ * of the Federal Government are reserved under Contract 48 subject to
+ * the restrictions agreed upon by the DOE and University as allowed
  * under DOE Acquisition Letter 97-1.
- * 
- * 
+ *
+ *
  * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
+ *
+ * This work was prepared as an account of work sponsored by an agency
+ * of the United States Government. Neither the United States Government
+ * nor the University of California nor any of their employees, makes
+ * any warranty, express or implied, or assumes any liability or
+ * responsibility for the accuracy, completeness, or usefulness of any
+ * information, apparatus, product, or process disclosed, or represents
+ * that its use would not infringe privately-owned rights.  Reference
  * herein to any specific commercial products, process, or service by
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
+ * trade name, trademark, manufacturer or otherwise does not necessarily
+ * constitute or imply its endorsement, recommendation, or favoring by
+ * the United States Government or the University of California. The
+ * views and opinions of authors expressed herein do not necessarily
+ * state or reflect those of the United States Government or the
+ * University of California, and shall not be used for advertising or
  * product endorsement purposes.
- * 
+ *
  ************************************************************************
  *
  * Modifications:
- * 
+ *
  *  I. R. Corey - Oct 25, 2007: TBD.
  *                See SRC#---.
  *
@@ -59,7 +59,7 @@ void lookup_global_minmax( Result *p_result, Analysis *analy );
 
 /*****************************************************************
  * TAG( parse_show_command )
- * 
+ *
  * Parses the "show" command for displaying result values.  Returns
  * 1 if a valid command was given and 0 if the command was invalid.
  */
@@ -78,8 +78,8 @@ parse_show_command( char *token, Analysis *analy )
 
     /* Cache the current global min/max. */
     if ( !analy->ei_result )
-         cache_global_minmax( analy );
-    
+        cache_global_minmax( analy );
+
     /* If request is for "mat", don't bother to look it up. */
     if ( strcmp( token, mat ) == 0 )
     {
@@ -87,64 +87,67 @@ parse_show_command( char *token, Analysis *analy )
     }
     else if ( strncmp( token, "es_", 3 )==0 )
     {
-              init_result( &es_result );
-              if ( !find_result( analy, analy->result_source, TRUE, &es_result, 
-				token ) ) {
-		   popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
-		   return( 0 );
-	      }
-	      if ( !es_result.single_valued )
-	      {
-	  	   /* An es result of the form es_n[var] is really an invalid specification that
-		    * needs to be resolved when we load the result. The result will later be
-		    * converted to the form es_n[i,var] where I is the integration point. 
-		    * for now use the component as the result but we  will look at the original
-		    * result later to build a result spec for the load.
-		    */
+        init_result( &es_result );
+        if ( !find_result( analy, analy->result_source, TRUE, &es_result,
+                           token ) )
+        {
+            popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
+            return( 0 );
+        }
+        if ( !es_result.single_valued )
+        {
+            /* An es result of the form es_n[var] is really an invalid specification that
+             * needs to be resolved when we load the result. The result will later be
+             * converted to the form es_n[i,var] where I is the integration point.
+             * for now use the component as the result but we  will look at the original
+             * result later to build a result spec for the load.
+             */
 
-		   /* Divide the specification into its component parts. */
-		   if ( !parse_result_spec( token, root, &index_qty, indices, component ) )
-		         return 0; 
-		   status = find_result( analy, analy->result_source, TRUE, &new_result, component );
-		   free( new_result.superclasses );
-		   free( new_result.subrecs );
-		   free( new_result.indirect_flags );
-		   qty = es_result.qty;
-		   new_result.superclasses = NEW_N( int, qty, "Result sclass array" );
-		   new_result.subrecs = NEW_N( int, qty, "Result subrec array" );
-		   new_result.indirect_flags = NEW_N( Bool_type, qty, 
-						       "Result indirect flags" );
-		   new_result.qty = qty;
-		   for ( i=0;
-			 i<qty;
-			 i++ ) { 
-		         new_result.superclasses[i]   = es_result.superclasses[i];
-			 new_result.subrecs[i]        = es_result.subrecs[i]; 
-			 new_result.indirect_flags[i] = es_result.indirect_flags[i];
-		   }
-		   
-		   strcpy( new_result.original_name, token );
-		   cleanse_result( &es_result );
-		   current_result = new_result;
-	      }
-	      else {
-		   current_result = es_result;
-	      }
-	      init_result( &es_result );
-	      init_result( &new_result );
-	      
-	      analy->cur_result = &current_result;
-	      analy->cur_result->reference_count++;
+            /* Divide the specification into its component parts. */
+            if ( !parse_result_spec( token, root, &index_qty, indices, component ) )
+                return 0;
+            status = find_result( analy, analy->result_source, TRUE, &new_result, component );
+            free( new_result.superclasses );
+            free( new_result.subrecs );
+            free( new_result.indirect_flags );
+            qty = es_result.qty;
+            new_result.superclasses = NEW_N( int, qty, "Result sclass array" );
+            new_result.subrecs = NEW_N( int, qty, "Result subrec array" );
+            new_result.indirect_flags = NEW_N( Bool_type, qty,
+                                               "Result indirect flags" );
+            new_result.qty = qty;
+            for ( i=0;
+                    i<qty;
+                    i++ )
+            {
+                new_result.superclasses[i]   = es_result.superclasses[i];
+                new_result.subrecs[i]        = es_result.subrecs[i];
+                new_result.indirect_flags[i] = es_result.indirect_flags[i];
+            }
+
+            strcpy( new_result.original_name, token );
+            cleanse_result( &es_result );
+            current_result = new_result;
+        }
+        else
+        {
+            current_result = es_result;
+        }
+        init_result( &es_result );
+        init_result( &new_result );
+
+        analy->cur_result = &current_result;
+        analy->cur_result->reference_count++;
     }
-    else if ( find_result( analy, analy->result_source, TRUE, &new_result, 
-              token ) )
+    else if ( find_result( analy, analy->result_source, TRUE, &new_result,
+                           token ) )
     {
         if ( !new_result.single_valued )
         {
-               popup_dialog( INFO_POPUP,
-			     "Result specification for \"show\" command\n"
-                 "must resolve to a scalar quantity for plotting." );
-               return( 0 );
+            popup_dialog( INFO_POPUP,
+                          "Result specification for \"show\" command\n"
+                          "must resolve to a scalar quantity for plotting." );
+            return( 0 );
         }
         current_result = new_result;
         init_result( &new_result );
@@ -154,20 +157,20 @@ parse_show_command( char *token, Analysis *analy )
     }
     else
     {
-           popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
-           return( 0 );
+        popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
+        return( 0 );
     }
 
     load_result( analy, TRUE, TRUE, FALSE );
 
-    /* 
+    /*
      * Look up the global min/max for the new variable.  This must
      * be performed after load_result() is called.
      */
     lookup_global_minmax( analy->cur_result, analy );
 
     /* Update cut planes, isosurfs, contours. */
-    update_vis( analy ); 
+    update_vis( analy );
 
     return( 1 );
 }
@@ -175,7 +178,7 @@ parse_show_command( char *token, Analysis *analy )
 
 /*****************************************************************
  * TAG( refresh_shown_result )
- * 
+ *
  * Re-generate the current result if the result table has changed.
  */
 extern Bool_type
@@ -184,18 +187,18 @@ refresh_shown_result( Analysis *analy )
     if ( analy->cur_result == NULL )
         return FALSE;
 
-    if ( ( analy->cur_result->origin.is_derived 
-           && analy->result_source == PRIMAL )
-         || ( analy->cur_result->origin.is_primal 
-              && ( analy->result_source == DERIVED 
-                   || analy->result_source == ALL ) ) )
+    if ( ( analy->cur_result->origin.is_derived
+            && analy->result_source == PRIMAL )
+            || ( analy->cur_result->origin.is_primal
+                 && ( analy->result_source == DERIVED
+                      || analy->result_source == ALL ) ) )
     {
         /* Potential change in result... */
-        if ( find_result( analy, analy->result_source, TRUE, &new_result, 
+        if ( find_result( analy, analy->result_source, TRUE, &new_result,
                           analy->cur_result->original_name ) )
         {
-            if ( new_result.original_result 
-                 == analy->cur_result->original_result )
+            if ( new_result.original_result
+                    == analy->cur_result->original_result )
             {
                 /* No actual change in result. */
                 return FALSE;
@@ -205,8 +208,8 @@ refresh_shown_result( Analysis *analy )
                 if ( !new_result.single_valued )
                 {
                     /* Actual result change but can't use new one. */
-                        popup_dialog( INFO_POPUP, "New result is not scalar." );
-                        return FALSE;
+                    popup_dialog( INFO_POPUP, "New result is not scalar." );
+                    return FALSE;
                 }
 
                 current_result = new_result;
@@ -219,11 +222,11 @@ refresh_shown_result( Analysis *analy )
         }
         else
         {
-                popup_dialog( INFO_POPUP, "Result \"%s\" not found.", 
-                              analy->cur_result->original_name );
-                cleanse_result( analy->cur_result );
-                analy->cur_result = NULL;
-                return TRUE;
+            popup_dialog( INFO_POPUP, "Result \"%s\" not found.",
+                          analy->cur_result->original_name );
+            cleanse_result( analy->cur_result );
+            analy->cur_result = NULL;
+            return TRUE;
         }
     }
 
@@ -233,7 +236,7 @@ refresh_shown_result( Analysis *analy )
 
 /*****************************************************************
  * TAG( cache_global_minmax )
- * 
+ *
  * Takes the global min/max for the specified result type and
  * stashes it in a list for later retrieval.
  */
@@ -258,9 +261,9 @@ cache_global_minmax( Analysis *analy )
     mesh_object = analy->global_mm_nodes;
 
     if ( result == NULL )
-         return;
+        return;
     if ( !strcmp( result->name, "damage" ) )
-         return;
+        return;
 
     /* See if it's already in the list. */
     for ( mm = mm_list; mm != NULL; mm = mm->next )
@@ -277,18 +280,18 @@ cache_global_minmax( Analysis *analy )
                 mm->object_id[1] = mesh_object[1];
             }
 
-            
-            /* 
+
+            /*
              * If element result, update element minmax for use when
              * interpolation mode is "noterp".
              */
-            if ( result->origin.is_elem_result ) 
+            if ( result->origin.is_elem_result )
             {
                 el_mm_vals  = analy->elem_global_mm.object_minmax;
                 el_mm_id    = analy->elem_global_mm.object_id;
                 el_mm_class = analy->elem_global_mm.class_long_name;
                 el_mm_sclass = analy->elem_global_mm.sclass;
-                
+
                 if ( el_mm_vals[0] < mm->object_minmax[0] )
                 {
                     mm->object_minmax[0]  = el_mm_vals[0];
@@ -328,17 +331,17 @@ cache_global_minmax( Analysis *analy )
     mm->result.ref_frame = analy->ref_frame;
     mm->result.ref_surf = analy->ref_surf;
     mm->result.ref_state = analy->reference_state;
-    
+
     INSERT( mm, analy->result_mm_list );
 }
 
 
 /*****************************************************************
  * TAG( lookup_global_minmax )
- * 
+ *
  * Look in the min/max list to see if we saved a global min/max
  * for this result type.  If found, the min/max is copied in to
- * the minmax parameter.  
+ * the minmax parameter.
  *
  * NOTE:
  *     Assumes that the state min/max has already been computed.
@@ -359,7 +362,7 @@ lookup_global_minmax( Result *p_result, Analysis *analy )
     el_state_class  = analy->elem_state_mm.class_long_name;
     el_state_sclass = analy->elem_state_mm.sclass;
 
-    
+
     /*
      * Lookup the global min/max for a result from the library.
      * If the global min/max is not found in the library, we must
@@ -401,7 +404,7 @@ lookup_global_minmax( Result *p_result, Analysis *analy )
             analy->global_mm[1] = analy->state_mm[1];
             analy->global_mm_nodes[1] = analy->state_mm_nodes[1];
         }
-    
+
         /* Update the global minmax for element (pre-interpolated) results. */
         if ( el_state_mm[0] < analy->elem_global_mm.object_minmax[0] )
         {
@@ -465,15 +468,17 @@ reset_global_minmax( Analysis *analy )
 
     /* If a cached min/max for the current result exists, delete it.  */
     if ( analy->result_mm_list ) /* Added October 10, 2007: IRC - Check for a valid address */
-         for ( mm = analy->result_mm_list; mm != NULL; NEXT( mm ) )
-	   if (  analy->result_mm_list && mm ) 
-	     if ( match_result( analy, analy->cur_result, &mm->result ) ) {
-                 DELETE( mm, analy->result_mm_list );
-		 if ( !analy->result_mm_list ) {
-		      mm=NULL;
-		      break;
-		 }
-	     }
+        for ( mm = analy->result_mm_list; mm != NULL; NEXT( mm ) )
+            if (  analy->result_mm_list && mm )
+                if ( match_result( analy, analy->cur_result, &mm->result ) )
+                {
+                    DELETE( mm, analy->result_mm_list );
+                    if ( !analy->result_mm_list )
+                    {
+                        mm=NULL;
+                        break;
+                    }
+                }
 
     /* Always reset the current global min/max from the current state. */
     analy->global_mm[0] = analy->state_mm[0];
@@ -514,7 +519,7 @@ match_result( Analysis *analy, Result *p_result, Result_spec *test )
         }
         else if ( test->use_flags.use_ref_surface )
             return FALSE;
-                
+
         /* Check dependence on reference frame. */
         if ( p_result->modifiers.use_flags.use_ref_frame )
         {
@@ -528,7 +533,7 @@ match_result( Analysis *analy, Result *p_result, Result_spec *test )
         }
         else if ( test->use_flags.use_ref_frame )
             return FALSE;
-                
+
         /* Check dependence on strain variety. */
         if ( p_result->modifiers.use_flags.use_strain_variety )
         {
@@ -542,7 +547,7 @@ match_result( Analysis *analy, Result *p_result, Result_spec *test )
         }
         else if ( test->use_flags.use_strain_variety )
             return FALSE;
-                
+
         /* Check for time derivative. */
         if ( p_result->modifiers.use_flags.time_derivative )
         {
@@ -551,7 +556,7 @@ match_result( Analysis *analy, Result *p_result, Result_spec *test )
         }
         else if ( test->use_flags.time_derivative )
             return FALSE;
-                
+
         /* Check for global coordinate transformation. */
         if ( p_result->modifiers.use_flags.coord_transform )
         {
@@ -560,7 +565,7 @@ match_result( Analysis *analy, Result *p_result, Result_spec *test )
         }
         else if ( test->use_flags.coord_transform )
             return FALSE;
-                
+
         /* Check dependence on reference state. */
         if ( p_result->modifiers.use_flags.use_ref_state )
         {
@@ -574,7 +579,7 @@ match_result( Analysis *analy, Result *p_result, Result_spec *test )
         }
         else if ( test->use_flags.use_ref_state )
             return FALSE;
-        
+
         return TRUE;
     }
     else

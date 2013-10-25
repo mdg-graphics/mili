@@ -6,7 +6,7 @@
  *      Lawrence Livermore National Laboratory
  *      November 18, 2004
  *
- * 
+ *
  ************************************************************************
  * Modifications:
  *
@@ -125,19 +125,20 @@ char *bi_link(void)
 void VersionInfo(Bool_type quiet_mode)
 {
     fprintf(stdout, "\n%s\n\n", bi_version_string());
-		fprintf(stdout, "\nGriz Version %d.%d.%d\n\n", GRIZ_MAJOR, GRIZ_MINOR, GRIZ_BUG);
+    fprintf(stdout, "\nGriz Version %d.%d.%d\n\n", GRIZ_MAJOR, GRIZ_MINOR, GRIZ_BUG);
 
-    if ( quiet_mode ) {
-         fprintf(stdout, "Built: \t%s on %s by %s\n\n", 
-		 bi_date(), bi_system(), bi_developer());
-	 fprintf(stdout, "Configure: %s\n\n", bi_config());
-	 return;
+    if ( quiet_mode )
+    {
+        fprintf(stdout, "Built: \t%s on %s by %s\n\n",
+                bi_date(), bi_system(), bi_developer());
+        fprintf(stdout, "Configure: %s\n\n", bi_config());
+        return;
     }
 
-   /* We don't want to reproduce the complete config.h,
-    * but those settings which may be related to problems
-    * on runtime 
-    */
+    /* We don't want to reproduce the complete config.h,
+     * but those settings which may be related to problems
+     * on runtime
+     */
 
     fprintf(stdout, "Motif toolkit: %s\n", bi_motif());
     fprintf(stdout, "Mili support: %s\n", bi_mili());
@@ -149,16 +150,16 @@ void VersionInfo(Bool_type quiet_mode)
     fprintf(stdout, "OSMesa support: %s\n", bi_osmesa());
     fprintf(stdout, "Batch support: %s\n\n", bi_batch());
 
-    fprintf(stdout, "Built: \t%s on %s by %s\n\n", 
-        bi_date(), bi_system(), bi_developer());
+    fprintf(stdout, "Built: \t%s on %s by %s\n\n",
+            bi_date(), bi_system(), bi_developer());
     fprintf(stdout, "Configure: %s\n\n", bi_config());
     fprintf(stdout, "Modules: %s\n\n", bi_modules());
     fprintf(stdout, "Make Options: gmake %s\n\n", bi_make());
     fprintf(stdout, "Compile Options: %s\n\n", bi_compile());
     fprintf(stdout, "Link Options: %s\n", bi_link());
- 
+
     fprintf(stdout, "\n");
-    
+
     fprintf(stdout, "(C) Copyright 1992, 2004, 2009, 2010, 2011, 2012\n");
     fprintf(stdout, "    Lawrence Livermore National Laboratory\n");
 
@@ -169,13 +170,13 @@ void VersionInfo(Bool_type quiet_mode)
 char *get_VersionInfo( Analysis *analy )
 {
     char *version_string, temp_string[500], mili_version[100];
-     
+
     version_string = NEW_N( char, 2000, "Version Info String" );
-     
+
     sprintf(temp_string, "#\n#\t%s\n# ", bi_version_string());
     strcpy( version_string, temp_string );
 
-    sprintf(temp_string, "\tBuilt: \t%s on %s by %s\n# ", 
+    sprintf(temp_string, "\tBuilt: \t%s on %s by %s\n# ",
             bi_date(), bi_system(), bi_developer());
     strcat( version_string, temp_string );
 
@@ -203,8 +204,8 @@ char *get_VersionInfo( Analysis *analy )
 
     if ( strlen(analy->xmilics_version)>0 )
     {
-         sprintf(temp_string, "#\t\tXmilics Version: \t\t\t%s\n", analy->xmilics_version);
-         strcat( version_string, temp_string );
+        sprintf(temp_string, "#\t\tXmilics Version: \t\t\t%s\n", analy->xmilics_version);
+        strcat( version_string, temp_string );
     }
 
     return( version_string );

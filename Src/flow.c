@@ -6,38 +6,38 @@
  *      Lawrence Livermore National Laboratory
  *      Jan 11 1993
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
+ *
+ * This work was produced at the University of California, Lawrence
+ * Livermore National Laboratory (UC LLNL) under contract no.
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy
+ * (DOE) and The Regents of the University of California (University)
+ * for the operation of UC LLNL. Copyright is reserved to the University
+ * for purposes of controlled dissemination, commercialization through
+ * formal licensing, or other disposition under terms of Contract 48;
+ * DOE policies, regulations and orders; and U.S. statutes. The rights
+ * of the Federal Government are reserved under Contract 48 subject to
+ * the restrictions agreed upon by the DOE and University as allowed
  * under DOE Acquisition Letter 97-1.
- * 
- * 
+ *
+ *
  * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
+ *
+ * This work was prepared as an account of work sponsored by an agency
+ * of the United States Government. Neither the United States Government
+ * nor the University of California nor any of their employees, makes
+ * any warranty, express or implied, or assumes any liability or
+ * responsibility for the accuracy, completeness, or usefulness of any
+ * information, apparatus, product, or process disclosed, or represents
+ * that its use would not infringe privately-owned rights.  Reference
+ * herein to any specific commercial products, process, or service by
+ * trade name, trademark, manufacturer or otherwise does not necessarily
+ * constitute or imply its endorsement, recommendation, or favoring by
+ * the United States Government or the University of California. The
+ * views and opinions of authors expressed herein do not necessarily
+ * state or reflect those of the United States Government or the
+ * University of California, and shall not be used for advertising or
  * product endorsement purposes.
- * 
+ *
  */
 
 #include <stdlib.h>
@@ -55,67 +55,68 @@ static Bool_type pt_in_quad_bbox( float verts[4][3], float pt[2] );
 static Bool_type pt_in_tri_bbox( float verts[3][3], float pt[2] );
 static Bool_type pt_in_surf_bbox( float verts[4][3], float pt[2] );
 static void init_trace_points( Trace_pt_def_obj **ptlist, Analysis *analy );
-static Bool_type init_pt_in_hex_class( Trace_pt_def_obj *pt, 
+static Bool_type init_pt_in_hex_class( Trace_pt_def_obj *pt,
                                        MO_class_data *p_hex_class,
                                        Analysis *analy );
-static Bool_type init_pt_in_tet_class( Trace_pt_def_obj *pt, 
+static Bool_type init_pt_in_tet_class( Trace_pt_def_obj *pt,
                                        MO_class_data *p_tet_class,
                                        Analysis *analy );
-static Bool_type init_pt_in_quad_class( Trace_pt_def_obj *pt, 
+static Bool_type init_pt_in_quad_class( Trace_pt_def_obj *pt,
                                         MO_class_data *p_quad_class,
                                         Analysis *analy );
-static Bool_type init_pt_in_tri_class( Trace_pt_def_obj *pt, 
+static Bool_type init_pt_in_tri_class( Trace_pt_def_obj *pt,
                                        MO_class_data *p_tri_class,
                                        Analysis *analy );
-static Bool_type init_pt_in_surf_class( Trace_pt_def_obj *pt, 
+static Bool_type init_pt_in_surf_class( Trace_pt_def_obj *pt,
                                         MO_class_data *p_surf_class,
                                         Analysis *analy );
 static Bool_type init_new_traces( Analysis *analy );
-static void follow_particles( Trace_pt_obj *plist, float *vel[3], 
-                              Analysis *analy, Bool_type follow_mtl, 
+static void follow_particles( Trace_pt_obj *plist, float *vel[3],
+                              Analysis *analy, Bool_type follow_mtl,
                               int point_cnt );
-static void follow_particle_hex( Trace_pt_obj *pc, float *vel[3], 
-                                 Analysis *analy, Bool_type follow_mtl, 
+static void follow_particle_hex( Trace_pt_obj *pc, float *vel[3],
+                                 Analysis *analy, Bool_type follow_mtl,
                                  int point_cnt );
-static void follow_particle_tet( Trace_pt_obj *pc, float *vel[3], 
-                                 Analysis *analy, Bool_type follow_mtl, 
+static void follow_particle_tet( Trace_pt_obj *pc, float *vel[3],
+                                 Analysis *analy, Bool_type follow_mtl,
                                  int point_cnt );
-static void follow_particle_quad( Trace_pt_obj *pc, float *vel[3], 
-                                  Analysis *analy, Bool_type follow_mtl, 
+static void follow_particle_quad( Trace_pt_obj *pc, float *vel[3],
+                                  Analysis *analy, Bool_type follow_mtl,
                                   int point_cnt );
-static void follow_particle_tri( Trace_pt_obj *pc, float *vel[3], 
-                                 Analysis *analy, Bool_type follow_mtl, 
+static void follow_particle_tri( Trace_pt_obj *pc, float *vel[3],
+                                 Analysis *analy, Bool_type follow_mtl,
                                  int point_cnt );
 static void vel_at_time( float time, float *vel[3], Analysis *analy );
 static void save_trace( Trace_pt_obj *p_trace, int dims, FILE *ofile );
-/*** static ***/ void init_vec_points_hex( Vector_pt_obj **ptlist, int mesh_id, 
+/*** static ***/
+void init_vec_points_hex( Vector_pt_obj **ptlist, int mesh_id,
+                          Analysis *analy, Bool_type update_class );
+static void init_vec_points_tet( Vector_pt_obj **ptlist, int mesh_id,
                                  Analysis *analy, Bool_type update_class );
-static void init_vec_points_tet( Vector_pt_obj **ptlist, int mesh_id, 
-                                 Analysis *analy, Bool_type update_class );
-static void init_vec_points_quad_2d( Vector_pt_obj **ptlist, int mesh_id, 
+static void init_vec_points_quad_2d( Vector_pt_obj **ptlist, int mesh_id,
                                      Analysis *analy );
-static void init_vec_points_tri_2d( Vector_pt_obj **ptlist, int mesh_id, 
+static void init_vec_points_tri_2d( Vector_pt_obj **ptlist, int mesh_id,
                                     Analysis *analy );
-static void init_vec_points_surf_2d( Vector_pt_obj **ptlist, int mesh_id, 
+static void init_vec_points_surf_2d( Vector_pt_obj **ptlist, int mesh_id,
                                      Analysis *analy );
-static void calc_hex_vec_result( double *p_vmin, double *p_vmax, 
-                                 float *vec_comps[3], 
+static void calc_hex_vec_result( double *p_vmin, double *p_vmax,
+                                 float *vec_comps[3],
                                  MO_class_data *p_hex_class );
-static void calc_tet_vec_result( double *p_vmin, double *p_vmax, 
-                                 float *vec_comps[3], 
+static void calc_tet_vec_result( double *p_vmin, double *p_vmax,
+                                 float *vec_comps[3],
                                  MO_class_data *p_tet_class );
-static void calc_quad_vec_result( double *p_vmin, double *p_vmax, 
-                                  float *vec_comps[2], 
+static void calc_quad_vec_result( double *p_vmin, double *p_vmax,
+                                  float *vec_comps[2],
                                   MO_class_data *p_quad_class );
-static void calc_tri_vec_result( double *p_vmin, double *p_vmax, 
-                                 float *vec_comps[2], 
+static void calc_tri_vec_result( double *p_vmin, double *p_vmax,
+                                 float *vec_comps[2],
                                  MO_class_data *p_tri_class );
-static void calc_surf_vec_result( double *p_vmin, double *p_vmax, 
-                                  float *vec_comps[2], 
+static void calc_surf_vec_result( double *p_vmin, double *p_vmax,
+                                  float *vec_comps[2],
                                   MO_class_data *p_surf_class );
 /*
 static float ramp_random();
-static void rand_bary_pt( float tri_vert[3][3], float hex_vert[8][3], 
+static void rand_bary_pt( float tri_vert[3][3], float hex_vert[8][3],
                           float xi[3] );
 static void gen_iso_carpet_points( Analysis *analy );
 static void gen_grid_carpet_points( Analysis *analy );
@@ -127,8 +128,8 @@ static char *trace_tag = "Particle trace";
 static char *points_tag = "Points: ";
 static char *color_tag = "Color: ";
 static char *mtls_trav_tag = "Materials traversed: ";
-static char *pos_his_hdr_tag = 
-            "Time         X              Y              Z";
+static char *pos_his_hdr_tag =
+    "Time         X              Y              Z";
 
 
 /************************************************************
@@ -322,7 +323,7 @@ pt_in_surf_bbox( float verts[4][3], float pt[2] )
  * Generate a rake of point locations for particle tracing.
  */
 void
-gen_trace_points( int num, float start_pt[3], float end_pt[3], float color[3], 
+gen_trace_points( int num, float start_pt[3], float end_pt[3], float color[3],
                   Analysis *analy )
 {
     Trace_pt_def_obj *pt, *ptlist;
@@ -346,7 +347,7 @@ gen_trace_points( int num, float start_pt[3], float end_pt[3], float color[3],
 
     /* Locate the element that each point initially lies in. */
     init_trace_points( &ptlist, analy );
-    
+
     if ( ptlist != NULL )
         APPEND( ptlist, analy->trace_pt_defs );
 }
@@ -369,21 +370,21 @@ init_trace_points( Trace_pt_def_obj **ptlist, Analysis *analy )
     MO_class_data **quad_classes, **tri_classes, **surf_classes;
     int class_qty, quad_class_qty, tri_class_qty, surf_class_qty;
     Bool_type pt_done;
-    
+
     p_mesh = MESH_P( analy );
-    
+
     if ( analy->dimension == 3 )
     {
         /* First try to locate particles in hex classes, then tet classes. */
-        
+
         for ( pt = *ptlist; pt != NULL; )
         {
             pt_done = FALSE;
 
-            hex_classes = (MO_class_data **) 
+            hex_classes = (MO_class_data **)
                           p_mesh->classes_by_sclass[G_HEX].list;
             class_qty = p_mesh->classes_by_sclass[G_HEX].qty;
-            
+
             for ( i = 0; i < class_qty; i++ )
             {
                 if ( init_pt_in_hex_class( pt, hex_classes[i], analy ) )
@@ -393,14 +394,14 @@ init_trace_points( Trace_pt_def_obj **ptlist, Analysis *analy )
                     break;
                 }
             }
-            
+
             if ( pt_done )
                 continue;
 
-            tet_classes = (MO_class_data **) 
+            tet_classes = (MO_class_data **)
                           p_mesh->classes_by_sclass[G_TET].list;
             class_qty = p_mesh->classes_by_sclass[G_TET].qty;
-            
+
             for ( i = 0; i < class_qty; i++ )
             {
                 if ( init_pt_in_tet_class( pt, tet_classes[i], analy ) )
@@ -414,7 +415,7 @@ init_trace_points( Trace_pt_def_obj **ptlist, Analysis *analy )
             if ( !pt_done )
             {
                 /* The point wasn't in any 3D element, so delete it. */
-                popup_dialog( INFO_POPUP, 
+                popup_dialog( INFO_POPUP,
                               "Point (%f %f %f) not in any element, deleted.\n",
                               pt->pt[0], pt->pt[1], pt->pt[2] );
                 nextpt = pt->next;
@@ -426,7 +427,7 @@ init_trace_points( Trace_pt_def_obj **ptlist, Analysis *analy )
     else
     {
         /* Create 2D element adjacency tables (only needed for traces). */
-        quad_classes = (MO_class_data **) 
+        quad_classes = (MO_class_data **)
                        p_mesh->classes_by_sclass[G_QUAD].list;
         quad_class_qty = p_mesh->classes_by_sclass[G_QUAD].qty;
         for ( i = 0; i < quad_class_qty; i++ )
@@ -438,7 +439,7 @@ init_trace_points( Trace_pt_def_obj **ptlist, Analysis *analy )
             create_tri_adj( tri_classes[i], analy );
 
         /* Create 2D element adjacency tables (only needed for traces). */
-        surf_classes = (MO_class_data **) 
+        surf_classes = (MO_class_data **)
                        p_mesh->classes_by_sclass[G_SURFACE].list;
         surf_class_qty = p_mesh->classes_by_sclass[G_SURFACE].qty;
         for ( i = 0; i < surf_class_qty; i++ )
@@ -450,7 +451,7 @@ init_trace_points( Trace_pt_def_obj **ptlist, Analysis *analy )
         for ( pt = *ptlist; pt != NULL; )
         {
             pt_done = FALSE;
-            
+
             for ( i = 0; i < quad_class_qty; i++ )
             {
                 if ( init_pt_in_quad_class( pt, quad_classes[i], analy ) )
@@ -460,10 +461,10 @@ init_trace_points( Trace_pt_def_obj **ptlist, Analysis *analy )
                     break;
                 }
             }
-            
+
             if ( pt_done )
                 continue;
-            
+
             for ( i = 0; i < tri_class_qty; i++ )
             {
                 if ( init_pt_in_tri_class( pt, tri_classes[i], analy ) )
@@ -487,7 +488,7 @@ init_trace_points( Trace_pt_def_obj **ptlist, Analysis *analy )
             if ( !pt_done )
             {
                 /* The point wasn't in any 2D element, so delete it. */
-                popup_dialog( INFO_POPUP, 
+                popup_dialog( INFO_POPUP,
                               "Point (%f %f %f) not in any element, deleted.\n",
                               pt->pt[0], pt->pt[1], pt->pt[2] );
                 nextpt = pt->next;
@@ -516,7 +517,7 @@ init_pt_in_hex_class( Trace_pt_def_obj *pt, MO_class_data *p_hex_class,
     float xi[3];
     int (*connects)[8];
     GVec3D *nodes;
-    
+
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes3d;
     p_ebo = p_hex_class->p_elem_block;
@@ -525,11 +526,11 @@ init_pt_in_hex_class( Trace_pt_def_obj *pt, MO_class_data *p_hex_class,
     {
         /* See if the point lies in the block's bounding box first. */
         if ( pt->pt[0] < p_ebo->block_bbox[0][0][i] ||
-             pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
-             pt->pt[2] < p_ebo->block_bbox[0][2][i] ||
-             pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
-             pt->pt[1] > p_ebo->block_bbox[1][1][i] ||
-             pt->pt[2] > p_ebo->block_bbox[1][2][i] )
+                pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
+                pt->pt[2] < p_ebo->block_bbox[0][2][i] ||
+                pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
+                pt->pt[1] > p_ebo->block_bbox[1][1][i] ||
+                pt->pt[2] > p_ebo->block_bbox[1][2][i] )
             continue;
 
         /* Test point against elements in block. */
@@ -544,7 +545,7 @@ init_pt_in_hex_class( Trace_pt_def_obj *pt, MO_class_data *p_hex_class,
 
             /* Perform approximate inside test first. */
             if ( pt_in_hex_bbox( verts, pt->pt ) &&
-                 pt_in_hex( verts, pt->pt, xi ) )
+                    pt_in_hex( verts, pt->pt, xi ) )
             {
                 pt->elem = el;
                 VEC_COPY( pt->xi, xi );
@@ -554,7 +555,7 @@ init_pt_in_hex_class( Trace_pt_def_obj *pt, MO_class_data *p_hex_class,
             }
         }
     }
-    
+
     return FALSE;
 }
 
@@ -576,7 +577,7 @@ init_pt_in_tet_class( Trace_pt_def_obj *pt, MO_class_data *p_tet_class,
     float xi[4];
     int (*connects)[4];
     GVec3D *nodes;
-    
+
     connects = (int (*)[4]) p_tet_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes3d;
     p_ebo = p_tet_class->p_elem_block;
@@ -585,11 +586,11 @@ init_pt_in_tet_class( Trace_pt_def_obj *pt, MO_class_data *p_tet_class,
     {
         /* See if the point lies in the block's bounding box first. */
         if ( pt->pt[0] < p_ebo->block_bbox[0][0][i] ||
-             pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
-             pt->pt[2] < p_ebo->block_bbox[0][2][i] ||
-             pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
-             pt->pt[1] > p_ebo->block_bbox[1][1][i] ||
-             pt->pt[2] > p_ebo->block_bbox[1][2][i] )
+                pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
+                pt->pt[2] < p_ebo->block_bbox[0][2][i] ||
+                pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
+                pt->pt[1] > p_ebo->block_bbox[1][1][i] ||
+                pt->pt[2] > p_ebo->block_bbox[1][2][i] )
             continue;
 
         /* Test point against elements in block. */
@@ -603,7 +604,7 @@ init_pt_in_tet_class( Trace_pt_def_obj *pt, MO_class_data *p_tet_class,
             }
 
             if ( pt_in_tet_bbox( verts, pt->pt ) &&
-                 pt_in_tet( verts, pt->pt, xi ) )
+                    pt_in_tet( verts, pt->pt, xi ) )
             {
                 pt->elem = el;
                 pt->xi[0] = xi[0];
@@ -616,7 +617,7 @@ init_pt_in_tet_class( Trace_pt_def_obj *pt, MO_class_data *p_tet_class,
             }
         }
     }
-    
+
     return FALSE;
 }
 
@@ -638,7 +639,7 @@ init_pt_in_quad_class( Trace_pt_def_obj *pt, MO_class_data *p_quad_class,
     float xi[2];
     int (*connects)[4];
     GVec2D *nodes;
-    
+
     connects = (int (*)[4]) p_quad_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes2d;
     p_ebo = p_quad_class->p_elem_block;
@@ -647,9 +648,9 @@ init_pt_in_quad_class( Trace_pt_def_obj *pt, MO_class_data *p_quad_class,
     {
         /* See if the point lies in the block's bounding box first. */
         if ( pt->pt[0] < p_ebo->block_bbox[0][0][i] ||
-             pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
-             pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
-             pt->pt[1] > p_ebo->block_bbox[1][1][i] )
+                pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
+                pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
+                pt->pt[1] > p_ebo->block_bbox[1][1][i] )
             continue;
 
         /* Test point against elements in block. */
@@ -663,7 +664,7 @@ init_pt_in_quad_class( Trace_pt_def_obj *pt, MO_class_data *p_quad_class,
             }
 
             if ( pt_in_quad_bbox( verts, pt->pt ) &&
-                 pt_in_quad( verts, pt->pt, xi ) )
+                    pt_in_quad( verts, pt->pt, xi ) )
             {
                 pt->elem = el;
                 VEC_COPY_2D( pt->xi, xi );
@@ -673,7 +674,7 @@ init_pt_in_quad_class( Trace_pt_def_obj *pt, MO_class_data *p_quad_class,
             }
         }
     }
-    
+
     return FALSE;
 }
 
@@ -685,7 +686,7 @@ init_pt_in_quad_class( Trace_pt_def_obj *pt, MO_class_data *p_quad_class,
  * object class.
  */
 Bool_type
-init_pt_in_tri_class( Trace_pt_def_obj *pt, MO_class_data *p_tri_class, 
+init_pt_in_tri_class( Trace_pt_def_obj *pt, MO_class_data *p_tri_class,
                       Analysis *analy )
 {
     float verts[3][3];
@@ -695,7 +696,7 @@ init_pt_in_tri_class( Trace_pt_def_obj *pt, MO_class_data *p_tri_class,
     float xi[3];
     int (*connects)[3];
     GVec2D *nodes;
-    
+
     connects = (int (*)[3]) p_tri_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes2d;
     p_ebo = p_tri_class->p_elem_block;
@@ -704,9 +705,9 @@ init_pt_in_tri_class( Trace_pt_def_obj *pt, MO_class_data *p_tri_class,
     {
         /* See if the point lies in the block's bounding box first. */
         if ( pt->pt[0] < p_ebo->block_bbox[0][0][i] ||
-             pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
-             pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
-             pt->pt[1] > p_ebo->block_bbox[1][1][i] )
+                pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
+                pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
+                pt->pt[1] > p_ebo->block_bbox[1][1][i] )
             continue;
 
         /* Test point against elements in block. */
@@ -720,7 +721,7 @@ init_pt_in_tri_class( Trace_pt_def_obj *pt, MO_class_data *p_tri_class,
             }
 
             if ( pt_in_tri_bbox( verts, pt->pt ) &&
-                 pt_in_tri( verts, pt->pt, xi ) )
+                    pt_in_tri( verts, pt->pt, xi ) )
             {
                 pt->elem = el;
                 VEC_COPY( pt->xi, xi );
@@ -730,7 +731,7 @@ init_pt_in_tri_class( Trace_pt_def_obj *pt, MO_class_data *p_tri_class,
             }
         }
     }
-    
+
     return FALSE;
 }
 
@@ -752,7 +753,7 @@ init_pt_in_surf_class( Trace_pt_def_obj *pt, MO_class_data *p_surf_class,
     float xi[2];
     int (*connects)[4];
     GVec2D *nodes;
-    
+
     connects = (int (*)[4]) p_surf_class->objects.elems->nodes;
     nodes = analy->state_p->nodes.nodes2d;
     p_ebo = p_surf_class->p_elem_block;
@@ -761,9 +762,9 @@ init_pt_in_surf_class( Trace_pt_def_obj *pt, MO_class_data *p_surf_class,
     {
         /* See if the point lies in the block's bounding box first. */
         if ( pt->pt[0] < p_ebo->block_bbox[0][0][i] ||
-             pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
-             pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
-             pt->pt[1] > p_ebo->block_bbox[1][1][i] )
+                pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
+                pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
+                pt->pt[1] > p_ebo->block_bbox[1][1][i] )
             continue;
 
         /* Test point against elements in block. */
@@ -777,19 +778,19 @@ init_pt_in_surf_class( Trace_pt_def_obj *pt, MO_class_data *p_surf_class,
             }
 
             if ( pt_in_surf_bbox( verts, pt->pt ) &&
-                 pt_in_surf( verts, pt->pt, xi ) )
+                    pt_in_surf( verts, pt->pt, xi ) )
             {
                 pt->elem = el;
                 VEC_COPY_2D( pt->xi, xi );
-/****  Surface Elements do not have a material 
-                pt->material = p_surf_class->objects.elems->mat[el];
-*****/
+                /****  Surface Elements do not have a material
+                                pt->material = p_surf_class->objects.elems->mat[el];
+                *****/
                 pt->mo_class = p_surf_class;
                 return TRUE;
             }
         }
     }
-    
+
     return FALSE;
 }
 
@@ -803,21 +804,21 @@ void
 free_trace_list( Trace_pt_obj **p_trace_list )
 {
     Trace_pt_obj *p_tpo, *p_tpo2;
-    
+
     for ( p_tpo = *p_trace_list; p_tpo != NULL; )
     {
         p_tpo2 = p_tpo;
         NEXT( p_tpo );
-        
+
         free( p_tpo2->pts );
         free( p_tpo2->time );
-        
+
         if ( p_tpo2->mtl_segments != NULL )
             DELETE_LIST( p_tpo2->mtl_segments );
-        
+
         free( p_tpo2 );
     }
-    
+
     *p_trace_list = NULL;
 }
 
@@ -832,7 +833,7 @@ free_trace_points( Analysis *analy )
 {
     free_trace_list( &analy->trace_pts );
     free_trace_list( &analy->new_trace_pts );
-    
+
     DELETE_LIST( analy->trace_pt_defs );
 }
 
@@ -848,17 +849,17 @@ init_new_traces( Analysis *analy )
 {
     Trace_pt_def_obj *p_tpd;
     Trace_pt_obj *p_tp;
-    
+
     if ( analy->new_trace_pts != NULL )
     {
         popup_dialog( WARNING_POPUP, "New traces already active!" );
         return FALSE;
     }
-    
+
     for ( p_tpd = analy->trace_pt_defs; p_tpd != NULL; p_tpd = p_tpd->next )
     {
         p_tp = NEW( Trace_pt_obj, "Trace point object" );
-        
+
         p_tp->elnum = p_tpd->elem;
         p_tp->last_elem = p_tpd->elem;
         p_tp->mtl_num = p_tpd->material;
@@ -868,7 +869,7 @@ init_new_traces( Analysis *analy )
         p_tp->pts = NEW_N( float, 3*MAX_TRACER_STEPS, "Trace points" );
         p_tp->time = NEW_N( float, MAX_TRACER_STEPS, "Trace point times" );
         p_tp->mo_class = p_tpd->mo_class;
-        
+
         APPEND( p_tp, analy->new_trace_pts );
     }
 
@@ -882,19 +883,19 @@ init_new_traces( Analysis *analy )
  * Using the current particle positions, find the element that
  * each particle lies in and the natural coordinates for the
  * particle location.  This routine "walks" from element to
- * element until it finds the enclosing element.  Then the 
+ * element until it finds the enclosing element.  Then the
  * velocity of the particle is updated by interpolating from
  * the nodes of the enclosing element.
  */
 static void
-follow_particles( Trace_pt_obj *plist, float *vel[3], Analysis *analy, 
+follow_particles( Trace_pt_obj *plist, float *vel[3], Analysis *analy,
                   Bool_type follow_mtl, int point_cnt )
 {
     Trace_pt_obj *pc;
-    static void (* follow_funcs[])() = 
+    static void (* follow_funcs[])() =
     {
         NULL, NULL, NULL, NULL,  /* Unit, node, truss, and beam classes N/A */
-        follow_particle_tri, 
+        follow_particle_tri,
         follow_particle_quad,
         follow_particle_tet,
         NULL, NULL,              /* Pyramid and wedge classes N/A */
@@ -908,8 +909,8 @@ follow_particles( Trace_pt_obj *plist, float *vel[3], Analysis *analy,
             continue;
 
         (follow_funcs[pc->mo_class->superclass])( pc, vel, analy, follow_mtl,
-                                                  point_cnt );
-        
+                point_cnt );
+
         /*
          * Without a mesh-global face table and integrated adjacency tables,
          * pc->in_grid should be checked here and out-of-grid particles
@@ -928,12 +929,12 @@ follow_particles( Trace_pt_obj *plist, float *vel[3], Analysis *analy,
  * Using the current particle positions, find the element that
  * each particle lies in and the natural coordinates for the
  * particle location.  This routine "walks" from element to
- * element until it finds the enclosing element.  Then the 
+ * element until it finds the enclosing element.  Then the
  * velocity of the particle is updated by interpolating from
  * the nodes of the enclosing element.
  */
 static void
-follow_particle_hex( Trace_pt_obj *pc, float *vel[3], Analysis *analy, 
+follow_particle_hex( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
                      Bool_type follow_mtl, int point_cnt )
 {
     Bool_type found;
@@ -976,7 +977,7 @@ follow_particle_hex( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
     else
         found = FALSE;
 
-    /* 
+    /*
      * Move till we find an element that the particle is inside of or
      * we bounce out of the grid.
      */
@@ -1024,7 +1025,7 @@ follow_particle_hex( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
 
             pc->in_grid = FALSE;
             found = TRUE;
-            
+
             /* Always add a material trace segment for the last segment. */
             p_ts = NEW( Trace_segment_obj, "Trace segment" );
             p_ts->material = pc->mtl_num;
@@ -1032,7 +1033,7 @@ follow_particle_hex( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
             APPEND( p_ts, pc->mtl_segments );
         }
     }
-                
+
     /*
     * If monitoring material transitions, check new material
     * against previous material and add a list entry for
@@ -1043,7 +1044,7 @@ follow_particle_hex( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
         /*
          * "pc->elnum" is not suitable for this comparison because
          * it may be updated during either call to follow_particles
-         * which occurs during a single position integration 
+         * which occurs during a single position integration
          * calculation, and only the element validated during the
          * first call is guaranteed to be the correct element
          * for the current position.  However, this element may
@@ -1053,19 +1054,19 @@ follow_particle_hex( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
          * logic which identifies/validates the element number.  As
          * long as "follow_mtl" is TRUE only during the first
          * follow_particles call and pc->last_elem is only updated
-         * when "follow_mtl" is TRUE, this logic will correctly 
+         * when "follow_mtl" is TRUE, this logic will correctly
          * capture material transitions.
          */
         pc->last_elem = el;
-                    
+
         if ( mat[el] != pc->mtl_num )
         {
             p_ts = NEW( Trace_segment_obj, "Trace segment" );
             p_ts->material = pc->mtl_num;
-            
+
             /*
              * If point_cnt is "i", we're validating the element for
-             * point "i-1" and the last point for the PREVIOUS 
+             * point "i-1" and the last point for the PREVIOUS
              * material is "i-2".
              */
             p_ts->last_pt_idx = point_cnt - 2;
@@ -1096,12 +1097,12 @@ follow_particle_hex( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
  * Using the current particle positions, find the element that
  * each particle lies in and the natural coordinates for the
  * particle location.  This routine "walks" from element to
- * element until it finds the enclosing element.  Then the 
+ * element until it finds the enclosing element.  Then the
  * velocity of the particle is updated by interpolating from
  * the nodes of the enclosing element.
  */
 static void
-follow_particle_tet( Trace_pt_obj *pc, float *vel[3], Analysis *analy, 
+follow_particle_tet( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
                      Bool_type follow_mtl, int point_cnt )
 {
     Bool_type found;
@@ -1146,7 +1147,7 @@ follow_particle_tet( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
     else
         found = FALSE;
 
-    /* 
+    /*
      * Move till we find an element that the particle is inside of or
      * we bounce out of the grid.
      */
@@ -1193,7 +1194,7 @@ follow_particle_tet( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
 
             pc->in_grid = FALSE;
             found = TRUE;
-            
+
             /* Always add a material trace segment for the last segment. */
             p_ts = NEW( Trace_segment_obj, "Trace segment" );
             p_ts->material = pc->mtl_num;
@@ -1201,7 +1202,7 @@ follow_particle_tet( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
             APPEND( p_ts, pc->mtl_segments );
         }
     }
-                
+
     /*
     * If monitoring material transitions, check new material
     * against previous material and add a list entry for
@@ -1212,15 +1213,15 @@ follow_particle_tet( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
         /* See follow_particle_hex() above. */
 
         pc->last_elem = el;
-                    
+
         if ( mat[el] != pc->mtl_num )
         {
             p_ts = NEW( Trace_segment_obj, "Trace segment" );
             p_ts->material = pc->mtl_num;
-            
+
             /*
              * If point_cnt is "i", we're validating the element for
-             * point "i-1" and the last point for the PREVIOUS 
+             * point "i-1" and the last point for the PREVIOUS
              * material is "i-2".
              */
             p_ts->last_pt_idx = point_cnt - 2;
@@ -1250,13 +1251,13 @@ follow_particle_tet( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
  * Using the current particle positions, find the element that
  * each particle lies in and the natural coordinates for the
  * particle location.  This routine "walks" from element to
- * element until it finds the enclosing element.  Then the 
+ * element until it finds the enclosing element.  Then the
  * velocity of the particle is updated by interpolating from
  * the nodes of the enclosing element.
  */
 static void
-follow_particle_quad( Trace_pt_obj *pc, float *vel[3], Analysis *analy, 
-                     Bool_type follow_mtl, int point_cnt )
+follow_particle_quad( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
+                      Bool_type follow_mtl, int point_cnt )
 {
     Bool_type found;
     float verts[4][3];
@@ -1298,7 +1299,7 @@ follow_particle_quad( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
     else
         found = FALSE;
 
-    /* 
+    /*
      * Move till we find an element that the particle is inside of or
      * we bounce out of the grid.
      */
@@ -1342,7 +1343,7 @@ follow_particle_quad( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
 
             pc->in_grid = FALSE;
             found = TRUE;
-            
+
             /* Always add a material trace segment for the last segment. */
             p_ts = NEW( Trace_segment_obj, "Trace segment" );
             p_ts->material = pc->mtl_num;
@@ -1350,7 +1351,7 @@ follow_particle_quad( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
             APPEND( p_ts, pc->mtl_segments );
         }
     }
-                
+
     /*
     * If monitoring material transitions, check new material
     * against previous material and add a list entry for
@@ -1361,15 +1362,15 @@ follow_particle_quad( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
         /* See follow_particle_hex() above. */
 
         pc->last_elem = el;
-                    
+
         if ( mat[el] != pc->mtl_num )
         {
             p_ts = NEW( Trace_segment_obj, "Trace segment" );
             p_ts->material = pc->mtl_num;
-            
+
             /*
              * If point_cnt is "i", we're validating the element for
-             * point "i-1" and the last point for the PREVIOUS 
+             * point "i-1" and the last point for the PREVIOUS
              * material is "i-2".
              */
             p_ts->last_pt_idx = point_cnt - 2;
@@ -1400,12 +1401,12 @@ follow_particle_quad( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
  * Using the current particle positions, find the element that
  * each particle lies in and the natural coordinates for the
  * particle location.  This routine "walks" from element to
- * element until it finds the enclosing element.  Then the 
+ * element until it finds the enclosing element.  Then the
  * velocity of the particle is updated by interpolating from
  * the nodes of the enclosing element.
  */
 static void
-follow_particle_tri( Trace_pt_obj *pc, float *vel[3], Analysis *analy, 
+follow_particle_tri( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
                      Bool_type follow_mtl, int point_cnt )
 {
     Bool_type found;
@@ -1447,7 +1448,7 @@ follow_particle_tri( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
     else
         found = FALSE;
 
-    /* 
+    /*
      * Move till we find an element that the particle is inside of or
      * we bounce out of the grid.
      */
@@ -1489,7 +1490,7 @@ follow_particle_tri( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
 
             pc->in_grid = FALSE;
             found = TRUE;
-            
+
             /* Always add a material trace segment for the last segment. */
             p_ts = NEW( Trace_segment_obj, "Trace segment" );
             p_ts->material = pc->mtl_num;
@@ -1497,7 +1498,7 @@ follow_particle_tri( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
             APPEND( p_ts, pc->mtl_segments );
         }
     }
-                
+
     /*
     * If monitoring material transitions, check new material
     * against previous material and add a list entry for
@@ -1508,15 +1509,15 @@ follow_particle_tri( Trace_pt_obj *pc, float *vel[3], Analysis *analy,
         /* See follow_particle_hex() above. */
 
         pc->last_elem = el;
-                    
+
         if ( mat[el] != pc->mtl_num )
         {
             p_ts = NEW( Trace_segment_obj, "Trace segment" );
             p_ts->material = pc->mtl_num;
-            
+
             /*
              * If point_cnt is "i", we're validating the element for
-             * point "i-1" and the last point for the PREVIOUS 
+             * point "i-1" and the last point for the PREVIOUS
              * material is "i-2".
              */
             p_ts->last_pt_idx = point_cnt - 2;
@@ -1558,18 +1559,18 @@ vel_at_time( float time, float *vel[3], Analysis *analy )
     int subrec1, subrec2;
     int rval;
     Result *res1, *tmp_res;
-    char *vel_comps[3] = 
+    char *vel_comps[3] =
     {
         "velx", "vely", "velz"
     };
-    char *vel_vec_comps[3] = 
+    char *vel_vec_comps[3] =
     {
         "nodvel[vx]", "nodvel[vy]", "nodvel[vz]"
     };
     Bool_type have_primal;
     int dims;
     int bound_states[2];
-    
+
     tmp_res = analy->cur_result;
     tmp_state = analy->cur_state;
 
@@ -1593,20 +1594,20 @@ vel_at_time( float time, float *vel[3], Analysis *analy )
                      (void *) &t2 );
 
     interp = (time-t1) / (t2-t1);
-    
+
     /*
      * If nodal velocities are primal results, load all components per
      * state with one direct call to db_get_results(), otherwise get
      * individually with compute_node_velocity() (i.e., the old way).
      */
-    
+
     have_primal = FALSE;
-    
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &state1, NULL, 
+
+    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &state1, NULL,
                      (void *) &srec_id1 );
     subrec1 = analy->srec_tree[srec_id1].node_vel_subrec;
 
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &state2, NULL, 
+    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &state2, NULL,
                      (void *) &srec_id2 );
     subrec2 = analy->srec_tree[srec_id2].node_vel_subrec;
 
@@ -1614,50 +1615,50 @@ vel_at_time( float time, float *vel[3], Analysis *analy )
     {
         vels_1 = NEW_N( float, dims * node_cnt, "Tmp velocities buffer 1" );
         vels_2 = NEW_N( float, dims * node_cnt, "Tmp velocities buffer 2" );
-        
+
         if ( vels_1 != NULL && vels_2 != NULL )
         {
             analy->db_get_results( analy->db_ident, state1, subrec1, dims,
                                    vel_vec_comps, (void *) vels_1 );
             analy->db_get_results( analy->db_ident, state2, subrec2, dims,
                                    vel_vec_comps, (void *) vels_2 );
-            
+
             for ( i = 0; i < dims; i++ )
             {
                 vec1 = vels_1 + i * node_cnt;
                 vec2 = vels_2 + i * node_cnt;
-                
+
                 for ( j = 0; j < node_cnt; j++ )
                     vel[i][j] = (1.0 - interp) * vec1[j] + interp * vec2[j];
             }
-            
+
             have_primal = TRUE;
         }
- 
+
         if ( vels_1 != NULL )
             free( vels_1 );
         if ( vels_2 != NULL )
             free( vels_2 );
     }
-        
+
     if ( !have_primal )
     {
-/*
- * Problem: need a Result to specify which component compute_node_velocity()
- * needs to get, but if "vecx", "vecy", and/or "vecz" aren't in the db as
- * scalars, we have no useful way of interacting with compute_node_velocity().
- * And if they are in the db, we don't need compute_node_velocity().
- *
- * Maybe we determine if scalar components are present and if not, call
- * a different function that knows to derive velocity from positions.
- */
+        /*
+         * Problem: need a Result to specify which component compute_node_velocity()
+         * needs to get, but if "vecx", "vecy", and/or "vecz" aren't in the db as
+         * scalars, we have no useful way of interacting with compute_node_velocity().
+         * And if they are in the db, we don't need compute_node_velocity().
+         *
+         * Maybe we determine if scalar components are present and if not, call
+         * a different function that knows to derive velocity from positions.
+         */
         tmp_res = analy->cur_result;
         tmp_state = analy->cur_state;
         vec1 = analy->tmp_result[0];
         vec2 = analy->tmp_result[1];
-        
+
         res1 = NEW( Result, "Temp vel result1" );
-        
+
         subrec1 = analy->srec_tree[srec_id1].node_pos_subrec;
         subrec2 = analy->srec_tree[srec_id2].node_pos_subrec;
 
@@ -1666,8 +1667,8 @@ vel_at_time( float time, float *vel[3], Analysis *analy )
             find_result( analy, ALL, TRUE, res1, vel_comps[i] );
             analy->cur_result = res1;
 
-            /* 
-             * Find the result index for the subrecord containing positions. 
+            /*
+             * Find the result index for the subrecord containing positions.
              * (Assumes all components are found in same subrecord.)
              */
             if ( i == 0 )
@@ -1675,7 +1676,7 @@ vel_at_time( float time, float *vel[3], Analysis *analy )
                 for ( idx1 = 0; idx1 < res1->qty; idx1++ )
                     if ( res1->subrecs[idx1] == subrec1 )
                         break;
-                
+
                 if ( srec_id2 != srec_id1 )
                 {
                     for ( idx2 = 0; idx2 < res1->qty; idx2++ )
@@ -1688,19 +1689,19 @@ vel_at_time( float time, float *vel[3], Analysis *analy )
 
             analy->result_index = idx1;
             analy->cur_state = state1;
-/*            compute_node_velocity( analy, vec1 ); */
+            /*            compute_node_velocity( analy, vec1 ); */
 
             /* Find the result index for the subrecord containing positions. */
             analy->result_index = idx2;
             analy->cur_state = state2;
-/*            compute_node_velocity( analy, vec2 ); */
+            /*            compute_node_velocity( analy, vec2 ); */
 
             for ( j = 0; j < node_cnt; j++ )
                 vel[i][j] = (1.0 - interp) * vec1[j] + interp * vec2[j];
-            
+
             cleanse_result( res1 );
         }
-        
+
         free( res1 );
     }
 
@@ -1715,7 +1716,7 @@ vel_at_time( float time, float *vel[3], Analysis *analy )
  * Trace out particle paths.
  */
 void
-particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy, 
+particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy,
                 Bool_type static_field )
 {
     Trace_pt_obj *pc, *p_tp;
@@ -1730,15 +1731,15 @@ particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy,
     int dims;
 
     analy->show_traces = TRUE;
-/*
-    analy->mesh_view_mode = RENDER_NONE;
-*/
+    /*
+        analy->mesh_view_mode = RENDER_NONE;
+    */
     analy->show_edges = TRUE;
-    
+
     dims = analy->dimension;
 
     /* Bounds check on start time. */
-    analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL, 
+    analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL,
                      (void *) &qty_states );
     state = 1;
     analy->db_query( analy->db_ident, QRY_STATE_TIME, (void *) &state, NULL,
@@ -1872,15 +1873,15 @@ particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy,
 
     if ( cnt >= MAX_TRACER_STEPS )
     {
-        popup_dialog( WARNING_POPUP, 
-                      "Exhausted room for ptrace; limit to %d steps.", 
+        popup_dialog( WARNING_POPUP,
+                      "Exhausted room for ptrace; limit to %d steps.",
                       MAX_TRACER_STEPS );
     }
 
     /* Terminate material segment lists; free unused trace memory. */
     for ( pc = analy->new_trace_pts; pc != NULL; NEXT( pc ) )
     {
-        /* 
+        /*
          * Add last material segment for particles which
          * terminated within the grid.
          */
@@ -1888,7 +1889,7 @@ particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy,
         p_ts->material = pc->mtl_num;
         p_ts->last_pt_idx = pc->cnt - 1;
         APPEND( p_ts, pc->mtl_segments );
-        
+
         /*
          * Could trim unused "pts" and "time" array space here to what
          * was actually used, but a new ptrace command with different
@@ -1896,7 +1897,7 @@ particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy,
          * or free/realloc's on every ptrace command.
          */
     }
-    
+
     /* Add remaining new traces to existing traces. */
     if ( analy->new_trace_pts != NULL )
     {
@@ -1914,18 +1915,18 @@ particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy,
     else
     {
         /* Move to the last state. */
-        analy->db_query( analy->db_ident, QRY_STATE_OF_TIME, (void *) &t, 
+        analy->db_query( analy->db_ident, QRY_STATE_OF_TIME, (void *) &t,
                          NULL, (void *) bound_states );
         state = bound_states[1] - 1;
-            
+
         if ( state != analy->cur_state )
         {
             analy->cur_state = state;
             change_state( analy );
         }
         else
-            analy->db_query( analy->db_ident, QRY_STATE_TIME, 
-                             (void *) (bound_states + 1), NULL, 
+            analy->db_query( analy->db_ident, QRY_STATE_TIME,
+                             (void *) (bound_states + 1), NULL,
                              (void *) &analy->state_p->time );
     }
 }
@@ -1934,21 +1935,21 @@ particle_trace( float t_zero, float t_stop, float delta_t, Analysis *analy,
 /************************************************************
  * TAG( find_next_subtrace )
  *
- * Find the first contiguous sequence of steps of a particle 
+ * Find the first contiguous sequence of steps of a particle
  * trace subset for which all steps are in materials that
- * aren't disabled for particle traces.  When "init" is true, 
- * initialize the trace subset to those trace steps bounded 
- * by "start" and "start + qty".  Thereafter, consider only 
- * steps in the initial subset which have not belonged to a 
+ * aren't disabled for particle traces.  When "init" is true,
+ * initialize the trace subset to those trace steps bounded
+ * by "start" and "start + qty".  Thereafter, consider only
+ * steps in the initial subset which have not belonged to a
  * previous subtrace.
  *
  * The net effect of a sequence of calls to find_next_subtrace
- * is to partition a trace subset into a disconnected sequence 
- * of trace subsets separated by materials for which traces 
+ * is to partition a trace subset into a disconnected sequence
+ * of trace subsets separated by materials for which traces
  * are disabled.
  */
 Bool_type
-find_next_subtrace( Bool_type init, int skip, int qty, Trace_pt_obj *pt, 
+find_next_subtrace( Bool_type init, int skip, int qty, Trace_pt_obj *pt,
                     Analysis *analy, int *new_skip, int *new_qty )
 {
     static int start, end;
@@ -1957,7 +1958,7 @@ find_next_subtrace( Bool_type init, int skip, int qty, Trace_pt_obj *pt,
     Bool_type disabled;
     Trace_segment_obj *p_seg;
     int idum;
-    
+
     /*
      * On initialization, build an array of flags, one per trace step
      * point, which are FALSE when the point lies in a material which
@@ -1966,18 +1967,18 @@ find_next_subtrace( Bool_type init, int skip, int qty, Trace_pt_obj *pt,
     if ( init )
     {
         end = skip + qty;
-        
+
         vis_map = NEW_N( Bool_type, end, "Trace vis map" );
-        
+
         i = 0;
         for ( p_seg = pt->mtl_segments; p_seg != NULL; NEXT( p_seg ) )
         {
-            disabled = is_in_iarray( p_seg->material, analy->trace_disable_qty, 
+            disabled = is_in_iarray( p_seg->material, analy->trace_disable_qty,
                                      analy->trace_disable, &idum );
             for ( ; i <= p_seg->last_pt_idx && i < end; i++ )
                 vis_map[i] = ( disabled ) ? FALSE : TRUE;
         }
-        
+
         /*
          * If the trace is under construction, the length will be longer
          * than the steps accounted for in the material segments list.
@@ -1985,15 +1986,15 @@ find_next_subtrace( Bool_type init, int skip, int qty, Trace_pt_obj *pt,
          */
         if ( end > i )
         {
-            disabled = is_in_iarray( pt->mtl_num, analy->trace_disable_qty, 
+            disabled = is_in_iarray( pt->mtl_num, analy->trace_disable_qty,
                                      analy->trace_disable, &idum );
             for ( ; i < end; i++ )
                 vis_map[i] = ( disabled ) ? FALSE : TRUE;
         }
-        
+
         start = skip;
     }
-    
+
     /* Find the first step after (or equal to) "start" which is visible. */
     while ( start < end && !vis_map[start] )
         start++;
@@ -2006,9 +2007,9 @@ find_next_subtrace( Bool_type init, int skip, int qty, Trace_pt_obj *pt,
         return FALSE;
     }
 
-    /* 
-     * Traverse only _CONTIGUOUS_ visible steps after "start" and 
-     * find the last one. 
+    /*
+     * Traverse only _CONTIGUOUS_ visible steps after "start" and
+     * find the last one.
      */
     stop = start + 1;
     while ( stop < end && vis_map[stop] )
@@ -2025,17 +2026,17 @@ find_next_subtrace( Bool_type init, int skip, int qty, Trace_pt_obj *pt,
     /* Return the end points of the visible subtrace. */
     *new_skip = start;
     *new_qty = stop - start;
-    
+
     /* Prepare for next iteration. */
     start = stop;
-    
+
     return TRUE;
 }
 
 
 /*****************************************************************
  * TAG( save_particle_traces )
- * 
+ *
  * Output ASCII file of particle traces.
  */
 void
@@ -2044,39 +2045,39 @@ save_particle_traces( Analysis *analy, char *filename )
     Trace_pt_obj *p_tp;
     FILE *ofile;
     int tcnt;
-    
+
     if ( analy->trace_pts == NULL )
         return;
 
     if ( (ofile = fopen( filename, "w" )) == NULL )
     {
-        popup_dialog( WARNING_POPUP, 
+        popup_dialog( WARNING_POPUP,
                       "Unable to open particle trace output file." );
         return;
     }
-    
+
     write_preamble( ofile );
 
-    /* Count and output the number of traces. */    
+    /* Count and output the number of traces. */
     tcnt = 0;
     for ( p_tp = analy->trace_pts; p_tp != NULL; NEXT( p_tp ) )
         tcnt++;
     fprintf( ofile, "# Quantity particle traces: %d\n", tcnt );
-    
+
     for ( p_tp = analy->trace_pts; p_tp != NULL; NEXT( p_tp ) )
         save_trace( p_tp, analy->dimension, ofile );
 
     fclose( ofile );
-    
+
     return;
 }
 
 
 /*****************************************************************
  * TAG( save_trace )
- * 
+ *
  * Output ASCII file of particle traces.
- * 
+ *
  * Modifications to the format of this output require changes to
  * read_particle_traces() as well!!!
  */
@@ -2086,25 +2087,25 @@ save_trace( Trace_pt_obj *p_trace, int dims, FILE *ofile )
     Trace_segment_obj *p_ts;
     float *p_xyz, *p_time;
     int i, j, mcnt;
-    
+
     fprintf( ofile, "#\n#                  %s\n#\n", trace_tag );
     fprintf( ofile, "# Points: %d\n", p_trace->cnt );
-    fprintf( ofile, "# %s%5.3f  %5.3f  %5.3f\n", color_tag, 
+    fprintf( ofile, "# %s%5.3f  %5.3f  %5.3f\n", color_tag,
              p_trace->color[0], p_trace->color[1], p_trace->color[2] );
-    
+
     mcnt = 0;
     for ( p_ts = p_trace->mtl_segments; p_ts != NULL; NEXT( p_ts ) )
         mcnt++;
-    
+
     fprintf( ofile, "# %s%d\n", mtls_trav_tag, mcnt );
     fprintf( ofile, "#      Material   Last point\n" );
     for ( p_ts = p_trace->mtl_segments; p_ts != NULL; NEXT( p_ts ) )
-        fprintf( ofile, "#       %3d        %d\n", p_ts->material + 1, 
+        fprintf( ofile, "#       %3d        %d\n", p_ts->material + 1,
                  p_ts->last_pt_idx );
 
     fprintf( ofile, "# Position history:\n" );
     fprintf( ofile, "#        %s\n", pos_his_hdr_tag );
-    
+
     p_xyz = p_trace->pts;
     p_time = p_trace->time;
     for ( i = 0; i < p_trace->cnt; i++ )
@@ -2121,9 +2122,9 @@ save_trace( Trace_pt_obj *p_trace, int dims, FILE *ofile )
 
 /*****************************************************************
  * TAG( read_particle_traces )
- * 
+ *
  * Read the particle trace file.
- * 
+ *
  * The format read MUST be kept current with output from
  * save_particle_traces() and save_trace().
  */
@@ -2138,51 +2139,51 @@ read_particle_traces( Analysis *analy, char *filename )
     float *p_time, *p_xyz;
     char txtline[80];
     int dims;
-    
+
     if ( (ifile = fopen( filename, "r" )) == NULL )
     {
         popup_dialog( WARNING_POPUP, "Unable to open file \"%s\".", filename );
         return;
     }
-    
+
     dims = analy->dimension;
-    
+
     /* Locate each particle trace dataset and load a Trace_pt_obj. */
     while ( find_text( ifile, trace_tag ) != NULL )
     {
         p_tp = NEW( Trace_pt_obj, "Trace obj from file" );
-        
+
         /* Quantity of points in trace. */
         p_tp->cnt = atoi( find_text( ifile, points_tag ) + strlen( points_tag) );
-        
+
         /* RGB values for trace color. */
         p_c = find_text( ifile, color_tag ) + strlen( color_tag );
         for ( i = 0; i < 3; i++ )
             p_tp->color[i] = (float) strtod( p_c, &p_c );
-        
+
         /* Traversed materials list. */
-        mcnt = atoi( find_text( ifile, mtls_trav_tag ) 
+        mcnt = atoi( find_text( ifile, mtls_trav_tag )
                      + strlen( mtls_trav_tag ) );
         /* Swallow the column titles. */
         fgets( txtline, 80, ifile );
-        
+
         /* Now read each material and its last point. */
         for ( i = 0; i < mcnt; i++ )
         {
             p_ts = NEW( Trace_segment_obj, "Trace seg from file" );
-            fscanf( ifile, "# %d %d\n", &p_ts->material, 
+            fscanf( ifile, "# %d %d\n", &p_ts->material,
                     &p_ts->last_pt_idx );
             p_ts->material--;
             APPEND( p_ts, p_tp->mtl_segments );
         }
-        
+
         /* Find the position history. */
         p_c = find_text( ifile, pos_his_hdr_tag );
-        
+
         /* Allocate arrays to hold the position history. */
         p_tp->pts = NEW_N( float, dims * p_tp->cnt, "Trace points from file" );
         p_tp->time = NEW_N( float, p_tp->cnt, "Trace point times from file" );
-        
+
         /* Read the position history. */
         p_xyz = p_tp->pts;
         p_time = p_tp->time;
@@ -2195,13 +2196,13 @@ read_particle_traces( Analysis *analy, char *filename )
             p_time++;
             p_xyz += dims;
         }
-        
+
         /* Store the Trace_pt_obj. */
         APPEND( p_tp, analy->trace_pts );
     }
-    
+
     fclose( ifile );
-    
+
     /* Enable trace rendering. */
     analy->show_traces = TRUE;
 }
@@ -2224,21 +2225,21 @@ delete_vec_points( Analysis *analy )
     int class_qty;
     MO_class_data **p_mo_classes;
     Vector_pt_obj *p_vp;
-    
+
     if ( !analy->have_grid_points )
         return;
-    
+
     for ( i = 0; i < analy->mesh_qty; i++ )
     {
 #ifdef NEWMILI
-        htable_get_data( analy->mesh_table[i].class_table, 
+        htable_get_data( analy->mesh_table[i].class_table,
                          (void ***) &p_mo_classes ,
                          &class_qty );
 #else
-        class_qty = htable_get_data( analy->mesh_table[i].class_table, 
-				     (void ***) &p_mo_classes );
+        class_qty = htable_get_data( analy->mesh_table[i].class_table,
+                                     (void ***) &p_mo_classes );
 #endif
-        
+
         for ( j = 0; j < class_qty; j++ )
         {
             if ( p_mo_classes[j]->vector_pts != NULL )
@@ -2249,10 +2250,10 @@ delete_vec_points( Analysis *analy )
                 p_mo_classes[j]->vector_pt_qty = 0;
             }
         }
-        
+
         free( p_mo_classes );
     }
-    
+
     analy->have_grid_points = FALSE;
 }
 
@@ -2269,7 +2270,7 @@ delete_vec_points( Analysis *analy )
  * start_pt, end_pt - Boundaries of region.
  */
 void
-gen_vec_points( int dim, int size[3], float start_pt[3], float end_pt[3], 
+gen_vec_points( int dim, int size[3], float start_pt[3], float end_pt[3],
                 Analysis *analy )
 {
     Vector_pt_obj *pt, *ptlist;
@@ -2280,72 +2281,72 @@ gen_vec_points( int dim, int size[3], float start_pt[3], float end_pt[3],
     ptlist = NULL;
     switch ( dim )
     {
-        case 1:
-            for ( i = 0; i < size[0]; i++ )
+    case 1:
+        for ( i = 0; i < size[0]; i++ )
+        {
+            pt = NEW( Vector_pt_obj, "Vector point object" );
+
+            if ( size[0] == 1 )
+                t = 0.0;
+            else
+                t = i / (float)( size[0] - 1 );
+            for ( j = 0; j < 3; j++ )
+                pt->pt[j] = (1.0-t)*start_pt[j] + t*end_pt[j];
+            INSERT( pt, ptlist );
+        }
+        break;
+    case 2:
+        ind1 = 0;
+        ind2 = 2;
+        inds = 1;
+        if ( start_pt[0] == end_pt[0] )
+        {
+            ind1 = 1;
+            inds = 0;
+        }
+        else if ( start_pt[2] == end_pt[2] )
+        {
+            ind2 = 1;
+            inds = 2;
+        }
+        for ( i = 0; i < size[0]; i++ )
+            for ( j = 0; j < size[1]; j++ )
             {
                 pt = NEW( Vector_pt_obj, "Vector point object" );
 
-                if ( size[0] == 1 )
-                    t = 0.0;
-                else
-                    t = i / (float)( size[0] - 1 );
-                for ( j = 0; j < 3; j++ )
-                    pt->pt[j] = (1.0-t)*start_pt[j] + t*end_pt[j];
+                t = i / (float)( size[0] - 1 );
+                pt->pt[ind1] = (1.0-t)*start_pt[ind1] + t*end_pt[ind1];
+
+                t = j / (float)( size[1] - 1 );
+                pt->pt[ind2] = (1.0-t)*start_pt[ind2] + t*end_pt[ind2];
+
+                pt->pt[inds] = start_pt[inds];
+
                 INSERT( pt, ptlist );
             }
-            break;
-        case 2:
-            ind1 = 0;
-            ind2 = 2;
-            inds = 1;
-            if ( start_pt[0] == end_pt[0] )
-            {
-                ind1 = 1;
-                inds = 0;
-            }
-            else if ( start_pt[2] == end_pt[2] )
-            {
-                ind2 = 1;
-                inds = 2;
-            }
-            for ( i = 0; i < size[0]; i++ )
-                for ( j = 0; j < size[1]; j++ )
+        break;
+    case 3:
+        for ( i = 0; i < size[0]; i++ )
+            for ( j = 0; j < size[1]; j++ )
+                for ( k = 0; k < size[2]; k++ )
                 {
                     pt = NEW( Vector_pt_obj, "Vector point object" );
 
                     t = i / (float)( size[0] - 1 );
-                    pt->pt[ind1] = (1.0-t)*start_pt[ind1] + t*end_pt[ind1];
+                    pt->pt[0] = (1.0-t)*start_pt[0] + t*end_pt[0];
 
                     t = j / (float)( size[1] - 1 );
-                    pt->pt[ind2] = (1.0-t)*start_pt[ind2] + t*end_pt[ind2];
+                    pt->pt[1] = (1.0-t)*start_pt[1] + t*end_pt[1];
 
-                    pt->pt[inds] = start_pt[inds];
+                    t = k / (float)( size[2] - 1 );
+                    pt->pt[2] = (1.0-t)*start_pt[2] + t*end_pt[2];
 
                     INSERT( pt, ptlist );
                 }
-            break;
-        case 3:
-            for ( i = 0; i < size[0]; i++ )
-                for ( j = 0; j < size[1]; j++ )
-                    for ( k = 0; k < size[2]; k++ )
-                    {
-                        pt = NEW( Vector_pt_obj, "Vector point object" );
-
-                        t = i / (float)( size[0] - 1 );
-                        pt->pt[0] = (1.0-t)*start_pt[0] + t*end_pt[0];
-
-                        t = j / (float)( size[1] - 1 );
-                        pt->pt[1] = (1.0-t)*start_pt[1] + t*end_pt[1];
-
-                        t = k / (float)( size[2] - 1 );
-                        pt->pt[2] = (1.0-t)*start_pt[2] + t*end_pt[2];
-
-                        INSERT( pt, ptlist );
-                    }
-            break;
-        default:
-            popup_dialog( WARNING_POPUP, 
-                          "gen_vec_points(): bad switch statement value." );
+        break;
+    default:
+        popup_dialog( WARNING_POPUP,
+                      "gen_vec_points(): bad switch statement value." );
     }
 
     /* For each mesh, locate the element that each vector point lies in. */
@@ -2364,7 +2365,7 @@ gen_vec_points( int dim, int size[3], float start_pt[3], float end_pt[3],
         }
     }
 
-    /* 
+    /*
      * All points located within elements have been moved to lists
      * in the respective element classes.  Eliminate any leftovers.
      */
@@ -2380,7 +2381,7 @@ gen_vec_points( int dim, int size[3], float start_pt[3], float end_pt[3],
  * TAG( init_vec_points_hex )
  *
  * For each point in the list, find which if any hex element
- * and class it initially lies in, and move the object to the 
+ * and class it initially lies in, and move the object to the
  * vector point list for that class.
  */
 /***
@@ -2402,11 +2403,11 @@ init_vec_points_hex( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
     GVec3D *nodes;
     Elem_block_obj *p_ebo;
     Vector_pt_obj *mov_pt;
-    
+
     p_mesh = analy->mesh_table + mesh_id;
     for ( l = 0; l < p_mesh->classes_by_sclass[G_HEX].qty; l++ )
     {
-        p_hex_class = ((MO_class_data **) 
+        p_hex_class = ((MO_class_data **)
                        p_mesh->classes_by_sclass[G_HEX].list)[l];
 
         connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
@@ -2452,11 +2453,11 @@ init_vec_points_hex( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
             {
                 /* See if the point lies in the block's bounding box first. */
                 if ( pt->pt[0] < p_ebo->block_bbox[0][0][i] ||
-                     pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
-                     pt->pt[2] < p_ebo->block_bbox[0][2][i] ||
-                     pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
-                     pt->pt[1] > p_ebo->block_bbox[1][1][i] ||
-                     pt->pt[2] > p_ebo->block_bbox[1][2][i] )
+                        pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
+                        pt->pt[2] < p_ebo->block_bbox[0][2][i] ||
+                        pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
+                        pt->pt[1] > p_ebo->block_bbox[1][1][i] ||
+                        pt->pt[2] > p_ebo->block_bbox[1][2][i] )
                     continue;
 
                 /* Test point against elements in block. */
@@ -2464,8 +2465,8 @@ init_vec_points_hex( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
                 {
                     /* Perform approximate inside (bbox) test first. */
                     if ( pt->pt[0] >= lo[0][el] && pt->pt[0] <= hi[0][el] &&
-                         pt->pt[1] >= lo[1][el] && pt->pt[1] <= hi[1][el] &&
-                         pt->pt[2] >= lo[2][el] && pt->pt[2] <= hi[2][el] )
+                            pt->pt[1] >= lo[1][el] && pt->pt[1] <= hi[1][el] &&
+                            pt->pt[2] >= lo[2][el] && pt->pt[2] <= hi[2][el] )
                     {
                         for ( j = 0; j < 8; j++ )
                         {
@@ -2478,7 +2479,7 @@ init_vec_points_hex( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
                         {
                             pt->elnum = el;
                             VEC_COPY( pt->xi, xi );
-                            
+
                             mov_pt = pt;
                             NEXT( pt );
 
@@ -2488,7 +2489,7 @@ init_vec_points_hex( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
                                 INSERT( mov_pt, p_hex_class->vector_pts );
                                 p_hex_class->vector_pt_qty++;
                             }
-                            
+
                             found = TRUE;
                             break;
                         }
@@ -2498,7 +2499,7 @@ init_vec_points_hex( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
                 if ( found )
                     break;
             }
-            
+
             if ( !found )
                 NEXT( pt );
         }
@@ -2510,7 +2511,7 @@ init_vec_points_hex( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
  * TAG( init_vec_points_tet )
  *
  * For each point in the list, find which if any tet element
- * and class it initially lies in, and move the object to the 
+ * and class it initially lies in, and move the object to the
  * vector point list for that class.
  */
 static void
@@ -2529,11 +2530,11 @@ init_vec_points_tet( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
     GVec3D *nodes;
     Elem_block_obj *p_ebo;
     Vector_pt_obj *mov_pt;
-    
+
     p_mesh = analy->mesh_table + mesh_id;
     for ( l = 0; l < p_mesh->classes_by_sclass[G_TET].qty; l++ )
     {
-        p_tet_class = ((MO_class_data **) 
+        p_tet_class = ((MO_class_data **)
                        p_mesh->classes_by_sclass[G_TET].list)[l];
 
         connects = (int (*)[4]) p_tet_class->objects.elems->nodes;
@@ -2579,11 +2580,11 @@ init_vec_points_tet( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
             {
                 /* See if the point lies in the block's bounding box first. */
                 if ( pt->pt[0] < p_ebo->block_bbox[0][0][i] ||
-                     pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
-                     pt->pt[2] < p_ebo->block_bbox[0][2][i] ||
-                     pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
-                     pt->pt[1] > p_ebo->block_bbox[1][1][i] ||
-                     pt->pt[2] > p_ebo->block_bbox[1][2][i] )
+                        pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
+                        pt->pt[2] < p_ebo->block_bbox[0][2][i] ||
+                        pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
+                        pt->pt[1] > p_ebo->block_bbox[1][1][i] ||
+                        pt->pt[2] > p_ebo->block_bbox[1][2][i] )
                     continue;
 
                 /* Test point against elements in block. */
@@ -2591,8 +2592,8 @@ init_vec_points_tet( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
                 {
                     /* Perform approximate inside (bbox) test first. */
                     if ( pt->pt[0] >= lo[0][el] && pt->pt[0] <= hi[0][el] &&
-                         pt->pt[1] >= lo[1][el] && pt->pt[1] <= hi[1][el] &&
-                         pt->pt[2] >= lo[2][el] && pt->pt[2] <= hi[2][el] )
+                            pt->pt[1] >= lo[1][el] && pt->pt[1] <= hi[1][el] &&
+                            pt->pt[2] >= lo[2][el] && pt->pt[2] <= hi[2][el] )
                     {
                         for ( j = 0; j < 4; j++ )
                         {
@@ -2608,7 +2609,7 @@ init_vec_points_tet( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
                             pt->xi[1] = xi[1];
                             pt->xi[2] = xi[2];
                             pt->xi[3] = xi[3];
-                            
+
                             mov_pt = pt;
                             NEXT( pt );
 
@@ -2618,7 +2619,7 @@ init_vec_points_tet( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
                                 INSERT( mov_pt, p_tet_class->vector_pts );
                                 p_tet_class->vector_pt_qty++;
                             }
-                            
+
                             found = TRUE;
                             break;
                         }
@@ -2628,7 +2629,7 @@ init_vec_points_tet( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
                 if ( found )
                     break;
             }
-            
+
             if ( !found )
                 NEXT( pt );
         }
@@ -2640,7 +2641,7 @@ init_vec_points_tet( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy, Bool_
  * TAG( init_vec_points_quad_2d )
  *
  * For each point in the list, find which if any quad element
- * and class it initially lies in, and move the object to the 
+ * and class it initially lies in, and move the object to the
  * vector point list for that class.
  */
 static void
@@ -2657,11 +2658,11 @@ init_vec_points_quad_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
     GVec2D *nodes;
     Elem_block_obj *p_ebo;
     Vector_pt_obj *mov_pt;
-    
+
     p_mesh = analy->mesh_table + mesh_id;
     for ( l = 0; l < p_mesh->classes_by_sclass[G_QUAD].qty; l++ )
     {
-        p_quad_class = ((MO_class_data **) 
+        p_quad_class = ((MO_class_data **)
                         p_mesh->classes_by_sclass[G_QUAD].list)[l];
 
         connects = (int (*)[4]) p_quad_class->objects.elems->nodes;
@@ -2676,9 +2677,9 @@ init_vec_points_quad_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
             {
                 /* See if the point lies in the block's bounding box first. */
                 if ( pt->pt[0] < p_ebo->block_bbox[0][0][i] ||
-                     pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
-                     pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
-                     pt->pt[1] > p_ebo->block_bbox[1][1][i] )
+                        pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
+                        pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
+                        pt->pt[1] > p_ebo->block_bbox[1][1][i] )
                     continue;
 
                 /* Test point against elements in block. */
@@ -2690,15 +2691,15 @@ init_vec_points_quad_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
                         for ( k = 0; k < 2; k++ )
                             verts[j][k] = nodes[nd][k];
                     }
-                    
+
                     /* Perform approximate inside test first. */
                     if ( pt_in_quad_bbox( verts, pt->pt ) &&
-                         pt_in_quad( verts, pt->pt, xi ) )
+                            pt_in_quad( verts, pt->pt, xi ) )
                     {
                         pt->elnum = el;
                         pt->xi[0] = xi[0];
                         pt->xi[1] = xi[1];
-                        
+
                         mov_pt = pt;
                         NEXT( pt );
                         UNLINK( mov_pt, *ptlist );
@@ -2725,7 +2726,7 @@ init_vec_points_quad_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
  * TAG( init_vec_points_tri_2d )
  *
  * For each point in the list, find which if any tri element
- * and class it initially lies in, and move the object to the 
+ * and class it initially lies in, and move the object to the
  * vector point list for that class.
  */
 static void
@@ -2742,12 +2743,12 @@ init_vec_points_tri_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
     GVec2D *nodes;
     Elem_block_obj *p_ebo;
     Vector_pt_obj *mov_pt;
-    
+
     p_mesh = analy->mesh_table + mesh_id;
     for ( l = 0; l < p_mesh->classes_by_sclass[G_TRI].qty; l++ )
     {
-        p_tri_class = ((MO_class_data **) 
-                        p_mesh->classes_by_sclass[G_TRI].list)[l];
+        p_tri_class = ((MO_class_data **)
+                       p_mesh->classes_by_sclass[G_TRI].list)[l];
 
         connects = (int (*)[3]) p_tri_class->objects.elems->nodes;
         nodes = analy->state_p->nodes.nodes2d;
@@ -2761,9 +2762,9 @@ init_vec_points_tri_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
             {
                 /* See if the point lies in the block's bounding box first. */
                 if ( pt->pt[0] < p_ebo->block_bbox[0][0][i] ||
-                     pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
-                     pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
-                     pt->pt[1] > p_ebo->block_bbox[1][1][i] )
+                        pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
+                        pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
+                        pt->pt[1] > p_ebo->block_bbox[1][1][i] )
                     continue;
 
                 /* Test point against elements in block. */
@@ -2778,13 +2779,13 @@ init_vec_points_tri_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
 
                     /* Perform approximate inside test first. */
                     if ( pt_in_tri_bbox( verts, pt->pt ) &&
-                         pt_in_tri( verts, pt->pt, xi ) )
+                            pt_in_tri( verts, pt->pt, xi ) )
                     {
                         pt->elnum = el;
                         pt->xi[0] = xi[0];
                         pt->xi[1] = xi[1];
                         pt->xi[2] = xi[2];
-                        
+
                         mov_pt = pt;
                         NEXT( pt );
                         UNLINK( mov_pt, *ptlist );
@@ -2811,7 +2812,7 @@ init_vec_points_tri_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
  * TAG( init_vec_points_surf_2d )
  *
  * For each point in the list, find which if any surface element
- * and class it initially lies in, and move the object to the 
+ * and class it initially lies in, and move the object to the
  * vector point list for that class.
  */
 static void
@@ -2828,11 +2829,11 @@ init_vec_points_surf_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
     GVec2D *nodes;
     Elem_block_obj *p_ebo;
     Vector_pt_obj *mov_pt;
-    
+
     p_mesh = analy->mesh_table + mesh_id;
     for ( l = 0; l < p_mesh->classes_by_sclass[G_SURFACE].qty; l++ )
     {
-        p_surf_class = ((MO_class_data **) 
+        p_surf_class = ((MO_class_data **)
                         p_mesh->classes_by_sclass[G_SURFACE].list)[l];
 
         connects = (int (*)[4]) p_surf_class->objects.elems->nodes;
@@ -2847,9 +2848,9 @@ init_vec_points_surf_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
             {
                 /* See if the point lies in the block's bounding box first. */
                 if ( pt->pt[0] < p_ebo->block_bbox[0][0][i] ||
-                     pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
-                     pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
-                     pt->pt[1] > p_ebo->block_bbox[1][1][i] )
+                        pt->pt[1] < p_ebo->block_bbox[0][1][i] ||
+                        pt->pt[0] > p_ebo->block_bbox[1][0][i] ||
+                        pt->pt[1] > p_ebo->block_bbox[1][1][i] )
                     continue;
 
                 /* Test point against elements in block. */
@@ -2861,15 +2862,15 @@ init_vec_points_surf_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
                         for ( k = 0; k < 2; k++ )
                             verts[j][k] = nodes[nd][k];
                     }
-                    
+
                     /* Perform approximate inside test first. */
                     if ( pt_in_surf_bbox( verts, pt->pt ) &&
-                         pt_in_surf( verts, pt->pt, xi ) )
+                            pt_in_surf( verts, pt->pt, xi ) )
                     {
                         pt->elnum = el;
                         pt->xi[0] = xi[0];
                         pt->xi[1] = xi[1];
-                        
+
                         mov_pt = pt;
                         NEXT( pt );
                         UNLINK( mov_pt, *ptlist );
@@ -2908,7 +2909,7 @@ init_vec_points_surf_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
  * combinations of results, this logic may need to be updated.
  *
  * Out-of-date, but touches on some pertinent issues:
- * Notes: Considering that non-element-based results (i.e., nodal, 
+ * Notes: Considering that non-element-based results (i.e., nodal,
  * material, mesh results) require elements to "house" the vector
  * grid points, those vector component results are gathered over
  * the entire mesh using load_results() and it is left to the user
@@ -2918,12 +2919,12 @@ init_vec_points_surf_2d( Vector_pt_obj **ptlist, int mesh_id, Analysis *analy )
  * subrecord bindings align physically on element-class boundaries.
  * This touches on the historical issue of nodes' treatment as
  * independent from materials/elements that reference them.
- * For vectors with any element-based results as components, 
+ * For vectors with any element-based results as components,
  * before doing any I/O or result computation for the element-based
- * results we verify that a subrecord supports all element-based 
- * results required by the vector and that the class bound to the 
- * subrecord has vector points in it.  This limits I/O and computation 
- * to subrecord granularity, on subrecords where it's guaranteed to be 
+ * results we verify that a subrecord supports all element-based
+ * results required by the vector and that the class bound to the
+ * subrecord has vector points in it.  This limits I/O and computation
+ * to subrecord granularity, on subrecords where it's guaranteed to be
  * useful.
  */
 void
@@ -2939,7 +2940,7 @@ update_vec_points( Analysis *analy )
     int srec_id;
     int *subrecs;
     Subrec_obj *p_subrec;
-    Vec_func vec_funcs[QTY_SCLASS] = 
+    Vec_func vec_funcs[QTY_SCLASS] =
     {
         NULL, NULL, NULL, NULL, /* G_UNIT, G_NODE, G_TRUSS, G_BEAM */
 
@@ -2970,31 +2971,31 @@ update_vec_points( Analysis *analy )
     p_mesh = MESH_P( analy );
     p_node_class = p_mesh->node_geom;
     node_cnt = p_node_class->qty;
-    
+
     dimension = analy->dimension;
 
     if ( dimension == 3 )
     {
-        if ( p_mesh->classes_by_sclass[G_HEX].qty == 0 
-             && p_mesh->classes_by_sclass[G_TET].qty == 0 )
+        if ( p_mesh->classes_by_sclass[G_HEX].qty == 0
+                && p_mesh->classes_by_sclass[G_TET].qty == 0 )
             return;
     }
     else /* dimension is 2 */
     {
-        if ( p_mesh->classes_by_sclass[G_QUAD].qty == 0 
-             && p_mesh->classes_by_sclass[G_TRI].qty == 0
-             && p_mesh->classes_by_sclass[G_SURFACE].qty == 0)
+        if ( p_mesh->classes_by_sclass[G_QUAD].qty == 0
+                && p_mesh->classes_by_sclass[G_TRI].qty == 0
+                && p_mesh->classes_by_sclass[G_SURFACE].qty == 0)
             return;
     }
 
     /* Allocate vector component arrays. */
     for ( i = 0; i < dimension; i++ )
         vec_data[i] = NEW_N( float, node_cnt, "Vec result" );
-    
+
     /* Init vector min and max. */
     vmin = MAXFLOAT;
     vmax = -MAXFLOAT;
-    
+
     /* Init for units conversion. */
     convert = analy->perform_unit_conversion;
     if ( convert )
@@ -3007,7 +3008,7 @@ update_vec_points( Analysis *analy )
     tmp_res = analy->cur_result;
     tmp_res_data = p_node_class->data_buffer;
 
-    /* 
+    /*
      * Since we're getting results by subrecord, explicitly update
      * the vector component Result structs beforehand.
      */
@@ -3018,16 +3019,16 @@ update_vec_points( Analysis *analy )
         analy->cur_result = analy->vector_result[i];
         update_result( analy, analy->cur_result );
     }
-    
+
     /*
-     * Get results according to vector srec map. 
+     * Get results according to vector srec map.
      */
 
     srec_map = analy->vector_srec_map;
     srec_id = analy->state_p->srec_id;
     qty_subrecs = srec_map[srec_id].qty;
     subrecs = (int *) srec_map[srec_id].list;
-        
+
     for ( i = 0; i < qty_subrecs; i++ )
     {
         for ( j = 0; j < dimension; j++ )
@@ -3041,9 +3042,9 @@ update_vec_points( Analysis *analy )
         if ( convert )
         {
             p_subrec = analy->srec_tree[srec_id].subrecs + subrecs[i];
-            
-            if ( p_subrec->p_object_class->superclass == G_NODE 
-                 && p_subrec->object_ids == NULL )
+
+            if ( p_subrec->p_object_class->superclass == G_NODE
+                    && p_subrec->object_ids == NULL )
             {
                 for ( j = 0; j < node_cnt; j++ )
                 {
@@ -3075,7 +3076,7 @@ update_vec_points( Analysis *analy )
                 for ( j = 0; j < node_ref_qty; j++ )
                 {
                     node = refd_nodes[j];
-                    
+
                     vec_data[0][node] = vec_data[0][node] * scale + offset;
                     vec_data[1][node] = vec_data[1][node] * scale + offset;
                     if ( dimension == 3 )
@@ -3084,7 +3085,7 @@ update_vec_points( Analysis *analy )
             }
         }
     }
-    
+
     analy->cur_result = tmp_res;
     p_node_class->data_buffer = tmp_res_data;
 
@@ -3098,7 +3099,7 @@ update_vec_points( Analysis *analy )
      * element result, since it's highly unlikely we'll have any result
      * supported on both nodal and element subrecords.
      */
-    
+
     nodal_data = FALSE;
     for ( i = 0; i < dimension; i++ )
     {
@@ -3106,7 +3107,7 @@ update_vec_points( Analysis *analy )
             if ( analy->vector_result[i]->origin.is_node_result )
                 nodal_data = TRUE;
     }
-    
+
     if ( nodal_data )
     {
         /*
@@ -3117,10 +3118,10 @@ update_vec_points( Analysis *analy )
         {
             if ( vec_funcs[i] == NULL )
                 continue;
-            
+
             qty_classes = p_mesh->classes_by_sclass[i].qty;
             mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[i].list;
-            
+
             for ( j = 0; j < qty_classes; j++ )
             {
                 if ( mo_classes[j]->vector_pts == NULL )
@@ -3136,9 +3137,9 @@ update_vec_points( Analysis *analy )
         {
             p_subrec = analy->srec_tree[srec_id].subrecs + subrecs[i];
             p_mo_class = p_subrec->p_object_class;
-            
+
             if ( p_mo_class->vector_pts != NULL
-                 &&  vec_funcs[p_mo_class->superclass] != NULL )
+                    &&  vec_funcs[p_mo_class->superclass] != NULL )
                 vec_funcs[p_mo_class->superclass]( &vmin, &vmax, vec_data,
                                                    p_mo_class );
         }
@@ -3159,7 +3160,7 @@ update_vec_points( Analysis *analy )
  * element grid by interpolating the nodal point component data.
  */
 void
-calc_hex_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[3], 
+calc_hex_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[3],
                      MO_class_data *p_hex_class )
 {
     Vector_pt_obj *pt;
@@ -3168,7 +3169,7 @@ calc_hex_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[3],
     int (*connects)[8];
     int nd;
     double vmag;
-    
+
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
 
     for ( pt = p_hex_class->vector_pts; pt != NULL; NEXT( pt ) )
@@ -3202,7 +3203,7 @@ calc_hex_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[3],
  * element grid by interpolating the nodal point component data.
  */
 void
-calc_tet_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[3], 
+calc_tet_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[3],
                      MO_class_data *p_tet_class )
 {
     Vector_pt_obj *pt;
@@ -3210,7 +3211,7 @@ calc_tet_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[3],
     int (*connects)[4];
     int nd;
     double vmag;
-    
+
     connects = (int (*)[4]) p_tet_class->objects.elems->nodes;
 
     for ( pt = p_tet_class->vector_pts; pt != NULL; NEXT( pt ) )
@@ -3241,7 +3242,7 @@ calc_tet_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[3],
  * element grid by interpolating the nodal point component data.
  */
 void
-calc_quad_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[2], 
+calc_quad_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[2],
                       MO_class_data *p_quad_class )
 {
     Vector_pt_obj *pt;
@@ -3250,7 +3251,7 @@ calc_quad_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[2],
     int (*connects)[4];
     int nd;
     double vmag;
-    
+
     connects = (int (*)[4]) p_quad_class->objects.elems->nodes;
 
     for ( pt = p_quad_class->vector_pts; pt != NULL; NEXT( pt ) )
@@ -3284,7 +3285,7 @@ calc_quad_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[2],
  * element grid by interpolating the nodal point component data.
  */
 void
-calc_tri_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[2], 
+calc_tri_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[2],
                      MO_class_data *p_tri_class )
 {
     Vector_pt_obj *pt;
@@ -3292,7 +3293,7 @@ calc_tri_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[2],
     int (*connects)[3];
     int nd;
     double vmag;
-    
+
     connects = (int (*)[3]) p_tri_class->objects.elems->nodes;
 
     for ( pt = p_tri_class->vector_pts; pt != NULL; NEXT( pt ) )
@@ -3323,7 +3324,7 @@ calc_tri_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[2],
  * element grid by interpolating the nodal point component data.
  */
 void
-calc_surf_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[2], 
+calc_surf_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[2],
                       MO_class_data *p_surf_class )
 {
     Vector_pt_obj *pt;
@@ -3332,7 +3333,7 @@ calc_surf_vec_result( double *p_vmin, double *p_vmax, float *vec_comps[2],
     int (*connects)[4];
     int nd;
     double vmag;
-    
+
     connects = (int (*)[4]) p_surf_class->objects.elems->nodes;
 
     for ( pt = p_surf_class->vector_pts; pt != NULL; NEXT( pt ) )
@@ -3456,7 +3457,7 @@ gen_carpet_points( Analysis *analy )
         return;
 
     if ( analy->isosurf_poly != NULL || analy->cut_poly_lists != NULL ||
-         analy->ref_polys != NULL || analy->reg_dim[0] > 0 )
+            analy->ref_polys != NULL || analy->reg_dim[0] > 0 )
         gen_iso_carpet_points( analy );
     else
         gen_grid_carpet_points( analy );
@@ -3517,8 +3518,8 @@ gen_iso_carpet_points( Analysis *analy )
             ++vec_cnt;
 
         if ( cnt + vec_cnt > max_cnt )
-        {   
-            popup_dialog( WARNING_POPUP, 
+        {
+            popup_dialog( WARNING_POPUP,
                           "Not enough room in iso carpet array." );
             break;
         }
@@ -3533,7 +3534,7 @@ gen_iso_carpet_points( Analysis *analy )
 
         /* Generate the points and throw them on the list. */
         for ( i = 0; i < vec_cnt; i++ )
-        { 
+        {
             rand_bary_pt( tri->vtx, verts, xi );
 
             for ( j = 0; j < 3; j++ )
@@ -3554,7 +3555,7 @@ gen_iso_carpet_points( Analysis *analy )
 
             if ( cnt + vec_cnt > max_cnt )
             {
-                popup_dialog( WARNING_POPUP, 
+                popup_dialog( WARNING_POPUP,
                               "Not enough room in iso carpet array." );
                 break;
             }
@@ -3665,7 +3666,7 @@ gen_grid_carpet_points( Analysis *analy )
 
             if ( cnt + vec_cnt > max_cnt )
             {
-                popup_dialog( WARNING_POPUP, 
+                popup_dialog( WARNING_POPUP,
                               "Not enough room in carpet array." );
                 break;
             }
@@ -3735,7 +3736,7 @@ gen_grid_carpet_points( Analysis *analy )
 
             if ( cnt + vec_cnt > max_cnt )
             {
-                popup_dialog( WARNING_POPUP, 
+                popup_dialog( WARNING_POPUP,
                               "Not enough room in carpet array." );
                 break;
             }
@@ -3775,7 +3776,7 @@ gen_grid_carpet_points( Analysis *analy )
  * to farthest from the viewer.
  */
 void
-sort_carpet_points( Analysis *analy, int cnt, float **carpet_coords, 
+sort_carpet_points( Analysis *analy, int cnt, float **carpet_coords,
                     int *carpet_elem, int *index, Bool_type is_hex )
 {
     Hex_geom *bricks;
@@ -4006,22 +4007,22 @@ gen_reg_carpet_points( Analysis *analy )
                 {
                     /* See if point lies in block's bound box. */
                     if ( pt[0] < analy->block_bbox[0][0][i] ||
-                         pt[1] < analy->block_bbox[0][1][i] ||
-                         pt[2] < analy->block_bbox[0][2][i] ||
-                         pt[0] > analy->block_bbox[1][0][i] ||
-                         pt[1] > analy->block_bbox[1][1][i] ||
-                         pt[2] > analy->block_bbox[1][2][i] )
+                            pt[1] < analy->block_bbox[0][1][i] ||
+                            pt[2] < analy->block_bbox[0][2][i] ||
+                            pt[0] > analy->block_bbox[1][0][i] ||
+                            pt[1] > analy->block_bbox[1][1][i] ||
+                            pt[2] > analy->block_bbox[1][2][i] )
                         continue;
 
                     /* Test point against elements in block. */
                     for ( el = analy->block_lo[i];
-                          el <= analy->block_hi[i];
-                          el++ )
+                            el <= analy->block_hi[i];
+                            el++ )
                     {
                         /* Perform approximate inside (bbox) test first. */
                         if ( pt[0] >= lo[0][el] && pt[0] <= hi[0][el] &&
-                             pt[1] >= lo[1][el] && pt[1] <= hi[1][el] &&
-                             pt[2] >= lo[2][el] && pt[2] <= hi[2][el] )
+                                pt[1] >= lo[1][el] && pt[1] <= hi[1][el] &&
+                                pt[2] >= lo[2][el] && pt[2] <= hi[2][el] )
                         {
                             for ( j = 0; j < 8; j++ )
                             {

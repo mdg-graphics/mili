@@ -10,37 +10,37 @@
  * this function.  If neither are defined, we assume CLIENT.
  *
  *
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
+ * This work was produced at the University of California, Lawrence
+ * Livermore National Laboratory (UC LLNL) under contract no.
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy
+ * (DOE) and The Regents of the University of California (University)
+ * for the operation of UC LLNL. Copyright is reserved to the University
+ * for purposes of controlled dissemination, commercialization through
+ * formal licensing, or other disposition under terms of Contract 48;
+ * DOE policies, regulations and orders; and U.S. statutes. The rights
+ * of the Federal Government are reserved under Contract 48 subject to
+ * the restrictions agreed upon by the DOE and University as allowed
  * under DOE Acquisition Letter 97-1.
- * 
- * 
+ *
+ *
  * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
+ *
+ * This work was prepared as an account of work sponsored by an agency
+ * of the United States Government. Neither the United States Government
+ * nor the University of California nor any of their employees, makes
+ * any warranty, express or implied, or assumes any liability or
+ * responsibility for the accuracy, completeness, or usefulness of any
+ * information, apparatus, product, or process disclosed, or represents
+ * that its use would not infringe privately-owned rights.  Reference
+ * herein to any specific commercial products, process, or service by
+ * trade name, trademark, manufacturer or otherwise does not necessarily
+ * constitute or imply its endorsement, recommendation, or favoring by
+ * the United States Government or the University of California. The
+ * views and opinions of authors expressed herein do not necessarily
+ * state or reflect those of the United States Government or the
+ * University of California, and shall not be used for advertising or
  * product endorsement purposes.
- * 
+ *
  */
 
 #include	<stdio.h>
@@ -81,18 +81,18 @@ char	*pname = NULL;
 err_quit(va_alist)
 va_dcl
 {
-	va_list		args;
-	char		*fmt;
+    va_list		args;
+    char		*fmt;
 
-	va_start(args);
-	if (pname != NULL)
-		fprintf(stderr, "%s: ", pname);
-	fmt = va_arg(args, char *);
-	vfprintf(stderr, fmt, args);
-	fputc('\n', stderr);
-	va_end(args);
+    va_start(args);
+    if (pname != NULL)
+        fprintf(stderr, "%s: ", pname);
+    fmt = va_arg(args, char *);
+    vfprintf(stderr, fmt, args);
+    fputc('\n', stderr);
+    va_end(args);
 
-	exit(1);
+    exit(1);
 }
 
 /*
@@ -109,19 +109,19 @@ va_dcl
 err_sys(va_alist)
 va_dcl
 {
-	va_list		args;
-	char		*fmt;
+    va_list		args;
+    char		*fmt;
 
-	va_start(args);
-	if (pname != NULL)
-		fprintf(stderr, "%s: ", pname);
-	fmt = va_arg(args, char *);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
+    va_start(args);
+    if (pname != NULL)
+        fprintf(stderr, "%s: ", pname);
+    fmt = va_arg(args, char *);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
 
-	my_perror();
+    my_perror();
 
-	exit(1);
+    exit(1);
 }
 
 /*
@@ -136,22 +136,22 @@ va_dcl
 err_ret(va_alist)
 va_dcl
 {
-	va_list		args;
-	char		*fmt;
+    va_list		args;
+    char		*fmt;
 
-	va_start(args);
-	if (pname != NULL)
-		fprintf(stderr, "%s: ", pname);
-	fmt = va_arg(args, char *);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
+    va_start(args);
+    if (pname != NULL)
+        fprintf(stderr, "%s: ", pname);
+    fmt = va_arg(args, char *);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
 
-	my_perror();
+    my_perror();
 
-	fflush(stdout);
-	fflush(stderr);
+    fflush(stdout);
+    fflush(stderr);
 
-	return;
+    return;
 }
 
 /*
@@ -166,23 +166,23 @@ va_dcl
 err_dump(va_alist)
 va_dcl
 {
-	va_list		args;
-	char		*fmt;
+    va_list		args;
+    char		*fmt;
 
-	va_start(args);
-	if (pname != NULL)
-		fprintf(stderr, "%s: ", pname);
-	fmt = va_arg(args, char *);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
+    va_start(args);
+    if (pname != NULL)
+        fprintf(stderr, "%s: ", pname);
+    fmt = va_arg(args, char *);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
 
-	my_perror();
+    my_perror();
 
-	fflush(stdout);		/* abort doesn't flush stdio buffers */
-	fflush(stderr);
+    fflush(stdout);		/* abort doesn't flush stdio buffers */
+    fflush(stderr);
 
-	abort();		/* dump core and terminate */
-	exit(1);		/* shouldn't get here */
+    abort();		/* dump core and terminate */
+    exit(1);		/* shouldn't get here */
 }
 
 /*
@@ -191,9 +191,9 @@ va_dcl
 
 my_perror()
 {
-	char	*sys_err_str();
+    char	*sys_err_str();
 
-	fprintf(stderr, " %s\n", sys_err_str());
+    fprintf(stderr, " %s\n", sys_err_str());
 }
 
 #endif	/* CLIENT */
@@ -233,7 +233,7 @@ char	emesgstr[255] = {0};	/* used by all server routines */
 err_init(ident)
 char	*ident;
 {
-	openlog(ident, (LOG_PID | LOG_CONS), LOG_DAEMON);
+    openlog(ident, (LOG_PID | LOG_CONS), LOG_DAEMON);
 }
 
 /*
@@ -249,17 +249,17 @@ char	*ident;
 err_quit(va_alist)
 va_dcl
 {
-	va_list		args;
-	char		*fmt;
+    va_list		args;
+    char		*fmt;
 
-	va_start(args);
-	fmt = va_arg(args, char *);
-	vsprintf(emesgstr, fmt, args);
-	va_end(args);
+    va_start(args);
+    fmt = va_arg(args, char *);
+    vsprintf(emesgstr, fmt, args);
+    va_end(args);
 
-	syslog(LOG_ERR, emesgstr);
+    syslog(LOG_ERR, emesgstr);
 
-	exit(1);
+    exit(1);
 }
 
 /*
@@ -276,18 +276,18 @@ va_dcl
 err_sys(va_alist)
 va_dcl
 {
-	va_list		args;
-	char		*fmt;
+    va_list		args;
+    char		*fmt;
 
-	va_start(args);
-	fmt = va_arg(args, char *);
-	vsprintf(emesgstr, fmt, args);
-	va_end(args);
+    va_start(args);
+    fmt = va_arg(args, char *);
+    vsprintf(emesgstr, fmt, args);
+    va_end(args);
 
-	my_perror();
-	syslog(LOG_ERR, emesgstr);
+    my_perror();
+    syslog(LOG_ERR, emesgstr);
 
-	exit(1);
+    exit(1);
 }
 
 /*
@@ -302,18 +302,18 @@ va_dcl
 err_ret(va_alist)
 va_dcl
 {
-	va_list		args;
-	char		*fmt;
+    va_list		args;
+    char		*fmt;
 
-	va_start(args);
-	fmt = va_arg(args, char *);
-	vsprintf(emesgstr, fmt, args);
-	va_end(args);
+    va_start(args);
+    fmt = va_arg(args, char *);
+    vsprintf(emesgstr, fmt, args);
+    va_end(args);
 
-	my_perror();
-	syslog(LOG_ERR, emesgstr);
+    my_perror();
+    syslog(LOG_ERR, emesgstr);
 
-	return;
+    return;
 }
 
 /*
@@ -328,19 +328,19 @@ va_dcl
 err_dump(va_alist)
 va_dcl
 {
-	va_list		args;
-	char		*fmt;
+    va_list		args;
+    char		*fmt;
 
-	va_start(args);
-	fmt = va_arg(args, char *);
-	vsprintf(emesgstr, fmt, args);
-	va_end(args);
+    va_start(args);
+    fmt = va_arg(args, char *);
+    vsprintf(emesgstr, fmt, args);
+    va_end(args);
 
-	my_perror();
-	syslog(LOG_ERR, emesgstr);
+    my_perror();
+    syslog(LOG_ERR, emesgstr);
 
-	abort();		/* dump core and terminate */
-	exit(1);		/* shouldn't get here */
+    abort();		/* dump core and terminate */
+    exit(1);		/* shouldn't get here */
 }
 
 /*
@@ -350,16 +350,16 @@ va_dcl
 
 my_perror()
 {
-	register int	len;
-	char		*sys_err_str();
+    register int	len;
+    char		*sys_err_str();
 
-	len = strlen(emesgstr);
-	sprintf(emesgstr + len, " %s", sys_err_str());
+    len = strlen(emesgstr);
+    sprintf(emesgstr + len, " %s", sys_err_str());
 }
 
 #endif	/* SERVER */
 
-			/* remainder is for both CLIENT and SERVER */
+/* remainder is for both CLIENT and SERVER */
 extern int	errno;		/* Unix error number */
 extern int	sys_nerr;	/* # of error message strings in sys table */
 extern char	*sys_errlist[];	/* the system error message table */
@@ -386,29 +386,33 @@ char	*t_errlist[1];
 char *
 sys_err_str()
 {
-	static char	msgstr[200];
+    static char	msgstr[200];
 
-	if (errno != 0) {
-		if (errno > 0 && errno < sys_nerr)
-			sprintf(msgstr, "(%s)", sys_errlist[errno]);
-		else
-			sprintf(msgstr, "(errno = %d)", errno);
-	} else {
-		msgstr[0] = '\0';
-	}
+    if (errno != 0)
+    {
+        if (errno > 0 && errno < sys_nerr)
+            sprintf(msgstr, "(%s)", sys_errlist[errno]);
+        else
+            sprintf(msgstr, "(errno = %d)", errno);
+    }
+    else
+    {
+        msgstr[0] = '\0';
+    }
 
 #ifdef	SYS5
-	if (t_errno != 0) {
-		char	tmsgstr[100];
+    if (t_errno != 0)
+    {
+        char	tmsgstr[100];
 
-		if (t_errno > 0 && t_errno < sys_nerr)
-			sprintf(tmsgstr, " (%s)", t_errlist[t_errno]);
-		else
-			sprintf(tmsgstr, ", (t_errno = %d)", t_errno);
+        if (t_errno > 0 && t_errno < sys_nerr)
+            sprintf(tmsgstr, " (%s)", t_errlist[t_errno]);
+        else
+            sprintf(tmsgstr, ", (t_errno = %d)", t_errno);
 
-		strcat(msgstr, tmsgstr);	/* catenate strings */
-	}
+        strcat(msgstr, tmsgstr);	/* catenate strings */
+    }
 #endif
 
-	return(msgstr);
+    return(msgstr);
 }

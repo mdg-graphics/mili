@@ -6,45 +6,45 @@
  *      Lawrence Livermore National Laboratory
  *      Jan 6 1992
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
+ *
+ * This work was produced at the University of California, Lawrence
+ * Livermore National Laboratory (UC LLNL) under contract no.
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy
+ * (DOE) and The Regents of the University of California (University)
+ * for the operation of UC LLNL. Copyright is reserved to the University
+ * for purposes of controlled dissemination, commercialization through
+ * formal licensing, or other disposition under terms of Contract 48;
+ * DOE policies, regulations and orders; and U.S. statutes. The rights
+ * of the Federal Government are reserved under Contract 48 subject to
+ * the restrictions agreed upon by the DOE and University as allowed
  * under DOE Acquisition Letter 97-1.
- * 
- * 
+ *
+ *
  * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
+ *
+ * This work was prepared as an account of work sponsored by an agency
+ * of the United States Government. Neither the United States Government
+ * nor the University of California nor any of their employees, makes
+ * any warranty, express or implied, or assumes any liability or
+ * responsibility for the accuracy, completeness, or usefulness of any
+ * information, apparatus, product, or process disclosed, or represents
+ * that its use would not infringe privately-owned rights.  Reference
+ * herein to any specific commercial products, process, or service by
+ * trade name, trademark, manufacturer or otherwise does not necessarily
+ * constitute or imply its endorsement, recommendation, or favoring by
+ * the United States Government or the University of California. The
+ * views and opinions of authors expressed herein do not necessarily
+ * state or reflect those of the United States Government or the
+ * University of California, and shall not be used for advertising or
  * product endorsement purposes.
- * 
+ *
  *************************************************************************
  *
  * Modification History
  *
  ************************************************************************
  * Modifications:
- *  I. R. Corey - Aug 26, 2005: Add option to hide result from pull-down 
+ *  I. R. Corey - Aug 26, 2005: Add option to hide result from pull-down
  *                list using new variable 'hide_in_menu'.
  *                See SRC# 339.
  *************************************************************************
@@ -95,8 +95,8 @@ typedef struct _result_candidate
     Result_origin_flags origin;
     Bool_type single_precision_input;
     Bool_type hide_in_menu ;
-/**/
-/*    void (*compute_func)( Analysis *, float *, Bool_type ); */
+    /**/
+    /*    void (*compute_func)( Analysis *, float *, Bool_type ); */
     void (*compute_func)();
     Bool_type (*check_compute_func)();
     char **short_names;
@@ -116,7 +116,7 @@ typedef struct _list_head
  * TAG( RESULT_DEFINES )
  *
  */
-#ifndef EXTREME_MIN 
+#ifndef EXTREME_MIN
 #define EXTREME_MIN 0
 #define EXTREME_MAX 1
 #endif
@@ -129,16 +129,16 @@ typedef struct _list_head
 #define EXTREME_MIN 0
 #define EXTREME_MAX 1
 #endif
-                                                                                    
+
 /************************************************************
  * TAG( Primal_result )
  *
  * Structure which stores utilization data for state variables.
  * Notes:
- *   "srec_map" is an array of List_head structs, one per srec 
+ *   "srec_map" is an array of List_head structs, one per srec
  *   format.  If the "qty" field of a List_head struct is non-
- *   zero, then the "list" field points to an array of integers, 
- *   each entry of which contains an index of a subrecord that 
+ *   zero, then the "list" field points to an array of integers,
+ *   each entry of which contains an index of a subrecord that
  *   binds the primal result.
  *
  *   Field short_name always points to a string which is allocated
@@ -175,11 +175,11 @@ typedef struct _subrecord_result
  * Notes:
  *   The "srec_map" entry is conceptually like that for the Primal
  *   result struct, but the contents reference more data:
- *   "srec_map" is an array of List_head structs, one per srec 
+ *   "srec_map" is an array of List_head structs, one per srec
  *   format.  If the "qty" field of a List_head struct is non-zero,
- *   then the "list" field points to an array of Subrecord_result 
- *   structs, each of which indicates the subrecord that supports 
- *   the derived result calculation and the index into a result 
+ *   then the "list" field points to an array of Subrecord_result
+ *   structs, each of which indicates the subrecord that supports
+ *   the derived result calculation and the index into a result
  *   candidate struct's entries to the particular derived result.
  */
 typedef struct _derived_result
@@ -200,9 +200,9 @@ typedef enum
 {
     STRAIN_TYPE = 0,
     REFERENCE_SURFACE,
-    REFERENCE_FRAME, 
-    TIME_DERIVATIVE, 
-    REFERENCE_STATE, 
+    REFERENCE_FRAME,
+    TIME_DERIVATIVE,
+    REFERENCE_STATE,
     COORD_TRANSFORM,
     QTY_RESULT_MODIFIER_TYPES
 } Result_modifier_type;
@@ -327,10 +327,10 @@ typedef enum
     VAL_SHELL_EFF2,        /* Effective lower surface stress */
     VAL_SHELL_EFF3,        /* Maximum effective surface stress */
 
-/* There is no computation for these
-    VAL_SHELL_EFF4,        * Lower surface effective plastic strain *
-    VAL_SHELL_EFF5,        * Upper surface effective plastic strain *
-*/
+    /* There is no computation for these
+        VAL_SHELL_EFF4,        * Lower surface effective plastic strain *
+        VAL_SHELL_EFF5,        * Upper surface effective plastic strain *
+    */
 
     /* For file reader only. */
     VAL_SHELL_SIGX_MID,
@@ -393,7 +393,7 @@ typedef enum
     VAL_SHARE_SIGYZ,       /* YZ stress */
     VAL_SHARE_SIGZX,       /* ZX stress */
     VAL_SHARE_SIG_EFF,     /* Effective stress */
-    VAL_SHARE_SIG_PD1,     /* 1st prinicipal deviatoric stress */ 
+    VAL_SHARE_SIG_PD1,     /* 1st prinicipal deviatoric stress */
     VAL_SHARE_SIG_PD2,     /* 2nd prinicipal deviatoric stress */
     VAL_SHARE_SIG_PD3,     /* 3rd prinicipal deviatoric stress */
     VAL_SHARE_SIG_MAX_SHEAR,/* Maximum shear stress */
@@ -411,9 +411,9 @@ typedef enum
 
     VAL_SHARE_END,         /* DUMMY */
 
-    
+
     VAL_PARTICLE_SIG_EFF,     /* Effective particle stress */
-    VAL_PARTICLE_SIG_PD1,     /* 1st prinicipal deviatoric particle stress */ 
+    VAL_PARTICLE_SIG_PD1,     /* 1st prinicipal deviatoric particle stress */
     VAL_PARTICLE_SIG_PD2,     /* 2nd prinicipal deviatoric particle stress */
     VAL_PARTICLE_SIG_PD3,     /* 3rd prinicipal deviatoric particle stress */
     VAL_PARTICLE_SIG_MAX_SHEAR,/* Maximum shear particle stress */

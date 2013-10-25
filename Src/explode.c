@@ -6,38 +6,38 @@
  *      Lawrence Livermore National Laboratory
  *      Oct 20 1994
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
+ *
+ * This work was produced at the University of California, Lawrence
+ * Livermore National Laboratory (UC LLNL) under contract no.
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy
+ * (DOE) and The Regents of the University of California (University)
+ * for the operation of UC LLNL. Copyright is reserved to the University
+ * for purposes of controlled dissemination, commercialization through
+ * formal licensing, or other disposition under terms of Contract 48;
+ * DOE policies, regulations and orders; and U.S. statutes. The rights
+ * of the Federal Government are reserved under Contract 48 subject to
+ * the restrictions agreed upon by the DOE and University as allowed
  * under DOE Acquisition Letter 97-1.
- * 
- * 
+ *
+ *
  * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
+ *
+ * This work was prepared as an account of work sponsored by an agency
+ * of the United States Government. Neither the United States Government
+ * nor the University of California nor any of their employees, makes
+ * any warranty, express or implied, or assumes any liability or
+ * responsibility for the accuracy, completeness, or usefulness of any
+ * information, apparatus, product, or process disclosed, or represents
+ * that its use would not infringe privately-owned rights.  Reference
+ * herein to any specific commercial products, process, or service by
+ * trade name, trademark, manufacturer or otherwise does not necessarily
+ * constitute or imply its endorsement, recommendation, or favoring by
+ * the United States Government or the University of California. The
+ * views and opinions of authors expressed herein do not necessarily
+ * state or reflect those of the United States Government or the
+ * University of California, and shall not be used for advertising or
  * product endorsement purposes.
- * 
+ *
  ************************************************************************
  * Modifications:
  *
@@ -76,9 +76,9 @@ typedef struct _Matl_exp_obj
 
 static Matl_exp_obj *meo_list = NULL;
 
-static void find_matl_means( Analysis *analy, int matls[], int qty_matls, 
+static void find_matl_means( Analysis *analy, int matls[], int qty_matls,
                              float means[][3] );
-static int parse_num_spec( char tokens[][TOKENLENGTH], int token_cnt, 
+static int parse_num_spec( char tokens[][TOKENLENGTH], int token_cnt,
                            int nums[], int *p_cnt, int *p_toks_used );
 static Bool_type is_integer_string( char *num_string );
 static Matl_exp_obj *delete_meo( Matl_exp_obj *p_meo, Matl_exp_obj **p_list );
@@ -91,7 +91,7 @@ static Matl_exp_obj *delete_meo( Matl_exp_obj *p_meo, Matl_exp_obj **p_list );
  * and a point or line for material exploded views.
  */
 int
-associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], 
+associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
                     Analysis *analy, Exploded_view_type exp )
 {
     Matl_exp_obj *p_meo, *p_m;
@@ -104,7 +104,7 @@ associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
 
     if ( analy->dimension != 3 )
     {
-        popup_dialog( INFO_POPUP, 
+        popup_dialog( INFO_POPUP,
                       "Exploded material views available only for 3D meshes" );
         return ( 0 );
     }
@@ -138,7 +138,7 @@ associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
             return ( BAD_CMD );
         }
     }
-    
+
     p_mesh = MESH_P( analy );
 
     /* Extract specified material numbers. */
@@ -158,7 +158,7 @@ associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
         /* Materials listed as explicit numbers and/or hyphenated ranges. */
         tmp_nums = NEW_N( int, p_mesh->material_qty, "Temp matl nums" );
         stat = parse_num_spec( tokens + tcnt, token_cnt - tcnt, tmp_nums, &cnt,
-                           &toks_read );
+                               &toks_read );
         if ( stat != 0 )
         {
             free( p_meo );
@@ -171,7 +171,7 @@ associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
         /* Translate material numbers to zero-base and put in struct. */
         p_meo->matls = NEW_N( int, cnt, "Exp materials" );
         for ( i = 0; i < cnt; i++ )
-             p_meo->matls[i] = tmp_nums[i] - 1;
+            p_meo->matls[i] = tmp_nums[i] - 1;
 
         free( tmp_nums );
 
@@ -190,7 +190,7 @@ associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
             if ( p_m->name != NULL )
                 if ( strcmp( p_m->name, p_meo->name ) == 0 )
                 {
-                    popup_dialog( WARNING_POPUP, 
+                    popup_dialog( WARNING_POPUP,
                                   "Material exp name conflict; old replaced" );
                     DELETE( p_m, meo_list );
                     break;
@@ -202,7 +202,7 @@ associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
 
     /* Calculate the geometric centers of each material at current state. */
     tmp_means = NEW_N( float, 3 * p_meo->qty_matls, "Temp matl means" );
-    find_matl_means( analy, p_meo->matls, p_meo->qty_matls, 
+    find_matl_means( analy, p_meo->matls, p_meo->qty_matls,
                      (float (*)[3]) tmp_means );
 
     /*
@@ -214,127 +214,127 @@ associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
 
     switch ( exp )
     {
-        case SPHERICAL:
-            for ( i = 0, j = 0; i < p_meo->qty_matls; i++, j += 3 )
-            {
-                VEC_SUB( tmp, tmp_means + j, p_meo->p1 );
-                len = VEC_LENGTH( tmp );
-                if ( len == 0.0 )
-                {
-                    p_meo->dirvecs[j] = 1.0;
-                    p_meo->dirvecs[j + 1] = 0.0;
-                    p_meo->dirvecs[j + 2] = 0.0;
-                }
-                else
-                {
-                    scale = 1.0 / len;
-                    VEC_SCALE( p_meo->dirvecs + j, scale, tmp );
-                }
-                
-                p_meo->distances[i] = len;
-            }
-            break;
-        
-        case CYLINDRICAL:
-            VEC_SUB( line_dir, p_meo->p2, p_meo->p1 );
-            if ( VEC_LENGTH( line_dir ) == 0.0 )
-            {
-                free( p_meo->dirvecs );
-                free( p_meo->distances );
-                free( p_meo->matls );
-                free( p_meo->name );
-                free( p_meo );
-                popup_dialog( WARNING_POPUP, 
-                              "Zero length source line for exploded view" );
-                return( BAD_CMD );
-            }
-
-            for ( i = 0, j = 0; i < p_meo->qty_matls; i++, j += 3 )
-            {
-                matl_cen = tmp_means + j;
-                near_pt_on_line( matl_cen, p_meo->p1, line_dir, vec_start );
-                VEC_SUB( tmp, matl_cen, vec_start );
-                len = VEC_LENGTH( tmp );
-                if ( len == 0.0 )
-                {
-                    /*
-                     * Yuk. Create any ol' vector perpendicular to the
-                     * source line and use it. Yes, it's ugly.
-                     */
-                    VEC_COPY( tmp2, line_dir );
-                    if ( tmp2[0] == 0.0 )
-                        tmp2[0] = 1.0;
-                    else
-                        tmp2[1] = ( tmp2[1] == 0.0 ) ? 1.0 : tmp2[1] * 2.0;
-                    
-                    VEC_CROSS( tmp, line_dir, tmp2 );
-
-                    scale = 1.0 / VEC_LENGTH( tmp );
-                }
-                else
-                    scale = 1.0 / len;
-
-                p_meo->distances[i] = len;
-                VEC_SCALE( p_meo->dirvecs + j, scale, tmp );
-            }
-            break;
-        
-        case AXIAL:
-            VEC_SUB( line_dir, p_meo->p2, p_meo->p1 );
-            len = VEC_LENGTH( line_dir );
+    case SPHERICAL:
+        for ( i = 0, j = 0; i < p_meo->qty_matls; i++, j += 3 )
+        {
+            VEC_SUB( tmp, tmp_means + j, p_meo->p1 );
+            len = VEC_LENGTH( tmp );
             if ( len == 0.0 )
             {
-                free( p_meo->dirvecs );
-                free( p_meo->distances );
-                free( p_meo->matls );
-                free( p_meo->name );
-                free( p_meo );
-                popup_dialog( WARNING_POPUP, 
-                              "Zero length source line for exploded view" );
-                return( BAD_CMD );
+                p_meo->dirvecs[j] = 1.0;
+                p_meo->dirvecs[j + 1] = 0.0;
+                p_meo->dirvecs[j + 2] = 0.0;
             }
             else
             {
-                VEC_SCALE( line_dir, 1.0 / len, line_dir );
-
-                /* find source line midpoint */
-                pt[0] = (p_meo->p2[0] + p_meo->p1[0]) / 2.0;
-                pt[1] = (p_meo->p2[1] + p_meo->p1[1]) / 2.0;
-                pt[2] = (p_meo->p2[2] + p_meo->p1[2]) / 2.0;
-
-                for ( i = 0, j = 0; i < p_meo->qty_matls; i++, j += 3 )
-                {
-                    /* 
-                     * Materials centered in positive half-space of plane
-                     * perpendicular to source line and through midpoint
-                     * get line_dir, else -line_dir.
-                     */
-                    matl_cen = tmp_means + j;
-                    eval = line_dir[0] * (matl_cen[0] - pt[0])
-                           + line_dir[1] * (matl_cen[1] - pt[1])
-                           + line_dir[2] * (matl_cen[2] - pt[2]);
-                    
-                    VEC_COPY( p_meo->dirvecs + j, line_dir );
-                    if ( eval < 0.0 )
-                    {
-                        VEC_NEGATE( p_meo->dirvecs + j );
-                        p_meo->distances[i] = -eval;
-                    }
-                    else
-                        p_meo->distances[i] = eval;
-                }
+                scale = 1.0 / len;
+                VEC_SCALE( p_meo->dirvecs + j, scale, tmp );
             }
-            break;
 
-        default:
-            popup_dialog( INFO_POPUP, "Unknown exploded view type; ignored" );
+            p_meo->distances[i] = len;
+        }
+        break;
+
+    case CYLINDRICAL:
+        VEC_SUB( line_dir, p_meo->p2, p_meo->p1 );
+        if ( VEC_LENGTH( line_dir ) == 0.0 )
+        {
             free( p_meo->dirvecs );
             free( p_meo->distances );
             free( p_meo->matls );
             free( p_meo->name );
             free( p_meo );
-            free( tmp_means );
-            return ( BAD_CMD );
+            popup_dialog( WARNING_POPUP,
+                          "Zero length source line for exploded view" );
+            return( BAD_CMD );
+        }
+
+        for ( i = 0, j = 0; i < p_meo->qty_matls; i++, j += 3 )
+        {
+            matl_cen = tmp_means + j;
+            near_pt_on_line( matl_cen, p_meo->p1, line_dir, vec_start );
+            VEC_SUB( tmp, matl_cen, vec_start );
+            len = VEC_LENGTH( tmp );
+            if ( len == 0.0 )
+            {
+                /*
+                 * Yuk. Create any ol' vector perpendicular to the
+                 * source line and use it. Yes, it's ugly.
+                 */
+                VEC_COPY( tmp2, line_dir );
+                if ( tmp2[0] == 0.0 )
+                    tmp2[0] = 1.0;
+                else
+                    tmp2[1] = ( tmp2[1] == 0.0 ) ? 1.0 : tmp2[1] * 2.0;
+
+                VEC_CROSS( tmp, line_dir, tmp2 );
+
+                scale = 1.0 / VEC_LENGTH( tmp );
+            }
+            else
+                scale = 1.0 / len;
+
+            p_meo->distances[i] = len;
+            VEC_SCALE( p_meo->dirvecs + j, scale, tmp );
+        }
+        break;
+
+    case AXIAL:
+        VEC_SUB( line_dir, p_meo->p2, p_meo->p1 );
+        len = VEC_LENGTH( line_dir );
+        if ( len == 0.0 )
+        {
+            free( p_meo->dirvecs );
+            free( p_meo->distances );
+            free( p_meo->matls );
+            free( p_meo->name );
+            free( p_meo );
+            popup_dialog( WARNING_POPUP,
+                          "Zero length source line for exploded view" );
+            return( BAD_CMD );
+        }
+        else
+        {
+            VEC_SCALE( line_dir, 1.0 / len, line_dir );
+
+            /* find source line midpoint */
+            pt[0] = (p_meo->p2[0] + p_meo->p1[0]) / 2.0;
+            pt[1] = (p_meo->p2[1] + p_meo->p1[1]) / 2.0;
+            pt[2] = (p_meo->p2[2] + p_meo->p1[2]) / 2.0;
+
+            for ( i = 0, j = 0; i < p_meo->qty_matls; i++, j += 3 )
+            {
+                /*
+                 * Materials centered in positive half-space of plane
+                 * perpendicular to source line and through midpoint
+                 * get line_dir, else -line_dir.
+                 */
+                matl_cen = tmp_means + j;
+                eval = line_dir[0] * (matl_cen[0] - pt[0])
+                       + line_dir[1] * (matl_cen[1] - pt[1])
+                       + line_dir[2] * (matl_cen[2] - pt[2]);
+
+                VEC_COPY( p_meo->dirvecs + j, line_dir );
+                if ( eval < 0.0 )
+                {
+                    VEC_NEGATE( p_meo->dirvecs + j );
+                    p_meo->distances[i] = -eval;
+                }
+                else
+                    p_meo->distances[i] = eval;
+            }
+        }
+        break;
+
+    default:
+        popup_dialog( INFO_POPUP, "Unknown exploded view type; ignored" );
+        free( p_meo->dirvecs );
+        free( p_meo->distances );
+        free( p_meo->matls );
+        free( p_meo->name );
+        free( p_meo );
+        free( tmp_means );
+        return ( BAD_CMD );
     }
 
     free( tmp_means );
@@ -358,7 +358,7 @@ associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
  * multiple elements are summed into average with EACH reference.
  */
 static void
-find_matl_means( Analysis *analy, int matls[], int qty_matls, 
+find_matl_means( Analysis *analy, int matls[], int qty_matls,
                  float means[][3] )
 {
     int i, j, k, l, matl, nd, node_qty, conn_qty;
@@ -385,7 +385,7 @@ find_matl_means( Analysis *analy, int matls[], int qty_matls,
      * Sum the coordinates for all elements for ALL materials.
      * This avoids testing every element's material against the
      * requested material list, but will be inefficient if
-     * the exploded view doesn't operate on a majority of the 
+     * the exploded view doesn't operate on a majority of the
      * materials in the mesh.
      */
 
@@ -406,7 +406,7 @@ find_matl_means( Analysis *analy, int matls[], int qty_matls,
             /* If classes exist from current superclass... */
             if ( p_lh->qty > 0 )
             {
-                mo_classes = (MO_class_data **) 
+                mo_classes = (MO_class_data **)
                              p_mesh->classes_by_sclass[i].list;
                 node_qty = qty_connects[i];
                 conn_qty = ( i == G_BEAM ) ? node_qty - 1 : node_qty;
@@ -417,7 +417,7 @@ find_matl_means( Analysis *analy, int matls[], int qty_matls,
                     p_mo_class = mo_classes[j];
                     connects = p_mo_class->objects.elems->nodes;
                     mat = p_mo_class->objects.elems->mat;
-                    
+
                     /* Loop over each element */
                     for ( k = 0; k < p_mo_class->qty; k++ )
                     {
@@ -448,7 +448,7 @@ find_matl_means( Analysis *analy, int matls[], int qty_matls,
             /* If classes exist from current superclass... */
             if ( p_lh->qty > 0 )
             {
-                mo_classes = (MO_class_data **) 
+                mo_classes = (MO_class_data **)
                              p_mesh->classes_by_sclass[i].list;
                 sand_arrays = analy->state_p->elem_class_sand;
                 node_qty = qty_connects[i];
@@ -461,31 +461,31 @@ find_matl_means( Analysis *analy, int matls[], int qty_matls,
                     connects = p_mo_class->objects.elems->nodes;
                     mat = p_mo_class->objects.elems->mat;
                     activity = sand_arrays[p_mo_class->elem_class_index];
-                    
+
                     /* Loop over each element */
                     for ( k = 0;
-			  k < p_mo_class->qty; 
-			  k++ )
+                            k < p_mo_class->qty;
+                            k++ )
                     {
-		          if ( activity )
-		 	       activity_flag = activity[k];
-			  else
-			       activity_flag = 1.0;
+                        if ( activity )
+                            activity_flag = activity[k];
+                        else
+                            activity_flag = 1.0;
 
-			  if ( activity_flag != 0.0 )
-			  {
-			      matl = mat[k];
-			      for ( l = 0;
-				    l < conn_qty; 
-				    l++ )
-			     {
-				  nd = connects[k * node_qty + l];
-				  sumx[matl] += coords[nd * 3];
-				  sumy[matl] += coords[nd * 3 + 1];
-				  sumz[matl] += coords[nd * 3 + 2];
-			     }
-			     cnt[matl] += conn_qty;
-			  }
+                        if ( activity_flag != 0.0 )
+                        {
+                            matl = mat[k];
+                            for ( l = 0;
+                                    l < conn_qty;
+                                    l++ )
+                            {
+                                nd = connects[k * node_qty + l];
+                                sumx[matl] += coords[nd * 3];
+                                sumy[matl] += coords[nd * 3 + 1];
+                                sumz[matl] += coords[nd * 3 + 2];
+                            }
+                            cnt[matl] += conn_qty;
+                        }
                     }
                 }
             }
@@ -518,10 +518,10 @@ find_matl_means( Analysis *analy, int matls[], int qty_matls,
  * ranges of numbers into an array explicitly listing each number.
  */
 static int
-parse_num_spec( char tokens[][TOKENLENGTH], int token_cnt, int nums[], 
+parse_num_spec( char tokens[][TOKENLENGTH], int token_cnt, int nums[],
                 int *p_cnt, int *p_toks_used )
 {
-    int i, j, k, start_num, end_num, num_tok_cnt; 
+    int i, j, k, start_num, end_num, num_tok_cnt;
     size_t len;
     char start[16], end[16];
     char *hyph_pos;
@@ -561,10 +561,10 @@ parse_num_spec( char tokens[][TOKENLENGTH], int token_cnt, int nums[],
                     nums[j++] = k;
             }
             else
-                popup_dialog( INFO_POPUP, 
+                popup_dialog( INFO_POPUP,
                               "Malformed numeric range \"%s\" ignored",
                               tokens[i] );
-            
+
             num_tok_cnt++;
         }
         /* Else not number or range, ignore */
@@ -584,7 +584,7 @@ parse_num_spec( char tokens[][TOKENLENGTH], int token_cnt, int nums[],
 
 /*****************************************************************
  * TAG( is_integer_string )
- * 
+ *
  * Evaluate a string and return TRUE if each character is a member
  * of 0-9.
  */
@@ -594,34 +594,34 @@ is_integer_string( char *num_string )
     unsigned char *p_c;
 
     for ( p_c = (unsigned char *) num_string;
-          *p_c != (unsigned char ) 0;
-          p_c++ )
+            *p_c != (unsigned char ) 0;
+            p_c++ )
         if ( !isdigit( (int) *p_c ) )
             return FALSE;
-    
+
     return TRUE;
 }
 
 
 /*****************************************************************
  * TAG( explode_materials )
- * 
+ *
  * Translate materials for an exploded view.
  */
 void
-explode_materials( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], 
+explode_materials( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
                    Analysis *analy, Bool_type scaled )
 {
     Matl_exp_obj *p_meo;
     int i, j, matl, veci;
     float scale;
     Mesh_data *p_md;
-    
+
     p_md = MESH_P( analy );
 
     /* Extract and convert the explosion distance. */
     scale = atof( tokens[token_cnt - 1] );
-    
+
     /* If no names, apply distance to all exploded view defs. */
     if ( token_cnt == 2 )
     {
@@ -634,14 +634,14 @@ explode_materials( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
                 if ( scaled )
                 {
                     p_md->mtl_trans[0][matl] = p_meo->dirvecs[veci]
-                                                * (scale - 1.0)
-                                                * p_meo->distances[i];
+                                               * (scale - 1.0)
+                                               * p_meo->distances[i];
                     p_md->mtl_trans[1][matl] = p_meo->dirvecs[veci + 1]
-                                                * (scale - 1.0)
-                                                * p_meo->distances[i];
+                                               * (scale - 1.0)
+                                               * p_meo->distances[i];
                     p_md->mtl_trans[2][matl] = p_meo->dirvecs[veci + 2]
-                                                * (scale - 1.0)
-                                                * p_meo->distances[i];
+                                               * (scale - 1.0)
+                                               * p_meo->distances[i];
                 }
                 else
                 {
@@ -670,23 +670,23 @@ explode_materials( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
                         if ( scaled )
                         {
                             p_md->mtl_trans[0][matl] = p_meo->dirvecs[veci]
-                                                        * (scale - 1.0)
-                                                        * p_meo->distances[i];
+                                                       * (scale - 1.0)
+                                                       * p_meo->distances[i];
                             p_md->mtl_trans[1][matl] = p_meo->dirvecs[veci + 1]
-                                                        * (scale - 1.0)
-                                                        * p_meo->distances[i];
+                                                       * (scale - 1.0)
+                                                       * p_meo->distances[i];
                             p_md->mtl_trans[2][matl] = p_meo->dirvecs[veci + 2]
-                                                        * (scale - 1.0)
-                                                        * p_meo->distances[i];
+                                                       * (scale - 1.0)
+                                                       * p_meo->distances[i];
                         }
                         else
                         {
                             p_md->mtl_trans[0][matl] = p_meo->dirvecs[veci]
-                                                        * scale;
+                                                       * scale;
                             p_md->mtl_trans[1][matl] = p_meo->dirvecs[veci + 1]
-                                                        * scale;
+                                                       * scale;
                             p_md->mtl_trans[2][matl] = p_meo->dirvecs[veci + 2]
-                                                        * scale;
+                                                       * scale;
                         }
                     }
                     break;
@@ -708,7 +708,7 @@ free_matl_exp( void )
 {
     Matl_exp_obj *p_meo;
 
-    p_meo = meo_list; 
+    p_meo = meo_list;
     while ( p_meo != NULL )
         p_meo = delete_meo( p_meo, &meo_list );
 }
@@ -741,11 +741,11 @@ remove_exp_assoc( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH] )
          */
         for ( i = 1; i < token_cnt; i++ )
         {
-            p_meo = meo_list; 
+            p_meo = meo_list;
             while ( p_meo != NULL )
             {
                 if ( p_meo->name != NULL
-                     && strcmp( p_meo->name, tokens[i] ) == 0 )
+                        && strcmp( p_meo->name, tokens[i] ) == 0 )
                     p_meo = delete_meo( p_meo, &meo_list );
                 else
                     p_meo = p_meo->next;
@@ -840,7 +840,7 @@ report_exp_assoc( void )
 
 
     wrt_text( "Material/Exploded View Associations:\n" );
-    if ( meo_list == NULL ) 
+    if ( meo_list == NULL )
         wrt_text( "    (none)\n" );
 
     /* Traverse the associate-material-exploded view list. */
@@ -854,22 +854,22 @@ report_exp_assoc( void )
         /* Output reference point/line. */
         switch ( p_meo->ev_type )
         {
-            case SPHERICAL:
-                wrt_text( "    Reference point: %.2f %.2f %.2f\n",
-                          p_meo->p1[0], p_meo->p1[1], p_meo->p1[2] );
-                break;
-        
-            case CYLINDRICAL:
-            case AXIAL:
-                wrt_text( "    Reference line: %.2f %.2f %.2f    %.2f %.2f %.2f\n",
-                          p_meo->p1[0], p_meo->p1[1], p_meo->p1[2],
-                          p_meo->p2[0], p_meo->p2[1], p_meo->p2[2] );
-                break;
-        
-            default:
-                wrt_text( "\n" );
-                popup_dialog( WARNING_POPUP, "Unknown exploded view type" );
-                return;
+        case SPHERICAL:
+            wrt_text( "    Reference point: %.2f %.2f %.2f\n",
+                      p_meo->p1[0], p_meo->p1[1], p_meo->p1[2] );
+            break;
+
+        case CYLINDRICAL:
+        case AXIAL:
+            wrt_text( "    Reference line: %.2f %.2f %.2f    %.2f %.2f %.2f\n",
+                      p_meo->p1[0], p_meo->p1[1], p_meo->p1[2],
+                      p_meo->p2[0], p_meo->p2[1], p_meo->p2[2] );
+            break;
+
+        default:
+            wrt_text( "\n" );
+            popup_dialog( WARNING_POPUP, "Unknown exploded view type" );
+            return;
         }
 
         /* Output the material numbers. */
@@ -890,7 +890,7 @@ report_exp_assoc( void )
         }
         wrt_text( "\n" );
     }
-    
+
     wrt_text( "\n" );
 }
 

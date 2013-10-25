@@ -1,7 +1,7 @@
 /* $Id$ */
-/* 
+/*
  * time.c - Routines which execute time-related commands (like animation).
- * 
+ *
  *      Donald J. Dovey
  *      Lawrence Livermore National Laboratory
  *      Jan 2 1992
@@ -12,11 +12,11 @@
  *  I. R. Corey - Sept 15, 2004: Fixed problem with anim command when
  *   running from a batch script. The animation was stopping immediately
  *   because the next command was the stop command.
- * 
+ *
  *  I. R. Corey - Dec 28, 2009: Fixed several problems releated to drawing
  *                ML particles.
  *                See SRC#648
- * 
+ *
  *  I. R. Corey - Jan 17, 2013: Added test in change_state() and change_
  *                time() for zero states.
  *                See TeamForge#19786
@@ -67,10 +67,10 @@ static struct
     unsigned int delay;
 } anim_info;
 
- 
+
 /*****************************************************************
  * TAG( change_state )
- * 
+ *
  * The things that need to be done when we move to a new state.
  */
 void
@@ -85,27 +85,28 @@ change_state( Analysis *analy )
     if ( env.timing )
     {
         wrt_text( "Timing for change state...\n" );
-        check_timing( 0 ); 
+        check_timing( 0 );
     }
 
-    analy->db_get_state( analy, analy->cur_state, analy->state_p, 
-                                &analy->state_p, &st_qty );
+    analy->db_get_state( analy, analy->cur_state, analy->state_p,
+                         &analy->state_p, &st_qty );
 
     if ( st_qty==0 )
     {
-         if ( warn_state ) {
-	      popup_dialog( WARNING_POPUP, "%s\n%s\n%s",
-			    "Cannot change state when",
-			    "number of states is zero.",
-			    "(This warning will not be repeated.)" );
-	      warn_state = FALSE;
-      }
-      return;
+        if ( warn_state )
+        {
+            popup_dialog( WARNING_POPUP, "%s\n%s\n%s",
+                          "Cannot change state when",
+                          "number of states is zero.",
+                          "(This warning will not be repeated.)" );
+            warn_state = FALSE;
+        }
+        return;
     }
 
     /* Update current mesh ident. */
     srec_id = analy->state_p->srec_id;
-    analy->cur_mesh_id = 
+    analy->cur_mesh_id =
         analy->srec_tree[srec_id].subrecs[0].p_object_class->mesh_id;
 
     wrt_text( "State %d out of %d states.\n\n", analy->cur_state + 1, st_qty );
@@ -129,7 +130,7 @@ change_state( Analysis *analy )
     /* Update displayed result. */
     load_result( analy, TRUE, TRUE, FALSE );
 
-    /* 
+    /*
      * Update cut planes, isosurfs, contours.
      *
      * OK to call update_vis() directly, since change_state() doesn't apply
@@ -138,13 +139,13 @@ change_state( Analysis *analy )
     update_vis( analy );
 
     if ( env.timing )
-        check_timing( 1 ); 
+        check_timing( 1 );
 }
 
- 
+
 /*****************************************************************
  * TAG( change_time )
- * 
+ *
  * Moves the display to a specified time, interpolating only the
  * position and the currently displayed variable.
  */
@@ -174,12 +175,12 @@ change_time( float time, Analysis *analy )
 
     st_nums[0] = st_nums[1] = -1;
     analy->db_query( analy->db_ident, QRY_STATE_OF_TIME, (void *) &time,
-                            NULL, (void *) st_nums );
+                     NULL, (void *) st_nums );
 
     /*
-     * Note output of QRY_STATE_OF_TIME query above (in st_nums[]) is on 
-     * [1, qty_states], but request to analy->db_get_state is on 
-     * [0, qty_states - 1]. 
+     * Note output of QRY_STATE_OF_TIME query above (in st_nums[]) is on
+     * [1, qty_states], but request to analy->db_get_state is on
+     * [0, qty_states - 1].
      */
 
     st_num_b = ( st_nums[1] > 1 ) ? st_nums[1] - 1 : 1;
@@ -188,14 +189,15 @@ change_time( float time, Analysis *analy )
 
     if ( st_qty==0 )
     {
-        if ( warn_time ) {
-             popup_dialog( WARNING_POPUP, "%s\n%s\n%s",
-			   "Cannot change time when",
-			   "number of states is zero.",
-			   "(This warning will not be repeated.)" );
-	     warn_time = FALSE;
-	}
-	return;
+        if ( warn_time )
+        {
+            popup_dialog( WARNING_POPUP, "%s\n%s\n%s",
+                          "Cannot change time when",
+                          "number of states is zero.",
+                          "(This warning will not be repeated.)" );
+            warn_time = FALSE;
+        }
+        return;
     }
 
     analy->db_get_state( analy, st_num_b, NULL, &state_b, NULL );
@@ -204,15 +206,15 @@ change_time( float time, Analysis *analy )
     /* OK to interpolate results if state rec formats are the same. */
     st_num = st_num_a + 1;
     analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, (void *) &st_num,
-                            NULL, &srec_id_a );
+                     NULL, &srec_id_a );
 
     st_num = st_num_b + 1;
     analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, (void *) &st_num,
-                            NULL, &srec_id_b );
+                     NULL, &srec_id_b );
 
     can_interp = ( srec_id_a == srec_id_b );
     interp_result = ( analy->cur_result != NULL && can_interp );
-    
+
     if ( srec_id_a != srec_id_b && warn_once )
     {
         popup_dialog( WARNING_POPUP, "%s\n%s\n%s",
@@ -224,7 +226,7 @@ change_time( float time, Analysis *analy )
 
     analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id_a, NULL,
                      (void *) &mesh_id );
-    
+
     node_qty = analy->mesh_table[mesh_id].node_geom->qty;
 
     if ( interp_result )
@@ -257,11 +259,11 @@ change_time( float time, Analysis *analy )
 
         for ( i = 0; i < node_qty; i++ )
         {
-            nodes3d_a[i][0] = ninterp * nodes3d_a[i][0] 
+            nodes3d_a[i][0] = ninterp * nodes3d_a[i][0]
                               + interp * nodes3d_b[i][0];
-            nodes3d_a[i][1] = ninterp * nodes3d_a[i][1] 
+            nodes3d_a[i][1] = ninterp * nodes3d_a[i][1]
                               + interp * nodes3d_b[i][1];
-            nodes3d_a[i][2] = ninterp * nodes3d_a[i][2] 
+            nodes3d_a[i][2] = ninterp * nodes3d_a[i][2]
                               + interp * nodes3d_b[i][2];
 
             if ( interp_result )
@@ -275,9 +277,9 @@ change_time( float time, Analysis *analy )
 
         for ( i = 0; i < node_qty; i++ )
         {
-            nodes2d_a[i][0] = ninterp * nodes2d_a[i][0] 
+            nodes2d_a[i][0] = ninterp * nodes2d_a[i][0]
                               + interp * nodes2d_b[i][0];
-            nodes2d_a[i][1] = ninterp * nodes2d_a[i][1] 
+            nodes2d_a[i][1] = ninterp * nodes2d_a[i][1]
                               + interp * nodes2d_b[i][1];
 
             if ( interp_result )
@@ -289,14 +291,16 @@ change_time( float time, Analysis *analy )
 #ifdef DEBUG_TIME
     int count=0;
     for (i=0;
-         i<node_qty;
-         i++)
+            i<node_qty;
+            i++)
     {
-      if ( result_a[i]!=0.0 ) {
-	   printf("\nTIME[%d] = %e/%e", i, result_b[i], result_a[i] );
-           count++;
-	   if ( count>10 ) 
-	     break; }
+        if ( result_a[i]!=0.0 )
+        {
+            printf("\nTIME[%d] = %e/%e", i, result_b[i], result_a[i] );
+            count++;
+            if ( count>10 )
+                break;
+        }
     }
 #endif
 
@@ -318,7 +322,7 @@ change_time( float time, Analysis *analy )
     if ( !analy->normals_constant || recompute_norms )
         compute_normals( analy );
 
-    /* 
+    /*
      * Update cut planes, isosurfs, contours.
      *
      * OK to call update_vis() directly, since change_time() doesn't apply
@@ -333,7 +337,7 @@ change_time( float time, Analysis *analy )
 
     /*
      * Print the time and return so the caller can redisplay the mesh.
-     */ 
+     */
     wrt_text( "t = %f\n\n", time );
 }
 
@@ -345,16 +349,16 @@ change_time( float time, Analysis *analy )
  * workproc is used to step the animation along.
  */
 void
-parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], 
+parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
                        Analysis *analy )
 {
     int max_state, min_state;
     int i_args[3];
     float time_bounds[2];
-    
+
     max_state = get_max_state( analy );
     min_state = GET_MIN_STATE( analy );
-    
+
     /* Sanity check - can't animate on zero or one states in db. */
     if ( max_state <= 0 )
         return;
@@ -370,11 +374,11 @@ parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
     else if ( token_cnt == 2 || token_cnt == 4 )
     {
         anim_info.interpolate = TRUE;
-        
+
         i_args[0] = 2;
         i_args[1] = min_state + 1;
         i_args[2] = max_state + 1;
-        analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES, (void *) i_args, 
+        analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES, (void *) i_args,
                          NULL, (void *) time_bounds );
 
         /* sscanf( tokens[1], "%d", &anim_info.num_frames ); */
@@ -382,17 +386,19 @@ parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
         if ( token_cnt == 2 && strcmp(tokens[0], "animd") != 0)
         {
             /* The user input just the number of frames. */
-	    sscanf( tokens[1], "%d", &anim_info.num_frames);
+            sscanf( tokens[1], "%d", &anim_info.num_frames);
             anim_info.start_time = time_bounds[0];
             anim_info.end_time = time_bounds[1];
-        } else if (token_cnt == 2 && strcmp(tokens[0], "animd") == 0) {
-	   /* The user spedified a time delayed animation of all frames */
-	   sscanf(tokens[1], "%u", &anim_info.delay);
-           anim_info.delay *= 1000;
-	   anim_info.interpolate = FALSE;
-	   anim_info.cur_state = min_state;
-	   anim_info.last_state = max_state;
-	}
+        }
+        else if (token_cnt == 2 && strcmp(tokens[0], "animd") == 0)
+        {
+            /* The user spedified a time delayed animation of all frames */
+            sscanf(tokens[1], "%u", &anim_info.delay);
+            anim_info.delay *= 1000;
+            anim_info.interpolate = FALSE;
+            anim_info.cur_state = min_state;
+            anim_info.last_state = max_state;
+        }
         else
         {
             /* The user input number of frames and start & end times. */
@@ -411,9 +417,9 @@ parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
         anim_info.st_num_a = min_state;
         anim_info.st_num_b = min_state + 1;
 
-        analy->db_get_state( analy, anim_info.st_num_a, analy->state_p, 
+        analy->db_get_state( analy, anim_info.st_num_a, analy->state_p,
                              &anim_info.state_a, NULL );
-        analy->db_get_state( analy, anim_info.st_num_b, NULL, 
+        analy->db_get_state( analy, anim_info.st_num_b, NULL,
                              &anim_info.state_b, NULL );
 
         if ( analy->cur_result != NULL )
@@ -444,16 +450,16 @@ parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
     /* Fire up a work proc to step the animation forward. */
 #ifdef SERIAL_BATCH
     while( !step_animate( analy ) );
-#else 
+#else
 
     /* Added Sept 15, 2004: IRC */
-    if (env.history_input_active) /* If we are getting commands from 
+    if (env.history_input_active) /* If we are getting commands from
                                    * a file and we see an animate command,
                                    * then let it complete.
                                    */
-    while( !step_animate( analy ) );
+        while( !step_animate( analy ) );
     else
-    init_animate_workproc();
+        init_animate_workproc();
 
 #endif /* SERIAL_BATCH */
 }
@@ -518,18 +524,18 @@ step_animate( Analysis *analy )
         if ( analy->center_view )
             center_view( analy );
         analy->update_display( analy );
-        
+
         if ( analy->auto_img )
             output_image( analy );
         /*
         {
-            sprintf( rgbfile, "%s%04d.rgb", analy->rgb_root, 
+            sprintf( rgbfile, "%s%04d.rgb", analy->rgb_root,
                      anim_info.cur_state + 1 );
             screen_to_rgb( rgbfile, FALSE );
         }
         */
-        
-	anim_info.cur_state += get_step_stride();
+
+        anim_info.cur_state += get_step_stride();
         if ( anim_info.cur_state > anim_info.last_state )
         {
             end_animate_workproc( FALSE );
@@ -562,7 +568,7 @@ step_animate( Analysis *analy )
                 anim_info.state_a = anim_info.state_b;
                 anim_info.state_b = tmp_state;
                 analy->db_get_state( analy, anim_info.st_num_b,
-                                     anim_info.state_b, &anim_info.state_b, 
+                                     anim_info.state_b, &anim_info.state_b,
                                      NULL );
 
                 if ( analy->cur_result != NULL )
@@ -581,10 +587,10 @@ step_animate( Analysis *analy )
             }
             else
             {
-                rval = analy->db_query( analy->db_ident, QRY_STATE_OF_TIME, 
+                rval = analy->db_query( analy->db_ident, QRY_STATE_OF_TIME,
                                         (void *) &t, NULL, (void *) st_bounds );
-                if ( rval != 0 
-                     || st_bounds[1] - 1 > get_max_state( analy ) )
+                if ( rval != 0
+                        || st_bounds[1] - 1 > get_max_state( analy ) )
                 {
                     popup_dialog( WARNING_POPUP,
                                   "Animation failure with bad time." );
@@ -594,10 +600,10 @@ step_animate( Analysis *analy )
                 anim_info.st_num_a = st_bounds[0] - 1;
                 anim_info.st_num_b = st_bounds[1] - 1;
                 analy->db_get_state( analy, anim_info.st_num_a,
-                                     anim_info.state_a, &anim_info.state_a, 
+                                     anim_info.state_a, &anim_info.state_a,
                                      NULL );
                 analy->db_get_state( analy, anim_info.st_num_b,
-                                     anim_info.state_b, &anim_info.state_b, 
+                                     anim_info.state_b, &anim_info.state_b,
                                      NULL );
 
                 if ( analy->cur_result != NULL )
@@ -623,7 +629,7 @@ step_animate( Analysis *analy )
                                  anim_info.state_a, &anim_info.state_a, NULL );
 
             if ( analy->cur_result != NULL )
-	      load_result( analy, TRUE, TRUE, FALSE );
+                load_result( analy, TRUE, TRUE, FALSE );
         }
 
         /* If a-b swapping occurred, need to fix up. */
@@ -646,7 +652,7 @@ step_animate( Analysis *analy )
         {
             nodes_a3d = anim_info.state_a->nodes.nodes3d;
             nodes_b3d = anim_info.state_b->nodes.nodes3d;
-            
+
             for ( j = 0; j < node_qty; j++ )
             {
                 for ( k = 0; k < 3; k++ )
@@ -661,7 +667,7 @@ step_animate( Analysis *analy )
         {
             nodes_a2d = anim_info.state_a->nodes.nodes2d;
             nodes_b2d = anim_info.state_b->nodes.nodes2d;
-            
+
             for ( j = 0; j < node_qty; j++ )
             {
                 for ( k = 0; k < 2; k++ )
@@ -688,14 +694,14 @@ step_animate( Analysis *analy )
         if ( !analy->normals_constant || recompute_norms )
             compute_normals( analy );
 
-        /* 
+        /*
          * Update cut planes, isosurfs, contours.
          *
          * OK to call update_vis() directly, since step_animate() doesn't apply
          * to plots.
          */
         update_vis( analy );
-        
+
         if ( analy->center_view )
             center_view( analy );
 
@@ -703,12 +709,12 @@ step_animate( Analysis *analy )
          * Redraw the mesh.
          */
         analy->update_display( analy );
-        
+
         if ( analy->auto_img )
             output_image( analy );
         /*if ( analy->auto_rgb )
         {
-            sprintf( rgbfile, "%s%04d.rgb", analy->rgb_root, 
+            sprintf( rgbfile, "%s%04d.rgb", analy->rgb_root,
                      anim_info.cur_frame + 1 );
             screen_to_rgb( rgbfile, FALSE );
         }
@@ -738,7 +744,7 @@ step_animate( Analysis *analy )
  */
 void
 end_animate( Analysis *analy )
-{   
+{
     if ( anim_info.interpolate )
     {
         fr_state2( anim_info.state_b, analy );
@@ -769,16 +775,16 @@ interp_activity( State2 *state_a, State2 *state_b )
     Subrec_obj *p_so;
     int elem_class_index;
     MO_class_data *p_mocd;
-    
+
     /*
      * Ahem.  We really want to just loop over the elem_class_sand
-     * array in the State2 struct to interpolate each sand array.  But, 
-     * we only know the size of those arrays from the mesh object class data. 
-     * So, we'll traverse the Subrec_obj's for the current state record 
-     * format to get at the mesh object class data, and from that get 
+     * array in the State2 struct to interpolate each sand array.  But,
+     * we only know the size of those arrays from the mesh object class data.
+     * So, we'll traverse the Subrec_obj's for the current state record
+     * format to get at the mesh object class data, and from that get
      * the array sizes where sand flags exist.
      */
- 
+
     p_so = env.curr_analy->srec_tree[state_a->srec_id].subrecs;
     qty = env.curr_analy->srec_tree[state_a->srec_id].qty;
 
@@ -790,10 +796,10 @@ interp_activity( State2 *state_a, State2 *state_b )
         p_mocd = p_so[i].p_object_class;
         obj_qty = p_mocd->qty;
         elem_class_index = p_mocd->elem_class_index;
-        
+
         sand_a = state_a->elem_class_sand[elem_class_index];
         sand_b = state_b->elem_class_sand[elem_class_index];
-            
+
         for ( j = 0; j < obj_qty; j++ )
             if ( sand_b[i] == 0.0 )
                 sand_a[i] = 0.0;

@@ -1,43 +1,43 @@
 /* $Id$ */
-/* 
- * traction.c:  procedures relating to the computation of traction force(s) 
- * 
+/*
+ * traction.c:  procedures relating to the computation of traction force(s)
+ *
  *  Lawrence A. Sanford
  *  Lawrence Livermore National Laboratory
  *  Nuvember 13, 2000
  *
- * 
- * This work was produced at the University of California, Lawrence 
- * Livermore National Laboratory (UC LLNL) under contract no. 
- * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy 
- * (DOE) and The Regents of the University of California (University) 
- * for the operation of UC LLNL. Copyright is reserved to the University 
- * for purposes of controlled dissemination, commercialization through 
- * formal licensing, or other disposition under terms of Contract 48; 
- * DOE policies, regulations and orders; and U.S. statutes. The rights 
- * of the Federal Government are reserved under Contract 48 subject to 
- * the restrictions agreed upon by the DOE and University as allowed 
+ *
+ * This work was produced at the University of California, Lawrence
+ * Livermore National Laboratory (UC LLNL) under contract no.
+ * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy
+ * (DOE) and The Regents of the University of California (University)
+ * for the operation of UC LLNL. Copyright is reserved to the University
+ * for purposes of controlled dissemination, commercialization through
+ * formal licensing, or other disposition under terms of Contract 48;
+ * DOE policies, regulations and orders; and U.S. statutes. The rights
+ * of the Federal Government are reserved under Contract 48 subject to
+ * the restrictions agreed upon by the DOE and University as allowed
  * under DOE Acquisition Letter 97-1.
- * 
- * 
+ *
+ *
  * DISCLAIMER
- * 
- * This work was prepared as an account of work sponsored by an agency 
- * of the United States Government. Neither the United States Government 
- * nor the University of California nor any of their employees, makes 
- * any warranty, express or implied, or assumes any liability or 
- * responsibility for the accuracy, completeness, or usefulness of any 
- * information, apparatus, product, or process disclosed, or represents 
- * that its use would not infringe privately-owned rights.  Reference 
- * herein to any specific commercial products, process, or service by 
- * trade name, trademark, manufacturer or otherwise does not necessarily 
- * constitute or imply its endorsement, recommendation, or favoring by 
- * the United States Government or the University of California. The 
- * views and opinions of authors expressed herein do not necessarily 
- * state or reflect those of the United States Government or the 
- * University of California, and shall not be used for advertising or 
+ *
+ * This work was prepared as an account of work sponsored by an agency
+ * of the United States Government. Neither the United States Government
+ * nor the University of California nor any of their employees, makes
+ * any warranty, express or implied, or assumes any liability or
+ * responsibility for the accuracy, completeness, or usefulness of any
+ * information, apparatus, product, or process disclosed, or represents
+ * that its use would not infringe privately-owned rights.  Reference
+ * herein to any specific commercial products, process, or service by
+ * trade name, trademark, manufacturer or otherwise does not necessarily
+ * constitute or imply its endorsement, recommendation, or favoring by
+ * the United States Government or the University of California. The
+ * views and opinions of authors expressed herein do not necessarily
+ * state or reflect those of the United States Government or the
+ * University of California, and shall not be used for advertising or
  * product endorsement purposes.
- * 
+ *
  */
 /****
 #include <unistd.h>
@@ -63,10 +63,11 @@ extern int tokenize( char *p_input, char token_list[][TOKENLENGTH], size_t maxto
  * Establish table of surface function pointers
  */
 
-typedef struct {
-                const char         *name;
-                p_surface_function  function;
-               } Surface_function_table;
+typedef struct
+{
+    const char         *name;
+    p_surface_function  function;
+} Surface_function_table;
 
 
 /*
@@ -75,13 +76,14 @@ typedef struct {
  */
 
 Surface_function_table
-                       surface_function_table[] = {
-                                                   "poly", poly
-                                                  ,"rect", rect
-                                                  ,"ring", ring
-                                                  ,"spot", spot
-                                                  ,"tube", tube
-                                                  };
+surface_function_table[] =
+{
+    "poly", poly
+    ,"rect", rect
+    ,"ring", ring
+    ,"spot", spot
+    ,"tube", tube
+};
 
 
 
@@ -104,7 +106,7 @@ int
 parse_surface_command( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt )
 {
     int
-        validity_status;
+    validity_status;
 
 
     /* */
@@ -143,23 +145,23 @@ parse_surface_command( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt )
 
 /*****************************************************************
  * TAG( parse_traction_command )
- * 
+ *
  */
 int
 parse_traction_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int token_count )
 {
     List_head
-              *p_lh;
+    *p_lh;
 
     MO_class_data
-                  **p_classes;
+    **p_classes;
 
     int
-        i
-       ,total_traction_materials
-       ,traction_material
-       ,traction_material_list_established = FALSE
-       ,validity_status;
+    i
+    ,total_traction_materials
+    ,traction_material
+    ,traction_material_list_established = FALSE
+                                          ,validity_status;
 
 
     /* */
@@ -189,7 +191,7 @@ parse_traction_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], in
              */
 
             for ( i = 1; i <= total_traction_materials; i++ )
-                 BITSET( traction_material_list, i );
+                BITSET( traction_material_list, i );
 
             traction_material_list_established = TRUE;
             validity_status = valid_state;
@@ -205,59 +207,59 @@ parse_traction_command( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], in
     }
     else if ( 3 <= token_count )
     {
-             /*
-              * get selected materials and place into bit array of traction materials
-              */
+        /*
+         * get selected materials and place into bit array of traction materials
+         */
 
-             n = (int)is_valid_number( tokens[1], &validity_status );
+        n = (int)is_valid_number( tokens[1], &validity_status );
 
-             if ( invalid_state == validity_status )
-             {
-                 popup_dialog( WARNING_POPUP, "parse_traction_command:  Invalid qty. of materials." );
-                 return( invalid_state );
-             }
-
-
-             p_lh = MESH_P( analy )->classes_by_sclass;
-             p_classes = (MO_class_data **)p_lh[G_MAT].list;
-
-             total_traction_materials = p_classes[0]->qty;
-
-             if ( NULL == (traction_material_list = NEW_N( char, total_traction_materials, "traction_material_list" )) )
-             {
-                 popup_dialog( WARNING_POPUP, "parse_traction_command:  storage allocation failure." );
-                 return( invalid_state );
-             }
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_traction_command:  Invalid qty. of materials." );
+            return( invalid_state );
+        }
 
 
-             /*
-              * test to determine if traction material id is a valid number and a valid material id
-              */
+        p_lh = MESH_P( analy )->classes_by_sclass;
+        p_classes = (MO_class_data **)p_lh[G_MAT].list;
 
-             for ( i = 2; i < token_count; i++ )
-             {
-                 traction_material = (int)is_valid_number( tokens[ i ], &validity_status );
+        total_traction_materials = p_classes[0]->qty;
 
-                 if ( valid_state == validity_status )
-                 {
-                     if ( (1 <= traction_material)  &&  (traction_material <= total_traction_materials) )
-                     {
-                         /*
-                          * NOTE:  traction_material_list contains "real-world" material numbers
-                          */
+        if ( NULL == (traction_material_list = NEW_N( char, total_traction_materials, "traction_material_list" )) )
+        {
+            popup_dialog( WARNING_POPUP, "parse_traction_command:  storage allocation failure." );
+            return( invalid_state );
+        }
 
-                         BITSET( traction_material_list, traction_material );
 
-                         traction_material_list_established = TRUE;
-                         validity_status = valid_state;
-                     }
-                 }
-                 else
-                 {
-                     popup_dialog( WARNING_POPUP, "parse_traction_command:  Invalid material id number." );
-                     validity_status = invalid_state;
-                 }
-             }
+        /*
+         * test to determine if traction material id is a valid number and a valid material id
+         */
+
+        for ( i = 2; i < token_count; i++ )
+        {
+            traction_material = (int)is_valid_number( tokens[ i ], &validity_status );
+
+            if ( valid_state == validity_status )
+            {
+                if ( (1 <= traction_material)  &&  (traction_material <= total_traction_materials) )
+                {
+                    /*
+                     * NOTE:  traction_material_list contains "real-world" material numbers
+                     */
+
+                    BITSET( traction_material_list, traction_material );
+
+                    traction_material_list_established = TRUE;
+                    validity_status = valid_state;
+                }
+            }
+            else
+            {
+                popup_dialog( WARNING_POPUP, "parse_traction_command:  Invalid material id number." );
+                validity_status = invalid_state;
+            }
+        }
     }
     else
     {
@@ -290,34 +292,93 @@ int
 parse_poly( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt )
 {
     FILE
-         *fp_surface_poly_file;
+    *fp_surface_poly_file;
 
     Vector
-           p;
+    p;
 
     char
-          buffer[TOKENLENGTH]
-        , poly_tokens[MAXTOKENS][TOKENLENGTH]
-        ,*surface_poly_file;
+    buffer[TOKENLENGTH]
+    , poly_tokens[MAXTOKENS][TOKENLENGTH]
+    ,*surface_poly_file;
 
     float
-          area = 0.0;
+    area = 0.0;
 
     int
-        i
-       ,validity_status;
+    i
+    ,validity_status;
 
 
     /* */
 
-        if ( 3 == token_cnt )
+    if ( 3 == token_cnt )
+    {
+        griz_str_dup( &surface_parameter_table.type, tokens[1] );
+
+        griz_str_dup( &surface_poly_file, tokens[2] );
+
+
+        if ( NULL != (fp_surface_poly_file = fopen( surface_poly_file, "r" )) )
         {
-            griz_str_dup( &surface_parameter_table.type, tokens[1] );
+            if ( NULL == fgets( buffer, sizeof( buffer ), fp_surface_poly_file ) )
+            {
+                popup_dialog( WARNING_POPUP, "parse_poly:  Unable to read surface poly file:  %s\n", surface_poly_file );
+                return( invalid_state );
+            }
 
-            griz_str_dup( &surface_poly_file, tokens[2] );
+
+            if ( 1 != tokenize( buffer, poly_tokens, (MAXTOKENS - 1) ) )
+            {
+                popup_dialog( WARNING_POPUP, "parse_poly:  Invalid quantity of points OR quantity of points format.\n" );
+                return( invalid_state );
+            }
 
 
-            if ( NULL != (fp_surface_poly_file = fopen( surface_poly_file, "r" )) )
+            surface_parameter_table.n = (int)is_valid_number( poly_tokens[0], &validity_status );
+
+            if ( invalid_state == validity_status )
+            {
+                popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert n." );
+                return( invalid_state );
+            }
+
+            /*
+             * NOTE:  "poly" does NOT provide for an auto_compute_n mode
+             *
+             *        Do NOT allow a value of surface_parameter_table.n ==> 0
+             */
+
+            if ( 0 >= surface_parameter_table.n )
+            {
+                popup_dialog( WARNING_POPUP, "parse_poly:  n MUST be > 0" );
+                return( invalid_state );
+            }
+
+            surface_parameter_table.n = MIN( surface_parameter_table.n, MAXIMUM_SURFACE_POINTS );
+
+            /*
+             * NOTE:  traction_data_table is established here rather than in "poly"
+             *
+             *        free the allocated memory in "poly"
+             */
+
+            if ( NULL != (traction_data_table = NEW_N( Traction_data, surface_parameter_table.n, "traction_data_table" )) )
+            {
+                traction_data_table_initialized = TRUE;
+            }
+            else
+            {
+                traction_data_table_initialized = FALSE;
+                return( invalid_state );
+            }
+
+
+            p.x = 0.0;
+            p.y = 0.0;
+            p.z = 0.0;
+
+            for ( i = 0; i < surface_parameter_table.n; i++ )
             {
                 if ( NULL == fgets( buffer, sizeof( buffer ), fp_surface_poly_file ) )
                 {
@@ -326,159 +387,100 @@ parse_poly( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt )
                 }
 
 
-                if ( 1 != tokenize( buffer, poly_tokens, (MAXTOKENS - 1) ) )
+                if ( 7 == tokenize( buffer, poly_tokens, (MAXTOKENS - 1) ) )
                 {
-                    popup_dialog( WARNING_POPUP, "parse_poly:  Invalid quantity of points OR quantity of points format.\n" );
-                    return( invalid_state );
-                }
+                    traction_data_table[ i ].point.x = is_valid_number( poly_tokens[0], &validity_status );
 
+                    if ( invalid_state == validity_status )
+                    {
+                        popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert px." );
+                        return( invalid_state );
+                    }
 
-                surface_parameter_table.n = (int)is_valid_number( poly_tokens[0], &validity_status );
+                    traction_data_table[ i ].point.y = is_valid_number( poly_tokens[1], &validity_status );
 
-                if ( invalid_state == validity_status )
-                {
-                    popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert n." );
-                    return( invalid_state );
-                }
+                    if ( invalid_state == validity_status )
+                    {
+                        popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert py." );
+                        return( invalid_state );
+                    }
 
-                /*
-                 * NOTE:  "poly" does NOT provide for an auto_compute_n mode
-                 *
-                 *        Do NOT allow a value of surface_parameter_table.n ==> 0
-                 */
+                    traction_data_table[ i ].point.z = is_valid_number( poly_tokens[2], &validity_status );
 
-                if ( 0 >= surface_parameter_table.n )
-                {
-                    popup_dialog( WARNING_POPUP, "parse_poly:  n MUST be > 0" );
-                    return( invalid_state );
-                }
+                    if ( invalid_state == validity_status )
+                    {
+                        popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert pz." );
+                        return( invalid_state );
+                    }
 
-                surface_parameter_table.n = MIN( surface_parameter_table.n, MAXIMUM_SURFACE_POINTS );
+                    traction_data_table[ i ].normal.x = is_valid_number( poly_tokens[3], &validity_status );
 
-                /*
-                 * NOTE:  traction_data_table is established here rather than in "poly"
-                 *
-                 *        free the allocated memory in "poly"
-                 */
+                    if ( invalid_state == validity_status )
+                    {
+                        popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert nx." );
+                        return( invalid_state );
+                    }
 
-                if ( NULL != (traction_data_table = NEW_N( Traction_data, surface_parameter_table.n, "traction_data_table" )) )
-                {
-                    traction_data_table_initialized = TRUE;
+                    traction_data_table[ i ].normal.y = is_valid_number( poly_tokens[4], &validity_status );
+
+                    if ( invalid_state == validity_status )
+                    {
+                        popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert ny." );
+                        return( invalid_state );
+                    }
+
+                    traction_data_table[ i ].normal.z = is_valid_number( poly_tokens[5], &validity_status );
+
+                    if ( invalid_state == validity_status )
+                    {
+                        popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert nz." );
+                        return( invalid_state );
+                    }
+
+                    traction_data_table[ i ].area = is_valid_number( poly_tokens[6], &validity_status );
+
+                    if ( invalid_state == validity_status )
+                    {
+                        popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert dA." );
+                        return( invalid_state );
+                    }
                 }
                 else
                 {
-                    traction_data_table_initialized = FALSE;
+                    popup_dialog( WARNING_POPUP, "parse_poly:  Invalid quantity of data -- px py pz vx vy vz dA" );
                     return( invalid_state );
                 }
 
 
-                p.x = 0.0;
-                p.y = 0.0;
-                p.z = 0.0;
+                p.x += (traction_data_table[ i ].point.x * traction_data_table[ i ].area);
+                p.y += (traction_data_table[ i ].point.y * traction_data_table[ i ].area);
+                p.z += (traction_data_table[ i ].point.z * traction_data_table[ i ].area);
 
-                for ( i = 0; i < surface_parameter_table.n; i++ )
-                {
-                    if ( NULL == fgets( buffer, sizeof( buffer ), fp_surface_poly_file ) )
-                    {
-                        popup_dialog( WARNING_POPUP, "parse_poly:  Unable to read surface poly file:  %s\n", surface_poly_file );
-                        return( invalid_state );
-                    }
-
-
-                    if ( 7 == tokenize( buffer, poly_tokens, (MAXTOKENS - 1) ) )
-                    {
-                        traction_data_table[ i ].point.x = is_valid_number( poly_tokens[0], &validity_status );
-
-                        if ( invalid_state == validity_status )
-                        {
-                            popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert px." );
-                            return( invalid_state );
-                        }
-
-                        traction_data_table[ i ].point.y = is_valid_number( poly_tokens[1], &validity_status );
-
-                        if ( invalid_state == validity_status )
-                        {
-                            popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert py." );
-                            return( invalid_state );
-                        }
-
-                        traction_data_table[ i ].point.z = is_valid_number( poly_tokens[2], &validity_status );
-
-                        if ( invalid_state == validity_status )
-                        {
-                            popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert pz." );
-                            return( invalid_state );
-                        }
-
-                        traction_data_table[ i ].normal.x = is_valid_number( poly_tokens[3], &validity_status );
-
-                        if ( invalid_state == validity_status )
-                        {
-                            popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert nx." );
-                            return( invalid_state );
-                        }
-
-                        traction_data_table[ i ].normal.y = is_valid_number( poly_tokens[4], &validity_status );
-
-                        if ( invalid_state == validity_status )
-                        {
-                            popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert ny." );
-                            return( invalid_state );
-                        }
-
-                        traction_data_table[ i ].normal.z = is_valid_number( poly_tokens[5], &validity_status );
-
-                        if ( invalid_state == validity_status )
-                        {
-                            popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert nz." );
-                            return( invalid_state );
-                        }
-
-                        traction_data_table[ i ].area = is_valid_number( poly_tokens[6], &validity_status );
-
-                        if ( invalid_state == validity_status )
-                        {
-                            popup_dialog( WARNING_POPUP, "parse_poly:  Unable to convert dA." );
-                            return( invalid_state );
-                        }
-                    }
-                    else
-                    {
-                        popup_dialog( WARNING_POPUP, "parse_poly:  Invalid quantity of data -- px py pz vx vy vz dA" );
-                        return( invalid_state );
-                    }
-
-
-                    p.x += (traction_data_table[ i ].point.x * traction_data_table[ i ].area);
-                    p.y += (traction_data_table[ i ].point.y * traction_data_table[ i ].area);
-                    p.z += (traction_data_table[ i ].point.z * traction_data_table[ i ].area);
-
-                    area += traction_data_table[ i ].area;
-                } /* for i */
-            }
-            else
-            {
-                popup_dialog( WARNING_POPUP, "parse_poly:  Unable to open poly input file:  %s\n", surface_poly_file );
-                return( invalid_state );
-            }
-
-            p.x /= area;
-            p.y /= area;
-            p.z /= area;
-
-            surface_parameter_table.p = p;
-
-
-            free( surface_poly_file );
-
-            fclose( fp_surface_poly_file );
+                area += traction_data_table[ i ].area;
+            } /* for i */
         }
         else
         {
-            popup_dialog( USAGE_POPUP, "poly <file_name>" );
+            popup_dialog( WARNING_POPUP, "parse_poly:  Unable to open poly input file:  %s\n", surface_poly_file );
             return( invalid_state );
         }
+
+        p.x /= area;
+        p.y /= area;
+        p.z /= area;
+
+        surface_parameter_table.p = p;
+
+
+        free( surface_poly_file );
+
+        fclose( fp_surface_poly_file );
+    }
+    else
+    {
+        popup_dialog( USAGE_POPUP, "poly <file_name>" );
+        return( invalid_state );
+    }
 
 
     return( valid_state );
@@ -495,111 +497,111 @@ int
 parse_rect( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt )
 {
     int
-        validity_status;
+    validity_status;
 
 
     /* */
 
-        if ( 11 == token_cnt )
+    if ( 11 == token_cnt )
+    {
+        surface_parameter_table.n = (int)is_valid_number( tokens[2], &validity_status );
+
+        if ( invalid_state == validity_status )
         {
-            surface_parameter_table.n = (int)is_valid_number( tokens[2], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert n." );
-                return( invalid_state );
-            }
-
-            if ( 0 > surface_parameter_table.n )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  n MUST be >= 0" );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.n = MIN( surface_parameter_table.n, MAXIMUM_SURFACE_POINTS );
-
-
-            surface_parameter_table.p.x = is_valid_number( tokens[3], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert px." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.p.y = is_valid_number( tokens[4], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert py." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.p.z = is_valid_number( tokens[5], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert pz." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.x = is_valid_number( tokens[6], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert vx." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.y = is_valid_number( tokens[7], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert vy." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.z = is_valid_number( tokens[8], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert vz." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.a = is_valid_number( tokens[9], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert a." );
-                return( invalid_state );
-            }
-
-            if ( 0.0 >= surface_parameter_table.a )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  a MUST be > 0" );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.b = is_valid_number( tokens[10], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert b." );
-                return( invalid_state );
-            }
-
-            if ( 0.0 >= surface_parameter_table.b )
-            {
-                popup_dialog( WARNING_POPUP, "parse_rect:  b MUST be > 0" );
-                return( invalid_state );
-            }
-        }
-        else
-        {
-            popup_dialog( USAGE_POPUP, "rect <n> <px> <py> <pz> <vx> <vy> <vz> <a> <b>" );
+            popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert n." );
             return( invalid_state );
         }
+
+        if ( 0 > surface_parameter_table.n )
+        {
+            popup_dialog( WARNING_POPUP, "parse_rect:  n MUST be >= 0" );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.n = MIN( surface_parameter_table.n, MAXIMUM_SURFACE_POINTS );
+
+
+        surface_parameter_table.p.x = is_valid_number( tokens[3], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert px." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.p.y = is_valid_number( tokens[4], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert py." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.p.z = is_valid_number( tokens[5], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert pz." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.x = is_valid_number( tokens[6], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert vx." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.y = is_valid_number( tokens[7], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert vy." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.z = is_valid_number( tokens[8], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert vz." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.a = is_valid_number( tokens[9], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert a." );
+            return( invalid_state );
+        }
+
+        if ( 0.0 >= surface_parameter_table.a )
+        {
+            popup_dialog( WARNING_POPUP, "parse_rect:  a MUST be > 0" );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.b = is_valid_number( tokens[10], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_rect:  Unable to convert b." );
+            return( invalid_state );
+        }
+
+        if ( 0.0 >= surface_parameter_table.b )
+        {
+            popup_dialog( WARNING_POPUP, "parse_rect:  b MUST be > 0" );
+            return( invalid_state );
+        }
+    }
+    else
+    {
+        popup_dialog( USAGE_POPUP, "rect <n> <px> <py> <pz> <vx> <vy> <vz> <a> <b>" );
+        return( invalid_state );
+    }
 
 
     return( valid_state );
@@ -616,120 +618,120 @@ int
 parse_ring( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt )
 {
     int
-        validity_status;
+    validity_status;
 
 
     /* */
 
-        if ( 11 == token_cnt )
+    if ( 11 == token_cnt )
+    {
+        griz_str_dup( &surface_parameter_table.type, tokens[1] );
+
+        surface_parameter_table.n = (int)is_valid_number( tokens[2], &validity_status );
+
+        if ( invalid_state == validity_status )
         {
-            griz_str_dup( &surface_parameter_table.type, tokens[1] );
-
-            surface_parameter_table.n = (int)is_valid_number( tokens[2], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert n." );
-                return( invalid_state );
-            }
-
-            if ( surface_parameter_table.n < 0 )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  n MUST be >= 0" );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.n = MIN( surface_parameter_table.n, MAXIMUM_SURFACE_POINTS );
-
-
-            surface_parameter_table.p.x = is_valid_number( tokens[3], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert px." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.p.y = is_valid_number( tokens[4], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert py." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.p.z = is_valid_number( tokens[5], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert pz." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.x = is_valid_number( tokens[6], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert vx." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.y = is_valid_number( tokens[7], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert vy." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.z = is_valid_number( tokens[8], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert vz." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.delta_a = is_valid_number( tokens[9], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert delta_a." );
-                return( invalid_state );
-            }
-
-            if ( 0.0 >= surface_parameter_table.delta_a )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  delta_a MUST be > 0" );
-                return( invalid_state );
-            }
-
-
-            surface_parameter_table.delta_b = is_valid_number( tokens[10], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert delta_b." );
-                return( invalid_state );
-            }
-
-            if ( 0.0 >= surface_parameter_table.delta_b )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  delta_b MUST be > 0" );
-                return( invalid_state );
-            }
-
-            if ( surface_parameter_table.delta_b <= surface_parameter_table.delta_a )
-            {
-                popup_dialog( WARNING_POPUP, "parse_ring:  delta_b MUST be > delta_a." );
-                return( invalid_state );
-            }
-        }
-        else
-        {
-            popup_dialog( USAGE_POPUP, "ring <n> <px> <py> <pz> <vx> <vy> <vz> <delta_a> <delta_b>" );
+            popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert n." );
             return( invalid_state );
         }
+
+        if ( surface_parameter_table.n < 0 )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  n MUST be >= 0" );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.n = MIN( surface_parameter_table.n, MAXIMUM_SURFACE_POINTS );
+
+
+        surface_parameter_table.p.x = is_valid_number( tokens[3], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert px." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.p.y = is_valid_number( tokens[4], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert py." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.p.z = is_valid_number( tokens[5], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert pz." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.x = is_valid_number( tokens[6], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert vx." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.y = is_valid_number( tokens[7], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert vy." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.z = is_valid_number( tokens[8], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert vz." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.delta_a = is_valid_number( tokens[9], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert delta_a." );
+            return( invalid_state );
+        }
+
+        if ( 0.0 >= surface_parameter_table.delta_a )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  delta_a MUST be > 0" );
+            return( invalid_state );
+        }
+
+
+        surface_parameter_table.delta_b = is_valid_number( tokens[10], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  Unable to convert delta_b." );
+            return( invalid_state );
+        }
+
+        if ( 0.0 >= surface_parameter_table.delta_b )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  delta_b MUST be > 0" );
+            return( invalid_state );
+        }
+
+        if ( surface_parameter_table.delta_b <= surface_parameter_table.delta_a )
+        {
+            popup_dialog( WARNING_POPUP, "parse_ring:  delta_b MUST be > delta_a." );
+            return( invalid_state );
+        }
+    }
+    else
+    {
+        popup_dialog( USAGE_POPUP, "ring <n> <px> <py> <pz> <vx> <vy> <vz> <delta_a> <delta_b>" );
+        return( invalid_state );
+    }
 
 
     return( valid_state );
@@ -746,99 +748,99 @@ int
 parse_spot( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt )
 {
     int
-        validity_status;
+    validity_status;
 
 
     /* */
 
-        if ( 10 == token_cnt )
+    if ( 10 == token_cnt )
+    {
+        griz_str_dup( &surface_parameter_table.type, tokens[1] );
+
+        surface_parameter_table.n = (int)is_valid_number( tokens[2], &validity_status );
+
+        if ( invalid_state == validity_status )
         {
-            griz_str_dup( &surface_parameter_table.type, tokens[1] );
-
-            surface_parameter_table.n = (int)is_valid_number( tokens[2], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert n." );
-                return( invalid_state );
-            }
-
-            if ( 0 > surface_parameter_table.n )
-            {
-                popup_dialog( WARNING_POPUP, "parse_spot:  n MUST be >= 0" );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.n = MIN( surface_parameter_table.n, MAXIMUM_SURFACE_POINTS );
-
-
-            surface_parameter_table.p.x = is_valid_number( tokens[3], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert px." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.p.y = is_valid_number( tokens[4], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert py." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.p.z = is_valid_number( tokens[5], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert pz." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.x = is_valid_number( tokens[6], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert vx." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.y = is_valid_number( tokens[7], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert vy." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.z = is_valid_number( tokens[8], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert vz." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.delta_a = is_valid_number( tokens[9], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert delta." );
-                return( invalid_state );
-            }
-
-            if ( 0.0 >= surface_parameter_table.delta_a )
-            {
-                popup_dialog( WARNING_POPUP, "parse_spot:  delta MUST be > 0" );
-                return( invalid_state );
-            }
-        }
-        else
-        {
-            popup_dialog( USAGE_POPUP, "spot <n> <px> <py> <pz> <vx> <vy> <vz> <delta>" );
+            popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert n." );
             return( invalid_state );
         }
+
+        if ( 0 > surface_parameter_table.n )
+        {
+            popup_dialog( WARNING_POPUP, "parse_spot:  n MUST be >= 0" );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.n = MIN( surface_parameter_table.n, MAXIMUM_SURFACE_POINTS );
+
+
+        surface_parameter_table.p.x = is_valid_number( tokens[3], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert px." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.p.y = is_valid_number( tokens[4], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert py." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.p.z = is_valid_number( tokens[5], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert pz." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.x = is_valid_number( tokens[6], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert vx." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.y = is_valid_number( tokens[7], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert vy." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.z = is_valid_number( tokens[8], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert vz." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.delta_a = is_valid_number( tokens[9], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_spot:  Unable to convert delta." );
+            return( invalid_state );
+        }
+
+        if ( 0.0 >= surface_parameter_table.delta_a )
+        {
+            popup_dialog( WARNING_POPUP, "parse_spot:  delta MUST be > 0" );
+            return( invalid_state );
+        }
+    }
+    else
+    {
+        popup_dialog( USAGE_POPUP, "spot <n> <px> <py> <pz> <vx> <vy> <vz> <delta>" );
+        return( invalid_state );
+    }
 
 
     return( valid_state );
@@ -855,137 +857,137 @@ int
 parse_tube( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt )
 {
     int
-        validity_status;
+    validity_status;
 
 
     /* */
 
-        if ( (11 == token_cnt)  ||  (12 == token_cnt) )
+    if ( (11 == token_cnt)  ||  (12 == token_cnt) )
+    {
+        griz_str_dup( &surface_parameter_table.type, tokens[1] );
+
+        surface_parameter_table.n = (int)is_valid_number( tokens[2], &validity_status );
+
+        if ( invalid_state == validity_status )
         {
-            griz_str_dup( &surface_parameter_table.type, tokens[1] );
-
-            surface_parameter_table.n = (int)is_valid_number( tokens[2], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert n." );
-                return( invalid_state );
-            }
-
-            if ( 0 > surface_parameter_table.n )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  n MUST be >= 0" );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.n = MIN( surface_parameter_table.n, MAXIMUM_SURFACE_POINTS );
-
-
-            surface_parameter_table.p.x = is_valid_number( tokens[3], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert px." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.p.y = is_valid_number( tokens[4], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert py." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.p.z = is_valid_number( tokens[5], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert pz." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.x = is_valid_number( tokens[6], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert vx." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.y = is_valid_number( tokens[7], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert vy." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.v.z = is_valid_number( tokens[8], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert vz." );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.delta_a = is_valid_number( tokens[9], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert delta." );
-                return( invalid_state );
-            }
-
-            if ( 0.0 >= surface_parameter_table.delta_a )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  delta_a MUST be > 0" );
-                return( invalid_state );
-            }
-
-            surface_parameter_table.h = is_valid_number( tokens[10], &validity_status );
-
-            if ( invalid_state == validity_status )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert delta." );
-                return( invalid_state );
-            }
-
-            if ( 0.0 >= surface_parameter_table.h )
-            {
-                popup_dialog( WARNING_POPUP, "parse_tube:  h MUST be > 0" );
-                return( invalid_state );
-            }
-
-
-            if ( 12 == token_cnt )
-            {
-                surface_parameter_table.delta_b = is_valid_number( tokens[11], &validity_status );
-
-                if ( invalid_state == validity_status )
-                {
-                    popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert delta." );
-                    return( invalid_state );
-                }
-
-                /*
-                 * NOTE:  delta_b MAY BE 0.0 in order to define a cone
-                 */
-
-                if ( 0.0 > surface_parameter_table.delta_b )
-                {
-                    popup_dialog( WARNING_POPUP, "parse_tube:  delta_b MUST be >= 0" );
-                    return( invalid_state );
-                }
-            }
-            else
-                surface_parameter_table.delta_b = surface_parameter_table.delta_a;
-        }
-        else
-        {
-            popup_dialog( USAGE_POPUP, "tube <n> <px> <py> <pz> <vx> <vy> <vz> <delta_a> <h> {<delta_b>}" );
+            popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert n." );
             return( invalid_state );
         }
+
+        if ( 0 > surface_parameter_table.n )
+        {
+            popup_dialog( WARNING_POPUP, "parse_tube:  n MUST be >= 0" );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.n = MIN( surface_parameter_table.n, MAXIMUM_SURFACE_POINTS );
+
+
+        surface_parameter_table.p.x = is_valid_number( tokens[3], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert px." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.p.y = is_valid_number( tokens[4], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert py." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.p.z = is_valid_number( tokens[5], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert pz." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.x = is_valid_number( tokens[6], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert vx." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.y = is_valid_number( tokens[7], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert vy." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.v.z = is_valid_number( tokens[8], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert vz." );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.delta_a = is_valid_number( tokens[9], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert delta." );
+            return( invalid_state );
+        }
+
+        if ( 0.0 >= surface_parameter_table.delta_a )
+        {
+            popup_dialog( WARNING_POPUP, "parse_tube:  delta_a MUST be > 0" );
+            return( invalid_state );
+        }
+
+        surface_parameter_table.h = is_valid_number( tokens[10], &validity_status );
+
+        if ( invalid_state == validity_status )
+        {
+            popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert delta." );
+            return( invalid_state );
+        }
+
+        if ( 0.0 >= surface_parameter_table.h )
+        {
+            popup_dialog( WARNING_POPUP, "parse_tube:  h MUST be > 0" );
+            return( invalid_state );
+        }
+
+
+        if ( 12 == token_cnt )
+        {
+            surface_parameter_table.delta_b = is_valid_number( tokens[11], &validity_status );
+
+            if ( invalid_state == validity_status )
+            {
+                popup_dialog( WARNING_POPUP, "parse_tube:  Unable to convert delta." );
+                return( invalid_state );
+            }
+
+            /*
+             * NOTE:  delta_b MAY BE 0.0 in order to define a cone
+             */
+
+            if ( 0.0 > surface_parameter_table.delta_b )
+            {
+                popup_dialog( WARNING_POPUP, "parse_tube:  delta_b MUST be >= 0" );
+                return( invalid_state );
+            }
+        }
+        else
+            surface_parameter_table.delta_b = surface_parameter_table.delta_a;
+    }
+    else
+    {
+        popup_dialog( USAGE_POPUP, "tube <n> <px> <py> <pz> <vx> <vy> <vz> <delta_a> <h> {<delta_b>}" );
+        return( invalid_state );
+    }
 
 
     return( valid_state );
@@ -1003,7 +1005,7 @@ void
 poly()
 {
     int
-        i;
+    i;
 
 
     /* */
@@ -1056,49 +1058,51 @@ void
 rect()
 {
     Vector
-           p
-          ,v;
+    p
+    ,v;
 
     float
-            a
-         ,  b
-         ,  dA
-         ,  dx
-         ,  x_finish
-         ,  x_start
-         ,  x_offset
-         ,  x_term
-         ,  x
-         ,  xl
-         ,  xr
-         ,**xyz_table
-         ,  y_finish
-         ,  y_start
-         ,  y_offset
-         ,  y_term
-         ,  y
-         ,  yb
-         ,  yt
-         ,  z;
+    a
+    ,  b
+    ,  dA
+    ,  dx
+    ,  x_finish
+    ,  x_start
+    ,  x_offset
+    ,  x_term
+    ,  x
+    ,  xl
+    ,  xr
+    ,**xyz_table
+    ,  y_finish
+    ,  y_start
+    ,  y_offset
+    ,  y_term
+    ,  y
+    ,  yb
+    ,  yt
+    ,  z;
 
     int
-         factor
-        ,i
-        ,j
-        ,k
-        ,qty_a_divisions
-        ,qty_b_divisions;
+    factor
+    ,i
+    ,j
+    ,k
+    ,qty_a_divisions
+    ,qty_b_divisions;
 
 
-    enum {
-          xyz_columns = 3
-         };
+    enum
+    {
+        xyz_columns = 3
+    };
 
-    enum {
-          x_coordinate
-         ,y_coordinate
-         ,z_coordinate
-         };
+    enum
+    {
+        x_coordinate
+        ,y_coordinate
+        ,z_coordinate
+    };
 
 
     /* */
@@ -1277,38 +1281,39 @@ void
 ring()
 {
     Vector
-           p
-          ,v;
+    p
+    ,v;
 
     double
-           theta_p;
+    theta_p;
 
     float
-            dA
-         ,  delta_a
-         ,  delta_b
-         ,  delta_delta
-         ,  r
-         ,  r_prior
-         ,**r_table
-         ,  term
-         ,  x
-         ,  y
-         ,  z;
+    dA
+    ,  delta_a
+    ,  delta_b
+    ,  delta_delta
+    ,  r
+    ,  r_prior
+    ,**r_table
+    ,  term
+    ,  x
+    ,  y
+    ,  z;
 
     int
-        i
-       ,k
-       ,l
-       ,m
-       ,n
-       ,qty_points_per_ring
-       ,r_columns
-       ,r_rows;
+    i
+    ,k
+    ,l
+    ,m
+    ,n
+    ,qty_points_per_ring
+    ,r_columns
+    ,r_rows;
 
-    enum {
-          minimum_points = 6
-         };
+    enum
+    {
+        minimum_points = 6
+    };
 
 
     /* */
@@ -1467,33 +1472,33 @@ void
 spot()
 {
     Vector
-           p
-          ,v;
+    p
+    ,v;
 
     double
-           denominator
-          ,theta_p;
+    denominator
+    ,theta_p;
 
     float
-            d_theta
-         ,  dA
-         ,  delta
-         ,  r
-         ,  rp
-         ,**r_table
-         ,  x
-         ,  y
-         ,  z;
+    d_theta
+    ,  dA
+    ,  delta
+    ,  r
+    ,  rp
+    ,**r_table
+    ,  x
+    ,  y
+    ,  z;
 
     int
-        i
-       ,k
-       ,l
-       ,m
-       ,n
-       ,nl
-       ,r_columns
-       ,r_rows;
+    i
+    ,k
+    ,l
+    ,m
+    ,n
+    ,nl
+    ,r_columns
+    ,r_rows;
 
 
     /* */
@@ -1638,45 +1643,46 @@ void
 tube()
 {
     Vector
-           p
-          ,v;
+    p
+    ,v;
 
     double
-           gamma
-          ,theta;
+    gamma
+    ,theta;
 
     float
-          dA
-         ,cosine_theta
-         ,d_theta
-         ,delta_a
-         ,delta_b
-         ,h
-         ,l_magnitude
-         ,lx
-         ,ly
-         ,lz
-         ,r
-         ,sine_theta
-         ,term_1
-         ,term_2
-         ,term_3
-         ,term_4
-         ,term_5
-         ,x
-         ,y
-         ,z;
+    dA
+    ,cosine_theta
+    ,d_theta
+    ,delta_a
+    ,delta_b
+    ,h
+    ,l_magnitude
+    ,lx
+    ,ly
+    ,lz
+    ,r
+    ,sine_theta
+    ,term_1
+    ,term_2
+    ,term_3
+    ,term_4
+    ,term_5
+    ,x
+    ,y
+    ,z;
 
     int
-        i
-       ,j
-       ,k
-       ,n
-       ,nr;
+    i
+    ,j
+    ,k
+    ,n
+    ,nr;
 
-    enum {
-          minimum_points = 6
-         };
+    enum
+    {
+        minimum_points = 6
+    };
 
 
     /* */
@@ -1808,32 +1814,33 @@ int
 auto_compute_n( Analysis *analy )
 {
     Bool_type
-              convergence_achieved = FALSE;
+    convergence_achieved = FALSE;
 
     List_head
-              *p_lh;
+    *p_lh;
 
     MO_class_data
-                  **p_classes;
+    **p_classes;
 
     static p_surface_function
-                              surface_target;
+    surface_target;
 
     float
-          convergence_term
-         ,convergence_tolerance            =  1.0
-         ,prior_total_traction_area
-         ,total_traction_area;
+    convergence_term
+    ,convergence_tolerance            =  1.0
+                                         ,prior_total_traction_area
+                                         ,total_traction_area;
 
     int
-        i
-       ,total_traction_materials;
+    i
+    ,total_traction_materials;
 
-    enum {
-          minimum_n          = 40
-         ,increment_n        = 10
-         ,qty_tdt_limit = 1000000
-         };
+    enum
+    {
+        minimum_n          = 40
+        ,increment_n        = 10
+        ,qty_tdt_limit = 1000000
+    };
 
 
     /* */
@@ -1946,10 +1953,10 @@ void
 compute_u0_u1_and_u2_vectors( Vector v, Vector *u0, Vector *u1, Vector *u2 )
 {
     Vector
-           fabs_u0;
+    fabs_u0;
 
     float
-          u_magnitude;
+    u_magnitude;
 
 
     /* */
@@ -2039,18 +2046,18 @@ p_surface_function
 surface_function_lookup( char *name )
 {
     const Surface_function_table
-                                 *result;
+    *result;
 
 
     /* */
 
     result = bsearch(
-                     name
-                    ,surface_function_table
-                    ,sizeof( surface_function_table ) / sizeof( surface_function_table[ 0 ] )
-                    ,sizeof( surface_function_table[ 0 ] )
-                    ,sft_compare
-                    );
+                 name
+                 ,surface_function_table
+                 ,sizeof( surface_function_table ) / sizeof( surface_function_table[ 0 ] )
+                 ,sizeof( surface_function_table[ 0 ] )
+                 ,sft_compare
+             );
 
 
     return( result == NULL  ?  NULL : result->function );
@@ -2105,10 +2112,10 @@ initialize_surface_parameter_table()
 float is_valid_number( const char *string, int *validity_status )
 {
     char
-         *p_tail;
+    *p_tail;
 
     double
-           result;
+    result;
 
 
     /* */
@@ -2141,7 +2148,7 @@ float is_valid_number( const char *string, int *validity_status )
 void normalize_vector( Vector *a )
 {
     float
-          magnitude;
+    magnitude;
 
 
     /* */
@@ -2183,125 +2190,129 @@ void
 traction( Analysis *analy, char *traction_material_list )
 {
     Bool_type
-              valid_elements_found = FALSE;
+    valid_elements_found = FALSE;
 
     Htable_entry
-                 *p_hash_table_entry;
+    *p_hash_table_entry;
 
     MO_class_data
-                  *p_mo_class
-                 ,*p_class;
+    *p_mo_class
+    ,*p_class;
 
     Subrec_obj
-               *p_subrecord;
+    *p_subrecord;
 
     Vector
-           f
-          ,f_hat
-          ,m
-          ,mp
-          ,mp_hat
-          ,n
-          ,p;
+    f
+    ,f_hat
+    ,m
+    ,mp
+    ,mp_hat
+    ,n
+    ,p;
 
     Vector_pt_obj
-                  *point_data_list
-                 ,*point_data_node;
-    
-    char
-         class[]                        = "brick"
-        ,primal_specification__stress[] = "stress"
-        ,primal_specification__sxx[]    = "stress[sx]"
-        ,primal_specification__syy[]    = "stress[sy]"
-        ,primal_specification__szz[]    = "stress[sz]"
-        ,primal_specification__sxy[]    = "stress[sxy]"
-        ,primal_specification__syz[]    = "stress[syz]"
-        ,primal_specification__szx[]    = "stress[szx]"
-        ,sign_term_2[2]
-        ,sign_term_3[2];
+    *point_data_list
+    ,*point_data_node;
 
     char
-         *primal_values[7];
+    class[]                        = "brick"
+                                         ,primal_specification__stress[] = "stress"
+                                                 ,primal_specification__sxx[]    = "stress[sx]"
+                                                         ,primal_specification__syy[]    = "stress[sy]"
+                                                                 ,primal_specification__szz[]    = "stress[sz]"
+                                                                         ,primal_specification__sxy[]    = "stress[sxy]"
+                                                                                 ,primal_specification__syz[]    = "stress[syz]"
+                                                                                         ,primal_specification__szx[]    = "stress[szx]"
+                                                                                                 ,sign_term_2[2]
+                                                                                                     ,sign_term_3[2];
+
+    char
+    *primal_values[7];
 
     float
-          area = 0.0
-         ,dA
-         ,fo_magnitude
-         ,fp_magnitude
-         ,fu0
-         ,fu1
-         ,fu2
-         ,h[8]
-         ,mo_magnitude
-         ,mp_magnitude
-         ,mu0
-         ,mu1
-         ,mu2
-         ,r
-         ,s
-         ,t
-         ,shape_function
-         ,sigma__xx
-         ,sigma__yy
-         ,sigma__zz
-         ,sigma__xy
-         ,sigma__yz
-         ,sigma__zx
-         ,sigma__yx
-         ,sigma__xz
-         ,sigma__zy
-         ,x
-         ,y
-         ,z;
+    area = 0.0
+           ,dA
+           ,fo_magnitude
+           ,fp_magnitude
+           ,fu0
+           ,fu1
+           ,fu2
+           ,h[8]
+           ,mo_magnitude
+           ,mp_magnitude
+           ,mu0
+           ,mu1
+           ,mu2
+           ,r
+           ,s
+           ,t
+           ,shape_function
+           ,sigma__xx
+           ,sigma__yy
+           ,sigma__zz
+           ,sigma__xy
+           ,sigma__yz
+           ,sigma__zx
+           ,sigma__yx
+           ,sigma__xz
+           ,sigma__zy
+           ,x
+           ,y
+           ,z;
 
     float
-          **nodal_stress_data
-         , *p_sigmas__Form_II
-         ,(*sigmas__Form_I)[6]
-         , *sigmas__Form_II;
+    **nodal_stress_data
+    , *p_sigmas__Form_II
+    ,(*sigmas__Form_I)[6]
+    , *sigmas__Form_II;
 
     int
-        connectivity_qty
-       ,element_idx
-       ,i
-       ,j
-       ,node_idx
-       ,subrecord_index
-       ,total_brick_elements
-       ,total_nodes;
+    connectivity_qty
+    ,element_idx
+    ,i
+    ,j
+    ,node_idx
+    ,subrecord_index
+    ,total_brick_elements
+    ,total_nodes;
 
     int
-        *element_nodal_connectivities
-       ,*materials;
+    *element_nodal_connectivities
+    ,*materials;
 
     static Result
-                  new_result;
+    new_result;
 
 
-    enum {
-           r_coordinate
-          ,s_coordinate
-          ,t_coordinate
-         };
+    enum
+{
+        r_coordinate
+        ,s_coordinate
+        ,t_coordinate
+    };
 
-    enum {
-           x_coordinate
-          ,y_coordinate
-          ,z_coordinate
-         };
+    enum
+    {
+        x_coordinate
+        ,y_coordinate
+        ,z_coordinate
+    };
 
-    enum {
-           sxx
-          ,syy
-          ,szz
-          ,sxy
-          ,syz
-          ,szx
-         };
+    enum
+    {
+        sxx
+        ,syy
+        ,szz
+        ,sxy
+        ,syz
+        ,szx
+    };
 
-    enum {
-          qty_stress_types = 6
-         };
+    enum
+    {
+        qty_stress_types = 6
+    };
 
 
     /* */
@@ -2325,7 +2336,7 @@ traction( Analysis *analy, char *traction_material_list )
         popup_dialog( USAGE_POPUP, "traction:  invalid class name" );
         return;
     }
-    
+
     p_mo_class = (MO_class_data *) p_hash_table_entry->data;
 
     total_brick_elements = p_mo_class->qty;
@@ -2572,27 +2583,27 @@ traction( Analysis *analy, char *traction_material_list )
 
         materials = p_mo_class->objects.elems->mat;
 
-        for ( point_data_node = point_data_list, i = 0; 
-              point_data_node != NULL; i++ )
+        for ( point_data_node = point_data_list, i = 0;
+                point_data_node != NULL; i++ )
         {
             element_idx = point_data_node->elnum;
 
             /*
-             * NOTE:  offset materials[ element_idx ] to convert to 
+             * NOTE:  offset materials[ element_idx ] to convert to
              *        "real-world" material number
              */
 
-            if ( (null_element != element_idx)  
-                 && (BITTEST( traction_material_list, 
-                              materials[ element_idx ] + 1 )) )
+            if ( (null_element != element_idx)
+                    && (BITTEST( traction_material_list,
+                                 materials[ element_idx ] + 1 )) )
             {
                 traction_data_table[ i ].element = element_idx;
 
-                traction_data_table[ i ].element_centered_coordinates.r = 
+                traction_data_table[ i ].element_centered_coordinates.r =
                     point_data_node->xi[ r_coordinate ];
-                traction_data_table[ i ].element_centered_coordinates.s = 
+                traction_data_table[ i ].element_centered_coordinates.s =
                     point_data_node->xi[ s_coordinate ];
-                traction_data_table[ i ].element_centered_coordinates.t = 
+                traction_data_table[ i ].element_centered_coordinates.t =
                     point_data_node->xi[ t_coordinate ];
 
                 valid_elements_found = TRUE;
@@ -2606,7 +2617,7 @@ traction( Analysis *analy, char *traction_material_list )
                  * b.) elements whose material is NOT in the requested traction
                  *     material list
                  *
-                 * NOTE:  Updating traction data table materials and <rst> 
+                 * NOTE:  Updating traction data table materials and <rst>
                  *        coordinate system is NOT required for NULL elements.
                  */
 
@@ -2630,7 +2641,7 @@ traction( Analysis *analy, char *traction_material_list )
         /*
          * II.  Collect 6 stress values for ALL brick elements of entire mesh
          *
-         *      Stress values are returned/assigned in a data structure of the 
+         *      Stress values are returned/assigned in a data structure of the
          *      form:
          *
          *                 elements
@@ -2641,17 +2652,17 @@ traction( Analysis *analy, char *traction_material_list )
          *
          *      Stress values may be accessed:
          *
-         *      sxx:  sigmas__Form_II[ total_brick_elements * 0  ...  
+         *      sxx:  sigmas__Form_II[ total_brick_elements * 0  ...
          *                             (total_brick_elements * 1) - 1 ]
-         *      syy:  sigmas__Form_II[ total_brick_elements * 1  ...  
+         *      syy:  sigmas__Form_II[ total_brick_elements * 1  ...
          *                             (total_brick_elements * 2) - 1 ]
-         *      szz:  sigmas__Form_II[ total_brick_elements * 2  ...  
+         *      szz:  sigmas__Form_II[ total_brick_elements * 2  ...
          *                             (total_brick_elements * 3) - 1 ]
-         *      sxy:  sigmas__Form_II[ total_brick_elements * 3  ...  
+         *      sxy:  sigmas__Form_II[ total_brick_elements * 3  ...
          *                             (total_brick_elements * 4) - 1 ]
-         *      syz:  sigmas__Form_II[ total_brick_elements * 4  ...  
+         *      syz:  sigmas__Form_II[ total_brick_elements * 4  ...
          *                             (total_brick_elements * 5) - 1 ]
-         *      szx:  sigmas__Form_II[ total_brick_elements * 5  ...  
+         *      szx:  sigmas__Form_II[ total_brick_elements * 5  ...
          *                             (total_brick_elements * 6) - 1 ]
          *
          *      e.g.,
@@ -2687,8 +2698,8 @@ traction( Analysis *analy, char *traction_material_list )
                 break;
         }
 
-        analy->db_get_results( analy->db_ident, analy->cur_state + 1, 
-                               subrecord_index, 6, primal_values, 
+        analy->db_get_results( analy->db_ident, analy->cur_state + 1,
+                               subrecord_index, 6, primal_values,
                                analy->tmp_result[ 0 ] );
 
 
@@ -2699,7 +2710,7 @@ traction( Analysis *analy, char *traction_material_list )
         /*
          * III.  Collect 6 stress values for ALL nodes of entire mesh
          *
-         *      Stress values are returned/assigned in a data structure of the 
+         *      Stress values are returned/assigned in a data structure of the
          *      form:
          *
          *                     element
@@ -2724,10 +2735,10 @@ traction( Analysis *analy, char *traction_material_list )
          */
 
 
-        if ( NULL == (nodal_stress_data = NEW_N( float *, qty_stress_types, 
-                                                 "nodal_stress_data" )) )
+        if ( NULL == (nodal_stress_data = NEW_N( float *, qty_stress_types,
+                                          "nodal_stress_data" )) )
         {
-            popup_dialog( WARNING_POPUP, 
+            popup_dialog( WARNING_POPUP,
                           "traction:  storage allocation fail." );
             return;
         }
@@ -2736,15 +2747,15 @@ traction( Analysis *analy, char *traction_material_list )
 
         for ( i = 0; i < qty_stress_types; i++ )
         {
-            if ( NULL == (nodal_stress_data[ i ] = NEW_N( float, total_nodes, 
-                                                        "nodal_stress_data" )) )
+            if ( NULL == (nodal_stress_data[ i ] = NEW_N( float, total_nodes,
+                                                   "nodal_stress_data" )) )
             {
-                popup_dialog( WARNING_POPUP, 
+                popup_dialog( WARNING_POPUP,
                               "traction:  storage allocation fail." );
                 return;
             }
 
-            hex_to_nodal( p_sigmas__Form_II, nodal_stress_data[ i ], 
+            hex_to_nodal( p_sigmas__Form_II, nodal_stress_data[ i ],
                           p_mo_class, total_brick_elements, NULL, analy );
 
             p_sigmas__Form_II += total_brick_elements;
@@ -2797,7 +2808,7 @@ traction( Analysis *analy, char *traction_material_list )
                                                + element_idx * connectivity_qty;
 
                 shape_fns_hex( r, s, t, h );
-               
+
                 sigma__xx = 0.0;
                 sigma__yy = 0.0;
                 sigma__zz = 0.0;
@@ -2960,34 +2971,35 @@ float
 traction_area( Analysis *analy, char *traction_material_list )
 {
     Htable_entry
-                 *p_hash_table_entry;
+    *p_hash_table_entry;
 
     MO_class_data
-                  *p_mo_class;
+    *p_mo_class;
 
     Vector_pt_obj
-                  *point_data_list
-                 ,*point_data_node;
-    
+    *point_data_list
+    ,*point_data_node;
+
     char
-         class[] = "brick";
+    class[] = "brick";
 
     float
-          total_traction_area = 0.0;
+    total_traction_area = 0.0;
 
     int
-        element_idx
-       ,i;
+    element_idx
+    ,i;
 
     int
-        *materials;
+    *materials;
 
 
-    enum {
-           x_coordinate
-          ,y_coordinate
-          ,z_coordinate
-         };
+    enum
+    {
+        x_coordinate
+        ,y_coordinate
+        ,z_coordinate
+    };
 
 
     /* */
@@ -3000,7 +3012,7 @@ traction_area( Analysis *analy, char *traction_material_list )
         popup_dialog( USAGE_POPUP, "traction_area:  invalid class name" );
         return( (float) invalid_state );
     }
-    
+
     p_mo_class = (MO_class_data *) p_hash_table_entry->data;
 
 

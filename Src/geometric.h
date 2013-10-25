@@ -188,8 +188,8 @@ extern float area_of_quad( float [4][3] );
 /*
  * Matrix operations.
  *
- * Define a homogenous transformation matrix. The first row (vector) 
- * is the new X axis, i.e. the X axis in the transformed coordinate 
+ * Define a homogenous transformation matrix. The first row (vector)
+ * is the new X axis, i.e. the X axis in the transformed coordinate
  * system. The second row is the new Y axis, and so on. The last row
  * is the translation, for a transformed point.
  *
@@ -203,7 +203,8 @@ extern float area_of_quad( float [4][3] );
  * TAG( Transf_mat )
  *
  */
-typedef struct {
+typedef struct
+{
     float   mat[4][4];
 } Transf_mat;
 
@@ -216,7 +217,7 @@ extern Transf_mat ident_matrix;
 
 
 /*****************************************************************
- * TAG( mat_copy ) 
+ * TAG( mat_copy )
  *
  * A = B
  */

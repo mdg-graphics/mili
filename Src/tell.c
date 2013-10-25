@@ -1,7 +1,7 @@
 /* $Id$ */
-/* 
+/*
  * tell.c - Parse and action routines for "tell" command reports.
- * 
+ *
  *  Doug Speck
  *  Lawrence Livermore National Laboratory
  *  20 Sep 2000
@@ -13,7 +13,7 @@
  *  'all' idents.
  *  See TeamForge#????
  *
- *  I. R. Corey - November 25th, 2012: Added fracsz argument to print-width 
+ *  I. R. Corey - November 25th, 2012: Added fracsz argument to print-width
  *  specification for coordinates.
  *
  *  I. R. Corey - November 30th, 2012: Added loading of DP nodal coords
@@ -28,20 +28,20 @@
 #include "viewer.h"
 #include "sarray.h"
 
-#define SIZE1 1024 
+#define SIZE1 1024
 
 static char * build_extended_svar_name( char *svdesc, State_variable *p_sv, int * namesize );
 static void tell_info( Analysis *analy );
-static void parse_tell_times_command( Analysis *analy, 
-                                      char tokens[][TOKENLENGTH], 
+static void parse_tell_times_command( Analysis *analy,
+                                      char tokens[][TOKENLENGTH],
                                       int token_cnt, int *p_addl_tokens );
 static void parse_tell_pos_command( Analysis *analy, char tokens[][TOKENLENGTH],
                                     int token_cnt, int *p_addl_tokens );
-static void parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH], 
+static void parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH],
                                    int token_cnt, int *p_addl_tokens,
                                    Redraw_mode_type *p_redraw );
 static void tell_coordinates( char class[], int id, Analysis *analy );
-static void tell_element_coords( int el_ident, MO_class_data *p_mo_class, 
+static void tell_element_coords( int el_ident, MO_class_data *p_mo_class,
                                  State2 *state_p, int dimension, Analysis *analy );
 static void tell_mesh_classes( Analysis *analy );
 static void tell_results( Analysis *analy );
@@ -51,7 +51,7 @@ static int num_digits(int x);
 
 /*****************************************************************
  * TAG( parse_tell_command )
- * 
+ *
  * Parse a "tell" command and generate a text report.
  */
 void
@@ -69,21 +69,21 @@ parse_tell_command( Analysis *analy, char tokens[][TOKENLENGTH],
         {
             tell_info( analy );
         }
-        else if ( strcmp( tokens[i], "pos" ) == 0 
+        else if ( strcmp( tokens[i], "pos" ) == 0
                   || strcmp( tokens[i], "tellpos" ) == 0 )
         {
-            parse_tell_pos_command( analy, tokens + i, token_cnt - i, 
+            parse_tell_pos_command( analy, tokens + i, token_cnt - i,
                                     &addl_tokens );
         }
         else if ( strcmp( tokens[i], "mm" ) == 0 )
         {
-            parse_tell_mm_command( analy, tokens + i, token_cnt - i, 
+            parse_tell_mm_command( analy, tokens + i, token_cnt - i,
                                    &addl_tokens, p_redraw );
         }
-        else if ( strcmp( tokens[i], "times" ) == 0 
+        else if ( strcmp( tokens[i], "times" ) == 0
                   || strcmp( tokens[i], "lts" ) == 0 )
         {
-            parse_tell_times_command( analy, tokens + i, token_cnt - i, 
+            parse_tell_times_command( analy, tokens + i, token_cnt - i,
                                       &addl_tokens );
         }
         else if ( strcmp( tokens[i], "th" ) == 0 )
@@ -115,7 +115,7 @@ parse_tell_command( Analysis *analy, char tokens[][TOKENLENGTH],
             popup_dialog( INFO_POPUP, "Invalid \"tell\" request: %s",
                           tokens[i] );
         }
-        
+
         i += addl_tokens;
     }
 }
@@ -123,7 +123,7 @@ parse_tell_command( Analysis *analy, char tokens[][TOKENLENGTH],
 
 /*****************************************************************
  * TAG( tell_info )
- * 
+ *
  * Report general information to the feedback window.
  */
 static void
@@ -138,26 +138,26 @@ tell_info( Analysis *analy )
     i_args[1] = 1;
     i_args[2] = analy->cur_state + 1;
     i_args[3] = max_state + 1;
-    analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES, (void *) i_args, 
+    analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES, (void *) i_args,
                      NULL, (void *) pt );
 
     wrt_text( "Database information:\n" );
-    wrt_text( "    Path/name: %s\n    States: %d\n", 
+    wrt_text( "    Path/name: %s\n    States: %d\n",
               analy->root_name, max_state + 1 );
     if ( max_state >= 0 )
         wrt_text( "    Start time: %.4e\n    End time:   %.4e\n",
                   pt[0], pt[2] );
 
     wrt_text( "\nCurrent status:\n" );
-    
+
     if ( max_state >= 0 )
         wrt_text( "    State: %d\n    Time: %.4e\n",
                   analy->cur_state + 1, pt[1] );
 
     if ( analy->cur_result != NULL )
     {
-        wrt_text( "    Result %s, using min: %.4e  max: %.4e\n", 
-                  analy->cur_result->title, analy->result_mm[0], 
+        wrt_text( "    Result %s, using min: %.4e  max: %.4e\n",
+                  analy->cur_result->title, analy->result_mm[0],
                   analy->result_mm[1] );
         wrt_text( "    Result, global min: %.4e  max: %.4e\n",
                   analy->global_mm[0], analy->global_mm[1] );
@@ -165,7 +165,7 @@ tell_info( Analysis *analy )
                   analy->state_mm[0], analy->state_mm[1] );
         wrt_text( "    Result zero tolerance: %.4e\n", analy->zero_result );
     }
-    
+
     wrt_text( "    Bounding box, low corner: %.4f, %.4f, %.4f\n",
               analy->bbox[0][0], analy->bbox[0][1], analy->bbox[0][2] );
     wrt_text( "    Bounding box, high corner: %.4f, %.4f, %.4f\n\n",
@@ -175,11 +175,11 @@ tell_info( Analysis *analy )
 
 /*****************************************************************
  * TAG( parse_tell_times_command )
- * 
+ *
  * Parse a "tell times" command and generate a text report.
  */
 static void
-parse_tell_times_command( Analysis *analy, char tokens[][TOKENLENGTH], 
+parse_tell_times_command( Analysis *analy, char tokens[][TOKENLENGTH],
                           int token_cnt, int *p_addl_tokens )
 {
     int min_state, max_state, qty;
@@ -188,7 +188,7 @@ parse_tell_times_command( Analysis *analy, char tokens[][TOKENLENGTH],
     float val;
     float *f_args;
     int *i_data;
-    
+
     /* Determine if optional additional times tokens are present. */
     times_token_cnt = 0;
     if ( token_cnt > 1 )
@@ -197,7 +197,7 @@ parse_tell_times_command( Analysis *analy, char tokens[][TOKENLENGTH],
         if ( is_numeric_token( tokens[1] ) )
         {
             times_token_cnt++;
-            
+
             /* Second additional token would be last state. */
             if ( token_cnt > 2 && is_numeric_token( tokens[2] ) )
                 times_token_cnt++;
@@ -209,7 +209,7 @@ parse_tell_times_command( Analysis *analy, char tokens[][TOKENLENGTH],
     if ( times_token_cnt > 0 )
     {
         min_state = MAX( min_state, atoi( tokens[1] ) - 1 );
-        
+
         if ( times_token_cnt > 1 )
             max_state = MIN( get_max_state( analy ), atoi( tokens[2] ) - 1 );
         else
@@ -217,10 +217,10 @@ parse_tell_times_command( Analysis *analy, char tokens[][TOKENLENGTH],
     }
     else
         max_state = get_max_state( analy );
-    
+
     if ( min_state > max_state )
     {
-        popup_dialog( USAGE_POPUP, "%s\n%s\n%s", 
+        popup_dialog( USAGE_POPUP, "%s\n%s\n%s",
                       "tell times [<first state> [<last state>]]",
                       "  Where <first state> <= <last state>",
                       "  Alias: lts" );
@@ -233,7 +233,7 @@ parse_tell_times_command( Analysis *analy, char tokens[][TOKENLENGTH],
     i_data[0] = qty;
     for ( i = 1; i <= qty; i++ )
         i_data[i] = i + min_state;
-    analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES, (void *) i_data, 
+    analy->db_query( analy->db_ident, QRY_MULTIPLE_TIMES, (void *) i_data,
                      NULL, (void *) f_args );
     wrt_text( "Database state times:\n" );
     wrt_text( "    State Num \t State Time \t Delta Time\n" );
@@ -242,30 +242,30 @@ parse_tell_times_command( Analysis *analy, char tokens[][TOKENLENGTH],
     for (  i = 1; i < qty; i++ )
     {
         val = f_args[i] - f_args[i-1];
-        wrt_text( "       %3d \t %.4e \t %.4e\n", i_data[i + 1], f_args[i], 
+        wrt_text( "       %3d \t %.4e \t %.4e\n", i_data[i + 1], f_args[i],
                   val );
     }
     wrt_text( "\n" );
     free( f_args );
     free( i_data );
-    
+
     *p_addl_tokens = times_token_cnt;
 }
 
 
 /*****************************************************************
  * TAG( parse_tell_pos_command )
- * 
+ *
  * Parse a "tell pos" command and generate a text report.
  */
 static void
-parse_tell_pos_command( Analysis *analy, char tokens[][TOKENLENGTH], 
+parse_tell_pos_command( Analysis *analy, char tokens[][TOKENLENGTH],
                         int token_cnt, int *p_addl_tokens )
 {
     int object_id, pos_addl_tokens;
     Bool_type parse_failure;
     int i=0;
-    
+
     pos_addl_tokens = 0;
 
     parse_failure = FALSE;
@@ -279,41 +279,41 @@ parse_tell_pos_command( Analysis *analy, char tokens[][TOKENLENGTH],
         if ( p_mo_class != NULL )
         {
             pos_addl_tokens++;
-            
+
             if ( is_numeric_token( tokens[2] ) )
             {
                 pos_addl_tokens++;
                 object_id = atoi( tokens[2] );
                 tell_coordinates( tokens[1], object_id, analy );
             }
+            else if ( !strcmp( "all", tokens[2] ) )
+            {
+                pos_addl_tokens++;
+                for ( i=0;
+                        i<p_mo_class->qty;
+                        i++ )
+                    tell_coordinates( tokens[1], i+1, analy );
+            }
             else
-	      if ( !strcmp( "all", tokens[2] ) ) {
-                   pos_addl_tokens++;
-		   for ( i=0;
-			 i<p_mo_class->qty;
-			 i++ )
-		         tell_coordinates( tokens[1], i+1, analy );
-	      }
-	      else
-		   parse_failure = TRUE;
+                parse_failure = TRUE;
         }
         else
             parse_failure = TRUE;
     }
     else
         parse_failure = TRUE;
-    
+
     if ( parse_failure )
-        popup_dialog( USAGE_POPUP, 
+        popup_dialog( USAGE_POPUP,
                       "tell pos <class name> <ident>" );
-    
+
     *p_addl_tokens = pos_addl_tokens;
 }
 
 
 /*****************************************************************
  * TAG( tell_results )
- * 
+ *
  * Write a summary of available primal and derived results.
  */
 static void
@@ -337,7 +337,7 @@ tell_results( Analysis *analy )
     char * tmp_names = NULL;
     char * current = NULL;
     char * more_current = NULL;
-    char *sclass_names[QTY_SCLASS] = 
+    char *sclass_names[QTY_SCLASS] =
     {
         "G_UNIT", "G_NODE", "G_TRUSS", "G_BEAM", "G_TRI", "G_QUAD", "G_TET",
         "G_PRISM", "G_WEDGE", "G_HEX", "G_SURFACE", "G_MAT", "G_MESH", "G_PARTICLE"
@@ -354,26 +354,26 @@ tell_results( Analysis *analy )
     } Class_primals;
     Class_primals *p_cp;
     StringArray sa;
-    
+
     srec_qty = analy->qty_srec_fmts;
     names = (char *) malloc(SIZE1 * sizeof(char));
     if(names == NULL)
     {
-       
-       printf("Out of memory in file %s, line %d, exiting\n", __FILE__, __LINE__);      
-       exit(1);
+
+        printf("Out of memory in file %s, line %d, exiting\n", __FILE__, __LINE__);
+        exit(1);
     }
 
-    /* 
-     * Derived results. 
+    /*
+     * Derived results.
      */
 
 #ifdef NEWMILI
-     htable_get_data( analy->derived_results, (void ***) &pp_dr ,&res_qty);
+    htable_get_data( analy->derived_results, (void ***) &pp_dr ,&res_qty);
 #else
-     res_qty = htable_get_data( analy->derived_results, (void ***) &pp_dr);
+    res_qty = htable_get_data( analy->derived_results, (void ***) &pp_dr);
 #endif
-    
+
     /* Sort result names into StringArray's by superclass. */
     for ( i = 0; i < res_qty; i++ )
     {
@@ -381,47 +381,47 @@ tell_results( Analysis *analy )
         {
             subrec_qty = pp_dr[i]->srec_map[j].qty;
             sr_array = (Subrecord_result *) pp_dr[i]->srec_map[j].list;
-            
+
             for ( k = 0; k < subrec_qty; k++ )
             {
                 p_cand = sr_array[k].candidate;
                 superclass = p_cand->superclass;
                 idx = sr_array[k].index;
-                
+
                 /* Init the StringArray if first insertion. */
                 if ( sa_arr[superclass] == NULL )
                     SANEWS( sa_arr[superclass], 4096 );
-               
 
-                if(strlen(p_cand->short_names[idx]) + strlen(p_cand->long_names[idx]) + 3  > SIZE1) 
+
+                if(strlen(p_cand->short_names[idx]) + strlen(p_cand->long_names[idx]) + 3  > SIZE1)
                 {
-                   
-                   namesize = strlen(p_cand->short_names[idx]) + strlen(p_cand->long_names[idx]) + 3; 
-                   /* Need to increase the memory allocated for names */
-                   tmp_names = (char *) realloc(names, namesize*sizeof(char));
-                   if(tmp_names == NULL)
-                   {
-                      printf("memory allocation error in file %s line %d\n", __FILE__, __LINE__);
-                      exit(1);
-                   }
-                   names = tmp_names;
-                   
-                }  
+
+                    namesize = strlen(p_cand->short_names[idx]) + strlen(p_cand->long_names[idx]) + 3;
+                    /* Need to increase the memory allocated for names */
+                    tmp_names = (char *) realloc(names, namesize*sizeof(char));
+                    if(tmp_names == NULL)
+                    {
+                        printf("memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                        exit(1);
+                    }
+                    names = tmp_names;
+
+                }
                 /* Build a name that combines short and long names. */
                 sprintf( names, "%s|%s", p_cand->short_names[idx],
                          p_cand->long_names[idx] );
-                
+
                 /* Save the longest short name length. */
                 if ( (tmp_len = strlen( p_cand->short_names[idx] )) > max_len )
                     max_len = tmp_len;
-                
+
                 /* Insert the string into the StringArray. */
 #ifdef NEWMILI
                 rval = sa_add( &sa_arr[superclass], names , &arrsize);
 #else
                 rval = SAADD( sa_arr[superclass], names);
 #endif
-                
+
                 if ( rval < 0 )
                     /* String insertion failed - warn but continue. */
                     popup_dialog( WARNING_POPUP,
@@ -435,10 +435,10 @@ tell_results( Analysis *analy )
     current = (char *) malloc(max_len);
     if( current == NULL)
     {
-	popup_dialog( WARNING_POPUP, "Out of memory in file tell.c, exiting.");
+        popup_dialog( WARNING_POPUP, "Out of memory in file tell.c, exiting.");
         exit(1);
     }
-    
+
     /* Sort StringArrays to enable duplicate detection. */
     have_result = FALSE;
     for ( i = 0; i < QTY_SCLASS; i++ )
@@ -449,7 +449,7 @@ tell_results( Analysis *analy )
             have_result = TRUE;
         }
     }
-    
+
     if ( have_result )
     {
         wrt_text( "Derived results:\n" );
@@ -459,11 +459,11 @@ tell_results( Analysis *analy )
         {
             if ( sa_arr[i] == NULL )
                 continue;
-            
+
             res_qty = SAQTY( sa_arr[i] );
-            
+
             wrt_text( "    For %s classes:\n", sclass_names[i] );
-         
+
             /* Process the first result, saving reference to the short name. */
             strcpy( names, SASTRING( sa_arr[i], 0 ) );
             p_short = strtok( names, "|" );
@@ -473,21 +473,21 @@ tell_results( Analysis *analy )
 
             for(j = 1; j < res_qty; j++)
             {
-               if(strlen(SASTRING(sa_arr[i], j)) > namesize)
-               {
-                  namesize = strlen(SASTRING(sa_arr[i], j));
-         
-               }
+                if(strlen(SASTRING(sa_arr[i], j)) > namesize)
+                {
+                    namesize = strlen(SASTRING(sa_arr[i], j));
+
+                }
             }
-            
+
             if(namesize > SIZE1)
             {
-               tmp_names = (char *) realloc(names, namesize*sizeof(char));
-               if(tmp_names == NULL)
-               {
-                  printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
-                  exit(1);
-               } 
+                tmp_names = (char *) realloc(names, namesize*sizeof(char));
+                if(tmp_names == NULL)
+                {
+                    printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                    exit(1);
+                }
             }
 
             for ( j = 1; j < res_qty; j++ )
@@ -495,7 +495,7 @@ tell_results( Analysis *analy )
                 strcpy( names, SASTRING( sa_arr[i], j ) );
                 p_short = strtok( names, "|" );
                 p_long = strtok( NULL, "|" );
-                
+
                 /* Skip over duplicate names. */
                 if ( strcmp( current, p_short ) == 0 )
                     continue;
@@ -505,23 +505,23 @@ tell_results( Analysis *analy )
             }
         }
     }
-    
+
     /* Clean-up for derived results reporting. */
     for ( i = 0; i < QTY_SCLASS; i++ )
         if ( sa_arr[i] != NULL )
             free( sa_arr[i] );
     free( pp_dr );
-    
-    /* 
-     * Primal results. 
+
+    /*
+     * Primal results.
      */
 #ifdef NEWMILI
     htable_get_data( analy->primal_results, (void ***) &pp_pr, &res_qty );
 #else
     res_qty = htable_get_data( analy->primal_results, (void ***) &pp_pr);
 #endif
-    
-    /* go ahead and realloc names to SIZE1 before proceeding 
+
+    /* go ahead and realloc names to SIZE1 before proceeding
     tmp_names = realloc(names, SIZE1*sizeof(char));
     if(tmp_names == NULL)
     {
@@ -533,16 +533,16 @@ tell_results( Analysis *analy )
 
     /* at this point the amount of memory allocated for names is either SIZE1 or namesize if namesize > SIZE1 */
 
- 
+
     if ( have_result )
         wrt_text( "\n" );
 
     if ( res_qty > 0 )
         wrt_text( "Primal results:\n" );
-    
+
     /* Hash table for StringArray's by class. */
     p_ht = htable_create( 151 );
-    
+
     /* Sort result names into StringArray's by class. */
     max_len = 0;
     for ( i = 0; i < res_qty; i++ )
@@ -557,16 +557,16 @@ tell_results( Analysis *analy )
             p_subrecs = analy->srec_tree[j].subrecs;
             subrec_qty = pp_pr[i]->srec_map[j].qty;
             i_array = (int *) pp_pr[i]->srec_map[j].list;
-            
+
             /* Loop over subrecords where result exists... */
             for ( k = 0; k < subrec_qty; k++ )
             {
                 p_subrec = p_subrecs + i_array[k];
-                
+
                 /* Get/create hash table entry for class of current primal. */
                 htable_search( p_ht, p_subrec->p_object_class->short_name,
                                ENTER_MERGE, &p_hte );
-                
+
                 /* Init the StringArray if first insertion. */
                 if ( p_hte->data == NULL )
                 {
@@ -575,26 +575,26 @@ tell_results( Analysis *analy )
                     SANEWS( p_cp->sa, 4096 );
                     p_hte->data = (void *) p_cp;
                 }
-                
+
                 sa = ((Class_primals *) p_hte->data)->sa;
-                
+
                 /* Append state variable aggregation info to short name. */
                 names =  build_extended_svar_name( names, p_sv, & namesize );
-                
+
                 /* Save the longest extended short name length. */
                 if ( (tmp_len = strlen( names )) > max_len )
                     max_len = tmp_len;
-                
+
                 /* Append long name for storage in StringArray. */
                 sprintf( names + strlen( names ), "|%s", p_sv->long_name );
-                
+
                 /* Insert the string into the StringArray. */
 #ifdef NEWMILI
                 rval = sa_add( &sa, names, &arrsize );
 #else
                 rval = SAADD( sa, names );
 #endif
-                
+
                 if ( rval < 0 )
                     /* String insertion failed - warn but continue. */
                     popup_dialog( WARNING_POPUP,
@@ -608,15 +608,15 @@ tell_results( Analysis *analy )
        realloc if necessary */
     if(max_len >= strlen(current))
     {
-       more_current =  (char *) realloc(current, (max_len + 10)*sizeof(char));	
-       if(more_current == NULL  )
-       {
-          popup_dialog( WARNING_POPUP, "Out of memory in file tell.c, exiting\n");
-          exit(1);
-       }
+        more_current =  (char *) realloc(current, (max_len + 10)*sizeof(char));
+        if(more_current == NULL  )
+        {
+            popup_dialog( WARNING_POPUP, "Out of memory in file tell.c, exiting\n");
+            exit(1);
+        }
 
-       current = more_current;
-    }   
+        current = more_current;
+    }
     /* Pointer to current mesh. */
     p_md = MESH_P( analy );
 
@@ -625,9 +625,9 @@ tell_results( Analysis *analy )
     {
         if ( (c_qty = p_md->classes_by_sclass[i].qty) == 0 )
             continue;
-        
+
         p_mo_classes = (MO_class_data **) p_md->classes_by_sclass[i].list;
-        
+
         /* Loop over classes of current superclass... */
         for ( j = 0; j < c_qty; j++ )
         {
@@ -635,17 +635,17 @@ tell_results( Analysis *analy )
                                   &p_hte );
             if ( rval != OK )
                 continue;
-            
+
             p_cp = (Class_primals *) p_hte->data;
-            
+
             /* Sort result names alphabetically. */
             SASORT( p_cp->sa, 1 );
-        
-            wrt_text( "    Class %s (%s):\n", 
+
+            wrt_text( "    Class %s (%s):\n",
                       p_cp->p_class->short_name, p_cp->p_class->long_name );
-        
+
             res_qty = SAQTY( p_cp->sa );
-         
+
             /* Process the first result, saving reference to the short name. */
             strcpy( names, SASTRING( p_cp->sa, 0 ) );
             p_short = strtok( names, "|" );
@@ -659,7 +659,7 @@ tell_results( Analysis *analy )
                 strcpy( names, SASTRING( p_cp->sa, k ) );
                 p_short = strtok( names, "|" );
                 p_long = strtok( NULL, "|" );
-                
+
                 /* Skip over duplicate names. */
                 if ( strcmp( current, p_short ) == 0 )
                     continue;
@@ -668,26 +668,26 @@ tell_results( Analysis *analy )
 
                 strcpy( current, p_short );
             }
-            
+
             /* Don't need the StringArray anymore. */
             free( p_cp->sa );
         }
     }
-    
+
     if ( res_qty > 0 )
         wrt_text( "\n" );
-    
+
     /* Don't need the hash table anymore. */
     htable_delete( p_ht, NULL, TRUE );
     if(current != NULL)
     {
-	free(current);
+        free(current);
     }
 
     if(names != NULL)
     {
 
-	free(names);
+        free(names);
 
     }
 }
@@ -695,10 +695,10 @@ tell_results( Analysis *analy )
 
 /*****************************************************************
  * TAG( build_extended_svar_name )
- * 
+ *
  * Compose a descriptive string of a State_variable aggregation type.
  */
-static char * 
+static char *
 build_extended_svar_name( char *svdesc, State_variable *p_sv, int * namesize )
 {
     int k, size = 0;
@@ -707,117 +707,117 @@ build_extended_svar_name( char *svdesc, State_variable *p_sv, int * namesize )
     /* namesize is the amount of memory allocated for svdesc */
     switch ( p_sv->agg_type )
     {
-        case SCALAR:
-            if(strlen(p_sv->short_name) > *namesize)
+    case SCALAR:
+        if(strlen(p_sv->short_name) > *namesize)
+        {
+            *namesize = strlen(p_sv->short_name);
+            tmp_names = (char *)  realloc(svdesc, *namesize*sizeof(char));
+            if(tmp_names == NULL)
             {
-               *namesize = strlen(p_sv->short_name);
-               tmp_names = (char *)  realloc(svdesc, *namesize*sizeof(char));
-               if(tmp_names == NULL)
-               {
-                  printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
-                  exit(1);
-               }
+                printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                exit(1);
+            }
 
-               svdesc = tmp_names; 
-            }
-            sprintf( svdesc, p_sv->short_name );
-            break;
-        case VECTOR:
-            size = 2 + strlen(p_sv->short_name) + strlen(p_sv->components[0]);
-            for( k = 1; k < p_sv->vec_size; k++)
+            svdesc = tmp_names;
+        }
+        sprintf( svdesc, p_sv->short_name );
+        break;
+    case VECTOR:
+        size = 2 + strlen(p_sv->short_name) + strlen(p_sv->components[0]);
+        for( k = 1; k < p_sv->vec_size; k++)
+        {
+            size += strlen(p_sv->components[k]);
+        }
+        size += 2; /* add room for the null terminator */
+        if(size > *namesize)
+        {
+            *namesize = size*2;
+            tmp_names =  (char *) realloc(svdesc, *namesize*sizeof(char));
+            if(tmp_names == NULL)
             {
-               size += strlen(p_sv->components[k]);
+                printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                exit(1);
             }
-            size += 2; /* add room for the null terminator */
-            if(size > *namesize)
-            {
-              *namesize = size*2;
-              tmp_names =  (char *) realloc(svdesc, *namesize*sizeof(char));
-              if(tmp_names == NULL)
-              {
-                  printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
-                  exit(1);
-              }
- 
-              svdesc = tmp_names;
-            }
-            
-            sprintf( svdesc, "%s[%s", p_sv->short_name, p_sv->components[0] );
-            for ( k = 1; k < p_sv->vec_size; k++ )
-                strcat( svdesc, p_sv->components[k]);
-            strcat( svdesc, "]" );
-            break;
-        case ARRAY:
 
-            size = strlen(p_sv->short_name) + 1; /* add 1 to account for the null terminating character that
+            svdesc = tmp_names;
+        }
+
+        sprintf( svdesc, "%s[%s", p_sv->short_name, p_sv->components[0] );
+        for ( k = 1; k < p_sv->vec_size; k++ )
+            strcat( svdesc, p_sv->components[k]);
+        strcat( svdesc, "]" );
+        break;
+    case ARRAY:
+
+        size = strlen(p_sv->short_name) + 1; /* add 1 to account for the null terminating character that
                                                     will be required at the end. */
-            for( k = p_sv->rank - 1; k >= 0; k--)
+        for( k = p_sv->rank - 1; k >= 0; k--)
+        {
+            size += num_digits(p_sv->dims[k]) + 2;
+        }
+
+        if(size > *namesize)
+        {
+            *namesize = size*2;
+            tmp_names = (char *) realloc(svdesc, *namesize*sizeof(char));
+            if(tmp_names == NULL)
             {
-               size += num_digits(p_sv->dims[k]) + 2; 
+                printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                exit(1);
             }
-            
-            if(size > *namesize)
+            svdesc = tmp_names;
+        }
+
+        sprintf( svdesc, "%s", p_sv->short_name );
+        /*
+         * Write indices in row-major order to match menu & command-line
+         * order & result expression in rendering window.
+         */
+        for ( k = p_sv->rank - 1; k >= 0; k-- )
+            sprintf( svdesc + strlen( svdesc ), "[%d]", p_sv->dims[k] );
+        break;
+    case VEC_ARRAY:
+        size = strlen(p_sv->short_name) + 1;
+        for( k = p_sv->rank - 1; k >= 0; k--)
+        {
+            size += num_digits(p_sv->dims[k]) + 2;
+        }
+
+
+        for ( k = 1; k < p_sv->vec_size; k++ )
+        {
+            size =+  num_digits(strlen(p_sv->components[k])) ;
+
+        }
+
+        if(size > *namesize)
+        {
+            *namesize = size*2;
+            tmp_names = (char *) realloc(svdesc, *namesize*sizeof(char));
+            if(tmp_names == NULL)
             {
-              *namesize = size*2;
-              tmp_names = (char *) realloc(svdesc, *namesize*sizeof(char));
-              if(tmp_names == NULL)
-              {
-                  printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
-                  exit(1);
-              }
-              svdesc = tmp_names; 
+                printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
+                exit(1);
             }
 
-            sprintf( svdesc, "%s", p_sv->short_name );
-            /* 
-             * Write indices in row-major order to match menu & command-line
-             * order & result expression in rendering window.
-             */
-            for ( k = p_sv->rank - 1; k >= 0; k-- )
-                sprintf( svdesc + strlen( svdesc ), "[%d]", p_sv->dims[k] );
-            break;
-        case VEC_ARRAY:
-            size = strlen(p_sv->short_name) + 1;
-            for( k = p_sv->rank - 1; k >= 0; k--)
-            {
-               size += num_digits(p_sv->dims[k]) + 2; 
-            }
+            svdesc = tmp_names;
+        }
 
-            
-            for ( k = 1; k < p_sv->vec_size; k++ )
-            {   
-              size =+  num_digits(strlen(p_sv->components[k])) ;
+        sprintf( svdesc, "%s", p_sv->short_name );
+        /*
+         * Write indices in row-major order to match menu & command-line
+         * order & result expression in rendering window.
+         */
+        for ( k = p_sv->rank - 1; k >= 0; k-- )
+            sprintf( svdesc + strlen( svdesc ), "[%d]", p_sv->dims[k] );
+        sprintf( svdesc + strlen( svdesc ), "[%s", p_sv->components[0] );
+        for ( k = 1; k < p_sv->vec_size; k++ )
+            /*sprintf( svdesc + strlen( svdesc ), " %s",
+                     p_sv->components[k] ); */
+            strcat(svdesc, p_sv->components[k]);
 
-            }
-
-            if(size > *namesize)
-            {
-              *namesize = size*2;
-              tmp_names = (char *) realloc(svdesc, *namesize*sizeof(char));
-              if(tmp_names == NULL)
-              {
-                  printf("Memory allocation error in file %s line %d\n", __FILE__, __LINE__);
-                  exit(1);
-              }
-
-              svdesc = tmp_names; 
-            }
-
-            sprintf( svdesc, "%s", p_sv->short_name );
-            /* 
-             * Write indices in row-major order to match menu & command-line
-             * order & result expression in rendering window.
-             */
-            for ( k = p_sv->rank - 1; k >= 0; k-- )
-                sprintf( svdesc + strlen( svdesc ), "[%d]", p_sv->dims[k] );
-            sprintf( svdesc + strlen( svdesc ), "[%s", p_sv->components[0] );
-            for ( k = 1; k < p_sv->vec_size; k++ )
-                /*sprintf( svdesc + strlen( svdesc ), " %s", 
-                         p_sv->components[k] ); */
-               strcat(svdesc, p_sv->components[k]);
-
-            strcat( svdesc, "]" );
-            break;
+        strcat( svdesc, "]" );
+        break;
     }
 
     return tmp_names;
@@ -826,7 +826,7 @@ build_extended_svar_name( char *svdesc, State_variable *p_sv, int * namesize )
 
 /*****************************************************************
  * TAG( tell_mesh_classes )
- * 
+ *
  * Write a summary of classes in the current mesh.
  */
 static void
@@ -834,12 +834,12 @@ tell_mesh_classes( Analysis *analy )
 {
     MO_class_data **mo_classes;
     int i, j;
-    int qty_classes; 
-    char *sclass_types[] = 
+    int qty_classes;
+    char *sclass_types[] =
     {
-        "object(s)", "node(s)", "element(s)", "element(s)", "element(s)", 
-        "element(s)", "element(s)", "element(s)", "element(s)", "element(s)", 
-        "material(s)", "mesh(es)", "surface(s)", "particle(s)" 
+        "object(s)", "node(s)", "element(s)", "element(s)", "element(s)",
+        "element(s)", "element(s)", "element(s)", "element(s)", "element(s)",
+        "material(s)", "mesh(es)", "surface(s)", "particle(s)"
 
     };
 
@@ -847,9 +847,9 @@ tell_mesh_classes( Analysis *analy )
     for ( i = 0; i < QTY_SCLASS; i++ )
     {
         qty_classes = MESH_P( analy )->classes_by_sclass[i].qty;
-        mo_classes = (MO_class_data **) 
+        mo_classes = (MO_class_data **)
                      MESH_P( analy )->classes_by_sclass[i].list;
-        
+
         for ( j = 0; j < qty_classes; j++ )
         {
             wrt_text( "    %s (%s) - %d %s\n", mo_classes[j]->long_name,
@@ -863,22 +863,22 @@ tell_mesh_classes( Analysis *analy )
 
 /*****************************************************************
  * TAG( parse_tell_mm_command )
- * 
+ *
  * Parse a "tell mm" command and generate a text report.
  */
 static void
-parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH], 
-                       int token_cnt, int *p_addl_tokens, 
+parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH],
+                       int token_cnt, int *p_addl_tokens,
                        Redraw_mode_type *p_redraw )
 {
-    char *tellmm_usage = 
+    char *tellmm_usage =
         "tell mm [<result> [<first state> [<last state>]]]";
     int start_state, stop_state, min_state, max_state;
     Bool_type rval;
     int mm_token_cnt;
     char result_variable[1];
     int ival;
-    
+
     /* Determine if optional additional mm tokens are present. */
     mm_token_cnt = 1;
     if ( token_cnt > 1 )
@@ -889,12 +889,12 @@ parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH],
                                    NULL, NULL ) )
         {
             mm_token_cnt++;
-            
+
             /* If we have a result, we could have first/last states also. */
             if ( token_cnt > 2 && is_numeric_token( tokens[2] ) )
             {
                 mm_token_cnt++;
-                    
+
                 if ( token_cnt > 3 && is_numeric_token( tokens[3] ) )
                     mm_token_cnt++;
             }
@@ -908,14 +908,14 @@ parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH],
     {
         /* tellmm - no optional parameters */
         result_variable[0] = '\0';
-        rval = tellmm( analy, result_variable, start_state, stop_state, 
+        rval = tellmm( analy, result_variable, start_state, stop_state,
                        p_redraw );
     }
     else if ( mm_token_cnt == 2 )
     {
         /* tellmm <valid_result> */
         analy->result_mod = TRUE;
-        rval = tellmm( analy, tokens[1], start_state, stop_state, 
+        rval = tellmm( analy, tokens[1], start_state, stop_state,
                        p_redraw );
     }
     else if ( mm_token_cnt == 3 )
@@ -940,12 +940,12 @@ parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH],
         min_state = (int) strtol( tokens[2], (char **)NULL, 10 );
         max_state = (int) strtol( tokens[3], (char **)NULL, 10 );
 
-        if ( min_state >= start_state 
-             && max_state <= stop_state )
+        if ( min_state >= start_state
+                && max_state <= stop_state )
         {
             /* tellmm result state_number state_number */
             analy->result_mod = TRUE;
-            rval = tellmm( analy, tokens[1], min_state, max_state, 
+            rval = tellmm( analy, tokens[1], min_state, max_state,
                            p_redraw );
         }
         else
@@ -954,10 +954,10 @@ parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH],
             popup_dialog( USAGE_POPUP, tellmm_usage );
         }
     }
-    
+
     if ( !rval )
         popup_dialog( USAGE_POPUP, tellmm_usage );
-    
+
     *p_addl_tokens = mm_token_cnt - 1;
 }
 
@@ -966,7 +966,7 @@ parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH],
  * TAG( tell_coordinates )
  *
  * Display nodal coordinates of:  a.) specified node id, or
- *                                b.) nodal components of 
+ *                                b.) nodal components of
  *                                    specified element type id
  */
 static void
@@ -981,36 +981,37 @@ tell_coordinates( char class[], int id, Analysis *analy )
     GVec2D2P *nodes2d2p;
     int frac_size = 6;
     State_rec_obj *p_sro;
-    
+
     if (MESH_P( analy )->double_precision_nodpos)
     {
         p_sro = analy->srec_tree + analy->state_p->srec_id;
-        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension, 
-                     analy->cur_state + 1, FALSE, 
+        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                     analy->cur_state + 1, FALSE,
                      (void *)  analy->tmp_result[0] );
-	if ( analy->dimension == 3 )
-             nodes3d2p = ( GVec3D2P *) analy->tmp_result[0];
-	else
-             nodes2d2p = ( GVec2D2P *) analy->tmp_result[0];
+        if ( analy->dimension == 3 )
+            nodes3d2p = ( GVec3D2P *) analy->tmp_result[0];
+        else
+            nodes2d2p = ( GVec2D2P *) analy->tmp_result[0];
     }
-    else {
-	 if ( analy->dimension == 3 )
-               nodes3d = analy->state_p->nodes.nodes3d;
-	 else
-               nodes2d = analy->state_p->nodes.nodes2d;
+    else
+    {
+        if ( analy->dimension == 3 )
+            nodes3d = analy->state_p->nodes.nodes3d;
+        else
+            nodes2d = analy->state_p->nodes.nodes2d;
     }
 
     if ( (int) analy->float_frac_size>frac_size )
-         frac_size = (int) analy->float_frac_size;
-    
-    rval = htable_search( MESH( analy ).class_table, class, FIND_ENTRY, 
+        frac_size = (int) analy->float_frac_size;
+
+    rval = htable_search( MESH( analy ).class_table, class, FIND_ENTRY,
                           &p_hte );
     if ( rval != OK )
     {
         popup_dialog( USAGE_POPUP, "tell pos <class name> <ident>" );
         return;
     }
-    
+
     p_mo_class = (MO_class_data *) p_hte->data;
 
     if ( id < 1 || id > p_mo_class->qty )
@@ -1021,35 +1022,35 @@ tell_coordinates( char class[], int id, Analysis *analy )
 
     if ( p_mo_class->superclass == G_NODE )
     {
-        
+
         if ( analy->dimension == 3 )
         {
-             if (MESH_P( analy )->double_precision_nodpos)
-	         wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n", 
-			   p_mo_class->long_name, id, 
-			   frac_size, nodes3d2p[id - 1][0], 
-			   frac_size, nodes3d2p[id - 1][1], 
-			   frac_size, nodes3d2p[id - 1][2] );
-	     else
-	         wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n", 
-			   p_mo_class->long_name, id, 
-			   frac_size, nodes3d[id - 1][0], 
-			   frac_size, nodes3d[id - 1][1], 
-			   frac_size, nodes3d[id - 1][2] );
+            if (MESH_P( analy )->double_precision_nodpos)
+                wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n",
+                          p_mo_class->long_name, id,
+                          frac_size, nodes3d2p[id - 1][0],
+                          frac_size, nodes3d2p[id - 1][1],
+                          frac_size, nodes3d2p[id - 1][2] );
+            else
+                wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n",
+                          p_mo_class->long_name, id,
+                          frac_size, nodes3d[id - 1][0],
+                          frac_size, nodes3d[id - 1][1],
+                          frac_size, nodes3d[id - 1][2] );
 
         }
         else
         {
-	    if (MESH_P( analy )->double_precision_nodpos)
-   	        wrt_text( "%s %d  x: %.*e  y: %.*e\n", 
-			  p_mo_class->long_name, id, 
-			  frac_size, nodes2d2p[id - 1][0], 
-			  frac_size, nodes2d2p[id - 1][1] );
-	    else
-   	        wrt_text( "%s %d  x: %.*e  y: %.*e\n", 
-			  p_mo_class->long_name, id, 
-			  frac_size, nodes2d[id - 1][0], 
-			  frac_size, nodes2d[id - 1][1] );
+            if (MESH_P( analy )->double_precision_nodpos)
+                wrt_text( "%s %d  x: %.*e  y: %.*e\n",
+                          p_mo_class->long_name, id,
+                          frac_size, nodes2d2p[id - 1][0],
+                          frac_size, nodes2d2p[id - 1][1] );
+            else
+                wrt_text( "%s %d  x: %.*e  y: %.*e\n",
+                          p_mo_class->long_name, id,
+                          frac_size, nodes2d[id - 1][0],
+                          frac_size, nodes2d[id - 1][1] );
         }
 
         wrt_text( "\n" );
@@ -1061,7 +1062,7 @@ tell_coordinates( char class[], int id, Analysis *analy )
         wrt_text( "\n" );
     }
     else
-        popup_dialog( INFO_POPUP, "%s\n%s%s%s", 
+        popup_dialog( INFO_POPUP, "%s\n%s%s%s",
                       "Griz cannot perform a position query on",
                       "class \"", p_mo_class->short_name, "\" objects." );
 
@@ -1071,12 +1072,12 @@ tell_coordinates( char class[], int id, Analysis *analy )
 
 /*****************************************************************
  * TAG( tell_element_coords )
- * 
+ *
  * Write the node idents and their coordinates for the nodes
  * referenced by an element.
  */
 static void
-tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p, 
+tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
                      int dimension, Analysis *analy )
 {
     int i;
@@ -1093,43 +1094,44 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
     float *activity;
     int el_idx;
     State_rec_obj *p_sro;
-    
+
     if ( (int)analy->float_frac_size>frac_size )
-         frac_size = (int) analy->float_frac_size;
+        frac_size = (int) analy->float_frac_size;
 
     el_idx = el_ident - 1;
     conn_qty = qty_connects[p_mo_class->superclass];
     el_conns = p_mo_class->objects.elems->nodes + el_idx * conn_qty;
-    activity = ( state_p->sand_present ) 
+    activity = ( state_p->sand_present )
                ? state_p->elem_class_sand[p_mo_class->elem_class_index]
                : NULL;
-    
+
     sprintf( el_buf, "%s %d", p_mo_class->long_name, el_ident );
-    
+
     /* Set up to align output cleanly. */
     width = max_id_string_width( el_conns, conn_qty );
     el_buf_width = strlen( el_buf );
-    
+
     /* Assign appropriate pointer to nodal coordinates. */
     if (MESH_P( analy )->double_precision_nodpos)
     {
         p_sro = analy->srec_tree + analy->state_p->srec_id;
-        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension, 
-                     analy->cur_state + 1, FALSE, 
+        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                     analy->cur_state + 1, FALSE,
                      (void *)  analy->tmp_result[0] );
-	if ( dimension == 3 )
-             nodes3d2p = ( GVec3D2P *) analy->tmp_result[0];
-	else
-             nodes2d2p = ( GVec2D2P *) analy->tmp_result[0];
+        if ( dimension == 3 )
+            nodes3d2p = ( GVec3D2P *) analy->tmp_result[0];
+        else
+            nodes2d2p = ( GVec2D2P *) analy->tmp_result[0];
     }
-    else {
-	 if ( dimension == 3 )
-	      nodes3d = state_p->nodes.nodes3d;
-	 else
-	      nodes2d = state_p->nodes.nodes2d;
+    else
+    {
+        if ( dimension == 3 )
+            nodes3d = state_p->nodes.nodes3d;
+        else
+            nodes2d = state_p->nodes.nodes2d;
     }
 
-   /* For each node referenced by element... */
+    /* For each node referenced by element... */
     for ( i = 0; i < conn_qty; i++ )
     {
         /* Get node ident and its coordinates. */
@@ -1141,33 +1143,32 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
             if ( i == 0 )
             {
                 if ( activity && activity[el_idx] == 0.0 )
-                    wrt_text( "\n%s is inactive.\n", el_buf ); 
-		    if (MESH_P( analy )->double_precision_nodpos)
-		                wrt_text( "%*.s  node %*d  x: %.*e  y: %.*e  z: %.*e\n", /* Format changed from e9.6 */
-					  el_buf_width, el_buf, width, node_id, 
-					  frac_size, nodes3d2p[node_idx][0], 
-					  frac_size, nodes3d2p[node_idx][1], 
-					  frac_size, nodes3d2p[node_idx][2] );
-		    else
-		                wrt_text( "%*.s  node %*d  x: %.*e  y: %.*e  z: %.*e\n", /* Format changed from e9.6 */
-					  el_buf_width, el_buf, width, node_id, 
-					  frac_size, nodes3d[node_idx][0], 
-					  frac_size, nodes3d[node_idx][1], 
-					  frac_size, nodes3d[node_idx][2] );
+                    wrt_text( "\n%s is inactive.\n", el_buf );
+                if (MESH_P( analy )->double_precision_nodpos)
+                    wrt_text( "%*.s  node %*d  x: %.*e  y: %.*e  z: %.*e\n", /* Format changed from e9.6 */
+                              el_buf_width, el_buf, width, node_id,
+                              frac_size, nodes3d2p[node_idx][0],
+                              frac_size, nodes3d2p[node_idx][1],
+                              frac_size, nodes3d2p[node_idx][2] );
+                else
+                    wrt_text( "%*.s  node %*d  x: %.*e  y: %.*e  z: %.*e\n", /* Format changed from e9.6 */
+                              el_buf_width, el_buf, width, node_id,
+                              frac_size, nodes3d[node_idx][0],
+                              frac_size, nodes3d[node_idx][1],
+                              frac_size, nodes3d[node_idx][2] );
             }
+            else if (MESH_P( analy )->double_precision_nodpos)
+                wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e  z: %.*e\n",
+                          el_buf_width, blanks, width, node_id,
+                          frac_size, nodes3d2p[node_idx][0],
+                          frac_size, nodes3d2p[node_idx][1],
+                          frac_size, nodes3d2p[node_idx][2] );
             else
-		    if (MESH_P( analy )->double_precision_nodpos)
-		        wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e  z: %.*e\n", 
-				  el_buf_width, blanks, width, node_id, 
-				  frac_size, nodes3d2p[node_idx][0], 
-				  frac_size, nodes3d2p[node_idx][1], 
-				  frac_size, nodes3d2p[node_idx][2] );
-		    else
-		        wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e  z: %.*e\n", 
-				  el_buf_width, blanks, width, node_id, 
-				  frac_size, nodes3d[node_idx][0], 
-				  frac_size, nodes3d[node_idx][1], 
-				  frac_size, nodes3d[node_idx][2] );
+                wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e  z: %.*e\n",
+                          el_buf_width, blanks, width, node_id,
+                          frac_size, nodes3d[node_idx][0],
+                          frac_size, nodes3d[node_idx][1],
+                          frac_size, nodes3d[node_idx][2] );
         }
         else
         {
@@ -1176,28 +1177,27 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
                 if ( activity && activity[node_idx] == 0.0 )
                     wrt_text( "\n%s is inactive.\n", el_buf );
 
-		    if (MESH_P( analy )->double_precision_nodpos)
-                        wrt_text( "%s  node %*d  x: %.*e  y: %.*e\n", 
-				  el_buf, width, node_id, 
-				  frac_size, nodes2d2p[node_idx][0], 
-				  frac_size, nodes2d2p[node_idx][1] );
-		    else
-                        wrt_text( "%s  node %*d  x: %.*e  y: %.*e\n", 
-				  el_buf, width, node_id, 
-				  frac_size, nodes2d[node_idx][0], 
-				  frac_size, nodes2d[node_idx][1] );
+                if (MESH_P( analy )->double_precision_nodpos)
+                    wrt_text( "%s  node %*d  x: %.*e  y: %.*e\n",
+                              el_buf, width, node_id,
+                              frac_size, nodes2d2p[node_idx][0],
+                              frac_size, nodes2d2p[node_idx][1] );
+                else
+                    wrt_text( "%s  node %*d  x: %.*e  y: %.*e\n",
+                              el_buf, width, node_id,
+                              frac_size, nodes2d[node_idx][0],
+                              frac_size, nodes2d[node_idx][1] );
             }
+            else if (MESH_P( analy )->double_precision_nodpos)
+                wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e\n",
+                          el_buf_width, blanks, width, node_id,
+                          frac_size, nodes2d2p[node_idx][0],
+                          frac_size, nodes2d2p[node_idx][1] );
             else
-		    if (MESH_P( analy )->double_precision_nodpos)
-                        wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e\n", 
-				  el_buf_width, blanks, width, node_id, 
-				  frac_size, nodes2d2p[node_idx][0], 
-				  frac_size, nodes2d2p[node_idx][1] );
-		    else
-                        wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e\n", 
-				  el_buf_width, blanks, width, node_id, 
-				  frac_size, nodes2d[node_idx][0], 
-				  frac_size, nodes2d[node_idx][1] );
+                wrt_text( "%.*s  node %*d  x: %.*e  y: %.*e\n",
+                          el_buf_width, blanks, width, node_id,
+                          frac_size, nodes2d[node_idx][0],
+                          frac_size, nodes2d[node_idx][1] );
         }
     }
     return;
@@ -1206,47 +1206,48 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
 
 /*****************************************************************
  * TAG( max_id_string_width )
- * 
+ *
  * Get the maximum width among string representations of node
  * identifiers referenced by an element.
  */
 static int
 max_id_string_width( int *connects, int node_cnt )
 {
-    int i, width, temp, val; 
-    
+    int i, width, temp, val;
+
     width = 0;
     for ( i = 0; i < node_cnt; i++ )
     {
         val = ( connects[i] > 0 ) ? connects[i] : 1;
         temp = (int) (log10( (double) val ) + 1.0);
-    
-        if ( temp > width ) 
+
+        if ( temp > width )
             width = temp;
     }
-    
+
     return width;
 }
 
 
 /*************************************************************
  * TAG(num_digits)
- * return the number of digits in an integer including the 
- * minus sign if negative. 
+ * return the number of digits in an integer including the
+ * minus sign if negative.
  *
  * Added by Bill Oliver
- * July 12, 2013 
+ * July 12, 2013
  *
  */
 static int num_digits(int x)
 {
-   int y;
+    int y;
 
-   if(x >= 0)
-   {
-      return floor(log10(abs(x))) + 1;
-   } else
-   {
-      return floor(log10(abs(x))) + 2;
-   }
+    if(x >= 0)
+    {
+        return floor(log10(abs(x))) + 1;
+    }
+    else
+    {
+        return floor(log10(abs(x))) + 2;
+    }
 }
