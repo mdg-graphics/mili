@@ -1321,6 +1321,7 @@ create_tri_adj( MO_class_data *p_mocd, Analysis *analy )
 }
 
 
+
 /************************************************************
  * TAG( create_pryamid_adj )
  *
@@ -2497,112 +2498,6 @@ get_pyramid_faces( MO_class_data *p_pyramid_class, Analysis *analy )
     p_vd = p_pyramid_class->p_vis_data;
     p_md = analy->mesh_table + p_pyramid_class->mesh_id;
     mat = p_pyramid_class->objects.elems->mat;
-
-    /* Free up old face lists. */
-    if ( p_vd->face_el != NULL )
-    {
-        free( p_vd->face_el );
-        free( p_vd->face_fc );
-        for ( i = 0; i < 4; i++ )
-            for ( j = 0; j < 3; j++ )
-                free( p_vd->face_norm[i][j] );
-    }
-
-    /* Faster references. */
-    pyramid_adj = p_vd->adjacency;
-    pyramid_visib = p_vd->visib;
-
-    /* Count the number of external faces. */
-    for ( fcnt = 0, i = 0; i < pcnt; i++ )
-        if ( pyramid_visib[i] )
-            for ( j = 0; j < 5; j++ )
-            {
-                if ( pyramid_adj[j][i] < 0 || !pyramid_visib[ pyramid_adj[j][i] ] )
-                    fcnt++;
-                else if ( p_md->translate_material )
-                {
-                    /* Material translations can expose faces. */
-                    m1 = mat[i];
-                    m2 = mat[ pyramid_adj[j][i] ];
-                    if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
-                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
-                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
-                        fcnt++;
-                }
-            }
-    p_vd->face_cnt = fcnt;
-
-    /* Allocate new face lists. */
-    p_vd->face_el = NEW_N( int, fcnt, "Face element table" );
-    p_vd->face_fc = NEW_N( int, fcnt, "Face side table" );
-    for ( i = 0; i < 4; i++ )
-        for ( j = 0; j < 3; j++ )
-            p_vd->face_norm[i][j] = NEW_N( float, fcnt, "Face normals" );
-
-    /* Faster references. */
-    face_el = p_vd->face_el;
-    face_fc = p_vd->face_fc;
-
-    /* Build the tables. */
-    for ( fcnt = 0, i = 0; i < pcnt; i++ )
-        if ( pyramid_visib[i] )
-            for ( j = 0; j < 5; j++ )
-            {
-                if ( pyramid_adj[j][i] < 0 || !pyramid_visib[ pyramid_adj[j][i] ] )
-                {
-                    face_el[fcnt] = i;
-                    face_fc[fcnt] = j;
-                    fcnt++;
-                }
-                else if ( p_md->translate_material )
-                {
-                    /* Material translations can expose faces. */
-                    m1 = mat[i];
-                    m2 = mat[ pyramid_adj[j][i] ];
-                    if ( p_md->mtl_trans[0][m1] != p_md->mtl_trans[0][m2] ||
-                         p_md->mtl_trans[1][m1] != p_md->mtl_trans[1][m2] ||
-                         p_md->mtl_trans[2][m1] != p_md->mtl_trans[2][m2] )
-                    {
-                        face_el[fcnt] = i;
-                        face_fc[fcnt] = j;
-                        fcnt++;
-                    }
-                }
-            }
-
-   /*
-    * Keep in mind that the face normals still need to be computed.
-    * This routine allocates space for the face normals but does not
-    * compute them.
-    */
-}
-
-
-
-/************************************************************
- * TAG( reset_face_visibility )
- *
- * Reset the visibility of hex elements and then regenerate
- * the face lists.  Note that the face normals are not computed
- * by this routine and will need to be recomputed after the
- * routine is called.
- */
-void
-reset_face_visibility( Analysis *analy )
-{
-    int srec_id;
-    Mesh_data *p_mesh;
-    MO_class_data **mo_classes;
-    int class_qty;
-    int i;
-    int state;
-        
-    /* Get the current state record format and its mesh. */
-    state = analy->cur_state + 1;
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, &state, NULL,
-                     &srec_id );
-
-    p_mesh = MESH_P( analy );
 
     /* Free up old face lists. */
     if ( p_vd->face_el != NULL )

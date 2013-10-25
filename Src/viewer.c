@@ -1,5 +1,5 @@
-/* $Id$ */
 
+/* $Id$ */
 /*
  * viewer.c - MDG mesh viewer.
  *
@@ -770,7 +770,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     int  num_entries = 0;
     int  superclass, datatype, datalength, meshid;
     int  state, matid;
-    char **wildcard_list, temp_name[128], class[32];
+    char temp_name[128], class[32];
+    char **wildcard_list = NULL;
     char particle_class_name[128];
 
     Bool_type isMeshvar=FALSE;
@@ -1173,7 +1174,11 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 	       }
           htable_delete_wildcard_list( num_entries, wildcard_list ) ;
       }
-      free(wildcard_list);
+      if(wildcard_list != NULL)
+      { 
+         free(wildcard_list);
+
+      }
       /*
        * Loop over meshes to complete mesh-specific initializations.
        */
