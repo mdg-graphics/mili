@@ -1,5 +1,4 @@
 /* $Id$ */
-
 /*
  *
  * gui.c - Graphical user interface routines.

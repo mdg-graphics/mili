@@ -4476,8 +4476,25 @@ parse_single_command( char *buf, Analysis *analy )
     {
         if(analy->selected_objects == NULL)
         {
-            popup_dialog(INFO_POPUP, "Must select an object before using the plot command");
-            return;
+            j = 0;
+            for(i = 0; i < token_cnt; i++)
+            {
+                rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
+                if(rval == OK)
+                {
+                    /* we found an element class */
+                    break;
+                }
+                if(!strcmp(tokens[i], "vs"))
+                {
+                    j = i;
+                }
+            }
+            if(j > 0)
+            {
+                popup_dialog(INFO_POPUP, "Must select or specify an element class before using the plot command"); 
+                return;
+            }
         }
         /* Delete the plot for this result if computing an EI result */
         if ( analy->ei_result && strlen(analy->ei_result_name)>0 )

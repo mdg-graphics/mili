@@ -68,7 +68,7 @@ static char current_tokens[MAXTOKENS][TOKENLENGTH];
 static int current_token_qty;
 
 typedef char Title_string[256];
-
+int vslogic;
 static GLfloat default_plot_colors[20][3] =
 {
     {0.157, 0.157, 1.0},    /* Blue */
@@ -745,7 +745,7 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
 {
     int i;
     Result *res_list;
-    Specified_obj *so_list;
+    Specified_obj *p_so, *so_list;
     int idx;
     Time_series_obj *old_tsos, *gather_list;
     Gather_segment *control_list;
@@ -772,6 +772,7 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
 
     /* Mesh objects are next - get mesh objects to provide plot results. */
     build_object_list( token_qty, tokens, analy, &idx, &so_list );
+
 
     /* Check for abscissa specification to finish parsing the command line. */
     parse_abscissa_spec( token_qty, tokens, analy, &idx, &res_list );
@@ -819,7 +820,7 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
     /* Update time series list pointer. */
     analy->time_series_list = gather_list;
 
-    if ( analy->abscissa != NULL )
+    if ( analy->abscissa != NULL && analy->abscissa->next != NULL)
     {
         /* Remove non-time abscissa from results to leave only ordinates. */
         UNLINK( analy->abscissa, res_list );
@@ -838,6 +839,12 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
 
     /* Create plot objects. */
     prepare_plot_objects( res_list, so_list, analy, p_plot_list );
+
+    if(p_plot_list != NULL && *p_plot_list == NULL)
+    {
+       popup_dialog(USAGE_POPUP, "specifiying the same element class on both sides of \"vs\" is not supported.");
+       return;
+    }
 
     /* Don't need Specified_obj list anymore. */
     DELETE_LIST( so_list );
@@ -2212,7 +2219,6 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
                     res_list = duplicate_result( analy, analy->cur_result,
                                                  TRUE );
                 }
-
                 break;
             }
             else if ( !p_r->single_valued )
@@ -2373,13 +2379,13 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
     char nstr[32];
     char *p_h;
     Specified_obj *p_so, *so_list;
-    int i, o_ident, range_start, range_stop, len;
+    int i, j, o_ident, range_start, range_stop, len;
     Bool_type parsing_range, unclassed_token;
     MO_class_data *p_class;
 
     i = *p_idx;
     so_list = NULL;
-
+    vslogic = FALSE;
     /* Pick off cases where we just use the selected objects. */
     if ( token_qty == 1 || i == token_qty || strcmp( tokens[i], "vs" ) == 0 )
     {
@@ -2518,7 +2524,9 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
             break;
 
         default:
-            unclassed_token = TRUE;
+            /*unclassed_token = TRUE;*/
+            break;
+
         }
 
         i++;
@@ -2527,7 +2535,24 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
     if ( parsing_range )
         popup_dialog( WARNING_POPUP,
                       "Object list parsing terminated prematurely." );
+    
+    j = i;
+    /* Added by Bill Oliver on Nov 5 2013 */
+    i = 0;
+    while(i < token_qty)
+    {
+        if(!strcmp(tokens[i], "vs") && (i + 2 < token_qty))
+        {
+            vslogic = TRUE;
+            break;
+        }
+        i++;
+    }
 
+    if(vslogic == FALSE)
+    {
+        i = j; 
+    }
     /* Return the current token index of list. */
     *p_idx = unclassed_token ? i - 1 : i;
     *p_so_list = so_list;
@@ -3382,7 +3407,7 @@ prepare_plot_objects( Result *res_list, Specified_obj *so_list,
 {
     Result *p_r;
     Time_series_obj *p_tso, *p_tso2;
-    Specified_obj *p_so;
+    Specified_obj *p_so, *p_so2;
     Plot_obj *p_po, *plot_list;
 
     plot_list = NULL;
@@ -3393,26 +3418,63 @@ prepare_plot_objects( Result *res_list, Specified_obj *so_list,
          * Loop over specified objects and check for result/object
          * combinations in time series list.
          */
-        for ( p_so = so_list; p_so != NULL; NEXT( p_so ) )
+        if(!vslogic)
         {
-            if ( find_time_series( p_r, p_so->ident, p_so->mo_class, analy,
-                                   analy->time_series_list, &p_tso )
-                    && ( analy->abscissa == NULL
-                         || find_time_series( analy->abscissa, p_so->ident,
-                                              p_so->mo_class, analy,
-                                              analy->time_series_list,
-                                              &p_tso2 ) ) )
+            for ( p_so = so_list; p_so != NULL; NEXT( p_so ) )
             {
-                p_po = NEW( Plot_obj, "New plot" );
+                if ( find_time_series( p_r, p_so->ident, p_so->mo_class, analy,
+                                       analy->time_series_list, &p_tso )
+                        && ( analy->abscissa == NULL
+                             || find_time_series( analy->abscissa, p_so->ident,
+                                                  p_so->mo_class, analy,
+                                                  analy->time_series_list,
+                                                  &p_tso2 ) ) )
+                {
+                    p_po = NEW( Plot_obj, "New plot" );
 
-                p_po->ordinate = p_tso;
-                p_po->ordinate->reference_count++;
+                    p_po->ordinate = p_tso;
+                    p_po->ordinate->reference_count++;
 
-                p_po->abscissa = ( analy->abscissa == NULL )
-                                 ? analy->times : p_tso2;
-                p_po->abscissa->reference_count++;
+                    p_po->abscissa = ( analy->abscissa == NULL )
+                                     ? analy->times : p_tso2;
+                    p_po->abscissa->reference_count++;
 
-                INSERT( p_po, plot_list );
+                    INSERT( p_po, plot_list );
+                }
+            }
+        }
+        else
+        {
+            for ( p_so = so_list; p_so != NULL; NEXT( p_so ) )
+            {
+
+                if ( find_time_series( p_r, p_so->ident, p_so->mo_class, analy,
+                                       analy->time_series_list, &p_tso ))
+                {
+                    for(p_so2 = so_list; p_so2 != NULL; NEXT(p_so2))
+                    {
+                        if(analy->abscissa == NULL
+                                || (p_so->mo_class->superclass != p_so2->mo_class->superclass 
+                                 
+                                    && find_time_series(analy->abscissa, p_so2->ident,
+                                        p_so2->mo_class, analy,
+                                        analy->time_series_list,
+                                        &p_tso2)))
+                        {
+
+                            p_po = NEW( Plot_obj, "New plot" );
+
+                            p_po->ordinate = p_tso;
+                            p_po->ordinate->reference_count++;
+
+                            p_po->abscissa = ( analy->abscissa == NULL )
+                                             ? analy->times : p_tso2;
+                            p_po->abscissa->reference_count++;
+
+                            INSERT( p_po, plot_list );
+                        }
+                    }
+                }
             }
         }
     }

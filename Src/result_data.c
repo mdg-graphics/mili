@@ -1,4 +1,3 @@
-
 /* $Id$ */
 /*
  * result_data.c - Routines for managing result data arrays.
