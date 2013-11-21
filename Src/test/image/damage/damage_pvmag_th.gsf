@@ -1,0 +1,37 @@
+# damage
+# Title: bar impact problem (gm cm microsec)
+# Material Model: 45
+# End Time: 80.0
+# Griz Script File: damage_pvmag_th.gsf
+# Min/Max Switch: global
+
+# Setup
+# alias chgst f;n;n;l // Enable after Release 13.1
+alias min 1
+alias max 81
+# alias staterange minst min; maxst max // Enable after Release 13.1
+clrsel 
+switch mstat
+# staterange; chgst // Enable after Release 13.1
+minst 1
+maxst 80
+state 20
+
+on all 
+jpegqual 100
+
+# Object selection
+clrsel
+vec dispx dispy dispz
+on vec
+
+dir3n 667 630 631
+
+show pvmag
+plot pvmag node 631
+# Plot for variable seff (TH)
+
+outjpg damage_pvmag_th.answ.jpg
+
+# EndCase 
+
