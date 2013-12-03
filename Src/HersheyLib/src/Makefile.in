@@ -1,0 +1,116 @@
+#
+#################################################################
+#								#
+#	           Griz4 Hershey Font Makefile	                #
+#								#
+#################################################################
+#
+#################################################################
+#  Revision History                                             #
+#  ----------------                                             #
+#  20-Feb-2004  IRC  Rewritten to work with Autoconf.           #
+#								#
+#################################################################
+#
+# Makes the hershey library.
+# Makes the binary Hershey font files for an SGI
+#
+# Note - this Makefile is modified to avoid building
+# executables hdisp and fdisp.  These are not required
+# for Griz.  If one wishes to make them, they should
+# be ported to use OpenGL rather than Iris GL calls.
+#
+
+#
+# Change this line to reflect the path on your system.
+#
+SHELL = @SHELL@
+#
+
+ifdef VERBOSE
+CC  = @MY_CC@
+else
+CC  = @MY_CC@
+endif
+
+GRIZHOME           = @GRIZ_HOME@
+FONTLIB            = @HERSHEY_FONTLIB@
+MESA_LIBRARY_PATHS = @MESA_LIBRARY_PATHS@
+
+CC = @MY_CC@
+
+
+AR = ar
+
+# CFLAGS = -n32 -g -ansi -DFONTLIB=\"$(FONTLIB)\" -DSGI
+
+OURLIBS = libhershey.a
+LIBS    = $(MESA_LIBRARY_PATHS) -lGL
+RANLIB  = @RANLIB@
+
+HDR     = h2v.h
+
+all:	libhershey.a h2v fonts
+
+libhershey.a: htext.o check.o halloc.o fhtext.o
+	$(AR) rcv libhershey.a htext.o check.o halloc.o fhtext.o
+	$(RANLIB) libhershey.a
+
+h2v:	h2v.o getchar.o
+	$(CC) @CC_FLAGS_EXTRA@ -o $@ $@.o getchar.o -lm
+
+hdisp:	hdisp.o getchar.o libhershey.a
+	$(CC) @CC_FLAGS_EXTRA@ -o $@ $@.o getchar.o $(OURLIBS) $(LIBS) -lm
+
+fdisp:	fdisp.o libhershey.a
+	$(CC) @CC_FLAGS_EXTRA@ -o $@ $@.o $(OURLIBS) $(LIBS) -lm
+
+$(FONTLIB):
+	if test ! -d $(FONTLIB);\
+	then mkdir $(FONTLIB);\
+	fi;
+
+fonts:	./h2v $(FONTLIB)
+	./h2v ../data/hersh.oc
+	./h2v ../data/hersh.or ../fonts/japan.hmp japanese
+	mv astrology cursive cyrillic futura.l futura.m gothic.eng \
+	gothic.ger gothic.ita greek japanese markers math.low \
+	math.upp meteorology music script symbolic times.g \
+	times.i times.ib times.r times.rb $(FONTLIB)
+	touch fonts
+
+h2v: h2v.h
+
+# Build Optimized Hershey Library
+opt:		CFLAGS = @CC_FLAGS_OPT@ @CC_FLAGS_EXTRA@ @CC_DEFINES_HERSHEYLIB@ @CC_INCLUDE_PATHS_HERSHEYLIB@ @X11_INCLUDE_PATHS@ -I/usr/X11/include
+opt:		all
+
+# Build Debug Griz
+debug:		CFLAGS = @CC_FLAGS_DEBUG@ @CC_FLAGS_EXTRA@ @CC_DEFINES_HERSHEYLIB@ @CC_INCLUDE_PATHS_HERSHEYLIB@ @X11_INCLUDE_PATHS@ -I/usr/X11/include
+debug:		all
+
+clean:
+	rm -f astrology cursive cyrillic futura.l futura.m gothic.eng \
+	gothic.ger gothic.ita greek japanese markers math.low \
+	math.upp meteorology music script symbolic times.g \
+	times.i times.ib times.r times.rb *.o core fonts libhershey.a
+
+clobber:
+	rm -f astrology cursive cyrillic futura.l futura.m gothic.eng \
+	gothic.ger gothic.ita greek japanese markers math.low \
+	math.upp meteorology music script symbolic times.g \
+	times.i times.ib times.r times.rb *.o core h2v hdisp fdisp fonts \
+	libhershey.a
+
+distclean:
+
+distclean:
+
+installdirs:
+
+install:
+
+uninstall:
+
+
+
