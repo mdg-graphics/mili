@@ -1,0 +1,53 @@
+#
+#################################################################
+#								#
+#	           Griz4 Image Library Makefile	                #
+#								#
+#################################################################
+#
+#################################################################
+#  Revision History                                             #
+#  ----------------                                             #
+#  #
+#								#
+#################################################################
+
+ifdef VERBOSE
+CC  = @MY_CC@ 
+else
+CC  = @MY_CC@ 
+endif
+
+# CFLAGS	= -xansi -D__STDC__ -O
+# CFLAGS	= -xansi -O
+
+CC = @MY_CC@
+AR = ar
+
+OBJS	= close.o filbuf.o flsbuf.o name.o open.o pix.o rdwr.o rle.o row.o
+
+TARGETS = libimage.a
+
+default: $(TARGETS)
+
+$(TARGETS): $(OBJS)
+	$(AR) rcv $(TARGETS) $(OBJS)
+
+
+opt:		CFLAGS  = @CC_FLAGS_OPT@ @CC_FLAGS_EXTRA@ 
+opt:		default
+
+debug:		CFLAGS  = @CC_FLAGS_DEBUG@ @CC_FLAGS_EXTRA@ 
+debug:		default
+
+clean:
+		@ rm -f *.o core
+
+forcerebuild:
+
+clobber:
+		@ rm -f *.o core
+
+install:
+
+uninstall:
