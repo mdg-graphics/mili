@@ -215,7 +215,7 @@
  */
 
 /* #define DEBUG_SELECT 1 */
-
+#include "griz_config.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
