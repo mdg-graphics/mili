@@ -53,7 +53,7 @@
 /* buildinfo.c */
 
 
-#include <griz_config.h>
+#include "griz_config.h"
 #include "misc.h"
 
 #include <stdlib.h>

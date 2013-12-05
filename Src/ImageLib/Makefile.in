@@ -12,16 +12,11 @@
 #								#
 #################################################################
 
-ifdef VERBOSE
-CC  = @MY_CC@ 
-else
-CC  = @MY_CC@ 
-endif
 
 # CFLAGS	= -xansi -D__STDC__ -O
 # CFLAGS	= -xansi -O
 
-CC = @MY_CC@
+CC = @CC@
 AR = ar
 
 OBJS	= close.o filbuf.o flsbuf.o name.o open.o pix.o rdwr.o rle.o row.o

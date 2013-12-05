@@ -63,30 +63,22 @@ GRIZ_VERSION = @GRIZ_VERSION@
 MILI_VERSION = @MILI_VERSION@
 
 OS_NAME    = @OS_NAME@
-SHELL      = @SHELL@
-SHELL_ARGS = @SHELL_ARGS@
 #
 
-ifdef VERBOSE
-CC  = @MY_CC@ 
-FC  = @MY_FC@ 
-else
-CC  = @MY_CC@ 
-FC  = @MY_FC@ 
-endif
+CC  = @CC@
 
 CONFIG_STRING=@CONFIG_OPTIONS@
 
-INCLUDE_PATHS = @CC_INCLUDE_PATHS_GRIZ@
-
+INCLUDE_PATHS = @CC_INCLUDE_PATHS_GRIZ@ @MILI_INCLUDE_PATHS@
+C_FLAGS = @CFLAGS@
 CC_FLAGS_DEBUG= @CC_FLAGS_DEBUG@ 
 CC_FLAGS_OPT  = @CC_FLAGS_OPT@
 CC_FLAGS_EXTRA= @CC_FLAGS_EXTRA@ 
 CC_DEPEND     = @CC_DEPEND@ 
-BASELIBS          = @LIBS@ @GRIZLIBS@
+BASELIBS          = -L@MILI_HOME@/lib @MILI_LIBRARY@ @LIBS@ @GRIZLIBS@
 LDLIBPATH     = @LDLIBPATH@
 LDFLAGS_EXTRA = @LDFLAGS_EXTRA@
-LD            = @MY_CC@
+LD            = @CC@
 OSMESA_LIBS = @OSMESA_LIBRARY_PATHS@ @OSMESA_LIBRARY@
 OSMESA_HOME = @OSMESA_HOME@
 
@@ -94,24 +86,12 @@ OSMESA_HOME = @OSMESA_HOME@
 # -blpdata
 # LDFLAGS_EXTRA = -blpdata
 
-EXOLIBPATH    = @EXODUS_LIBRARY_PATH@
-EXOLIB        = @EXODUS_LIBRARY@
-
-MILIHOME      = @MILI_HOME@
-MILIINC       = @MILI_INCLUDE_PATHS@
-MILILIB       = @MILI_LIBRARY@
-
-NETCDFLIBPATH = @NETCDF_LIBRARY_PATH@
-NETCDFLIB     = @NETCDF_LIBRARY@
-
 ROOT_DIR      = @ROOT_DIR@
 
 # Set a pointer to the path for the Hershey fonts
 HFONTLOC      = @HERSHEY_FONTLIB@
 
-INSTALL_HOME  = @INSTALL_HOME@
-PLATFORM_DIRS = @PLATFORM_DIRS@
-
+INSTALL_HOME  = @prefix@
 
 #
 # KlocWorks Build Option - Added 10/06/2007: IRC
@@ -124,18 +104,12 @@ endif
 
 # Suffix rule to create the object files.
 # rules to automatically generate dependency makefiles
-.SUFFIXES :
+.SUFFIXES : .c .o .h
 
 %.o: %.c
-	$(PURIFY_CMD) $(CC) $(CC_FLAGS) $(CPPFLAGS) -MMD -MP -c $<
--include $(SRCS:.o=.d)
+	$(PURIFY_CMD) $(CC) $(C_FLAGS) $(CPPFLAGS) -c $<
 
-ifeq (@OS_NAME@,Linux)
-%.d: %.c
-	@echo ... Generating dependencies for $< ...
-	@$(SHELL) -ec '$(CC) -c $(CC_DEPEND) $(CC_FLAGS) $(CPPFLAGS) $(INCLUDE_PATHS) $(MILIINC) $< \
-                        | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@
-endif
+
 
 # Set name of griz binary appropriately. The name "griz4s" is used
 # for the Griz shell script make target, below.
@@ -145,8 +119,6 @@ GRIZ_EXE_OPT   = @GRIZ_EXE@_opt
 # Set to location of GRIZ source. Use an absolute path if GRIZHOME
 # is used to define GRIZBINLOC and HFONTLOC, below.
 GRIZHOME = @GRIZ_HOME@
-
-EXO_TARGET = @EXO_TARGET@
 
 PURIFY := @PURIFY@
 
@@ -191,10 +163,6 @@ SRCS = $(OBJS:%.o=%.c)
 OBJS_DEBUG = $(addprefix $(ROOT_DIR)/objs_debug/, $(OBJS)) 
 OBJS_OPT   = $(addprefix $(ROOT_DIR)/objs_opt/,   $(OBJS)) 
 
-# ExodusII GIO driver (libgex.so) objects
-GEX_OBJS = exo_driver.o
-
-
 # Finally, targets...
 all: 		
 	$(MAKE) debug; 
@@ -209,7 +177,7 @@ mililibcheck.o:	mililibcheck.c
 	        -c mililibcheck.c
 
 mililibcheck:	mililibcheck.o
-		$(LD) $(CC_FLAGS) $? -o $@ $(LDFLAGS_EXTRA) $(MILILIBPATH) $(MILILIB)
+		$(LD) $(CC_FLAGS) $? -o $@ $(LDFLAGS_EXTRA) -L@MILI_HOME@/lib @MILI_LIBRARY@
 
 mililibcheck.txt:   mililibcheck
 		$(RM) temp
@@ -236,7 +204,7 @@ ifeq (@BATCH_ENABLE@,True)
 # Build Batch Optimized Griz
 batch_debug:      LIBS = $(BASELIBS) $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
 batch_debug:	  LDFLAGS_EXTRA += $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
-batch_debug:	  CC        = gcc
+#batch_debug:	  CC        = gcc
 batch_debug:	  CC_FLAGS  = $(CC_FLAGS_DEBUG)
 batch_debug:      EXEC_PATH = $(ROOT_DIR)/bin_batch_debug
 batch_debug:      LIB_PATH  = $(ROOT_DIR)/lib_batch_debug
@@ -245,16 +213,16 @@ batch_debug:	  LDFLAGS  += $(OSMESA_LIBS)
 batch_debug:      GRIZ_EXE = $(GRIZ_EXE_DEBUG)_batch
 batch_debug:      GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
 batch_debug:      GRIZ_BATCH_EXE = $(GRIZ_EXE)
-batch_debug:	  MILILIBPATH = @MILI_LIBRARY_PATHS@_debug @MILI_LIBRARY_PATHS@
+batch_debug:	  MILILIBPATH = @MILI_LIBRARY_PATHS@
 batch_debug:      CPPFLAGS = "@BATCH_DEFINES@ $(CPPFLAGS)"
 batch_debug: 	  DEFINES       = @CC_DEFINES_GRIZ@ @BATCH_DEFINES@
-batch_debug: 	  CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ @CC_INCLUDE_PATHS_GRIZ@ -I$(OSMESA_HOME)/../include -I$(top_builddir)
+batch_debug: 	  CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ $(INCLUDE_PATHS) -I$(OSMESA_HOME)/../include -I$(top_builddir)
 batch_debug:	  mk_dirs buildinfo.h build griz4s $(EXO_TARGET)
 
 # Build Optimized Griz
 batch_opt:         LIBS = $(BASELIBS) $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
 batch_opt:	   LDFLAGS_EXTRA += $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
-batch_opt:	   CC        = gcc
+#batch_opt:	   CC        = gcc
 batch_opt:	   CC_FLAGS  = $(CC_FLAGS_OPT)
 batch_opt:         EXEC_PATH = $(ROOT_DIR)/bin_batch_opt
 batch_opt:         LIB_PATH  = $(ROOT_DIR)/lib_batch_opt
@@ -263,10 +231,10 @@ batch_opt:	   LDFLAGS  += $(OSMESA_LIBS)
 batch_opt:         GRIZ_EXE = $(GRIZ_EXE_OPT)_batch
 batch_opt:         GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
 batch_opt:         GRIZ_BATCH_EXE = $(GRIZ_EXE)
-batch_opt:         MILILIBPATH = @MILI_LIBRARY_PATHS@_opt @MILI_LIBRARY_PATHS@
+batch_opt:         MILILIBPATH = @MILI_LIBRARY_PATHS@
 batch_opt:	   CPPFLAGS = "@BATCH_DEFINES@ $(CPPFLAGS)"
 batch_opt: 	   DEFINES += @CC_DEFINES_GRIZ@ @BATCH_DEFINES@
-batch_opt: 	   CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ @CC_INCLUDE_PATHS_GRIZ@ -I$(OSMESA_HOME)/../include -I$(top_builddir)
+batch_opt: 	   CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ $(INCLUDE_PATHS) -I$(OSMESA_HOME)/../include -I$(top_builddir)
 batch_opt:	   mk_dirs buildinfo.h build griz4s $(EXO_TARGET)
 else
 batch_opt: error_batch
@@ -283,8 +251,8 @@ opt:      GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
 opt:      GRIZ_EXE = $(GRIZ_EXE_OPT)
 opt:      GRIZ_BATCH_EXE = $(GRIZ_EXE_OPT)
 opt: 	  DEFINES += @CC_DEFINES_GRIZ@ 
-opt: 	  CPPFLAGS  = @CC_DEFINES_GRIZ@  @CC_INCLUDE_PATHS_GRIZ@ -I$(top_builddir)
-opt:	  MILILIBPATH = @MILI_LIBRARY_PATHS@_opt @MILI_LIBRARY_PATHS@
+opt: 	  CPPFLAGS  = @CC_DEFINES_GRIZ@  $(INCLUDE_PATHS) -I$(top_builddir)
+opt:	  MILILIBPATH = @MILI_LIBRARY_PATHS@
 opt:	  cleanopt mk_dirs  buildinfo.h build griz4s $(EXO_TARGET)
 
 # Build Debug Griz
@@ -297,9 +265,9 @@ debug:	LDFLAGS  += -L../lib_debug
 debug:	GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
 debug:	GRIZ_EXE = $(GRIZ_EXE_DEBUG)
 debug: 	DEFINES += @CC_DEFINES_GRIZ@ 
-debug: 	CPPFLAGS  = @CC_DEFINES_GRIZ@  @CC_INCLUDE_PATHS_GRIZ@ -I$(top_builddir)
+debug: 	CPPFLAGS  = @CC_DEFINES_GRIZ@  $(INCLUDE_PATHS) -I$(top_builddir)
 debug:	GRIZ_BATCH_EXE = $(GRIZ_EXE_DEBUG)_batch
-debug:	MILILIBPATH = @MILI_LIBRARY_PATHS@_debug @MILI_LIBRARY_PATHS@
+debug:	MILILIBPATH = @MILI_LIBRARY_PATHS@
 debug:	mk_dirs alpha beta buildinfo.h build griz4s $(EXO_TARGET)
 
 alpha: 
@@ -316,21 +284,20 @@ build:  mililibcheck.txt update_objects $(OBJS)
 		@echo ... $(CONFIG_STRING) ...
 		$(LD) $(CC_FLAGS) $(LDFLAGS_EXTRA) -o $(GRIZ_EXE) $(OBJS) $(MILILIBPATH) $(MILILIB) $(LIBS)
 		@ -mv $(ROOT_DIR)/src/*.o $(OBJS_PATH)
-ifeq (@OS_NAME@,Linux)
-		 -mv $(ROOT_DIR)/src/*.d $(OBJS_PATH)
-endif
 		mv $(GRIZ_EXE) $(EXEC_PATH)/$(GRIZ_EXE)
-		cp ../Doc/griz_start_text $(EXEC_PATH)/.
-		-cp ../Doc/Griz4-Manual-$(GRIZ_VERSION)/griz_manual.pdf $(EXEC_PATH)/.
-		-cp ../Doc/Griz4-Manual-$(GRIZ_VERSION)/griz_relnotes.pdf $(EXEC_PATH)/.
+		-cp ../Doc/griz_start_text $(EXEC_PATH)/. ;
+		if test -e ../Doc/Griz4-Manual-$(GRIZ_VERSION)/GrizUsersGuide-$(GRIZ_VERSION).pdf; then \
+			cp ../Doc/Griz4-Manual-$(GRIZ_VERSION)/GrizUsersGuide-$(GRIZ_VERSION).pdf $(EXEC_PATH)/.; \
+			ln -sf GrizUsersGuide-$(GRIZ_VERSION).pdf $(EXEC_PATH)/griz_manual.pdf; \
+		fi ;
+		if test -e ../Doc/Griz4-Manual-$(GRIZ_VERSION)/griz_relnotes.pdf; then \
+			cp ../Doc/Griz4-Manual-$(GRIZ_VERSION)/griz_relnotes.pdf $(EXEC_PATH)/.; \
+		fi 
 
 # Move objects for appropriate code (opt or debug) back into src
 # directory where build take place. 
 update_objects:
 		-mv $(OBJS_PATH)/*.o $(ROOT_DIR)/src
-ifeq (@OS_NAME@,Linux)
-		-mv $(OBJS_PATH)/*.d $(ROOT_DIR)/src
-endif
 
 #
 # The griz shell script will always rebuild when the "griz4s" make
@@ -349,14 +316,6 @@ griz4s:	mililibcheck.txt griz.in
 	> $@;
 	chmod 755 $@;
 	mv $@ $(EXEC_PATH);
-
-libgex.so:  $(GEX_OBJS)
-		ld -shared -all $(GEX_OBJS) -lc \
-        -L$(EXOLIBPATH) $(EXOLIB) \
-        -L$(NETCDFLIBPATH) $(NETCDFLIB)\
-        -o $@; 
-	mkdir $$(LIB_PATH);
-	mv $@ $(LIB_PATH);
 
 versioninfo.o:  buildinfo.h
 
@@ -394,79 +353,97 @@ clobber: clean
 
 distclean:
 
-
 ##################
 # INSTALL TARGETS
 # All of the targets below are used for installing the code in public
 ##################
+install-build:
+	$(MAKE) opt;
+	$(MAKE) batch_opt;
+	
+	
+install: install-opt
 
-install: install-initversion install-startmsg install-updatefont install-chmod install-setversion
+install-opt: install-griz4s
 
-install-initversion:
-	@ for dir in $(PLATFORM_DIRS); do \
-		echo " "; \
-		cd $(INSTALL_HOME)/$$dir/archive/grizdir; \
-	if test -d $(GRIZ_VERSION); \
-	           then \
-		   echo "[$$dir] \t\t Griz directory exists for version $(GRIZ_VERSION)"; \
-		   else \
-		   echo "[$$dir] \t\t Creating Griz directory for version $(GRIZ_VERSION)"; \
-	           mkdir $(GRIZ_VERSION); \
-	           cd $(GRIZ_VERSION); \
-		   mkdir Font bin; \
-	        fi; \
-	done
+#
+# The griz shell script will always rebuild when the "griz4s" make
+# target is evaluated.  It's cheap, and any changes to GRIZBINLOC,
+# HFONTLOC, or GRIZ_SERIAL will then always be reflected in the script. 
+# To eliminate this behavior, delete "force_rebuild" from the "griz4s"
+# dependencies.
+#
+install-griz4s: install-setversion griz.in	
+	sed '/_grizhome_/ s/_grizhome_/'`echo $(INSTALL_HOME)/$(GRIZ_VERSION)/bin | sed 's/\\//\\\\\//g'`'/' \
+		griz.in \
+	| sed '/_hfontlib_/ s/_hfontlib_/'`echo $(INSTALL_HOME)/$(GRIZ_VERSION)/Font | sed 's/\\//\\\\\//g'`'/' \
+	| sed '/_grizbin_/ s/_grizbin_/$(GRIZ_EXE_OPT)/' \
+	| sed '/_grizbinbatch_/ s/_grizbinbatch_/$(GRIZ_EXE_OPT)_batch/' \
+	| sed '/_ldlibpath_/ s/_ldlibpath_/'`echo $(LDLIBPATH) | sed 's/\\//\\\\\//g'`'/' \
+	> $(INSTALL_HOME)/$(GRIZ_VERSION)/bin/griz4s;
+	chmod 755 $(INSTALL_HOME)/$(GRIZ_VERSION)/bin/griz4s;
+	mv $(ROOT_DIR)/bin_opt/$(GRIZ_EXE_OPT) $(INSTALL_HOME)/$(GRIZ_VERSION)/bin/$(GRIZ_EXE_OPT);
+ifeq (@BATCH_ENABLE@,True)
+	mv $(ROOT_DIR)/bin_batch_opt/$(GRIZ_EXE_OPT)_batch $(INSTALL_HOME)/$(GRIZ_VERSION)/bin/$(GRIZ_EXE_OPT)_batch;
+endif
+	
+install-initversion: install-build 
+	
+	echo " "; \
+	if test -d $(INSTALL_HOME); then \
+		echo "\t\t Griz directory exists for version $(GRIZ_VERSION)"; \
+	else \
+		echo "\t\t Creating Griz directory for version $(GRIZ_VERSION)"; \
+		mkdir -p $(INSTALL_HOME); \
+	fi;
+	cd $(INSTALL_HOME); \
+	if test -d $(GRIZ_VERSION); then \
+		echo "\t\t Griz directory exists for version $(GRIZ_VERSION)"; \
+	else \
+		echo "\t\t Creating Griz directory for version $(GRIZ_VERSION)"; \
+		mkdir $(GRIZ_VERSION); \
+	    cd $(GRIZ_VERSION); \
+		mkdir Font bin; \
+	fi; 
+	cd $(INSTALL_HOME)/$(GRIZ_VERSION)/bin; \
+	if test -e $(ROOT_DIR)/../Doc/Griz4-Manual-$(GRIZ_VERSION)/GrizUsersGuide-$(GRIZ_VERSION).pdf; then \
+		cp $(ROOT_DIR)/../Doc/Griz4-Manual-$(GRIZ_VERSION)/GrizUsersGuide-$(GRIZ_VERSION).pdf .; \
+		ln -sf GrizUsersGuide-$(GRIZ_VERSION).pdf griz_manual.pdf; \
+	fi ;
+	if test -e ../Doc/Griz4-Manual-$(GRIZ_VERSION)/griz_relnotes.pdf; then \
+		cp ../Doc/Griz4-Manual-$(GRIZ_VERSION)/griz_relnotes.pdf $(INSTALL_HOME)/$(GRIZ_VERSION)/bin/.; \
+	fi
+	
 
-install-setversion:
-	@ for dir in $(PLATFORM_DIRS); do \
-		echo " "; \
-		echo "[$$dir] \t\t Setting new Griz Version to : $(GRIZ_VERSION)"; \
-		cd $(INSTALL_HOME)/$$dir/archive/grizdir/; \
-		ln -sf $(GRIZ_VERSION) grizversion; \
-		ls -l  $(GRIZ_VERSION) grizversion; \
-	done
+install-setversion: install-chmod 
+	echo " "; \
+	echo "\t\t Setting new Griz Version to : $(GRIZ_VERSION)"; \
+	cd $(INSTALL_HOME); \
+	ln -sf $(GRIZ_VERSION) grizversion; \
+	ls -l  $(GRIZ_VERSION) grizversion; 
 
-install-startmsg:
-	@ for dir in $(PLATFORM_DIRS); do \
-		echo " "; \
-		echo "[$$dir] \t\t Updating Griz Startup message"; \
-	        cd $(INSTALL_HOME)/$$dir/archive/grizdir/; \
-		if test -d $(GRIZ_VERSION); \
-		   then \
-	           cd $(INSTALL_HOME)/$$dir/archive/grizdir/$(GRIZ_VERSION)/bin; \
-		   cp $(ROOT_DIR)/Doc/griz4_start_text-$(GRIZ_VERSION) griz4_start_text; \
-	           else \
-	           echo "[$$dir] \t\t Griz version $(GRIZ_VERSION) is missing"; \
-	        fi; \
-	done
+install-chmod: install-updatefont
+	echo " "; \
+	echo "\t\t Setting Griz permissions"; \
+	cd $(INSTALL_HOME); \
+	if test -d $(GRIZ_VERSION); then \
+		chmod 770 $(GRIZ_VERSION); \
+		chmod -R 750 $(GRIZ_VERSION); \
+		chgrp -R mdgusers $(GRIZ_VERSION); \
+	else \
+		echo "\t\t Griz version $(GRIZ_VERSION) is missing"; \
+	fi; 
 
-install-chmod:
-	@ for dir in $(PLATFORM_DIRS); do \
-		echo " "; \
-		echo "[$$dir] \t\t Setting Griz permissions"; \
-		cd $(INSTALL_HOME)/$$dir/archive/grizdir; \
-		if test -d $(GRIZ_VERSION); \
-	           then \
-	           chmod 770 $(GRIZ_VERSION); \
-		   chmod -R 750 $(GRIZ_VERSION); \
-		   chgrp -R mdgusers $(GRIZ_VERSION); \
-	           else \
-	           echo "[$$dir] \t\t Griz version $(GRIZ_VERSION) is missing"; \
-	        fi; \
-	done
+install-updatefont: install-initversion 
+	echo " "; \
+	echo "\t\t Installing font files"; \
+	cd $(INSTALL_HOME); \
+	if test -d $(GRIZ_VERSION); then \
+		cp $(ROOT_DIR)/HersheyLib/hfonts/futura.l $(INSTALL_HOME)/$(GRIZ_VERSION)/Font; \
+	else \
+		echo "\t\t Griz version $(GRIZ_VERSION) is missing"; \
+	fi; 
 
-install-updateFont:
-	@ for dir in $(PLATFORM_DIRS); do \
-		echo " "; \
-		echo "[$$dir] \t\t Installing font files"; \
-		cd $(INSTALL_HOME)/$$dir/archive/grizdir; \
-		if test -d $(GRIZ_VERSION); \
-	           then \
-		   cp $(ROOT_DIR)/HersheyLib/hfonts/futura.l $(INSTALL_HOME)/$$dir/archive/grizdir/$(GRIZ_VERSION)/Font; \
-	           else \
-	           echo "[$$dir] \t\t Griz version $(GRIZ_VERSION) is missing"; \
-	        fi; \
-	done
 
 
 uninstall:

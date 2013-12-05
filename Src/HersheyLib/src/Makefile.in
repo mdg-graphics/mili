@@ -27,17 +27,11 @@
 SHELL = @SHELL@
 #
 
-ifdef VERBOSE
-CC  = @MY_CC@
-else
-CC  = @MY_CC@
-endif
-
 GRIZHOME           = @GRIZ_HOME@
 FONTLIB            = @HERSHEY_FONTLIB@
 MESA_LIBRARY_PATHS = @MESA_LIBRARY_PATHS@
 
-CC = @MY_CC@
+CC = @CC@
 
 
 AR = ar
@@ -45,7 +39,8 @@ AR = ar
 # CFLAGS = -n32 -g -ansi -DFONTLIB=\"$(FONTLIB)\" -DSGI
 
 OURLIBS = libhershey.a
-LIBS    = $(MESA_LIBRARY_PATHS) -lGL
+#LIBS    = $(MESA_LIBRARY_PATHS) -lGL
+LIBS    = 
 RANLIB  = @RANLIB@
 
 HDR     = h2v.h

@@ -82,14 +82,19 @@ m4_define(GRIZ_BUGS_M4,[Bill Oliver  ext: 3-0540 email: oliver4@llnl.gov])
 m4_define(GRIZ_TOP_SRC_DIR_M4, `pwd`)
 
 AC_INIT(GRIZ_NAME_M4, GRIZ_VERSION_M4, GRIZ_BUGS_M4, GRIZ_NAME_M4)
-#AC_PROG_CC([icc xlc cc gcc])
+
+AC_CONFIG_AUX_DIR(scripts)
+
+AC_CANONICAL_HOST
+
 GRIZ_VERSION=GRIZ_VERSION_M4
 MILI_VERSION=MILI_VERSION_M4
 AC_SUBST([GRIZ_VERSION])
 AC_SUBST([MILI_VERSION])
 
-AC_REVISION($Revision$)
-
+AC_REVISION($Revision: 1.7 $)
+#TARGET_DNS_DOMAIN="`(dnsdomainname) 2> /dev/null`"
+TARGET_DNS_DOMAIN="somewhere.gov"
 AC_PREREQ(2.59)
 AC_DEFINE_UNQUOTED(CONFIG_CMD, "$0 $@", [Configure command])
 CONFIG_CMD="configure $@"
@@ -105,21 +110,6 @@ semination, commercialization through formal licensing, or
 other disposition under terms of Contract 48; DOE policies, 
 regulations and orders; and U.S. statutes.])
 
-CONFIGURE_INIT
-
-CONFIGURE_VERSION
-
-AC_CONFIG_AUX_DIR(scripts)
-dnl Determine the host type
-AC_CANONICAL_HOST
-dnl Turn off shared libraries by default, since build process takes longer.
-#AC_DISABLE_SHARED
-#AM_CONDITIONAL([STATICONLY],[test "$enable_shared" = no])
-dnl Disable the automatic (smart) rebuild rules
-#AM_MAINTAINER_MODE
-
-#AM_INIT_AUTOMAKE([1.9 foreign no-installinfo no-installman no-texinfo.tex])
-
 # Variable Initialization
 AC_DEFINE([PACKAGE_NAME], ["GRIZ_NAME_M4"], [Name of release])
 AC_DEFINE([PACKAGE_DATE], ["GRIZ_DATE_M4"], [Date of release])
@@ -129,18 +119,7 @@ AC_DEFINE([PACKAGE_BUGREPORT_ALT],["Kevin Durrenberger ext:4-3015 email:durrenbe
 PACKAGE_DATETIME="GRIZ_DATE_M4 GRIZ_TIME_M4"
 AC_SUBST([PACKAGE_DATETIME])
 
-#############################################################################
-#
-#	Check for system parameters such as HOST and OS type.
-#
-#############################################################################
-CONFIGURE_OS
-
-CONFIGURE_HOST
-
-dnl select compiler
-CONFIGURE_64bit
-CONFIGURE_COMPILER
+AC_PROG_CC([icc xlc gcc cc])
 
 # Checks for header files.
 AC_HEADER_DIRENT
@@ -154,8 +133,9 @@ AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 
 # Checks for library functions.
-AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(gethostname regcomp strstr)
+AC_CHECK_FUNCS(gethostname regcomp strstr isnan)
+
+AC_CHECK_SIZEOF([long])
 
 #############################################################################
 #
@@ -200,115 +180,252 @@ AC_SUBST(MILI_INCLUDE_PATHS)
 AC_SUBST(MILI_LIBRARY_PATHS)
 AC_SUBST(MILI_DEFINES)
 AC_SUBST(MILI_LIBRARY)
+AC_SUBST(ROOT_DIR)
+AC_SUBST(GRIZLIBS)
 
-#############################################################################
-#
-# Determine if 'gmake' is available for building the code.	
-#
-#############################################################################
-CONFIGURE_GMAKE
-CONFIGURE_TASKS
+CONFIGURE_64bit
 
-#############################################################################
-# 
-# Configure library options
-#
-#############################################################################
+CONFIGURE_INIT
+
+CONFIGURE_VERSION
+
+CONFIGURE_OS
+
+CONFIGURE_HOST
 
 CONFIGURE_MILI
-if test "$OS_NAME" = "IRIX64" -o "$OS_NAME" = "IRIX"; then
-CONFIGURE_SGI_GRAPHICS
-else
-CONFIGURE_X11
 
-CONFIGURE_MESA
+CONFIGURE_DIRS
 
-CONFIGURE_OSMESA
-fi
+CONFIGURE_BUILDDIRS
+
+AC_CONFIG_HEADERS([$PATH_NAME/src/griz_config.h:scripts/config.h.in])
+
+JPEG_ENABLE="True"  
+CONFIG_JPEG="True"
+AC_ARG_ENABLE([nojpeg],       
+   AC_HELP_STRING([--enable-nojpeg],[Turn off JPEG support]),
+	[
+		JPEG_ENABLE="False" 
+		CONFIG_JPEG="False"
+		AC_MSG_RESULT(---->Disabling: JPEG)
+	],
+   [
+      CONFIGURE_JPEG
+   ]
+)
+
+PNG_ENABLE="True"	 
+AC_ARG_ENABLE([nopng],
+   AC_HELP_STRING([--enable-nopng],[Disable PNG Support]),
+   [
+	   PNG_ENABLE="False"  
+	   AC_MSG_RESULT(---->Disabling: PNG)
+   ],
+   [
+      CONFIGURE_PNG
+   ]
+) 
+
+EXTERNAL_CONFIGURATIONS
+  
+case "$TARGET_DNS_DOMAIN" in 
+   *llnl.gov)
+      
+      MILI_HOME="/usr/apps/mdg"
+      
+      CONFIGURE_COMPILER
+
+      ############################################################
+      #
+      # Determine if 'gmake' is available for building the code.	
+      #
+      ############################################################
+      CONFIGURE_GMAKE
+      CONFIGURE_TASKS
+
+      ############################################################
+      # 
+      # Configure library options
+      #
+      ############################################################
+
+      
+      if test "$OS_NAME" = "IRIX64" -o "$OS_NAME" = "IRIX"; then
+         CONFIGURE_SGI_GRAPHICS
+#      else
+#         CONFIGURE_X11
+
+#         CONFIGURE_MESA
+
+#         CONFIGURE_OSMESA
+         []
+      fi
+      
+      CONFIGURE_KLOCWORK
+
+      ############################################################
+      #
+      #	Set the directory names and paths.
+      #
+      ############################################################
+      
+      
+      CONFIGURE_INSTALL
+
+      ############################################################
+      #
+      #	Configure the Compiler Options
+      #
+      ############################################################
+      CONFIGURE_COMPILER_FLAGS
+      CONFIGURE_COMPILER_GRIZ
+      CONFIGURE_GRIZ_LIBRARIES
+      
+
+      ############################################################
+      # 
+      #	Create the exported environment variables.
+      # 
+      ############################################################
+
+      CFLAGS_DEBUG="$DEBUG_CFLAG_OPTIONS $GPROF_FLAGS"
+      CFLAGS_OPT="$OPT_CFLAG_OPTIONS $GPROF_FLAGS"
+
+      # Look for scripts in ./scripts
+
+      #############################################################################
+      #
+      #	Set the names of the 'Makefile's to be created.  Don't forget to
+      #       include the Makefile.Common file on all but the Driver.
+      #
+      #############################################################################
+      
+
+      ;;
+   *)
+      AC_PATH_X
+      
+      AC_SEARCH_LIBS([OSMesaGetCurrentContext],[OSMesa],
+         [
+            OSMESA_LIBRARY="$LIBS"
+            LIBS=""
+				BATCH_ENABLE="True"
+				BATCH_DEFINES="-DSERIAL_BATCH"
+         ],
+         [
+            CONFIGURE_OSMESA
+         ]
+         
+      )
+      
+      AC_SEARCH_LIBS([XDestroyWindow],[X11],
+         [
+         ],
+         [
+            AC_MSG_ERROR([No X11 Library available])
+         ]
+      
+      ) 
+      
+      AC_SEARCH_LIBS([XmStringFree],[Xm],
+         [
+         ],
+         [
+            AC_MSG_ERROR([No Xm Library available])
+         ]
+      
+      ) 
+	   
+      AC_SEARCH_LIBS([XtAppInitialize],[Xt],
+         [
+         ],
+         [
+            AC_MSG_ERROR([No Xt Library available])
+         ]
+      
+      )
+	   
+      AC_SEARCH_LIBS([glXChooseVisual],[GL],
+         [
+         ],
+         [
+            AC_MSG_ERROR([No GL Library available])
+         ]
+      
+      ) 
+	   
+      
+      AC_SEARCH_LIBS([gluNewQuadric],[GLU],
+         [
+         ],
+         [
+            AC_MSG_ERROR([No GLU Library available])
+         ]
+      
+      ) 
+      
+      AC_SEARCH_LIBS([glwDrawingAreaClassRec],[GLw],
+         [
+         ],
+         [
+            AC_MSG_ERROR([No Glw Library available])
+         ]
+      
+      ) 
+      
+      
+      GRIZ_EXE="griz4s.""$build_os""$EXE_SUFFIX"
+		
+      case $CC in
+         *icc)
+				CC_FLAGS_DEBUG="-g"
+				CC_FLAGS_OPT=" -O3"
+		
+				AR="ar"
+				RANLIB="ranlib"
+				AR_FLAGS="-r";;
+				
+         *xlc)
+				CC_FLAGS_EXTRA=" -bnoobjreorder -qfullpath -DAIX -qMAXMEM=8192 -bmaxdata:0x40000000"
+				CC_FLAGS_DEBUG="-g -DAIX "
+				CC_FLAGS_OPT="-g -O3 -DAIX "
+				
+				AR="ar"
+				RANLIB="ranlib"
+				AR_FLAGS="-r"
+
+            AC_MSG_WARN([xlc compiler]);;
+         *gcc)
+            AC_MSG_WARN([gcc compiler]);;
+			cc)
+            AC_MSG_WARN([cc compiler]);;
+         *)
+            AC_MSG_WARN([Unknown compiler]);;
+      esac
+      ;;
+esac
+
 CONFIGURE_BITMAPS
 
 CONFIGURE_IMAGE
-
-CONFIGURE_HERSHEY
-
-CONFIGURE_EXODUS
-
-CONFIGURE_NETCDF
-
-CONFIGURE_JPEG
-
-CONFIGURE_PNG
-
-CONFIGURE_KLOCWORK
-
-#############################################################################
-#
-#	Set the directory names and paths.
-#
-#############################################################################
-CONFIGURE_DIRS
-CONFIGURE_BUILDDIRS
-EXTERNAL_CONFIGURATIONS
-CONFIGURE_INSTALL
-
-#############################################################################
-#
-#	Configure the Compiler Options
-#
-#############################################################################
-CONFIGURE_COMPILER_FLAGS
-CONFIGURE_COMPILER_GRIZ
-CONFIGURE_GRIZ_LIBRARIES
-CONFIGURE_COMPILER_HERSHEYLIB
 CONFIGURE_COMPILER_IMAGELIB
 
-#############################################################################
-# 
-#	Fortran compiler and libraries support
-#       use the more modern FC macro versions
-# 
-#############################################################################
-# AC_PROG_FC
-# AC_FC_LIBRARY_LDFLAGS
-# AC_FC_WRAPPERS
-#############################################################################
-# 
-#	Check for other functions nad libraries
-# 
-#############################################################################
-#AC_CHECK_LIB(m, isnan, AC_DEFINE(HAVE_ISNAN, 1, [Math Lib has isNaN funtion]))
-AC_SEARCH_LIBS([isnan],[m],[AC_DEFINE(HAVE_ISNAN, 1, [Math Lib has isNaN funtion])])
-# General procedure for checking Fortran Libraries, but in the case of
-# libm.a this doesn't appear to work as expected.
-#AC_FC_FUNC(isnan)
-#AC_CHECK_LIB(m, $isnan, AC_DEFINE(HAVE_F77_ISNAN, 1, [isNaN F77 binding]))
-#############################################################################
-# 
-#	Create the exported environment variables.
-# 
-#############################################################################
+CONFIGURE_HERSHEY
+CONFIGURE_COMPILER_HERSHEYLIB
+ 
+MDGLIBS="$HERSHEY_LIBRARY_PATHS $HERSHEY_LIBRARY"
+MDGLIBS="$MDGLIBS $IMAGE_LIBRARY_PATHS $IMAGE_LIBRARY" 
+GRIZLIBS="$GRIZLIBS $MDGLIBS"
 
-CFLAGS_DEBUG="$DEBUG_CFLAG_OPTIONS $GPROF_FLAGS"
-CFLAGS_OPT="$OPT_CFLAG_OPTIONS $GPROF_FLAGS"
-
-AC_CONFIG_HEADERS([$PATH_NAME/include/griz_config.h:scripts/config.h.in])
-# Look for scripts in ./scripts
-
-#############################################################################
-#
-#	Set the names of the 'Makefile's to be created.  Don't forget to
-#       include the Makefile.Common file on all but the Driver.
-#
-#############################################################################
 MAKEFILES="$PATH_NAME/Makefile $PATH_NAME/src/Makefile $PATH_NAME/ImageLib/Makefile $PATH_NAME/HersheyLib/src/Makefile $MAKEFILES"
-
+    
 #############################################################################
 #
 #	Specify the commands to run at the end of 'configure'.
 #
 #############################################################################
-
-AC_OUTPUT_COMMANDS([rm -f config.cache config.log config.status])
+AC_CONFIG_COMMANDS([cleanup],[[rm -f config.cache config.log config.status ]])
 #############################################################################
 #
 #	Create the 'Makefile's from the template 'Makefile.in'

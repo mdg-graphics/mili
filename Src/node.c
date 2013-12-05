@@ -34,7 +34,9 @@
 #include "viewer.h"
 #include "misc.h"
 
+#ifndef INFINITY
 #define INFINITY        4.2535295865117308e37 /* (2^125) */
+#endif                                                                                    
 
 /* Reference pressure intensity for PING. */
 static float ping_pr_ref = 1.0;

@@ -18,7 +18,7 @@
  ************************************************************************
  */
 
-#include <griz_config.h>
+#include "griz_config.h"
 #include "buildinfo.h"
 #include "misc.h"
 #include "viewer.h"

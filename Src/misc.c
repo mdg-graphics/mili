@@ -49,7 +49,7 @@
  *                          See SRC#: 556
  ************************************************************************
  */
-
+#include "griz_config.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>

@@ -60,7 +60,6 @@ OS_NAME         =       @OS_NAME@
 
 SRC_DIRS	    =	@SRC_DIRS@
 ROOT_DIR        = 	@ROOT_DIR@
-INSTALL_DIR     = 	@INSTALL_DIR@
 SRC              = 	src
 TASKS_DEFAULT   =	16
 
@@ -174,30 +173,15 @@ distclean:
 
 
 
-install:
-		@ cd $(INSTALL_DIR); \
+install: 
+		@ for src_dir in $(SRC_DIRS); do \
+			cd $(ROOT_DIR); \
+			cd $$src_dir; \
+			$(MAKE) opt SYS_NAME=$(OS_NAME); \
+		done; 
+		cd $(SRC); \
 	        $(MAKE) install;
 
-
-install-initversion:
-		@ cd $(INSTALL_DIR); \
-	        $(MAKE) install-initversion;
-
-install-chmod:
-		@ cd $(INSTALL_DIR); \
-	        $(MAKE) install-chmod;
-
-install-updateFont:
-		@ cd $(INSTALL_DIR); \
-	        $(MAKE) install-updateFont;
-
-install-setversion:
-		@ cd $(INSTALL_DIR); \
-	        $(MAKE) install-setversion;
-
-install-startmsg:
-		@ cd $(INSTALL_DIR); \
-	        $(MAKE) install-startmsg;
 
 uninstall:
 		@ for src_dir in $(SRC_DIRS); do \

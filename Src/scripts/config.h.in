@@ -1,5 +1,6 @@
 /* scripts/config.h.in.  Generated from configure.ac by autoheader.  */
-
+#ifndef GRIZ_CONFIG_H
+#define GRIZ_COONFIG_H
 /* Configure command */
 #undef CONFIG_CMD
 
@@ -43,7 +44,10 @@
 #undef HAVE_ISNAN
 
 /* Jpeg library */
-#undef HAVE_JPEG
+#undef JPEG_SUPPORT
+
+/* define to 1 if you have <jpeglib.h> */
+#undef HAVE_JPEGLIB_H
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -64,7 +68,7 @@
 #undef HAVE_OSMESA
 
 /* Png library */
-#undef HAVE_PNG
+#undef PNG_SUPPORT
 
 /* Define to 1 if you have the `regcomp' function. */
 #undef HAVE_REGCOMP
@@ -158,3 +162,4 @@
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
+#endif
