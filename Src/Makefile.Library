@@ -70,7 +70,7 @@ CC  = @CC@
 CONFIG_STRING=@CONFIG_OPTIONS@
 
 INCLUDE_PATHS = @CC_INCLUDE_PATHS_GRIZ@ @MILI_INCLUDE_PATHS@
-C_FLAGS = @CFLAGS@
+CC_FLAGS = @CFLAGS@
 CC_FLAGS_DEBUG= @CC_FLAGS_DEBUG@ 
 CC_FLAGS_OPT  = @CC_FLAGS_OPT@
 CC_FLAGS_EXTRA= @CC_FLAGS_EXTRA@ 
@@ -107,7 +107,7 @@ endif
 .SUFFIXES : .c .o .h
 
 %.o: %.c
-	$(PURIFY_CMD) $(CC) $(C_FLAGS) $(CPPFLAGS) -c $<
+	$(PURIFY_CMD) $(CC) $(CC_FLAGS) $(CPPFLAGS) -c $<
 
 
 
@@ -204,8 +204,7 @@ ifeq (@BATCH_ENABLE@,True)
 # Build Batch Optimized Griz
 batch_debug:      LIBS = $(BASELIBS) $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
 batch_debug:	  LDFLAGS_EXTRA += $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
-#batch_debug:	  CC        = gcc
-batch_debug:	  CC_FLAGS  = $(CC_FLAGS_DEBUG)
+batch_debug:	  CC_FLAGS  = -g
 batch_debug:      EXEC_PATH = $(ROOT_DIR)/bin_batch_debug
 batch_debug:      LIB_PATH  = $(ROOT_DIR)/lib_batch_debug
 batch_debug:      OBJS_PATH = $(ROOT_DIR)/objs_batch_debug
@@ -220,29 +219,26 @@ batch_debug: 	  CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ $(INCLUDE_PATHS) 
 batch_debug:	  mk_dirs buildinfo.h build griz4s $(EXO_TARGET)
 
 # Build Optimized Griz
-batch_opt:         LIBS = $(BASELIBS) $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
-batch_opt:	   LDFLAGS_EXTRA += $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
-#batch_opt:	   CC        = gcc
-batch_opt:	   CC_FLAGS  = $(CC_FLAGS_OPT)
-batch_opt:         EXEC_PATH = $(ROOT_DIR)/bin_batch_opt
-batch_opt:         LIB_PATH  = $(ROOT_DIR)/lib_batch_opt
-batch_opt:         OBJS_PATH = $(ROOT_DIR)/objs_batch_opt
-batch_opt:	   LDFLAGS  += $(OSMESA_LIBS)
-batch_opt:         GRIZ_EXE = $(GRIZ_EXE_OPT)_batch
-batch_opt:         GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
-batch_opt:         GRIZ_BATCH_EXE = $(GRIZ_EXE)
-batch_opt:         MILILIBPATH = @MILI_LIBRARY_PATHS@
-batch_opt:	   CPPFLAGS = "@BATCH_DEFINES@ $(CPPFLAGS)"
-batch_opt: 	   DEFINES += @CC_DEFINES_GRIZ@ @BATCH_DEFINES@
-batch_opt: 	   CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ $(INCLUDE_PATHS) -I$(OSMESA_HOME)/../include -I$(top_builddir)
-batch_opt:	   mk_dirs buildinfo.h build griz4s $(EXO_TARGET)
+batch_opt:	LIBS = $(BASELIBS) $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
+batch_opt:	LDFLAGS_EXTRA += $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
+batch_opt:	EXEC_PATH = $(ROOT_DIR)/bin_batch_opt
+batch_opt:  LIB_PATH  = $(ROOT_DIR)/lib_batch_opt
+batch_opt:  OBJS_PATH = $(ROOT_DIR)/objs_batch_opt
+batch_opt:	LDFLAGS  += $(OSMESA_LIBS)
+batch_opt:  GRIZ_EXE = $(GRIZ_EXE_OPT)_batch
+batch_opt:  GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
+batch_opt:  GRIZ_BATCH_EXE = $(GRIZ_EXE)
+batch_opt:  MILILIBPATH = @MILI_LIBRARY_PATHS@
+batch_opt:	CPPFLAGS = "@BATCH_DEFINES@ $(CPPFLAGS)"
+batch_opt: 	DEFINES += @CC_DEFINES_GRIZ@ @BATCH_DEFINES@
+batch_opt: 	CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ $(INCLUDE_PATHS) -I$(OSMESA_HOME)/../include -I$(top_builddir)
+batch_opt:	mk_dirs buildinfo.h build griz4s $(EXO_TARGET)
 else
 batch_opt: error_batch
 endif
 
 # Build Optimized Griz
 opt:      LIBS = $(BASELIBS) @X11_LIBRARY_PATHS@ @X11_LIBS@
-opt:	  CC_FLAGS  = $(CC_FLAGS_OPT) $(CC_FLAGS_EXTRA)
 opt:      EXEC_PATH = $(ROOT_DIR)/bin_opt
 opt:      LIB_PATH  = $(ROOT_DIR)/lib_opt
 opt:      OBJS_PATH = $(ROOT_DIR)/objs_opt
@@ -250,14 +246,14 @@ opt:      LDFLAGS  += -L../lib_opt
 opt:      GRIZ_EXE_PATH = $(EXEC_PATH)/$(GRIZ_EXE)
 opt:      GRIZ_EXE = $(GRIZ_EXE_OPT)
 opt:      GRIZ_BATCH_EXE = $(GRIZ_EXE_OPT)
-opt: 	  DEFINES += @CC_DEFINES_GRIZ@ 
-opt: 	  CPPFLAGS  = @CC_DEFINES_GRIZ@  $(INCLUDE_PATHS) -I$(top_builddir)
-opt:	  MILILIBPATH = @MILI_LIBRARY_PATHS@
-opt:	  cleanopt mk_dirs  buildinfo.h build griz4s $(EXO_TARGET)
+opt: 	    DEFINES += @CC_DEFINES_GRIZ@ 
+opt: 	    CPPFLAGS  = @CC_DEFINES_GRIZ@  $(INCLUDE_PATHS) -I$(top_builddir)
+opt:	    MILILIBPATH = @MILI_LIBRARY_PATHS@
+opt:	    cleanopt mk_dirs  buildinfo.h build griz4s $(EXO_TARGET)
 
 # Build Debug Griz
 debug:  LIBS = $(BASELIBS) @X11_LIBRARY_PATHS@ @X11_LIBS@
-debug:	CC_FLAGS  = $(CC_FLAGS_DEBUG) $(CC_FLAGS_EXTRA)
+debug:	CC_FLAGS  = -g
 debug:	EXEC_PATH = $(ROOT_DIR)/bin_debug
 debug:	LIB_PATH  = $(ROOT_DIR)/lib_debug
 debug:	OBJS_PATH = $(ROOT_DIR)/objs_debug
