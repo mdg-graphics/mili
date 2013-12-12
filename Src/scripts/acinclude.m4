@@ -1,4 +1,4 @@
-# $Id$
+# $Id: acinclude.m4,v 1.5 2013/12/02 20:55:01 durrenberger1 Exp $
 #
 #
 #	*****************************************************************
@@ -204,8 +204,6 @@ AC_DEFUN([CONFIGURE_GPROF],
         fi
   ])
 
-
-
 AC_DEFUN([CONFIGURE_BITMAPS],
   [       
         #
@@ -228,57 +226,6 @@ AC_DEFUN([CONFIGURE_BITMAPS],
         AC_SUBST(BITMAPS_HOME)
         AC_SUBST(BITMAPS_INCLUDE_PATHS)
   ])
-
-
-AC_DEFUN([CONFIGURE_EXODUS],
-  [       
-        #
-        # Set options for running with EXODUS support
-        #
-
-        AC_ARG_ENABLE([exodus],
-               AC_HELP_STRING(
-                 [--enable-exodus],[Compile and load with EXODUS]),
-		EXODUS_ENABLE="True" &&  AC_MSG_RESULT(---->Enabling: Exodus),
-		EXODUS_ENABLE="False")
-
-        EXO_HOME=""
-        EXO_DEFINES=""
-        EXO_INCLUDE_PATHS=""
-        EXO_LIBRARY_PATHS=""
-
-        if test "$EXODUS_ENABLE" = "True"; then
-                EXO_HOME="/usr/local/lib"
-
-                AC_ARG_WITH([exodus],
-                    AC_HELP_STRING(
-	                   [--with-exodus=[PATH]],
-                           [Use given base PATH for EXODUS libraries and header files]),
-	                   EXO_HOME="${withval}" &&
-	                   AC_MSG_RESULT("Using EXODUS Path : $withval")
-	                   )
-
-                EXO_DEFINES="-DEXO_SUPPORT"
-                EXO_INCLUDE_PATHS="-I$EXODUS_HOME/include"
-                EXO_LIBRARY_PATHS="-L$EXODUS_HOME/lib"
-                EXO_LIBRARY="-lexoIIc"
-                NETCDF_ENABLE="True"
-                EXO_TARGET="libgex.so"
-
-		CONFIG_OPTIONS="$CONFIG_OPTIONS --enable-exodus --with-exodus=$EXODUS_HOME "  
-                AC_DEFINE(HAVE_EXODUS, 1, [Exodus library])
-        fi
-
-        # Exodus Library Options
-        AC_SUBST(EXO_ENABLE)
-        AC_SUBST(EXO_HOME)
-        AC_SUBST(EXO_DEFINES)
-        AC_SUBST(EXO_LIBRARY)
-        AC_SUBST(EXO_LIBRARY_PATH)
-        AC_SUBST(EXO_INCLUDE_PATH)
-        AC_SUBST(EXO_TARGET)
-  ])
-
 
 AC_DEFUN([CONFIGURE_HERSHEY],
   [       
@@ -348,85 +295,32 @@ AC_DEFUN([CONFIGURE_IMAGE],
 
 
 AC_DEFUN([CONFIGURE_JPEG],
-  [    
-	JPEG_ENABLE="True"  
-	CONFIG_JPEG="True"
-	AC_ARG_ENABLE([nojpeg],       
-		AC_HELP_STRING([--enable-nojpeg],[Turn off JPEG support]),
-		[
-			JPEG_ENABLE="False" 
-			CONFIG_JPEG="False"
-			AC_MSG_RESULT(---->Disabling: JPEG)
-		]
-	)	
-	if test "$JPEG_ENABLE" = "True"; then
-		#
-		# See if the user gave a path to a jpeg file
-		#
-		jpeg_on_system="false"
-		JPEG_HOME="None"
-		
-		AC_ARG_WITH([jpeg],
-			AC_HELP_STRING(
-				[--with-jpeg=[PATH]],
-				[Use given base PATH for JPEG libraries and header files]),
-			[
-				JPEG_HOME="${withval}" 
-				CONFIG_OPTIONS="$CONFIG_OPTIONS --with-jpeg=$JPEG_HOME " jpeg_set="True" 
-				
-			],
-			[
-				AC_SEARCH_LIBS([jpeg_destroy],[jpeg],
-	 				[  
-						AC_CHECK_HEADER([jpeglib.h],
-							[
-								AC_DEFINE([HAVE_JPEGLIB_H],
-									[1],
-									[define to 1 if you have <jpeglib.h>]
-								)
-							]
-						)
-						jpeg_on_system="true"
-	 				]
-				)
-			]        	   
-		)
-		
-		#
-		# Set options for running with JPEG support
-		#
-		JPEG_INCLUDE_PATHS=""
-		JPEG_LIBRARY_PATHS=""
-		JPEG_LIBRARY=""
-		JPEG_DEFINES=""
-		if test "$jpeg_on_system" = "false"; then
-			if test "$JPEG_HOME" = "None";then
-				JPEG_HOME=".."
-				CONFIG_JPEG="true"
-			fi
-			JPEG_INCLUDE_PATHS="-I$JPEG_HOME/include"
+[    
+   JPEG_HOME=""
+   JPEG_INCLUDE_PATHS=""
+	JPEG_LIBRARY_PATHS=""
+	JPEG_LIBRARY=""
+	JPEG_DEFINES=""
+   AC_SEARCH_LIBS([jpeg_destroy],[jpeg],
+      [  
+         AC_CHECK_HEADER([jpeglib.h],
+         [
+            AC_DEFINE([HAVE_JPEGLIB_H],[1],[define to 1 if you have <jpeglib.h>])
+         ]
+         )
+         
+		   CONFIG_JPEG="False"
+      ],
+      [ 
+         JPEG_HOME=".."
+         CONFIG_JPEG="true"
+         JPEG_INCLUDE_PATHS="-I$JPEG_HOME/include"
 			JPEG_LIBRARY_PATHS="-L$JPEG_HOME/lib"
-
-			CONFIG_OPTIONS="$CONFIG_OPTIONS --enable-jpeg "
-          
-			JPEG_LIBRARY="-ljpeg "
-
-			if test "$OS_NAME" = "OSF1"; then 
-				JPEG_LIBRARY_PATHS=" -noso $JPEG_LIBRARY_PATHS"
-				JPEG_LIBRARY="$JPEG_LIBRARY -so_archive "
-			fi
-		
-			
-		
-		else
-			JPEG_HOME=""
-			CONFIG_JPEG="False"
-		fi
-		JPEG_DEFINES="-DJPEG_SUPPORT"
-		AC_DEFINE(HAVE_JPEG, 1, [Jpeg library])
-      
-	fi
-          
+         JPEG_LIBRARY="-ljpeg "
+         AC_MSG_WARN([DID NOT FIND the jpeg on the system. Using builtin])
+      ]
+   )	
+   AC_DEFINE(JPEG_SUPPORT, 1, [Jpeg library])       
 	#  JPEG Library Options
 	AC_SUBST(JPEG_HOME)
 	AC_SUBST(CONFIG_JPEG)
@@ -443,9 +337,9 @@ AC_DEFUN([CONFIGURE_SGI_GRAPHICS],
 		OSMESA_ENABLE="False"
 		BATCH_ENABLE="False" 
 		AC_SUBST(X11_LIBRARY_PATHS)
-    AC_SUBST(X11_INCLUDE_PATHS)
+      AC_SUBST(X11_INCLUDE_PATHS)
 		AC_SUBST(OSMESA_ENABLE)
-    AC_SUBST(BATCH_ENABLE)
+      AC_SUBST(BATCH_ENABLE)
 		AC_SUBST(X11_LIBS)
 	]
 )	
@@ -455,7 +349,7 @@ AC_DEFUN([CONFIGURE_X11],
         # Set options for X11 Libraries
         # -lGLw -lXm -lXt -lX11 -lGLU -lGL -lm
 
-	paths="/usr /usr/X11R6 /usr/X11 /sw"
+	paths="/usr /usr/X11R6 /usr/X11 / /sw"
 
 	X11_INCLUDE_PATHS=""
 	X11_LIBRARY_PATHS=""
@@ -468,22 +362,23 @@ AC_DEFUN([CONFIGURE_X11],
 	Xmfound=""
 	Xtfound=""
 	GLfound=""
-        GLUfound=""
-        GLwfound=""
+   GLUfound=""
+   GLwfound=""
 	
-        libsfound=""
+   libsfound=""
 
-	#AC_PATH_X()
-	#AC_PATH_XTRA()
+	#AC_PATH_X
+	#AC_PATH_XTRA
 	
-	#AC_SEARCH_LIBS([XDestroyWindow],[X11]) 
-	#AC_SEARCH_LIBS([XmStringFree],[Xm]) 
-	#AC_SEARCH_LIBS([XtAddGrab],[Xt])
-	#AC_SEARCH_LIBS([glXFreeMemoryMESA],[GL]) 
-	#AC_SEARCH_LIBS([gluNewQuadric],[GLU]) 
-	#AC_SEARCH_LIBS([glwDrawingAreaClassRec],[GLw]) 
-	
-	#AC_MSG_ERROR([$x_includes $x_libraries $LIBS])
+	AC_SEARCH_LIBS([XDestroyWindow],[X11]) 
+   
+	AC_SEARCH_LIBS([XmStringFree],[Xm]) 
+	AC_SEARCH_LIBS([XtAppInitialize],[Xt])
+	AC_SEARCH_LIBS([glXChooseVisual],[GL]) 
+	AC_SEARCH_LIBS([gluNewQuadric],[GLU]) 
+	AC_SEARCH_LIBS([glwDrawingAreaClassRec],[GLw]) 
+	#AC_MSG_ERROR([$LIBS])
+	#AC_MSG_ERROR([$X_CFLAGS $no_x $x_includes $x_libraries $X_LIBS $LIBS $X_PRE_LIBS])
 
         allfound="false"
 	required_files="libX11.a libXm.a libXt.a libGL.a libGLU.a libGLw.a"
@@ -776,16 +671,16 @@ AC_DEFUN([CONFIGURE_X11],
 	
 	libsfound="$X11found $Xmfound $Xtfound $GLfound $GLUfound $GLwfound"
 
-        if test "$allfound" = "false"; then
+   if test "$allfound" = "false"; then
 	 	AC_MSG_RESULT([Could not locate all needed X11 libraries in $paths - Libraries found: $libsfound])
-        else
+   else
 	 	AC_MSG_RESULT([X11 libraries ($libsfound) validated at ($X11_PATH)])
-        fi
+   fi
 
-        AC_SUBST(X11_LIBRARY_PATHS)
-        AC_SUBST(X11_INCLUDE_PATHS)
+   AC_SUBST(X11_LIBRARY_PATHS)
+   AC_SUBST(X11_INCLUDE_PATHS)
 	AC_SUBST(X11_LIBS)
-  ])
+])
 
 
 AC_DEFUN([CONFIGURE_MESA],
@@ -1120,99 +1015,65 @@ AC_DEFUN([CONFIGURE_OSMESA],
   ])
 
 AC_DEFUN([CONFIGURE_MILI],
-  [       
-        #
-        # Set options for the MILI Library
-        #
-        MILI_HOME="/usr/apps/mdg"
- 
-        	AC_ARG_WITH([mili],
-               AC_HELP_STRING(
-				[--with-mili=[PATH]],
-				[Use given base PATH for MILI libraries and header files]
-			),
-			[
-				AC_CHECK_FILE([${withval}/lib/libmili.a],
-					[
-	            			MILI_HOME="${withval}"
-	            			AC_MSG_RESULT([Using MILI Path: $withval])
-					],
-					[
-						AC_MSG_ERROR([No Mili library at $withval/lib])
-					]
-				)
-			],
-			[
-				AC_CHECK_FILE([$MILI_HOME/lib/libmili.a],
-					[
-	            			AC_MSG_RESULT([Using MILI Path: $MILI_HOME ])
-					],
-					[
-						AC_MSG_ERROR([No Mili library found. Please set --with-mili=PATH to correct Mili library])
-					]
-				)
-			]
-		)
+[
+   #
+   # Set options for the MILI Library
+   #
+	AC_ARG_WITH(mdgpath,
+		[AS_HELP_STRING([--with-mdgpath=PATH],[Set the path where the lib and include directories are for mili and metis.])]
+		,
+		[
+      	MILI_HOME="${withval}"
+      	AC_MSG_RESULT("Set mdgpath to: $withval")
+		   MDGSET="true"
+		],
+		[
+			MILI_HOME="/usr/apps/mdg"
+			AC_ARG_WITH([mili],
+         	AC_HELP_STRING(
+					[--with-mili=[PATH]],
+					[Use given base PATH for MILI libraries and header files]
+				),
+				[
+					AC_CHECK_FILE([${withval}/lib/libmili.a],
+						[
+	            		MILI_HOME="${withval}"
+	            		AC_MSG_RESULT([Using MILI Path: $withval])
+						],
+						[
+							AC_MSG_ERROR([No Mili library at $withval/lib])
+						]
+					)
+				],
+				[
+					AC_CHECK_FILE([$MILI_HOME/lib/libmili.a],
+						[
+	            		AC_MSG_RESULT([Using MILI Path: $MILI_HOME ])
+						],
+						[
+							AC_MSG_ERROR([No Mili library found. Please set --with-mili=PATH to correct Mili library])
+						]
+					)
+				]
+			)
+		]
+	)
+		  
+   CONFIG_OPTIONS="$CONFIG_OPTIONS --with-mili=$MILI_HOME "
 
-		CONFIG_OPTIONS="$CONFIG_OPTIONS --with-mili=$MILI_HOME "
+   MILI_INCLUDE_PATHS="-I$MILI_HOME/include"
+   MILI_LIBRARY_PATHS="-L$MILI_HOME/lib"
 
-        	MILI_INCLUDE_PATHS="-I$MILI_HOME/include"
-        	MILI_LIBRARY_PATHS="-L$MILI_HOME/lib"
+   MILI_LIBRARY="-leprtf -lmili -ltaurus -lm"
 
-        	MILI_LIBRARY="-leprtf -lmili -ltaurus -lm"
+   AC_DEFINE(HAVE_MILI, 1, [Mili library])
 
-        AC_DEFINE(HAVE_MILI, 1, [Mili library])
-
-        #  MILI Library Options
-        AC_SUBST(MILI_HOME)
-        AC_SUBST(MILI_LIBRARY)
-        AC_SUBST(MILI_LIBRARY_PATHS)
-        AC_SUBST(MILI_INCLUDE_PATHS)
-  ])
-
-
-AC_DEFUN([CONFIGURE_NETCDF],
-  [       
-        #
-        # Set options for running with the NETCDF Library
-        #
-        AC_ARG_ENABLE([netcdf],
-               AC_HELP_STRING(
-                      [--enable-netcdf],[Compile and load with NETCDF]),
-		      NETCDF_ENABLE="True" &&  AC_MSG_RESULT(---->Enabling : NETCDF),
-		      NETCDF_ENABLE="False")
-
-        NETCDF_HOME=""
-        NETCDF_INCLUDE_PATHS=""
-        NETCDF_LIBRARY_PATHS=""
-        NETCDF_LIBRARY=""
-
-        if test "$NETCDF_ENABLE" = "True"; then
-                NETCDF_HOME="/usr/local/lib"
-
-                AC_ARG_WITH([netcdf],
-               AC_HELP_STRING(
-	            [--with-netcdf=[PATH]],
-                    [Use given base PATH for NETCDF libraries and header files]),
-	            NETCDF_HOME="${withval}" &&
-	            AC_MSG_RESULT("Using NETCDF Path : $withval")
-	        )
-
-                NETCDF_INCLUDE_PATHS="-I$NETCDF_HOME/include"
-                NETCDF_LIBRARY_PATHS="-L$NETCDF_HOME/lib"
-                NETCDF_LIBRARY="-lnetcdf"
-
-		CONFIG_OPTIONS="$CONFIG_OPTIONS --enable-netcdf --with-netcdf=$NETCDF_HOME "
-                AC_DEFINE(HAVE_NETCDF, 1, [NetCDF library])
-        fi
-
-        #  NETCDF Library Options
-        AC_SUBST(NETCDF_ENABLE)
-        AC_SUBST(NETCDF_HOME)
-        AC_SUBST(NETCDF_LIBRARY)
-        AC_SUBST(NETCDF_LIBRARY_PATHS)
-        AC_SUBST(NETCDF_INCLUDE_PATHS)
-  ])
+   #  MILI Library Options
+   AC_SUBST(MILI_HOME)
+   AC_SUBST(MILI_LIBRARY)
+   AC_SUBST(MILI_LIBRARY_PATHS)
+   AC_SUBST(MILI_INCLUDE_PATHS)
+])
 
 
 AC_DEFUN([CONFIGURE_PAPI],
@@ -1264,15 +1125,9 @@ AC_DEFUN([CONFIGURE_PAPI],
 AC_DEFUN([CONFIGURE_PNG],
 	[  
 		PNG_ENABLE="True"  
-		AC_ARG_ENABLE([nopng],
-			AC_HELP_STRING([--enable-nopng],[Disable PNG Support]),
-			[
-				PNG_ENABLE="False"  
-				AC_MSG_RESULT(---->Disabling: PNG)
-			]
-		)
+		
 		png_on_system="false"
-		PNG_HOME=""
+      PNG_HOME=""
 		PNG_INCLUDE_PATHS=""
 		PNG_LIBRARY_PATHS=""
 		ZLIB_HOME="None"
@@ -1281,24 +1136,27 @@ AC_DEFUN([CONFIGURE_PNG],
 		PNG_LIBRARY=""
 		PNG_DEFINES=""
 		CONFIG_PNG="false"
-		CONFIG_ZLIB="false"
-		if test "$PNG_ENABLE" = "True"; then
+      CONFIG_ZLIB="false"
+		
+      
+      AC_SEARCH_LIBS([png_init_io],[png],
+         [  
+            png_on_system="true"
+            AC_DEFINE(PNG_SUPPORT, 1, [Png library])
+            AC_SEARCH_LIBS([compress],[z])
+         ],
+         [
+            AC_MSG_WARN(DID NOT FIND the png on the system. Using built=in)
+         ]
+      )
+		
+		if test "$png_on_system" = "false"; then
 			AC_ARG_WITH([png],
 				AC_HELP_STRING([--with-png=[PATH]],
 					[Use given base PATH for PNG libraries and header files, "local" the png libs included with Griz]),
 				[
-					PNG_HOME="${withval}" 
-				],
-				[
-					AC_SEARCH_LIBS([png_init_io],[png],
-	 					[  
-							png_on_system="true"
-							AC_SEARCH_LIBS([compress],[z])
-	 					],
-						[
-	 						AC_MSG_WARN(DID NOT FIND the png on the system. Using built=in)
-	 					]
-					)
+					png_on_system="true"
+               PNG_HOME="${withval}" 
 				]
 			)
 			
@@ -1306,7 +1164,7 @@ AC_DEFUN([CONFIGURE_PNG],
 	
 			
 			
-    	if test "$png_on_system" = "false"; then
+    	   if test "$png_on_system" = "false"; then
 				PNG_HOME=".."
 				ZLIB_HOME=".."
 				CONFIG_ZLIB="true"
@@ -1321,15 +1179,9 @@ AC_DEFUN([CONFIGURE_PNG],
 				ZLIB_LIBRARY=" -lz "	
 				
 				CONFIG_OPTIONS="$CONFIG_OPTIONS --enable-png --with-png=$PNG_HOME "	
-			fi
-			
-			
-			PNG_DEFINES="-DPNG_SUPPORT"
-			AC_DEFINE(HAVE_PNG, 1, [Png library])
-			
-                
+			fi       
 		fi
-        
+   AC_DEFINE(PNG_SUPPORT, 1, [Png library])     
 	# PNG Library Options
 
 	AC_SUBST(CONFIG_PNG)
@@ -1348,44 +1200,49 @@ AC_DEFUN([CONFIGURE_PNG],
   ])
 
 AC_DEFUN([CONFIGURE_64bit],
-  [       
-        #
-        # Set options for running with 64bit support
-        #
-        AC_ARG_ENABLE([bits64],
-               AC_HELP_STRING(
-                      [--enable-64bit],[Compile and load with 64bit option]),
-		      bits64_ENABLE="True" &&  AC_MSG_RESULT(---->Enabling: 64bit),
-		      bits64_ENABLE="False")
+[
+   #
+   # Set options for running with 64bit support
+   #
+   if test "$ac_cv_sizeof_long" = "8"; then
+      bits64_ENABLE="True"
+   elif test "$ac_cv_sizeof_long" = "4"; then
+      bits64_ENABLE="False"
+   fi
+   
+   AC_ARG_ENABLE([bits32],
+      AC_HELP_STRING([--enable-32bit],[Compile and load with 32bit option]),
+		bits64_ENABLE="False",
+		bits64_ENABLE="True")
 
-        if test "$bits64_ENABLE" = "True"; then
-              WORD_SIZE="-64"
-              if test "$PROCESSOR_TYPE" = "i386linux"; then
-                 WORD_SIZE="-m32"
-              fi
+   if test "$bits64_ENABLE" = "True"; then
+      WORD_SIZE="-64"
+      if test "$PROCESSOR_TYPE" = "i386linux"; then
+         WORD_SIZE="-m32"
+      fi
 
+      AC_MSG_RESULT(** 64-bit Option Enabled **)
 
-              EXE_SUFFIX="$EXE_SUFFIX""_64bit"
+   elif test "$bits64_ENABLE" = "False"; then
+      if test "$OS_NAME" = "IRIX64" -o "$OS_NAME" = "IRIX" -o  "$PROCESSOR_TYPE" = "i386linux"; then
+         WORD_SIZE="-n32"
+         if test "$PROCESSOR_TYPE" = "i386linux"; then
+            WORD_SIZE="-m32"
+         fi
+         
+      else
+         WORD_SIZE="-32"
+      fi
+      EXE_SUFFIX="$EXE_SUFFIX""_32bit"
+      CONFIG_OPTIONS="$CONFIG_OPTIONS --enable--bits32 "
+   else
+      AC_MSG_WARN("****  Unknown 64bit Enable State")
+   fi
+   # Export 64bit Options
+   AC_SUBST(WORD_SIZE)
+   AC_SUBST(EXE_SUFFIX)
 
-	      CONFIG_OPTIONS="$CONFIG_OPTIONS --enable--bits64 "
-
-              AC_MSG_RESULT(** 64-bit Option Enabled **)
-
-        elif test "$bits64_ENABLE" = "False"; then
-              if test "$OS_NAME" = "IRIX64" -o "$OS_NAME" = "IRIX" -o  "$PROCESSOR_TYPE" = "i386linux"; then
-                 WORD_SIZE="-n32"
-                 if test "$PROCESSOR_TYPE" = "i386linux"; then
-                    WORD_SIZE="-m32"
-                 fi
-                 EXE_SUFFIX="$EXE_SUFFIX""_32bit"
-              fi
-        else
-        	AC_MSG_WARN("****  Unknown 64bit Enable State")
-        fi
-		# Export 64bit Options
-        AC_SUBST(WORD_SIZE)
-        AC_SUBST(EXE_SUFFIX)
-  ])
+])
 
 
 AC_DEFUN([CONFIGURE_INSTALL],
@@ -1427,12 +1284,12 @@ AC_DEFUN([CONFIGURE_DIRS],
 		MAKEFILES=" $HOST_PREFIX$HOSTDIR$EXE_SUFFIX""/ext/Makefile "
 		EXT_DIRS="$EXT_DIRS ext/JPEG "
 		EXT_BUILDS=" JPEG "
-  	 fi
+  	fi
 
-        #
-        # Setup PNG
-        #
-	 if test "$CONFIG_PNG" = "true"; then
+   #
+   # Setup PNG
+   #
+	if test "$CONFIG_PNG" = "true"; then
 		SRC_DIRS=" $SRC_DIRS ext/PNG ext/ZLIB "
 		MAKEFILES="$MAKEFILES $HOST_PREFIX$HOSTDIR$EXE_SUFFIX/ext/PNG/Makefile"
 		EXT_DIRS="$EXT_DIRS ext/PNG ext/ZLIB "
@@ -1446,30 +1303,31 @@ AC_DEFUN([CONFIGURE_DIRS],
 	if test "$SET_OSMESA" = "true"; then
 		EXT_DIRS="$EXT_DIRS ext/Mesa "
 	fi
-        SRC_DIRS="$SRC_DIRS HersheyLib/src ImageLib"
-        OBJS_DIRS=""
-        INC_DIRS=""
-	      AC_ARG_WITH([install],
-               AC_HELP_STRING(
-	            [--install-path=[PATH]],
-                    [Use given base PATH installing Griz4]),
-	            INSTALL_DIRS="-I${withval}/include" &&
-	            AC_MSG_RESULT(---->Installing Griz st: $withval)
-	           )
+   
+	SRC_DIRS="$SRC_DIRS HersheyLib/src ImageLib"
+   OBJS_DIRS=""
+   INC_DIRS=""
+	AC_ARG_WITH([install],
+   	AC_HELP_STRING(
+	   	[--install-path=[PATH]],
+         [Use given base PATH installing Griz4]),
+	       INSTALL_DIRS="-I${withval}/include" &&
+	       AC_MSG_RESULT(---->Installing Griz st: $withval)
+	)
  	AC_ARG_WITH([usrbuild],
-               AC_HELP_STRING(
-	            [--with-usrbuild=[PATH]],
-                    [Use given PATH for BUILD DIRECTORY]),
-	            BASE_DIR="${withval}" &&
-	            AC_MSG_RESULT("Setting Build directory to : $withval")
-	           )
+   	AC_HELP_STRING(
+	   	[--with-usrbuild=[PATH]],
+         [Use given PATH for BUILD DIRECTORY]),
+	      	BASE_DIR="${withval}" &&
+	         AC_MSG_RESULT("Setting Build directory to : $withval")
+	)
 
-        AC_SUBST(GRIZ_HOME)
-        AC_SUBST(TOP_DIR)
-        AC_SUBST(BIN_DIRS)
-        AC_SUBST(LIB_DIRS)
-        AC_SUBST(SRC_DIRS)
-        AC_SUBST(INC_DIRS)
+   AC_SUBST(GRIZ_HOME)
+   AC_SUBST(TOP_DIR)
+   AC_SUBST(BIN_DIRS)
+   AC_SUBST(LIB_DIRS)
+   AC_SUBST(SRC_DIRS)
+   AC_SUBST(INC_DIRS)
 	AC_SUBST(INSTALL_DIRS)
 	AC_SUBST(EXT_BUILDS)
 	AC_SUBST(EXT_DIRS)
@@ -1539,7 +1397,7 @@ AC_DEFUN([EXTERNAL_CONFIGURATIONS],
 		cd $HOSTDIR/ext/JPEG;
 	
 		if test "$OS_NAME" = "IRIX64" -o "$OS_NAME" = "IRIX"; then
-			configure MY_CC=cc --prefix=$TOP_DIR/$HOSTDIR 
+			configure CC="$CC" --prefix=$TOP_DIR/$HOSTDIR 
 		else
 			configure --prefix=$TOP_DIR/$HOSTDIR 
 	     fi
@@ -1562,7 +1420,7 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
 	else
 	    HOSTDIR="$HOST_PREFIX""$HOSTDIR""$EXE_SUFFIX"
   fi
-
+	
   if test -d "$HOSTDIR"; then
   	rm -rf "$HOSTDIR-old"
   	mv -f "$HOSTDIR" "$HOSTDIR-old"
@@ -1575,6 +1433,7 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
 	       AC_MSG_WARN("****  Error creating directory:  $HOSTDIR")
 	   	fi
   fi
+  
   for dir in $BIN_DIRS $LIB_DIRS $INC_DIRS $SRC_DIRS $EXT_DIRS $OBJS_DIRS $MISC_DIRS; do
   	PATH_NAME=$HOSTDIR
 	  set PATH_NAME_TEMP `echo ":$dir" | sed -ne 's/^:\//#/;s/^://;s/\// /g;s/^#/\//;p'`
@@ -1596,6 +1455,8 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
 	    done
     done
 	  ROOT_DIR=$TOP_DIR/$HOSTDIR
+	 ac_default_prefix=$ROOT_DIR
+	 AC_PREFIX_DEFAULT([$ROOT_DIR])
 
 	  if test "$CONFIG_JPEG" = "true" -o "$CONFIG_PNG" = "true"; then
 			cd $ROOT_DIR/ext
@@ -1625,14 +1486,17 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
     # Set up links for source files
     cd $ROOT_DIR
     cd src
-		ln -sf ../../Makefile.Library Makefile.in
+    ln -sf ../../Makefile.Library Makefile.in
 
     ln -sf $TOP_DIR/*.c .     > /dev/null 2>&1
     ln -sf $TOP_DIR/griz.in . > /dev/null 2>&1
-		
-    cd ../include
     ln -sf $TOP_DIR/*.h .     > /dev/null 2>&1
-		rm -f confdefs.h  > /dev/null 2>&1
+    ln -sf $TOP_DIR/ImageLib/*.h .  > /dev/null 2>&1
+    ln -sf $TOP_DIR/HersheyLib/src/*.h .  > /dev/null 2>&1
+    
+    rm -f confdefs.h  > /dev/null 2>&1
+    cd ../include
+		
 		if test "$SET_OSMESA" = "true"; then
         if test ! -e "GL"; then
                 mkdir GL
@@ -1759,7 +1623,7 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
 	done
 	cd $TOP_DIR
 	
-  AC_SUBST(ROOT_DIR)
+  
 	echo $CONFIG_CMD > CONFIGURE_OPTIONS
   ])
 
@@ -1907,150 +1771,131 @@ AC_DEFUN([CONFIGURE_COMPILER_FLAGS],
 
 
 AC_DEFUN([CONFIGURE_COMPILER],
-  [
-        # First Set non-machine specific defaults
+[
+	# First Set non-machine specific defaults
 
-# SGI compile flags; add -mips2 if running on R4000, etc.
-#
-# Flags used on other platforms:
-#
-# Sun Solaris           -O2 -Xa
-# DEC OSF               -O2
-# Cray UNICOS           -h nostdc -Gn
-# HPUX                  -Ae
-#
+	# SGI compile flags; add -mips2 if running on R4000, etc.
+	#
+	# Flags used on other platforms:
+	#
+	# Sun Solaris           -O2 -Xa
+	# DEC OSF               -O2
+	# Cray UNICOS           -h nostdc -Gn
+	# HPUX                  -Ae
+	#
 
-# Minimal library set (not complete! See below.)
-# LIBS = -lXm -lXt -lX11 -lGLw -lGLU -lGL -lm
-#
-# For these systems, add libraries...
-# SGI                   -PW
-# Sun Solaris           -Xext -Xmu
-# DEC OSF               -Xext -Xmu
-# Cray UNICOS           -Xmu
-# HPUX                  -Xext -Xmu
-#
-# Additional notes on libraries:
-# Depending on your platform and environment, it may well be necessary 
-# to add appropriate "-I" and/or "-L" switches so all the include 
-# files and libraries can be found. Also, order of specification is 
-# important.
-#
+	# Minimal library set (not complete! See below.)
+	# LIBS = -lXm -lXt -lX11 -lGLw -lGLU -lGL -lm
+	#
+	# For these systems, add libraries...
+	# SGI                   -PW
+	# Sun Solaris           -Xext -Xmu
+	# DEC OSF               -Xext -Xmu
+	# Cray UNICOS           -Xmu
+	# HPUX                  -Xext -Xmu
+	#
+	# Additional notes on libraries:
+	# Depending on your platform and environment, it may well be necessary 
+	# to add appropriate "-I" and/or "-L" switches so all the include 
+	# files and libraries can be found. Also, order of specification is 
+	# important.
+	#
 
-        SHELL="/bin/sh"
-        SHELL_ARGS="-ec"
+   CC_FLAGS_EXTRA=" "
 
-        CC_FLAGS_EXTRA=" "
+	if test "$OS_NAME" = "Linux"; then
+   	
+		CC_FLAGS_DEBUG="-g"
+		CC_FLAGS_OPT=" -O3"
+		
+		AR="ar"
+		RANLIB="ranlib"
+		AR_FLAGS="-r"
 
-        if test "$OS_NAME" = "Linux"; then
-                AC_CHECK_PROGS(MY_CC, icc gcc cc)
+		GRIZ_EXE="griz4s.linux""$EXE_SUFFIX"
 
-                SHELL_ARGS=" "
+	elif test "$OS_NAME" = "Darwin"; then
+		CC_FLAGS_EXTRA=" -DMAC_OS -arch i386 -Bstatic"
+		CC_FLAGS_OPT=" -O3"
+		CC_DEPEND="-M" 
+		GRIZ_EXE="griz4s.osx""$EXE_SUFFIX"
+		AR="ar"
+	elif test "$OS_NAME" = "AIX"; then
+		CC_FLAGS_EXTRA=" -bnoobjreorder -qfullpath -DAIX -qMAXMEM=8192 -bmaxdata:0x40000000"
+		CC_FLAGS_DEBUG="-g -DAIX "
+		CC_FLAGS_OPT="-g -O3 -DAIX "
+		CC_DEPEND="-M" 
 
-                CC_FLAGS_DEBUG="-g"
-                CC_FLAGS_OPT=" -O3"
-                CC_DEPEND="-M" 
+		AR="ar"
+		RANLIB="ranlib"
+		AR_FLAGS="-r"
 
-	        AR="ar"
-                RANLIB="ranlib"
-	        AR_FLAGS="-r"
+		GRIZ_EXE="griz4s.aix""$EXE_SUFFIX"
 
-                GRIZ_EXE="griz4s.linux""$EXE_SUFFIX"
+	elif test "$OS_NAME" = "HPUX" -o "$OS_NAME" = "HP-UX"; then
+		
+		CC_FLAGS_DEBUG="-g -Ae"
+		CC_FLAGS_OPT="-g -O3 -Ae"
+		CC_DEPEND="-M" 
 
-                if test  "$SYS_TYPE" = "chaos_3_x86_64_ib" -o "$SYS_TYPE" = "chaos_3_x86_64"; then
-                   MY_CC="pathcc"
-                   MY_FC="pathf90"
-                fi
-        elif test "$OS_NAME" = "Darwin"; then
-                CC_FLAGS_EXTRA=" -DMAC_OS -arch i386 -Bstatic"
-                CC_FLAGS_OPT=" -O3"
-                CC_DEPEND="-M" 
-                GRIZ_EXE="griz4s.osx""$EXE_SUFFIX"
-	        AR="ar"
-    	        MY_CC="cc" 
-        elif test "$OS_NAME" = "AIX"; then
-                AC_CHECK_PROGS(MY_CC, cc xlc xlr_r)
-	        CC_FLAGS_EXTRA=" -bnoobjreorder -qfullpath -DAIX -qMAXMEM=8192 -bmaxdata:0x40000000"
-                CC_FLAGS_DEBUG="-g -DAIX "
-                CC_FLAGS_OPT="-g -O3 -DAIX "
-                CC_DEPEND="-M" 
+		AR="ar"
+		RANLIB="ranlib"
+		AR_FLAGS="-r"
 
-	        AR="ar"
-                RANLIB="ranlib"
-	        AR_FLAGS="-r"
+		GRIZ_EXE="griz4s.hpux""$EXE_SUFFIX"
 
-                GRIZ_EXE="griz4s.aix""$EXE_SUFFIX"
+	elif test "$OS_NAME" = "SunOS"; then
+		
+		MACHINE_TYPE="`(uname -i | grep -v Blade) 2> /dev/null`"
+		
+		if test "$MACHINE_TYPE" = ""; then
+			MACHINE_TYPE="Blade"
+		fi
 
-       elif test "$OS_NAME" = "HPUX" -o "$OS_NAME" = "HP-UX"; then
-                AC_CHECK_PROGS(MY_CC, cc)
-                CC_FLAGS_DEBUG="-g -Ae"
-                CC_FLAGS_OPT="-g -O3 -Ae"
-                CC_DEPEND="-M" 
+		AC_MSG_RESULT("Machine_type=$MACHINE_TYPE") 
+		CC_FLAGS_DEBUG="-g -Xa"
+		CC_FLAGS_OPT="-xO3 -Xa"
+		CC_DEPEND="-M" 
 
-	        AR="ar"
-                RANLIB="ranlib"
-	        AR_FLAGS="-r"
+		AR="ar"
+		RANLIB="ranlib"
+		AR_FLAGS="-r"
 
-                GRIZ_EXE="griz4s.hpux""$EXE_SUFFIX"
+		GRIZ_EXE="griz4s.sol""$EXE_SUFFIX"
+		if test "$MACHINE_TYPE" = "Blade"; then
+			GRIZ_EXE="griz4s.sol.blade""$EXE_SUFFIX"
+		fi
 
-       elif test "$OS_NAME" = "SunOS"; then
-                MACHINE_TYPE="`(uname -i | grep -v Blade) 2> /dev/null`"
-                if test "$MACHINE_TYPE" = ""; then
-                   MACHINE_TYPE="Blade"
-                fi
+	elif test "$OS_NAME" = "IRIX64" -o "$OS_NAME" = "IRIX"; then
+		CC_FLAGS_DEBUG="-g $WORD_SIZE -ansi -common"
+		CC_FLAGS_OPT="-g -O3 $WORD_SIZE -ansi -common"
+		
+		CC_DEFINES="-DIRIX -DO2000" 
 
-                AC_MSG_RESULT("Machine_type=$MACHINE_TYPE") 
-                AC_CHECK_PROGS(MY_CC, cc)
-                CC_FLAGS_DEBUG="-g -Xa"
-                CC_FLAGS_OPT="-xO3 -Xa"
-                CC_DEPEND="-M" 
+		AR="ar"
+		RANLIB="echo"
+		AR_FLAGS="-r"
 
-	        AR="ar"
-                RANLIB="ranlib"
-	        AR_FLAGS="-r"
+		GRIZ_EXE="griz4s.irix""$EXE_SUFFIX"
+	fi
 
-                GRIZ_EXE="griz4s.sol""$EXE_SUFFIX"
-                if test "$MACHINE_TYPE" = "Blade"; then
-                   GRIZ_EXE="griz4s.sol.blade""$EXE_SUFFIX"
-                fi
+	AC_PROG_CC
+	AC_PROG_INSTALL
+	AC_PROG_AWK
+	AC_PROG_CPP
+	AC_PROG_LN_S
+	AC_PROG_MAKE_SET
+	AC_SUBST(AR)
+	AC_SUBST(AR_FLAGS)
+	AC_SUBST(RANLIB)
 
-       elif test "$OS_NAME" = "IRIX64" -o "$OS_NAME" = "IRIX"; then
-                AC_CHECK_PROGS(MY_CC, cc)
-                CC_FLAGS_DEBUG="-g $WORD_SIZE -ansi -common"
-                CC_FLAGS_OPT="-g -O3 $WORD_SIZE -ansi -common"
-                CC_DEPEND="-M" 
-
-                CC_DEFINES="-DIRIX -DO2000" 
-
-	        AR="ar"
-                RANLIB="echo"
-	        AR_FLAGS="-r"
-
-                GRIZ_EXE="griz4s.irix""$EXE_SUFFIX"
-        fi
-
-        AC_PROG_CC
-        AC_PROG_INSTALL
-        AC_PROG_AWK
-        AC_PROG_CPP
-        AC_PROG_LN_S
-        AC_PROG_MAKE_SET
-        AC_SUBST(AR)
-        AC_SUBST(AR_FLAGS)
-        AC_SUBST(RANLIB)
-        AC_SUBST(MY_CC)
-        AC_SUBST(MY_FC)
-
-        AC_SUBST(SHELL)        
-        AC_SUBST(SHELL_ARGS)
-
-        AC_SUBST(GRIZ_EXE)
-        AC_SUBST(CC_DEPEND)
-        AC_SUBST(CC_FLAGS_DEBUG)
-        AC_SUBST(CC_FLAGS_OPT)
-        AC_SUBST(CC_FLAGS_EXTRA)
-        AC_SUBST(LDFLAGS_EXTRA)
-  ])
+	AC_SUBST(GRIZ_EXE)
+	AC_SUBST(CC_DEPEND)
+	AC_SUBST(CC_FLAGS_DEBUG)
+	AC_SUBST(CC_FLAGS_OPT)
+	AC_SUBST(CC_FLAGS_EXTRA)
+	AC_SUBST(LDFLAGS_EXTRA)
+])
 
 
 AC_DEFUN([CONFIGURE_COMPILER_IMAGELIB],
@@ -2096,8 +1941,6 @@ AC_DEFUN([CONFIGURE_COMPILER_HERSHEYLIB],
         #
         # Define the compile search order
         #
-        CC_INCLUDE_PATHS_HERSHEYLIB=" -I../include "
-
         HERSHEY_FONTLIB=/usr/local/lib/hershey
         HERSHEY_FONTLIB=$TOP_DIR/$HOSTDIR/HersheyLib/hfonts
 
