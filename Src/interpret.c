@@ -2026,7 +2026,6 @@ parse_single_command( char *buf, Analysis *analy )
             else if ( strcmp( tokens[i], "title" ) == 0 )
             {
                 analy->show_title      = setval;
-                analy->show_title_path = setval;
             }
             else if ( strcmp( tokens[i], "path" ) == 0 )
                 analy->show_title_path = setval;
