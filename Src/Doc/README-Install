@@ -41,8 +41,8 @@ Once the Griz tarfile has been extracted, execute the following steps in this or
 
 (7) To install an executable on the LC machines do the following:
     a). Perform steps 1-5 above
-    b). cp bin_opt/griz.linux-gnu_opt griz4s.linux_opt
-    c). cp bin_batch_opt/griz4s.linux-gnu_opt_batch griz4s.linux_opt_batch
+    b). cp bin_opt/griz4s.linux-gnu_opt bin_opt/griz4s.linux_opt
+    c). cp bin_batch_opt/griz4s.linux-gnu_opt_batch bin_batch_opt/griz4s.linux_opt_batch
     d). give mdgadmin bin_opt/griz4s.linux_opt bin_batch_opt/griz4s.linux_opt_batch
     e). xsu mdgadmin
     f). cd /collab/usr/apps/mdg/archive/grizdir/[grizalpha|grizbeta|grizversion]/bin
