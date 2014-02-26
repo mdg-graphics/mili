@@ -1027,6 +1027,10 @@ typedef struct _Analysis
     float displace_scale[3];
 
     Result *cur_result;
+    /* Added by Bill Oliver Jan 2014 for needed logic to show mat color combined with
+ *     the "show mat" command */
+    Bool_type showmat;
+
     int result_index;
     char result_title[80];
 
@@ -1356,6 +1360,11 @@ typedef struct _Analysis
      */
     int                 es_cnt; /* Number of element sets */
     Integration_points *es_intpoints;
+
+    /*
+ *   Added February , 2014:  WBO Switch to turn off auto gray
+ *  */
+    Bool_type auto_gray;
 }
 Analysis;
 
@@ -2040,6 +2049,7 @@ extern void invert_colormap( void );
 extern void set_cutoff_colors( Bool_type, Bool_type, Bool_type );
 extern void cutoff_colormap( Bool_type, Bool_type );
 extern void gray_colormap( Bool_type );
+extern void restore_colormap( );
 extern void contour_colormap( int );
 extern void delete_lights( void );
 extern void set_light( int, char [MAXTOKENS][TOKENLENGTH] );
@@ -2351,4 +2361,6 @@ replace_string( char *input_str, char *sub_str, char *replace_str );
 
 void
 update_file_path( Analysis *analy, char *filename, char *filename_with_path );
+extern void draw_grid(Analysis * );
+extern void draw_grid_2d(Analysis * );
 #endif

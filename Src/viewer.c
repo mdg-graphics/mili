@@ -824,6 +824,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         return FALSE;
     }
 
+    analy->auto_gray = TRUE;
+
     analy->path_name[0] = '\0';
     analy->path_found   = FALSE;
     dir_pos = -1;
@@ -941,6 +943,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         analy->normals_constant = analy->state_p->position_constant &&
                                   !analy->state_p->sand_present;
 
+    analy->showmat = TRUE;
     analy->result_source = ALL;
     analy->cur_state  = 0;
     analy->last_state = 0;
@@ -948,7 +951,9 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->normals_smooth = TRUE;
     analy->render_mode = RENDER_MESH_VIEW;
     analy->mesh_view_mode = RENDER_HIDDEN;
-    analy->interp_mode = REG_INTERP;
+    /*analy->interp_mode = REG_INTERP;*/
+    analy->interp_mode = NO_INTERP;
+     
     analy->manual_backface_cull = TRUE;
     analy->float_frac_size = DEFAULT_FLOAT_FRACTION_SIZE;
     analy->auto_frac_size = TRUE;
@@ -1993,6 +1998,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             if(pos == 0)
             {
                 fprintf(analy->p_histfile, "%s", header);
+                fflush(analy->p_histfile);
             }
 
         }
@@ -2122,6 +2128,19 @@ load_analysis( char *fname, Analysis *analy, Bool_type reload )
     Database_type_griz db_type;
     Bool_type status;
     Analysis temp_analy;
+    char comment[512];
+    
+    /* We are either loading another plotfile or reloading the current one.  So if a current 
+ *     grizhist file is open close and delete if before creating another one */
+    if(analy->p_histfile)
+    {
+        strcpy(comment, "rm ");
+        strcat(comment, analy->hist_fname);
+        fclose(analy->p_histfile);
+        analy->p_histfile = NULL;
+        analy->hist_fname[0] = '\0';
+        system(comment);
+    }
 
     if ( !is_known_db( fname, &db_type ) )
     {

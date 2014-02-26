@@ -2019,6 +2019,23 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->show_bbox = setval;
             else if ( strcmp( tokens[i], "echocmd" ) == 0 )
                 analy->echocmd = setval;
+            else if ( !strcmp( tokens[i], "fringe_all"))
+            {
+                if(setval)
+                {
+                    analy->auto_gray = FALSE;
+                }else
+                {
+                    analy->auto_gray = TRUE;
+                } 
+                if(analy->dimension == 3)
+                {
+                    draw_grid(analy);
+                } else
+                {
+                    draw_grid_2d( analy);
+                }
+            }
             else if ( strcmp( tokens[i], "coord" ) == 0 )
                 analy->show_coord = setval;
             else if ( strcmp( tokens[i], "time" ) == 0 )
@@ -2390,6 +2407,12 @@ parse_single_command( char *buf, Analysis *analy )
             {
                 analy->material_greyscale = setval;
                 update_util_panel( VIEW_GS, NULL );
+                /* if(setval == TRUE)
+                {
+		   gray_colormap(TRUE);
+                } else {
+                   restore_colormap(); 
+                } */
             }
             else if ( strcmp( tokens[i], "damage_hide" ) == 0 )
             {

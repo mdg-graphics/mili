@@ -172,7 +172,11 @@ time_t tm;
 int  label_compare( const int *key, const MO_class_labels *label );
 int  get_class_label_index( MO_class_data *class, int label_num );
 void dump_class_labels( MO_class_data *class );
+void populate_result(int superclass, char map[], int size, MO_class_data * p_class, Analysis * analy);
 
+int grayel = 0;
+const float grayval = 0.7;
+char particle_name[256];
 /*
  * This if not defined statement takes care of the problem at WES
  * where the titles, time, etc are not displayed
@@ -350,8 +354,8 @@ static int check_for_tri_face( int, int, MO_class_data *, float [4][3],
                                int [4] );
 static void get_min_max( Analysis *, Bool_type, float *, float * );
 
-static void draw_grid( Analysis * );
-static void draw_grid_2d( Analysis * );
+/*static void draw_grid( Analysis * );
+static void draw_grid_2d( Analysis * ); */ 
 
 static void draw_hexs( Bool_type, Bool_type, Bool_type, MO_class_data *,
                        Analysis * );
@@ -629,6 +633,17 @@ init_mesh_window( Analysis *analy )
         define_color_properties( &v_win->surfaces, NULL, sum, surface_colors, SURFACE_COLOR_CNT );
     }
 
+    if ( (qty = MESH_P( analy )->classes_by_sclass[G_PARTICLE].qty) > 0 )
+    {
+        p_classes = (MO_class_data **) MESH_P( analy )->classes_by_sclass[G_PARTICLE].list;
+
+        sum = 0;
+        for ( i = 0; i < qty; i++ )
+            sum += p_classes[i]->qty;
+
+        create_color_prop_arrays( &v_win->particles, sum );
+        define_color_properties( &v_win->particles, NULL, sum, particle_colors, PARTICLE_COLOR_CNT );
+    }
     /* Init lighting even if 2D db so a subsequent 3D db load will be OK. */
 
     /* Default to one-sided lighting (this is the OpenGL default). */
@@ -2248,7 +2263,7 @@ draw_mesh_view( Analysis *analy )
  * associated with drawing the grid, except for the viewing
  * transformation.
  */
-static void
+extern void
 draw_grid( Analysis *analy )
 {
     Triangle_poly *tri;
@@ -2442,7 +2457,11 @@ draw_grid( Analysis *analy )
      * Draw free nodes.
      */
     if ( analy->free_nodes_enabled || analy->particle_nodes_enabled )
-        draw_free_nodes( analy );
+        draw_free_nodes( analy ); 
+      /*if(analy->free_nodes_enabled)
+      {
+          draw_free_nodes(analy);
+      } */
 
     /*
      * Draw the elements.
@@ -2544,13 +2563,27 @@ draw_grid( Analysis *analy )
      * Draw particle data.
      */
 
+    qty_classes = p_mesh->classes_by_sclass[G_PARTICLE].qty;
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PARTICLE].list;
+    if(qty_classes > 0)
+    {
+        analy->show_particle_class = FALSE;
+        
+    } 
+
     /*  Set glMaterial to draw from the correct color property data base */
     if ( analy->show_particle_class )
     {
+        strcpy(particle_name, "DBC1");
+        /*for(i=0; i < qty_classes; i++)
+        {
+            strcpy(particle_cname, moclasses[i]->short_name);
+        }*/ 
+        /*v_win->particles = v_win->current_color_property;*/
         change_current_color_property( &v_win->particles,
                                        v_win->particles.current_index );
 
-        rval = htable_search( p_mesh->class_table, particle_cname, FIND_ENTRY,
+        rval = htable_search( p_mesh->class_table, particle_name, FIND_ENTRY,
                               &p_hte );
         if ( rval == OK )
         {
@@ -2558,9 +2591,9 @@ draw_grid( Analysis *analy )
 
             rval = htable_search( analy->primal_results, "partpos", FIND_ENTRY,
                                   &p_hte );
-            if ( rval == OK )
+           /* if ( rval == OK ) */
                 draw_particles_3d( p_mo_class, analy );
-        }
+        } 
     }
 
     /*
@@ -2683,7 +2716,7 @@ draw_grid( Analysis *analy )
  * associated with drawing the grid, except for the viewing
  * transformation.
  */
-static void
+extern void
 draw_grid_2d( Analysis *analy )
 {
     int i;
@@ -2991,6 +3024,114 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     unsigned char *hide_mtl;
     int *p_mats;
 
+    Result *p_result;
+    Subrec_obj *p_subrec;
+    p_result = analy->cur_result;
+/* Adding code to determine if a subrecord for these objects has the appropriate variable and if
+ * not it sets that element to a gray scale prior to calling draw poly */
+    int index, subrec, srec, qty_blocks, mesh_id;
+    Bool_type same_as_last = FALSE;
+    static char **results_map;
+    static char * result_name = NULL;
+    static char * short_name = NULL;
+    
+    static int first = 0;
+
+    mesh_id = p_hex_class->mesh_id;
+
+    show_result = show_node_result
+                  || result_has_class( analy->cur_result, p_hex_class, analy )
+                  || show_mat_result
+                  || show_mesh_result;
+
+    if(first == 0)
+    {
+        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+        if(results_map == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
+            parse_command("quit", analy);
+        }
+        for(i = 0; i < analy->mesh_qty; i++)
+        {
+            results_map[i] = NULL;
+        } 
+
+        first = 1;
+    }
+   
+    if(show_result)
+    { 
+        if(result_name != NULL)
+        {
+            if(strcmp(result_name, p_result->name))
+            {
+                /* we are showing a different result than the last shown result */
+                free(result_name);
+                result_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+                same_as_last = FALSE;
+            } else
+            {
+                same_as_last = TRUE;
+            }
+        }
+        if(short_name != NULL )
+        {
+            if(strcmp(short_name, p_hex_class->short_name))
+            {
+                free(short_name);
+                short_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+            }
+        }  
+       
+        if(results_map[mesh_id] == NULL)
+        {
+            results_map[mesh_id] = (char *) malloc(p_hex_class->qty+1);
+            if( results_map[mesh_id] == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(result_name == NULL)
+        {
+            result_name = (char *) malloc(strlen(p_result->name) + 1);
+            if(result_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
+        }
+        if(short_name == NULL)
+        {
+            short_name = (char *) malloc(strlen(p_hex_class->short_name) + 1);
+            if(short_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(short_name, p_hex_class->short_name, strlen(p_hex_class->short_name) + 1);
+        }
+    }
+
+    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    { 
+        populate_result(G_HEX, results_map[mesh_id], p_hex_class->qty + 1, p_hex_class, analy);
+    }
+
+
+ 
     Bool_type hidden_poly=FALSE,
               hidden_poly_elem=FALSE,
               hidden_poly_elem_wft=FALSE,
@@ -3003,7 +3144,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         return;
 
     if ( is_particle_class(analy, p_hex_class->superclass, p_hex_class->short_name) )
-        return;
+        return; 
 
     p_mesh = MESH_P( analy );
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
@@ -3055,11 +3196,6 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         p_index_source = &nd;
     }
 
-    show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_hex_class, analy )
-                  || show_mat_result
-                  || show_mesh_result;
-
     /* If we are drawing particles then look for a particle result and map onto hexes
       *
       */
@@ -3071,8 +3207,11 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     /* Enable color to change AMBIENT & DIFFUSE property of the material. */
     glEnable( GL_COLOR_MATERIAL );
 
-    /* Throw away backward-facing faces. */
-    glEnable( GL_CULL_FACE );
+    if(analy->mesh_view_mode !=RENDER_WIREFRAMETRANS)
+    {
+        /* Throw away backward-facing faces. */
+        glEnable( GL_CULL_FACE );
+    }
 
     /* Set up for polygon drawing. */
     begin_draw_poly( analy );
@@ -3195,7 +3334,10 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
 
         hidden_poly_elem = hide_by_object_type( p_hex_class, matl, el, analy, data_array );
         if ( analy->mesh_view_mode == RENDER_WIREFRAMETRANS )
-            hidden_poly_elem_wft = disable_by_object_type( p_hex_class, matl, el, analy, data_array );
+        {
+            hidden_poly_elem_wft = TRUE;  
+           /*hidden_poly_elem_wft = disable_by_object_type( p_hex_class, matl, el, analy, data_array ); */
+        }
 
         if ( hidden_poly_mat || hidden_poly_elem || hidden_poly_elem_wft )
             hidden_poly = TRUE;
@@ -3206,8 +3348,45 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
             if ( p_mats[matl] )
                 hidden_poly = TRUE;
 
-        draw_poly( cnt, verts, norms, cols, res, matl, p_mesh, analy, hidden_poly );
+        /* check to see if this element has the variable to be shown */
+        if(show_result && !analy->material_greyscale && analy->auto_gray)
+        {
+            grayel = 0;
+            if((results_map[mesh_id][el+1] == '0') && !disable_mtl[matl] && !disable_flag)
+            {
+                grayel = 1;         
+                for(j = 0; j < 4; j++)
+                {
+                    for(k = 0; k < 4; k++)
+                    {
+                        cols[j][k] = grayval;
+                    }
+                }
+               
+            }
+        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        {
+            grayel = 1;
+            for(j = 0; j < 4; j++)
+            {
+                for(k = 0; k < 4; k++)
+                {
+                    cols[j][k] = grayval;
+                }
+            }
+             
+        }
+  
+        if(analy->mesh_view_mode == RENDER_WIREFRAMETRANS)
+        {
+            draw_edges_3d(analy);
+        } else
+        {
+            draw_poly( cnt, verts, norms, cols, res, matl, p_mesh, analy, hidden_poly );
+        }
     }
+
+    grayel = 0;
 
     /* Back to the defaults. */
     end_draw_poly( analy );
@@ -3246,6 +3425,115 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     int *p_index_source;
     Interp_mode_type save_interp_mode;
     Bool_type hidden_poly;
+    Bool_type disable_flag=FALSE;
+
+    int mesh_id;
+    static int first = 0;
+    static char ** results_map;
+    static char * result_name = NULL;
+    static char * short_name = NULL;
+    Result * p_result;
+    Bool_type same_as_last = FALSE;
+
+    mesh_id = p_tet_class->mesh_id;
+    p_result = analy->cur_result;
+
+
+    show_result = show_node_result
+                  || result_has_class( analy->cur_result, p_tet_class, analy )
+                  || show_mat_result
+                  || show_mesh_result; 
+
+    if(first == 0)
+    {
+        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+        if(results_map == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
+            parse_command("quit", analy);
+        }
+        for(i = 0; i < analy->mesh_qty; i++)
+        {
+            results_map[i] = NULL;
+        } 
+
+        first = 1;
+    }
+   
+    if(show_result)
+    { 
+        if(result_name != NULL)
+        {
+            if(strcmp(result_name, p_result->name))
+            {
+                /* we are showing a different result than the last shown result */
+                free(result_name);
+                result_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+                same_as_last = FALSE;
+            } else
+            {
+                same_as_last = TRUE;
+            }
+        }
+        if(short_name != NULL )
+        {
+            if(strcmp(short_name, p_tet_class->short_name))
+            {
+                free(short_name);
+                short_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+            }
+        }  
+       
+        if(results_map[mesh_id] == NULL)
+        {
+            results_map[mesh_id] = (char *) malloc(p_tet_class->qty+1);
+            if( results_map[mesh_id] == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tets. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(result_name == NULL)
+        {
+            result_name = (char *) malloc(strlen(p_result->name) + 1);
+            if(result_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tets. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
+        }
+        if(short_name == NULL)
+        {
+            short_name = (char *) malloc(strlen(p_tet_class->short_name) + 1);
+            if(short_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tets Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(short_name, p_tet_class->short_name, strlen(p_tet_class->short_name) + 1);
+        }
+    }
+
+    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    { 
+        populate_result(G_TET, results_map[mesh_id], p_tet_class->qty + 1, p_tet_class, analy);
+    }
+
+    /*show_result = show_node_result
+                  || result_has_class( analy->cur_result, p_tet_class, analy )
+                  || show_mat_result
+                  || show_mesh_result; */
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -3298,7 +3586,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     show_result = show_node_result
                   || result_has_class( analy->cur_result, p_tet_class, analy )
                   || show_mat_result
-                  || show_mesh_result;
+                  || show_mesh_result; 
 
     get_min_max( analy, FALSE, &rmin, &rmax );
 
@@ -3396,6 +3684,37 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
             }
         }
 
+        disable_flag = disable_by_object_type( p_tet_class, matl, el, analy, data_array );
+
+        /* check to see if this element has the variable to be shown */
+        if(show_result && !analy->material_greyscale)
+        {
+            grayel = 0;
+            if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
+            {
+                grayel = 1;         
+                for(j = 0; j < 4; j++)
+                {
+                    for(k = 0; k < 4; k++)
+                    {
+                        cols[j][k] = grayval;
+                    }
+                }
+               
+            }
+        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        {
+            grayel = 1;
+            for(j = 0; j < 4; j++)
+            {
+                for(k = 0; k < 4; k++)
+                {
+                    cols[j][k] = grayval;
+                }
+            }
+             
+        }
+
         hidden_poly = hide_by_object_type( p_tet_class, matl, el, analy, data_array );
         draw_poly( cnt, verts, norms, cols, res, matl, p_mesh, analy, hidden_poly );
     }
@@ -3439,6 +3758,110 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
 
     Bool_type hidden_poly;
     Bool_type inactive_element=FALSE;
+    Bool_type disable_flag=FALSE;
+    Result * p_result;
+
+    int mesh_id;
+    static int first = 0;
+    static char ** results_map;
+    static char * result_name = NULL;
+    static char * short_name = NULL;
+    Bool_type same_as_last = FALSE;
+
+    p_result = analy->cur_result;
+    mesh_id = p_quad_class->mesh_id;
+
+    show_result = show_node_result
+                  || result_has_class( analy->cur_result, p_quad_class, analy )
+                  || show_mat_result
+                  || show_mesh_result;
+
+
+    if(first == 0)
+    {
+        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+        if(results_map == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
+            parse_command("quit", analy);
+        }
+        for(i = 0; i < analy->mesh_qty; i++)
+        {
+            results_map[i] = NULL;
+        } 
+
+        first = 1;
+    }
+   
+    if(show_result)
+    { 
+        if(result_name != NULL)
+        {
+            if(strcmp(result_name, p_result->name))
+            {
+                /* we are showing a different result than the last shown result */
+                free(result_name);
+                result_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+                same_as_last = FALSE;
+            } else
+            {
+                same_as_last = TRUE;
+            }
+        }
+        if(short_name != NULL )
+        {
+            if(strcmp(short_name, p_quad_class->short_name))
+            {
+                free(short_name);
+                short_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+            }
+        }  
+       
+        if(results_map[mesh_id] == NULL)
+        {
+            results_map[mesh_id] = (char *) malloc(p_quad_class->qty+1);
+            if( results_map[mesh_id] == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(result_name == NULL)
+        {
+            result_name = (char *) malloc(strlen(p_result->name) + 1);
+            if(result_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
+        }
+        if(short_name == NULL)
+        {
+            short_name = (char *) malloc(strlen(p_quad_class->short_name) + 1);
+            if(short_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(short_name, p_quad_class->short_name, strlen(p_quad_class->short_name) + 1);
+        }
+    }
+
+    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    { 
+        populate_result(G_QUAD, results_map[mesh_id], p_quad_class->qty + 1, p_quad_class, analy);
+    }
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -3492,10 +3915,10 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
         p_index_source = &nd;
     }
 
-    show_result = show_node_result
+   /* show_result = show_node_result
                   || result_has_class( analy->cur_result, p_quad_class, analy )
                   || show_mat_result
-                  || show_mesh_result;
+                  || show_mesh_result; */
 
     get_min_max( analy, FALSE, &rmin, &rmax );
 
@@ -3573,10 +3996,50 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
         if ( has_degen &&
                 connects[i][2] == connects[i][3] )
             cnt = 3;
+      
+        disable_flag = disable_by_object_type(p_quad_class, matl, i, analy, NULL);
+
+        /* check to see if this element has the variable to be shown */
+        if(show_result && !analy->material_greyscale)
+        {
+            grayel = 0;
+            if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
+            {
+                grayel = 1;         
+                for(j = 0; j < 4; j++)
+                {
+                    for(k = 0; k < 4; k++)
+                    {
+                        cols[j][k] = grayval;
+                    }
+                }
+               
+            }
+        } else if(!show_result && !analy->showmat && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        {
+            grayel = 1;
+            for(j = 0; j < 4; j++)
+            {
+                for(k = 0; k < 4; k++)
+                {
+                    cols[j][k] = grayval;
+                }
+            }
+        }
 
         hidden_poly = hide_by_object_type( p_quad_class, matl, i, analy, data_array );
-        draw_poly( cnt, verts, norms, cols, res, matl, p_mesh, analy, hidden_poly );
+ 
+        if(analy->mesh_view_mode == RENDER_WIREFRAMETRANS)
+        {
+            draw_edges_3d(analy);
+
+        } else
+        {
+            draw_poly( cnt, verts, norms, cols, res, matl, p_mesh, analy, hidden_poly );
+        }
     }
+
+    grayel = 0;
 
     /* Back to the defaults. */
     end_draw_poly( analy );
@@ -3614,7 +4077,120 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
     int *p_index_source;
     Interp_mode_type save_interp_mode;
 
+/* Adding code to determine if a subrecord for these objects has the appropriate variable and if
+ * not it sets that element to a gray scale prior to calling draw poly */
+    int index, subrec, srec, qty_blocks;
+    int total_blocks = 0;
+    Subrec_obj *p_subrec;
     Bool_type hidden_poly;
+    Bool_type disable_flag=FALSE;
+    int mesh_id;
+    static char **results_map;
+    static char *result_name = NULL;
+    static char *short_name = NULL;
+    static int first = 0;
+    Result * p_result;
+    Bool_type same_as_last = FALSE;
+
+    mesh_id = p_tri_class->mesh_id;
+    p_result = analy->cur_result;
+
+    show_result = show_node_result
+                  || result_has_class( analy->cur_result, p_tri_class, analy )
+                  || show_mat_result
+                  || show_mesh_result; 
+
+    if(first == 0)
+    {
+        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+        if(results_map == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
+            parse_command("quit", analy);
+        }
+        for(i = 0; i < analy->mesh_qty; i++)
+        {
+            results_map[i] = NULL;
+        } 
+
+        first = 1;
+    }
+   
+    if(show_result)
+    { 
+        if(result_name != NULL)
+        {
+            if(strcmp(result_name, p_result->name))
+            {
+                /* we are showing a different result than the last shown result */
+                free(result_name);
+                result_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+                same_as_last = FALSE;
+            } else
+            {
+                same_as_last = TRUE;
+            }
+        }
+        if(short_name != NULL )
+        {
+            if(strcmp(short_name, p_tri_class->short_name))
+            {
+                free(short_name);
+                short_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+            }
+        }  
+       
+        if(results_map[mesh_id] == NULL)
+        {
+            results_map[mesh_id] = (char *) malloc(p_tri_class->qty+1);
+            if( results_map[mesh_id] == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(result_name == NULL)
+        {
+            result_name = (char *) malloc(strlen(p_result->name) + 1);
+            if(result_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
+        }
+        if(short_name == NULL)
+        {
+            short_name = (char *) malloc(strlen(p_tri_class->short_name) + 1);
+            if(short_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(short_name, p_tri_class->short_name, strlen(p_tri_class->short_name) + 1);
+        }
+    }
+
+    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    { 
+        populate_result(G_TRI, results_map[mesh_id], p_tri_class->qty + 1, p_tri_class, analy);
+    }
+
+
+    /*show_result = show_node_result
+                  || result_has_class( analy->cur_result, p_tri_class, analy )
+                  || show_mat_result
+                  || show_mesh_result; */
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -3745,6 +4321,37 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
             }
         }
 
+        disable_flag = disable_by_object_type( p_tri_class, matl, i, analy, data_array );
+
+        /* check to see if this element has the variable to be shown */
+        if(show_result && !analy->material_greyscale)
+        {
+            grayel = 0;
+            if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
+            {
+                grayel = 1;         
+                for(j = 0; j < 4; j++)
+                {
+                    for(k = 0; k < 4; k++)
+                    {
+                        cols[j][k] = grayval;
+                    }
+                }
+               
+            }
+        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        {
+            grayel = 1;
+            for(j = 0; j < 4; j++)
+            {
+                for(k = 0; k < 4; k++)
+                {
+                    cols[j][k] = grayval;
+                }
+            }
+             
+        }
+
         hidden_poly = FALSE;
         draw_poly( cnt, verts, norms, cols, res, matl, p_mesh, analy, hidden_poly );
     }
@@ -3788,7 +4395,110 @@ draw_beams_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
     int *p_index_source;
     int beam_qty;
     unsigned char *disable_mtl, *hide_mtl;
+    Bool_type disable_flag=FALSE;
     Mesh_data *p_mesh;
+
+    int mesh_id;
+    static int first = 0;
+    static char ** results_map;
+    static char * result_name = NULL;
+    static char * short_name = NULL;
+    Result * p_result;
+    Bool_type same_as_last = FALSE;
+    mesh_id = p_beam_class->mesh_id;
+
+    p_result = analy->cur_result;
+
+    show_result = result_has_class( analy->cur_result, p_beam_class, analy )
+                  || show_mat_result
+                  || show_mesh_result;
+    
+    if(first == 0)
+    {
+        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+        if(results_map == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
+            parse_command("quit", analy);
+        }
+        for(i = 0; i < analy->mesh_qty; i++)
+        {
+            results_map[i] = NULL;
+        } 
+
+        first = 1;
+    }
+   
+    if(show_result)
+    { 
+        if(result_name != NULL)
+        {
+            if(strcmp(result_name, p_result->name))
+            {
+                /* we are showing a different result than the last shown result */
+                free(result_name);
+                result_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+                same_as_last = FALSE;
+            } else
+            {
+                same_as_last = TRUE;
+            }
+        }
+        if(short_name != NULL )
+        {
+            if(strcmp(short_name, p_beam_class->short_name))
+            {
+                free(short_name);
+                short_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+            }
+        }  
+       
+        if(results_map[mesh_id] == NULL)
+        {
+            results_map[mesh_id] = (char *) malloc(p_beam_class->qty+1);
+            if( results_map[mesh_id] == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(result_name == NULL)
+        {
+            result_name = (char *) malloc(strlen(p_result->name) + 1);
+            if(result_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
+        }
+        if(short_name == NULL)
+        {
+            short_name = (char *) malloc(strlen(p_beam_class->short_name) + 1);
+            if(short_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(short_name, p_beam_class->short_name, strlen(p_beam_class->short_name) + 1);
+        }
+    }
+
+    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    { 
+        populate_result(G_BEAM, results_map[mesh_id], p_beam_class->qty + 1, p_beam_class, analy);
+    }
+
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -3820,9 +4530,9 @@ draw_beams_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
         p_index_source = &i;
     }
 
-    show_result = result_has_class( analy->cur_result, p_beam_class, analy )
+    /*show_result = result_has_class( analy->cur_result, p_beam_class, analy )
                   || show_mat_result
-                  || show_mesh_result;
+                  || show_mesh_result; */
 
     activity = analy->state_p->sand_present
                ?  analy->state_p->elem_class_sand[p_beam_class->elem_class_index]
@@ -3875,14 +4585,43 @@ draw_beams_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
                       rmin, rmax, threshold,
                       matl, analy->logscale, showgs );
 
-        glColor3fv( col );
+        glColor3fv(col);
+
+        disable_flag = disable_by_object_type(p_beam_class, matl, i, analy, data_array);
+
+        grayel = 0;
+
+        if(show_result && !analy->material_greyscale)
+        {
+            grayel = 1;
+
+            if((results_map[mesh_id][i + 1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
+            {   
+                for(j = 0; j < 4; j++)
+                {
+                    col[j] = 0.7;
+                }
+                
+                glColor3fv(col);
+            }
+        } else if(!show_result && !analy->showmat && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        {
+            for(j = 0; j < 4; j++)
+            {
+                col[j] = 0.7;
+            }
+             
+            glColor3fv(col);
+        }
+
 
         for ( j = 0; j < 2; j++ )
             for ( k = 0; k < 3; k++ )
                 pts[j*3+k] = verts[j][k];
-
         draw_line( 2, pts, matl, p_mesh, analy, FALSE, NULL );
     }
+    
+    grayel = 0;
 
     /* Remove depth bias. */
     if ( analy->zbias_beams )
@@ -3915,6 +4654,111 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
     int truss_qty;
     unsigned char *disable_mtl, *hide_mtl;
     Mesh_data *p_mesh;
+    Bool_type disable_flag=FALSE;
+   
+    int grayel = 0; 
+    int mesh_id;
+    static int first = 0;
+    static char **results_map;
+    static char * result_name = NULL;
+    static char * short_name = NULL;
+    Bool_type same_as_last = FALSE;
+    Result * p_result;
+
+    mesh_id = p_truss_class->mesh_id;
+    p_result = analy->cur_result; 
+
+    show_result = result_has_class( analy->cur_result, p_truss_class, analy )
+                  || show_mat_result
+                  || show_mesh_result;
+
+
+    if(first == 0)
+    {
+        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+        if(results_map == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
+            parse_command("quit", analy);
+        }
+        for(i = 0; i < analy->mesh_qty; i++)
+        {
+            results_map[i] = NULL;
+        } 
+
+        first = 1;
+    }
+   
+    if(show_result)
+    { 
+        if(result_name != NULL)
+        {
+            if(strcmp(result_name, p_result->name))
+            {
+                /* we are showing a different result than the last shown result */
+                free(result_name);
+                result_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+                same_as_last = FALSE;
+            } else
+            {
+                same_as_last = TRUE;
+            }
+        }
+        if(short_name != NULL )
+        {
+            if(strcmp(short_name, p_truss_class->short_name))
+            {
+                free(short_name);
+                short_name = NULL;
+                if(results_map[mesh_id] != NULL)
+                {
+                    free(results_map[mesh_id]);
+                    results_map[mesh_id] = NULL;
+                }
+            }
+        }  
+       
+        if(results_map[mesh_id] == NULL)
+        {
+            results_map[mesh_id] = (char *) malloc(p_truss_class->qty+1);
+            if( results_map[mesh_id] == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(result_name == NULL)
+        {
+            result_name = (char *) malloc(strlen(p_result->name) + 1);
+            if(result_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
+        }
+        if(short_name == NULL)
+        {
+            short_name = (char *) malloc(strlen(p_truss_class->short_name) + 1);
+            if(short_name == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+            strncpy(short_name, p_truss_class->short_name, strlen(p_truss_class->short_name) + 1);
+        }
+    }
+
+    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    { 
+        populate_result(G_TRUSS, results_map[mesh_id], p_truss_class->qty + 1, p_truss_class, analy);
+    }
+
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -3946,9 +4790,9 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
         p_index_source = &i;
     }
 
-    show_result = result_has_class( analy->cur_result, p_truss_class, analy )
+    /*show_result = result_has_class( analy->cur_result, p_truss_class, analy )
                   || show_mat_result
-                  || show_mesh_result;
+                  || show_mesh_result; */
 
     activity = analy->state_p->sand_present
                ?  analy->state_p->elem_class_sand[p_truss_class->elem_class_index]
@@ -4008,6 +4852,27 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
             for ( k = 0; k < 3; k++ )
                 pts[j*3+k] = verts[j][k];
 
+        if(show_result && !analy->material_greyscale)
+        {
+            grayel = 0;
+            if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
+            {
+                grayel = 1;         
+                for(k = 0; k < 4; k++)
+                {
+                    col[k] = grayval;
+                }
+                glColor3fv( col );
+            }
+        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        {
+            grayel = 1;
+            for(k = 0; k < 4; k++)
+            {
+                col[k] = grayval;
+            }
+            glColor3fv( col );
+        }
         draw_line( 2, pts, matl, p_mesh, analy, FALSE, NULL );
     }
 
@@ -5142,6 +6007,7 @@ draw_nodes_2d_3d( MO_class_data *p_node_class, Analysis *analy )
                               analy->result_mm[1], analy->zero_result, -1,
                               analy->logscale, analy->material_greyscale );
 
+
             glColor3fv( col );
             glVertex2fv( pt );
         }
@@ -5528,7 +6394,8 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
     colorflag = analy->cur_result != NULL;
 
-    coords3 = analy->state_p->particles.particles3d;
+    /*coords3 = analy->state_p->particles.particles3d;*/
+    coords3 = analy->state_p->nodes.particles3d;
 
     display_list = glGenLists( 1 );
 
@@ -8809,8 +9676,21 @@ draw_edged_poly( int cnt, float pts[4][3], float norm[4][3], float cols[4][4],
     {
         if ( analy->interp_mode == GOOD_INTERP )
         {
-            /* Scan convert the polygon by hand. */
-            scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
+            if(!grayel)
+            {
+                /* Scan convert the polygon by hand. */
+                scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
+            } else
+            {
+                glBegin( GL_POLYGON );
+                for ( i = 0; i < cnt; i++ )
+                {
+                    glColor3fv( cols[i] );
+                    glNormal3fv( norm[i] );
+                    glVertex3fv( pts[i] );
+                }
+                glEnd();
+            }
         }
         else
         {
@@ -8830,6 +9710,7 @@ draw_edged_poly( int cnt, float pts[4][3], float norm[4][3], float cols[4][4],
     }
 
     /* Draw Outline #2 */
+
     glColor3fv( v_win->mesh_color  );
     glStencilFunc( GL_ALWAYS, 0, 1 );
     glStencilOp( GL_INVERT, GL_INVERT, GL_INVERT );
@@ -8839,6 +9720,7 @@ draw_edged_poly( int cnt, float pts[4][3], float norm[4][3], float cols[4][4],
     for ( i = 0; i < cnt; i++ )
         glVertex3fv( pts[i] );
     glEnd();
+
 
     if (hidden_poly )
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -8888,8 +9770,22 @@ draw_edged_wireframe_poly( int cnt, float pts[4][3], float norm[4][3], float col
 
     if ( analy->interp_mode == GOOD_INTERP )
     {
-        /* Scan convert the polygon by hand. */
-        scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
+        if(!grayel)
+        { 
+            /* Scan convert the polygon by hand. */
+            scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
+        } else
+        {
+            glBegin( GL_POLYGON );
+            for ( i = 0; i < cnt; i++ )
+            {
+                glColor3fv( cols[i] );
+                glColor3fv( v_win->backgrnd_color  );
+                glNormal3fv( norm[i] );
+                glVertex3fv( pts[i] );
+            }
+            glEnd();
+       }
     }
     else
     {
@@ -8939,8 +9835,22 @@ draw_plain_poly( int cnt, float pts[4][3], float norm[4][3], float cols[4][4],
 
     if ( analy->interp_mode == GOOD_INTERP )
     {
-        /* Scan convert the polygon by hand. */
-        scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
+        if(!grayel)
+        {
+            /* Scan convert the polygon by hand. */
+            scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
+        } else
+        {    
+            glBegin( GL_POLYGON );
+            for ( i = 0; i < cnt; i++ )
+            {
+                glColor3fv( cols[i] );
+                glNormal3fv( norm[i] );
+                glVertex3fv( pts[i] );
+            }
+            glEnd();
+        
+        }
     }
     else
     {
@@ -8992,7 +9902,7 @@ scan_poly( int cnt, float pts[4][3], float norm[4][3], float vals[4], int matl,
     float rmin, rmax, threshold;
     int dist, ni, nj;
     int i, ii, j, k;
-
+ 
     /*
      * For triangular faces, duplicate the last vertex value
      * and then treat as a quad.  Is interpolation correct in
@@ -9059,6 +9969,7 @@ scan_poly( int cnt, float pts[4][3], float norm[4][3], float vals[4], int matl,
     rmax = analy->result_mm[1];
     threshold = analy->zero_result;
 
+
     /* Dice the polygon and render the fragments. */
     dpts = NEW_N( float, ni*nj*3, "Tmp scan poly" );
     dcol = NEW_N( float, ni*nj*4, "Tmp scan poly" );
@@ -9100,7 +10011,10 @@ scan_poly( int cnt, float pts[4][3], float norm[4][3], float vals[4], int matl,
                 glColor3fv( &dcol[i*nj*4 + j*4] );
                 glNormal3fv( &dnorm[i*nj*3 + j*3] );
                 glVertex3fv( &dpts[i*nj*3 + j*3] );
-                glColor3fv( &dcol[ii*nj*4 + j*4] );
+                if(!grayel)
+                {
+                    glColor3fv( &dcol[ii*nj*4 + j*4] );
+                }
                 glNormal3fv( &dnorm[ii*nj*3 + j*3] );
                 glVertex3fv( &dpts[ii*nj*3 + j*3] );
             }
@@ -9169,7 +10083,19 @@ draw_poly_2d( int cnt, float pts[4][3], float cols[4][4], float vals[4],
         {
             VEC_SET( norm[i], 0.0, 0.0, 1.0 );
         }
-        scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
+        if(!grayel)
+        {
+            scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
+        } else
+        {
+            glBegin( GL_POLYGON );
+            for ( i = 0; i < cnt; i++ )
+            {
+                glColor3fv( cols[i] );
+                glVertex2fv( pts[i] );
+            }
+            glEnd();
+        }
     }
     else
     {
@@ -9293,9 +10219,19 @@ draw_line( int cnt, float *pts, int matl, Mesh_data *p_mesh, Analysis *analy,
     float *origpts[128], *reflpts[128];
     int origcnt, reflcnt;
     int i, j;
+    float col[4];
 
     int plane_index=0;
     Bool_type draw_reflection_flag_temp[10], draw_line=TRUE;
+
+    if(analy->mesh_view_mode == RENDER_WIREFRAMETRANS)
+    {
+        for(i = 0; i < 4; i++)
+        {
+           col[i] = 0.0;
+        }
+        glColor3fv(col);
+    }
 
     /* Handles up to 6 cumulative reflection planes. */
 
@@ -9929,9 +10865,16 @@ draw_foreground( Analysis *analy )
                 xp = xpos - (2.0 * b_width) - (0.6 * text_height);
                 yp = ypos + rmin_offset;
 
-                hmove2( xp, yp - (0.6 * text_height) );
-                sprintf( str, "%.*e", fracsz, low );
-                hcharstr( str );
+                /* hmove2( xp, yp - (0.6 * text_height) ); */
+               if((low > high) || (low == 0.0 && high == 0.0))
+                {
+                    glColor3fv(v_win->backgrnd_color);
+                } else
+                {
+                    hmove2( xp, yp - (0.6 * text_height) );
+                    sprintf( str, "%.*e", fracsz, low );
+                    hcharstr( str );
+                } 
             }
 
             xp = xpos - (2.0 * b_width);
@@ -11228,6 +12171,14 @@ hot_cold_colormap( void )
         v_win->colormap[i][2] = bv;
         i++;
     }
+    
+    /* set the initial colormap to go back from grayscale to the initial colormap */
+    for(i = 0; i < CMAP_SIZE; i++)
+    {
+       v_win->initial_colormap[i][0] = v_win->colormap[i][0];
+       v_win->initial_colormap[i][1] = v_win->colormap[i][1];
+       v_win->initial_colormap[i][2] = v_win->colormap[i][2];
+    }
 
     /* Save the colormap's native min and max colors. */
     VEC_COPY( v_win->cmap_min_color, v_win->colormap[0] );
@@ -11380,6 +12331,29 @@ cutoff_colormap( Bool_type cut_low, Bool_type cut_high )
         VEC_COPY( v_win->colormap[CMAP_SIZE - 1], v_win->rmax_color );
 }
 
+/************************************************************
+ * TAG( restore_colormap )
+ *
+ * restores the colormap to that which was the colormap on startup 
+ * By William Oliver 
+ */
+void
+restore_colormap()
+{
+    int sz, i;
+    
+    sz = CMAP_SIZE;
+    for(i = 0; i < sz; i++)
+    {
+        v_win->colormap[i][0] = v_win->initial_colormap[i][0];      
+        v_win->colormap[i][1] = v_win->initial_colormap[i][1];      
+        v_win->colormap[i][2] = v_win->initial_colormap[i][2];      
+    }
+
+    VEC_COPY( v_win->cmap_min_color, v_win->colormap[0] );
+    VEC_COPY( v_win->cmap_max_color, v_win->colormap[CMAP_SIZE - 1] );
+
+}
 
 /************************************************************
  * TAG( gray_colormap )
@@ -14497,6 +15471,8 @@ label_compare( const int *key, const MO_class_labels *label )
     return( *key - label->label_num );
 }
 
+
+
 int
 get_class_label_index( MO_class_data *class, int label_num )
 {
@@ -14516,6 +15492,121 @@ get_class_label_index( MO_class_data *class, int label_num )
     else
         return (M_INVALID_LABEL);
 
+}
+
+
+/************************************************************
+ * TAG( populate_result )
+ *
+ * Added Jan 17 2014: William Oliver 
+ * Takes a result array and loops thru the subrecords and the map array and puts a 1
+ * in the indexes representing the element number if that element has that subrecord variable.
+ *
+ * Assumptions:
+ * By the time this function is called the current result has already been processed
+ *
+ */
+
+void populate_result(int superclass, char map[], int size, MO_class_data * p_class, Analysis * analy)
+{
+    int qty_blocks = 0;
+    int total_blocks = 0;
+    int i, j, k, mtl;
+    int start, end;
+    int qty_classes;
+    int *range = NULL;
+    Result *p_result;
+    Subrec_obj *p_subrec;
+
+    /* Add code to return FALSE if the element is associated with a material that has been disabled */
+
+    MO_class_data ** mo_classes;
+    Mesh_data *p_mesh;
+
+    p_result = analy->cur_result;
+
+    /* Just a precautionary step */
+    if(p_result == NULL)
+    {
+        return;
+    }
+    /*if(p_result->origin.is_derived)
+    {j
+       return TRUE;
+    } */
+
+    p_mesh = MESH_P(analy);
+    qty_classes = p_mesh->classes_by_sclass[superclass].qty;
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[superclass].list;
+
+    /* initialize the map array */
+    for(i = 0; i < size; i++)
+    {
+        map[i] = '0';
+    }
+    
+    /* loop thru the subrecs associated with this result to get the total
+ *     number of subrec blocks*/ 
+    for(i = 0; i < p_result->qty; i++)
+    {
+        /*p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[p_result->subrecs[i]]; */
+        p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[i];
+        /* make sure we have the correct superclass */
+        if(p_result->superclasses[i] == superclass)
+        {
+            qty_blocks += p_subrec->subrec.qty_blocks;
+        } 
+    }
+
+
+    total_blocks = qty_blocks*2;
+
+    /*now that we know the total quantity of subrecord blocks allocate the range array*/ 
+    range = (int *) malloc(2*qty_blocks*sizeof(int));
+    /* check to make sure we are not out of memory */ 
+    if(range == NULL)
+    {
+        abort();
+    }
+
+    j = 0;
+    qty_blocks = 0;
+    /* now loop thru the subrecs again and populate the range array */
+    for(i = 0; i < p_result->qty; i++)
+    {
+        /*p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[p_result->subrecs[i]]; */
+        p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[i];
+
+        qty_blocks = p_subrec->subrec.qty_blocks;
+         /* make sure we have the correct superclass*/ 
+        if(p_result->superclasses[i] == superclass)
+        {   
+            for(k = 0; k < qty_blocks*2; k+=2)
+            {
+                range[j] = p_subrec->subrec.mo_blocks[k];
+                j++;
+                range[j] = p_subrec->subrec.mo_blocks[k+1];
+                j++;
+            }
+        } 
+    }
+
+    for(i = 0; i < total_blocks; i+= 2)
+    {
+        start = range[i];
+        end = range[i+1];
+        if(end >= size)
+        {
+            end = size - 1;
+        }
+        for(j = start; j <= end; j++)
+        {
+            map[j] = '1';
+        }
+    }
+
+    free(range);
+   
 }
 
 
@@ -14875,4 +15966,3 @@ void DrawCone(float len, float base_diam, float cols[4][4], int res )
     gluDeleteQuadric(quadric);
     glEnd();
 }
-

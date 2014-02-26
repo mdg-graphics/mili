@@ -3433,6 +3433,7 @@ prepare_plot_objects( Result *res_list, Specified_obj *so_list,
                     p_po = NEW( Plot_obj, "New plot" );
 
                     p_po->ordinate = p_tso;
+                    
                     p_po->ordinate->reference_count++;
 
                     p_po->abscissa = ( analy->abscissa == NULL )
@@ -5632,7 +5633,7 @@ draw_plots( Analysis *analy )
     float cx, cy, vp_to_world_x, vp_to_world_y;
     float text_height, win_ll[2], win_ur[2], gr_ll[2], gr_ur[2];
     float min_ab, max_ab, min_ord, max_ord, scale_width, min_incr_sz;
-    float mins, maxs;
+    float mins, maxs, lastmax;
     float min_ax[2], max_ax[2], incr_ax[2];
     float win_x_span, win_y_span, win_x_min, win_y_min;
     float ax_x_span, ax_y_span, ax_x_min, ax_y_min;
@@ -5724,7 +5725,9 @@ draw_plots( Analysis *analy )
     if ( analy->mm_result_set[0] ) /* rmin set */
         min_ord = analy->result_mm[0];
     if ( analy->mm_result_set[1] ) /* rmax set */
+    {
         max_ord = analy->result_mm[1];
+    }
 
     /* Scale to tmin and tmax if they are set */
     if ( analy->mm_time_set[0] ) /* tmin set */
@@ -5770,6 +5773,11 @@ draw_plots( Analysis *analy )
     maxlablen = 0;
     mqty = 0;
     assume_have_shell = FALSE;
+
+    p_po = analy->current_plots;
+    get_bounded_series_min_max( p_po->ordinate, analy->first_state,
+                              analy->last_state, &mins, &lastmax );
+
     for ( p_po = analy->current_plots ; p_po != NULL; NEXT( p_po ) )
     {
         /*
@@ -5793,9 +5801,23 @@ draw_plots( Analysis *analy )
         get_bounded_series_min_max( p_po->ordinate, analy->first_state,
                                     analy->last_state, &mins, &maxs );
 
+        
         if ( mins < min_ord )
             min_ord = mins;
-
+        
+ 
+        if ( !analy->mm_result_set[1] && lastmax <= maxs) 
+        {
+            lastmax = maxs; /* always wan the highext max for scaling */
+            if(mins > 0.0)
+            {
+                max_ord = maxs + mins*0.2;
+            } else
+            {
+                max_ord = maxs - mins*0.2;
+            }
+        } 
+        
         if ( maxs > max_ord )
             max_ord = maxs;
 

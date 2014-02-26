@@ -76,6 +76,8 @@ parse_show_command( char *token, Analysis *analy )
     int qty=0;
     int status=OK;
 
+    analy->showmat = FALSE;
+
     /* Cache the current global min/max. */
     if ( !analy->ei_result )
         cache_global_minmax( analy );
@@ -84,6 +86,7 @@ parse_show_command( char *token, Analysis *analy )
     if ( strcmp( token, mat ) == 0 )
     {
         analy->cur_result = NULL;
+        analy->showmat = TRUE;
     }
     else if ( strncmp( token, "es_", 3 )==0 )
     {

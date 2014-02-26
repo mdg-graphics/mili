@@ -377,8 +377,10 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
 
                     /* Sort the labels */
 
+                    /*qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels),
+                          (void *) mili_compare_labels); */
                     qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels),
-                          (void *) mili_compare_labels);
+                           mili_compare_labels);
 
                     /* Create a mapping for the 1-n label index */
 
@@ -429,8 +431,10 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
 
                     /* Sort the labels */
 
+                    /*qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels),
+                          (void *) mili_compare_labels); */
                     qsort(p_mocd->labels, obj_qty, sizeof(MO_class_labels),
-                          (void *) mili_compare_labels);
+                           mili_compare_labels);
 
                     /* Create a mapping for the 1-n label index */
 

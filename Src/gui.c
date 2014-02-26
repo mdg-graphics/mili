@@ -9340,7 +9340,9 @@ destroy_mtl_mgr( void )
     Window my_win;
 
     if ( mtl_base == NULL )
+    {
         return;
+    }
 
     my_win = XtWindow( mtl_base );
     XDestroyWindow( dpy, my_win );

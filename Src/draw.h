@@ -24,7 +24,6 @@
 #include "misc.h"
 #include "geometric.h"
 
-
 #define CMAP_SIZE (256)
 
 typedef GLfloat GLVec4[4];
@@ -116,6 +115,7 @@ typedef struct
     GLfloat rmin_color[3];
     GLfloat rmax_color[3];
     GLfloat colormap[CMAP_SIZE][3];
+    GLfloat initial_colormap[CMAP_SIZE][3];
 
     Bool_type lighting;
     Bool_type light_active[6];
