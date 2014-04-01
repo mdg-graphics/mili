@@ -15552,10 +15552,7 @@ void populate_result(int superclass, char map[], int size, MO_class_data * p_cla
         /*p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[p_result->subrecs[i]]; */
         p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[i];
         /* make sure we have the correct superclass */
-        if(p_result->superclasses[i] == superclass)
-        {
-            qty_blocks += p_subrec->subrec.qty_blocks;
-        } 
+        qty_blocks += p_subrec->subrec.qty_blocks;
     }
 
 
@@ -15579,16 +15576,13 @@ void populate_result(int superclass, char map[], int size, MO_class_data * p_cla
 
         qty_blocks = p_subrec->subrec.qty_blocks;
          /* make sure we have the correct superclass*/ 
-        if(p_result->superclasses[i] == superclass)
-        {   
-            for(k = 0; k < qty_blocks*2; k+=2)
-            {
-                range[j] = p_subrec->subrec.mo_blocks[k];
-                j++;
-                range[j] = p_subrec->subrec.mo_blocks[k+1];
-                j++;
-            }
-        } 
+        for(k = 0; k < qty_blocks*2; k+=2)
+        {
+            range[j] = p_subrec->subrec.mo_blocks[k];
+            j++;
+            range[j] = p_subrec->subrec.mo_blocks[k+1];
+            j++;
+        }
     }
 
     for(i = 0; i < total_blocks; i+= 2)

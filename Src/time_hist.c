@@ -5805,18 +5805,12 @@ draw_plots( Analysis *analy )
         if ( mins < min_ord )
             min_ord = mins;
         
- 
+        /* rescaling attempt by Bill Oliver */ 
         if ( !analy->mm_result_set[1] && lastmax <= maxs) 
         {
-            lastmax = maxs; /* always wan the highext max for scaling */
-            if(mins > 0.0)
-            {
-                max_ord = maxs + mins*0.2;
-            } else
-            {
-                max_ord = maxs - mins*0.2;
-            }
-        } 
+            lastmax = maxs; 
+            max_ord = maxs + (maxs - mins)*0.02;
+        }  
         
         if ( maxs > max_ord )
             max_ord = maxs;

@@ -330,6 +330,38 @@ typedef struct _mesh_data
     unsigned char *disable_brick_elem; /* A flag for each brick - TRUE if disabled */
     unsigned char *exclude_brick_elem; /* A flag for each brick - TRUE if excluded */
 
+    /* TETS */
+    int tet_qty;      /* Total number of tets */
+    int tet_hide_qty; /* Number of current hidden
+                         * materials for tets
+                         */
+    int tet_disable_qty; /* Number of current disabled
+                            * materials for tets
+			    */
+    int tet_exclude_qty; /* Number of current excluded
+                            * materials for tets
+                            */
+
+    unsigned char *hide_tet;    /* List of hidden materials for tets   */
+    unsigned char *disable_tet; /* List of disabled materials for tets */
+    unsigned char *exclude_tet; /* List of disabled materials for tets */
+
+    Bool_type hide_tet_by_mat;
+    Bool_type hide_tet_by_result;
+    Bool_type disable_tet_by_mat;
+    Bool_type exclude_tet_by_mat;
+
+    float     tet_result_min;
+    float     tet_result_max;
+
+    int hide_tet_elem_qty;
+    int disable_tet_elem_qty;
+    int exclude_tet_elem_qty;
+
+    unsigned char *hide_tet_elem;    /* A flag for each tet - TRUE if hidden   */
+    unsigned char *disable_tet_elem; /* A flag for each tet - TRUE if disabled */
+    unsigned char *exclude_tet_elem; /* A flag for each tet - TRUE if excluded */
+
     /* SHELLS */
     int shell_qty;
     int shell_hide_qty;

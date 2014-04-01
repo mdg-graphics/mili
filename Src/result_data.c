@@ -455,7 +455,7 @@ update_nodal_min_max( Analysis *analy )
 
             ref_node_qty = MESH_P( analy )->node_geom->qty;
 
-            for ( i = 1; i < ref_node_qty; i++ )
+            for ( i = 0; i < ref_node_qty; i++ )
             {
                 val = result[i];
 
