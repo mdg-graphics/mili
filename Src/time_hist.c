@@ -5918,7 +5918,8 @@ draw_plots( Analysis *analy )
          * have to convert the data values when plotting.
          */
         min_ord = scale * min_ord + offset;
-        max_ord = scale * max_ord + offset;
+        /*max_ord = scale * max_ord + offset; */
+        max_ord = scale * maxs + offset;
 
         if ( cross_plot )
         {
