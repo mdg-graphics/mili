@@ -6605,7 +6605,16 @@ draw_plots( Analysis *analy )
         glColor3fv( v_win->text_color );
         if ( ei_labels )
             glColor3fv( material_colors[15] ); /* Red */
-        sprintf( str, "ymax %13.6e", max_ord );
+  
+        /* The conditional was put in by Bill Oliver on 5/9/2014 to help with scaling.  See
+ *         comment above that includes "Bill Oliver" */
+        if(analy->perform_unit_conversion || analy->mm_result_set[1])
+        {
+            sprintf( str, "ymax %13.6e", max_ord );
+        } else
+        {
+            sprintf( str, "ymax %13.6e", maxs);
+        }
         hcharstr( str );
 
         pos[1] -= 1.5 * text_height;
