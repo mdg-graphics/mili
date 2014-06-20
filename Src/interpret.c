@@ -6426,6 +6426,85 @@ parse_single_command( char *buf, Analysis *analy )
     {
         draw_vid_title();
     }
+    else if ( strcmp( tokens[0], "dscala") == 0)
+    {
+        char cmd[32];
+        char scale[32];
+        int reps = 1;
+        int i;
+        float max, min, incr;
+        float num_divisions;
+        float dmax, dmin;
+        parse_command("on dscal", analy);
+        if(token_cnt == 2)
+        {
+            max = 1.0;
+            min = -1.0;
+            sscanf(tokens[1], "%f", &num_divisions);
+            if( num_divisions < 1.0)
+            {
+                popup_dialog(USAGE_POPUP, " number of divisions specified must be greater than 1.0\n"); 
+                return;
+            }
+        } else if( token_cnt == 3)
+        {
+            popup_dialog(USAGE_POPUP, "Command syntax is dscala <num divisions> [max min] where max > min\n");
+            return;
+        } else if(token_cnt > 3)
+        {
+            sscanf(tokens[1], "%f", &num_divisions);
+            sscanf(tokens[2], "%f", &max);
+            sscanf(tokens[3], "%f", &min);
+            if(num_divisions < 1.0)
+            {
+                popup_dialog(USAGE_POPUP, "number of divisions specified must be greater than 1.0\n");
+                return;
+            }
+            if(max <= min)
+            {
+               popup_dialog(USAGE_POPUP, "command syntax is: dscala <num divisions> [max min] where max > min\n");
+               return;
+            }
+            if(token_cnt == 5)
+            {
+                sscanf(tokens[4], "%d", &reps);
+                if( reps < 1)
+                {
+                    popup_dialog(USAGE_POPUP, "The number of cycles specifies was less than 1, setting to 1\n");
+                    reps = 1;
+                }
+            }
+
+        }
+        for(i = 0; i < reps; i++)
+        {
+            incr = (max - min)/num_divisions;
+            dmax = max - incr;
+            dmin = min;
+            while(dmax > dmin)
+            {
+                sprintf(scale, "%f", dmax);
+                strcpy(cmd, "dscal ");
+                strcat(cmd, scale);
+                parse_command(cmd, analy);
+                dmax -= incr;
+            }
+
+            dmin = dmax;
+            dmax = max;
+            while(dmin < dmax)
+            {
+                sprintf(scale, "%f", dmin);
+                strcpy(cmd, "dscal ");
+                strcat(cmd, scale);
+                parse_command(cmd, analy);
+                dmin += incr;
+            }
+        
+            parse_command("dscal 1", analy);
+       } 
+        
+    }       
     else if ( strcmp( tokens[0], "dscal" ) == 0 ||
               strcmp( tokens[0], "dscale" ) == 0 )
     {
