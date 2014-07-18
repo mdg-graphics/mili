@@ -759,7 +759,7 @@ compute_node_velocity( Analysis *analy, float *resultArr,
     num_nodes    = p_node_class->qty;
 
     /* Determine if result is actually primal or derived from displacements. */
-    if ( strcmp( primals[0], "nodvel" ) == 0 )
+    if ( strcmp( primals[0], "nodvel" ) == 0  || strcmp( primals[0], "rotvel") == 0)
     {
         /* Velocities are stored in the data. */
 
@@ -774,7 +774,8 @@ compute_node_velocity( Analysis *analy, float *resultArr,
          * component and let I/O code extract it from the vector array in the
          * database.
          */
-        if ( p_result->name[3] != 'm' ) /* velmag vs. velx, vely, or velz */
+        if ((p_result->name[0] != 'r' && p_result->name[6] != 'm') && p_result->name[3] != 'm') 
+        /* velmag vs. velx, vely, or velz  or rotvelmag vs rvx, rvy, rvz*/
         {
             coord = (int) (p_result->name[3] - 'x');
             sprintf( nbuf, "%s[%s]", primals[0], vcomps[coord] );
@@ -790,7 +791,7 @@ compute_node_velocity( Analysis *analy, float *resultArr,
         analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
                                primals, (void *) result_buf );
 
-        if ( p_result->name[3] == 'm' )
+        if ( p_result->name[3] == 'm'  || (p_result->name[0] == 'r' && p_result->name[6] == 'm'))
         {
             /* Calculate magnitude. */
             if ( dim == 2 )
