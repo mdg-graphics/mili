@@ -6431,80 +6431,74 @@ parse_single_command( char *buf, Analysis *analy )
         char cmd[32];
         char scale[32];
         int reps = 1;
-        int i;
-        float max, min, incr;
+        int i, j;
+        float max, incr;
+        float amplification = 1.0;
         float num_divisions;
-        float dmax, dmin;
+        float dmax;
+        max = 1;
         parse_command("on dscal", analy);
         if(token_cnt == 2)
         {
-            max = 1.0;
-            min = -1.0;
             sscanf(tokens[1], "%f", &num_divisions);
             if( num_divisions < 1.0)
             {
                 popup_dialog(USAGE_POPUP, " number of divisions specified must be greater than 1.0\n"); 
                 return;
             }
-        } else if( token_cnt == 3)
-        {
-            popup_dialog(USAGE_POPUP, "Command syntax is dscala <num divisions> [max min] where max > min\n");
-            return;
-        } else if(token_cnt > 3)
+        } else if(token_cnt == 3)
         {
             sscanf(tokens[1], "%f", &num_divisions);
-            sscanf(tokens[2], "%f", &max);
-            sscanf(tokens[3], "%f", &min);
+            sscanf(tokens[2], "%d", &reps);
             if(num_divisions < 1.0)
             {
                 popup_dialog(USAGE_POPUP, "number of divisions specified must be greater than 1.0\n");
                 return;
             }
-            if(max <= min)
+            if(reps < 0)
             {
-               popup_dialog(USAGE_POPUP, "command syntax is: dscala <num divisions> [max min] where max > min\n");
-               return;
-            }
-            if(token_cnt == 5)
-            {
-                sscanf(tokens[4], "%d", &reps);
-                if( reps < 1)
-                {
-                    popup_dialog(USAGE_POPUP, "The number of cycles specifies was less than 1, setting to 1\n");
-                    reps = 1;
-                }
+                popup_dialog(USAGE_POPUP, "The number of cycles must be > 1\n");
+                return;
             }
 
+        }else if(token_cnt == 4)
+        {
+            sscanf(tokens[1], "%f", &num_divisions);
+            sscanf(tokens[2], "%d", &reps);
+            sscanf(tokens[3], "%f", &amplification);
+            if(num_divisions < 1.0)
+            {
+                popup_dialog(USAGE_POPUP, "number of divisions specified must be greater than 1.0\n");
+                return;
+            }
+            if(reps < 0)
+            {
+                popup_dialog(USAGE_POPUP, "The number of cycles must be > 1\n");
+                return;
+            }
+            if(amplification < 0)
+            {
+                popup_dialog(USAGE_POPUP, "The amplification must be > 1\n");
+                return;
+            }
         }
+
         for(i = 0; i < reps; i++)
         {
-            incr = (max - min)/num_divisions;
-            dmax = max - incr;
-            dmin = min;
-            while(dmax > dmin)
+            /*incr = (max - min)/num_divisions; */
+            incr = 1/num_divisions;
+            for(j = 0; j <= num_divisions; j++)
             {
+                dmax = 1.0 - (amplification * sin(2*PI*j*incr));
                 sprintf(scale, "%f", dmax);
                 strcpy(cmd, "dscal ");
                 strcat(cmd, scale);
                 parse_command(cmd, analy);
-                dmax -= incr;
-            }
-
-            dmin = dmax;
-            dmax = max;
-            while(dmin < dmax)
-            {
-                sprintf(scale, "%f", dmin);
-                strcpy(cmd, "dscal ");
-                strcat(cmd, scale);
-                parse_command(cmd, analy);
-                dmin += incr;
             }
         
-            parse_command("dscal 1", analy);
        } 
         
-    }       
+    }
     else if ( strcmp( tokens[0], "dscal" ) == 0 ||
               strcmp( tokens[0], "dscale" ) == 0 )
     {
