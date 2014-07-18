@@ -1426,6 +1426,7 @@ output_interleaved_series( FILE *ofile, Plot_obj *output_list, Analysis *analy )
     float *times;
     float scale, offset;
     int qty, i, j, idx;
+    int label;
     int tlen, time_width;
     int *column_widths;
     Result *ord_res;
@@ -1473,11 +1474,23 @@ output_interleaved_series( FILE *ofile, Plot_obj *output_list, Analysis *analy )
         /* Titles index (2 entries per time series). */
         idx = i * 2;
 
+        /* use labels if they exist */
+        if(p_po->ordinate->mo_class)
+        {
+            if(p_po->ordinate->mo_class->labels_found)
+            {
+                label = get_class_label(p_po->ordinate->mo_class, p_po->ordinate->ident + 1);
+            } else
+            {
+                label = p_po->ordinate->ident + 1;
+            }
+        }
+
         if ( !oper_series )
         {
-            /* Record the object.*/
+            /* Record the object. */
             sprintf( ord_titles[idx], "%s %d", ord_tso->mo_class->long_name,
-                     ord_tso->ident + 1 );
+                     label);
             tlen = strlen( ord_titles[idx] );
             if ( tlen > column_widths[i] )
                 column_widths[i] = tlen;
@@ -5636,7 +5649,7 @@ draw_plots( Analysis *analy )
     float mins, maxs, lastmax;
     float min_ax[2], max_ax[2], incr_ax[2];
     float win_x_span, win_y_span, win_x_min, win_y_min;
-    float ax_x_span, ax_y_span, ax_x_min, ax_y_min;
+    float ax_x_span, ax_y_span, ax_x_min, ax_y_min; 
     float pos[3], vert[2];
     float val, val2;
     float char_width;
@@ -5806,10 +5819,10 @@ draw_plots( Analysis *analy )
             min_ord = mins;
         
         /* rescaling attempt by Bill Oliver */ 
-        if ( !analy->mm_result_set[1] && lastmax <= maxs) 
+        if ( !analy->mm_result_set[1] && lastmax < maxs) 
         {
             lastmax = maxs; 
-            max_ord = maxs + (maxs - mins)*0.02;
+            max_ord = maxs /*+ (maxs - mins)*0.02*/;
         }  
         
         if ( maxs > max_ord )
@@ -5830,7 +5843,7 @@ draw_plots( Analysis *analy )
         if ( !oper_plot )
             ord_class = p_po->ordinate->mo_class;
 
-#ifdef DONT_KNOW_WHY_THIS_EXISTS
+#ifdef DONT_KNOW_WHY_THIS_EXISTS 
         /* Accumulate class references and counts. */
         for ( i = 0; i < qty_classes; i++ )
         {
@@ -5918,8 +5931,8 @@ draw_plots( Analysis *analy )
          * have to convert the data values when plotting.
          */
         min_ord = scale * min_ord + offset;
-        /*max_ord = scale * max_ord + offset; */
-        max_ord = scale * maxs + offset;
+        /*max_ord = scale * max_ord + offset;*/
+        max_ord = scale * min_ord + offset;
 
         if ( cross_plot )
         {
@@ -6015,7 +6028,10 @@ draw_plots( Analysis *analy )
          * Take care of the special case where min and max are
          * approximately equal. APX_EQ macro was too tight.
          */
-        if ( max_ax[i] == 0 ) max_ax[i] = EPS;
+        if ( fabs((double) (max_ax[i] - 0.0)) < EPS2 )
+        { 
+            max_ax[i] = EPS2;
+        }
 
         if ( min_ax[i] == max_ax[i]
                 || fabs( (double) 1.0 - min_ax[i] / max_ax[i] ) < EPS )
@@ -6029,12 +6045,12 @@ draw_plots( Analysis *analy )
             else
             {
                 incr_ax[i] = (float) fabs( (double) min_ax[i] );
-                min_ax[i] = min_ax[i] - fabs( (double)min_ax[i] );
-                max_ax[i] = max_ax[i] + fabs( (double)max_ax[i] );
+                min_ax[i] = min_ax[i] - fabsf( max_ax[i] - min_ax[i] );
+                max_ax[i] = max_ax[i] + fabsf( max_ax[i] - min_ax[i]); 
             }
             incr_cnt[i] = 2;
-            continue;
-        }
+            /*continue; */
+        } 
 
         max_incrs = (int)( (gr_ur[i] - gr_ll[i]) / (2.0 * text_height) );
         if ( max_incrs == 0 )
@@ -6043,20 +6059,22 @@ draw_plots( Analysis *analy )
 
         /* Get val into range [1.0,9.9999...]. */
         j = 0;
-        if ( min_incr_sz < 1.0 )
+        val = 0;
+        if ( min_incr_sz < 1.0  && min_incr_sz > 0.0)
             for ( val = min_incr_sz; (int)val < 1.0; val = val*10.0, j++ );
         else
             for ( val = min_incr_sz; (int)val >= 10.0; val = val*0.1, j++ );
 
-        /* Increments of either 1, 2 or 5 are allowed. */
-        if ( val == 1.0 )
+        /* Increments of either 1, 2 or 5 are allowed. */ 
+        if ( val <= 1.0 )
             incr_ax[i] = 1.0;
         else if ( val <= 2.0 )
             incr_ax[i] = 2.0;
         else if ( val <= 5.0 )
             incr_ax[i] = 5.0;
         else
-            incr_ax[i] = 10.0;
+            incr_ax[i] = 10.0; 
+
 
         /* Shift back to original range. */
         if ( min_incr_sz < 1.0 )
@@ -6333,10 +6351,12 @@ draw_plots( Analysis *analy )
                         continue;
                     }
 
-                    pos[0] = win_x_min + win_x_span * (ab_data[j] - ax_x_min)
+                    pos[0] =  win_x_min + win_x_span * (ab_data[j] - ax_x_min)
                              / ax_x_span;
-                    pos[1] = win_y_min + win_y_span * (ord_data[j] - ax_y_min)
-                             / ax_y_span;
+      
+                    pos[1] =  win_y_min + win_y_span * (ord_data[j] - ax_y_min)
+                                 / ax_y_span;
+
                     glVertex3fv( pos );
                 }
             else
@@ -6606,16 +6626,17 @@ draw_plots( Analysis *analy )
         glColor3fv( v_win->text_color );
         if ( ei_labels )
             glColor3fv( material_colors[15] ); /* Red */
-  
+
         /* The conditional was put in by Bill Oliver on 5/9/2014 to help with scaling.  See
- *         comment above that includes "Bill Oliver" */
+ *         comment above that includes "Bill Oliver" 
         if(analy->perform_unit_conversion || analy->mm_result_set[1])
         {
             sprintf( str, "ymax %13.6e", max_ord );
         } else
         {
             sprintf( str, "ymax %13.6e", maxs);
-        }
+        } */
+        sprintf( str, "ymax %13.6e", max_ord );
         hcharstr( str );
 
         pos[1] -= 1.5 * text_height;
