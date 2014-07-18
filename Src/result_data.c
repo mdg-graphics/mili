@@ -1,4 +1,5 @@
-/* $Id$ */
+
+/* $Id: result_data.c,v 1.7.2.2 2013/10/25 16:49:03 oliver4 Exp $ */
 /*
  * result_data.c - Routines for managing result data arrays.
  *
@@ -455,7 +456,7 @@ update_nodal_min_max( Analysis *analy )
 
             ref_node_qty = MESH_P( analy )->node_geom->qty;
 
-            for ( i = 0; i < ref_node_qty; i++ )
+            for ( i = 1; i < ref_node_qty; i++ )
             {
                 val = result[i];
 
@@ -3364,6 +3365,17 @@ dump_result( Analysis *analy, char *fname_input )
     if ( !p_r )
         return;
 
+    if ( fname_input )
+        strcpy( fname, fname_input );
+    else
+    {
+        strcpy( fname, "ResultData-" );
+        strcat( fname, analy->cur_result->name );
+        sprintf( state_string, "_State-%d", analy->cur_state+1 );
+        strcat( fname, state_string );
+    }
+    fp = fopen(fname, "w" );
+    fprintf( fp, "* Global-Id\tClass-Name\tClass-Id\tMaterial\tElemType\t\tValue\n" );
     /* Count number of result objects for array allocation */
     for ( i = 0;
             i < p_r->qty;
@@ -3450,32 +3462,15 @@ dump_result( Analysis *analy, char *fname_input )
                 class_label_index = get_class_label_index( p_class, k+1 );
                 data_result[result_index] = p_class->data_buffer[class_label_index-1];
                 class_name_index[result_index] = class_index;
+                if ( data_sclass[i]>0 && data_hide[i]==FALSE )
+                {
+                    fprintf( fp, "\t%d\t\t%s\t\t%d\t\t%d\t%d\t\t%22.15e\n", p_class->labels[result_index].label_num, 
+                    p_class->short_name, data_ids[result_index],
+                    data_mat[result_index], data_sclass[result_index], data_result[result_index] );
+                }
                 result_index++;
             }
             class_names[class_index++] = strdup( p_class->short_name  );
-        }
-    }
-
-    if ( fname_input )
-        strcpy( fname, fname_input );
-    else
-    {
-        strcpy( fname, "ResultData-" );
-        strcat( fname, analy->cur_result->name );
-        sprintf( state_string, "_State-%d", analy->cur_state+1 );
-        strcat( fname, state_string );
-    }
-
-    fp = fopen(fname, "w" );
-    fprintf( fp, "* Global-Id\tClass-Name\tClass-Id\tMaterial\tElemType\t\tValue\n" );
-    for ( i=0;
-            i<result_index;
-            i++ )
-    {
-        if ( data_sclass[i]>0 && data_hide[i]==FALSE )
-        {
-            fprintf( fp, "\t%d\t\t%s\t\t%d\t\t%d\t%d\t\t%22.15e\n", i+1, class_names[class_name_index[i]], data_ids[i],
-                     data_mat[i], data_sclass[i], data_result[i] );
         }
     }
 
