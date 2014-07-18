@@ -156,7 +156,30 @@ static int node_vel_primal_sclasses[] =
 {
     G_NODE
 };
+static char *node_rot_vel_mag_shorts[] =
+{
+    "rotvelmag", NULL
+};
 
+static char *node_rot_vel_mag_longs[] =
+{
+    "Rotational Velocity Magnitude", NULL
+};
+
+static char *node_rot_vel_mag_primals1[] =
+{
+    "rotvel", NULL
+};
+
+static char *node_rot_vel_mag_primals2[] =
+{
+    "nodpos", NULL
+};
+
+static int node_rot_vel_mag_primal_sclasses[] =
+{
+    G_NODE
+};
 
 static char *node_acc_shorts_xy[] =
 {
@@ -1065,6 +1088,33 @@ Result_candidate possible_results[] =
         node_vel_mag_longs,
         node_vel_primals2,
         node_vel_primal_sclasses
+    },
+{
+        G_NODE,
+        { 1, 1 },
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_node_velocity,
+        NULL,
+        node_rot_vel_mag_shorts,
+        node_rot_vel_mag_longs,
+        node_rot_vel_mag_primals1,
+        node_rot_vel_mag_primal_sclasses
+    },
+
+    {
+        G_NODE,
+        { 1, 1 },
+        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_node_velocity,
+        NULL,
+        node_rot_vel_mag_shorts,
+        node_rot_vel_mag_longs,
+        node_rot_vel_mag_primals2,
+        node_rot_vel_mag_primal_sclasses
     },
 
     /*
