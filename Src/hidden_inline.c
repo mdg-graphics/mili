@@ -315,7 +315,7 @@ read_hid_file( char *filename )
     line_seg_cnt = read_int( infile );
     if ( line_seg_cnt > 0 )
     {
-        for ( i = 0; i < 4; i++ )
+        for ( i = 0; i < 2; i++ )
             line_seg[i] = NEW_N( int, line_seg_cnt, "Line segments" );
         line_seg_cnt = 0;
         read_token( infile, token, 80 );

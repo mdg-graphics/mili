@@ -273,6 +273,8 @@ gen_contours( Analysis *analy )
         gen_hex_class_contours,
         NULL,       /* G_MAT */
         NULL,       /* G_MESH */
+        NULL,       /* G_SURFACE */
+        NULL,       /* G_PARTICLE */
     };
     void (*con_funcs_2d[])( Analysis *, MO_class_data *, float * ) =
     {
@@ -288,6 +290,8 @@ gen_contours( Analysis *analy )
         NULL,       /* G_HEX */
         NULL,       /* G_MAT */
         NULL,       /* G_MESH */
+        NULL,       /* G_SURFACE */
+        NULL,       /* G_PARTICLE */
     };
 
     free_contours( analy );
