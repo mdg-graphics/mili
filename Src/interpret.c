@@ -737,11 +737,17 @@ parse_command( char *input_buf, Analysis *analy )
         for (i = 0;
                 i < len_buf;
                 i++ )
+        {
             if ( buf[i] == ';' )
             {
+                if(num_cmds >= 1000)
+                {
+                    break;
+                }
                 buf[i] = '\0';
                 next_cmd_index[num_cmds++]=i+1;
             }
+        }
     }
 
     for (i=0;
@@ -2782,7 +2788,7 @@ parse_single_command( char *buf, Analysis *analy )
             /* Strain variety. */
             else if ( strcmp( tokens[i], "infin" ) == 0 )
             {
-                if (is_primal_quad_strain_result( analy->cur_result->name ))
+                if (analy->cur_result != NULL && is_primal_quad_strain_result( analy->cur_result->name ))
                 {
                     popup_dialog( USAGE_POPUP,
                                   "Cannot set strain variety for a primal shell strain" );
