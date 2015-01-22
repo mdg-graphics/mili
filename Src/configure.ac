@@ -199,6 +199,8 @@ CONFIGURE_DIRS
 
 CONFIGURE_BUILDDIRS
 
+CONFIGURE_GRIZ_LIBRARIES
+
 AC_CONFIG_HEADERS([$PATH_NAME/src/griz_config.h:scripts/config.h.in])
 
 JPEG_ENABLE="True"  
@@ -228,10 +230,10 @@ AC_ARG_ENABLE([nopng],
 ) 
 
 EXTERNAL_CONFIGURATIONS
-  
+  AC_MSG_RESULT([$TARGET_DNS_DOMAIN])
 case "$TARGET_DNS_DOMAIN" in 
    *llnl.gov)
-      
+      AC_MSG_RESULT([Configuring for LLNL])
       MILI_HOME="/usr/apps/mdg"
       
       CONFIGURE_COMPILER

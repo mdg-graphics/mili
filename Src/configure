@@ -674,7 +674,6 @@ OSMESA_LIBRARY_PATHS
 OSMESA_LIBRARY
 OSMESA_HOME
 XMKMF
-LDLIBPATH
 CC_INCLUDE_PATHS_GRIZ
 CC_DEFINES_GRIZ
 PLATFORM_DIRS
@@ -719,6 +718,7 @@ JPEG_LIBRARY
 JPEG_DEFINES
 CONFIG_JPEG
 JPEG_HOME
+LDLIBPATH
 BASE_DIR
 EXT_DIRS
 EXT_BUILDS
@@ -5439,6 +5439,68 @@ $as_echo "$as_me: WARNING: \"****  Error creating directory:  $PATH_NAME\"" >&2;
 	echo $CONFIG_CMD > CONFIGURE_OPTIONS
 
 
+
+        #
+        # Define the minimal set of system libraries required
+        #
+
+        if test "$MESA_ENABLE" = "True" -o "$OSMESA_ENABLE" = "True"; then
+        # If using Mesa OpenGL instead of a native OpenGL, try this:
+                SYSLIBS=" -lm"
+        else
+                SYSLIBS=" -lm"
+        fi
+
+        LDLIBPATH="/usr/lib64"
+        if test "$OS_NAME" = "Linux"; -o "$OS_NAME" = "Darwin"; then
+                SYSLIBS="$SYSLIBS "
+                LDLIBPATH="$LDLIBPATH:/usr/X11R6/lib"
+
+        elif test "$OS_NAME" = "AIX"; then
+                SYSLIBS="$SYSLIBS "
+                LDLIBPATH="/usr/local/lib"
+
+        elif test "$OS_NAME" = "IRIX64" -o "$OS_NAME" = "IRIX"; then
+                SYSLIBS="$SYSLIBS -lPW"
+                LDLIBPATH="/mdg/lib/irix:/usr/local/lib:/usr/gapps/mdg/bin/grizlib/SGI"
+
+        elif test "$OS_NAME" = "HPUX"   -o "$OS_NAME" = "HP-UX"; then
+                SYSLIBS="$SYSLIBS -lXext -lXmu"
+
+        elif test "$OS_NAME" = "SunOS"; then
+                SYSLIBS="$SYSLIBS -lXext -lXmu -L/usr/local/lib/gcc-lib/sparc-sun-solaris2.8/2.95.2 -lgcc"
+                LDLIBPATH="/mdg/lib/solaris:/usr/openwin/lib:/usr/dt/lib/:/usr/lib:/usr/local/lib:/usr/gapps/mdg/bin/grizlib/SUN"
+                MACHINE_TYPE="`(uname -i | grep -v Blade) 2> /dev/null`"
+                if test "$MACHINE_TYPE" = ""; then
+                   LDLIBPATH="/mdg/lib/solarisBlade:$LDLIBPATH"
+                fi
+        fi
+
+	#LDLIBPATH="`echo $LDLIBPATH | sed -e 's|-O2||'`"
+        #
+        # Construct the list of MDG Libraries that will be loaded
+        #
+
+        MDGLIBS="$HERSHEY_LIBRARY_PATHS $HERSHEY_LIBRARY"
+        MDGLIBS="$MDGLIBS $IMAGE_LIBRARY_PATHS $IMAGE_LIBRARY"
+
+        EXTRALIBS="$JPEG_LIBRARY_PATHS $JPEG_LIBRARY"
+        EXTRALIBS="$EXTRALIBS $PNG_LIBRARY_PATHS $PNG_LIBRARY $ZLIB_LIBRARY_PATHS $ZLIB_LIBRARY "
+
+        GRIZLIBS="$EXTRALIBS $MDGLIBS $SYSLIBS"
+	GRIZLIBS="`echo $GRIZLIBS | sed -e 's|-O2||'`"
+
+        #BPATH:
+
+
+        { $as_echo "$as_me:$LINENO: result: **************************************" >&5
+$as_echo "**************************************" >&6; }
+        { $as_echo "$as_me:$LINENO: result: ---->Loading with Libraries: $GRIZLIBS" >&5
+$as_echo "---->Loading with Libraries: $GRIZLIBS" >&6; }
+        { $as_echo "$as_me:$LINENO: result: **************************************" >&5
+$as_echo "**************************************" >&6; }
+
+
 ac_config_headers="$ac_config_headers $PATH_NAME/src/griz_config.h:scripts/config.h.in"
 
 
@@ -6077,10 +6139,12 @@ $as_echo "\"Configuring JPEG\"" >&6; }
 
 
 
-
+  { $as_echo "$as_me:$LINENO: result: $TARGET_DNS_DOMAIN" >&5
+$as_echo "$TARGET_DNS_DOMAIN" >&6; }
 case "$TARGET_DNS_DOMAIN" in
    *llnl.gov)
-
+      { $as_echo "$as_me:$LINENO: result: Configuring for LLNL" >&5
+$as_echo "Configuring for LLNL" >&6; }
       MILI_HOME="/usr/apps/mdg"
 
 
@@ -7502,9 +7566,10 @@ $as_echo "**************************************" >&6; }
                 SYSLIBS=" -lm"
         fi
 
+        LDLIBPATH="/usr/lib64"
         if test "$OS_NAME" = "Linux"; -o "$OS_NAME" = "Darwin"; then
                 SYSLIBS="$SYSLIBS "
-                LDLIBPATH="/usr/X11R6/lib"
+                LDLIBPATH="$LDLIBPATH:/usr/X11R6/lib"
 
         elif test "$OS_NAME" = "AIX"; then
                 SYSLIBS="$SYSLIBS "
@@ -7526,7 +7591,7 @@ $as_echo "**************************************" >&6; }
                 fi
         fi
 
-	LDLIBPATH="`echo $LDLIBPATH | sed -e 's|-O2||'`"
+	#LDLIBPATH="`echo $LDLIBPATH | sed -e 's|-O2||'`"
         #
         # Construct the list of MDG Libraries that will be loaded
         #
@@ -7540,7 +7605,7 @@ $as_echo "**************************************" >&6; }
         GRIZLIBS="$EXTRALIBS $MDGLIBS $SYSLIBS"
 	GRIZLIBS="`echo $GRIZLIBS | sed -e 's|-O2||'`"
 
-
+        #BPATH:
 
 
         { $as_echo "$as_me:$LINENO: result: **************************************" >&5

@@ -79,7 +79,7 @@
 #
 GRIZHOME=_grizhome_
 HFONTLIB=_hfontlib_
-LD_LIBRARY_PATH=_ldlibpath_
+export LD_LIBRARY_PATH=_ldlibpath_
 
 GRIZLOGDIR=/usr/gapps/mdg
 GRIZLOGFILE=griz_usagelog
