@@ -3095,7 +3095,9 @@ gather_time_series( Gather_segment *ctl_list, Analysis *analy )
                      *
                      * Shouldn't need to zero result array prior to each load.
                      */
-
+                    
+                    p_rmlo->result->modifiers.use_flags.use_ref_surface = 1;
+                    p_rmlo->result->modifiers.use_flags.use_ref_frame = 1;
                     analy->cur_result = p_rmlo->result;
 
                     load_subrecord_result( analy, j, TRUE, FALSE );
@@ -5931,8 +5933,7 @@ draw_plots( Analysis *analy )
          * have to convert the data values when plotting.
          */
         min_ord = scale * min_ord + offset;
-        /*max_ord = scale * max_ord + offset;*/
-        max_ord = scale * min_ord + offset;
+        max_ord = scale * max_ord + offset;
 
         if ( cross_plot )
         {
