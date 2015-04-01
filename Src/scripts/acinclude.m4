@@ -1678,9 +1678,10 @@ AC_DEFUN([CONFIGURE_GRIZ_LIBRARIES],
                 SYSLIBS=" -lm"
         fi
 
+        LDLIBPATH="/usr/lib64"
         if test "$OS_NAME" = "Linux"; -o "$OS_NAME" = "Darwin"; then
                 SYSLIBS="$SYSLIBS "
-                LDLIBPATH="/usr/X11R6/lib"
+                LDLIBPATH="$LDLIBPATH:/usr/X11R6/lib"
 
         elif test "$OS_NAME" = "AIX"; then
                 SYSLIBS="$SYSLIBS "
@@ -1702,7 +1703,7 @@ AC_DEFUN([CONFIGURE_GRIZ_LIBRARIES],
                 fi
         fi
 
-	LDLIBPATH="`echo $LDLIBPATH | sed -e 's|-O2||'`"
+	#LDLIBPATH="`echo $LDLIBPATH | sed -e 's|-O2||'`"
         #
         # Construct the list of MDG Libraries that will be loaded
         #
@@ -1716,7 +1717,7 @@ AC_DEFUN([CONFIGURE_GRIZ_LIBRARIES],
         GRIZLIBS="$EXTRALIBS $MDGLIBS $SYSLIBS"
 	GRIZLIBS="`echo $GRIZLIBS | sed -e 's|-O2||'`"
 
-        AC_SUBST(GRIZLIBS)
+        #BPATH:
         AC_SUBST(LDLIBPATH)
 
         AC_MSG_RESULT([**************************************])
