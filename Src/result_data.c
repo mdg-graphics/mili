@@ -3363,7 +3363,15 @@ dump_result( Analysis *analy, char *fname_input )
 
     p_r = analy->cur_result;
     if ( !p_r )
+    {
         return;
+    }
+
+    if(!p_r->origin.is_elem_result)
+    {
+        popup_dialog(INFO_POPUP, "dumpresult only works for element results. Try the \"outth\" command\n");
+        return;
+    }
 
     if ( fname_input )
         strcpy( fname, fname_input );
