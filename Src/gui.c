@@ -7737,6 +7737,7 @@ col_ed_scale_CB( Widget w, XtPointer client_data, XtPointer call_data )
     Color_editor_scale_type scale;
     GLfloat fval;
     XmScaleCallbackStruct *cb_data;
+    int num;
 
     scale = (Color_editor_scale_type) client_data;
     cb_data = (XmScaleCallbackStruct *) call_data;
@@ -7744,10 +7745,21 @@ col_ed_scale_CB( Widget w, XtPointer client_data, XtPointer call_data )
     if ( scale != SHININESS_SCALE )
     {
         fval = (GLfloat) cb_data->value / 100.0;
-        sprintf( valbuf, "%4.2f", fval );
+        num = snprintf( valbuf, 5, "%4.2f", fval );
+        if(num > 5)
+        {
+            valbuf[4] = '\0';
+        }
+        
     }
     else
-        sprintf( valbuf, "%d", (int) cb_data->value );
+    {
+        num = snprintf( valbuf, 5, "%d", (int) cb_data->value );
+        if(num > 4)
+        {
+            valbuf[4] = '\0';
+        }
+    }
 
     sval = XmStringCreateLocalized( valbuf );
     XtVaSetValues( col_ed_scales[1][scale], XmNlabelString, sval, NULL );
