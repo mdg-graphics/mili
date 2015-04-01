@@ -31,7 +31,9 @@
 #include <stdlib.h>
 #include "viewer.h"
 #include "mdg.h"
-
+/*#ifndef DUMP_TABLES
+#define DUMP_TABLES
+#endif*/ 
 /* Local routines. */
 static void load_hex_adj( MO_class_data *p_mocd, int *node_tbl,
                           int *face_tbl[7], int *p_tbl_sz,
@@ -44,7 +46,7 @@ static void hex_rough_cut( float *ppt, float *norm, MO_class_data *p_hex_class,
                            GVec3D *nodes, unsigned char *hex_visib );
 static void tet_rough_cut( float *ppt, float *norm, MO_class_data *p_tet_class,
                            GVec3D *nodes, unsigned char *tet_visib );
-static int test_plane_hex_elem( float *, float *, int, int [][8], GVec3D * );
+static int test_plane_hex_elem( float *, float *, int, int[][8], GVec3D *); 
 static int test_plane_tet_elem( float *, float *, int, int [][4], GVec3D * );
 /* static void face_aver_norm(); */
 static void tet_face_avg_norm( int, int, MO_class_data *, Analysis *,
@@ -364,6 +366,7 @@ dump_tables( int elem, int face,
 
     dump_hex_adj_table( hex_adj, hex_size );
     fprintf( dump_file, "\n" );
+    fflush(dump_file);
 }
 #endif
 
@@ -441,43 +444,42 @@ create_hex_adj( MO_class_data *p_mocd, Analysis *analy )
      *      Fluid Dynamics, VKI Lecture Series #10, Brussels, Sept 16-20
      *      1991.
      *
-     * "The face table to be constructed has six or seven entries for each face.  The first four
+     * "The face table to be constructed has seven entries for each face.  The first four
      * entries are the indices of the four nodes that define the face.  The elements supported
-     * have either quadrilateral or triangular faces.  The fifth contains the face number.  The
-     * sixth entry is a pointer to the next face in the list which contains the same minimum
-     * node index (a zero indicates the end of the list).  This produces a 'threaded list' based
+     * have either quadrilateral or triangular faces.  The fifth contains the element number. 
+     * The sixth entry is the face number and the seventh entry is a pointer to the next face
+     * in the list which contains the same minimum
+     * node index (a -1 indicates the end of the list).  This produces a 'threaded list' based
      * on the lowest numbered node of each face.  This list can be quickly processed and a face
      * can be found without extensive searching.  In addition to the face table there is a
      * node table with one entry per node which points to the first face which involved that node.
      *
-     * When the initialization process begins, the node and face tables are all zeros.  They
-     * are filled up progressively by processing all of the cells in the domain.  Each cell
+     * When the initialization process begins, the node table is all -1 and the face table is all zeros.  They
+     * are filled up progressively by processing all of the elements in the domain.  Each element 
      * has four to six faces that have pointers to the three or four nodes which define the faces.
      * For each face the process is as follows:
      *
      * Let n1, n2, n3, and optionally n4 be the indices of the nodes that define the new face.
      * Nmin is the minimum of the node numbers. The node table is used to see if there is already
-     * a face in the face table which involves node Nmin.  This not, then this new face is added
+     * a face in the face table which involves node Nmin.  If not, then this new face is added
      * to the face table by setting the first four entries equal to n1, n2, n3, and n4 and the
-     * fifth to the cell index with a face number flag.  The node table entry for Nmin is
+     * fifth to the element index and the sixth to the face number.  The node table entry for Nmin is
      * adjusted to point to the new face.
      *
      * If there is an entry in the node table, then all the nodes of that entry in the table are
-     * compared to n1, n2, n3, and n4.  Th these match, then the table face is the same as the new
-     * face. The appropriate entries in the connectivity tables for the current face/cell and the
-     * face/cell stored in the table entry are set to point to each other.  The fifth entry of
+     * compared to n1, n2, n3, and n4.  If these match, then the table face is the same as the new
+     * face. The appropriate entries in the adjacency tables for the current face/element and the
+     * face/element stored in the table entry are set to point to each other.  The sixth entry of
      * the face table is also set to indicate that the face is complete.
      *
      * If the table face does not match then the whole process is repeated with the next face in
-     * the table which uses the node Nmin, by using the pointer in entry six. This continues until
+     * the table which uses the node Nmin, by using the pointer in entry seven. This continues until
      * one either finds a match for the new face, or runs out of faces which use the node Nmin. In
      * the latter case the new face does not currently exist in the face table and so it is added.
-     * Also, the sixth entry of the face that used to be the last involving node Nmin is set to
+     * Also, the seventh entry of the face that used to be the last involving node Nmin is set to
      * point to the new face in the table which is now the last entry.
      *
-     * When all the cells have been process, those entries in the face table that still have cell
-     * numbers in the fifth position are faces that bound the volume.  These are compared against
-     * the programmer-supplied bounding surface face definitions for consistency."
+     * When all the elements have been processed, those entries in the  
      */
 
     hex_adj = p_mocd->p_vis_data->adjacency;
@@ -502,9 +504,9 @@ create_hex_adj( MO_class_data *p_mocd, Analysis *analy )
     for ( i = 0; i < 7; i++ )
         face_tbl[i] = NEW_N( int, tbl_sz, "Face table" );
 
-#ifdef DUMP_TABLES
+#ifdef DUMP_TABLES 
     start_table_dump( ncnt );
-#endif
+#endif 
 
     /* Set this outside of load_hex_adj. */
     free_ptr = 0;
@@ -589,9 +591,11 @@ load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
     Bool_type valid;
     int **hex_adj;
     int face_entry[6];
+    int tmp_faces[6];
     int *idx, new_idx, tmp;
     int el, fc, elem1, face1, elem2, face2;
     int i, j;
+    FILE *fp;
 
     /*
      * The table face_tbl contains for each face entry
@@ -611,6 +615,42 @@ load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
      *      Computer Graphics and Flow Visualization in Computational
      *      Fluid Dynamics, VKI Lecture Series #10, Brussels, Sept 16-20
      *      1991.
+     * "The face table to be constructed has seven entries for each face.  The first four
+     * entries are the indices of the four nodes that define the face.  The elements supported
+     * have either quadrilateral or triangular faces.  The fifth contains the element number. 
+     * The sixth entry is the face number and the seventh entry is a pointer to the next face
+     * in the list which contains the same minimum
+     * node index (a -1 indicates the end of the list).  This produces a 'threaded list' based
+     * on the lowest numbered node of each face.  This list can be quickly processed and a face
+     * can be found without extensive searching.  In addition to the face table there is a
+     * node table with one entry per node which points to the first face which involved that node.
+     *
+     * When the initialization process begins, the node table is all -1 and the face table is all zeros.  They
+     * are filled up progressively by processing all of the elements in the domain.  Each element 
+     * has four to six faces that have pointers to the three or four nodes which define the faces.
+     * For each face the process is as follows:
+     *
+     * Let n1, n2, n3, and optionally n4 be the indices of the nodes that define the new face.
+     * Nmin is the minimum of the node numbers. The node table is used to see if there is already
+     * a face in the face table which involves node Nmin.  If not, then this new face is added
+     * to the face table by setting the first four entries equal to n1, n2, n3, and n4 and the
+     * fifth to the element index and the sixth to the face number.  The node table entry for Nmin is
+     * adjusted to point to the new face.
+     *
+     * If there is an entry in the node table, then all the nodes of that entry in the table are
+     * compared to n1, n2, n3, and n4.  If these match, then the table face is the same as the new
+     * face. The appropriate entries in the adjacency tables for the current face/element and the
+     * face/element stored in the table entry are set to point to each other.  The sixth entry of
+     * the face table is also set to indicate that the face is complete.
+     *
+     * If the table face does not match then the whole process is repeated with the next face in
+     * the table which uses the node Nmin, by using the pointer in entry seven. This continues until
+     * one either finds a match for the new face, or runs out of faces which use the node Nmin. In
+     * the latter case the new face does not currently exist in the face table and so it is added.
+     * Also, the seventh entry of the face that used to be the last involving node Nmin is set to
+     * point to the new face in the table which is now the last entry.
+     *
+     * When all the elements have been processed, those entries in the  
      */
 
     connects = (int (*)[8]) p_mocd->objects.elems->nodes;
@@ -621,6 +661,8 @@ load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
                  node_tbl, node_tbl_size,
                  face_tbl, *p_tbl_sz,
                  hex_adj, p_mocd->qty );
+    fp = fopen("face_entry", "w");
+    fprintf(fp, "nd1\tnd2\tnd3\tnd4\tel\tfc\n");
 #endif
 
     /* Loop over elements. */
@@ -644,11 +686,45 @@ load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
             /* Check for degenerate element faces. */
             if ( p_mocd->objects.elems->has_degen )
             {
+#ifdef DUMP_TABLES
+                for(i = 0; i < 6; i++)
+                {
+                    tmp_faces[i] = face_entry[i];
+                }
+                for(i = 1; i < 3; i++)
+                {
+                    if(tmp_faces[i] == tmp_faces[i-1])
+                    {
+                        tmp_faces[i] = tmp_faces[i+1];
+                    }
+                }
+
+                 
+                fprintf(fp, "%d\t%d\t%d\t%d\t%d\t%d\n", tmp_faces[0], tmp_faces[1],
+                                                        tmp_faces[2], tmp_faces[3],
+                                                        tmp_faces[4], tmp_faces[5]);
+#endif
                 valid = check_degen_face( face_entry );
 
                 /* If face is degenerate (pt or line), skip it. */
                 if ( !valid )
+                {
+                    if(free_ptr >= 0)
+                    {
+                        new_idx = free_ptr;
+                        free_ptr = face_tbl[6][free_ptr];
+                        if(new_idx == free_ptr - 1)
+                        { 
+                            face_tbl[6][new_idx] = -1;
+                        }
+                        /*if(node_tbl[face_entry[0]] == -1 && (new_idx == free_ptr - 1))
+                        {
+                            node_tbl[face_entry[0]] = new_idx;
+                        }*/
+                    }
+                    hex_adj[fc][el] = -2;
                     continue;
+                }
             }
 
             idx = check_match( face_entry, node_tbl, face_tbl );
@@ -701,6 +777,10 @@ load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
 
         }
     }
+#ifdef DUMP_TABLES
+    fclose(fp);
+#endif
+
 }
 
 
@@ -842,7 +922,10 @@ create_tet_adj( MO_class_data *p_mocd, Analysis *analy )
             {
                 /* Create a new face entry and append it to node list. */
                 if ( free_ptr < 0 )
+                {
                     double_table_size( &tbl_sz, face_tbl, &free_ptr, 6 );
+                    idx = check_match( face_entry, node_tbl, face_tbl );
+                }
                 new_idx = free_ptr;
                 free_ptr = face_tbl[5][free_ptr];
 
@@ -1522,8 +1605,74 @@ static int *
 check_match( int *face_entry, int *node_tbl, int **face_tbl )
 {
     int *idx;
+    int i;
+    int tmp_faces1[4];
+    int tmp_faces2[4];
+    int repeated = 0;
+
+    for(i = 1; i < 4; i++)
+    {
+        if(face_entry[i] == face_entry[i - 1])
+        {
+            repeated = 1;
+            break;
+        }
+    }
 
     idx = &node_tbl[face_entry[0]];
+
+    if(repeated > 0)
+    {
+        if(*idx >= 0)
+        {
+            for(i = 0; i < 4; i++)
+            {
+                tmp_faces1[i] = face_entry[i];
+                tmp_faces2[i] = face_tbl[i][*idx]; 
+            }
+
+            for(i = 1; i < 3; i++)
+            {
+                if(tmp_faces1[i] == tmp_faces1[i-1])
+                {
+                    tmp_faces1[i] = tmp_faces1[i+1];
+                }
+                if(tmp_faces2[i] == tmp_faces2[i-1])
+                {
+                    tmp_faces2[i] = tmp_faces2[i+1];
+                }
+            }
+        }
+        while( *idx >= 0)
+        {
+            if( tmp_faces1[0] == tmp_faces2[0] &&
+                tmp_faces1[1] == tmp_faces2[1] &&
+                tmp_faces1[2] == tmp_faces2[2] &&
+                tmp_faces1[3] == tmp_faces2[3] )
+            {
+                return idx;
+            } else
+            {
+                idx = &face_tbl[6][*idx];
+                if(*idx >= 0)
+                {
+                    for(i = 0; i < 4; i++)
+                    {
+                        tmp_faces2[i] = face_tbl[i][*idx];
+                    }
+                    for(i = 1; i < 3; i++)
+                    {
+                        if(tmp_faces2[i] == tmp_faces2[i-1])
+                        {
+                            tmp_faces2[i] = tmp_faces2[i+1];
+                        }
+                    }
+                }
+            }
+        }
+        return idx;
+    }
+
     while ( *idx >= 0 )
     {
         if ( face_entry[0] == face_tbl[0][*idx] &&
@@ -2305,6 +2454,7 @@ get_hex_faces( MO_class_data *p_hex_class, Analysis *analy )
     p_md = analy->mesh_table + p_hex_class->mesh_id;
     mat = p_hex_class->objects.elems->mat;
 
+
     /* Free up old face lists. */
     if ( p_vd->face_el != NULL )
     {
@@ -2324,7 +2474,7 @@ get_hex_faces( MO_class_data *p_hex_class, Analysis *analy )
         if ( hex_visib[i] )
             for ( j = 0; j < 6; j++ )
             {
-                if ( hex_adj[j][i] < 0 || !hex_visib[ hex_adj[j][i] ] )
+                if ( hex_adj[j][i] == -1 || (hex_adj[j][i] >= 0 && !hex_visib[ hex_adj[j][i] ] ))
                     fcnt++;
                 else if ( p_md->translate_material )
                 {
@@ -2337,6 +2487,8 @@ get_hex_faces( MO_class_data *p_hex_class, Analysis *analy )
                         fcnt++;
                 }
             }
+
+ 
     p_vd->face_cnt = fcnt;
 
     /* Allocate new face lists. */
@@ -2355,13 +2507,13 @@ get_hex_faces( MO_class_data *p_hex_class, Analysis *analy )
         if ( hex_visib[i] )
             for ( j = 0; j < 6; j++ )
             {
-                if ( hex_adj[j][i] < 0 || !hex_visib[ hex_adj[j][i] ] )
+                if ( hex_adj[j][i] == -1 || (hex_adj[j][i] >= 0 && !hex_visib[ hex_adj[j][i] ]))
                 {
                     face_el[fcnt] = i;
                     face_fc[fcnt] = j;
                     fcnt++;
                 }
-                else if ( p_md->translate_material )
+                else if ( p_md->translate_material)
                 {
                     /* Material translations can expose faces. */
                     m1 = mat[i];
@@ -2382,6 +2534,15 @@ get_hex_faces( MO_class_data *p_hex_class, Analysis *analy )
      * This routine allocates space for the face normals but does not
      * compute them.
      */
+
+     /* Bill Oliver added the following to clean up memory leaks and eliminating dangling pointers */
+     hex_adj = NULL;
+     hex_visib = NULL;
+     p_vd = NULL;
+     p_md = NULL;
+     mat = NULL;
+     face_el = NULL;
+     face_fc = NULL;
 }
 
 
@@ -7067,7 +7228,11 @@ get_hex_class_edges( float *mtl_trans[3], MO_class_data *p_hex_class,
         {
             node1 = connects[el][ fc_nd_nums[fc][j] ];
             node2 = connects[el][ fc_nd_nums[fc][(j+1)%4] ];
-
+            
+            if(node1 == node2)
+            {
+                continue;
+            }
             /* Order the node numbers in ascending order. */
             if ( node1 > node2 )
                 SWAP( tmp, node1, node2 );
@@ -7810,7 +7975,7 @@ old_get_brick_edges( Analysis *analy )
             vis_cnt = 0;
             for ( j = 0; j < 6; j++ )
             {
-                if ( hex_adj[j][i] < 0 || !hex_visib[ hex_adj[j][i] ] )
+                if ( hex_adj[j][i] == -1 || (hex_adj[j][i] >= 0 &&!hex_visib[ hex_adj[j][i] ] ))
                 {
                     vis[j] = TRUE;
                     vis_cnt++;
@@ -7855,7 +8020,7 @@ old_get_brick_edges( Analysis *analy )
             vis_cnt = 0;
             for ( j = 0; j < 6; j++ )
             {
-                if ( hex_adj[j][i] < 0 || !hex_visib[ hex_adj[j][i] ] )
+                if ( hex_adj[j][i] == -1 || (hex_adj[j][i] >= 0 && !hex_visib[ hex_adj[j][i] ] ))
                 {
                     vis[j] = TRUE;
                     vis_cnt++;
