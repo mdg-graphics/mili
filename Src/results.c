@@ -171,11 +171,6 @@ static char *node_rot_vel_mag_primals1[] =
     "rotvel", NULL
 };
 
-static char *node_rot_vel_mag_primals2[] =
-{
-    "nodpos", NULL
-};
-
 static int node_rot_vel_mag_primal_sclasses[] =
 {
     G_NODE
@@ -1102,21 +1097,6 @@ Result_candidate possible_results[] =
         node_rot_vel_mag_primals1,
         node_rot_vel_mag_primal_sclasses
     },
-
-    {
-        G_NODE,
-        { 1, 1 },
-        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_node_velocity,
-        NULL,
-        node_rot_vel_mag_shorts,
-        node_rot_vel_mag_longs,
-        node_rot_vel_mag_primals2,
-        node_rot_vel_mag_primal_sclasses
-    },
-
     /*
      * Ditto the comment above about velocities for accelerations.
      */
