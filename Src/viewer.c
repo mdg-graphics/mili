@@ -315,6 +315,8 @@ main( int argc, char *argv[] )
 
     if ( serial_batch_mode )
     {
+
+        char comment[512];
         /*
          * perform required GRIZ and serial batch initializations
          * MUST do non-graphic initializations found in "init_mesh_window"
@@ -364,6 +366,16 @@ main( int argc, char *argv[] )
 
         free( offscreen );
         OSMesaDestroyContext( OSMesa_ctx );
+        
+        if(analy->p_histfile)
+        {
+            strcpy(comment, "rm ");
+            strcat(comment, analy->hist_fname);
+            fclose(analy->p_histfile);
+            analy->p_histfile = NULL;
+            analy->hist_fname[0] = '\0';
+            system(comment);
+        }
         quit( 0 );
     }
 
