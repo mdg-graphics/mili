@@ -379,8 +379,8 @@ static void draw_tris_2d( Bool_type, Bool_type, Bool_type, MO_class_data *,
 static void draw_tris_3d( Bool_type, Bool_type, Bool_type, MO_class_data *,
                           Analysis * );
 
-static void draw_beams_2d( Bool_type, Bool_type, MO_class_data *, Analysis * );
-static void draw_beams_3d( Bool_type, Bool_type, MO_class_data *, Analysis * );
+static void draw_beams_2d( Bool_type, Bool_type, Bool_type, MO_class_data *, Analysis * );
+static void draw_beams_3d( Bool_type, Bool_type, Bool_type, MO_class_data *, Analysis * );
 
 static void draw_truss_2d( Bool_type, Bool_type, MO_class_data *, Analysis * );
 static void draw_truss_3d( Bool_type, Bool_type, MO_class_data *, Analysis * );
@@ -971,9 +971,22 @@ set_mesh_view( void )
     GLint param[4];
     GLdouble xp, yp, cp;
     float aspect;
+    int i;
+    for(i = 0; i < 4; i++)
+    {
+        param[i] = 0;
+    }
 
     /* Get the current viewport location and size. */
     glGetIntegerv( GL_VIEWPORT, param );
+    if(param[2] == 0)
+    {
+        param[2] = 600;
+    }
+    if(param[3] == 0)
+    {
+        param[3] = 600;
+    }
     v_win->win_x = param[0];
     v_win->win_y = param[1];
     v_win->vp_width = param[2];
@@ -2519,7 +2532,7 @@ draw_grid( Analysis *analy )
     qty_classes = p_mesh->classes_by_sclass[G_BEAM].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_beams_3d( show_mat_result, show_mesh_result, mo_classes[i],
+        draw_beams_3d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
                        analy );
 
     /* Discrete element classes. */
@@ -2766,7 +2779,7 @@ draw_grid_2d( Analysis *analy )
     qty_classes = p_mesh->classes_by_sclass[G_BEAM].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_beams_2d( show_mat_result, show_mesh_result, mo_classes[i],
+        draw_beams_2d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
                        analy );
 
     /* Discrete Element classes. */
@@ -3023,7 +3036,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     Interp_mode_type save_interp_mode;
     unsigned char *hide_mtl;
     int *p_mats;
-
+    Bool_type disable_gray = TRUE;
     Result *p_result;
     Subrec_obj *p_subrec;
     p_result = analy->cur_result;
@@ -3043,6 +3056,11 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                   || result_has_class( analy->cur_result, p_hex_class, analy )
                   || show_mat_result
                   || show_mesh_result;
+
+    if(result_has_class(analy->cur_result, p_hex_class, analy))
+    {
+        disable_gray = FALSE;
+    }
 
     if(first == 0)
     {
@@ -3349,7 +3367,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                 hidden_poly = TRUE;
 
         /* check to see if this element has the variable to be shown */
-        if(show_result && !analy->material_greyscale && analy->auto_gray)
+        if(show_result && !analy->material_greyscale && analy->auto_gray && !disable_gray)
         {
             grayel = 0;
             if((results_map[mesh_id][el+1] == '0') && !disable_mtl[matl] && !disable_flag)
@@ -3364,7 +3382,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                 }
                
             }
-        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
         {
             grayel = 1;
             for(j = 0; j < 4; j++)
@@ -3434,6 +3452,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     static char * short_name = NULL;
     Result * p_result;
     Bool_type same_as_last = FALSE;
+    Bool_type disable_gray = TRUE;
 
     mesh_id = p_tet_class->mesh_id;
     p_result = analy->cur_result;
@@ -3443,6 +3462,11 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
                   || result_has_class( analy->cur_result, p_tet_class, analy )
                   || show_mat_result
                   || show_mesh_result; 
+
+    if(result_has_class( analy->cur_result, p_tet_class, analy))
+    {
+        disable_gray = FALSE;
+    }
 
     if(first == 0)
     {
@@ -3687,13 +3711,13 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
         disable_flag = disable_by_object_type( p_tet_class, matl, el, analy, data_array );
 
         /* check to see if this element has the variable to be shown */
-        if(show_result && !analy->material_greyscale)
+        if(show_result && !analy->material_greyscale && !disable_gray)
         {
             grayel = 0;
             if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
             {
                 grayel = 1;         
-                for(j = 0; j < 4; j++)
+                for(j = 0; j < 3; j++)
                 {
                     for(k = 0; k < 4; k++)
                     {
@@ -3702,10 +3726,10 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
                 }
                
             }
-        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
         {
             grayel = 1;
-            for(j = 0; j < 4; j++)
+            for(j = 0; j < 3; j++)
             {
                 for(k = 0; k < 4; k++)
                 {
@@ -3767,6 +3791,7 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
     static char * result_name = NULL;
     static char * short_name = NULL;
     Bool_type same_as_last = FALSE;
+    Bool_type disable_gray = TRUE;
 
     p_result = analy->cur_result;
     mesh_id = p_quad_class->mesh_id;
@@ -3776,6 +3801,10 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
                   || show_mat_result
                   || show_mesh_result;
 
+    if(result_has_class( analy->cur_result, p_quad_class, analy))
+    {
+        disable_gray = FALSE;
+    }
 
     if(first == 0)
     {
@@ -4000,7 +4029,7 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
         disable_flag = disable_by_object_type(p_quad_class, matl, i, analy, NULL);
 
         /* check to see if this element has the variable to be shown */
-        if(show_result && !analy->material_greyscale)
+        if(show_result && !analy->material_greyscale && !disable_gray)
         {
             grayel = 0;
             if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
@@ -4015,7 +4044,7 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
                 }
                
             }
-        } else if(!show_result && !analy->showmat && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        } else if(!show_result && !analy->showmat && !disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
         {
             grayel = 1;
             for(j = 0; j < 4; j++)
@@ -4091,6 +4120,7 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
     static int first = 0;
     Result * p_result;
     Bool_type same_as_last = FALSE;
+    Bool_type disable_gray = TRUE;
 
     mesh_id = p_tri_class->mesh_id;
     p_result = analy->cur_result;
@@ -4098,7 +4128,12 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
     show_result = show_node_result
                   || result_has_class( analy->cur_result, p_tri_class, analy )
                   || show_mat_result
-                  || show_mesh_result; 
+                  || show_mesh_result;
+
+    if(result_has_class( analy->cur_result, p_tri_class, analy))
+    {
+        disable_gray = FALSE;
+    }
 
     if(first == 0)
     {
@@ -4324,7 +4359,7 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
         disable_flag = disable_by_object_type( p_tri_class, matl, i, analy, data_array );
 
         /* check to see if this element has the variable to be shown */
-        if(show_result && !analy->material_greyscale)
+        if(show_result && !analy->material_greyscale && !disable_gray)
         {
             grayel = 0;
             if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
@@ -4339,7 +4374,7 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
                 }
                
             }
-        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
         {
             grayel = 1;
             for(j = 0; j < 4; j++)
@@ -4379,7 +4414,7 @@ static Bool_type bad_node_warn_once=TRUE;
  * Draw the beam elements in the model.
  */
 static void
-draw_beams_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
+draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
                MO_class_data *p_beam_class, Analysis *analy )
 {
     Bool_type verts_ok, show_result, showgs;
@@ -4405,14 +4440,21 @@ draw_beams_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
     static char * short_name = NULL;
     Result * p_result;
     Bool_type same_as_last = FALSE;
+    Bool_type disable_gray = TRUE;
     mesh_id = p_beam_class->mesh_id;
 
     p_result = analy->cur_result;
 
     show_result = result_has_class( analy->cur_result, p_beam_class, analy )
+                  || show_node_result
                   || show_mat_result
                   || show_mesh_result;
-    
+   
+    if(result_has_class( analy->cur_result, p_beam_class, analy ))
+    {
+        disable_gray = FALSE;
+    }
+
     if(first == 0)
     {
         results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
@@ -4591,7 +4633,7 @@ draw_beams_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
 
         grayel = 0;
 
-        if(show_result && !analy->material_greyscale)
+        if(show_result && !analy->material_greyscale && !disable_gray)
         {
             grayel = 1;
 
@@ -4604,7 +4646,7 @@ draw_beams_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
                 
                 glColor3fv(col);
             }
-        } else if(!show_result && !analy->showmat && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        } else if(!show_result && !analy->showmat && !disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
         {
             for(j = 0; j < 4; j++)
             {
@@ -4663,6 +4705,7 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
     static char * result_name = NULL;
     static char * short_name = NULL;
     Bool_type same_as_last = FALSE;
+    Bool_type disable_gray = TRUE;
     Result * p_result;
 
     mesh_id = p_truss_class->mesh_id;
@@ -4672,6 +4715,10 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
                   || show_mat_result
                   || show_mesh_result;
 
+    if(result_has_class( analy->cur_result, p_truss_class, analy ))
+    {
+        disable_gray = FALSE;
+    }
 
     if(first == 0)
     {
@@ -4852,7 +4899,7 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
             for ( k = 0; k < 3; k++ )
                 pts[j*3+k] = verts[j][k];
 
-        if(show_result && !analy->material_greyscale)
+        if(show_result && !analy->material_greyscale && !disable_gray)
         {
             grayel = 0;
             if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
@@ -4864,7 +4911,7 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
                 }
                 glColor3fv( col );
             }
-        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray)
+        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
         {
             grayel = 1;
             for(k = 0; k < 4; k++)
@@ -5656,7 +5703,7 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
  * Draw the beam elements in the model.
  */
 static void
-draw_beams_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
+draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
                MO_class_data *p_beam_class, Analysis *analy )
 {
     int i, j, k, nd, matl, mesh_idx;
@@ -5711,6 +5758,7 @@ draw_beams_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
     }
 
     show_result = result_has_class( analy->cur_result, p_beam_class, analy )
+                  || show_node_result
                   || show_mat_result
                   || show_mesh_result;
 
