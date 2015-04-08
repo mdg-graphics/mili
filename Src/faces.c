@@ -34,13 +34,14 @@
 /*#ifndef DUMP_TABLES
 #define DUMP_TABLES
 #endif*/ 
+
 /* Local routines. */
 static void load_hex_adj( MO_class_data *p_mocd, int *node_tbl,
                           int *face_tbl[7], int *p_tbl_sz,
                           int start, int stop );
 static void double_table_size( int *tbl_sz, int **face_tbl, int *free_ptr,
                                int row_qty );
-static int *check_match( int *face_entry, int *node_tbl, int **face_tbl );
+static int *check_match( int *face_entry, int *node_tbl, int **face_tbl, int nodes_per_face );
 static Bool_type check_degen_face( int *nodes );
 static void hex_rough_cut( float *ppt, float *norm, MO_class_data *p_hex_class,
                            GVec3D *nodes, unsigned char *hex_visib );
@@ -703,7 +704,7 @@ load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
                 fprintf(fp, "%d\t%d\t%d\t%d\t%d\t%d\n", tmp_faces[0], tmp_faces[1],
                                                         tmp_faces[2], tmp_faces[3],
                                                         tmp_faces[4], tmp_faces[5]);
-#endif
+#endif 
                 valid = check_degen_face( face_entry );
 
                 /* If face is degenerate (pt or line), skip it. */
@@ -727,7 +728,7 @@ load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
                 }
             }
 
-            idx = check_match( face_entry, node_tbl, face_tbl );
+            idx = check_match( face_entry, node_tbl, face_tbl, 4 );
 
             if ( *idx >= 0 )
             {
@@ -756,7 +757,7 @@ load_hex_adj( MO_class_data *p_mocd, int *node_tbl, int *face_tbl[7],
                     double_table_size( p_tbl_sz, face_tbl, &free_ptr, 7 );
 
                     /* IRC - Aug. 14, 2007 - Added call to re-compute address for idx */
-                    idx = check_match( face_entry, node_tbl, face_tbl );
+                    idx = check_match( face_entry, node_tbl, face_tbl, 4 );
                 }
 
                 new_idx = free_ptr;
@@ -924,7 +925,7 @@ create_tet_adj( MO_class_data *p_mocd, Analysis *analy )
                 if ( free_ptr < 0 )
                 {
                     double_table_size( &tbl_sz, face_tbl, &free_ptr, 6 );
-                    idx = check_match( face_entry, node_tbl, face_tbl );
+                    idx = check_match( face_entry, node_tbl, face_tbl, 3 );
                 }
                 new_idx = free_ptr;
                 free_ptr = face_tbl[5][free_ptr];
@@ -1602,15 +1603,21 @@ double_table_size( int *tbl_sz, int **face_tbl, int *free_ptr, int row_qty )
  * Check if a face entry already exists.
  */
 static int *
-check_match( int *face_entry, int *node_tbl, int **face_tbl )
+check_match( int *face_entry, int *node_tbl, int **face_tbl, int nds_per_face )
 {
     int *idx;
     int i;
     int tmp_faces1[4];
     int tmp_faces2[4];
     int repeated = 0;
+    int last_idx = 5;
 
-    for(i = 1; i < 4; i++)
+    if(nds_per_face == 4)
+    {
+        last_idx = 6;
+    }
+
+    for(i = 1; i < nds_per_face; i++)
     {
         if(face_entry[i] == face_entry[i - 1])
         {
@@ -1625,13 +1632,13 @@ check_match( int *face_entry, int *node_tbl, int **face_tbl )
     {
         if(*idx >= 0)
         {
-            for(i = 0; i < 4; i++)
+            for(i = 0; i < nds_per_face; i++)
             {
                 tmp_faces1[i] = face_entry[i];
                 tmp_faces2[i] = face_tbl[i][*idx]; 
             }
 
-            for(i = 1; i < 3; i++)
+            for(i = 1; i < nds_per_face - 1; i++)
             {
                 if(tmp_faces1[i] == tmp_faces1[i-1])
                 {
@@ -1645,22 +1652,26 @@ check_match( int *face_entry, int *node_tbl, int **face_tbl )
         }
         while( *idx >= 0)
         {
-            if( tmp_faces1[0] == tmp_faces2[0] &&
+            if( (nds_per_face == 4 && tmp_faces1[0] == tmp_faces2[0] &&
                 tmp_faces1[1] == tmp_faces2[1] &&
                 tmp_faces1[2] == tmp_faces2[2] &&
-                tmp_faces1[3] == tmp_faces2[3] )
+                tmp_faces1[3] == tmp_faces2[3]) || (nds_per_face == 3 && 
+                tmp_faces1[0] == tmp_faces2[0] &&
+                tmp_faces1[1] == tmp_faces2[1] &&
+                tmp_faces1[2] == tmp_faces2[2] )) 
+                
             {
                 return idx;
             } else
             {
-                idx = &face_tbl[6][*idx];
+                idx = &face_tbl[last_idx][*idx];
                 if(*idx >= 0)
                 {
-                    for(i = 0; i < 4; i++)
+                    for(i = 0; i < nds_per_face; i++)
                     {
                         tmp_faces2[i] = face_tbl[i][*idx];
                     }
-                    for(i = 1; i < 3; i++)
+                    for(i = 1; i < nds_per_face - 1; i++)
                     {
                         if(tmp_faces2[i] == tmp_faces2[i-1])
                         {
@@ -1675,13 +1686,17 @@ check_match( int *face_entry, int *node_tbl, int **face_tbl )
 
     while ( *idx >= 0 )
     {
-        if ( face_entry[0] == face_tbl[0][*idx] &&
+        if ( (nds_per_face == 4 && face_entry[0] == face_tbl[0][*idx] &&
                 face_entry[1] == face_tbl[1][*idx] &&
                 face_entry[2] == face_tbl[2][*idx] &&
-                face_entry[3] == face_tbl[3][*idx] )
+                face_entry[3] == face_tbl[3][*idx])
+              || (nds_per_face == 3 && face_entry[0] == face_tbl[0][*idx] &&
+                face_entry[1] == face_tbl[1][*idx] &&
+                face_entry[2] == face_tbl[2][*idx]
+                ))
             return idx;
         else
-            idx = &face_tbl[6][*idx];
+            idx = &face_tbl[last_idx][*idx];
     }
 
     /* No match. */
