@@ -2568,6 +2568,10 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
     }
     /* Return the current token index of list. */
     *p_idx = unclassed_token ? i - 1 : i;
+    if(so_list == NULL && analy->selected_objects != NULL)
+    {
+        so_list = copy_obj_list( analy->selected_objects);
+    }
     *p_so_list = so_list;
 }
 
