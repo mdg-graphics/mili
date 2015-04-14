@@ -5062,7 +5062,7 @@ find_extents( MO_class_data *p_mo_class, int dim, float *coords,
                     offset = nd * dim + k;
                     if ( coords[offset] < bb_lo[k] )
                         bb_lo[k] = coords[offset];
-                    else if ( coords[offset] > bb_hi[k] )
+                    if ( coords[offset] > bb_hi[k] )
                         bb_hi[k] = coords[offset];
                 }
             }
