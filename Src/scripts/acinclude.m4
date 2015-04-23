@@ -1678,7 +1678,7 @@ AC_DEFUN([CONFIGURE_GRIZ_LIBRARIES],
                 SYSLIBS=" -lm"
         fi
 
-        LDLIBPATH="/usr/lib64"
+        LDLIBPATH="/usr/lib64/nvidia"
         if test "$OS_NAME" = "Linux"; -o "$OS_NAME" = "Darwin"; then
                 SYSLIBS="$SYSLIBS "
                 LDLIBPATH="$LDLIBPATH:/usr/X11R6/lib"
