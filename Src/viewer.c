@@ -901,6 +901,11 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         popup_fatal( "open_analysis() - unable to get db dimension." );
         return FALSE;
     }
+    if(analy->dimension != 2 && analy->dimension != 3)
+    {
+        popup_fatal("open_analysis() db dimension should be 2 or 3.");
+        return FALSE;
+    }
 
     if ( analy->dimension == 2 )
         analy->limit_rotations = TRUE;
