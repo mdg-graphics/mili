@@ -4534,6 +4534,106 @@ parse_single_command( char *buf, Analysis *analy )
 
         if ( token_cnt>1 || check_for_result( analy, TRUE ) || analy->ei_result )
         {
+            if(token_cnt > 1)
+            {
+                for(i = 1; i < token_cnt; i++)
+                {
+                    if(strstr(tokens[i], "sxy"))
+                    {
+                        strcpy(tokens[i], "sxy");
+                    } else if(strstr(tokens[i], "syz"))
+                    {
+                        strcpy(tokens[i], "syz");
+                    } else if(strstr(tokens[i], "szx"))
+                    {
+                        strcpy(tokens[i], "szx");
+                    } else if(strstr(tokens[i], "sx"))
+                    {
+                        strcpy(tokens[i], "sx");
+                    } else if(strstr(tokens[i], "sy"))
+                    {
+                        strcpy(tokens[i], "sy");
+                    } else if(strstr(tokens[i], "sz"))
+                    {
+                        strcpy(tokens[i], "sz");
+                    }
+                    if(strstr(tokens[i], "exy"))
+                    {
+                        strcpy(tokens[i], "exy");
+                    } else if(strstr(tokens[i], "eyz"))
+                    {
+                        strcpy(tokens[i], "eyz");
+                    } else if(strstr(tokens[i], "ezx"))
+                    {
+                        strcpy(tokens[i], "ezx");
+                    } else if(strstr(tokens[i], "ex"))
+                    {
+                        strcpy(tokens[i], "ex");
+                    } else if(strstr(tokens[i], "ey"))
+                    {
+                        strcpy(tokens[i], "ey");
+                    } else if(strstr(tokens[i], "ez"))
+                    {
+                        strcpy(tokens[i], "ez");
+                    }
+
+                }
+            } else if(token_cnt == 1 && analy->cur_result != NULL)
+            {
+                i = 1;
+                if(strstr(analy->cur_result->name, "sxy"))
+                {
+                    strcpy(tokens[i], "sxy");
+                    token_cnt = 2;
+                } else if(strstr(analy->cur_result->name, "syz"))
+                {
+                    strcpy(tokens[i], "syz");
+                    token_cnt = 2;
+                } else if(strstr(analy->cur_result->name, "szx"))
+                {
+                    strcpy(tokens[i], "szx");
+                    token_cnt = 2;
+                } else if(strstr(analy->cur_result->name, "sx"))
+                {
+                    strcpy(tokens[i], "sx");
+                    token_cnt = 2;
+                } else if(strstr(analy->cur_result->name, "sy"))
+                {
+                    strcpy(tokens[i], "sy");
+                    token_cnt = 2;
+                } else if(strstr(analy->cur_result->name, "sz"))
+                {
+                    strcpy(tokens[i], "sz");
+                    token_cnt = 2;
+                }
+                if(strstr(analy->cur_result->name, "exy"))
+                {
+                    strcpy(tokens[i], "exy");
+                    token_cnt = 2;
+                } else if(strstr(analy->cur_result->name, "eyz"))
+                {
+                    strcpy(tokens[i], "eyz");
+                    token_cnt = 2;
+                } else if(strstr(analy->cur_result->name, "ezx"))
+                {
+                    strcpy(tokens[i], "ezx");
+                    token_cnt = 2;
+                } else if(strstr(analy->cur_result->name, "ex"))
+                {
+                    strcpy(tokens[i], "ex");
+                    token_cnt = 2;
+                } else if(strstr(analy->cur_result->name, "ey"))
+                {
+                    strcpy(tokens[i], "ey");
+                    token_cnt = 2;
+                } else if(strstr(analy->cur_result->name, "ez"))
+                {
+                    strcpy(tokens[i], "ez");
+                    token_cnt = 2;
+                }
+
+            }
+
             create_plot_objects( token_cnt, tokens, analy, &analy->current_plots );
             redraw = BINDING_PLOT_VISUAL;
         }
