@@ -2392,7 +2392,7 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
     char nstr[32];
     char *p_h;
     Specified_obj *p_so, *so_list;
-    int i, j, o_ident, range_start, range_stop, len;
+    int i, j, o_ident, range_start, range_stop, len, label_index;
     Bool_type parsing_range, unclassed_token;
     MO_class_data *p_class;
 
@@ -2463,7 +2463,14 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                  */
                 p_so = NEW( Specified_obj, "Parsed MO" );
                 p_so->mo_class = p_class;
-                p_so->ident = atoi( tokens[i] ) - 1;
+                if(!p_class->labels_found)
+                {
+                    p_so->ident = atoi( tokens[i] ) - 1;
+                } else
+                {
+                    label_index = atoi(tokens[i]) - 1;
+                    p_so->ident = get_class_label_index(p_class, label_index);
+                }
                 INSERT( p_so, so_list );
                 o_ident = p_so->ident;
             }
@@ -2509,7 +2516,14 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                          */
                         p_so = NEW( Specified_obj, "Parsed MO" );
                         p_so->mo_class = p_class;
-                        p_so->ident = atoi( tokens[i] ) - 1;
+                        if(!p_class->labels_found)
+                        {
+                            p_so->ident = atoi( tokens[i] ) - 1;
+                        } else
+                        {
+                            label_index = atoi(tokens[i]) - 1;
+                            p_so->ident = get_class_label_index(p_class, label_index);
+                        }
                         INSERT( p_so, so_list );
                         o_ident = p_so->ident;
                         range_start = o_ident;
@@ -4791,7 +4805,13 @@ add_mo_nodes( Specified_obj **list, MO_class_data *p_class, int start_ident,
     for ( i = start_ident; i <= stop_ident; i++ )
     {
         p_so = NEW( Specified_obj , "Parsed MO" );
-        p_so->ident = i;
+        if(!p_class->labels_found)
+        {
+            p_so->ident = i;
+        } else
+        {
+            p_so->ident = get_class_label_index(p_class, i);
+        }
         p_so->mo_class = p_class;
         APPEND( p_so, *list );
     }
