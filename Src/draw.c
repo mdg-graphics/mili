@@ -6108,6 +6108,8 @@ draw_surfaces_2d( Color_property *p_cp,
     disable_surf = p_mesh->disable_surface;
     hide_surf = p_mesh->hide_surface;
 
+    nodes = analy->state_p->nodes.nodes2d;
+    onodes = (GVec3D *) analy->cur_ref_state_data;
     /* 2D, so set Z coord of every vertex to zero. */
     verts[0][2] = verts[1][2] = verts[2][2] = verts[3][2] = 0.0;
 
@@ -6876,7 +6878,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
     int fracsz;
     char *cname;
     int dim, obj_qty;
-    Bool_type particle_hilite;
+    Bool_type particle_hilite = FALSE;
     float *data_array;
     Surface_data *p_surface;
     int facet_qty, facet;
@@ -11690,7 +11692,10 @@ rgb_to_screen( char *fname, Bool_type background, Analysis *analy )
         pr_short = rbuf;
         pg_short = gbuf;
         pb_short = bbuf;
-        pa_short = abuf;
+        if(alpha)
+        {
+            pa_short = abuf;
+        }
 
         for( i = 0; i < img_width; i++ )
         {
@@ -11866,7 +11871,10 @@ screen_to_rgb( char fname[], Bool_type alpha )
         pr_short = rbuf;
         pg_short = gbuf;
         pb_short = bbuf;
-        pa_short = abuf;
+        if(alpha)
+        {
+            pa_short = abuf;
+        }
 
         for( i = 0; i < vp_width; i++ )
         {
