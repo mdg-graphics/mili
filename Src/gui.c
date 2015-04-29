@@ -10838,7 +10838,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                                 if ( cnt >= MAX_DBTEXT_LINES )
                                 {
                                     sprintf( temp_text, "Error - text length exceeded (length=%d)\n", cnt);
-                                    start_text[cnt++] = (char *) strdup(temp_text) ;
+                                    start_text[MAX_DBTEXT_LINES - 1] = (char *) strdup(temp_text) ;
                                     i=num_blocks;
                                     break;
                                 }
@@ -10855,7 +10855,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                                 block_index+=2;
                             } /* end for-i */
 
-                            if ( cnt >= MAX_DBTEXT_LINES-5 )
+                            if ( cnt < MAX_DBTEXT_LINES && cnt >= MAX_DBTEXT_LINES-5 )
                             {
                                 start_text[cnt] = (char *) strdup("** Error Max lines exceeded!");
                                 p_state_rec->qty;
