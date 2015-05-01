@@ -2226,7 +2226,7 @@ void
 open_history_file( char *fname )
 {
     char hist_fname[256];
-    strcat(hist_fname, env.plotfile_name);
+    strcpy(hist_fname, env.plotfile_name);
     strcat(hist_fname, ".grizhist");
     /*Close file if we had one open already. */
     close_history_file();
