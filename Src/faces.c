@@ -5482,11 +5482,17 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
         break;
     case G_UNIT:
         if ( strcmp( p_mo_class->short_name, "part" ) == 0 )
+        {
             select_particle( analy, MESH_P( analy ), p_mo_class, line_pt,
                              line_dir, &near_num );
+        } else
+        {
+            return 0;
+        }
         break;
     default:
         popup_dialog( INFO_POPUP, "Unknown object type for pick." );
+        return 0;
     }
 
     if ( !find_only && near_num != 0 )
@@ -5513,6 +5519,7 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
         }
 
     }
+
 
     if ( near_num<=0 )
         return near_num;
@@ -6120,6 +6127,9 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
     float near_dist, orig, dist;
     int node_base, nd, near_num;
     int near_facet;
+
+    /* for now assume quad connects */
+    connects = (int (*)[4]) p_mo_class->objects.elems->nodes;
 
     intersect_func = intersect_line_quad;
     hide_surf = p_mesh->hide_surface;
@@ -7718,6 +7728,11 @@ create_compressed_edge_list( int *enodes[2], int *emtls, int eqty )
             oqty = p_elo->overflow_qty;
             p_elo->overflow = RENEWC_N( Int_2tuple, p_elo->overflow, oqty, 1,
                                         "Edge overflow entry" );
+            if(p_elo->overflow == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "out of memory in function create_compressed_edge_list.\n");
+                parse_command("quit", env.curr_analy);
+            }
             p_elo->overflow[oqty][0] = emtls[i];
             p_elo->overflow[oqty][1] = p_eo[j].addl_mtl;
             p_eo[j].addl_mtl = oqty;
@@ -7767,7 +7782,7 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
      * by the size of overflow list 1 to reflect their indices in the
      * newly extended list.
      */
-
+    offset = 0;
     if ( p_elo1->overflow == NULL )
     {
         if ( p_elo2->overflow != NULL )
@@ -7793,6 +7808,12 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
                                        p_elo1->overflow_qty,
                                        p_elo2->overflow_qty,
                                        "Merged overflow list" );
+            if(p_elo->overflow == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "out of memory in function merge_and_free_edge_lists.");
+                parse_command("quit", env.curr_analy);
+                exit(0);
+            }
             offset = p_elo->overflow_qty;
             src_q = p_elo->overflow + offset;
             add_bound = p_elo2->overflow + p_elo2->overflow_qty;
@@ -7864,6 +7885,13 @@ merge_and_free_edge_lists( Edge_list_obj *p_elo1, Edge_list_obj *p_elo2 )
                 oqty = p_elo->overflow_qty;
                 p_elo->overflow = RENEW_N( Int_2tuple, p_elo->overflow, oqty, 1,
                                            "Edge overflow entry" );
+
+                if(p_elo->overflow == NULL)
+                {
+                    popup_dialog(WARNING_POPUP, "out of memory in function merge_and_free_edge_lists");
+                    parse_command("quit", env.curr_analy);
+                    exit(0);
+                }
                 src_q = p_elo->overflow;
 
                 if ( p_eo1->addl_mtl == -1 && p_eo2->addl_mtl == -1 )
@@ -9286,7 +9314,7 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
     float verts[4][3];
     float *xyz_cons[3];
     float con;
-    float *constraints;
+    float *constraints = NULL;
     int xyz_qtys[3];
     static char xyz_chars[] = { 'x', 'y', 'z' };
     int face_total, face_qty;
@@ -9350,6 +9378,7 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
         if ( c_qty * 2 + 2 != (size_t) token_cnt )
         {
             popup_dialog( USAGE_POPUP, "outref <filename> [x|y|z <coord>]..." );
+            fclose(ofile);
             return;
         }
 
@@ -9376,6 +9405,7 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
         {
             free( constraints );
             popup_dialog( USAGE_POPUP, "outref <filename> [x|y|z <coord>]..." );
+            fclose(ofile);
             return;
         }
 
@@ -9433,8 +9463,11 @@ write_ref_file( char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
         fseek( ofile, 0, SEEK_SET );
         fprintf( ofile, "%d", face_total );
     }
-
-    free( constraints );
+   
+    if(constraints != NULL)
+    {
+        free( constraints );
+    }
 
     fclose( ofile );
 }
