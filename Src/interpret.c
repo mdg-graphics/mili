@@ -665,7 +665,7 @@ parse_command( char *input_buf, Analysis *analy )
     int  first_nonspace=0, start_of_cmd=0;
     int  token_cnt=0;
 
-    len_buf = strlen(buf);
+    len_buf = strlen(input_buf);
     if(strlen(input_buf) > BUFSIZE - 1)
     {
         popup_dialog(USAGE_POPUP, "Command size too large, bad format");
@@ -7446,6 +7446,13 @@ parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int cnt,
             {
                 parse_mtl_range(tokens[i], MAX_MATERIALS, &mat_min, &mat_max) ;
 
+                if(mat_min < 0 || mat_min > MAX_MATERIALS || mat_max < 0 || mat_max > MAX_MATERIALS ||
+                   mat_min > mat_max)
+                {
+                    popup_dialog(INFO_POPUP, "specified material numbers out of range.\n");
+                    return 0;
+                }
+
                 mtl = mat_min ;
                 for (mtl =  mat_min ;
                         mtl <= mat_max ;
@@ -7536,6 +7543,13 @@ parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int cnt,
                 if ( is_numeric_range_token( tokens[i] ) )
                 {
                     parse_mtl_range(tokens[i], MAX_MATERIALS, &mat_min, &mat_max ) ;
+
+                    if(mat_min < 0 || mat_min > MAX_MATERIALS || mat_max < 0 || mat_max > MAX_MATERIALS || 
+                       mat_min > mat_max)
+                    {
+                        popup_dialog(INFO_POPUP, "specified material numbers out of range.\n");
+                        return 0;
+                    }
 
                     mtl = mat_min ;
                     for (mtl =  mat_min ;
@@ -9415,6 +9429,12 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
                     i++ )
             {
                 parse_mtl_range(tokens[i+idx], mat_qty, &mat_min, &mat_max ) ;
+                if(mat_min < 0 || mat_min > mat_qty || mat_max < 0 || mat_max > mat_qty || mat_min > mat_max)
+                {
+                    popup_dialog(INFO_POPUP, "material specification is out of range.\n");
+                    return;
+                }
+
                 mtl = mat_min ;
 
                 for (mtl  = mat_min ;
@@ -9445,6 +9465,13 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
             if ( strcmp( tmp_token, "ALL" ) == 0  )
             {
                 parse_mtl_range("ALL", mat_qty, &mat_min, &mat_max);
+
+                if(mat_min < 0 || mat_min > mat_qty || mat_max < 0 || mat_max > mat_qty || mat_min > mat_max)
+                {
+                    popup_dialog(INFO_POPUP, "material specification is out of range.\n");
+                    return;
+                }
+
                 for ( j=0;
                         j<elem_qty;
                         j++ )
@@ -9470,7 +9497,14 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
                         i < token_cnt - idx;
                         i++ )
                 {
-                    parse_mtl_range(tokens[i+idx], mat_qty, &mat_min, &mat_max) ;
+                    parse_mtl_range(tokens[i+idx], mat_qty, &mat_min, &mat_max);
+
+                    if(mat_min < 0 || mat_min > mat_qty || mat_max < 0 || mat_max > mat_qty || mat_min > mat_max)
+                    {
+                        popup_dialog(INFO_POPUP, "material specification is out of range.\n");
+                        return;
+                    }
+
                     for ( j=0;
                             j<elem_qty;
                             j++ )
