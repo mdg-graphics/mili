@@ -5867,7 +5867,7 @@ expose_resize_CB( Widget w, XtPointer client_data, XtPointer call_data )
     Bool_type resize;
     OpenGL_win save_win;
     Window widg_win;
-
+    suppress_updates = TRUE;
 
     save_win = cur_opengl_win;
     switch_opengl_win( MESH_VIEW );
@@ -5917,6 +5917,9 @@ expose_resize_CB( Widget w, XtPointer client_data, XtPointer call_data )
              */
             glViewport( 0, 0, (GLint) p_cbs->width, (GLint) p_cbs->height );
             set_mesh_view();
+        } else
+        {
+             suppress_updates = FALSE;
         }
     }
 
