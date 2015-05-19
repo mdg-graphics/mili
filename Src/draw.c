@@ -3044,9 +3044,9 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
  * not it sets that element to a gray scale prior to calling draw poly */
     int index, subrec, srec, qty_blocks, mesh_id;
     Bool_type same_as_last = FALSE;
-    static char **results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
+    char **results_map;
+    char * result_name = NULL;
+    char * short_name = NULL;
     
     static int first = 0;
 
@@ -3062,7 +3062,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         disable_gray = FALSE;
     }
 
-    if(first == 0)
+    /*if(first == 0)
     {
         results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
         if(results_map == NULL)
@@ -3076,7 +3076,17 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         } 
 
         first = 1;
-    }
+    } */
+        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
+        if(results_map == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
+            parse_command("quit", analy);
+        }
+        for(i = 0; i < analy->mesh_qty; i++)
+        {
+            results_map[i] = NULL;
+        } 
    
     if(show_result)
     { 
@@ -3100,7 +3110,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         }
         if(short_name != NULL )
         {
-            if(strcmp(short_name, p_hex_class->short_name))
+            if(!strcmp(short_name, p_hex_class->short_name))
             {
                 free(short_name);
                 short_name = NULL;
@@ -3143,10 +3153,11 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         }
     }
 
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
+    /*if(show_result && analy->cur_result != NULL && !same_as_last) 
     { 
         populate_result(G_HEX, results_map[mesh_id], p_hex_class->qty + 1, p_hex_class, analy);
-    }
+    }*/
+        populate_result(G_HEX, results_map[mesh_id], p_hex_class->qty + 1, p_hex_class, analy);
 
 
  
@@ -3411,6 +3422,19 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     glDisable( GL_CULL_FACE );
     glDisable( GL_COLOR_MATERIAL );
     analy->interp_mode = save_interp_mode;
+    if(results_map != NULL)
+    {
+        for(i = 0; i < analy->mesh_qty; i++)
+        {
+            if(results_map[i] != NULL)
+            {
+                free(results_map[i]);
+                results_map[i] = NULL;
+            }
+        }
+        free(results_map);
+        results_map = NULL;
+    }
 }
 
 
@@ -6990,7 +7014,17 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
                           ? analy->free_nodes_vals[hilite_num] * analy->conversion_scale
                           + analy->conversion_offset
                           : analy->free_nodes_vals[hilite_num];
-                sprintf( label, " %s %d", cname, hilite_label );
+                if(data_array == NODAL_RESULT_BUFFER(analy))
+                {
+                    val = analy->perform_unit_conversion ? data_array[hilite_num] * analy->conversion_scale
+                                                  + analy->conversion_offset
+                                                  : data_array[hilite_num];
+                    sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
+                             val );
+                } else
+                { 
+                    sprintf( label, " %s %d", cname, hilite_label );
+                }
             }
             else
             {
@@ -7239,7 +7273,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
         {
             pn_hilite = TRUE;
 
-            if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
+            if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) && p_mo_class->superclass != G_HEX)
                 val = get_free_node_result( analy, p_mo_class, hilite_num, &result_defined, &valid_free_node );
             else
                 val = get_ml_result( analy, p_mo_class, hilite_num, &result_defined );
@@ -11871,10 +11905,7 @@ screen_to_rgb( char fname[], Bool_type alpha )
         pr_short = rbuf;
         pg_short = gbuf;
         pb_short = bbuf;
-        if(alpha)
-        {
-            pa_short = abuf;
-        }
+        pa_short = abuf;
 
         for( i = 0; i < vp_width; i++ )
         {
@@ -13756,10 +13787,11 @@ get_free_node_result( Analysis  *analy, MO_class_data *p_mo_class, int particle_
 float
 get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_type *result_defined )
 {
-    float val=0., num_nodes, *nodal_data;
+    float val=0., num_nodes, *nodal_data, *activity;
     int   node_num;
     MO_class_data *p_node_class;
     Bool_type nodal_result=TRUE;
+    float ** sand_arrays;
 
     int i,j;
     int (*connects_hex)[8], (*connects_particle)[1];
@@ -13805,7 +13837,41 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
         val = nodal_data[node_num];
         *result_defined = TRUE;
     }
+    /*if(analy->show_deleted_elements || analy->show_only_deleted_elements)
+    {
+        val = p_mo_class->data_buffer[elem_num];
+        *result_defined = TRUE;
+    }*/
+    if(analy->state_p->sand_present)
+    {
+        sand_arrays = analy->state_p->elem_class_sand;
+        if(sand_arrays[p_mo_class->elem_class_index] != NULL)
+        {
+            activity = sand_arrays[p_mo_class->elem_class_index];
+        } else
+        {
+            activity = NULL;
+            *result_defined = TRUE;
+            return val;
+        }
 
+        if(analy->show_deleted_elements)
+        {
+            val = activity[elem_num];
+            *result_defined = TRUE;
+        } else if(analy->show_only_deleted_elements)
+        {
+            if(activity[elem_num] == 0.0)
+            {
+                val = 0.0;
+                *result_defined = TRUE;
+            } else
+            {
+                *result_defined = TRUE;
+            }
+             
+        }
+    } 
     return ( val );
 }
 
@@ -13998,7 +14064,7 @@ draw_free_nodes( Analysis *analy )
     unsigned char *disable_mtl,  *hide_mtl, hide_one_mat;
     unsigned char *disable_part, *hide_part;
 
-    int  *mat, mat_num, elem_id;
+    int  *mat, mat_num, elem_id, ode_cnt = 0;
 
     Bool_type result_defined=FALSE;
 
@@ -14161,13 +14227,16 @@ draw_free_nodes( Analysis *analy )
                         k++ )
                 {
                     if( activity )
+                    {
                         activity_flag = activity[k];
-                    else
+                    } else
+                    {
                         activity_flag = 1.0;
-
+                    }
+                    
                     mat_num = mat[k];
 
-                    if ( !particle_class )
+                    /* if ( particle_class && p_mo_class->superclass == 9)
                     {
                         if ( analy->show_deleted_elements )
                             activity_flag = 1.0;
@@ -14175,7 +14244,23 @@ draw_free_nodes( Analysis *analy )
                         if ( analy->show_only_deleted_elements )
                         {
                             if  ( activity_flag == 0.0 )
+                            {
                                 activity_flag = 1.0;
+                            }
+                        }
+                    } */
+                    if ( analy->show_deleted_elements )
+                        activity_flag = 1.0;
+
+                    if ( analy->show_only_deleted_elements )
+                    {
+                        if  ( activity[k] == 0.0 )
+                        {
+                            activity_flag = 1.0;
+                            ode_cnt++;
+                        } else
+                        {
+                            activity_flag = 0.0;
                         }
                     }
 
