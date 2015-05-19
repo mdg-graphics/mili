@@ -988,6 +988,7 @@ typedef struct _Analysis
     Bool_type normals_smooth;
     Bool_type hex_overlap;
     Mesh_view_mode_type mesh_view_mode;
+    Mesh_view_mode_type last_mesh_view_mode;
     Interp_mode_type interp_mode;
     Bool_type show_bbox;
     Bool_type show_coord;

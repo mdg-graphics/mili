@@ -2159,7 +2159,19 @@ parse_single_command( char *buf, Analysis *analy )
                     analy->show_vectors = setval;
 
                 update_vec_points( analy );
+                if(strcmp(tokens[0], "on") == 0)
+                {
+                    analy->last_mesh_view_mode = analy->mesh_view_mode; 
+                }
                 check_visualizing( analy );
+                if(strcmp(tokens[0], "off") == 0)
+                {
+                    analy->mesh_view_mode = analy->last_mesh_view_mode;
+                    if(analy->cur_result != NULL)
+                    {
+                        load_result(analy, TRUE, TRUE, FALSE);
+                    }
+                } 
             }
             else if ( strcmp( tokens[i], "sphere" ) == 0 )
                 analy->show_vector_spheres = setval;
