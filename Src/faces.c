@@ -6528,12 +6528,19 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
     if ( dims == 3 )
     {
         /* Mark nodes shared by visible hex faces. */
-
         mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_HEX].list;
         class_qty = p_mesh->classes_by_sclass[G_HEX].qty;
 
         for ( i = 0; i < class_qty; i++ )
         {
+            if(!ml_node && mo_classes[i]->p_vis_data->face_el == NULL)
+            {
+                if(class_qty < 2)
+                {
+                    return;
+                }
+                continue;
+            }
             face_el = mo_classes[i]->p_vis_data->face_el;
             face_fc = mo_classes[i]->p_vis_data->face_fc;
             face_cnt = mo_classes[i]->p_vis_data->face_cnt;
@@ -6687,7 +6694,7 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
     /* If free nodes are enabled - then allow user to
      * select them.
      */
-    if ( analy->free_nodes_enabled ||  analy->particle_nodes_enabled )
+    if ( ml_node && (analy->free_nodes_enabled ||  analy->particle_nodes_enabled) )
     {
         free_nodes = get_free_nodes( analy );
         if (free_nodes!=NULL)
@@ -6810,7 +6817,6 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
             }
         }
     }
-
     *p_near = near_num + 1;
 }
 
