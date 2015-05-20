@@ -3153,11 +3153,10 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         }
     }
 
-    /*if(show_result && analy->cur_result != NULL && !same_as_last) 
+    if(show_result && analy->cur_result != NULL) 
     { 
         populate_result(G_HEX, results_map[mesh_id], p_hex_class->qty + 1, p_hex_class, analy);
-    }*/
-        populate_result(G_HEX, results_map[mesh_id], p_hex_class->qty + 1, p_hex_class, analy);
+    }
 
 
  
@@ -15666,6 +15665,7 @@ void populate_result(int superclass, char map[], int size, MO_class_data * p_cla
 
     p_result = analy->cur_result;
 
+
     /* Just a precautionary step */
     if(p_result == NULL)
     {
@@ -15675,6 +15675,10 @@ void populate_result(int superclass, char map[], int size, MO_class_data * p_cla
     {j
        return TRUE;
     } */
+    if(map == NULL)
+    {
+        return;
+    }
 
     p_mesh = MESH_P(analy);
     qty_classes = p_mesh->classes_by_sclass[superclass].qty;
