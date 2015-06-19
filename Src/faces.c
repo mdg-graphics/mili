@@ -1976,10 +1976,15 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
     hex_visib        = p_hex_class->p_vis_data->visib;
     hex_visib_damage = p_hex_class->p_vis_data->visib_damage;
 
-    hide_qty = analy->mesh_table[p_hex_class->mesh_id].hide_brick_elem_qty +
+    /*hide_qty = analy->mesh_table[p_hex_class->mesh_id].hide_brick_elem_qty +
                analy->mesh_table[p_hex_class->mesh_id].hide_shell_elem_qty +
                analy->mesh_table[p_hex_class->mesh_id].hide_truss_elem_qty +
-               analy->mesh_table[p_hex_class->mesh_id].hide_beam_elem_qty;
+               analy->mesh_table[p_hex_class->mesh_id].hide_beam_elem_qty;*/
+
+    for(i = 0; i < MESH(analy).qty_class_selections; i++)
+    {
+        hide_qty += MESH(analy).by_class_select[i].hide_class_elem_qty;
+    }
 
     if ( hide_qty>0 )
         hide_obj=TRUE;
