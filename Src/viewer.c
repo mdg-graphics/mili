@@ -836,7 +836,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         return FALSE;
     }
 
-    analy->auto_gray = TRUE;
+    analy->auto_gray = FALSE;
 
     analy->path_name[0] = '\0';
     analy->path_found   = FALSE;
