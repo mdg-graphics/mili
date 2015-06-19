@@ -1377,18 +1377,26 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
     int mat;
     int query_ints[2];
     float minval, maxval;
+    /*char *header =
+        "# Material  State     Time       Maximum%.*s%s%.*sMinimum%.*s%s\n"; */
     char *header =
-        "# Material  State     Time       Maximum%.*s%s%.*sMinimum%.*s%s\n";
+        "# Material  State     Time       Maximum    %.*s%s%.*sMinimum    %.*s%s\n";
     char *header_mat =
         "State    Time          Maximum    Material     Minimum    Material\n";
     char *object_label;
     char *min_label = " <min", *max_label = " <<<max";
-    char *std_out_format = "   %4d    %5d  %12.6e %10.3e %*d  %10.3e %*d\n";
+    /*char *std_out_format = "   %4d    %5d  %12.6e %10.3e %*d  %10.3e %*d\n";
     char *std_out_format_mat = " %5d   %12.6e %10.3e     %5d    %10.3e     %5d\n";
     char *mm_out_format =
         "   %4d    %5d  %12.6e %10.3e %*d  %10.3e %*d\t%s";
     char *mm_out_format_mat =
-        " %5d   %12.6e %10.3e     %5d    %10.3e     %5d\t%s ";
+        " %5d   %12.6e %10.3e     %5d    %10.3e     %5d\t%s "; */
+    char *std_out_format = "   %4d    %5d  %12.6e  %13.6e %*d  %13.6e %*d\n";
+    char *std_out_format_mat = " %5d   %12.6e  %13.6e     %5d    %13.6e     %5d\n";
+    char *mm_out_format =
+        "   %4d    %5d  %12.6e  %13.6e %*d  %13.6e %*d\t%s";
+    char *mm_out_format_mat =
+        " %5d   %12.6e %13.6e     %5d    %13.6e     %5d\t%s ";
     char *blanks = "                    ";
     Bool_type min_first;
     float *mat_min_row, *mat_max_row;
