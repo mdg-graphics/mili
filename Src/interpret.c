@@ -792,7 +792,7 @@ parse_command( char *input_buf, Analysis *analy )
 void
 parse_single_command( char *buf, Analysis *analy )
 {
-    char tokens[MAXTOKENS][TOKENLENGTH];
+    char tokens[MAXTOKENS][TOKENLENGTH], tmp_tokens[MAXTOKENS][TOKENLENGTH];
     char comment[512];
     int token_cnt, token_index;
     float val, pt[3], vec[3], rgb[3], pt2[3], pt3[3], pt4[3];
@@ -871,7 +871,7 @@ parse_single_command( char *buf, Analysis *analy )
     int obj, obj_min, obj_max;
 
     Bool_type mat_selected     = TRUE;
-    Bool_type mat_brick_selected = FALSE;
+    Bool_type mat_brick_selected = TRUE;
     Bool_type result_selected  = TRUE;
     Bool_type vis_selected     = FALSE;
     Bool_type enable_selected  = FALSE;
@@ -2565,11 +2565,13 @@ parse_single_command( char *buf, Analysis *analy )
             else if (!strcmp( tokens[i], "showde"))
             {
                 analy->show_deleted_elements = setval;
+                analy->show_only_deleted_elements = 0;
                 change_state( analy );
             }
             else if (!strcmp( tokens[i], "showonlyde") || !strcmp( tokens[i], "showode"))
             {
                 analy->show_only_deleted_elements = setval;
+                analy->show_deleted_elements = 0;
                 change_state( analy );
             }
             else if (!strcmp( tokens[i], "showsphghost") || !strcmp( tokens[i], "showsphg"))
@@ -3189,7 +3191,7 @@ parse_single_command( char *buf, Analysis *analy )
 
         class_selected = FALSE;
 
-        for(i = 0; i < MESH(analy).qty_class_selections; i++)
+        /*for(i = 0; i < MESH(analy).qty_class_selections; i++)
         {
             p_class = MESH(analy).by_class_select[i].p_class;
             if(!strcmp(tokens[1], p_class->short_name) )
@@ -3209,8 +3211,37 @@ parse_single_command( char *buf, Analysis *analy )
             mat_selected = FALSE;
             class_selected = TRUE;
             idx++;
+        } */
+
+        for(i = 0; i < MESH(analy).qty_class_selections; i++)
+        {
+            p_class = MESH(analy).by_class_select[i].p_class;
+            if(strcmp(tokens[1] , p_class->short_name) == 0)
+            {
+                class_selected = TRUE;
+                break;
+            }
+        }
+        if(class_selected == FALSE)
+        {
+            p_class = NULL;
         }
 
+        if( class_selected == TRUE  && is_elem_class(p_class->superclass))
+        {
+
+            elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
+            p_hide_elem_qty =  &MESH( analy ).by_class_select[i].hide_class_elem_qty;
+            p_elem          = MESH( analy ).by_class_select[i].hide_class_elem;
+            mat_selected = FALSE;
+            class_selected = TRUE;
+            idx++;
+        }
+
+        else if(token_cnt > 2 && strcmp(tokens[0], "vis") == 0 && strcmp(tokens[1], "all") == 0)
+        {
+            return;
+        }
         if ( !strcmp( "BRICK", tmp_token ) && !class_selected )
         {
             string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
@@ -3362,6 +3393,53 @@ parse_single_command( char *buf, Analysis *analy )
                                         p_elem, p_hide_qty, p_hide_elem_qty,
                                         p_uc,
                                         setval, vis_selected, mat_selected );
+
+            /* handle the case where we invised by a material number(s) but vised by element class 
+ *             this requires vising by material number(s) */
+            if(class_selected == TRUE && strcmp(tokens[0], "vis") == 0)
+            {
+                for(i = 1; i < token_cnt; i++)
+                {
+                    if(isdigit(tokens[i][0]))
+                    {
+                        break;
+                    }
+                }
+                strcpy(tmp_tokens[0], tokens[0]);
+                j = 1;
+                for(; i < token_cnt; i++)
+                {
+                    strcpy(tmp_tokens[j], tokens[i]);
+                    j++;
+                }
+
+                mat_qty = MESH( analy ).material_qty;
+                p_hide_qty = &MESH( analy ). mat_hide_qty;
+                p_uc = MESH( analy ).hide_material;
+                process_mat_obj_selection ( analy,  tokens, 0, token_cnt, mat_qty,
+                                            elem_qty, p_class,
+                                            p_elem, p_hide_qty, p_hide_elem_qty,
+                                            p_uc,
+                                            setval, vis_selected, TRUE );
+                
+            }
+
+            if(class_selected == FALSE)
+            {
+                for(i = 0; i < MESH(analy).qty_class_selections; i++)
+                {
+                    p_class = MESH(analy).by_class_select[i].p_class;
+                    elem_qty = p_class->qty;
+                    p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
+                    p_elem = MESH(analy).by_class_select[i].hide_class_elem;
+                    process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+                                                elem_qty, p_class,
+                                                p_elem, p_hide_qty, p_hide_elem_qty,
+                                                p_uc,
+                                                setval, vis_selected, 0 );
+                }
+            }
+
 
             /* now get all the element classes associated with this material, but only if token_cnt == 2 */
             strcpy(comment, tokens[1]);
@@ -3568,8 +3646,8 @@ parse_single_command( char *buf, Analysis *analy )
              idx++;
         } */
 
-
-        for(i = 0; i < MESH(analy).qty_class_selections; i++)
+        class_selected = FALSE;
+        /*for(i = 0; i < MESH(analy).qty_class_selections; i++)
         {
             p_class = MESH(analy).by_class_select[i].p_class;
             if(!strcmp(tokens[1], p_class->short_name))
@@ -3585,13 +3663,6 @@ parse_single_command( char *buf, Analysis *analy )
             p_disable_elem_qty =  &MESH( analy ).by_class_select[i].disable_class_elem_qty;
             p_elem          = MESH( analy ).by_class_select[i].disable_class_elem;
 
-            /*if(p_class->superclass == M_BEAM){
-            MESH(analy).disable_beam_elem_qty = p_disable_elem_qty;
-              MESH(analy).disable_beam = p_elem;
-            }else if(is_particle_class(analy, p_class->superclass, p_class->short_name)){
-            p_disable_elem_qty = &MESH(analy).material_qty;
-              p_elem = MESH(analy).disable_particle;
-            }*/
             mat_selected = FALSE;
             class_selected = TRUE;
             idx++;
@@ -3599,6 +3670,36 @@ parse_single_command( char *buf, Analysis *analy )
         else
         {
             p_class = NULL;
+        } */
+
+        for(i = 0; i < MESH(analy).qty_class_selections; i++)
+        {
+            p_class = MESH(analy).by_class_select[i].p_class;
+            if(strcmp(tokens[1] , p_class->short_name) == 0)
+            {
+                class_selected = TRUE;
+                break;
+            }
+        }
+        if(class_selected == FALSE)
+        {
+            p_class = NULL;
+        }
+
+        if( class_selected == TRUE  && is_elem_class(p_class->superclass))
+        {
+
+            elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
+            p_hide_elem_qty =  &MESH( analy ).by_class_select[i].hide_class_elem_qty;
+            p_disable_elem_qty = &MESH( analy ).by_class_select[i].disable_class_elem_qty;
+            p_elem          = MESH( analy ).by_class_select[i].disable_class_elem;
+            mat_selected = FALSE;
+            class_selected = TRUE;
+            idx++;
+        }
+        else if(token_cnt > 2 && strcmp(tokens[0], "include") == 0 && strcmp(tokens[1], "all") == 0)
+        {
+            return;
         }
 
         if ( !strcmp( "BRICK", tmp_token ) && !class_selected )
@@ -3716,12 +3817,90 @@ parse_single_command( char *buf, Analysis *analy )
         }
 
         if ( !result_selected )
-            process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-                                        elem_qty, p_class,
-                                        p_elem, p_hide_qty, p_disable_elem_qty,
-                                        p_uc,
-                                        setval, enable_selected, mat_selected );
+        {
+            if( class_selected == FALSE)
+            {
+                process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+                                            elem_qty, p_class,
+                                            p_elem, p_hide_qty, p_disable_elem_qty,
+                                            p_uc,
+                                            setval, enable_selected, mat_selected );
+            /* handle the case where we disabled by a material number(s) but enabled by element class 
+ *             this requires enabling by material number(s) */
 
+            for( i = 0; i < MESH(analy).qty_class_selections; i++)
+              {
+                  elem_qty = MESH(analy).by_class_select[i].p_class->qty;
+                  p_disable_elem_qty = &MESH(analy).by_class_select[i].disable_class_elem_qty;
+                  p_elem = MESH(analy).by_class_select[i].disable_class_elem;
+                  p_class = MESH(analy).by_class_select[i].p_class;
+
+                  process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+                                              elem_qty, p_class,
+                                              p_elem, p_disable_qty, p_disable_elem_qty,
+                                              p_uc,
+                                              setval, enable_selected, 0 );
+
+
+              }
+
+            } else
+            {
+                for(j = 1; j < token_cnt; j++)
+                {
+                    if(isdigit(tokens[j][0]))
+                    {
+                        j--;
+                        break;
+                    }
+                }
+
+                elem_qty = MESH(analy).by_class_select[i].p_class->qty;
+                p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
+                p_disable_elem_qty = &MESH(analy).by_class_select[i].disable_class_elem_qty;
+                p_elem = MESH(analy).by_class_select[i].disable_class_elem;
+ 
+                process_mat_obj_selection ( analy,  tokens, j, token_cnt, mat_qty,
+                                            elem_qty, p_class,
+                                            p_elem, p_disable_qty, p_disable_elem_qty,
+                                            p_uc,
+                                            setval, enable_selected, 0 );
+            
+    
+            }
+
+        }
+        
+        if(class_selected == TRUE && strcmp(tokens[0], "enable") == 0)
+        {
+                for(i = 1; i < token_cnt; i++)
+                {
+                    if(isdigit(tokens[i][0]))
+                    {
+                        break;
+                    }
+                }
+                strcpy(tmp_tokens[0], tokens[0]);
+                j = 1;
+                for(; i < token_cnt; i++)
+                {
+                    strcpy(tmp_tokens[j], tokens[i]);
+                    j++;
+                }
+
+                mat_qty = MESH( analy ).material_qty;
+                p_disable_qty = &MESH( analy ). mat_disable_qty;
+                p_uc = MESH( analy ).disable_material;
+
+                process_mat_obj_selection ( analy,  tokens, 0, token_cnt, mat_qty,
+                                            elem_qty, p_class,
+                                            p_elem, p_disable_qty, p_hide_elem_qty,
+                                            p_uc,
+                                            setval, enable_selected, TRUE );
+
+        }
+
+        
         /* if ( !strcmp( tokens[idx+1], "all" )) {
              disable_particles( analy, TRUE, setval, NULL );
              }  */
@@ -3779,7 +3958,7 @@ parse_single_command( char *buf, Analysis *analy )
         idx = 0;
         mat_qty    = MESH( analy ).material_qty;
         p_hide_qty = &MESH( analy ).mat_hide_qty;
-        p_uc    = MESH( analy ).disable_material;
+        p_uc    = MESH( analy ).hide_material;
         p_uc2   = MESH( analy ).hide_material;
         p_elem  = NULL;
         p_elem2 = NULL;
@@ -3828,28 +4007,32 @@ parse_single_command( char *buf, Analysis *analy )
                   class_selected = TRUE;
              idx++;
         } */
-
         for(i = 0; i < MESH(analy).qty_class_selections; i++)
         {
             p_class = MESH(analy).by_class_select[i].p_class;
-            if(!strcmp(tokens[1], p_class->short_name))
+            if(strcmp(tokens[1] , p_class->short_name) == 0)
             {
+                class_selected = TRUE;
                 break;
             }
         }
+        if(class_selected == FALSE)
+        {
+            p_class = NULL;
+        }
 
-        if( (i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
+        if( class_selected == TRUE  && is_elem_class(p_class->superclass))
         {
 
             elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
             p_hide_elem_qty =  &MESH( analy ).by_class_select[i].hide_class_elem_qty;
             p_disable_elem_qty = &MESH( analy ).by_class_select[i].disable_class_elem_qty;
-            p_elem          = MESH( analy ).by_class_select[i].hide_class_elem;
+            p_elem          = MESH( analy ).by_class_select[i].exclude_class_elem;
             mat_selected = FALSE;
             class_selected = TRUE;
             idx++;
         }
-        else if(token_cnt > 2 && strcmp(tokens[0], "include") && strcmp(tokens[1], "all")&& isdigit(atoi(tokens[1])))
+        else if(token_cnt > 2 && strcmp(tokens[0], "include") == 0 && strcmp(tokens[1], "all") == 0)
         {
             return;
         }
@@ -3993,13 +4176,121 @@ parse_single_command( char *buf, Analysis *analy )
 
         if ( !result_selected )
         {
-            process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-                                        elem_qty, p_class,
-                                        p_elem, p_hide_qty, p_hide_elem_qty,
-                                        p_uc,
-                                        setval, include_selected, mat_selected );
 
-            if ( !mat_brick_selected )
+            if( class_selected == FALSE )
+           {
+               process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+                                           elem_qty, p_class,
+                                           p_elem, p_hide_qty, p_hide_elem_qty,
+                                           p_uc,
+                                           setval, include_selected, mat_selected );
+
+               p_disable_qty = MESH(analy).mat_disable_qty;
+               p_uc = MESH(analy).disable_material;
+
+               process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+                                           elem_qty, p_class,
+                                           p_elem, p_hide_qty, p_hide_elem_qty,
+                                           p_uc,
+                                           setval, include_selected, mat_selected );
+
+               /* We have excluded (meanind invis and disable by material type.  Now also go for the element 
+ *  *                classes in case we want to bring them back by element class on at a time */
+
+              for( i = 0; i < MESH(analy).qty_class_selections; i++)
+              {
+                  elem_qty = MESH(analy).by_class_select[i].p_class->qty;
+                  p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
+                  p_disable_elem_qty = &MESH(analy).by_class_select[i].disable_class_elem_qty;
+                  p_elem = MESH(analy).by_class_select[i].hide_class_elem;
+                  p_class = MESH(analy).by_class_select[i].p_class;
+
+                  process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+                                              elem_qty, p_class,
+                                              p_elem, p_hide_qty, p_hide_elem_qty,
+                                              p_uc,
+                                              setval, include_selected, 0 );
+
+                  p_elem = MESH(analy).by_class_select[i].disable_class_elem;
+
+                  process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+                                              elem_qty, p_class,
+                                              p_elem, p_hide_qty, p_disable_elem_qty,
+                                              p_uc,
+                                              setval, include_selected, 0 );
+
+              }
+           } else
+           {
+               /* we are excluding/includeing by element class */
+              for(j = 1; j < token_cnt; j++)
+              {
+                  if(isdigit(tokens[j][0]))
+                  {
+                      j--;
+                      break;
+                  }
+              }
+
+              elem_qty = MESH(analy).by_class_select[i].p_class->qty;
+              p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
+              p_disable_elem_qty = &MESH(analy).by_class_select[i].disable_class_elem_qty;
+              p_elem = MESH(analy).by_class_select[i].hide_class_elem;
+
+              process_mat_obj_selection ( analy,  tokens, j, token_cnt, mat_qty,
+                                          elem_qty, p_class,
+                                          p_elem, p_hide_qty, p_hide_elem_qty,
+                                          p_uc,
+                                          setval, include_selected, 0 );
+
+              p_elem = MESH(analy).by_class_select[i].disable_class_elem;
+
+              process_mat_obj_selection ( analy,  tokens, j, token_cnt, mat_qty,
+                                          elem_qty, p_class,
+                                          p_elem, p_hide_qty, p_disable_elem_qty,
+                                          p_uc,
+                                          setval, include_selected, 0 );
+
+           }
+
+
+
+            if(class_selected == TRUE && strcmp(tokens[0], "include") == 0)
+            {
+                for(i = 1; i < token_cnt; i++)
+                {
+                    if(isdigit(tokens[i][0]))
+                    {
+                        break;
+                    }
+                }
+                strcpy(tmp_tokens[0], tokens[0]);
+                j = 1;
+                for(; i < token_cnt; i++)
+                {
+                    strcpy(tmp_tokens[j], tokens[i]);
+                    j++;
+                }
+
+                mat_qty = MESH( analy ).material_qty;
+                p_hide_qty = &MESH( analy ). mat_hide_qty;
+                p_uc = MESH( analy ).hide_material;
+                process_mat_obj_selection ( analy,  tokens, 0, token_cnt, mat_qty,
+                                            elem_qty, p_class,
+                                            p_elem, p_hide_qty, p_hide_elem_qty,
+                                            p_uc,
+                                            setval, include_selected, TRUE );
+               
+                p_disable_qty = &MESH(analy).mat_disable_qty; 
+                p_uc = MESH( analy ).disable_material;
+                process_mat_obj_selection ( analy,  tokens, 0, token_cnt, mat_qty,
+                                            elem_qty, p_class,
+                                            p_elem, p_disable_qty, p_hide_elem_qty,
+                                            p_uc,
+                                            setval, include_selected, TRUE );
+            }
+
+            /*if ( !mat_brick_selected )
             {
                 p_uc    = MESH( analy ).disable_particle;
 
@@ -4010,15 +4301,15 @@ parse_single_command( char *buf, Analysis *analy )
                                             p_elem, p_hide_qty, p_hide_elem_qty,
                                             p_uc,
                                             setval, include_selected, mat_selected );
-            }
+            } */ 
 
-            process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+            /*process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
                                         elem_qty, p_class,
                                         p_elem2, p_hide_qty, p_hide_elem_qty2,
                                         p_uc2,
-                                        setval, include_selected, mat_selected );
+                                        setval, include_selected, mat_selected ); */
 
-            if ( !mat_brick_selected )
+            /*if ( !mat_brick_selected )
             {
                 p_uc2   = MESH( analy ).hide_particle;
 
@@ -4029,50 +4320,69 @@ parse_single_command( char *buf, Analysis *analy )
                                             p_elem2, p_hide_qty, p_hide_elem_qty2,
                                             p_uc2,
                                             setval, include_selected, mat_selected );
-            }
+            } */
 
-            if( ( i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
+            /*if(  class_selected  && is_elem_class(p_class->superclass))
             {
-                p_elem = MESH( analy ).by_class_select[i].disable_class_elem;
+                p_elem = MESH( analy ).by_class_select[i].exclude_class_elem;
                 elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
-            }
+            } */
 
-            process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+            /*process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
                                         elem_qty, p_class,
                                         p_elem, p_hide_qty, p_hide_elem_qty,
                                         p_uc,
-                                        setval, include_selected, mat_selected );
+                                        setval, include_selected, mat_selected ); */
             /* p_uc = MESH( analy ).hide_material;
             dump_selection_buff( "HIDE-MAT", p_uc, mat_qty ); */
+            /*if(class_selected == FALSE)
+            {
+                for(i = 0; i < MESH(analy).qty_class_selections; i++)
+                {
+                    p_class = MESH(analy).by_class_select[i].p_class;
+                    elem_qty = p_class->qty;
+                    p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
+                    p_disable_elem_qty = &MESH(analy).by_class_select[i].disable_class_elem_qty;
+                    p_elem = MESH(analy).by_class_select[i].exclude_class_elem;
+                    process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+                                                elem_qty, p_class,
+                                                p_elem, p_hide_qty, p_hide_elem_qty,
+                                                p_uc,
+                                                setval, include_selected, 0 );
+                }
+            } */
         }
 
         if(!strcmp(tokens[0], "include") && !strcmp(tokens[1], "all"))
         {
             include_all_elements(analy);
         }
-        else if(!strcmp(tokens[0], "include"))
+       /* else if(!strcmp(tokens[0], "include"))
         {
             for(i = 0; i < MESH(analy).qty_class_selections; i++)
             {
                 p_class = MESH(analy).by_class_select[i].p_class;
                 if( ( i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
                 {
-                    elem_qty = MESH(analy).by_class_select[i].p_class->qty;
-                    p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
-                    p_elem  = MESH(analy).by_class_select[i].hide_class_elem;
-                    mat_selected = FALSE;
-                    class_selected = TRUE;
-                    idx = 0;
+                    if(strcmp(tokens[1], p_class->short_name) == 0)
+                    {
+                        elem_qty = MESH(analy).by_class_select[i].p_class->qty;
+                        p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
+                        mat_selected = FALSE;
+                        class_selected = TRUE;
+                        idx = 0;
 
-                    process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-                                                elem_qty, p_class,
-                                                p_elem, p_hide_qty, p_hide_elem_qty,
-                                                p_uc,
-                                                setval, include_selected, mat_selected );
+                        p_elem  = MESH(analy).by_class_select[i].exclude_class_elem;
+                        process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+                                                    elem_qty, p_class,
+                                                    p_elem, p_hide_qty, p_hide_elem_qty,
+                                                    p_uc,
+                                                    setval, include_selected, mat_selected );
+                    }
 
                 }
             }
-        }
+        } */
 
         process_node_selection ( analy );
         if ( analy->show_cut || analy->show_roughcut )
