@@ -3043,10 +3043,16 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
 				   * render window.
 				   */
 
-    activity = analy->state_p->sand_present
+    /*activity = analy->state_p->sand_present
         ? analy->state_p->elem_class_sand[p_subrec->p_object_class->elem_class_index]
-        : NULL;
-
+        : NULL; */
+    if(analy->state_p->sand_present && p_subrec->p_object_class->elem_class_index >= 0)
+    {
+        activity = analy->state_p->elem_class_sand[p_subrec->p_object_class->elem_class_index];
+    } else
+    {
+        activity = NULL;
+    }
     if ( !analy->particle_nodes_enabled && is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
         return;
 
@@ -3076,14 +3082,14 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
                            primals, (void *) result_buf );
 
-    if ( activity && analy->show_deleted_elements)
+    /*if ( activity && analy->show_deleted_elements)
     {
         for ( i = 0; i < obj_qty; i++)
 	{
             result_buf[i] = activity[i];
 	}
 
-    }
+    } */
     
     /* Re-order data if necessary. */
     if ( object_ids )
