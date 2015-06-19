@@ -3171,8 +3171,8 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
         return;
 
-    if ( is_particle_class(analy, p_hex_class->superclass, p_hex_class->short_name) )
-        return; 
+    /*if ( is_particle_class(analy, p_hex_class->superclass, p_hex_class->short_name) )
+        return;*/ 
 
     p_mesh = MESH_P( analy );
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
@@ -13841,7 +13841,7 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
         val = p_mo_class->data_buffer[elem_num];
         *result_defined = TRUE;
     }*/
-    if(analy->state_p->sand_present)
+    /*if(analy->state_p->sand_present)
     {
         sand_arrays = analy->state_p->elem_class_sand;
         if(sand_arrays[p_mo_class->elem_class_index] != NULL)
@@ -13870,7 +13870,7 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
             }
              
         }
-    } 
+    } */ 
     return ( val );
 }
 
@@ -15291,8 +15291,8 @@ hide_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *ana
 
     obj_type = p_class->superclass;
 
-    if (is_particle_class( analy, p_class->superclass, p_class->short_name ) )
-        obj_type = M_PARTICLE;
+    /*if (is_particle_class( analy, p_class->superclass, p_class->short_name ) )
+        obj_type = M_PARTICLE; */
 
     p_mesh = MESH_P( analy );
 
@@ -15418,7 +15418,8 @@ hide_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *ana
 
     if ( !hide_elem && class_select_index>=0 && elm<p_class->qty)
     {
-        if ( p_mesh->by_class_select[class_select_index].hide_class_elem[elm] )
+        if ( p_mesh->by_class_select[class_select_index].hide_class_elem[elm] ||
+             p_mesh->by_class_select[class_select_index].exclude_class_elem[elm])
             hide_elem = TRUE;
     }
     return( hide_elem );
@@ -15446,8 +15447,8 @@ disable_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *
     int class_select_index = 0;
 
     obj_type = p_class->superclass;
-    if (is_particle_class( analy, p_class->superclass, p_class->short_name ) )
-        obj_type = M_PARTICLE;
+    /*if (is_particle_class( analy, p_class->superclass, p_class->short_name ) )
+        obj_type = M_PARTICLE; */
 
     p_mesh = MESH_P( analy );
     if ( !analy->interp_mode == NO_INTERP )
@@ -15524,7 +15525,8 @@ disable_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *
 
     if ( !disable_elem && class_select_index>=0 && elm<p_class->qty)
     {
-        if ( p_mesh->by_class_select[class_select_index].disable_class_elem[elm] )
+        if ( p_mesh->by_class_select[class_select_index].disable_class_elem[elm] ||
+             p_mesh->by_class_select[class_select_index].exclude_class_elem[elm])
             disable_elem = TRUE;
     }
     return disable_elem;
