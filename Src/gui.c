@@ -1394,6 +1394,7 @@ gui_start( int argc, char **argv , Analysis *analy )
         put_griz_session( env.curr_analy, session );
     }
 
+    env.curr_analy->update_display( env.curr_analy );
     /* Start event processing. */
     XtAppMainLoop( app_context );
 }
@@ -5917,6 +5918,11 @@ expose_resize_CB( Widget w, XtPointer client_data, XtPointer call_data )
              */
             glViewport( 0, 0, (GLint) p_cbs->width, (GLint) p_cbs->height );
             set_mesh_view();
+        } else if( p_cbs->reason == GLwCR_EXPOSE && XtIsRealized( w))
+        {
+            glViewport( 0, 0, (GLint) p_cbs->width, (GLint) p_cbs->height );
+            set_mesh_view();
+            suppress_updates = FALSE; 
         } else
         {
              suppress_updates = FALSE;
