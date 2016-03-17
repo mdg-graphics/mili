@@ -1,0 +1,28 @@
+# d3snd1
+# Title: contains SAND contact (slide surfaces) and includes element failure/deletion (shells & solids). This problem is good for making sure that Griz is not showing deleted elements.
+# Material Model: 3
+# Units: gm-cm-ms
+# End Time: 0.0025
+# Griz Script File: d3snd1.gsf
+# XY Plot File Prefix: d3snd1_image_
+# XY Data File Prefix: d3snd1_image_eeff
+# Image File Prefix: d3snd1_image
+# Min/Max Switch: global
+# Verbatim To Griz: off all; on cmap; on title; on time; on coord
+off all; on cmap; on title; on time; on coord; on minmax
+switch mglob
+
+#  Plot for variable eeff_mid
+clrsel 
+minst 1
+maxst 101
+
+state 50
+tx -.5
+sw interp
+select shell 1 20 79 80
+show eeff
+plot
+outjpeg d3snd1_image_eeff_th.answ.jpg
+
+

@@ -1,0 +1,37 @@
+# bar71
+# Title: Dynamic bar impact against rigid wall, quarter symmetry
+# Material Model: 71
+# Units: gm-cm-ms
+# End Time: 80
+# Griz Script File: bar71_image_eps_plot.gsf
+# Min/Max Switch: state
+
+# Setup
+alias chgst f;n;n;l
+alias min 1
+alias max 1500 
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+rview; ry -140; rz -140
+ty .2
+
+# Object selection 
+select shell 1 20 32 50 89  
+select mat 1
+
+# Images for variable eps
+sw mstat
+show et_1 
+state 1499 
+outjpeg clamped_plate_image_et1_plot.answ.jpg
+
+# EndCase 
+
