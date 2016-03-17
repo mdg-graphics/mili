@@ -872,6 +872,51 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
 
 
 /*****************************************************************
+ * TAG( element_set_check )
+ *
+ * For plotting results we must have selected objects and when
+ * the token count is 1 we also have results showing.  This function
+ * is used by the plot command to return TRUE if any of the selected
+ * objects are actually element sets containing multiple integration
+ * points. 
+ * 
+ */
+extern Bool_type element_set_check(Analysis * analy)
+{
+    int i, superclass;
+    Result * p_result;
+    Specified_obj *objpts;
+
+    if((p_result = analy->cur_result) == NULL)
+    {
+        return FALSE;
+    }
+
+    if(analy->selected_objects == NULL)
+    {
+        return FALSE;
+    }
+
+    for(objpts = analy->selected_objects; objpts != NULL; objpts = objpts->next)
+    {
+        superclass = objpts->mo_class->superclass;
+
+        /* for each object seleted see if it is an element set and if so return TRUE */
+        for(i = 0; i < p_result->qty; i++)
+        {
+            /* we have found the selected superclassin the current result.  Now see if it is an element set */
+            if(p_result->original_names != NULL && strstr(p_result->original_names[i], "es_") != NULL)
+            {
+                return TRUE;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+
+/*****************************************************************
  * TAG( create_oper_plot_objects )
  *
  * Parse the command line and prepare plot objects for plotting
@@ -2167,6 +2212,11 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
          * table.  If it finds a match we will still be re-using the matched
          * result, so no waste.
          */
+
+        if(analy->cur_result == NULL)
+        {
+            return;
+        }
         if ( !analy->result_mod
                 && find_named_result_in_list( analy, analy->cur_result->name,
                                               analy->series_results, &res_list ) )
@@ -2470,7 +2520,9 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                 {
                     label_index = atoi(tokens[i]) - 1;
                     p_so->ident = get_class_label_index(p_class, label_index);
+                 
                 }
+              
                 INSERT( p_so, so_list );
                 o_ident = p_so->ident;
             }
@@ -3113,7 +3165,6 @@ gather_time_series( Gather_segment *ctl_list, Analysis *analy )
                      *
                      * Shouldn't need to zero result array prior to each load.
                      */
-                    
                     p_rmlo->result->modifiers.use_flags.use_ref_surface = 1;
                     p_rmlo->result->modifiers.use_flags.use_ref_frame = 1;
                     analy->cur_result = p_rmlo->result;
@@ -5844,12 +5895,12 @@ draw_plots( Analysis *analy )
         if ( mins < min_ord )
             min_ord = mins;
         
-        /* rescaling attempt by Bill Oliver */ 
+        /* rescaling attempt by Bill Oliver 
         if ( !analy->mm_result_set[1] && lastmax < maxs) 
         {
             lastmax = maxs; 
-            max_ord = maxs /*+ (maxs - mins)*0.02*/;
-        }  
+            max_ord = maxs + (maxs - mins)*0.02;
+        } */  
         
         if ( maxs > max_ord )
             max_ord = maxs;
@@ -6053,9 +6104,9 @@ draw_plots( Analysis *analy )
          * Take care of the special case where min and max are
          * approximately equal. APX_EQ macro was too tight.
          */
-        if ( fabs((double) (max_ax[i] - 0.0)) < EPS2 )
+        if ( max_ax[i] == EPS )
         { 
-            max_ax[i] = EPS2;
+            max_ax[i] = EPS;
         }
 
         if ( min_ax[i] == max_ax[i]

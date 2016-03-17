@@ -1009,6 +1009,8 @@ gui_start( int argc, char **argv , Analysis *analy )
     Atom  WM_DELETE_WINDOW;
     int gid=0;
     int status;
+    IntLabels * labels;
+    int i;
 
     init_griz_name( analy );
 
@@ -1038,9 +1040,9 @@ gui_start( int argc, char **argv , Analysis *analy )
     n++;
 
     /*
-    The XtAppInitialize function calls XtToolkitInitialize followed by XtCreateApplicationContext, then calls XtOpenDisplay with display_string NULL and application_name NULL, and finally calls XtAppCreateShell with application_name NULL, widget_class applicationShellWidgetClass, and the specified args and num_args and returns the created shell. The modified argc and argv returned by XtDisplayInitialize are returned in argc_in_out and argv_in_out. If app_context_return is not NULL, the created application context is also returned. If the display specified by the command line cannot be opened, an error message is issued and XtAppInitialize terminates the application. If fallback_resources is non-NULL, XtAppSetFallbackResources is called with the value prior to calling XtOpenDisplay.
-
-    */
+ *     XtAppInitialize returns an ApplicationShell widget to be used as the root of the application's
+ *     widget tree.
+ *  */
     ctl_shell_widg = XtAppInitialize( &app_context, "GRIZ",
                                       (XrmOptionDescList)NULL , 0,
                                       &argc,
@@ -1065,6 +1067,14 @@ gui_start( int argc, char **argv , Analysis *analy )
                              (XtCallbackProc) exit_CB, NULL );
 
     n = 0;
+    /*
+ *     Creating a widget is a three-step process. First, the widget instance is allocated, and various 
+ *     instance-specific attributes are set by using XtCreateWidget. Second, the widget's parent
+ *     is informed of the new child by using XtManageChild. Finally, X windows are created for the
+ *     parent and all its children by using XtRealizeWidget and specifying the top-most widget. The
+ *     first two steps can be combined by using XtCreateManagedWidget. In addition, XtRealizeWidget is
+ *     automatically called when the child becomes managed if the parent is already realized.
+ *  */
     mainwin_widg = XtCreateManagedWidget( "mainw",
                                           xmMainWindowWidgetClass,
                                           ctl_shell_widg, args, n );
@@ -1163,6 +1173,11 @@ gui_start( int argc, char **argv , Analysis *analy )
     XtSetArg( args[n], XmNbackground, XBlackPixel( dpy, DefaultScreen( dpy ) ));
     n++;
 
+    /*
+ *     XtAppCreateShell creates a shell widget of class topLevelShellWidgetClass on display 
+ *     XtDisplay( mainwin_widg ). The created widget has no parent -- it is at the root of a
+ *     tree and at the top of the resource name hierarchy.
+ *  */
     rendershell_widg = XtAppCreateShell( NULL, "rendershell",
                                          topLevelShellWidgetClass,
                                          XtDisplay( mainwin_widg ), args, n );
@@ -1392,6 +1407,17 @@ gui_start( int argc, char **argv , Analysis *analy )
         /* Update the window attributes */
         put_window_attributes() ;
         put_griz_session( env.curr_analy, session );
+    }
+    labels = analy->int_labels;
+    if(labels != NULL)
+    {
+        for(i = 0; i < labels->numLabels; i++)
+        {
+            if(labels->valid[i] == 0)
+            { 
+                wrt_text("\nelement set %d was marked as invalid because the labels array \nwas not in ascending order\n", labels->mats[i]);
+            }
+        }
     }
 
     env.curr_analy->update_display( env.curr_analy );
@@ -2022,14 +2048,18 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     Widget submenu_cascade, submenu, result_menu;
     Widget button, cascade, result_submenu, subsubmenu_cascade;
     int position, vec_size;
-    int i, j, n;
+    int i, j, n, rval;
     char cbuf[M_MAX_NAME_LEN];
+    char parent_menu[32];
     Bool_type make_submenu;
     Arg args[10];
     char **comps, **p_specs;
     int spec_qty;
     Analysis *analy;
     State_variable *comp_svar;
+    Hash_table * p_es_components_ht;
+    Htable_entry * p_hte2;
+    ES_in_menu * p_es;
     static char *cell_nums[] =
     {
         "[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]", "[9]", "[10]",
@@ -2039,7 +2069,11 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
     int qty_cell_nums;
     Htable_entry *p_hte;
 
+
     analy = env.curr_analy;
+
+    p_es_components_ht = analy->es_components_table;
+
     qty_cell_nums = sizeof( cell_nums ) / sizeof( cell_nums[0] );
 
     /* Arrays and Vector Arrays that are too big don't go in menu. */
@@ -2102,7 +2136,7 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
     /* Now add the new primal result button. */
-    if ( p_pr->var->agg_type != SCALAR )
+    if ( p_pr->var->agg_type != SCALAR && strncmp(p_pr->short_name, "es_", 3))
     {
         /* Non-scalar types require another submenu level. */
         n = 0;
@@ -2235,9 +2269,9 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                  * This is WIP for the new Element Set menus.
                  */
 
-                if ( analy->es_cnt>0 && strstr(p_pr->short_name, "es_" ) )
+               /* if ( analy->es_cnt>0 && strstr(p_pr->short_name, "es_" ) )
                 {
-                    int es_id=0, es_index=0, es_label=-1;
+                   int es_id=0, es_index=0, es_label=-1;
                     char *es_ptr=NULL, es_title[64], surface_title[16]="";
                     int integration_pt=0;
                     es_ptr   = strstr( p_pr->short_name, "es_" );
@@ -2260,12 +2294,12 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
                     subsubmenu_cascade = XmCreateCascadeButton( result_menu,
                                          es_title,
                                          args, n );
-                }
-                else
+                } 
+                else  */
                     subsubmenu_cascade = XmCreateCascadeButton( result_menu,
                                          cell_nums[i],
                                          args, n );
-                XtManageChild( subsubmenu_cascade );
+                XtManageChild( subsubmenu_cascade ); 
 
                 vec_size = p_pr->var->vec_size;
 
@@ -2321,6 +2355,35 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
         XtManageChild( button );
         XtAddCallback( button, XmNactivateCallback, res_menu_CB,
                        p_pr->short_name );
+    } 
+    else if( !strncmp(p_pr->short_name, "es_", 3))
+    {   
+        strcpy(parent_menu, cbuf); 
+        for(i = 0; i < p_pr->var->vec_size; i++)
+        {
+            rval = htable_search(p_es_components_ht, p_pr->var->components[i], FIND_ENTRY, &p_hte2);
+            if(rval != OK)
+            {
+                continue;
+            }
+            p_es = (ES_in_menu *) p_hte2->data;
+            
+            if(p_es->in_menu == TRUE && !strcmp(p_es->parent_menu, parent_menu))
+            {
+                continue;
+            } 
+
+            p_es->in_menu = TRUE;
+            strcpy(p_es->parent_menu, parent_menu);
+            /*rval = htable_add_entry_data(p_es_components_ht, p_es->component_name, ENTER_MERGE, (ES_in_menu *) p_es); */
+
+            sprintf( cbuf, "%s (%s)", p_pr->var->component_titles[i], p_pr->var->components[i] );
+            n = 0;
+            button = XmCreatePushButtonGadget( submenu, cbuf, args, n );
+            XtManageChild( button );
+            XtAddCallback( button, XmNactivateCallback, res_menu_CB,
+                           p_pr->var->components[i] );
+       } 
     }
     else
         popup_dialog( WARNING_POPUP, "Variable of unknown agg type \"%s\"\n%s",
@@ -2848,8 +2911,9 @@ add_derived_result_button( Derived_result *p_dr )
                 /* Look for element set svars to add to sub-menu */
 
                 if ( subrec.qty_svars==1 && strstr( submenu_name, subrec.class_name)
-                        && !strncmp( subrec.svar_names[0], "es_", 3 ) )
+                        && !strncmp( subrec.svar_names[0], "es_", 3 ) ) 
                 {
+                    continue;
                     es_id = get_element_set_id( subrec.svar_names[0] );
                     sprintf( nambuf, "Element Set %d (%s)", es_id,
                              subrec.svar_names[0] );
@@ -3102,13 +3166,22 @@ static void
 create_derived_res_menu( Widget parent )
 {
     Widget button;
-    int i, j, n;
+    int i, j, k, n;
+    int qty_fmts;
     Arg args[1];
     int qty_candidates;
     Result_candidate *p_rc;
     Hash_table *p_dr_ht;
     Htable_entry *p_hte;
-    Derived_result *p_dr;
+    Derived_result *p_dr = NULL;
+    Hash_table *p_pr_ht;
+    Htable_entry *pp_hte;
+    Primal_result *p_pr = NULL;
+    Subrecord_result *p_sr;
+    char **svar_names;
+    Bool_type short_name_is_primal = FALSE;
+    Bool_type match = FALSE;
+
     int rval;
     Analysis *p_analy;
     p_analy = get_analy_ptr();
@@ -3124,6 +3197,9 @@ create_derived_res_menu( Widget parent )
             qty_candidates++ );
 
     p_dr_ht = env.curr_analy->derived_results;
+    p_pr_ht = env.curr_analy->primal_results;
+    qty_fmts = env.curr_analy->qty_srec_fmts;
+
     n = 0;
     XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
     n++;
@@ -3145,15 +3221,62 @@ create_derived_res_menu( Widget parent )
     for ( i = 0; i < qty_candidates; i++ )
     {
         p_rc = &possible_results[i];
-
+        if(p_rc->compute_func == load_primal_result)
+        {
+            continue;
+        }
+        /* added code to not create a menu for true primal variables in the derived results section */
+        svar_names = p_rc->primals;
+        for(j = 0; svar_names[j] != NULL; j++)
+        {
+            rval = htable_search(p_pr_ht, svar_names[j], FIND_ENTRY, &pp_hte);
+            if(rval == OK)
+            {
+                p_pr = (Primal_result *) pp_hte->data;
+                break;
+            }
+        }
         for ( j = 0; p_rc->short_names[j] != NULL; j++ )
         {
+            short_name_is_primal = FALSE;
+            /* Don't add a menu button if the short name is really primal (i.e. "sx") */
+            if(p_pr != NULL && p_pr->var->components != NULL)
+            {
+               for(k = 0; k < p_pr->var->vec_size ; k++)
+               {
+                   if(!strcmp(p_rc->short_names[j], p_pr->var->components[k]))
+                   {
+                       short_name_is_primal = TRUE;
+                       break;
+                   }
+               } 
+            }
+ 
+            if(short_name_is_primal)
+            {
+                continue;
+            } 
+ 
             rval = htable_search( p_dr_ht, p_rc->short_names[j], FIND_ENTRY,
                                   &p_hte );
 
             if ( rval == OK )
             {
                 p_dr = (Derived_result *) p_hte->data;
+                /* make sure the superclasses match. */
+                match = FALSE;
+                for(k = 0; k < qty_fmts; k++)
+                {
+                    p_sr = (Subrecord_result *) p_dr->srec_map[k].list;
+                    if(p_sr->candidate->superclass == p_rc->superclass)
+                    {
+                        match = TRUE;
+                    } 
+                }
+                if(match == FALSE)
+                {
+                    continue;
+                }
 
                 if ( p_analy->analysis_type==MODAL ) /* May later check for
 						      * p_rc->origin.is_node_result
@@ -3435,6 +3558,7 @@ create_mtl_manager( Widget main_widg )
 
     XtAddEventHandler( mtl_shell, EnterWindowMask | LeaveWindowMask, False,
                        gress_mtl_mgr_EH, NULL );
+
 
     /* Use a Form widget to manage everything else. */
 
@@ -3982,7 +4106,6 @@ create_mtl_manager( Widget main_widg )
                / (float) (width + spacing);
     rows = (short) ceil( ((double) qty_mtls) / max_cols );
     XtVaSetValues( mtl_row_col, XmNnumColumns, rows, NULL );
-
     /*
      * Limit the initial height of the scrolled window to lesser of
      * the height of the required rows of the RowColumn or the height
@@ -5918,14 +6041,14 @@ expose_resize_CB( Widget w, XtPointer client_data, XtPointer call_data )
              */
             glViewport( 0, 0, (GLint) p_cbs->width, (GLint) p_cbs->height );
             set_mesh_view();
-        } else if( p_cbs->reason == GLwCR_EXPOSE && XtIsRealized( w))
+        } else if(p_cbs->reason == GLwCR_RESIZE && XtIsRealized( w))
         {
             glViewport( 0, 0, (GLint) p_cbs->width, (GLint) p_cbs->height );
             set_mesh_view();
             suppress_updates = FALSE; 
         } else
         {
-             suppress_updates = FALSE;
+            suppress_updates = FALSE;
         }
     }
 
@@ -7746,7 +7869,6 @@ col_ed_scale_CB( Widget w, XtPointer client_data, XtPointer call_data )
     Color_editor_scale_type scale;
     GLfloat fval;
     XmScaleCallbackStruct *cb_data;
-    int num;
 
     scale = (Color_editor_scale_type) client_data;
     cb_data = (XmScaleCallbackStruct *) call_data;
@@ -7754,21 +7876,10 @@ col_ed_scale_CB( Widget w, XtPointer client_data, XtPointer call_data )
     if ( scale != SHININESS_SCALE )
     {
         fval = (GLfloat) cb_data->value / 100.0;
-        num = snprintf( valbuf, 5, "%4.2f", fval );
-        if(num > 5)
-        {
-            valbuf[4] = '\0';
-        }
-        
+        sprintf( valbuf, "%4.2f", fval );
     }
     else
-    {
-        num = snprintf( valbuf, 5, "%d", (int) cb_data->value );
-        if(num > 4)
-        {
-            valbuf[4] = '\0';
-        }
-    }
+        sprintf( valbuf, "%d", (int) cb_data->value );
 
     sval = XmStringCreateLocalized( valbuf );
     XtVaSetValues( col_ed_scales[1][scale], XmNlabelString, sval, NULL );
@@ -7995,7 +8106,7 @@ static void
 destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     Material_property_type i;
-    /*return;*/
+
     switch_opengl_win( MESH_VIEW );
 
     if (!mtl_mgr_widg)
@@ -8009,7 +8120,7 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
         if (property_vals[i])
             free( property_vals[i] );
         property_vals[i] = NULL;
-    }
+    } 
 
     if (mtl_mgr_func_toggles)
         free( mtl_mgr_func_toggles );
@@ -8017,30 +8128,31 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     if ( op_buttons)
         free( op_buttons );
-    op_buttons = NULL;
+    op_buttons = NULL; 
 
     if (mtl_select_list)
         DELETE_LIST( mtl_select_list );
     if (mtl_deselect_list)
         DELETE_LIST( mtl_deselect_list );
     mtl_select_list = NULL;
-    mtl_deselect_list = NULL;
+    mtl_deselect_list = NULL; 
 
     if ( mtl_mgr_cmd)
         free( mtl_mgr_cmd );
-    mtl_mgr_cmd = NULL;
+    mtl_mgr_cmd = NULL; 
 
     if ( mtl_check)
         XFreePixmap( dpy, mtl_check );
-    mtl_check = NULL;
+    mtl_check = NULL; 
 
-    mtl_mgr_top_win = 0;
+    mtl_mgr_top_win = 0; 
     XtDestroyWidget( mtl_mgr_widg );
     mtl_mgr_widg = NULL;
 
     session->win_mtl_active = 0;
+    
+    destroy_mtl_mgr(); 
 
-    destroy_mtl_mgr();
 
 }
 
@@ -10847,7 +10959,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                                 if ( cnt >= MAX_DBTEXT_LINES )
                                 {
                                     sprintf( temp_text, "Error - text length exceeded (length=%d)\n", cnt);
-                                    start_text[MAX_DBTEXT_LINES - 1] = (char *) strdup(temp_text) ;
+                                    start_text[cnt++] = (char *) strdup(temp_text) ;
                                     i=num_blocks;
                                     break;
                                 }

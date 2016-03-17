@@ -106,6 +106,23 @@ typedef struct _result_candidate
 } Result_candidate;
 
 
+typedef struct _es_result_candidate
+{
+    int superclass;
+    Dimensions dim;
+    Result_origin_flags origin;
+    Bool_type single_precision_input;
+    Bool_type hide_in_menu ;
+    void (*compute_func)();
+    /*void (*primal_func)();*/
+    Bool_type (*check_compute_func)();
+    char **short_names;
+    char **long_names;
+    char **primals;
+    int *primal_superclasses;
+} es_Result_candidate;
+
+
 typedef struct _list_head
 {
     int qty;
@@ -157,6 +174,22 @@ typedef struct _primal_result
     char *long_name;
     Bool_type in_menu;
 } Primal_result;
+
+
+/************************************************************
+ * TAG( ES_in_menu )
+ *
+ * Structure which stores whether an element sets components
+ * have been added to the menu.
+ *
+ */
+typedef struct _ES_in_menu
+{
+    char component_name[32];
+    char parent_menu[32];
+    Bool_type in_menu;
+} ES_in_menu;
+
 
 
 typedef struct _subrecord_result

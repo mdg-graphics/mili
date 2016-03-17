@@ -3,11 +3,11 @@
 #---------------------------------------------------------------------
 # Griz Version Info:
 #
-#	Griz4-V12_01
-# 	Built: 	Thu Feb 28 15:05:30 2013 on Linux #1 SMP Tue Jun 19 17:16:17 PDT 2012 2.6.32-220.23.1.1chaos.ch5.x86_64 x86_64 by icorey
-# 	Configure: ./configure 
-# 	Compile Options: gcc -O3 -DJPEG_SUPPORT -DPNG_SUPPORT  -DSERIAL_BATCH -I../include -I/usr/apps/mdg/include -I.. -I../HersheyLib/src -I../ImageLib -I/usr/include -I/usr/../include -I../.. 
-# 		Mili Library Version (Griz Linked): 	V13_01
+#	Griz4-V13_01
+# 	Built: 	Fri Jul 10 07:26:06 2015 on Linux #1 SMP Fri Mar 20 13:20:55 PDT 2015 2.6.32-504.12.2.2chaos.ch5.3.x86_64 x86_64 by oliver4
+# 	Configure: ./configure linux gnu
+# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/usr/apps/mdg/archive/milidir/bigfile/include -I/../include -I../.. 
+# 		Mili Library Version (Griz Linked): 	V14_01
 #		Mili Database-Library Version: 		V13_01
 #		Mili Database-Host: 			rzzeus286
 #		Mili Database-Arch: 			Linux + 2.6.32-220.23.1.1chaos.ch5.x86_64rzzeus286
@@ -16,11 +16,14 @@
 #---------------------------------------------------------------------
 # Database path/name: bar71.plt
 # Description:  bar impact problem (gm cm microsec) material model 71
-# Output date: 03/28/13
+# Output date: 07/13/15
 #
 
 #
 # Curve 1 - Bricks 331
+# Time reference surface: middle
+# Time reference frame: global
+# Equiv. Plastic Strain reference frame: global
 
 #           Time  Equiv. Plastic Strain
 # Bricks - 331: Equiv. Plastic Strain
@@ -108,6 +111,9 @@
 
 #
 # Curve 2 - Bricks 9
+# Time reference surface: middle
+# Time reference frame: global
+# Equiv. Plastic Strain reference frame: global
 
 #           Time  Equiv. Plastic Strain
 # Bricks - 9: Equiv. Plastic Strain
@@ -195,6 +201,9 @@
 
 #
 # Curve 3 - Bricks 1
+# Time reference surface: middle
+# Time reference frame: global
+# Equiv. Plastic Strain reference frame: global
 
 #           Time  Equiv. Plastic Strain
 # Bricks - 1: Equiv. Plastic Strain
@@ -282,6 +291,8 @@
 
 #
 # Curve 1 - Node 1369
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 1369: Node Position[Y Position]
@@ -369,6 +380,8 @@
 
 #
 # Curve 2 - Node 1027
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 1027: Node Position[Y Position]
@@ -456,6 +469,8 @@
 
 #
 # Curve 3 - Node 778
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 778: Node Position[Y Position]
@@ -543,6 +558,8 @@
 
 #
 # Curve 4 - Node 777
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 777: Node Position[Y Position]
@@ -630,6 +647,8 @@
 
 #
 # Curve 5 - Node 741
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 741: Node Position[Y Position]
@@ -717,6 +736,8 @@
 
 #
 # Curve 6 - Node 703
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 703: Node Position[Y Position]
@@ -804,6 +825,8 @@
 
 #
 # Curve 7 - Node 334
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 334: Node Position[Y Position]
@@ -891,6 +914,8 @@
 
 #
 # Curve 8 - Node 670
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 670: Node Position[Y Position]
@@ -978,6 +1003,8 @@
 
 #
 # Curve 9 - Node 298
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 298: Node Position[Y Position]
@@ -1065,6 +1092,8 @@
 
 #
 # Curve 10 - Node 37
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 37: Node Position[Y Position]
@@ -1152,6 +1181,7 @@
 
 #
 # Curve 1 - Bricks 331
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -1241,6 +1271,7 @@
 
 #
 # Curve 2 - Bricks 9
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -1330,6 +1361,7 @@
 
 #
 # Curve 3 - Bricks 1
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -1419,6 +1451,7 @@
 
 #
 # Curve 1 - Bricks 331
+# Time reference surface: middle
 # Time reference frame: global
 # Z Stress reference frame: global
 
@@ -1508,6 +1541,7 @@
 
 #
 # Curve 2 - Bricks 9
+# Time reference surface: middle
 # Time reference frame: global
 # Z Stress reference frame: global
 
@@ -1597,6 +1631,7 @@
 
 #
 # Curve 3 - Bricks 1
+# Time reference surface: middle
 # Time reference frame: global
 # Z Stress reference frame: global
 
@@ -1686,6 +1721,7 @@
 
 #
 # Curve 1 - Bricks 331
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -1775,6 +1811,7 @@
 
 #
 # Curve 2 - Bricks 9
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -1864,6 +1901,7 @@
 
 #
 # Curve 3 - Bricks 1
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -1953,6 +1991,7 @@
 
 #
 # Curve 1 - Bricks 331
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -2042,6 +2081,7 @@
 
 #
 # Curve 2 - Bricks 9
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -2131,6 +2171,7 @@
 
 #
 # Curve 3 - Bricks 1
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -2220,6 +2261,7 @@
 
 #
 # Curve 1 - Bricks 331
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -2309,6 +2351,7 @@
 
 #
 # Curve 2 - Bricks 9
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -2398,6 +2441,7 @@
 
 #
 # Curve 3 - Bricks 1
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -2487,6 +2531,9 @@
 
 #
 # Curve 1 - Bricks 331
+# Time reference surface: middle
+# Time reference frame: global
+# Equiv. Plastic Strain reference frame: global
 
 #           Time  Equiv. Plastic Strain
 # Bricks - 331: Equiv. Plastic Strain
@@ -2574,6 +2621,9 @@
 
 #
 # Curve 2 - Bricks 9
+# Time reference surface: middle
+# Time reference frame: global
+# Equiv. Plastic Strain reference frame: global
 
 #           Time  Equiv. Plastic Strain
 # Bricks - 9: Equiv. Plastic Strain
@@ -2661,6 +2711,9 @@
 
 #
 # Curve 3 - Bricks 1
+# Time reference surface: middle
+# Time reference frame: global
+# Equiv. Plastic Strain reference frame: global
 
 #           Time  Equiv. Plastic Strain
 # Bricks - 1: Equiv. Plastic Strain
@@ -2748,6 +2801,9 @@
 
 #
 # Curve 1 - Bricks 331
+# Time reference surface: middle
+# Time reference frame: global
+# Current Temperature reference frame: global
 
 #           Time  Current Temperature
 # Bricks - 331: Current Temperature
@@ -2835,6 +2891,9 @@
 
 #
 # Curve 2 - Bricks 9
+# Time reference surface: middle
+# Time reference frame: global
+# Current Temperature reference frame: global
 
 #           Time  Current Temperature
 # Bricks - 9: Current Temperature
@@ -2922,6 +2981,9 @@
 
 #
 # Curve 3 - Bricks 1
+# Time reference surface: middle
+# Time reference frame: global
+# Current Temperature reference frame: global
 
 #           Time  Current Temperature
 # Bricks - 1: Current Temperature
@@ -3009,6 +3071,9 @@
 
 #
 # Curve 1 - Bricks 331
+# Time reference surface: middle
+# Time reference frame: global
+# Yield Strength reference frame: global
 
 #           Time  Yield Strength
 # Bricks - 331: Yield Strength
@@ -3096,6 +3161,9 @@
 
 #
 # Curve 2 - Bricks 9
+# Time reference surface: middle
+# Time reference frame: global
+# Yield Strength reference frame: global
 
 #           Time  Yield Strength
 # Bricks - 9: Yield Strength
@@ -3183,6 +3251,9 @@
 
 #
 # Curve 3 - Bricks 1
+# Time reference surface: middle
+# Time reference frame: global
+# Yield Strength reference frame: global
 
 #           Time  Yield Strength
 # Bricks - 1: Yield Strength
@@ -3270,6 +3341,9 @@
 
 #
 # Curve 1 - Bricks 331
+# Time reference surface: middle
+# Time reference frame: global
+# Plastic Strain Rate reference frame: global
 
 #           Time  Plastic Strain Rate
 # Bricks - 331: Plastic Strain Rate
@@ -3357,6 +3431,9 @@
 
 #
 # Curve 2 - Bricks 9
+# Time reference surface: middle
+# Time reference frame: global
+# Plastic Strain Rate reference frame: global
 
 #           Time  Plastic Strain Rate
 # Bricks - 9: Plastic Strain Rate
@@ -3444,6 +3521,9 @@
 
 #
 # Curve 3 - Bricks 1
+# Time reference surface: middle
+# Time reference frame: global
+# Plastic Strain Rate reference frame: global
 
 #           Time  Plastic Strain Rate
 # Bricks - 1: Plastic Strain Rate
@@ -3532,7 +3612,10 @@
 #
 # Curve 1 - Bricks 331
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # Bricks - 331: XY Engr Strain
@@ -3621,11 +3704,14 @@
 #
 # Curve 2 - Bricks 9
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # Bricks - 9: XY Engr Strain
-  0.00000000e+00  -5.55111512e-17
+  0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.27525923e-02
   2.00000000e+00  -4.81948908e-03
   3.00000000e+00  1.60756540e-02
@@ -3710,11 +3796,14 @@
 #
 # Curve 3 - Bricks 1
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # Bricks - 1: XY Engr Strain
-  0.00000000e+00  7.40214019e-17
+  0.00000000e+00  5.55111512e-17
   1.00000000e+00  8.44319700e-04
   2.00000000e+00  -1.04090397e-03
   3.00000000e+00  -1.93857166e-04
@@ -3798,6 +3887,8 @@
 
 #
 # Curve 1 - Node 792
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
@@ -3887,6 +3978,8 @@
 
 #
 # Curve 2 - Node 670
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
@@ -3976,6 +4069,8 @@
 
 #
 # Curve 3 - Node 298
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
@@ -4065,6 +4160,8 @@
 
 #
 # Curve 4 - Node 37
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 

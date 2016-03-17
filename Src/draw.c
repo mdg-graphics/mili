@@ -221,7 +221,7 @@ static float proj_param_y;
 static Bool_type colorflag=FALSE;
 
 /* Particle radius. */
-static GLdouble particle_radius = 0.25;
+static GLdouble particle_radius = 0.025;
 
 /* Vector lengths in pixels for drawing vector plots. */
 #define VEC_2D_LENGTH 20.0
@@ -2580,7 +2580,8 @@ draw_grid( Analysis *analy )
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PARTICLE].list;
     if(qty_classes > 0)
     {
-        analy->show_particle_class = FALSE;
+        /*analy->show_particle_class = FALSE; */
+        analy->show_particle_class = TRUE;
         
     } 
 
@@ -2588,24 +2589,28 @@ draw_grid( Analysis *analy )
     if ( analy->show_particle_class )
     {
         strcpy(particle_name, "DBC1");
-        /*for(i=0; i < qty_classes; i++)
+        for(i=0; i < qty_classes; i++)
         {
-            strcpy(particle_cname, moclasses[i]->short_name);
-        }*/ 
-        /*v_win->particles = v_win->current_color_property;*/
-        change_current_color_property( &v_win->particles,
-                                       v_win->particles.current_index );
+            /*strcpy(particle_cname, mo_classes[i]->short_name);
+         
+            v_win->particles = v_win->current_color_property; 
+            /*change_current_color_property( &v_win->particles,
+                                           v_win->particles.current_index );
 
-        rval = htable_search( p_mesh->class_table, particle_name, FIND_ENTRY,
-                              &p_hte );
-        if ( rval == OK )
-        {
-            p_mo_class = (MO_class_data *) p_hte->data;
-
-            rval = htable_search( analy->primal_results, "partpos", FIND_ENTRY,
+            rval = htable_search( p_mesh->class_table, particle_name, FIND_ENTRY,
                                   &p_hte );
-           /* if ( rval == OK ) */
-                draw_particles_3d( p_mo_class, analy );
+            if ( rval == OK )
+            {
+                p_mo_class = (MO_class_data *) p_hte->data;
+
+                rval = htable_search( analy->primal_results, "partpos", FIND_ENTRY,
+                                      &p_hte );
+                if ( rval == OK )
+                {
+                    draw_particles_3d( p_mo_class, analy );
+                }
+            } */
+            draw_particles_3d( mo_classes[i], analy);
         } 
     }
 
@@ -3171,8 +3176,8 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
         return;
 
-    /*if ( is_particle_class(analy, p_hex_class->superclass, p_hex_class->short_name) )
-        return;*/ 
+    if ( is_particle_class(analy, p_hex_class->superclass, p_hex_class->short_name) )
+        return; 
 
     p_mesh = MESH_P( analy );
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
@@ -6457,7 +6462,13 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
     int part_qty;
     GLUquadricObj *sphere;
     GLuint display_list;
-    int index;
+    int index, node, matl;
+    float x, y, z, rmin, rmax;
+    Bool_type show_result = FALSE;
+
+    MO_class_data * p_node_class = NULL;
+
+    p_node_class = MESH(analy).node_geom;
 
     part_qty = p_particle_class->qty;
     part_res = p_particle_class->data_buffer;
@@ -6469,6 +6480,13 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
     /*coords3 = analy->state_p->particles.particles3d;*/
     coords3 = analy->state_p->nodes.particles3d;
+
+    if(analy->cur_result != NULL)
+    {
+        show_result = result_has_class(analy->cur_result, p_particle_class, analy);
+    }
+  
+    get_min_max(analy, FALSE, &rmin, &rmax);
 
     display_list = glGenLists( 1 );
 
@@ -6486,9 +6504,10 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
     gluQuadricDrawStyle( sphere, (GLenum) GLU_FILL );
     gluQuadricNormals( sphere, (GLenum) GLU_SMOOTH );
-
+    gluQuadricTexture(sphere, (GLboolean) GLU_TRUE );
     glNewList( display_list, GL_COMPILE );
-    gluSphere( sphere, particle_radius, 16, 8 );
+    /*gluSphere( sphere, particle_radius, 16, 8 ); */
+    gluSphere( sphere, particle_radius, 32, 16 );
     glEndList();
 
     if ( v_win->lighting )
@@ -6498,13 +6517,36 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
     for ( i = 0; i < part_qty; i++ )
     {
-        color_lookup( col, part_res[i], el_state_mm[0], el_state_mm[1],
+        if(p_particle_class->p_vis_data->visib[i] == FALSE)
+        {
+            continue;
+        }
+ 
+        matl = p_particle_class->objects.elems->mat[i];
+
+        if(v_win->mesh_materials.current_index != matl)
+        {
+            change_current_color_property(&v_win->mesh_materials, matl);
+        }
+
+        /*color_lookup( col, part_res[i], el_state_mm[0], el_state_mm[1],
                       analy->zero_result, index, analy->logscale,
+                      analy->material_greyscale ); */
+
+        color_lookup( col, part_res[i], rmin, rmax,
+                      analy->zero_result, matl, analy->logscale,
                       analy->material_greyscale );
+
         glColor3fv( col );
 
         glPushMatrix();
-        glTranslatef( coords3[i][0], coords3[i][1], coords3[i][2] );
+        node = p_particle_class->objects.elems->nodes[i];
+        x = p_node_class->objects.nodes3d[node][0]; 
+        y = p_node_class->objects.nodes3d[node][1]; 
+        z = p_node_class->objects.nodes3d[node][2];
+  
+        /*glTranslatef( coords3[i][0], coords3[i][1], coords3[i][2] ); */
+        glTranslatef( x, y, z );
 
         glCallList( display_list );
 
@@ -13768,7 +13810,7 @@ get_free_node_result( Analysis  *analy, MO_class_data *p_mo_class, int particle_
 
     node_num = particle_nodes[particle_num][0];
     *valid_free_node = TRUE;
-    if ( !nodal_result && is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
+    if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
         val = p_mo_class->data_buffer[particle_num];
     else if ( nodal_data )
         val = nodal_data[node_num];
@@ -13797,6 +13839,17 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
 
 
     *result_defined  = FALSE;
+
+    if(analy->cur_result == NULL)
+    {
+        return(0.0);
+    }
+  
+    if(analy->cur_result != NULL)
+    {
+        *result_defined = TRUE;
+         return p_mo_class->data_buffer[elem_num];
+    }
 
     p_node_class = MESH_P( analy )->node_geom;
 
@@ -14235,7 +14288,7 @@ draw_free_nodes( Analysis *analy )
                     
                     mat_num = mat[k];
 
-                    /* if ( particle_class && p_mo_class->superclass == 9)
+                     if ( !particle_class)
                     {
                         if ( analy->show_deleted_elements )
                             activity_flag = 1.0;
@@ -14247,19 +14300,21 @@ draw_free_nodes( Analysis *analy )
                                 activity_flag = 1.0;
                             }
                         }
-                    } */
-                    if ( analy->show_deleted_elements )
-                        activity_flag = 1.0;
-
-                    if ( analy->show_only_deleted_elements )
+                    } else
                     {
-                        if  ( activity[k] == 0.0 )
-                        {
+                        if ( analy->show_deleted_elements )
                             activity_flag = 1.0;
-                            ode_cnt++;
-                        } else
+
+                        if ( analy->show_only_deleted_elements )
                         {
-                            activity_flag = 0.0;
+                            if  ( activity != NULL && activity[k] == 0.0 )
+                            {
+                                activity_flag = 1.0;
+                                ode_cnt++;
+                            } else
+                            {
+                                activity_flag = 0.0;
+                            }
                         }
                     }
 
@@ -14478,15 +14533,39 @@ draw_free_nodes( Analysis *analy )
         {
             if ( p_ml_class )
             {
+                int j;
                 val = get_ml_result( analy, p_ml_class, elem_id, &result_defined );
+                for(i = 0; i < MESH(analy).qty_class_selections; i++)
+                {
+                    if(!strcmp(p_ml_class->short_name, MESH(analy).by_class_select[i].p_class->short_name))
+                    {
+                        break;
+                    }
+                }
+                /* if any of the elements are disabled show the material color */
+                if(MESH(analy).by_class_select[i].disable_class_elem[elem_id] == TRUE)
+                {
+                    col[3] = v_win->mesh_materials.diffuse[mat_num][3];
+
+                    VEC_COPY( col, v_win->mesh_materials.diffuse[mat_num] );
+                    for (j=0;
+                            j<4;
+                            j++)
+                        col[j] = col[j]- col[j]*.5;
+                } else
+                {
+                    color_lookup( col, val,
+                                  rmin, rmax, analy->zero_result, mat_num,
+                                  analy->logscale, analy->material_greyscale );
+                }
             }
             else
             {
                 val = data_array[free_node_data_index];
+                color_lookup( col, val,
+                              rmin, rmax, analy->zero_result, mat_num,
+                              analy->logscale, analy->material_greyscale );
             }
-            color_lookup( col, val,
-                          rmin, rmax, analy->zero_result, mat_num,
-                          analy->logscale, analy->material_greyscale );
         }
         else
         {
@@ -15291,8 +15370,8 @@ hide_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *ana
 
     obj_type = p_class->superclass;
 
-    /*if (is_particle_class( analy, p_class->superclass, p_class->short_name ) )
-        obj_type = M_PARTICLE; */
+    if (is_particle_class( analy, p_class->superclass, p_class->short_name ) )
+        obj_type = M_PARTICLE;
 
     p_mesh = MESH_P( analy );
 
@@ -15418,7 +15497,7 @@ hide_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *ana
 
     if ( !hide_elem && class_select_index>=0 && elm<p_class->qty)
     {
-        if ( p_mesh->by_class_select[class_select_index].hide_class_elem[elm] ||
+        if ( p_mesh->by_class_select[class_select_index].hide_class_elem[elm] || 
              p_mesh->by_class_select[class_select_index].exclude_class_elem[elm])
             hide_elem = TRUE;
     }
@@ -15447,8 +15526,8 @@ disable_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *
     int class_select_index = 0;
 
     obj_type = p_class->superclass;
-    /*if (is_particle_class( analy, p_class->superclass, p_class->short_name ) )
-        obj_type = M_PARTICLE; */
+    if (is_particle_class( analy, p_class->superclass, p_class->short_name ) )
+        obj_type = M_PARTICLE;
 
     p_mesh = MESH_P( analy );
     if ( !analy->interp_mode == NO_INTERP )
@@ -15667,7 +15746,6 @@ void populate_result(int superclass, char map[], int size, MO_class_data * p_cla
 
     p_result = analy->cur_result;
 
-
     /* Just a precautionary step */
     if(p_result == NULL)
     {
@@ -15681,7 +15759,6 @@ void populate_result(int superclass, char map[], int size, MO_class_data * p_cla
     {
         return;
     }
-
     p_mesh = MESH_P(analy);
     qty_classes = p_mesh->classes_by_sclass[superclass].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[superclass].list;

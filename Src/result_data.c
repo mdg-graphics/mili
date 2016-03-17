@@ -133,7 +133,12 @@ update_min_max( Analysis *analy )
     int i;
     int *mm_nodes;
     char **mm_class;
+    char command[128];
     int *mm_sclass;
+    Mesh_data * p_mesh;
+    MO_class_data * p_mo_class;
+    
+    p_mesh = MESH_P( analy);
 
     state_mm = analy->state_mm;
     el_state_mm    = analy->elem_state_mm.object_minmax;
@@ -276,6 +281,50 @@ update_min_max( Analysis *analy )
             else
                 analy->result_mm[i] = analy->state_mm[i];
         }
+
+    if(analy->autoselect)
+    {
+        strcpy(command, "select ");
+        parse_command("poof", analy);
+        p_mo_class = NULL;
+        for(i = 0; i < p_mesh->qty_class_selections; i++)
+        {
+            if( p_mesh->by_class_select[i].p_class->superclass == el_state_sclass[0] )
+            {
+                p_mo_class = p_mesh->by_class_select[i].p_class;
+                break;
+            }
+        }
+        if(p_mo_class == NULL)
+        {
+            return;
+        }
+        if(el_state_sclass[0] == el_state_sclass[1])
+        {
+            strcat(command, p_mo_class->short_name);
+            sprintf(command,"%s %d %d", command, el_state_id[0], el_state_id[1]);
+            parse_command(command, analy);
+        } else
+        {
+            strcat(command, p_mo_class->short_name);
+            sprintf(command,"%s %d", command, el_state_id[0]);
+            parse_command(command, analy);
+
+            strcpy(command, "select ");
+            for(i = 0; i < p_mesh->qty_class_selections; i++)
+            {
+                if( p_mesh->by_class_select[i].p_class->superclass == el_state_sclass[1] )
+                {
+                    p_mo_class = p_mesh->by_class_select[i].p_class;
+                    break;
+                }
+            }
+            strcat(command, p_mo_class->short_name);
+            sprintf(command,"%s %d", command, el_state_id[1]);
+            parse_command(command, analy);
+            
+        } 
+    }
 }
 
 
@@ -1442,7 +1491,7 @@ void
 particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_class,
                    int part_qty, int *part_ids, Analysis *analy )
 {
-    GVec3D *nodes;
+    /*GVec3D *nodes; */
     MO_class_data *p_node_geom;
     Mesh_data *p_mesh;
     float *activity, *mm_val;
@@ -1470,7 +1519,7 @@ particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_clas
     sclasses    = analy->tmp_elem_mm.sclass;
     el_id       = analy->tmp_elem_mm.object_id;
 
-    nodes    = analy->state_p->nodes.nodes3d;
+    /*nodes    = analy->state_p->nodes.nodes3d; */
     activity = analy->state_p->sand_present
                ? analy->state_p->elem_class_sand[p_part_class->elem_class_index]
                : NULL;
@@ -1496,8 +1545,8 @@ particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_clas
         /* Ignore disabled materials. */
 
         if ( analy->particle_nodes_enabled &&
-                !disable_by_object_type( p_part_class, mats[part_id], part_id, analy, NULL ) )
-            ignore_elem = FALSE;
+                disable_by_object_type( p_part_class, mats[part_id], part_id, analy, NULL ) )
+            ignore_elem = TRUE;
 
         if (ignore_elem)
             continue;
@@ -1506,6 +1555,7 @@ particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_clas
         if ( val_part[part_id] < mm_val[0] )
         {
             mm_val[0]   = val_part[part_id];
+            el_id[0] = part_id + 1;
             classes[0]  = p_part_class->long_name;
         }
 

@@ -299,6 +299,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
             else
                 p_mocd->objects.nodes2d = NEW_N( GVec2D, obj_qty,
                                                  "2D node coord array" );
+            p_mocd->objects.nodes = NEW_N(float, obj_qty*3, "node positions");
 
             p_hte->data = (void *) p_mocd;
 
@@ -571,8 +572,9 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 p_mocd->superclass = elem_sclasses[j];
                 p_mocd->elem_class_index = elem_class_count++;
                 p_mocd->qty = obj_qty;
-
+               
                 p_ed = NEW( Elem_data, "Element conn struct" );
+
                 p_mocd->objects.elems = p_ed;
                 p_ed->nodes = NEW_N( int, obj_qty * qty_connects[j],
                                      "Element connectivities" );
@@ -1552,6 +1554,7 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
         {
             p_sv_ht = htable_create( 151 );
             p_primal_ht = htable_create( 151 );
+            
         }
         else
         {
@@ -1693,8 +1696,10 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                                   "create state variable." );
                     return rval;
                 }
+
+
                 create_primal_result( p_mesh, i, subrec_index, p_subrecs + subrec_index, p_primal_ht,
-                                      srec_qty, svar_names[k], p_sv_ht );
+                                      srec_qty, svar_names[k], p_sv_ht, analy );
 
                 if ( nodal )
                 {
@@ -1949,25 +1954,38 @@ create_st_variable( Famid fid, Hash_table *p_sv_ht, char *p_name,
 int
 create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                       Subrec_obj *p_subr_obj, Hash_table *p_primal_ht,
-                      int qty_srec_fmts, char *p_name, Hash_table *p_sv_ht )
+                      int qty_srec_fmts, char *p_name, Hash_table *p_sv_ht, Analysis * analy )
 {
     int rval;
-    Htable_entry *p_hte, *p_hte2;
+    Htable_entry *p_hte, *p_hte2, *p_hte3, *p_hte4;
+    Hash_table * p_es_components_ht;
     State_variable *p_sv;
     Primal_result *p_pr;
-    int i;
+    ES_in_menu *p_es;
+    int i, j, size;
     int *p_i;
     int superclass;
     char *p_sand_var;
-
+    static int first = 0;
     /*
      * See if primal result has already been entered in table.
      * Use ENTER_MERGE to return entry even when it already exists so
      * we can update the presence tree and check for SCALAR type with
      * "sand" flag test.
      */
-    rval = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte );
 
+    rval = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte );
+   
+    if(first == 0)
+    { 
+        size = p_primal_ht->size;
+        p_es_components_ht = htable_create( size );
+    } else
+    {
+        p_es_components_ht = analy->es_components_table;
+    }
+   
+    
     /* If new... */
     if ( rval == OK )
     {
@@ -1979,6 +1997,32 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         p_sv = (State_variable *) p_hte2->data;
         p_pr->var = p_sv;
 
+        if(!strncmp(p_sv->short_name, "es_", 3))
+        {
+            for(j = 0; j < p_sv->vec_size; j++)
+            {
+               
+                if(p_sv->components == NULL)
+                {
+                    continue;
+                } 
+                p_es = NEW( ES_in_menu, "New es in menu structure");
+                strcpy(p_es->component_name, p_sv->components[j]);
+                strcpy(p_es->parent_menu, "");
+                p_es->in_menu = FALSE;
+                if(p_es_components_ht->qty_entries > 0)
+                { 
+                    rval = htable_search(p_es_components_ht, p_es->component_name, FIND_ENTRY, &p_hte3);
+                    if(rval == OK)
+                    {
+                        continue;
+                    }
+                } 
+                rval = htable_search(p_es_components_ht, p_es->component_name, ENTER_UNIQUE, &p_hte4); 
+                p_hte4->data = (ES_in_menu *) p_es; 
+            }
+        }
+ 
         /* Reference names from the State_variable. */
         p_pr->short_name = p_sv->short_name;
         p_pr->long_name = p_sv->long_name;
@@ -2060,7 +2104,12 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         if ( ((Primal_result *) (p_hte->data))->var->num_type == M_FLOAT8 )
             p_mesh->double_precision_sand = TRUE;
     }
-
+  
+    if(first == 0)
+    { 
+        analy->es_components_table = p_es_components_ht;
+        first = 1;
+    }
     return OK;
 }
 
@@ -2076,24 +2125,35 @@ extern int
 mili_db_set_results( Analysis *analy )
 {
     Result_candidate *p_rc;
+    es_Result_candidate *p_es_rc;
     int i, j, k, m;
-    int qty_candidates;
+    int num_entries = 0;
+    int qty_candidates, qty_es_candidates;
     int pr_qty, subr_qty;
     Hash_table *p_pr_ht;
     Hash_table *p_dr_ht;
-    Htable_entry *p_hte;
+    Htable_entry *p_hte, *p_hte2;
     int **counts;
     int rval;
     Primal_result *p_pr;
+    Primal_result *p_es_pr;
     int *p_i;
     Subrec_obj *p_subrecs;
     Mesh_data *meshes;
     int cand_primal_sclass, subrec_idx, found_th=FALSE;
 
+    num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+                                               "IntLabel", "NULL", "NULL", NULL);
+
     /* Sanity check. */
     if ( analy->primal_results == NULL )
         return OK;
 
+    /* Count element set derived result candidates */
+    for ( qty_es_candidates = 0;
+            possible_es_results[qty_es_candidates].superclass != QTY_SCLASS;
+            qty_es_candidates++ );
+    
     /* Count derived result candidates. */
     for ( qty_candidates = 0;
             possible_results[qty_candidates].superclass != QTY_SCLASS;
@@ -2115,6 +2175,10 @@ mili_db_set_results( Analysis *analy )
     for ( i = 0; i < qty_candidates; i++ )
     {
         p_rc = &possible_results[i];
+        if(i < qty_es_candidates)
+        {
+           p_es_rc = &possible_es_results[i];
+        }
 
         /* Ensure mesh dimensionality matches result requirements. */
         if ( analy->dimension == 2 )
@@ -2158,7 +2222,12 @@ mili_db_set_results( Analysis *analy )
                 p_pr = (Primal_result *) p_hte->data;
             else
                 continue;
-
+    
+            rval = htable_search( p_pr_ht, p_es_rc->primals[j], FIND_ENTRY, &p_hte2);
+            if(rval == OK )
+            {
+                p_es_pr = (Primal_result *) p_hte2->data;
+            }
 
             found_th=FALSE;
 
@@ -2286,6 +2355,26 @@ mili_db_set_results( Analysis *analy )
     for ( j = 0; j < analy->qty_srec_fmts; j++ )
         free( counts[j] );
     free( counts );
+
+    if(num_entries > 0)
+    {    
+        for(i = 0; i < qty_es_candidates; i++)
+        {
+            p_es_rc = &possible_es_results[i];
+            for(j = 0; j < analy->qty_srec_fmts; j++)
+            {
+                p_subrecs = analy->srec_tree[j].subrecs;
+                for(k = 0; k < analy->srec_tree[j].qty; k++)
+                {
+                    if(p_subrecs[k].p_object_class->superclass == p_es_rc->superclass)
+                    {
+                        create_derived_results(analy, j, k, (Result_candidate *) p_es_rc, p_dr_ht);
+                        break;
+                    }
+                }
+            }
+        }
+    }
 
     analy->derived_results = p_dr_ht;
 
@@ -4830,7 +4919,7 @@ taurus_db_get_st_descriptors( Analysis *analy, int dbid )
                 create_st_variable( fid, p_sv_ht, svar_names[k], NULL );
                 create_primal_result( analy->mesh_table + mesh_id, i, j,
                                       p_subrecs + j, p_primal_ht, srec_qty,
-                                      svar_names[k], p_sv_ht );
+                                      svar_names[k], p_sv_ht, analy );
 
                 if ( nodal )
                 {

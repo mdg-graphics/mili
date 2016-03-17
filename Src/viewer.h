@@ -157,6 +157,7 @@
 #define HAVE_WEDGE_PYRAMID
 #endif
 
+#define ORIG_RESULTS 20
 /* OpenGL windows. */
 typedef enum
 {
@@ -324,6 +325,7 @@ typedef struct _result
     char name[M_MAX_NAME_LEN];
     char title[64];
     char original_name[M_MAX_NAME_LEN];
+    char **original_names;
     int qty;
     int *subrecs;
     int *superclasses;
@@ -894,6 +896,61 @@ typedef struct _Integration_points
     int       in_mid_out_default[3]; /* Integration points default     */
 } Integration_points;
 
+
+/*****************************************************************
+ * TAG( combined_names )
+ *
+ *   Struct which contains the result names making up the combined 
+ *   result.
+ ****************************************************************/
+typedef struct _combined_names
+{
+    struct _combined_names *next;
+    struct _combined_names *prev;
+    char es_result_names[64];
+} combined_names;
+
+
+/*****************************************************************
+ * TAG( IntLabel )
+ *
+ *   Struct which contains information on integration point
+ *   labels.
+ */
+typedef struct _IntLabels
+{
+    char ** LabelNames;
+    int numLabels;
+    int *labelSizes;  /* the length of the ith label array*/
+    int ** labels;
+    int * mats;  /* The materials associated with the LabelNames, size is numLabels */
+    int * int_pts_selected;  /* For each material, which integration point is selected,  0 
+                                means none is selected for that material.  The size of
+                                this array is also numLabels */
+    int * map;               /* When accessing the materal array and in case the material numbers
+                                in the material array are not in consecutive order then selecting
+                                a material say j maps map[j] to the indes of that material in the
+                                mats array.  Prevents looping every time this is accessed. */
+   int mapsize;             /* size of the map array and is equal to the highest material number plus 1 */
+   int * valid;             /* set to 1 if the labels array is in ascending order otherwise set to 0 */
+
+   char ** es_names;       /* The names of all the element sets written to the plot file.  e.g.  "es_1a" */
+   int num_es_sets;        /* The number of elements sets written to the plot file. */
+
+   char **result_names;
+   Bool_type use_combined;
+
+} IntLabels;
+
+typedef struct _intPtMessages
+{
+    struct _intPtMessages * next;
+    struct _intPtMessages * prev;
+    char messages[256];
+    
+} intPtMessages;
+
+
 /*****************************************************************
  * TAG( Analysis )
  *
@@ -924,6 +981,8 @@ typedef struct _Analysis
     Bool_type (*check_mod_required)( struct _Analysis *, Result_modifier_type,
                                      int, int );
 
+    Bool_type autoselect;
+    void * original_results[ORIG_RESULTS];   /* for combined results need to hold the original results for each superclass */ 
     int db_ident;
     char root_name[256];
     char path_name[256];
@@ -962,6 +1021,7 @@ typedef struct _Analysis
     Hash_table *st_var_table;
     Hash_table *primal_results;
     Hash_table *derived_results;
+    Hash_table *es_components_table;
     Result_table_type result_source;
     char **component_menu_specs;
     int component_spec_qty;
@@ -1361,6 +1421,7 @@ typedef struct _Analysis
      */
     int                 es_cnt; /* Number of element sets */
     Integration_points *es_intpoints;
+    IntLabels * int_labels;
 
     /*
  *   Added February , 2014:  WBO Switch to turn off auto gray
@@ -1851,7 +1912,7 @@ extern State2 *mk_state2( Analysis *, State_rec_obj *, int, int, int,
                           State2 * );
 extern void create_subrec_node_list( int *, int, Subrec_obj * );
 extern int create_primal_result( Mesh_data *, int, int, Subrec_obj *,
-                                 Hash_table *, int, char *, Hash_table * );
+                                 Hash_table *, int, char *, Hash_table *, Analysis * );
 extern int load_nodpos( Analysis *, State_rec_obj *, Mesh_data *, int, int,
                         Bool_type, void * );
 
@@ -2078,6 +2139,7 @@ extern void update_plots( Analysis * );
 extern void update_plot_objects( Analysis * );
 extern void create_plot_objects( int, char [][TOKENLENGTH], Analysis *,
                                  Plot_obj ** );
+extern Bool_type element_set_check(Analysis *);
 extern void create_oper_plot_objects( int, char [][TOKENLENGTH], Analysis *,
                                       Plot_obj ** );
 extern void output_time_series( int, char [MAXTOKENS][TOKENLENGTH],
@@ -2193,7 +2255,11 @@ extern void dump_result( Analysis *, char * );
 
 /* results.c */
 extern Result_candidate possible_results[];
+extern es_Result_candidate possible_es_results[];
 extern void update_result( Analysis *, Result * );
+extern Result * create_result_list(char *, Analysis *);
+extern void delete_result_list(Result **, Analysis *);
+extern Result * insert_result(Result *, Result, Analysis *);
 extern int find_result( Analysis *, Result_table_type, Bool_type, Result *,
                         char * );
 extern Bool_type search_result_tables( Analysis *, Result_table_type, char *,
@@ -2206,6 +2272,7 @@ extern void delete_result( Result ** );
 extern Result *duplicate_result( Analysis *, Result *, Bool_type );
 extern Bool_type result_has_class( Result *, MO_class_data *, Analysis * );
 extern Bool_type result_has_superclass( Result *, int, Analysis * );
+extern void load_stress_local_coord(Analysis *, float *, Bool_type);
 extern void load_primal_result( Analysis *, float *, Bool_type );
 extern void load_primal_result_double( Analysis *, float *, Bool_type );
 extern void load_primal_result_int( Analysis *, float *, Bool_type );
@@ -2249,10 +2316,13 @@ extern void      rotate_quad_result( Analysis *analy, char *primal, int result_c
 extern void compute_hex_stress( Analysis *, float *, Bool_type );
 extern void compute_hex_press( Analysis *, float *, Bool_type );
 extern void compute_shell_press( Analysis *, float *, Bool_type );
+extern void compute_es_press( Analysis *, float *, Bool_type );
 extern void compute_hex_effstress( Analysis *, float *, Bool_type );
 extern void compute_shell_effstress( Analysis *, float *, Bool_type );
+extern void compute_es_effstress( Analysis *, float *, Bool_type );
 extern void compute_hex_principal_stress( Analysis *, float *, Bool_type );
 extern void compute_shell_principal_stress( Analysis *, float *, Bool_type );
+extern void compute_es_principal_stress( Analysis *, float *, Bool_type );
 extern void compute_shell_surface_stress( Analysis *, float *, Bool_type );
 extern void compute_shell_stress( Analysis *, float *, Bool_type );
 extern void compute_particle_press( Analysis *, float *, Bool_type );

@@ -156,6 +156,7 @@ static int node_vel_primal_sclasses[] =
 {
     G_NODE
 };
+
 static char *node_rot_vel_mag_shorts[] =
 {
     "rotvelmag", NULL
@@ -175,7 +176,7 @@ static int node_rot_vel_mag_primal_sclasses[] =
 {
     G_NODE
 };
-
+ 
 static char *node_acc_shorts_xy[] =
 {
     "accx", "accy", NULL
@@ -477,6 +478,64 @@ static int shell_stress_tri_primal_sclasses[] =
     G_TRI, G_TRI, G_TRI
 };
 
+static char *es_press_shorts[] = 
+{
+    "press", NULL
+};
+
+static char *es_press_longs[] = 
+{
+    "Pressure", NULL
+};
+
+static char *es_press_primals[] =
+{
+    "sx", "sy", "sz", NULL
+};
+
+static int es_press_primal_sclasses[] =
+{
+    G_TRI, G_QUAD, G_HEX
+};
+
+static char *es_effs_shorts[] =
+{
+    "seff", NULL
+};
+
+static char *es_effs_longs[] =
+{
+    "Effective Stress", NULL
+};
+
+static char *es_effs_primals[] =
+{
+    "sx", "sy", "sz", "sxy", "syz", "szx", NULL
+};
+
+static int es_effs_primal_sclasses[] = 
+{
+    G_TRI, G_QUAD, G_HEX
+};
+
+static char *es_prin_shorts[] =
+{
+    "pdev1", "pdev2", "pdev3", "maxshr", "prin1", "prin2", "prin3", NULL
+};
+static char *es_prin_longs[] =
+{
+    "Prin Dev Stress 1", "Prin Dev Stress 2", "Prin Dev Stress 3",
+    "Maximum Shear Stress", "Principal Stress 1", "Principal Stress 2",
+    "Principal Stress 3", NULL
+};
+static char *es_prin_primals[] =
+{
+    "sx", "sy", "sz", "sxy", "syz", "szx", NULL
+};
+static int es_prin_primal_sclasses[] =
+{
+    G_TRI, G_QUAD, G_HEX
+};
 static char *shell_press_shorts[] =
 {
     "press", NULL
@@ -899,6 +958,151 @@ static int particle_prin_primal_sclasses[] =
 };
 
 
+es_Result_candidate possible_es_results[] =
+{
+    {
+        G_TRI,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_es_press,
+        NULL,
+        es_press_shorts,
+        es_press_longs,
+        es_press_primals,
+        es_press_primal_sclasses
+    },
+
+    {
+        G_QUAD,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_es_press,
+        NULL,
+        es_press_shorts,
+        es_press_longs,
+        es_press_primals,
+        es_press_primal_sclasses
+    },
+
+    {
+        G_HEX,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_es_press,
+        NULL,
+        es_press_shorts,
+        es_press_longs,
+        es_press_primals,
+        es_press_primal_sclasses
+    },
+
+    {
+        G_TRI,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_es_effstress,
+        NULL,
+        es_effs_shorts,
+        es_effs_longs,
+        es_effs_primals,
+        es_effs_primal_sclasses
+    },
+
+    {
+        G_QUAD,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_es_effstress,
+        NULL,
+        es_effs_shorts,
+        es_effs_longs,
+        es_effs_primals,
+        es_effs_primal_sclasses
+    },
+
+    {
+        G_HEX,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_es_effstress,
+        NULL,
+        es_effs_shorts,
+        es_effs_longs,
+        es_effs_primals,
+        es_effs_primal_sclasses
+    },
+ 
+    {
+        G_TRI,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_es_principal_stress,
+        NULL,
+        es_prin_shorts,
+        es_prin_longs,
+        es_prin_primals,
+        es_prin_primal_sclasses
+    },
+
+    {
+        G_QUAD,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_es_principal_stress,
+        NULL,
+        es_prin_shorts,
+        es_prin_longs,
+        es_prin_primals,
+        es_prin_primal_sclasses
+    },
+
+    {
+        G_HEX,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_es_principal_stress,
+        NULL,
+        es_prin_shorts,
+        es_prin_longs,
+        es_prin_primals,
+        es_prin_primal_sclasses
+    },
+    /* array terminator */
+    {
+        QTY_SCLASS,
+        { 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL
+    }
+    
+
+};
+
 Result_candidate possible_results[] =
 {
     /*
@@ -1084,7 +1288,8 @@ Result_candidate possible_results[] =
         node_vel_primals2,
         node_vel_primal_sclasses
     },
-{
+
+    {
         G_NODE,
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
@@ -1477,7 +1682,7 @@ Result_candidate possible_results[] =
         beam_tae_primal_sclasses
     },
 
-    {
+    /*{
         G_TRI,
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
@@ -1489,7 +1694,7 @@ Result_candidate possible_results[] =
         shell_stress_longs,
         shell_stress_primals,
         shell_stress_tri_primal_sclasses
-    },
+    }, */
 
     {
         G_TRI,
@@ -1573,7 +1778,7 @@ Result_candidate possible_results[] =
         shell_stress_longs,
         shell_stress_primals,
         shell_stress_primal_sclasses
-    },
+    }, 
 
     {
         G_QUAD,
@@ -1588,6 +1793,33 @@ Result_candidate possible_results[] =
         shell_press_primals,
         shell_press_primal_sclasses
     },
+    /*{
+        G_QUAD,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_es_press,
+        NULL,
+        es_press_shorts,
+        es_press_longs,
+        es_press_primals,
+        es_press_primal_sclasses
+    },
+
+    {
+        G_QUAD,
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_es_press,
+        NULL,
+        es_press_shorts,
+        es_press_longs,
+        es_press_primals,
+        shell_press_primal_sclasses
+    },*/
 
     {
         G_QUAD,
@@ -2267,7 +2499,7 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
         /* Derived_result-specific initializations. */
 
         p_sr = (Subrecord_result *) srec_map[srec_id].list;
-
+ 
         /* Derived results need reference to supporting primals. */
         if ( qty > 0 )
             p_result->primals = NEW_N( char **, qty,
@@ -2484,6 +2716,10 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
         {
             /* Search for specified vector component. */
             comp_names = ((Primal_result *) p_hte->data)->var->components;
+            if(comp_names == NULL)
+            {
+                return FALSE;
+            }
             comp_qty = ((Primal_result *) p_hte->data)->var->vec_size;
             for ( i = 0; i < comp_qty; i++ )
                 if ( strcmp( comp_names[i], component ) == 0 )
@@ -2740,7 +2976,7 @@ Bool_type
 result_has_class( Result *p_result, MO_class_data *p_mo_class, Analysis *analy )
 {
     Derived_result *p_dr;
-    Primal_result *p_pr;
+    Primal_result *p_pr = NULL;
     Subrecord_result *p_sr;
     int *p_i;
     int i, j;
@@ -2749,6 +2985,14 @@ result_has_class( Result *p_result, MO_class_data *p_mo_class, Analysis *analy )
 
     if ( p_result == NULL )
         return FALSE;
+
+    if(analy->int_labels != NULL && analy->int_labels->use_combined)
+    {
+        if(analy->original_results[p_mo_class->superclass] != NULL)
+        {
+            return TRUE;
+        }
+    }
 
     if ( p_result->origin.is_derived )
     {
@@ -2787,7 +3031,42 @@ result_has_class( Result *p_result, MO_class_data *p_mo_class, Analysis *analy )
     }
     else
     {
-        p_pr = (Primal_result *) p_result->original_result;
+        if(analy->int_labels != NULL && analy->int_labels->use_combined)
+        {
+            for(i = 0; i < p_result->qty; i++)
+            {
+                if(p_mo_class->superclass == p_result->superclasses[i])
+                {
+                    p_pr = (Primal_result *) analy->original_results[p_mo_class->superclass];
+                    if(p_pr == NULL)
+                    {
+                        return FALSE;
+                    }
+                    break;
+                }
+            } 
+        } else
+        { 
+            p_pr = (Primal_result *) p_result->original_result;
+        }
+        if(p_pr == NULL)
+        {
+            return FALSE;
+        }       
+ 
+        if(!strncmp(p_pr->var->short_name, "es_", 3) && analy->int_labels != NULL && analy->int_labels->use_combined)
+        {
+            /* We are dealing with a combined element set result */
+            /* loop thru the superclasses of the combined result and see if there is a superclass match with the 
+ *             class passed in. */
+            for(i = 0; i < p_result->qty; i++)
+            {
+               if(p_result->superclasses[i] == p_mo_class->superclass)
+               {
+                   return TRUE;
+               } 
+            }
+        }
 
         for ( i = 0; i < analy->qty_srec_fmts; i++ )
         {
@@ -2820,36 +3099,113 @@ Bool_type
 result_has_superclass( Result *p_result, int superclass, Analysis *analy )
 {
     Derived_result *p_dr;
-    Primal_result *p_pr;
+    Primal_result *p_pr = NULL;
     Subrecord_result *p_sr;
     int *p_i;
-    int i, j;
+    int i, j, index;
+    Bool_type found = FALSE;
+    Bool_type is_derived = FALSE;
+    Bool_type is_elemset = FALSE;
     Subrec_obj *p_subr;
     int qty;
 
     if ( p_result == NULL )
         return FALSE;
 
-    if ( p_result->origin.is_derived )
+
+    /* with element sets we now need to deal with a result that is a mixture of primal and detrived results
+ *     so if the passed in superclass has a results function that is not load_primal_result then it needs
+ *     to be treated as derived even if the origin flag is set to primal */
+    for(i = 0; i < p_result->qty; i++)
     {
-        p_dr = (Derived_result *) p_result->original_result;
-
-        for ( i = 0; i < analy->qty_srec_fmts; i++ )
+        if(p_result->superclasses[i] == superclass)
         {
-            if ( (qty = p_dr->srec_map[i].qty) > 0 )
+            if(p_result->result_funcs[i] != load_primal_result && p_result->result_funcs[i] != load_primal_result_double)
             {
-                p_sr = (Subrecord_result *) p_dr->srec_map[i].list;
+                is_derived = TRUE;
+                index = i;
+                if(p_result->original_names != NULL && strstr(p_result->original_names[i], "es_") != NULL)
+                {
+                    is_elemset = TRUE;
+                } 
+                break;
+            }
+        }
+    }
 
-                for ( j = 0; j < qty; j++ )
-                    if ( p_sr[j].candidate->superclass == superclass )
+    /*if(i >= p_result->qty)
+    {
+        return FALSE;
+    }*/
+
+    if ( p_result->origin.is_derived || is_derived)
+    {
+        if(!is_elemset)
+        {
+            p_dr = (Derived_result *) analy->original_results[superclass];
+            if(p_dr == NULL)
+            {
+                p_dr = (Derived_result *) p_result->original_result;
+            }
+            for ( i = 0; i < analy->qty_srec_fmts; i++ )
+            {
+                qty = p_dr->srec_map[i].qty;
+                if ( qty > 0 )
+                {
+                    p_sr = (Subrecord_result *) p_dr->srec_map[i].list;
+
+                    for ( j = 0; j < qty; j++ )
+                        if ( p_sr[j].candidate->superclass == superclass )
                         /* Found superclass match. */
-                        return TRUE;
+                            return TRUE;
+                }
+            
+            }
+        } else if( is_derived )
+        {
+           for(i = 0; i < p_result->qty; i++)
+           {
+               if(p_result->superclasses[i] == superclass)
+               {
+                   return TRUE;
+               }
+           }
+           return FALSE; 
+        } else
+        {
+            for(i = 0; i < p_result->qty; i++)
+            {
+                p_pr = (Primal_result *) analy->original_results[superclass];
+                if(p_pr == NULL)
+                {
+                    return FALSE;
+                }
             }
         }
     }
     else
     {
-        p_pr = (Primal_result *) p_result->original_result;
+        if(analy->int_labels != NULL && analy->int_labels->use_combined)
+        {
+            for(i = 0; i < p_result->qty; i++)
+            {
+                p_pr = (Primal_result *) analy->original_results[superclass];
+
+                if(p_pr == NULL)
+                {
+                    return FALSE;
+                }
+                found = TRUE;
+                break;
+            }
+            if(!found)
+            {
+                p_pr = (Primal_result *) analy->original_results[p_result->superclasses[0]];
+            } 
+        } else
+        {
+            p_pr = (Primal_result *) p_result->original_result;
+        }
 
         for ( i = 0; i < analy->qty_srec_fmts; i++ )
         {
@@ -3017,13 +3373,16 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     int i;
     float *result_buf;
     Result *p_result;
+    Result test_result;
     int subrec, srec;
-    int obj_qty;
-    int index;
+    int obj_qty, len;
+    int es_qty;
+    int index, j;
     int *object_ids;
     Subrec_obj *p_subrec;
     char *primals[2];
     char primal_spec[32];
+    char name[64];
     p_result = analy->cur_result;
     index = analy->result_index;
     subrec = p_result->subrecs[index];
@@ -3032,8 +3391,90 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     object_ids = p_subrec->object_ids;
     obj_qty = p_subrec->subrec.qty_objects;
     float * activity;
+    Bool_type found = FALSE;
+ 
+    if(analy->int_labels != NULL && analy->int_labels->use_combined == TRUE && p_result->original_names != NULL &&
+       !strncmp(p_result->original_names[index], "es_", 3))
+    {
+        es_qty = analy->int_labels->num_es_sets;
+        for(i = 0; i < es_qty; i++)
+        {
+            for(j = 0; j < p_subrec->subrec.qty_svars; j++)
+            {
+                if(!strcmp(analy->int_labels->es_names[i], p_subrec->subrec.svar_names[j]))
+                {
+                    strcpy(primal_spec, analy->int_labels->result_names[i]);
+                    found = TRUE;
+                    break;
+                }
+            }
+            if(found)
+            {
+                break;
+            }
+        }
+    } else if(index < p_result->qty && p_result->original_names != NULL)
+    {
+        for(i = 0; i < p_subrec->subrec.qty_svars; i++)
+        {
+            if(strstr(p_result->original_names[index], p_subrec->subrec.svar_names[i]) != NULL)
+            {
+                strcpy(primal_spec, p_result->original_names[index]);
+                break;
+            }
+        }
+    } else
+    {
+        strcpy(primal_spec, p_result->name);
+    } 
+    /*if(analy->int_labels != NULL && analy->int_labels->use_combined == TRUE) 
+    {
+        es_qty = analy->int_labels->num_es_sets;
+        if(!strncmp(p_subrec->subrec.svar_names[0], "es_", 3))
+        {
+            for(i = 0; i < es_qty; i++)
+            {
+                if(strncmp(p_subrec->subrec.svar_names[0], analy->int_labels->es_names[i], 5))
+                {
+                    strcpy(primal_spec, analy->int_labels->result_names[i]);
+                    break;
+                }
+            
+            }
+        } else
+        {
+            for(i = 0; i < p_subrec->subrec.qty_svars; i++)
+            {
+                strcpy(name, p_subrec->subrec.svar_names[i]);
+                strcat(name, "[");
+                strcat(name, p_result->name);
+                strcat(name, "]");
+                init_result(&test_result);
+                if(find_result(analy, analy->result_source, TRUE, &test_result, name))
+                {
+                    found = TRUE;
+                    break;
+                }
+            }
+            if(found)
+            {
+                strcpy(primal_spec, name);
+            } else
+            {
+                strcpy( primal_spec, p_result->name );
+            }
+          
+        }
+    } else
+    {
+        strcpy( primal_spec, p_result->name );
+    }
+ 
+    if(p_result->original_names != NULL)
+    {
+        strcpy(primal_spec, p_result->original_names[index]);
+    }*/
 
-    strcpy( primal_spec, p_result->name );
     primals[0] = primal_spec;
     primals[1] = NULL;
 
@@ -3041,8 +3482,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
 				   * for hexes currently. Set to false insure that
 				   * that the EI message will not appear in the
 				   * render window.
-				   */
-
+    				   */
     /*activity = analy->state_p->sand_present
         ? analy->state_p->elem_class_sand[p_subrec->p_object_class->elem_class_index]
         : NULL; */
@@ -3055,6 +3495,36 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     }
     if ( !analy->particle_nodes_enabled && is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
         return;
+
+    if((p_result->superclasses[index] == G_QUAD || p_result->superclasses[index] == G_TRI) &&
+        analy->ref_frame == LOCAL)
+    {
+        /* we have a shell result in the LOCCAL coordinate system. Now check for a stress result */
+        len = strlen(primal_spec);
+        if(len == 2)
+        {
+            if(!strcmp(primal_spec, "sx") || !strcmp(primal_spec, "sy") || !strcmp(primal_spec, "sz"))
+            {
+                load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
+                return;
+            }
+        } else if(len == 3)
+        {
+            if(!strcmp(primal_spec, "sxy") || !strcmp(primal_spec, "szy") || !strcmp(primal_spec, "szx"))
+            {
+                load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
+                return;
+            }
+        } else if(len > 6)
+        { 
+                if(!strncmp(primal_spec, "stress", 6) || !strncmp(primal_spec, "es_", 3))
+                {
+                    load_stress_local_coord(analy, NODAL_RESULT_BUFFER(analy), interpolate);
+                    return;
+                }
+        }
+        
+    }    
 
     if ( object_ids )
     {
@@ -3089,7 +3559,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
             result_buf[i] = activity[i];
 	}
 
-    } */
+    }*/
     
     /* Re-order data if necessary. */
     if ( object_ids )
@@ -3195,6 +3665,272 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     }
 }
 
+/*****************************************************************
+ * TAG( load_stress_local_coord )
+ *
+ * Load a scalar stress result from a subrecord without performing any
+ * derivation in the local coordinate system. This function is called from
+ * load_primal_result(...) where the current result involves the shell class
+ * a stress result and when analy->ref_frame == LOCAL 
+ */
+
+void
+load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolate )
+{
+    float * resultElem;
+    float * result_buf;
+    int i, j, subrec, srec, obj_qty, rval;
+    int qty = 0;
+    int es_qty;
+    int index, idx, elem_idx;
+    int * object_ids;
+    Result *p_result;
+    Subrec_obj *p_subrec;
+    char *primals[2];
+    char *primal_list[7];
+    char primal_spec[32];
+    char name[32];
+    char *p;
+    Bool_type map_timehist_coords = FALSE;
+    Bool_type found = FALSE;
+    GVec3D2P *new_nodes = NULL;
+    float localMat[3][3];
+    float (* sigma)[6];
+    MO_class_data *p_mo_class;
+   
+    p_result = analy->cur_result;
+    index = analy->result_index;
+    subrec = p_result->subrecs[index];
+    srec = p_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    Hash_table *p_sv_ht;
+    Htable_entry *p_hte;
+    State_variable *p_sv;
+    p_sv_ht = analy->st_var_table;
+
+    /* initialize char pointers to NULL */
+    for(i = 0; i < 7; i++)
+    {
+        primal_list[i] = NULL;
+        if(i < 2)
+        {
+            primals[i] = NULL;
+        }
+    } 
+
+    if(analy->int_labels != NULL && analy->int_labels->use_combined == TRUE && p_result->original_names != NULL &&
+       !strncmp(p_result->original_names[index], "es_", 3))
+    {
+        es_qty = analy->int_labels->num_es_sets;
+        for(i = 0; i < es_qty; i++)
+        {
+            for(j = 0; j < p_subrec->subrec.qty_svars; j++)
+            {
+                if(!strcmp(analy->int_labels->es_names[i], p_subrec->subrec.svar_names[j]))
+                {
+                    strcpy(primal_spec, analy->int_labels->result_names[i]);
+                    found = TRUE;
+                    break;
+                }
+            }
+            if(found)
+            {
+                break;
+            }
+        }
+    } else if(p_result->qty > 1 && p_result->original_names != NULL)
+    {
+        for(i = 0; i < p_subrec->subrec.qty_svars; i++)
+        {
+            if(strstr(p_result->original_names[index], p_subrec->subrec.svar_names[i]) != NULL)
+            {
+                strcpy(primal_spec, p_result->original_names[index]);
+                break;
+            }
+        }
+    } else
+    {
+        strcpy(primal_spec, p_result->name);
+    } 
+    p_mo_class = p_subrec->p_object_class;
+
+    /* we know that we are in the local coordinate system or this function would not be called.  We also know that
+ *     we are dealing with shell stresses.  Just need to get the primal name like "sx", "szx" etc.  
+ *     or one of sx sy sz sxy syz szx */
+   if(strlen(primal_spec) <= 3)
+   {
+       idx = (int) primal_spec[1] - (int) 'x' + ((primal_spec[2] ) ? 3: 0);
+   } else
+   {
+       for(p = &primal_spec[0]; *p != '['; p++);
+       p++;
+       i = 0;
+       while(*p != ']' && *p != ',')
+       {
+          name[i] = *p;
+          p++;
+          i++; 
+       }
+       name[i] = '\0';
+       idx = (int) name[1] - (int) 'x' + ((name[2] ) ? 3: 0);
+   }
+
+    for(i = 0; i < 6; i++)
+    {
+        primal_list[i] = malloc(32*sizeof(char));
+    }
+    if(!strncmp(primal_spec, "es_", 3))
+    {
+        for(i = 0; i < 6; i++)
+        {
+            strcpy(primal_list[i], p_subrec->subrec.svar_names[0]);
+        }
+        strcat(primal_list[0], "[sx");
+        for(p = &primal_spec; *p != ','; p++);
+        strcat(primal_list[0], p);
+        strcat(primal_list[1], "[sy");
+        for(p = &primal_spec; *p != ','; p++);
+        strcat(primal_list[1], p);
+        strcat(primal_list[2], "[sz");
+        for(p = &primal_spec; *p != ','; p++);
+        strcat(primal_list[2], p);
+        strcat(primal_list[3], "[sxy");
+        for(p = &primal_spec; *p != ','; p++);
+        strcat(primal_list[3], p);
+        strcat(primal_list[4], "[syz");
+        for(p = &primal_spec; *p != ','; p++);
+        strcat(primal_list[4], p);
+        strcat(primal_list[5], "[szx");
+        for(p = &primal_spec; *p != ','; p++);
+        strcat(primal_list[5], p);
+        found = TRUE;
+               
+    } else
+    {
+       if(p_result->original_names != NULL)
+       {
+           if(strstr(p_result->original_names[index], "stress_in") != NULL)
+           {
+               strcpy(name, "stress_in");
+           } else if(strstr(p_result->original_names[index], "stress_mid") != NULL)
+           {
+               strcpy(name, "stress_mid");
+           } else if(strstr(p_result->original_names[index], "stress_out") != NULL)
+           {
+               strcpy(name, "stress_out");
+           } else
+           {
+               strcpy(name, "stress");
+           }
+        } else
+        {
+            if(strstr(p_result->original_name, "stress_in") != NULL)
+            {
+                strcpy(name, "stress_in");
+            } else if(strstr(p_result->original_name, "stress_mid") != NULL)
+            {
+                strcpy(name, "stress_mid");
+            } else if(strstr(p_result->original_name, "stress_out") != NULL)
+            {
+                strcpy(name, "stress_out");
+            } else
+            {
+                strcpy(name, "stress");
+            }
+        }
+            
+       found = FALSE;
+       primals[0] = malloc(strlen(name) + 1);
+       strcpy(primals[0], name);
+       primals[1] = NULL;
+    } 
+    
+
+   primal_list[6] = NULL;
+ 
+   resultElem = p_subrec->p_object_class->data_buffer;
+   result_buf = analy->tmp_result[0];
+
+   if(found)
+   {
+       analy->db_get_results(analy->db_ident, analy->cur_state + 1, subrec, 6, primal_list, (void *) result_buf);
+   } else
+   {
+       analy->db_get_results(analy->db_ident, analy->cur_state + 1, subrec, 1, primals, (void *) result_buf);
+   }
+   
+   sigma = (float(*)[6]) result_buf;
+
+   if(object_ids)
+   {
+           if(p_mo_class->superclass == G_QUAD)
+           {   for(i = 0; i < obj_qty; i++)
+               {
+                   elem_idx = object_ids[i];
+                   global_to_local_mtx(analy, p_mo_class, elem_idx, map_timehist_coords, new_nodes, localMat);
+                   transform_tensors_1p(1, sigma + i, localMat);
+                   resultElem[elem_idx] = sigma[i][idx];
+               }
+           } else if(p_mo_class->superclass == G_TRI)
+           {   for(i = 0; i < obj_qty; i++)
+               {
+                   elem_idx = object_ids[i];
+                   global_to_local_tri_mtx(analy, p_mo_class, elem_idx, map_timehist_coords, new_nodes, localMat);
+                   transform_tensors_1p(1, sigma + i, localMat);
+                   resultElem[elem_idx] = sigma[i][idx];
+               }
+           }
+   } else
+   {
+       if(p_mo_class->superclass == G_QUAD)
+       {
+           for(i = 0; i < obj_qty; i++)
+           {
+               global_to_local_mtx(analy, p_mo_class, i, map_timehist_coords, new_nodes, localMat);
+               transform_tensors_1p(1, sigma + i, localMat);
+               resultElem[i] = sigma[i][idx];
+           }
+       } else if(p_mo_class->superclass == G_TRI)
+       {
+           for(i = 0; i < obj_qty; i++)
+           {
+               global_to_local_tri_mtx(analy, p_mo_class, i, map_timehist_coords, new_nodes, localMat);
+               transform_tensors_1p(1, sigma + i, localMat);
+               resultElem[i] = sigma[i][idx];
+           }
+       }
+   } 
+   p_result->modifiers.use_flags.use_ref_frame = 1;
+   p_result->modifiers.ref_frame = analy->ref_frame;
+   p_result->modifiers.use_flags.use_ref_surface = 1;
+   p_result->modifiers.ref_surf = analy->ref_surf;
+
+   if(interpolate)
+   {
+       if(p_mo_class->superclass == G_QUAD)
+       {
+           quad_to_nodal( resultElem, resultArr, p_mo_class, obj_qty, object_ids, analy, TRUE);
+       } else if(p_mo_class->superclass == G_TRI)
+       {
+           tri_to_nodal( resultElem, resultArr, p_mo_class, obj_qty, object_ids, analy, TRUE );
+       }
+   }
+
+    if(primal_list[0] != NULL)
+    {
+        for(i = 0; i < 6; i++)
+        {
+            free(primal_list[i]);    
+        }
+    }
+    if(primals[0] != NULL)
+    {
+        free(primals[0]);
+    }
+  
+}
 
 /*****************************************************************
  * TAG( load_primal_result_double )
@@ -3391,12 +4127,12 @@ load_primal_result_int( Analysis *analy, float *resultArr,
     if ( object_ids )
     {
         for ( i = 0; i < obj_qty; i++ )
-            resultElem[object_ids[i]] = (float) ibuffer[i];
+            resultElem[object_ids[i]] = (float) ibuffer[i]/1.0;
     }
     else
     {
         for ( i = 0; i < obj_qty; i++ )
-            resultElem[i] = (float) ibuffer[i];
+            resultElem[i] = (float) ibuffer[i]/1.0;
     }
 
     free( ibuffer );
@@ -4369,3 +5105,412 @@ set_default_intpoints ( int num_intpoints, int num_labels,
         default_intpoints[2] = num_intpoints; /* Outer */
 }
 
+
+/*****************************************************************
+ * TAG( create_result )
+ *
+ * Returns a linked list of result pointers 
+ *
+ */
+
+Result * create_result_list( char * token, Analysis *analy)
+{
+    char * class_names[2000];
+    char name[64];
+    int super_classes[2000];
+    int super_classes_found[QTY_SCLASS];
+    int status, qty_classes;
+    int i, j, k, l, n, rval, copied;
+    int *subrecs;
+    char ipt[125];
+    char raw_primal[64];
+    int qty_candidates;
+    Result * res_ptr = NULL;
+    Result * p1;
+    Result * p2;
+    Result result;
+    Result_candidate *p_rc;
+    es_Result_candidate *p_es_rc;
+    Bool_type raw = TRUE;
+    Bool_type match = FALSE;
+
+    for(i = 0; i < QTY_SCLASS; i++)
+    {
+        super_classes_found[i] = 0;
+    } 
+    status = mili_get_class_names(analy, &qty_classes, class_names, super_classes);
+    if(status != 0)
+    {
+        return NULL;
+    } 
+   
+   k = 0;
+   if(!strncmp(token, "es_", 3))
+   {
+       for(i = 0; i < strlen(token); i++)
+       {
+           if(token[i] == '[')
+           {
+               raw = FALSE;
+               continue;
+           }
+        
+           if(raw == FALSE && token[i] != ']')
+           {
+               raw_primal[k] = token[i];
+               k++;
+           } else if(raw == FALSE && token[i] == ']')
+           {
+               raw_primal[k] = '\0';
+               break;
+           }
+       }
+   }        
+            
+    /* allocate for a 1 based array so that the subrec number equals the indes into the array */
+    subrecs = (int *) calloc(analy->srec_tree->qty + 1, sizeof(int));
+    if(subrecs == NULL)
+    {
+        popup_dialog(WARNING_POPUP, "Out of memory in function create_result_list. exiting\n");
+        parse_command("quit", analy);
+    }
+
+    
+    if(analy->int_labels != NULL)
+    { 
+        for(i = 0; possible_es_results[i].superclass != QTY_SCLASS; i++)
+        {
+            p_es_rc = &possible_es_results[i];
+            for(j = 0; p_es_rc->short_names[j] != NULL; j++)
+            {
+                if(strcmp(token, p_es_rc->short_names[j]) == 0)
+                {
+                    match = TRUE;
+                    break;
+                }
+            }
+            if(match == TRUE)
+            {
+                break;
+            }
+        }
+ 
+    }
+
+    if(!match && analy->int_labels != NULL)
+    {
+        /*There are element sets and we are looking for primal results */
+        for(i = 0; i < analy->int_labels->num_es_sets; i++)
+        {
+            sprintf(ipt, "%d", analy->int_labels->int_pts_selected[i]);
+            strcpy(name, analy->int_labels->es_names[i]);
+            strcat(name, "[");
+            strcat(name, ipt);
+            strcat(name, ", ");
+            if(raw)
+            {
+                strcat(name, token);
+            } else
+            {
+                strcat(name, raw_primal);
+            }
+            strcat(name, "]");
+            init_result(&result);
+            if(find_result(analy, analy->result_source, TRUE, &result, name))
+            {
+                if(subrecs[result.subrecs[0]] == 0)
+                {
+                    res_ptr = insert_result(res_ptr, result, analy);
+                    for(j = 0; j < result.qty; j++)
+                    {
+                        subrecs[result.subrecs[j]] = 1; 
+                    }
+                }
+            }
+        }
+        
+    }
+
+    /* the only way match could be true is if there are element sets in the problem.
+ *     so se still have the possible_es_results with the token match and the primals
+ *     so build a query for each element set and build the result then add it to the
+ *     linked list */
+
+    if(match && analy->int_labels != NULL)
+    {
+        for(i = 0; i < analy->int_labels->num_es_sets; i++)
+        {
+            n = snprintf(ipt, 124, "%d", analy->int_labels->int_pts_selected[i]); 
+        
+            match = TRUE;
+            for(j = 0; p_es_rc->primals[j] != NULL; j++)
+            { 
+                strncpy(raw_primal, p_es_rc->primals[j], 20);
+
+                n += 5 + strlen(analy->int_labels->es_names[i])+ strlen(raw_primal);
+                if(n < 64)
+                {
+                    strcpy(name, analy->int_labels->es_names[i]);
+                    strcat(name, "[");
+                    strcat(name, ipt);
+                    strcat(name, ", ");
+                    strcat(name, p_es_rc->primals[j]);
+                    strcat(name, "]");
+                    init_result(&result);
+                    if(!find_result(analy, analy->result_source, TRUE, &result, name))
+                    {
+                        match = FALSE;
+                        break;
+                    }
+                }
+            }
+            if(match == TRUE && subrecs[result.subrecs[0]] == 1)
+            {
+                /* this result has already been added */
+                match = FALSE;
+            }
+            if(match == TRUE)
+            {
+                /* This element set has all the primale to calculate the result so add it to
+ *             the linked list after some adjustments to the result structure */
+                strncpy(result.root, token, strlen(token) + 1); 
+                strncpy(result.name, token, strlen(token) + 1); 
+                strcpy(result.title, p_es_rc->long_names[0]);
+                result.result_funcs[0] = p_es_rc->compute_func;
+                analy->original_results[result.superclasses[0]] = result.original_result;
+                result.primals = NEW_N(char**, result.qty, "Result primals array");
+                for(j = 0; j < result.qty; j++)
+                {
+                    result.primals[j] = p_es_rc->primals;
+                }
+
+                res_ptr = insert_result(res_ptr, result, analy);
+                for(j = 0; j < result.qty; j++)
+                {
+                    subrecs[result.subrecs[j]] = 1;
+                }  
+            } 
+        }    
+    }
+ 
+    for(i = 0; possible_results[i].superclass != QTY_SCLASS; i++)
+    {
+        p_rc = &possible_results[i];
+        for(j = 0; p_rc->short_names[j] != NULL; j++)
+        {
+            if(strcmp(token, p_rc->short_names[j]) == 0)
+            {
+                init_result(&result);
+                rval = find_result(analy, analy->result_source, TRUE, &result, token);
+                if(rval)
+                {
+                    if(subrecs[result.subrecs[0]] == 0)
+                    {
+                        res_ptr = insert_result(res_ptr, result, analy);
+                        for(k = 0; k < result.qty; k++)
+                        {
+                            subrecs[result.subrecs[k]] = 1;
+                        } 
+                   } 
+                }
+               
+            }
+        }
+    }
+
+    /* if res_ptr != NULL then this was a derived result */
+    /*if(res_ptr != NULL)
+    {
+        free(subrecs);
+        return res_ptr;
+    } */
+ 
+    init_result(&result);
+ 
+    rval = find_result(analy, analy->result_source, TRUE, &result, token);
+    /* start with element sets if they exist */
+    if(analy->int_labels != NULL && rval == 1 )
+    {
+        /* we are looking for a primal result */
+        for(qty_candidates = 0; possible_results[qty_candidates].superclass != QTY_SCLASS; qty_candidates++);
+       k = 0;
+       p_rc = &possible_es_results[0];
+       /* lets get the raw primal */
+       for(i = 0; i < strlen(token); i++)
+       {
+           if(token[i] == '[')
+           {
+               raw = FALSE;
+               continue;
+           }
+            
+           if(raw == FALSE && token[i] != ']')
+           {
+               raw_primal[k] = token[i];
+               k++;
+           } else if(raw == FALSE && token[i] == ']')
+           {
+               raw_primal[k] = '\0';
+               break;
+           }
+           
+            
+       }
+
+       for(j = 0; j < analy->int_labels->num_es_sets; j++)
+       {
+           strcpy(name, analy->int_labels->es_names[j]);
+           strcat(name, "[");
+           sprintf(ipt, "%d", analy->int_labels->int_pts_selected[j]);
+           strcat(name, ipt);
+           strcat(name, ", ");
+           if(raw == TRUE)
+           {
+               strcat(name, token);
+           } else
+           {
+               strcat(name, raw_primal);
+           }
+           strcat(name, "]"); 
+           init_result(&result);
+           if(find_result(analy, analy->result_source, TRUE, &result, name))
+           {
+               if(subrecs[result.subrecs[0]] == 0)
+               {
+                   res_ptr = insert_result(res_ptr, result, analy);
+                   for(k = 0; k < result.qty; k++)
+                   {
+                       subrecs[result.subrecs[k]] = 1;
+                   }
+               }
+           }
+       }
+       init_result(&result);
+       if(find_result(analy, analy->result_source, TRUE, &result, token))
+       {
+           if(subrecs[result.subrecs[0]] == 0)
+           {
+               res_ptr = insert_result(res_ptr, result, analy);
+               for(k = 0; k < result.qty; k++)
+               {
+                   subrecs[result.subrecs[k]] = 1;
+               }
+           }
+       }
+
+    } else if(analy->int_labels == NULL && rval == 1)
+    {
+        /* ok element sets are not in this plot file */
+        if(raw == TRUE)
+        {
+            if(subrecs[result.subrecs[0]] == 0)
+            {
+                res_ptr = insert_result(res_ptr, result, analy);
+            }
+        } else
+        {
+            init_result(&result);
+            rval = find_result(analy, analy->result_source, TRUE, &result, raw_primal);
+            if(rval == TRUE)
+            {
+                if(subrecs[result.subrecs[0]] == 0)
+                {
+                    res_ptr = insert_result(res_ptr, result, analy);
+                }
+            } else
+            {
+                init_result(&result);
+                rval = find_result(analy, analy->result_source, TRUE, &result, token);
+                if(rval == 1)
+                {
+                    if(subrecs[result.subrecs[0]] == 0)
+                    {
+                        res_ptr = insert_result(res_ptr, result, analy);
+                    }
+                }
+            }
+        } 
+    } 
+   
+    free(subrecs); 
+    return res_ptr;        
+}
+
+/*****************************************************************
+ * TAG( insert_result )
+ *
+ * creates a linked list of results or if one is already created
+ * adds a result to the end of the linked list 
+ *
+ */
+Result * insert_result(Result * res_ptr, Result result, Analysis * analy)
+{
+    Result *p1;
+    Result *p2;
+ 
+    p2 = (Result *) malloc(sizeof(Result));
+    if(p2 == NULL)
+    {
+        popup_dialog(WARNING_POPUP, "Out of memory in function insert result. Exiting\n");
+        parse_command("quit", analy);
+    }
+
+    *p2 = result;
+    if(res_ptr == NULL)
+    {
+        res_ptr = p2;
+        res_ptr->prev = NULL;
+        res_ptr->next = NULL;
+    } else
+    {
+        if(res_ptr->next == NULL)
+        {
+            res_ptr->next = p2;
+            p2->prev = res_ptr;
+            p2->next = NULL;
+        } else
+        {
+            for(p1 = res_ptr; p1->next != NULL; p1 = p1->next);
+            p1->next = p2;
+            p2->prev = p1;
+            p2->next = NULL;
+        }
+    }
+
+    return res_ptr;
+}
+
+
+/*****************************************************************
+ * TAG( delete_result_list )
+ *
+ * Takes a pointer to a linked list of results and frees up the 
+ * memory and sets the pointer to NULL
+ *
+ */
+
+void delete_result_list(Result ** res_ptr, Analysis * analy)
+{
+   Result *p1;
+   Result *p2;
+
+   if(*res_ptr == NULL)
+   {
+       return;
+   }
+   for(p1 = *res_ptr; p1->next != NULL; p1 = p1->next);
+
+   for(p2 = p1->prev; p2 != NULL; p2 = p2->prev)
+   {
+       p1->prev = NULL;
+       p2->next = NULL;
+       free(p1);
+       p1 = NULL;
+       p1 = p2;
+   }
+
+   free(p1);
+   p1 = NULL;
+   *res_ptr = NULL;
+
+}

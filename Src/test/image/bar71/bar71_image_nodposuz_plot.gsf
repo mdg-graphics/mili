@@ -40,7 +40,7 @@ select node 1 741 777-778 1369
 select mat 1
 
 # Images for variable nodposuz
-show nodpos[ux]
+show nodpos[uz]
 state 20
 state 75
 sw noterp

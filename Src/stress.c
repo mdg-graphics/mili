@@ -521,9 +521,9 @@ compute_particle_press( Analysis *analy, float *resultArr, Bool_type interpolate
             resultElem[i] = -( stress[i][0] + stress[i][1] + stress[i][2] )
                             * ONETHIRD ;
 
-    /*if ( interpolate )
-        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
-                      object_ids, analy ); */
+    if ( interpolate )
+        particle_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                      object_ids, analy );
 
 }
 
@@ -595,9 +595,9 @@ compute_particle_effstress( Analysis *analy, float *resultArr,
         resultElem[elem_idx] = sqrt( (double)(3.0*resultElem[elem_idx]) );
     }
 
-    /*if ( interpolate )
-        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
-                      object_ids, analy ); */
+    if ( interpolate )
+        particle_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                      object_ids, analy );
 
 }
 
@@ -768,9 +768,9 @@ compute_particle_principal_stress( Analysis *analy, float *resultArr,
         }
     }
 
-    /* if ( interpolate )
-        hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
-                      object_ids, analy ); */
+    if ( interpolate )
+        particle_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                      object_ids, analy );
 
 }
 
@@ -1024,9 +1024,144 @@ compute_shell_stress( Analysis *analy, float *resultArr, Bool_type interpolate )
         }
 }
 
-
 /************************************************************
- * TAG( compute_shell_press )
+ * TAG( compute_es_press )
+ *
+ * Computes the pressure at nodes.
+
+*************************************************************/
+void
+compute_es_press( Analysis *analy, float *resultArr, Bool_type interpolate)
+{
+    Ref_surf_type ref_surf;
+    float *resultElem;
+    float (*shellPressure)[6];
+    int i;
+    char ipt[125];
+    float *(result_buf)[3];
+    Result *p_es_result;
+    Result es_result;
+    char **primals;
+    char ** es_primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    char *primal_list[1];
+    MO_class_data *p_mo_class;
+    char es_name[64];
+    p_es_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_es_result->primals[index];
+    subrec = p_es_result->subrecs[index];
+    srec = p_es_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
+    p_mo_class = p_subrec->p_object_class;
+    ref_surf = analy->ref_surf;
+ 
+    if(obj_qty <= 0)
+    {
+        return;
+    }
+    if(analy->int_labels == NULL || index >= analy->int_labels->num_es_sets)
+    {
+        return;
+    }
+
+    es_primals = (char **) malloc(2*sizeof(char *));
+    if(es_primals == NULL)
+    {
+        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
+        parse_command("quit", analy);
+    }
+    es_primals[0] = (char *) malloc(32*sizeof(char));
+    if(es_primals[0] == NULL)
+    {
+        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
+        parse_command("quit", analy);
+    }
+     
+
+    /* allocate memory for the result_buf arrays to hold the three primals 
+ *     necessary to calculate pressure */
+    for(i = 0; i < 3; i++)
+    {
+        result_buf[i] = calloc(obj_qty, sizeof(float));
+        if(result_buf[i] == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_press, exiting\n");
+            parse_command("quit", analy);
+        }
+    }
+   
+    i = 0;
+    primal_list[0] = primals[i];
+    while(primal_list[0] != NULL)
+    {
+        strcpy(es_name, analy->int_labels->es_names[index]);
+        strcat(es_name, "[");
+        strcat(es_name, primal_list[0]);
+        sprintf(ipt, "%d", analy->int_labels->int_pts_selected[index]);
+        strcat(es_name, ",");
+        strcat(es_name, ipt);
+        strcat(es_name, "]");
+        strcpy(es_primals[0], es_name);
+        es_primals[1] = NULL; 
+        analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
+                               es_primals, (void *) result_buf[i] );
+        i++;
+        primal_list[0] = primals[i];
+    }
+
+    /* all three result buffers should now be populated with the raw data needed to calculate pressure */
+    /* compute pressure */
+    if(object_ids)
+    {
+        for(i = 0; i < obj_qty; i++)
+        {
+            resultElem[object_ids[i]] = -( result_buf[0][i]
+                                          + result_buf[1][i]
+                                          * result_buf[2][i] ) * ONETHIRD;
+        }
+    } else
+    {
+        for(i = 0; i < obj_qty; i++)
+        {
+            resultElem[i] = -( result_buf[0][i]
+                              + result_buf[1][i]
+                              + result_buf[2][i] ) * ONETHIRD;
+        }
+    }
+
+    /* Update result to indicate that reference surface matters. */
+    p_es_result->modifiers.use_flags.use_ref_surface = 1;
+    p_es_result->modifiers.ref_surf = analy->ref_surf;
+
+    if ( interpolate )
+        if(p_mo_class->superclass == G_QUAD)
+        {
+            quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy, TRUE );
+        }
+        else if(p_mo_class->superclass == G_TRI)
+        {
+
+            tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+        } else if(p_mo_class->superclass == G_HEX)
+        {
+            hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                      object_ids, analy );
+        }
+ 
+}
+
+/*******************************
+* TAG( compute_shell_press )
  *
  * Computes the pressure at nodes.
  */
@@ -1121,9 +1256,148 @@ compute_shell_press( Analysis *analy, float *resultArr, Bool_type interpolate )
 
             tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
                           object_ids, analy, TRUE );
-        }
+        } 
 }
 
+/************************************************************
+ * TAG( compute_es_effstress )
+ *
+ * Computes the pressure at nodes.
+
+*************************************************************/
+void
+compute_es_effstress( Analysis *analy, float *resultArr, Bool_type interpolate)
+{
+    Ref_surf_type ref_surf;
+    float *resultElem;
+    float pressure, interm_result;
+    float devStress[3];
+    int i, j, out_idx;
+    char ipt[125];
+    float *(result_buf)[6];
+    Result *p_es_result;
+    Result es_result;
+    char **primals;
+    char ** es_primals;
+    int subrec, srec;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    char *primal_list[1];
+    MO_class_data *p_mo_class;
+    char es_name[64];
+    p_es_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_es_result->primals[index];
+    subrec = p_es_result->subrecs[index];
+    srec = p_es_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
+    p_mo_class = p_subrec->p_object_class;
+    ref_surf = analy->ref_surf;
+ 
+    if(obj_qty <= 0)
+    {
+        return;
+    }
+    if(analy->int_labels == NULL)
+    {
+        return;
+    }
+
+    es_primals = (char **) malloc(2*sizeof(char *));
+    if(es_primals == NULL)
+    {
+        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
+        parse_command("quit", analy);
+    }
+    es_primals[0] = (char *) malloc(32*sizeof(char));
+    if(es_primals[0] == NULL)
+    {
+        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
+        parse_command("quit", analy);
+    }
+     
+
+    /* allocate memory for the result_buf arrays to hold the three primals 
+ *     necessary to calculate pressure */
+    for(i = 0; i < 6; i++)
+    {
+        result_buf[i] = calloc(obj_qty, sizeof(float));
+        if(result_buf[i] == NULL)
+        {
+            popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_press, exiting\n");
+            parse_command("quit", analy);
+        }
+    }
+   
+    i = 0;
+    primal_list[0] = primals[i];
+    while(primal_list[0] != NULL)
+    {
+        strcpy(es_name, analy->int_labels->es_names[index]);
+        strcat(es_name, "[");
+        strcat(es_name, primal_list[0]);
+        sprintf(ipt, "%d", analy->int_labels->int_pts_selected[index]);
+        strcat(es_name, ",");
+        strcat(es_name, ipt);
+        strcat(es_name, "]");
+        strcpy(es_primals[0], es_name);
+        es_primals[1] = NULL; 
+        analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
+                               es_primals, (void *) result_buf[i] );
+        i++;
+        primal_list[0] = primals[i];
+    }
+
+    for(i = 0; i < obj_qty; i++)
+    {
+        pressure = -( result_buf[0][i] +
+                      result_buf[1][i] +
+                      result_buf[2][i] ) * ONETHIRD;
+
+       /* calculate deviatoric components of stress tensor */
+       for(j = 0; j < 3; j++)
+       {
+           devStress[j] = result_buf[j][i] + pressure;
+       }
+ 
+       /* calculate effective stress from deviatoric components. */
+       interm_result = 0.5 * ( devStress[0] * devStress[0] +
+                               devStress[1] * devStress[1] +
+                               devStress[2] * devStress[2] )
+                           +   result_buf[3][i] * result_buf[3][i]
+                           +   result_buf[4][i] * result_buf[4][i]
+                           +   result_buf[5][i] * result_buf[5][i];
+      out_idx = (object_ids == NULL) ? i : object_ids[i];
+      resultElem[out_idx] = sqrt(3.0 * interm_result);
+    }
+
+    /* Update result to indicate that reference surface matters. */
+    p_es_result->modifiers.use_flags.use_ref_surface = 1;
+    p_es_result->modifiers.ref_surf = analy->ref_surf;
+   
+    if ( interpolate )
+        if(p_mo_class->superclass == G_QUAD)
+        {
+            quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy, TRUE );
+        }
+        else if (p_mo_class->superclass == G_TRI)
+        {
+
+            tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+        } else if(p_mo_class->superclass == G_HEX)
+        {
+            hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                      object_ids, analy );
+        }
+ 
+}
 
 /************************************************************
  * TAG( compute_shell_effstress )
@@ -1236,6 +1510,223 @@ compute_shell_effstress( Analysis *analy, float *resultArr,
         }
 }
 
+/************************************************************
+ * TAG( compute_es_principal_stress )
+ *
+ * Computes the pressure at nodes.
+
+*************************************************************/
+void
+compute_es_principal_stress( Analysis *analy, float *resultArr, Bool_type interpolate)
+{
+    Ref_surf_type ref_surf;
+    float *resultElem;
+    float pressure, interm_result;
+    float Invariant[3];              /* Invariants of tensor. */
+    float princStress[3];            /* Principal values. */
+    float alpha, angle, value;
+    float devStress[3];
+    int i, j, out_idx;
+    char ipt[125];
+    float *(result_buf)[6];
+    Result *p_es_result;
+    Result es_result;
+    char **primals;
+    char ** es_primals;
+    int subrec, srec;
+    int res_index, elem_idx;
+    int obj_qty;
+    int index;
+    int *object_ids;
+    Subrec_obj *p_subrec;
+    char *primal_list[1];
+    MO_class_data *p_mo_class;
+    char es_name[64];
+    p_es_result = analy->cur_result;
+    index = analy->result_index;
+    primals = p_es_result->primals[index];
+    subrec = p_es_result->subrecs[index];
+    srec = p_es_result->srec_id;
+    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+    object_ids = p_subrec->object_ids;
+    obj_qty = p_subrec->subrec.qty_objects;
+    resultElem = p_subrec->p_object_class->data_buffer;
+    p_mo_class = p_subrec->p_object_class;
+    ref_surf = analy->ref_surf;
+ 
+    if(obj_qty <= 0)
+    {
+        return;
+    }
+    if(analy->int_labels == NULL)
+    {
+        return;
+    }
+
+    es_primals = (char **) malloc(2*sizeof(char *));
+    if(es_primals == NULL)
+    {
+        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
+        parse_command("quit", analy);
+    }
+    es_primals[0] = (char *) malloc(32*sizeof(char));
+    if(es_primals[0] == NULL)
+    {
+        popup_dialog(WARNING_POPUP, "Out of memory in function compute_es_pressure. Exiting\n");
+        parse_command("quit", analy);
+    }
+     
+
+    /* allocate memory for the result_buf arrays to hold the three primals 
+ *     necessary to calculate pressure */
+    for(i = 0; i < 6; i++)
+    {
+        /* Just use analy->tmp_result[0] as an extra long buffer. */
+        result_buf[i] = analy->tmp_result[i];
+    }
+   
+    i = 0;
+    primal_list[0] = primals[i];
+    while(primal_list[0] != NULL)
+    {
+        strcpy(es_name, analy->int_labels->es_names[index]);
+        strcat(es_name, "[");
+        strcat(es_name, primal_list[0]);
+        sprintf(ipt, "%d", analy->int_labels->int_pts_selected[index]);
+        strcat(es_name, ",");
+        strcat(es_name, ipt);
+        strcat(es_name, "]");
+        strcpy(es_primals[0], es_name);
+        es_primals[1] = NULL; 
+        analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
+                               es_primals, (void *) result_buf[i] );
+        i++;
+        primal_list[0] = primals[i];
+    }
+
+    /* Just use analy->tmp_result[0] as an extra long buffer. */
+    /*result_buf = analy->tmp_result[0]; */
+
+
+    /* Map result onto a numeric index. */
+    if ( strcmp( p_es_result->name, "pdev1" ) == 0 )
+        res_index = 0;
+    else if ( strcmp( p_es_result->name, "pdev2" ) == 0 )
+        res_index = 1;
+    else if ( strcmp( p_es_result->name, "pdev3" ) == 0 )
+        res_index = 2;
+    else if ( strcmp( p_es_result->name, "maxshr" ) == 0 )
+        res_index = 3;
+    else if ( strcmp( p_es_result->name, "prin1" ) == 0 )
+        res_index = 4;
+    else if ( strcmp( p_es_result->name, "prin2" ) == 0 )
+        res_index = 5;
+    else if ( strcmp( p_es_result->name, "prin3" ) == 0 )
+        res_index = 6;
+
+    /* Calculate deviatoric stresses. */
+    for ( i = 0; i < obj_qty; i++ )
+    {
+        /* Calculate pressure as intermediate variable needed for
+         * determining deviatoric components.
+         */
+        pressure = -( result_buf[0][i] +
+                      result_buf[1][i] +
+                      result_buf[2][i] ) * ONETHIRD;
+
+        /* Calculate deviatoric components of stress tensor. */
+        for ( j = 0; j < 3; j++ )
+            devStress[j] = result_buf[j][i] + pressure;
+
+        /* Calculate invariants of deviatoric tensor. */
+        /* Invariant[0] = 0.0 */
+        Invariant[0] = devStress[0] + devStress[1] + devStress[2];
+        Invariant[1] = 0.5 * ( devStress[0] * devStress[0]
+                               + devStress[1] * devStress[1]
+                               + devStress[2] * devStress[2] )
+                       + result_buf[3][i] * result_buf[3][i]
+                       + result_buf[4][i] * result_buf[4][i]
+                       + result_buf[5][i] * result_buf[5][i];
+        Invariant[2] = -devStress[0] * devStress[1] * devStress[2]
+                       - 2.0 * result_buf[3][i] * result_buf[4][i] * result_buf[5][i]
+                       + devStress[0] * result_buf[4][i] * result_buf[4][i]
+                       + devStress[1] * result_buf[5][i] * result_buf[5][i]
+                       + devStress[2] * result_buf[3][i] * result_buf[3][i];
+
+        /* Check to see if we can have non-zero divisor, if not
+         * set principal stress to 0.
+         */
+        if ( Invariant[1] >= 1e-7 )
+        {
+            alpha = -0.5 * sqrt( (double) 27.0 / Invariant[1] )
+                    * Invariant[2]/Invariant[1];
+            if ( alpha < 0 )
+                alpha = MAX( alpha, -1.0 );
+            else if ( alpha > 0 )
+                alpha = MIN( alpha, 1.0 );
+            angle = acos((double)alpha) * ONETHIRD;
+            value = 2.0 * sqrt( (double)Invariant[1] * ONETHIRD);
+            princStress[0] = value*cos((double)angle);
+            angle = angle - 2.0*PI * ONETHIRD ;
+            princStress[1] = value*cos((double)angle);
+            angle = angle + 4.0*PI * ONETHIRD;
+            princStress[2] = value*cos((double)angle);
+        }
+        else
+        {
+            princStress[0] = 0.0;
+            princStress[1] = 0.0;
+            princStress[2] = 0.0;
+        }
+
+        elem_idx = ( object_ids ) ? object_ids[i] : i;
+
+        switch ( res_index )
+        {
+        case 0:
+            resultElem[elem_idx] = princStress[0];
+            break;
+        case 1:
+            resultElem[elem_idx] = princStress[1];
+            break;
+        case 2:
+            resultElem[elem_idx] = princStress[2];
+            break;
+        case 3:
+            resultElem[elem_idx] = (princStress[0] - princStress[2]) * ONEHALF;
+            break;
+        case 4:
+            resultElem[elem_idx] = princStress[0] - pressure;
+            break;
+        case 5:
+            resultElem[elem_idx] = princStress[1] - pressure;
+            break;
+        case 6:
+            resultElem[elem_idx] = princStress[2] - pressure;
+            break;
+        }
+    }
+
+    /* Update result to indicate that reference surface matters. */
+    p_es_result->modifiers.use_flags.use_ref_surface = 1;
+    p_es_result->modifiers.ref_surf = analy->ref_surf;
+
+    if ( interpolate )
+        if(p_mo_class->superclass == G_QUAD)
+        {
+            quad_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                           object_ids, analy, TRUE );
+        }
+        else if(p_mo_class->superclass == G_TRI)
+        {
+            tri_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy, TRUE );
+        } else if(p_mo_class->superclass == G_HEX)
+        {
+            hex_to_nodal( resultElem, resultArr, p_subrec->p_object_class, obj_qty,
+                          object_ids, analy );
+        }
+}
 
 /************************************************************
  * TAG( compute_shell_principal_stress )
@@ -1508,7 +1999,9 @@ compute_shell_surface_stress( Analysis *analy, float *resultArr,
     }
 
     /* Read the database. */
-    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 3,
+    /*analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 3,
+                           primal_list, (void *) analy->tmp_result[0] ); */
+    analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 2,
                            primal_list, (void *) analy->tmp_result[0] );
 
     /* Calculate the value given the normal and bending components

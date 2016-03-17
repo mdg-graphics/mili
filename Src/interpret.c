@@ -219,6 +219,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <math.h>
 #include "viewer.h"
 #include "draw.h"
 #include "mdg.h"
@@ -363,7 +364,10 @@ static void end_text_history( void );
 extern void hidden_inline( char * );
 
 static int  check_for_result( Analysis *analy, int display_warning );
-
+static int select_integration_pts(char [MAXTOKENS][TOKENLENGTH], int, Analysis *);
+static int set_inpt(int, int, char *, int, int, Analysis *);
+static void show_ipt_avail(Analysis *);
+static void intpts_selected(Analysis *);
 
 void
 process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
@@ -737,17 +741,11 @@ parse_command( char *input_buf, Analysis *analy )
         for (i = 0;
                 i < len_buf;
                 i++ )
-        {
             if ( buf[i] == ';' )
             {
-                if(num_cmds >= 1000)
-                {
-                    break;
-                }
                 buf[i] = '\0';
                 next_cmd_index[num_cmds++]=i+1;
             }
-        }
     }
 
     for (i=0;
@@ -806,6 +804,7 @@ parse_single_command( char *buf, Analysis *analy )
     char result_variable[1];
     Redraw_mode_type tellmm_redraw;
     Bool_type selection_cleared;
+    Bool_type old_autoselect;
     static Result result_vector[3];
     int rval;
     Htable_entry *p_hte;
@@ -871,7 +870,7 @@ parse_single_command( char *buf, Analysis *analy )
     int obj, obj_min, obj_max;
 
     Bool_type mat_selected     = TRUE;
-    Bool_type mat_brick_selected = TRUE;
+    Bool_type mat_brick_selected = FALSE;
     Bool_type result_selected  = TRUE;
     Bool_type vis_selected     = FALSE;
     Bool_type enable_selected  = FALSE;
@@ -1084,6 +1083,19 @@ parse_single_command( char *buf, Analysis *analy )
     {
         analy->hilite_class = NULL;
         redraw = BINDING_MESH_VISUAL;
+    }
+    else if (strcmp(tokens[0], "select_ipt") == 0 || strcmp( tokens[0], "deselect_ipt") == 0)
+    {
+        valid_command = select_integration_pts(tokens, token_cnt, analy); 
+    } else if(strcmp(tokens[0], "show_avail_int_pts") == 0)
+    {
+        show_ipt_avail(analy);
+        valid_command = TRUE;
+    }
+     else if(strcmp(tokens[0], "show_sel_int_pts") == 0)
+    {
+        intpts_selected(analy);
+        valid_command = TRUE;
     }
     else if ( strcmp( tokens[0], "select" ) == 0 || strcmp( tokens[0], "unselect" ) == 0
               || strcmp(tokens[0], "deselect") == 0)
@@ -1688,6 +1700,7 @@ parse_single_command( char *buf, Analysis *analy )
     }
     else if ( strcmp( tokens[0], "show" ) == 0 )
     {
+
         analy->th_plotting   = FALSE;
         if (  strncmp( tokens[1], "mat", 3 ) == 0 )
             analy->result_active = FALSE;
@@ -2161,17 +2174,18 @@ parse_single_command( char *buf, Analysis *analy )
                 update_vec_points( analy );
                 if(strcmp(tokens[0], "on") == 0)
                 {
-                    analy->last_mesh_view_mode = analy->mesh_view_mode; 
+                    analy->last_mesh_view_mode = analy->mesh_view_mode;
                 }
-                check_visualizing( analy );
+                /*check_visualizing( analy ); */
                 if(strcmp(tokens[0], "off") == 0)
                 {
+                    /* restore render mode and reload the last result */
                     analy->mesh_view_mode = analy->last_mesh_view_mode;
-                    if(analy->cur_result != NULL)
-                    {
-                        load_result(analy, TRUE, TRUE, FALSE);
-                    }
-                } 
+                }
+                if(analy->cur_result != NULL)
+                {
+                    load_result(analy, TRUE, TRUE, FALSE);
+                }
             }
             else if ( strcmp( tokens[i], "sphere" ) == 0 )
                 analy->show_vector_spheres = setval;
@@ -2604,11 +2618,73 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->vol_averaging = setval;
                 change_state( analy );
             }
+            else if(!strcmp(tokens[i], "autoselect"))
+            {
+                char command[2048];
+                int j;
+                analy->autoselect = setval;
+                
+                if(setval == TRUE)
+                {
+                    parse_command("sw mstat", analy);
+                }
+
+                if(analy->cur_result != NULL)
+                {
+                    load_result( analy, TRUE, TRUE, FALSE);
+                    if(setval == FALSE)
+                    {
+                        if(analy->selected_objects == NULL)
+                        {
+                            return;
+                        }
+
+                        strcpy(command, "deselect ");
+                        for(j = 0; j < MESH(analy).qty_class_selections; j++)
+                        {
+                            if(MESH(analy).by_class_select[j].p_class->superclass == analy->elem_state_mm.sclass[0])
+                            {
+                                break;
+                            }
+                        }
+                        if(j < MESH(analy).qty_class_selections)
+                        {
+                            if(analy->elem_state_mm.sclass[0] == analy->elem_state_mm.sclass[1] || analy->elem_state_mm.sclass[1] == 0)
+                            {
+                                strcat(command, MESH(analy).by_class_select[j].p_class->short_name);
+                                sprintf(command, "%s %d %d", command, analy->elem_state_mm.object_id[0], analy->elem_state_mm.object_id[1]);
+                                parse_command(command, analy);
+                            } else
+                            {
+                                strcat(command, MESH(analy).by_class_select[j].p_class->short_name);
+                                sprintf(command, "%s %d", command, analy->elem_state_mm.object_id[0]);
+                                parse_command(command, analy);
+                                /* now go get the other superclass */
+                                for(j = 0; j < MESH(analy).qty_class_selections; j++)
+                                {
+                                    if(MESH(analy).by_class_select[j].p_class->superclass == analy->elem_state_mm.sclass[1])
+                                    {
+                                        break;
+                                    }
+                                }
+                                if(j < MESH(analy).qty_class_selections)
+                                {
+                                    strcpy(command, "deselect ");
+                                    strcat(command, MESH(analy).by_class_select[j].p_class->short_name);
+                                    sprintf(command, "%s %d", command, analy->elem_state_mm.object_id[1]);
+                                    parse_command(command, analy);
+                                }
+
+                            }
+                    }
+                    
+                }
+            }
+         }
             else
                 popup_dialog( INFO_POPUP,
                               "On/Off command unrecognized: %s\n", tokens[i] );
         }
-
         /* Reload the result vector. */
         if ( analy->result_mod )
         {
@@ -2725,6 +2801,7 @@ parse_single_command( char *buf, Analysis *analy )
             }
             else if( strcmp( tokens[i], "mglob" ) == 0 )
             {
+                parse_command("off autoselect", analy);
                 analy->use_global_mm = TRUE;
                 if ( !analy->mm_result_set[0] )
                     analy->result_mm[0] = analy->global_mm[0];
@@ -2757,6 +2834,10 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->result_mod = analy->check_mod_required( analy,
                                     REFERENCE_SURFACE, old,
                                     analy->ref_surf );
+                if(analy->int_labels != NULL && analy->int_labels->use_combined)
+                {
+                    parse_command("select_ipt middle", analy);
+                }
             }
             else if ( strcmp( tokens[i], "inner" ) == 0 )
             {
@@ -2765,6 +2846,10 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->result_mod = analy->check_mod_required( analy,
                                     REFERENCE_SURFACE, old,
                                     analy->ref_surf );
+                if(analy->int_labels != NULL && analy->int_labels->use_combined)
+                {
+                    parse_command("select_ipt inner", analy);
+                }
             }
             else if ( strcmp( tokens[i], "outer" ) == 0 )
             {
@@ -2773,6 +2858,10 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->result_mod = analy->check_mod_required( analy,
                                     REFERENCE_SURFACE, old,
                                     analy->ref_surf );
+                if(analy->int_labels != NULL && analy->int_labels->use_combined)
+                {
+                    parse_command("select_ipt outer", analy);
+                }
             }
 
             /* Strain basis. */
@@ -3212,7 +3301,7 @@ parse_single_command( char *buf, Analysis *analy )
             class_selected = TRUE;
             idx++;
         } */
-
+       
         for(i = 0; i < MESH(analy).qty_class_selections; i++)
         {
             p_class = MESH(analy).by_class_select[i].p_class;
@@ -3242,6 +3331,12 @@ parse_single_command( char *buf, Analysis *analy )
         {
             return;
         }
+
+        else if(token_cnt > 2 && strcmp(tokens[0], "vis") == 0 && strcmp(tokens[1], "all") == 0)
+        {
+            return;
+        }
+
         if ( !strcmp( "BRICK", tmp_token ) && !class_selected )
         {
             string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
@@ -3395,7 +3490,7 @@ parse_single_command( char *buf, Analysis *analy )
                                         setval, vis_selected, mat_selected );
 
             /* handle the case where we invised by a material number(s) but vised by element class 
- *             this requires vising by material number(s) */
+ *  *             this requires vising by material number(s) */
             if(class_selected == TRUE && strcmp(tokens[0], "vis") == 0)
             {
                 for(i = 1; i < token_cnt; i++)
@@ -3421,7 +3516,7 @@ parse_single_command( char *buf, Analysis *analy )
                                             p_elem, p_hide_qty, p_hide_elem_qty,
                                             p_uc,
                                             setval, vis_selected, TRUE );
-                
+
             }
 
             if(class_selected == FALSE)
@@ -3646,7 +3741,7 @@ parse_single_command( char *buf, Analysis *analy )
              idx++;
         } */
 
-        class_selected = FALSE;
+
         /*for(i = 0; i < MESH(analy).qty_class_selections; i++)
         {
             p_class = MESH(analy).by_class_select[i].p_class;
@@ -3701,6 +3796,7 @@ parse_single_command( char *buf, Analysis *analy )
         {
             return;
         }
+ 
 
         if ( !strcmp( "BRICK", tmp_token ) && !class_selected )
         {
@@ -3818,15 +3914,17 @@ parse_single_command( char *buf, Analysis *analy )
 
         if ( !result_selected )
         {
-            if( class_selected == FALSE)
+            if(class_selected == FALSE)
             {
                 process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
                                             elem_qty, p_class,
                                             p_elem, p_hide_qty, p_disable_elem_qty,
                                             p_uc,
                                             setval, enable_selected, mat_selected );
+
+
             /* handle the case where we disabled by a material number(s) but enabled by element class 
- *             this requires enabling by material number(s) */
+            *  *             this requires enabling by material number(s) */
 
             for( i = 0; i < MESH(analy).qty_class_selections; i++)
               {
@@ -3859,20 +3957,18 @@ parse_single_command( char *buf, Analysis *analy )
                 p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
                 p_disable_elem_qty = &MESH(analy).by_class_select[i].disable_class_elem_qty;
                 p_elem = MESH(analy).by_class_select[i].disable_class_elem;
- 
+
                 process_mat_obj_selection ( analy,  tokens, j, token_cnt, mat_qty,
                                             elem_qty, p_class,
                                             p_elem, p_disable_qty, p_disable_elem_qty,
                                             p_uc,
                                             setval, enable_selected, 0 );
-            
-    
+
+
             }
 
-        }
-        
-        if(class_selected == TRUE && strcmp(tokens[0], "enable") == 0)
-        {
+            if(class_selected == TRUE && strcmp(tokens[0], "enable") == 0)
+            {
                 for(i = 1; i < token_cnt; i++)
                 {
                     if(isdigit(tokens[i][0]))
@@ -3889,21 +3985,19 @@ parse_single_command( char *buf, Analysis *analy )
                 }
 
                 mat_qty = MESH( analy ).material_qty;
-                p_disable_qty = &MESH( analy ). mat_disable_qty;
+                p_hide_qty = &MESH( analy ). mat_hide_qty;
                 p_uc = MESH( analy ).disable_material;
-
                 process_mat_obj_selection ( analy,  tokens, 0, token_cnt, mat_qty,
                                             elem_qty, p_class,
-                                            p_elem, p_disable_qty, p_hide_elem_qty,
+                                            p_elem, p_hide_qty, p_hide_elem_qty,
                                             p_uc,
                                             setval, enable_selected, TRUE );
 
-        }
 
-        
-        /* if ( !strcmp( tokens[idx+1], "all" )) {
-             disable_particles( analy, TRUE, setval, NULL );
-             }  */
+            }
+
+               
+        }
 
         process_node_selection ( analy );
 
@@ -3963,6 +4057,8 @@ parse_single_command( char *buf, Analysis *analy )
         p_elem  = NULL;
         p_elem2 = NULL;
         p_class = NULL;
+        p_hide_elem_qty = NULL;
+        p_disable_elem_qty = NULL;
 
         /* Look for element selection keyword */
         string_to_upper( tokens[1], tmp_token ); /* Make case insensitive */
@@ -3983,7 +4079,7 @@ parse_single_command( char *buf, Analysis *analy )
             idx++;
         }
 
-        if( strcmp( tokens[1], "SURF" ) == 0 )
+        if( strcmp( tmp_token, "SURF" ) == 0 )
         {
             mat_qty = MESH( analy ).surface_qty;
             p_uc    = MESH( analy ).disable_surface;
@@ -3992,7 +4088,7 @@ parse_single_command( char *buf, Analysis *analy )
         }
 
         class_selected = FALSE;
-        /* if ( is_elem_class( analy, tokens[1] ) ) {
+        /*if ( is_elem_class( tokens[1] ) ) {
              p_class = NULL;
                  class_select_index = get_class_select_index( analy, tokens[1] );
              if ( class_select_index>=0 ) {
@@ -4006,11 +4102,12 @@ parse_single_command( char *buf, Analysis *analy )
              if ( p_class )
                   class_selected = TRUE;
              idx++;
-        } */
+        }*/ 
+
         for(i = 0; i < MESH(analy).qty_class_selections; i++)
         {
             p_class = MESH(analy).by_class_select[i].p_class;
-            if(strcmp(tokens[1] , p_class->short_name) == 0)
+            if(strcmp(tokens[1], p_class->short_name) == 0)
             {
                 class_selected = TRUE;
                 break;
@@ -4021,7 +4118,7 @@ parse_single_command( char *buf, Analysis *analy )
             p_class = NULL;
         }
 
-        if( class_selected == TRUE  && is_elem_class(p_class->superclass))
+        if( class_selected == TRUE && is_elem_class(p_class->superclass))
         {
 
             elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
@@ -4029,7 +4126,6 @@ parse_single_command( char *buf, Analysis *analy )
             p_disable_elem_qty = &MESH( analy ).by_class_select[i].disable_class_elem_qty;
             p_elem          = MESH( analy ).by_class_select[i].exclude_class_elem;
             mat_selected = FALSE;
-            class_selected = TRUE;
             idx++;
         }
         else if(token_cnt > 2 && strcmp(tokens[0], "include") == 0 && strcmp(tokens[1], "all") == 0)
@@ -4037,120 +4133,6 @@ parse_single_command( char *buf, Analysis *analy )
             return;
         }
 
-
-        /* if (FALSE && !strcmp( "BRICK", tmp_token ) || elem_sclass==M_HEX )
-         {
-          string_to_upper( tokens[2], tmp_token );  /* Make case insensitive
-          p_uc  = MESH( analy ).disable_brick;
-              p_uc2 = MESH( analy ).hide_brick;
-          mat_selected = FALSE;
-          if ( result_selected )
-          {
-               MESH( analy ).hide_brick_by_result = TRUE;
-               MESH( analy ).brick_result_min = atof( tokens[3] );
-               MESH( analy ).brick_result_max = atof( tokens[4] );
-               idx+=3;
-          }
-          else
-          {
-              MESH( analy ).exclude_brick_by_mat = FALSE;
-              MESH( analy ).hide_brick_by_result = FALSE;
-
-         /* Exclude bricks by elements
-         elem_qty         =  MESH( analy ).brick_qty;
-         p_elem           =  MESH( analy ).hide_brick_elem;
-         p_hide_elem_qty  =  &MESH( analy ).hide_brick_elem_qty;
-         p_elem2          =  MESH( analy ).disable_brick_elem;
-         p_hide_elem_qty2 =  &MESH( analy ).disable_brick_elem_qty;
-
-          }
-              /*idx++;
-         }
-
-         if (FALSE && !strcmp("SHELL", tmp_token ) || elem_sclass==M_QUAD )
-         {
-          string_to_upper( tokens[2], tmp_token );      /* Make case insensitive
-          p_uc  = MESH( analy ).disable_shell;
-              p_uc2 = MESH( analy ).hide_shell;
-          mat_selected = FALSE;
-          if ( result_selected )
-          {
-               MESH( analy ).hide_shell_by_result = TRUE;
-               MESH( analy ).shell_result_min = atof( tokens[3] );
-               MESH( analy ).shell_result_max = atof( tokens[4] );
-               idx+=3;
-          }
-              else
-          {
-              MESH( analy ).exclude_shell_by_mat = FALSE;
-              MESH( analy ).hide_shell_by_result = FALSE;
-
-         /* Exclude shells by elements
-         elem_qty         =  MESH( analy ).shell_qty;
-         p_elem           =  MESH( analy ).hide_shell_elem;
-         p_hide_elem_qty  =  &MESH( analy ).hide_shell_elem_qty;
-         p_elem2          =  MESH( analy ).disable_shell_elem;
-         p_hide_elem_qty2 =  &MESH( analy ).disable_shell_elem_qty;
-          }
-              idx++;
-         }
-
-         if (FALSE && !strcmp("TRUSS", tmp_token ) || elem_sclass==M_TRUSS )
-         {
-          string_to_upper( tokens[2], tmp_token );      /* Make case insensitive
-          p_uc  = MESH( analy ).disable_truss;
-              p_uc2 = MESH( analy ).hide_truss;
-          mat_selected = FALSE;
-          if ( result_selected )
-          {
-               MESH( analy ).hide_truss_by_result = TRUE;
-               MESH( analy ).truss_result_min = atof( tokens[3] );
-               MESH( analy ).truss_result_max = atof( tokens[4] );
-               idx+=3;
-          }
-          else
-          {
-              MESH( analy ).exclude_truss_by_mat = FALSE;
-              MESH( analy ).hide_truss_by_result = FALSE;
-
-         /* Exclude trusss by elements
-         elem_qty         =  MESH( analy ).truss_qty;
-         p_elem           =  MESH( analy ).hide_truss_elem;
-         p_hide_elem_qty  =  &MESH( analy ).hide_truss_elem_qty;
-         p_elem2          =  MESH( analy ).disable_truss_elem;
-         p_hide_elem_qty2 =  &MESH( analy ).disable_truss_elem_qty;
-          }
-
-              idx++;
-         }
-
-         if (FALSE && !strcmp("BEAM", tmp_token ) || elem_sclass==M_BEAM )
-         {
-          string_to_upper( tokens[2], tmp_token ); /* Make case insensitive
-          p_uc  = MESH( analy ).disable_beam;
-              p_uc2 = MESH( analy ).hide_beam;
-          mat_selected = FALSE;
-          if ( result_selected )
-          {
-               MESH( analy ).hide_beam_by_result = TRUE;
-               MESH( analy ).beam_result_min = atof( tokens[3] );
-               MESH( analy ).beam_result_max = atof( tokens[4] );
-               idx+=3;
-          }
-          else
-          {
-              MESH( analy ).exclude_beam_by_mat = FALSE;
-              MESH( analy ).hide_beam_by_result = FALSE;
-
-         /* Exclude beams by elements
-         elem_qty         =  MESH( analy ).beam_qty;
-         p_elem           =  MESH( analy ).hide_beam_elem;
-         p_hide_elem_qty  =  &MESH( analy ).hide_beam_elem_qty;
-         p_elem2          =  MESH( analy ).disable_beam_elem;
-         p_hide_elem_qty2 =  &MESH( analy ).disable_beam_elem_qty;
-          }
-              idx++;
-         }
          /* Particle type objects */
         /* added && !class_selected to the condifional by Bill Oliver as a test */
         if ( !strcmp( tmp_token, "PART" )  || is_particle_class( analy, -1, tmp_token )  &&
@@ -4176,9 +4158,8 @@ parse_single_command( char *buf, Analysis *analy )
 
         if ( !result_selected )
         {
-
-            if( class_selected == FALSE )
-           {
+           if( class_selected == FALSE )
+           { 
                process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
                                            elem_qty, p_class,
                                            p_elem, p_hide_qty, p_hide_elem_qty,
@@ -4187,7 +4168,7 @@ parse_single_command( char *buf, Analysis *analy )
 
                p_disable_qty = MESH(analy).mat_disable_qty;
                p_uc = MESH(analy).disable_material;
-
+           
                process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
                                            elem_qty, p_class,
                                            p_elem, p_hide_qty, p_hide_elem_qty,
@@ -4195,7 +4176,7 @@ parse_single_command( char *buf, Analysis *analy )
                                            setval, include_selected, mat_selected );
 
                /* We have excluded (meanind invis and disable by material type.  Now also go for the element 
- *  *                classes in case we want to bring them back by element class on at a time */
+ *                classes in case we want to bring them back by element class on at a time */
 
               for( i = 0; i < MESH(analy).qty_class_selections; i++)
               {
@@ -4204,7 +4185,7 @@ parse_single_command( char *buf, Analysis *analy )
                   p_disable_elem_qty = &MESH(analy).by_class_select[i].disable_class_elem_qty;
                   p_elem = MESH(analy).by_class_select[i].hide_class_elem;
                   p_class = MESH(analy).by_class_select[i].p_class;
-
+              
                   process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
                                               elem_qty, p_class,
                                               p_elem, p_hide_qty, p_hide_elem_qty,
@@ -4218,7 +4199,7 @@ parse_single_command( char *buf, Analysis *analy )
                                               p_elem, p_hide_qty, p_disable_elem_qty,
                                               p_uc,
                                               setval, include_selected, 0 );
-
+                   
               }
            } else
            {
@@ -4252,8 +4233,8 @@ parse_single_command( char *buf, Analysis *analy )
                                           setval, include_selected, 0 );
 
            }
-
-
+               
+                
 
             if(class_selected == TRUE && strcmp(tokens[0], "include") == 0)
             {
@@ -4280,61 +4261,94 @@ parse_single_command( char *buf, Analysis *analy )
                                             p_elem, p_hide_qty, p_hide_elem_qty,
                                             p_uc,
                                             setval, include_selected, TRUE );
-               
-                p_disable_qty = &MESH(analy).mat_disable_qty; 
+                p_disable_qty = &MESH( analy ). mat_disable_qty;
                 p_uc = MESH( analy ).disable_material;
                 process_mat_obj_selection ( analy,  tokens, 0, token_cnt, mat_qty,
                                             elem_qty, p_class,
                                             p_elem, p_disable_qty, p_hide_elem_qty,
                                             p_uc,
                                             setval, include_selected, TRUE );
+
             }
 
+            /*p_elem  = MESH(analy).by_class_select[i].hide_class_elem; */
             /*if ( !mat_brick_selected )
             {
                 p_uc    = MESH( analy ).disable_particle;
 
                 p_hide_qty = &MESH( analy ).particle_disable_qty;
+                if(p_hide_qty != NULL && *p_hide_qty < 0)
+                {
+                    *p_hide_qty = 0;
+                }
+                if(p_hide_elem_qty != NULL && *p_hide_elem_qty < 0)
+                {
+                    *p_hide_elem_qty = 0;
+                }
+                
                 elem_qty   = mat_qty;
                 process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
                                             elem_qty, p_class,
                                             p_elem, p_hide_qty, p_hide_elem_qty,
                                             p_uc,
                                             setval, include_selected, mat_selected );
-            } */ 
+            }
 
-            /*process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+            if(p_hide_qty != NULL && *p_hide_qty < 0)
+            {
+                *p_hide_qty = 0;
+            }
+            if(p_hide_elem_qty != NULL && *p_hide_elem_qty < 0)
+            {
+                *p_hide_elem_qty = 0;
+            }
+            process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
                                         elem_qty, p_class,
                                         p_elem2, p_hide_qty, p_hide_elem_qty2,
                                         p_uc2,
-                                        setval, include_selected, mat_selected ); */
+                                        setval, include_selected, mat_selected ); 
 
-            /*if ( !mat_brick_selected )
+            if ( !mat_brick_selected )
             {
                 p_uc2   = MESH( analy ).hide_particle;
 
                 p_hide_qty = &MESH( analy ).particle_disable_qty;
+                if(p_hide_qty != NULL && *p_hide_qty < 0)
+                {
+                    *p_hide_qty = 0;
+                }
+                if(p_hide_elem_qty != NULL && *p_hide_elem_qty < 0)
+                {
+                    *p_hide_elem_qty = 0;
+                }
                 elem_qty   = mat_qty;
                 process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
                                             elem_qty, p_class,
                                             p_elem2, p_hide_qty, p_hide_elem_qty2,
                                             p_uc2,
-                                            setval, include_selected, mat_selected );
-            } */
+                                            setval, include_selected, mat_selected );/
+            }
 
-            /*if(  class_selected  && is_elem_class(p_class->superclass))
+            if( ( i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
             {
                 p_elem = MESH( analy ).by_class_select[i].exclude_class_elem;
                 elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
-            } */
+            }
 
-            /*process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+            if(p_hide_qty != NULL && *p_hide_qty < 0)
+            {
+                *p_hide_qty = 0;
+            }
+            if(p_hide_elem_qty != NULL && *p_hide_elem_qty < 0)
+            {
+                *p_hide_elem_qty = 0;
+            }
+            process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
                                         elem_qty, p_class,
                                         p_elem, p_hide_qty, p_hide_elem_qty,
                                         p_uc,
                                         setval, include_selected, mat_selected ); */
-            /* p_uc = MESH( analy ).hide_material;
-            dump_selection_buff( "HIDE-MAT", p_uc, mat_qty ); */
+
             /*if(class_selected == FALSE)
             {
                 for(i = 0; i < MESH(analy).qty_class_selections; i++)
@@ -4343,21 +4357,24 @@ parse_single_command( char *buf, Analysis *analy )
                     elem_qty = p_class->qty;
                     p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
                     p_disable_elem_qty = &MESH(analy).by_class_select[i].disable_class_elem_qty;
+                    p_uc = NULL;
+
                     p_elem = MESH(analy).by_class_select[i].exclude_class_elem;
-                    process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-                                                elem_qty, p_class,
-                                                p_elem, p_hide_qty, p_hide_elem_qty,
-                                                p_uc,
-                                                setval, include_selected, 0 );
+                    process_mat_obj_selection(analy, tokens, idx, token_cnt, mat_qty,
+                                              elem_qty, p_class,
+                                              p_elem, p_hide_qty, p_hide_elem_qty,
+                                              p_uc, setval, include_selected, 0);
+
                 }
-            } */
+            }*/
         }
+
 
         if(!strcmp(tokens[0], "include") && !strcmp(tokens[1], "all"))
         {
             include_all_elements(analy);
         }
-       /* else if(!strcmp(tokens[0], "include"))
+        /*else if(!strcmp(tokens[0], "include"))
         {
             for(i = 0; i < MESH(analy).qty_class_selections; i++)
             {
@@ -4373,6 +4390,13 @@ parse_single_command( char *buf, Analysis *analy )
                         idx = 0;
 
                         p_elem  = MESH(analy).by_class_select[i].exclude_class_elem;
+                        process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
+                                                    elem_qty, p_class,
+                                                    p_elem, p_hide_qty, p_hide_elem_qty,
+                                                    p_uc,
+                                                    setval, include_selected, mat_selected );
+
+                        p_elem  = MESH(analy).by_class_select[i].disable_class_elem;
                         process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
                                                     elem_qty, p_class,
                                                     p_elem, p_hide_qty, p_hide_elem_qty,
@@ -4824,6 +4848,39 @@ parse_single_command( char *buf, Analysis *analy )
     }
     else if ( strcmp( tokens[0], "plot" ) == 0 )
     {
+        char original_tokens[MAXTOKENS][TOKENLENGTH];
+        Result * res_ptr = NULL;
+        Result * ptr;
+        int cnt = token_cnt;
+        int i, k;
+        int start = -1;
+        MO_class_data * p_class;
+        int elem_class[14];
+        for(i = 0; i < 14; i++)
+        {
+            elem_class[i] = 0;
+        }
+
+        for(i = 0; i < MAXTOKENS; i++)
+        {
+            strcpy(original_tokens[i], "");
+        }
+
+        if(token_cnt > 1)
+        {
+            if(strstr(tokens[1], "in"))
+            {
+                analy->ref_surf = INNER;
+
+            } else if(strstr(tokens[1], "out"))
+            {
+                analy->ref_surf = OUTER;
+
+            } else
+            {
+                analy->ref_surf = MIDDLE;
+            }
+        }
         if(analy->selected_objects == NULL)
         {
             j = 0;
@@ -4845,6 +4902,17 @@ parse_single_command( char *buf, Analysis *analy )
                 popup_dialog(INFO_POPUP, "Must select or specify an element class before using the plot command"); 
                 return;
             }
+            /* no oblects are selected but how we must see which element classes are specified in the command line */
+            for(i = 0; i < token_cnt; i++)
+            {
+                rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
+                if(rval == OK)
+                {
+                    p_class = (MO_class_data *) p_hte->data;
+                    elem_class[p_class->superclass] = 1;
+                }
+            }
+            
         }
         /* Delete the plot for this result if computing an EI result */
         if ( analy->ei_result && strlen(analy->ei_result_name)>0 )
@@ -4856,51 +4924,174 @@ parse_single_command( char *buf, Analysis *analy )
 
         if ( token_cnt>1 || check_for_result( analy, TRUE ) || analy->ei_result )
         {
+            
             if(token_cnt > 1)
             {
-                for(i = 1; i < token_cnt; i++)
-                {
-                    if(strstr(tokens[i], "sxy"))
-                    {
-                        strcpy(tokens[i], "sxy");
-                    } else if(strstr(tokens[i], "syz"))
-                    {
-                        strcpy(tokens[i], "syz");
-                    } else if(strstr(tokens[i], "szx"))
-                    {
-                        strcpy(tokens[i], "szx");
-                    } else if(strstr(tokens[i], "sx"))
-                    {
-                        strcpy(tokens[i], "sx");
-                    } else if(strstr(tokens[i], "sy"))
-                    {
-                        strcpy(tokens[i], "sy");
-                    } else if(strstr(tokens[i], "sz"))
-                    {
-                        strcpy(tokens[i], "sz");
-                    }
-                    if(strstr(tokens[i], "exy"))
-                    {
-                        strcpy(tokens[i], "exy");
-                    } else if(strstr(tokens[i], "eyz"))
-                    {
-                        strcpy(tokens[i], "eyz");
-                    } else if(strstr(tokens[i], "ezx"))
-                    {
-                        strcpy(tokens[i], "ezx");
-                    } else if(strstr(tokens[i], "ex"))
-                    {
-                        strcpy(tokens[i], "ex");
-                    } else if(strstr(tokens[i], "ey"))
-                    {
-                        strcpy(tokens[i], "ey");
-                    } else if(strstr(tokens[i], "ez"))
-                    {
-                        strcpy(tokens[i], "ez");
-                    }
 
+                for(i = 0; i < token_cnt; i++)
+                {
+                    rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
+                    if(rval == OK && start == -1)
+                    {
+                        start = i;
+                    } 
                 }
-            } else if(token_cnt == 1 && analy->cur_result != NULL)
+                i = 1;
+                int qty = 0;
+                for(j = 0; j < token_cnt; j++)
+                {
+                    strcpy(original_tokens[j], tokens[j]);
+                } 
+                for(; i < start; i++)
+                {
+                    res_ptr = create_result_list(original_tokens[i], analy);
+                    for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
+                    {
+                        qty += ptr->qty;
+                    }
+                    delete_result_list(&res_ptr, analy);
+                }
+             
+                if(qty > 0)
+                {
+                    token_cnt = qty + 1;
+                }
+
+                j = 1;
+                if(start > 1)
+                {
+                  /* we know the plot command line specifies at least one element class
+ *                   and that the value of start is the token index of the first element class*/
+                  for(i = 1; i < start; i++)
+                  {
+                      res_ptr = create_result_list(original_tokens[i], analy);
+                      for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
+                      {
+                          for(k = 0; k < ptr->qty; k++)
+                          {
+                              if(elem_class[ptr->superclasses[k]] == 1)
+                              {
+                                  strcpy(tokens[j], ptr->original_name);
+                                  j++;
+                              }
+                          }
+                      }
+                  }
+                  /* now finish adding in the element class specifications from the original tokens */
+                  for(i = start; i < cnt; i++)
+                  {
+                      strcpy(tokens[j], original_tokens[i]);
+                      j++;
+                  }
+                  token_cnt = j;
+                } else
+                {
+                    int qty = 0;
+                    for(i = 1; i < cnt; i++)
+                    {
+                        res_ptr = create_result_list(original_tokens[i], analy);
+                        for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
+                        {
+                            qty += ptr->qty;
+                            strcpy(tokens[j], ptr->original_name);
+                            j++;
+                        }
+                    }
+                    if(qty > 0)
+                    {
+                        token_cnt = qty + 1;
+                    }
+                }
+
+                  i = 0;
+                token_cnt = 0;
+                while(strcmp(tokens[i], ""))
+                {
+                    token_cnt++;
+                    i++;
+                }
+                cnt = token_cnt;
+                for(i = 1; i < cnt; i++) {
+                    for(j = i+1; j < cnt; j++) {
+                        if(!strcmp(tokens[i], tokens[j])) {
+                            strcpy(tokens[j], "");
+                        }
+                    }
+                }
+
+                /* now adjust the token_cnt */
+                for( i = 0; i < cnt; i++ ) {
+                    if(!strcmp(tokens[i], "")) {
+                        token_cnt--;
+                    }
+                }
+
+                /* final cleanup */
+                for(i = 1; i < cnt; i++)
+                {
+                    if(!strcmp(tokens[i], ""))
+                    {
+                        /* find the next token that is not the empty string */
+                        for(j = i+1; j < cnt; j++)
+                        {
+                            if(strcmp(tokens[j], ""))
+                            {
+                                strcpy(tokens[i], tokens[j]);
+                                strcpy(tokens[j], "");
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                cnt = token_cnt;
+		
+                if(analy->cur_result != NULL && analy->cur_result->result_funcs[0] == load_primal_result)
+                { 
+                    for(i = 1; i < token_cnt; i++)
+                    {
+                        if(strstr(tokens[i], "sxy") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "sxy");
+                        } else if(strstr(tokens[i], "syz") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "syz");
+                        } else if(strstr(tokens[i], "szx") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "szx");
+                        } else if(strstr(tokens[i], "sx") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "sx");
+                        } else if(strstr(tokens[i], "sy") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "sy");
+                        } else if(strstr(tokens[i], "sz") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "sz");
+                        } 
+                        if(strstr(tokens[i], "exy") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "exy");
+                        } else if(strstr(tokens[i], "eyz") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "eyz");
+                        } else if(strstr(tokens[i], "ezx") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "ezx");
+                        } else if(strstr(tokens[i], "ex") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "ex");
+                        } else if(strstr(tokens[i], "ey") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "ey");
+                        } else if(strstr(tokens[i], "ez") && strstr(tokens[i], "es_") == NULL)
+                        {
+                            strcpy(tokens[i], "ez");
+                        } 
+            
+                    }
+                }
+            } else if(token_cnt == 1 && analy->cur_result != NULL && analy->cur_result->result_funcs[0] == load_primal_result)
             {
                 i = 1;
                 if(strstr(analy->cur_result->name, "sxy"))
@@ -4927,7 +5118,7 @@ parse_single_command( char *buf, Analysis *analy )
                 {
                     strcpy(tokens[i], "sz");
                     token_cnt = 2;
-                }
+                } 
                 if(strstr(analy->cur_result->name, "exy"))
                 {
                     strcpy(tokens[i], "exy");
@@ -4953,10 +5144,52 @@ parse_single_command( char *buf, Analysis *analy )
                     strcpy(tokens[i], "ez");
                     token_cnt = 2;
                 }
-
+                token_cnt += analy->cur_result->qty;
+                for(i = 0; i < analy->cur_result->qty; i++)
+                {
+                    if(analy->cur_result->original_names != NULL)
+                    {
+                        strcpy(tokens[i+1], analy->cur_result->original_names[i]);
+                    }
+                }
+                /* now remove duplicate token names */
+                for(i = token_cnt; i > 0; i--)
+                {
+                    for(j = 1; j < i; j++)
+                    {
+                        if(!strcmp(tokens[j], tokens[i]))
+                        {
+                            strcpy(tokens[i], "");
+                            token_cnt--;
+                            break;
+                        }
+                    }
+                } 
             }
 
-            create_plot_objects( token_cnt, tokens, analy, &analy->current_plots );
+            if(!strcmp(original_tokens, "") && analy->cur_result != NULL)
+            {
+                if(token_cnt == 1)
+                {
+                    cnt = 2;
+                    strcpy(original_tokens[0], tokens[0]);
+                    strcpy(original_tokens[1], analy->cur_result->name);
+                }
+            }
+            old_autoselect = analy->autoselect;
+             
+            if((res_ptr != NULL && res_ptr->result_funcs[0] == load_primal_result) || (analy->cur_result != NULL &&
+                analy->cur_result->result_funcs[0] == load_primal_result))
+            {
+                analy->autoselect = FALSE;
+                create_plot_objects( token_cnt, tokens, analy, &analy->current_plots );
+                analy->autoselect = old_autoselect;
+            } else
+            {
+                analy->autoselect = FALSE;
+                create_plot_objects( cnt, original_tokens, analy, &analy->current_plots );
+                analy->autoselect = old_autoselect;
+            }
             redraw = BINDING_PLOT_VISUAL;
         }
         analy->th_plotting = TRUE;
@@ -6816,7 +7049,7 @@ parse_single_command( char *buf, Analysis *analy )
 
             for(i = 2; i < token_cnt; i++)
             {
-                if(strlen(analy->title) + tokens[i] < G_MAX_STRING_LEN)
+                if(strlen(analy->title) + strlen(tokens[i]) < G_MAX_STRING_LEN)
                 {
                     strcpy(analy->title, tokens[i]);
                 }
@@ -6924,7 +7157,7 @@ parse_single_command( char *buf, Analysis *analy )
                 parse_command(cmd, analy);
             }
         
-       } 
+       }
         
     }
     else if ( strcmp( tokens[0], "dscal" ) == 0 ||
@@ -7766,15 +7999,15 @@ parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int cnt,
 
             if ( is_numeric_range_token( tokens[i] ) )
             {
-                parse_mtl_range(tokens[i], MAX_MATERIALS, &mat_min, &mat_max) ;
-
+                parse_mtl_range(tokens[i], MAX_MATERIALS, &mat_min, &mat_max);
+		
                 if(mat_min < 0 || mat_min > MAX_MATERIALS || mat_max < 0 || mat_max > MAX_MATERIALS ||
                    mat_min > mat_max)
                 {
                     popup_dialog(INFO_POPUP, "specified material numbers out of range.\n");
                     return 0;
                 }
-
+		
                 mtl = mat_min ;
                 for (mtl =  mat_min ;
                         mtl <= mat_max ;
@@ -7864,15 +8097,15 @@ parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int cnt,
 
                 if ( is_numeric_range_token( tokens[i] ) )
                 {
-                    parse_mtl_range(tokens[i], MAX_MATERIALS, &mat_min, &mat_max ) ;
-
-                    if(mat_min < 0 || mat_min > MAX_MATERIALS || mat_max < 0 || mat_max > MAX_MATERIALS || 
-                       mat_min > mat_max)
+                    parse_mtl_range(tokens[i], MAX_MATERIALS, &mat_min, &mat_max );
+		    
+                    if(mat_min < 0 || mat_min > MAX_MATERIALS || mat_max < 0 || mat_max > MAX_MATERIALS ||
+                         mat_min > mat_max)
                     {
-                        popup_dialog(INFO_POPUP, "specified material numbers out of range.\n");
-                        return 0;
+                       popup_dialog(INFO_POPUP, "specified material numbers out of range.\n");
+                       return 0;
                     }
-
+		    
                     mtl = mat_min ;
                     for (mtl =  mat_min ;
                             mtl <= mat_max ;
@@ -8526,6 +8759,7 @@ check_visualizing( Analysis *analy )
      * correct render_mode can be reinstated when transitioning
      * back.  Someday...
      */
+
     if ( analy->show_cut || analy->show_isosurfs ||
             analy->show_vectors )
         /*         analy->show_vectors || analy->show_carpet ) */
@@ -9751,12 +9985,13 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
                     i++ )
             {
                 parse_mtl_range(tokens[i+idx], mat_qty, &mat_min, &mat_max ) ;
-                if(mat_min < 0 || mat_min > mat_qty || mat_max < 0 || mat_max > mat_qty || mat_min > mat_max)
+		
+		/*if(mat_min < 0 || mat_min > mat_qty || mat_max < 0 || mat_max > mat_qty || mat_min > mat_max)
                 {
                     popup_dialog(INFO_POPUP, "material specification is out of range.\n");
                     return;
-                }
-
+                } */
+		
                 mtl = mat_min ;
 
                 for (mtl  = mat_min ;
@@ -9787,13 +10022,13 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
             if ( strcmp( tmp_token, "ALL" ) == 0  )
             {
                 parse_mtl_range("ALL", mat_qty, &mat_min, &mat_max);
-
-                if(mat_min < 0 || mat_min > mat_qty || mat_max < 0 || mat_max > mat_qty || mat_min > mat_max)
+		
+		/*if(mat_min < 0 || mat_min > mat_qty || mat_max < 0 || mat_max > mat_qty || mat_min > mat_max)
                 {
                     popup_dialog(INFO_POPUP, "material specification is out of range.\n");
                     return;
-                }
-
+                } */
+		
                 for ( j=0;
                         j<elem_qty;
                         j++ )
@@ -9819,14 +10054,14 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
                         i < token_cnt - idx;
                         i++ )
                 {
-                    parse_mtl_range(tokens[i+idx], mat_qty, &mat_min, &mat_max);
-
-                    if(mat_min < 0 || mat_min > mat_qty || mat_max < 0 || mat_max > mat_qty || mat_min > mat_max)
+                    parse_mtl_range(tokens[i+idx], mat_qty, &mat_min, &mat_max) ;
+		    
+		    /*if(mat_min < 0 || mat_min > mat_qty || mat_max < 0 || mat_max > mat_qty || mat_min > mat_max)
                     {
                         popup_dialog(INFO_POPUP, "material specification is out of range.\n");
                         return;
-                    }
-
+                    } */
+		
                     for ( j=0;
                             j<elem_qty;
                             j++ )
@@ -10196,4 +10431,567 @@ get_class_select_index( Analysis *analy, char *class_name )
         else class_index++;
     }
     return (-1);
+}
+
+
+/*************************************************************************
+ * TAG( select_integration_pts )
+ *  selects/deselects integrations points specified in the command line
+ *  returns TRUE or FALSE depending on the command line syntax
+ ************************************************************************/
+
+int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Analysis * analy)
+{
+    char tokens[MAXTOKENS][TOKENLENGTH];
+    char warning_templates[8][256];
+    char suffix[124];
+    char showcmd[124];
+    int i, j, k;
+    int pt, index;
+    int size;
+    int usetoken = 0;
+    Bool_type found = FALSE;
+    int mat_qty;
+    int mat_min;
+    int mat_max;
+    int return_status;
+    int message_map[23];
+    intPtMessages * message;
+    intPtMessages * p;
+    intPtMessages * q;
+
+    mat_qty = MESH(analy).material_qty;
+    if(analy->int_labels == NULL)
+    {
+        return;
+    }
+
+    strcpy(warning_templates[0], "\nINFO: Label array invalid for element set");        
+    strcpy(warning_templates[1], "INFO: The integration point desired is lower than the lowest point available \n\
+for element set");        
+    strcpy(warning_templates[2], "INFO: The integration point is between two values written for element set");        
+    strcpy(warning_templates[3], "INFO: The integration point specified is between \ntwo values written for element set");        
+    strcpy(warning_templates[4], "INFO: The integration point specified is higher \nthan the value written for element set");        
+    strcpy(warning_templates[5], "INFO: The integration point specified is lower \nthan the value written for element set");        
+    strcpy(warning_templates[6], "INFO: The integration point specified is higher \nthan the highest value written for element set");
+    strcpy(warning_templates[7], "WARNING: The desired integration point for element set/material is not availiable for\n\n:");        
+    for(i = 0; i < 23; i++)
+    {
+        message_map[i] = 0;
+    } 
+
+    message_map[21] = 0;
+    message_map[22] = 1;
+    message_map[1] = 2;
+    message_map[2] = 3;
+    message_map[3] = 4;
+    message_map[10] = 5;
+    message_map[20] = 6;
+
+    IntLabels *labels = analy->int_labels;
+    Bool_type select;
+
+    message = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+    if(message == NULL)
+    {
+        popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
+        parse_command("quit", analy);
+    }
+    message->next = NULL;
+    message->prev = NULL;
+    strcpy(message->messages, "");
+
+    /*Initialize tokens */
+    for(i = 0; i < MAXTOKENS; i++)
+    {
+        strcpy(tokens[i], "");
+    } 
+
+    for(i = 0; i < token_cnt; i++)
+    {
+       strcpy(tokens[i], tok[i]);
+    }
+
+    if(!strcmp(tokens[0], "select_ipt"))
+    {
+        select = TRUE; 
+    } else
+    {
+        select = FALSE;
+    }
+    
+    if((!strcmp(tokens[1], "inner") || !strcmp(tokens[1], "middle") || !strcmp(tokens[1], "outer")) && token_cnt == 2)
+    {
+        pt = 0;
+        usetoken = 1;
+        
+        for(i = 1; i <= labels->numLabels; i++)
+        {
+            index = labels->map[i];
+            size = labels->labelSizes[index] - 1;
+            if(!strcmp(tokens[1], "inner"))
+            {
+                pt = 1;
+            } else if(!strcmp(tokens[1], "middle"))
+            {
+                pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
+            } else
+            {
+               pt = labels->labels[index][size];
+            } 
+            return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
+            if(return_status != 0)
+            {
+                p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+                if(p == NULL)
+                {
+                    popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
+                    parse_command("quit", analy);
+                }
+ 
+                p->next = NULL;
+                p->prev = NULL;
+                strcpy(p->messages, "");
+                q = message;
+                while(q->next != NULL)
+                {
+                    q = q->next;
+                }
+               
+                q->next = p;
+                p->prev = q;
+                p->next = NULL;
+                sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
+                /*if(return_status == 21)
+                {
+                    sprintf(suffix, ", %d\n", labels->mats[index]);
+                } else
+                {
+                    sprintf(suffix, " %d \nselected the nearest value\n", labels->mats[index]);
+                }
+                strcat(p->messages, suffix); */
+            }
+       }
+    } else if(strcmp(tokens[1], "inner") && strcmp(tokens[1], "middle") && strcmp(tokens[1], "outer"))
+    {
+        pt = atoi(tokens[1]);
+        if(pt == 0)
+        {
+            popup_dialog(WARNING_POPUP, "invalid command syntax for select_ipt.\n");
+            return FALSE;
+        }
+    }
+  
+    if(token_cnt == 2 && !usetoken)
+    {
+        for(i = 1; i <= labels->numLabels; i++)
+        {
+            index = labels->map[i];
+            return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
+            if(return_status != 0)
+            {
+                p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+                if(p == NULL)
+                {
+                    popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
+                    parse_command("quit", analy);
+                }
+ 
+                p->next = NULL;
+                p->prev = NULL;
+                strcpy(p->messages, "");
+                q = message;
+                while(q->next != NULL)
+                {
+                    q = q->next;
+                }
+               
+                q->next = p;
+                p->prev = q;
+                p->next = NULL;
+                /*sprintf(p->messages, warning_templates[message_map[return_status]]); */
+                sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
+                /*if(return_status == 21)
+                {
+                    sprintf(suffix, ", %d\n", labels->mats[index]);
+                } else
+                {
+                    sprintf(suffix, " %d \nselected the nearest value\n", labels->mats[index]);
+                }
+                strcat(p->messages, suffix); */
+            }
+        }
+    }
+    if(token_cnt > 2 )
+    {
+        if(!strcmp(tokens[1], "inner") || !strcmp(tokens[1], "middle") || !strcmp(tokens[1], "outer"))
+        {
+           usetoken = 1;
+           pt = 0;
+        }
+        for(i = 2; i < token_cnt; i++)
+        {
+           parse_mtl_range(tokens[i], mat_qty, &mat_min, &mat_max);
+           if(mat_min < mat_max)
+           {
+              for(j = mat_min ; j <= mat_max; j++)
+              {
+                   found = FALSE;
+                   for(k = 0; k < labels->numLabels; k++)
+                   {
+                       index = labels->map[k+1];
+                       if(j == labels->mats[index])
+                       {
+                           found = TRUE;
+                           break;
+                       }
+                   }
+                   if(found)
+                   {
+                       /*index = labels->map[j]; */
+                       size = labels->labelSizes[index] - 1;
+                       if(!strcmp(tokens[1], "inner"))
+                       {
+                           pt = 1;
+                       } else if(!strcmp(tokens[1], "middle"))
+                       {
+                           pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
+                       } else if(!strcmp(tokens[1], "outer"))
+                       {
+                           pt = labels->labels[index][size];
+                       }
+                       
+ 
+                       return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
+                       if(return_status != 0)
+                       {
+                           p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+                           if(p == NULL)
+                           {
+                               popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
+                               parse_command("quit", analy);
+                           }
+ 
+                           p->next = NULL;
+                           p->prev = NULL;
+                           strcpy(p->messages, "");
+                           q = message;
+                           while(q->next != NULL)
+                           {
+                               q = q->next;
+                           }
+               
+                           q->next = p;
+                           p->prev = q;
+                           p->next = NULL;
+                           /*sprintf(p->messages, warning_templates[message_map[return_status]]); */
+                           sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
+                           /*if(return_status == 21)
+                           {
+                               sprintf(suffix, ", %d\n", labels->mats[index]);
+                           } else
+                           {
+                               sprintf(suffix, " %d \nselected the nearest value\n", labels->mats[index]);
+                           }
+                           strcat(p->messages, suffix); */
+                      }
+                   }
+              }
+           } else
+           {
+                   found = FALSE;
+                   j = mat_min - 1; /* convert to zero based material numbers */
+ 
+                   for(k = 0; k < labels->numLabels; k++)
+                   {
+                       if(j == labels->map[k + 1])
+                       {
+                           found = TRUE;
+                           index = j;
+                           break;
+                       }
+                   }
+               if(found)
+               {
+                   size = labels->labelSizes[index] - 1;
+                   if(!strcmp(tokens[1], "inner"))
+                   {
+                       pt = 1;
+                   } else if(!strcmp(tokens[1], "middle"))
+                   {
+                       pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
+                   } else if(!strcmp(tokens[1], "outer"))
+                   {
+                       pt = labels->labels[index][size];
+                   } else
+                   {
+                       pt = atoi(tokens[1]);
+                   }
+                   return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
+                   if(return_status != 0)
+                   {
+                       p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+                       if(p == NULL)
+                       {
+                           popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
+                           parse_command("quit", analy);
+                       }
+ 
+                       p->next = NULL;
+                       p->prev = NULL;
+                       strcpy(p->messages, "");
+                       q = message;
+                       while(q->next != NULL)
+                       {
+                           q = q->next;
+                       }
+               
+                       q->next = p;
+                       p->prev = q;
+                       p->next = NULL;
+                       /*sprintf(p->messages, warning_templates[message_map[return_status]]); */
+                       sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
+                       /*if(return_status == 21)
+                       {
+                           sprintf(suffix, ", %d\n", labels->mats[index]);
+                       } else
+                       {
+                           sprintf(suffix, " %d \nselected the nearest value\n", labels->mats[index]);
+                       } 
+                       strcat(p->messages, suffix); */
+               }
+           }
+        }
+      }
+
+   }
+     
+
+    
+    intpts_selected(analy);
+   
+    if(message->next != NULL)
+    {
+        wrt_text("\n\nWARNING: The desired integration point for element set/material\n is not available for:\n\n");
+        wrt_text("Material/          Desired Int             Selected Int.\n");
+        wrt_text("Element Set          Point                   Point    \n");
+        p = message->next;
+        q = p;
+        do{
+            wrt_text(p->messages);
+            p = p->next;
+            if(p != NULL)
+            {
+                q = p;
+            }
+        }while(p != NULL);
+        
+       do{
+           q = q->prev;
+           if(q != NULL)
+           {
+               free(q->next);
+           }
+           
+       }while(q != NULL);
+       if(message != NULL)
+       {
+           free(message);
+       }      
+       popup_dialog(WARNING_POPUP, "The exact Integration point(s) are unavailable for select materials/element sets. See feedback window.\n");
+    }
+    if(analy->cur_result != NULL)
+    {
+        sprintf(showcmd, "show %s", analy->cur_result->name);
+        parse_command(showcmd, analy);
+    }
+    return TRUE;
+}
+ 
+
+int set_inpt(int index, int ipt, char * token, int select, int usetoken, Analysis * analy)
+{
+    int i, j, k;
+    int pt = 0;
+    int size = 0;
+    int return_status = 0;
+    IntLabels *labels;
+ 
+    if(analy->int_labels == NULL)
+    {
+        return;
+    }
+    labels = analy->int_labels;
+    size = labels->labelSizes[index] - 1;
+
+    /* The return_status convention is as follows:
+ *     Value         Meaning
+ *     21------------This label array was marked as invalid and will not be used
+ *     0-------------The ipt was found in the labels array and was selected.
+ *     22------------The ipt had a value less than the lowest value in the labels array.
+ *                   So the lowest value was set.
+ *     1-------------The ipt is between two values in the labels array and its distance from
+ *                   the lower value is less than or equal to the distance from the higher
+ *                   value. The value set is the lower value.
+ *     2-------------The ipt is between two values in the labels array and its distance from
+ *                   the lower value is greater than the distance from the higher value. The 
+ *                   value set is the higher value.
+ *     3-------------The ipt had a value higher than the highest value in the labels array. 
+ *                   The value set is the highest value in the labels array.
+ *  
+ *            THE FOLLOWING VALUES ARE SET IF USING THE TOKEN AND ITS VALUE IS "inner"
+ *     0-------------The lowest value in the labels array is equal to 1 The value set is 1
+ *     10------------The lowest value in the labels array > 1 The value set is the lowest value
+ *                   in the labels array.
+ *            THE FOLLOWING VALUES ARE SET IF USING THE TOKEN AND ITS VALUE IS "middle"
+ *                   The middle point is calculated and the function calls itself recursively
+ *                   with that value.  The return values are as indicated above using a selected
+ *                   integration point rather than the token
+ *
+ *            THE FOLLOWING VALUES ARE SET IT USING THE TOKEN AND ITS VALUE IS "outer"
+ *     0-------------The labels->labels[index][size - 1] is equal to labels->labels[index][size] 
+ *                   The value set is the value in labels->labels[index][size - 1]
+ *     20------------The labels->labels[index][size - 1] < labels->labels[index][size].  The
+ *                   value set is the the value in labels->labels[index][size - 1] 
+ */
+   
+    /* Ignore labels that were previously marked as invalid */
+    if(labels->valid[index] == 0)
+    {
+        return 21;
+    }
+ 
+    if(usetoken == 0)
+    {
+        if(ipt < labels->labels[index][0])
+        {
+            labels->int_pts_selected[index] = labels->labels[index][0] * select;
+            return 22;
+        }
+        if(ipt > labels->labels[index][size - 1])
+        {
+            labels->int_pts_selected[index] = labels->labels[index][size - 1] * select;
+            return 3;
+        }
+        for(i = 0; i < size; i++)
+        {
+            if(ipt == labels->labels[index][i])
+            {
+                labels->int_pts_selected[index] = ipt * select;
+                /*The specified integration point matches one which was written out*/
+                return 0; 
+            } 
+        }
+        /* If we make it to this part of the code then the specified integration point
+ *         falls in between two points that were written out.  The convention is that
+ *         the integration points written out are in ascending order */
+       i = 0;
+       while(ipt > labels->labels[index][i])
+       {
+           i++;
+       }
+
+       if(abs(ipt - labels->labels[index][i - 1]) <= abs(ipt - labels->labels[index][i]))
+       {
+           labels->int_pts_selected[index] = labels->labels[index][i-1] * select;
+           return 1;
+       } else
+       {
+           labels->int_pts_selected[index] = labels->labels[index][i] * select;
+           return 2;
+       } 
+        
+    } else if(!strcmp(token, "inner"))
+    {
+        labels->int_pts_selected[index] = labels->labels[index][0] * select;
+        if(labels->labels[index][0] > 1)
+        {
+            return 10;
+        } else
+        {
+            return 0;
+        }
+    } else if(!strcmp(token, "middle"))
+    {
+        i = size;
+        pt = (labels->labels[index][i])/2 + (labels->labels[index][i] % 2);
+        return(set_inpt(index, pt, NULL, select, 0, analy));
+    } else if(!strcmp(token, "outer"))
+    {
+        labels->int_pts_selected[index] = labels->labels[index][size - 1] * select;
+        if(labels->labels[index][size - 1] == labels->labels[index][size])
+        {
+           return 0; 
+        } else
+        {
+           return 20;
+        }
+    }
+
+    return return_status;
+}
+
+/********************************************************
+ * TAG( show_ipt_avail )
+ * prints the integration points availableon the 
+ * feedback window 
+ *******************************************************/
+
+void show_ipt_avail(Analysis * analy)
+{
+    int i, j;
+    int index, mat;
+    IntLabels *labels;
+    
+    if(analy->int_labels == NULL)
+    {
+        return;
+    }
+    labels = analy->int_labels;
+    wrt_text("\n\nAvailable Integration Points in this plot file are as follows:\n");
+    for(i = 1; i <= labels->numLabels; i++)
+    {
+	index = labels->map[i];
+        if(labels->valid[index] == 1)
+        {
+            wrt_text("material %d:     Integration Points\n", labels->mats[index]);
+            for(j = 0; j < labels->labelSizes[index] - 1; j++)
+            {
+                wrt_text("                     %d\n", labels->labels[index][j]);
+            }
+        } 
+    } 
+    return;
+}
+
+/********************************************************
+ * TAG( intpts_selected )
+ * prints the integration points selected on the 
+ * feedback window 
+ *******************************************************/
+void intpts_selected(Analysis * analy)
+{
+    int i, j, k;
+    int index, mat;
+    IntLabels *labels;
+
+    if(analy->int_labels == NULL)
+    {
+        return;
+    }
+    labels = analy->int_labels;
+    wrt_text("\n\nIntegration Points selected:\n");
+    wrt_text("Material/Element Set               Integration Point\n");
+
+    for(i = 1; i <= labels->numLabels; i++)
+    {
+        index = labels->map[i];
+        if(labels->valid[index] == 1)
+        {
+            mat = labels->mats[index];
+            k = labels->int_pts_selected[index];
+            wrt_text("  %d                                     %d\n", mat, k);
+        }
+    }
+    return;
 }

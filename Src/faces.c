@@ -1979,7 +1979,7 @@ set_hex_visibility( MO_class_data *p_hex_class, Analysis *analy )
     /*hide_qty = analy->mesh_table[p_hex_class->mesh_id].hide_brick_elem_qty +
                analy->mesh_table[p_hex_class->mesh_id].hide_shell_elem_qty +
                analy->mesh_table[p_hex_class->mesh_id].hide_truss_elem_qty +
-               analy->mesh_table[p_hex_class->mesh_id].hide_beam_elem_qty;*/
+               analy->mesh_table[p_hex_class->mesh_id].hide_beam_elem_qty; */
 
     for(i = 0; i < MESH(analy).qty_class_selections; i++)
     {
@@ -2185,7 +2185,7 @@ set_particle_visibility( MO_class_data *p_part_class, Analysis *analy )
     float *activity;
     Bool_type hidden_matls;
     int part_qty, mtl_qty, plane_qty=0;
-    int i;
+    int i, j;
 
     Bool_type hide_obj=FALSE;
 
@@ -2214,6 +2214,21 @@ set_particle_visibility( MO_class_data *p_part_class, Analysis *analy )
             particle_rough_cut( analy, plane->pt, plane->norm, p_part_class,
                                 analy->state_p->nodes.nodes3d, part_visib );
             plane_qty++;
+        }
+    }
+
+    for(j = 0; j < MESH(analy).qty_class_selections; j++)
+    {
+        if(!strcmp(p_part_class->short_name, MESH(analy).by_class_select[j].p_class->short_name))
+        {
+            break;
+        }
+    }
+    for(i = 0; i < part_qty; i++)
+    {
+        if(MESH(analy).by_class_select[j].hide_class_elem[i] == TRUE)
+        {
+            part_visib[i] = FALSE;
         }
     }
 }

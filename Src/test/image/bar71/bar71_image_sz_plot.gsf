@@ -34,7 +34,7 @@ select brick 1 331 40 42 100 879 307
 select mat 1
 
 # Images for variable sz
-show sx
+show sz
 state 20
 state 80
 sw gterp

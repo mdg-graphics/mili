@@ -73,9 +73,9 @@
 #############################################################################
 
 m4_define(GRIZ_NAME_M4, Griz4)
-m4_define(GRIZ_VERSION_M4, V13_01)
-m4_define(MILI_VERSION_M4, V13_01)
-m4_define(GRIZ_DATE_M4, 2013/07/09)
+m4_define(GRIZ_VERSION_M4, V15)
+m4_define(MILI_VERSION_M4, V15_01)
+m4_define(GRIZ_DATE_M4, 2015/08/28)
 m4_define(GRIZ_TIME_M4, 07:39:00)
 m4_define(GRIZ_DATETIME_M4, [GRIZ_DATE_M4 GRIZ_TIME_M4])
 m4_define(GRIZ_BUGS_M4,[Bill Oliver  ext: 3-0540 email: oliver4@llnl.gov])

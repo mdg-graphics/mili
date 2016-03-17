@@ -3,11 +3,11 @@
 #---------------------------------------------------------------------
 # Griz Version Info:
 #
-#	Griz4-V12_01
-# 	Built: 	Thu Feb 28 15:05:30 2013 on Linux #1 SMP Tue Jun 19 17:16:17 PDT 2012 2.6.32-220.23.1.1chaos.ch5.x86_64 x86_64 by icorey
-# 	Configure: ./configure 
-# 	Compile Options: gcc -O3 -DJPEG_SUPPORT -DPNG_SUPPORT  -DSERIAL_BATCH -I../include -I/usr/apps/mdg/include -I.. -I../HersheyLib/src -I../ImageLib -I/usr/include -I/usr/../include -I../.. 
-# 		Mili Library Version (Griz Linked): 	V13_01
+#	Griz4-V13_01
+# 	Built: 	Fri Jul 10 07:26:06 2015 on Linux #1 SMP Fri Mar 20 13:20:55 PDT 2015 2.6.32-504.12.2.2chaos.ch5.3.x86_64 x86_64 by oliver4
+# 	Configure: ./configure linux gnu
+# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/usr/apps/mdg/archive/milidir/bigfile/include -I/../include -I../.. 
+# 		Mili Library Version (Griz Linked): 	V14_01
 #		Mili Database-Library Version: 		V13_01
 #		Mili Database-Host: 			rzzeus286
 #		Mili Database-Arch: 			Linux + 2.6.32-220.23.1.1chaos.ch5.x86_64rzzeus286
@@ -16,11 +16,13 @@
 #---------------------------------------------------------------------
 # Database path/name: bending-71.plt
 # Description: Dyna3D H-L Beam Verification Analysis
-# Output date: 03/28/13
+# Output date: 07/13/15
 #
 
 #
 # Curve 1 - Node 14
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 14: Node Position[Y Position]
@@ -38,6 +40,8 @@
 
 #
 # Curve 2 - Node 11
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 11: Node Position[Y Position]
@@ -55,6 +59,8 @@
 
 #
 # Curve 3 - Node 8
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 8: Node Position[Y Position]
@@ -72,6 +78,8 @@
 
 #
 # Curve 4 - Node 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 5: Node Position[Y Position]
@@ -89,6 +97,8 @@
 
 #
 # Curve 5 - Node 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Node - 2: Node Position[Y Position]
@@ -106,6 +116,8 @@
 
 #
 # Curve 1 - Node 14
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Rot. Displ.[X Angle]
 # Node - 14: Rot. Displ.[X Angle]
@@ -123,6 +135,8 @@
 
 #
 # Curve 2 - Node 11
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Rot. Displ.[X Angle]
 # Node - 11: Rot. Displ.[X Angle]
@@ -140,6 +154,8 @@
 
 #
 # Curve 3 - Node 8
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Rot. Displ.[X Angle]
 # Node - 8: Rot. Displ.[X Angle]
@@ -157,6 +173,8 @@
 
 #
 # Curve 4 - Node 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Rot. Displ.[X Angle]
 # Node - 5: Rot. Displ.[X Angle]
@@ -174,6 +192,8 @@
 
 #
 # Curve 5 - Node 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Rot. Displ.[X Angle]
 # Node - 2: Rot. Displ.[X Angle]
@@ -191,6 +211,8 @@
 
 #
 # Curve 1 - Node 14
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Rot. Displ.[Z Angle]
 # Node - 14: Rot. Displ.[Z Angle]
@@ -208,6 +230,8 @@
 
 #
 # Curve 2 - Node 11
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Rot. Displ.[Z Angle]
 # Node - 11: Rot. Displ.[Z Angle]
@@ -225,6 +249,8 @@
 
 #
 # Curve 3 - Node 8
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Rot. Displ.[Z Angle]
 # Node - 8: Rot. Displ.[Z Angle]
@@ -242,6 +268,8 @@
 
 #
 # Curve 4 - Node 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Rot. Displ.[Z Angle]
 # Node - 5: Rot. Displ.[Z Angle]
@@ -259,6 +287,8 @@
 
 #
 # Curve 5 - Node 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Rot. Displ.[Z Angle]
 # Node - 2: Rot. Displ.[Z Angle]
@@ -276,6 +306,8 @@
 
 #
 # Curve 1 - Node 14
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Acceleration[Y Acceleration]
 # Node - 14: Node Acceleration[Y Acceleration]
@@ -293,6 +325,8 @@
 
 #
 # Curve 2 - Node 11
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Acceleration[Y Acceleration]
 # Node - 11: Node Acceleration[Y Acceleration]
@@ -310,6 +344,8 @@
 
 #
 # Curve 3 - Node 8
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Acceleration[Y Acceleration]
 # Node - 8: Node Acceleration[Y Acceleration]
@@ -327,6 +363,8 @@
 
 #
 # Curve 4 - Node 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Acceleration[Y Acceleration]
 # Node - 5: Node Acceleration[Y Acceleration]
@@ -344,6 +382,8 @@
 
 #
 # Curve 5 - Node 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Acceleration[Y Acceleration]
 # Node - 2: Node Acceleration[Y Acceleration]
@@ -361,6 +401,8 @@
 
 #
 # Curve 1 - Beams 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Torsional Resultant
 # Beams - 5: Torsional Resultant
@@ -378,6 +420,8 @@
 
 #
 # Curve 2 - Beams 4
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Torsional Resultant
 # Beams - 4: Torsional Resultant
@@ -395,6 +439,8 @@
 
 #
 # Curve 3 - Beams 3
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Torsional Resultant
 # Beams - 3: Torsional Resultant
@@ -412,6 +458,8 @@
 
 #
 # Curve 4 - Beams 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Torsional Resultant
 # Beams - 2: Torsional Resultant
@@ -429,6 +477,8 @@
 
 #
 # Curve 5 - Beams 1
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Torsional Resultant
 # Beams - 1: Torsional Resultant
@@ -446,6 +496,8 @@
 
 #
 # Curve 1 - Beams 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  S Vector[S Vector - x]
 # Beams - 5: S Vector[S Vector - x]
@@ -463,6 +515,8 @@
 
 #
 # Curve 2 - Beams 4
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  S Vector[S Vector - x]
 # Beams - 4: S Vector[S Vector - x]
@@ -480,6 +534,8 @@
 
 #
 # Curve 3 - Beams 3
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  S Vector[S Vector - x]
 # Beams - 3: S Vector[S Vector - x]
@@ -497,6 +553,8 @@
 
 #
 # Curve 4 - Beams 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  S Vector[S Vector - x]
 # Beams - 2: S Vector[S Vector - x]
@@ -514,6 +572,8 @@
 
 #
 # Curve 5 - Beams 1
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  S Vector[S Vector - x]
 # Beams - 1: S Vector[S Vector - x]
@@ -531,6 +591,8 @@
 
 #
 # Curve 1 - Beams 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  S Vector[S Vector - z]
 # Beams - 5: S Vector[S Vector - z]
@@ -548,6 +610,8 @@
 
 #
 # Curve 2 - Beams 4
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  S Vector[S Vector - z]
 # Beams - 4: S Vector[S Vector - z]
@@ -565,6 +629,8 @@
 
 #
 # Curve 3 - Beams 3
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  S Vector[S Vector - z]
 # Beams - 3: S Vector[S Vector - z]
@@ -582,6 +648,8 @@
 
 #
 # Curve 4 - Beams 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  S Vector[S Vector - z]
 # Beams - 2: S Vector[S Vector - z]
@@ -599,6 +667,8 @@
 
 #
 # Curve 5 - Beams 1
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  S Vector[S Vector - z]
 # Beams - 1: S Vector[S Vector - z]
@@ -616,6 +686,8 @@
 
 #
 # Curve 1 - Beams 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Element Status
 # Beams - 5: Element Status
@@ -633,6 +705,8 @@
 
 #
 # Curve 2 - Beams 4
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Element Status
 # Beams - 4: Element Status
@@ -650,6 +724,8 @@
 
 #
 # Curve 3 - Beams 3
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Element Status
 # Beams - 3: Element Status
@@ -667,6 +743,8 @@
 
 #
 # Curve 4 - Beams 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Element Status
 # Beams - 2: Element Status
@@ -684,6 +762,8 @@
 
 #
 # Curve 5 - Beams 1
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Element Status
 # Beams - 1: Element Status
@@ -701,6 +781,8 @@
 
 #
 # Curve 1 - Beams 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time     Axial Force
 # Beams - 5: Axial Force
@@ -718,6 +800,8 @@
 
 #
 # Curve 2 - Beams 4
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time     Axial Force
 # Beams - 4: Axial Force
@@ -735,6 +819,8 @@
 
 #
 # Curve 3 - Beams 3
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time     Axial Force
 # Beams - 3: Axial Force
@@ -752,6 +838,8 @@
 
 #
 # Curve 4 - Beams 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time     Axial Force
 # Beams - 2: Axial Force
@@ -769,6 +857,8 @@
 
 #
 # Curve 5 - Beams 1
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time     Axial Force
 # Beams - 1: Axial Force
@@ -786,6 +876,8 @@
 
 #
 # Curve 1 - Beams 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time     Axial Force
 # Beams - 5: Axial Force
@@ -803,6 +895,8 @@
 
 #
 # Curve 2 - Beams 4
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time     Axial Force
 # Beams - 4: Axial Force
@@ -820,6 +914,8 @@
 
 #
 # Curve 3 - Beams 3
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time     Axial Force
 # Beams - 3: Axial Force
@@ -837,6 +933,8 @@
 
 #
 # Curve 4 - Beams 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time     Axial Force
 # Beams - 2: Axial Force
@@ -854,6 +952,8 @@
 
 #
 # Curve 5 - Beams 1
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time     Axial Force
 # Beams - 1: Axial Force
@@ -871,6 +971,8 @@
 
 #
 # Curve 1 - Beams 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Bending Moment - t
 # Beams - 5: Bending Moment - t
@@ -888,6 +990,8 @@
 
 #
 # Curve 2 - Beams 4
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Bending Moment - t
 # Beams - 4: Bending Moment - t
@@ -905,6 +1009,8 @@
 
 #
 # Curve 3 - Beams 3
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Bending Moment - t
 # Beams - 3: Bending Moment - t
@@ -922,6 +1028,8 @@
 
 #
 # Curve 4 - Beams 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Bending Moment - t
 # Beams - 2: Bending Moment - t
@@ -939,6 +1047,8 @@
 
 #
 # Curve 5 - Beams 1
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Bending Moment - t
 # Beams - 1: Bending Moment - t
@@ -956,6 +1066,8 @@
 
 #
 # Curve 1 - Node 14
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # X Displacement reference state: 0
 
@@ -975,6 +1087,8 @@
 
 #
 # Curve 2 - Node 11
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # X Displacement reference state: 0
 
@@ -994,6 +1108,8 @@
 
 #
 # Curve 3 - Node 8
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # X Displacement reference state: 0
 
@@ -1013,6 +1129,8 @@
 
 #
 # Curve 4 - Node 5
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # X Displacement reference state: 0
 
@@ -1032,6 +1150,8 @@
 
 #
 # Curve 5 - Node 2
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # X Displacement reference state: 0
 
@@ -1051,6 +1171,8 @@
 
 #
 # Curve 1 - Node 14
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Y Displacement reference state: 0
 
@@ -1070,6 +1192,8 @@
 
 #
 # Curve 2 - Node 11
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Y Displacement reference state: 0
 
@@ -1089,6 +1213,8 @@
 
 #
 # Curve 3 - Node 8
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Y Displacement reference state: 0
 
@@ -1108,6 +1234,8 @@
 
 #
 # Curve 4 - Node 5
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Y Displacement reference state: 0
 
@@ -1127,6 +1255,8 @@
 
 #
 # Curve 5 - Node 2
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Y Displacement reference state: 0
 
@@ -1145,26 +1275,9 @@
   3.00000012e-01  8.92446637e-02
 
 #
-# Curve 1 - Node 1
-# Time reference state: 5
-# X Displacement reference state: 5
-
-#           Time  X Displacement
-# Node - 1: X Displacement
-  0.00000000e+00  0.00000000e+00
-  2.99999993e-02  0.00000000e+00
-  5.99999987e-02  0.00000000e+00
-  9.00000036e-02  0.00000000e+00
-  1.19999997e-01  0.00000000e+00
-  1.50000006e-01  0.00000000e+00
-  1.80000007e-01  0.00000000e+00
-  2.09999993e-01  0.00000000e+00
-  2.39999995e-01  0.00000000e+00
-  2.70000011e-01  0.00000000e+00
-  3.00000012e-01  0.00000000e+00
-
-#
-# Curve 2 - Node 4
+# Curve 1 - Node 4
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 5
 # X Displacement reference state: 5
 
@@ -1183,7 +1296,9 @@
   3.00000012e-01  0.00000000e+00
 
 #
-# Curve 3 - Node 12
+# Curve 2 - Node 12
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 5
 # X Displacement reference state: 5
 
@@ -1202,7 +1317,9 @@
   3.00000012e-01  0.00000000e+00
 
 #
-# Curve 4 - Node 14
+# Curve 3 - Node 14
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 5
 # X Displacement reference state: 5
 
@@ -1222,6 +1339,8 @@
 
 #
 # Curve 1 - Node 4
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Node - 4: Acceleration Magnitude
@@ -1239,6 +1358,8 @@
 
 #
 # Curve 2 - Node 3
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Node - 3: Acceleration Magnitude
@@ -1256,6 +1377,8 @@
 
 #
 # Curve 3 - Node 2
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Node - 2: Acceleration Magnitude

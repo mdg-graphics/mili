@@ -3,10 +3,10 @@
 #---------------------------------------------------------------------
 # Griz Version Info:
 #
-#	Griz4-V12_01
-# 	Built: 	Thu Feb 28 15:05:30 2013 on Linux #1 SMP Tue Jun 19 17:16:17 PDT 2012 2.6.32-220.23.1.1chaos.ch5.x86_64 x86_64 by icorey
-# 	Configure: ./configure 
-# 	Compile Options: gcc -O3 -DJPEG_SUPPORT -DPNG_SUPPORT  -DSERIAL_BATCH -I../include -I/usr/apps/mdg/include -I.. -I../HersheyLib/src -I../ImageLib -I/usr/include -I/usr/../include -I../.. 
+#	Griz4-V13_01
+# 	Built: 	Wed Jun 24 10:46:34 2015 on Linux #1 SMP Fri Mar 20 13:20:55 PDT 2015 2.6.32-504.12.2.2chaos.ch5.3.x86_64 x86_64 by oliver4
+# 	Configure: ./configure linux gnu
+# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/usr/apps/mdg/include -I/../include -I../.. 
 # 		Mili Library Version (Griz Linked): 	V13_01
 #		Mili Database-Library Version: 		V12_01_00
 #		Mili Database-Host: 			rzmerl1
@@ -16,11 +16,13 @@
 #---------------------------------------------------------------------
 # Database path/name: dblplt000
 # Description: Sample input for plane strain cantilever beam ala DLEARN
-# Output date: 03/28/13
+# Output date: 06/24/15
 #
 
 #
 # Curve 1 - Nodal 22
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Nodal - 22: Node Position[Y Position]
@@ -29,7 +31,20 @@
   2.00000000e+00  1.99828422e+00
 
 #
-# Curve 2 - Nodal 19
+# Curve 2 - Nodal 20
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Node Position[Y Position]
+# Nodal - 20: Node Position[Y Position]
+  0.00000000e+00  1.50000000e+00
+  1.00000000e+00  1.49949431e+00
+  2.00000000e+00  1.49904382e+00
+
+#
+# Curve 3 - Nodal 19
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Nodal - 19: Node Position[Y Position]
@@ -38,7 +53,9 @@
   2.00000000e+00  1.49904382e+00
 
 #
-# Curve 3 - Nodal 18
+# Curve 4 - Nodal 18
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Nodal - 18: Node Position[Y Position]
@@ -47,7 +64,9 @@
   2.00000000e+00  1.49904382e+00
 
 #
-# Curve 4 - Nodal 17
+# Curve 5 - Nodal 17
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Nodal - 17: Node Position[Y Position]
@@ -56,7 +75,9 @@
   2.00000000e+00  1.49904382e+00
 
 #
-# Curve 5 - Nodal 225
+# Curve 6 - Nodal 225
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Nodal - 225: Node Position[Y Position]
@@ -65,7 +86,9 @@
   2.00000000e+00  1.80202186e+00
 
 #
-# Curve 6 - Nodal 100
+# Curve 7 - Nodal 100
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Nodal - 100: Node Position[Y Position]
@@ -74,7 +97,9 @@
   2.00000000e+00  1.96046877e+00
 
 #
-# Curve 7 - Nodal 11
+# Curve 8 - Nodal 11
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Nodal - 11: Node Position[Y Position]
@@ -83,7 +108,9 @@
   2.00000000e+00  9.99580920e-01
 
 #
-# Curve 8 - Nodal 1
+# Curve 9 - Nodal 1
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Node Position[Y Position]
 # Nodal - 1: Node Position[Y Position]
@@ -93,6 +120,8 @@
 
 #
 # Curve 1 - Nodal 5
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Nodal - 5: Acceleration Magnitude
@@ -102,6 +131,8 @@
 
 #
 # Curve 2 - Nodal 22
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Nodal - 22: Acceleration Magnitude
@@ -110,7 +141,20 @@
   2.00000000e+00  9.99820828e-01
 
 #
-# Curve 3 - Nodal 19
+# Curve 3 - Nodal 20
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Acceleration Magnitude
+# Nodal - 20: Acceleration Magnitude
+  0.00000000e+00  4.21736389e-04
+  1.00000000e+00  1.90734863e-05
+  2.00000000e+00  2.50066400e+00
+
+#
+# Curve 4 - Nodal 19
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Nodal - 19: Acceleration Magnitude
@@ -119,7 +163,9 @@
   2.00000000e+00  1.50070703e+00
 
 #
-# Curve 4 - Nodal 18
+# Curve 5 - Nodal 18
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Nodal - 18: Acceleration Magnitude
@@ -128,7 +174,9 @@
   2.00000000e+00  5.00776291e-01
 
 #
-# Curve 5 - Nodal 17
+# Curve 6 - Nodal 17
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Nodal - 17: Acceleration Magnitude
@@ -137,7 +185,9 @@
   2.00000000e+00  4.99869347e-01
 
 #
-# Curve 6 - Nodal 225
+# Curve 7 - Nodal 225
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Nodal - 225: Acceleration Magnitude
@@ -146,7 +196,9 @@
   2.00000000e+00  2.09989262e+00
 
 #
-# Curve 7 - Nodal 100
+# Curve 8 - Nodal 100
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Nodal - 100: Acceleration Magnitude
@@ -155,7 +207,9 @@
   2.00000000e+00  2.01715755e+00
 
 #
-# Curve 8 - Nodal 11
+# Curve 9 - Nodal 11
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Nodal - 11: Acceleration Magnitude
@@ -164,7 +218,9 @@
   2.00000000e+00  9.99973834e-01
 
 #
-# Curve 9 - Nodal 1
+# Curve 10 - Nodal 1
+# Time reference surface: middle
+# Time reference frame: global
 
 #           Time  Acceleration Magnitude
 # Nodal - 1: Acceleration Magnitude
@@ -174,6 +230,7 @@
 
 #
 # Curve 1 - brick 98
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -185,6 +242,7 @@
 
 #
 # Curve 2 - brick 97
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -196,6 +254,7 @@
 
 #
 # Curve 3 - brick 66
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -207,6 +266,7 @@
 
 #
 # Curve 4 - brick 65
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -218,6 +278,7 @@
 
 #
 # Curve 5 - brick 82
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -229,6 +290,7 @@
 
 #
 # Curve 6 - brick 88
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -240,6 +302,7 @@
 
 #
 # Curve 7 - brick 106
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -251,6 +314,7 @@
 
 #
 # Curve 8 - brick 40
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -262,6 +326,7 @@
 
 #
 # Curve 9 - brick 119
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -273,6 +338,7 @@
 
 #
 # Curve 10 - brick 1
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -284,6 +350,7 @@
 
 #
 # Curve 1 - brick 98
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -295,6 +362,7 @@
 
 #
 # Curve 2 - brick 97
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -306,6 +374,7 @@
 
 #
 # Curve 3 - brick 66
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -317,6 +386,7 @@
 
 #
 # Curve 4 - brick 65
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -328,6 +398,7 @@
 
 #
 # Curve 5 - brick 82
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -339,6 +410,7 @@
 
 #
 # Curve 6 - brick 88
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -350,6 +422,7 @@
 
 #
 # Curve 7 - brick 106
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -361,6 +434,7 @@
 
 #
 # Curve 8 - brick 40
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -372,6 +446,7 @@
 
 #
 # Curve 9 - brick 119
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -383,6 +458,7 @@
 
 #
 # Curve 10 - brick 1
+# Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
 
@@ -394,6 +470,7 @@
 
 #
 # Curve 1 - brick 98
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -405,6 +482,7 @@
 
 #
 # Curve 2 - brick 97
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -416,6 +494,7 @@
 
 #
 # Curve 3 - brick 66
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -427,6 +506,7 @@
 
 #
 # Curve 4 - brick 65
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -438,6 +518,7 @@
 
 #
 # Curve 5 - brick 82
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -449,6 +530,7 @@
 
 #
 # Curve 6 - brick 88
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -460,6 +542,7 @@
 
 #
 # Curve 7 - brick 106
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -471,6 +554,7 @@
 
 #
 # Curve 8 - brick 40
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -482,6 +566,7 @@
 
 #
 # Curve 9 - brick 119
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -493,6 +578,7 @@
 
 #
 # Curve 10 - brick 1
+# Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
 
@@ -504,6 +590,7 @@
 
 #
 # Curve 1 - brick 98
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -515,6 +602,7 @@
 
 #
 # Curve 2 - brick 97
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -526,6 +614,7 @@
 
 #
 # Curve 3 - brick 66
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -537,6 +626,7 @@
 
 #
 # Curve 4 - brick 65
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -548,6 +638,7 @@
 
 #
 # Curve 5 - brick 82
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -559,6 +650,7 @@
 
 #
 # Curve 6 - brick 88
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -570,6 +662,7 @@
 
 #
 # Curve 7 - brick 106
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -581,6 +674,7 @@
 
 #
 # Curve 8 - brick 40
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -592,6 +686,7 @@
 
 #
 # Curve 9 - brick 119
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -603,6 +698,7 @@
 
 #
 # Curve 10 - brick 1
+# Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
 
@@ -614,6 +710,9 @@
 
 #
 # Curve 1 - brick 98
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
 # brick - 98: Volumetric Strain
@@ -623,6 +722,9 @@
 
 #
 # Curve 2 - brick 97
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
 # brick - 97: Volumetric Strain
@@ -632,6 +734,9 @@
 
 #
 # Curve 3 - brick 66
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
 # brick - 66: Volumetric Strain
@@ -641,6 +746,9 @@
 
 #
 # Curve 4 - brick 65
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
 # brick - 65: Volumetric Strain
@@ -650,6 +758,9 @@
 
 #
 # Curve 5 - brick 82
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
 # brick - 82: Volumetric Strain
@@ -659,6 +770,9 @@
 
 #
 # Curve 6 - brick 88
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
 # brick - 88: Volumetric Strain
@@ -668,6 +782,9 @@
 
 #
 # Curve 7 - brick 106
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
 # brick - 106: Volumetric Strain
@@ -677,6 +794,9 @@
 
 #
 # Curve 8 - brick 40
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
 # brick - 40: Volumetric Strain
@@ -686,6 +806,9 @@
 
 #
 # Curve 9 - brick 119
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
 # brick - 119: Volumetric Strain
@@ -695,6 +818,9 @@
 
 #
 # Curve 10 - brick 1
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
 # brick - 1: Volumetric Strain
@@ -705,7 +831,10 @@
 #
 # Curve 1 - brick 98
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # brick - 98: XY Engr Strain
@@ -716,7 +845,10 @@
 #
 # Curve 2 - brick 97
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # brick - 97: XY Engr Strain
@@ -727,7 +859,10 @@
 #
 # Curve 3 - brick 66
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # brick - 66: XY Engr Strain
@@ -738,7 +873,10 @@
 #
 # Curve 4 - brick 65
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # brick - 65: XY Engr Strain
@@ -749,7 +887,10 @@
 #
 # Curve 5 - brick 82
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # brick - 82: XY Engr Strain
@@ -760,7 +901,10 @@
 #
 # Curve 6 - brick 88
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # brick - 88: XY Engr Strain
@@ -771,7 +915,10 @@
 #
 # Curve 7 - brick 106
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # brick - 106: XY Engr Strain
@@ -782,7 +929,10 @@
 #
 # Curve 8 - brick 40
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # brick - 40: XY Engr Strain
@@ -793,7 +943,10 @@
 #
 # Curve 9 - brick 119
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # brick - 119: XY Engr Strain
@@ -804,7 +957,10 @@
 #
 # Curve 10 - brick 1
 # Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
 # XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
 # brick - 1: XY Engr Strain
@@ -814,6 +970,8 @@
 
 #
 # Curve 1 - Nodal 5
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
@@ -825,6 +983,8 @@
 
 #
 # Curve 2 - Nodal 22
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
@@ -835,7 +995,22 @@
   2.00000000e+00  1.71579723e-03
 
 #
-# Curve 3 - Nodal 19
+# Curve 3 - Nodal 20
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#           Time  Displacement Magnitude
+# Nodal - 20: Displacement Magnitude
+  0.00000000e+00  0.00000000e+00
+  1.00000000e+00  5.99104678e-04
+  2.00000000e+00  1.21549808e-03
+
+#
+# Curve 4 - Nodal 19
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
@@ -846,7 +1021,9 @@
   2.00000000e+00  1.21549808e-03
 
 #
-# Curve 4 - Nodal 18
+# Curve 5 - Nodal 18
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
@@ -857,7 +1034,9 @@
   2.00000000e+00  1.21549808e-03
 
 #
-# Curve 5 - Nodal 17
+# Curve 6 - Nodal 17
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
@@ -868,7 +1047,9 @@
   2.00000000e+00  1.21549808e-03
 
 #
-# Curve 6 - Nodal 225
+# Curve 7 - Nodal 225
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
@@ -879,7 +1060,9 @@
   2.00000000e+00  2.00998023e-01
 
 #
-# Curve 7 - Nodal 100
+# Curve 8 - Nodal 100
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
@@ -890,7 +1073,9 @@
   2.00000000e+00  4.51142900e-02
 
 #
-# Curve 8 - Nodal 11
+# Curve 9 - Nodal 11
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
@@ -901,7 +1086,9 @@
   2.00000000e+00  8.70166346e-04
 
 #
-# Curve 9 - Nodal 1
+# Curve 10 - Nodal 1
+# Time reference surface: middle
+# Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
