@@ -473,7 +473,9 @@ parse_show_command( char *token, Analysis *analy )
     if(analy->int_labels != NULL)
     {
         analy->int_labels->use_combined = TRUE;
-    }    
+    }  
+    
+    analy->extreme_result = FALSE; 
 
     load_result( analy, TRUE, TRUE, FALSE );
 

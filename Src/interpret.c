@@ -4989,6 +4989,12 @@ parse_single_command( char *buf, Analysis *analy )
                     int qty = 0;
                     for(i = 1; i < cnt; i++)
                     {
+                        if(strcmp(original_tokens[i],"vs")==0)
+                        {
+                            qty++;
+                            strcpy(tokens[j],original_tokens[i]);
+                            j++;
+                        }
                         res_ptr = create_result_list(original_tokens[i], analy);
                         for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
                         {

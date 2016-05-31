@@ -723,9 +723,11 @@ object_is_bound( int ident, MO_class_data *p_mo_class, Subrec_obj *p_subrec )
     Int_2tuple *p_block;
     int blk_qty;
     int i;
-
+    
     if ( p_mo_class != p_subrec->p_object_class )
-        return FALSE;
+    {
+      return FALSE;
+    }
 
     blk_qty = p_subrec->subrec.qty_blocks;
 

@@ -747,7 +747,7 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
     Result *res_list;
     Specified_obj *p_so, *so_list;
     int idx;
-    Time_series_obj *old_tsos, *gather_list;
+    Time_series_obj *old_tsos, *gather_list, *abscissa_gather_list;
     Gather_segment *control_list;
     int good_time_series;
 
@@ -803,7 +803,28 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
                       "found; aborting." );
         return;
     }
+    
+    if(analy->abscissa)
+    {
+        good_time_series = gen_gather( analy->abscissa, 
+                                   so_list, analy, 
+                                   &abscissa_gather_list );
 
+        if ( good_time_series == 0 )
+        {
+            remove_unused_results( &res_list );
+            DELETE_LIST( so_list );
+            popup_dialog( INFO_POPUP, "No valid result/mesh object combinations "
+                      "found; aborting." );
+            return;
+        }
+        for(old_tsos = abscissa_gather_list; old_tsos !=NULL;NEXT(old_tsos))
+        {
+            APPEND(old_tsos, gather_list);
+        }
+        old_tsos = NULL;
+    }
+    
     /* Generate state "segments" with constant gather lists. */
     gen_control_list( gather_list, analy, &control_list );
 
@@ -820,12 +841,7 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
     /* Update time series list pointer. */
     analy->time_series_list = gather_list;
 
-    if ( analy->abscissa != NULL && analy->abscissa->next != NULL)
-    {
-        /* Remove non-time abscissa from results to leave only ordinates. */
-        UNLINK( analy->abscissa, res_list );
-    }
-    else
+    if ( analy->abscissa == NULL)
     {
         /* Retrieve time array from db if necessary. */
         if ( analy->times == NULL )
@@ -2269,8 +2285,8 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
             if ( !found )
             {
                 /* Token was not a result, assume there are no results left. */
-                if( strcmp(tokens[idx], "vs"))
-                {
+                if( !strcmp(tokens[idx], "vs"))
+                {   if(p_r != NULL)
                     free( p_r );
                     p_r = NULL;
                 }
@@ -2450,7 +2466,7 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
     so_list = NULL;
     vslogic = FALSE;
     /* Pick off cases where we just use the selected objects. */
-    if ( token_qty == 1 || i == token_qty || strcmp( tokens[i], "vs" ) == 0 )
+    if ( token_qty == 1 || i == token_qty  )
     {
         if ( analy->selected_objects != NULL && !env.quiet_mode )
         {
@@ -2620,7 +2636,7 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
     i = 0;
     while(i < token_qty)
     {
-        if(!strcmp(tokens[i], "vs") && (i + 2 < token_qty))
+        if(!strcmp(tokens[i], "vs") && (i + 1 < token_qty))
         {
             vslogic = TRUE;
             break;
@@ -2846,9 +2862,9 @@ static void
 parse_abscissa_spec( int token_qty, char tokens[][TOKENLENGTH],
                      Analysis *analy, int *p_index, Result **p_res_list )
 {
-    int idx;
+    int idx,loop_idx;
     Bool_type found;
-
+    Result *abscissa_result;
     idx = *p_index;
 
     /* Get abscissa if specified. */
@@ -2858,78 +2874,58 @@ parse_abscissa_spec( int token_qty, char tokens[][TOKENLENGTH],
 
         if ( analy->abscissa != NULL )
         {
-            /* An abscissa exists - see if it can be used. */
-            if ( strcmp( analy->abscissa->name, tokens[idx] ) != 0
-                    || !match_result_source_with_analy( analy, analy->abscissa )
-                    || !match_spec_with_analy( analy,
-                                               &analy->abscissa->modifiers ) )
+            if ( analy->abscissa->reference_count > 0 )
             {
-                /*
-                 * No good for current request; store if there are
-                 * extant references, else delete.
-                 */
-                if ( analy->abscissa->reference_count > 0 )
-                {
-                    INIT_PTRS( analy->abscissa );
-                    INSERT( analy->abscissa, analy->series_results );
-                    analy->abscissa = NULL;
-                }
-                else
-                {
-                    cleanse_result( analy->abscissa );
-                    free( analy->abscissa );
-                    analy->abscissa = NULL;
-                }
-            }
-            /*
-             * Not changing this to find_named...() (which might be OK)
-             * because we really just want to make sure analy->abscissa
-             * hasn't been stuck in the result list already; there
-             * shouldn't be any modifier or result source changes since
-             * *p_res_list was created since it's all within one command's
-             * processing.
-             */
-            else if ( !find_result_in_list( analy->abscissa, *p_res_list,
-                                            NULL ) )
-            {
-                /* Add abscissa to result list so it will be gathered. */
-                INSERT( analy->abscissa, *p_res_list );
-            }
-        }
-
-        if ( analy->abscissa == NULL )
-        {
-            /*
-             * Need abscissa; find it among existing time series'
-             * or prepare to gather it.
-             */
-
-            analy->abscissa = NEW( Result, "Abscissa result" );
-
-            found = find_result( analy, ALL, FALSE, analy->abscissa,
-                                 tokens[idx] );
-            if ( !found )
-            {
-                popup_dialog( WARNING_POPUP,
-                              "Abscissa result \"%s\" not found, %s",
-                              tokens[idx], "using time." );
-                free( analy->abscissa );
+                INIT_PTRS( analy->abscissa );
+                INSERT( analy->abscissa, analy->series_results );
                 analy->abscissa = NULL;
             }
-            else if ( !analy->abscissa->single_valued )
+            else
             {
                 cleanse_result( analy->abscissa );
                 free( analy->abscissa );
                 analy->abscissa = NULL;
+            }
+        }
+        
+        for( loop_idx = idx; loop_idx< token_qty; loop_idx++)
+        {
+            abscissa_result = NEW( Result, "Abscissa result" );
+            
+            
+
+            found = find_result( analy, ALL, FALSE, abscissa_result,
+                                 tokens[loop_idx] );
+            if ( !found )
+            {
+                popup_dialog( WARNING_POPUP,
+                                  "Abscissa result \"%s\" not found, %s",
+                                  tokens[loop_idx], "using time." );
+                /* ERROR: Need to chain down deleting this */
+                free( abscissa_result );
+                abscissa_result = NULL;
+            }
+            else if ( !abscissa_result->single_valued )
+            {
+                cleanse_result( abscissa_result );
+                free( abscissa_result );
+                abscissa_result = NULL;
                 popup_dialog( INFO_POPUP,
                               "Ignoring non-scalar abscissa \"%s\".",
-                              tokens[idx] );
+                              tokens[loop_idx] );
             }
-            else if ( !find_result_in_list( analy->abscissa, *p_res_list,
+            else if ( !find_result_in_list( abscissa_result, *p_res_list,
                                             NULL ) )
             {
                 /* Add abscissa to result list so it will be gathered. */
-                INSERT( analy->abscissa, *p_res_list );
+                if(analy->abscissa == NULL)
+                {
+                    analy->abscissa = abscissa_result;
+                }else
+                {
+                    INSERT( abscissa_result, analy->abscissa );
+                }
+                //INSERT( abscissa_result, *p_res_list );
             }
         }
     }
@@ -3490,6 +3486,7 @@ prepare_plot_objects( Result *res_list, Specified_obj *so_list,
                       Analysis *analy, Plot_obj **p_plot_list )
 {
     Result *p_r;
+    Result *abscissa_result;
     Time_series_obj *p_tso, *p_tso2;
     Specified_obj *p_so, *p_so2;
     Plot_obj *p_po, *plot_list;
@@ -3536,27 +3533,43 @@ prepare_plot_objects( Result *res_list, Specified_obj *so_list,
                 if ( find_time_series( p_r, p_so->ident, p_so->mo_class, analy,
                                        analy->time_series_list, &p_tso ))
                 {
-                    for(p_so2 = so_list; p_so2 != NULL; NEXT(p_so2))
+                    if(analy->abscissa == NULL)
                     {
-                        if(analy->abscissa == NULL
-                                || (p_so->mo_class->superclass != p_so2->mo_class->superclass 
-                                 
-                                    && find_time_series(analy->abscissa, p_so2->ident,
+                        p_po = NEW( Plot_obj, "New plot" );
+
+                        p_po->ordinate = p_tso;
+                        
+                        p_po->ordinate->reference_count++;
+
+                        p_po->abscissa = analy->times;
+                        p_po->abscissa->reference_count++;
+
+                        INSERT( p_po, plot_list );
+                    }else
+                    {
+                        for(abscissa_result = analy->abscissa;
+                            abscissa_result != NULL; 
+                            NEXT(abscissa_result))
+                        {
+                            for(p_so2 = so_list; p_so2 != NULL; NEXT(p_so2))
+                            {
+                                if(find_time_series(abscissa_result, p_so2->ident,
                                         p_so2->mo_class, analy,
                                         analy->time_series_list,
-                                        &p_tso2)))
-                        {
+                                        &p_tso2))
+                                {
 
-                            p_po = NEW( Plot_obj, "New plot" );
+                                    p_po = NEW( Plot_obj, "New plot" );
 
-                            p_po->ordinate = p_tso;
-                            p_po->ordinate->reference_count++;
+                                    p_po->ordinate = p_tso;
+                                    p_po->ordinate->reference_count++;
 
-                            p_po->abscissa = ( analy->abscissa == NULL )
-                                             ? analy->times : p_tso2;
-                            p_po->abscissa->reference_count++;
+                                    p_po->abscissa = p_tso2;
+                                    p_po->abscissa->reference_count++;
 
-                            INSERT( p_po, plot_list );
+                                    INSERT( p_po, plot_list );
+                                }
+                            }
                         }
                     }
                 }

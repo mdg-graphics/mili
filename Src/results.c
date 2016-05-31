@@ -2844,6 +2844,12 @@ init_result( Result *p_r )
 void
 cleanse_result( Result *p_r )
 {
+    if ( p_r->next != NULL )
+    {
+        cleanse_result( p_r->next );
+        p_r->next = NULL;
+    }
+        
     if ( p_r->superclasses != NULL )
         free( p_r->superclasses );
 
@@ -3113,7 +3119,7 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
         return FALSE;
 
 
-    /* with element sets we now need to deal with a result that is a mixture of primal and detrived results
+    /* with element sets we now need to deal with a result that is a mixture of primal and derived results
  *     so if the passed in superclass has a results function that is not load_primal_result then it needs
  *     to be treated as derived even if the origin flag is set to primal */
     for(i = 0; i < p_result->qty; i++)
