@@ -818,10 +818,10 @@ create_plot_objects( int token_qty, char tokens[][TOKENLENGTH],
                       "found; aborting." );
             return;
         }
-        for(old_tsos = abscissa_gather_list; old_tsos !=NULL;NEXT(old_tsos))
-        {
-            APPEND(old_tsos, gather_list);
-        }
+        //for(old_tsos = abscissa_gather_list; old_tsos !=NULL;NEXT(old_tsos))
+        //{
+            APPEND(abscissa_gather_list, gather_list);
+        //}
         old_tsos = NULL;
     }
     
@@ -3558,7 +3558,10 @@ prepare_plot_objects( Result *res_list, Specified_obj *so_list,
                                         analy->time_series_list,
                                         &p_tso2))
                                 {
-
+                                    if((p_tso->mo_class == p_tso2->mo_class &&
+                                        p_tso->ident == p_tso2->ident) || 
+                                        p_tso->mo_class != p_tso2->mo_class)
+                                    { 
                                     p_po = NEW( Plot_obj, "New plot" );
 
                                     p_po->ordinate = p_tso;
@@ -3568,6 +3571,7 @@ prepare_plot_objects( Result *res_list, Specified_obj *so_list,
                                     p_po->abscissa->reference_count++;
 
                                     INSERT( p_po, plot_list );
+                                    }
                                 }
                             }
                         }
