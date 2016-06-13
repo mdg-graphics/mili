@@ -7095,17 +7095,21 @@ parse_single_command( char *buf, Analysis *analy )
     }
     else if ( strcmp( tokens[0], "dscala") == 0)
     {
-        char cmd[32];
+        char cmd[512];
         char scale[32];
+        char out_command[32];
+        char out_base_name[256];
+        char out_file_name[256];
         int reps = 1;
         int i, j;
-        float max, incr;
+        float incr;
         float amplification = 1.0;
         float num_divisions;
         float dmax;
-        max = 1;
+        int output_file = 0;
+        out_command[0] = '\0';
         parse_command("on dscal", analy);
-        if(token_cnt == 2)
+        if(token_cnt > 1)
         {
             sscanf(tokens[1], "%f", &num_divisions);
             if( num_divisions < 1.0)
@@ -7113,46 +7117,51 @@ parse_single_command( char *buf, Analysis *analy )
                 popup_dialog(USAGE_POPUP, " number of divisions specified must be greater than 1.0\n"); 
                 return;
             }
-        } else if(token_cnt == 3)
-        {
-            sscanf(tokens[1], "%f", &num_divisions);
-            sscanf(tokens[2], "%d", &reps);
-            if(num_divisions < 1.0)
+            if(token_cnt > 2)
             {
-                popup_dialog(USAGE_POPUP, "number of divisions specified must be greater than 1.0\n");
-                return;
-            }
-            if(reps < 0)
-            {
-                popup_dialog(USAGE_POPUP, "The number of cycles must be > 1\n");
-                return;
-            }
+                sscanf(tokens[2], "%d", &reps);
+                if(reps < 0)
+                {
+                    popup_dialog(USAGE_POPUP, "The number of cycles must be > 1\n");
+                    return;
+                }
 
-        }else if(token_cnt == 4)
-        {
-            sscanf(tokens[1], "%f", &num_divisions);
-            sscanf(tokens[2], "%d", &reps);
-            sscanf(tokens[3], "%f", &amplification);
-            if(num_divisions < 1.0)
-            {
-                popup_dialog(USAGE_POPUP, "number of divisions specified must be greater than 1.0\n");
-                return;
-            }
-            if(reps < 0)
-            {
-                popup_dialog(USAGE_POPUP, "The number of cycles must be > 1\n");
-                return;
-            }
-            if(amplification < 0)
-            {
-                popup_dialog(USAGE_POPUP, "The amplification must be > 1\n");
-                return;
+                if(token_cnt > 3)
+                {
+                    sscanf(tokens[3], "%f", &amplification);
+                    if(amplification < 0)
+                    {
+                        popup_dialog(USAGE_POPUP, "The amplification must be > 1\n");
+                        return;
+                    }
+                    if(token_cnt > 4)
+                    {
+                        strcpy(out_command, tokens[4]);
+                        if (strcmp(out_command,"outjpeg") != 0 && 
+                            strcmp(out_command,"outpng") != 0)
+                        {
+                            popup_dialog(USAGE_POPUP, "The current supported output is outjpeg");
+                            return;
+                        }
+                        output_file = 1;
+                        if(token_cnt >5)
+                        {
+                            strcpy(out_base_name, tokens[5]);
+                        }else
+                        {
+                            strcpy(out_base_name, analy->root_name);
+                        }
+                            
+                    }
+                }
+                
             }
         }
-
+        
+        incr = (2*PI)/num_divisions;
         for(i = 0; i < reps; i++)
         {
-            /*incr = (max - min)/num_divisions; */
+            /*incr = (max - min)/num_divisions; 
             incr = 1/num_divisions;
             for(j = 0; j <= num_divisions; j++)
             {
@@ -7162,6 +7171,28 @@ parse_single_command( char *buf, Analysis *analy )
                 strcat(cmd, scale);
                 parse_command(cmd, analy);
             }
+            */
+            dmax = 0.0;
+            for(j = 0; j <= num_divisions; j++)
+            {
+                
+                sprintf(scale, "%f", (amplification*sin(dmax)));
+                strcpy(cmd, "dscal ");
+                strcat(cmd, scale);
+                parse_command(cmd, analy);
+                if(output_file)
+                {
+                    int index = (j+(i*num_divisions))+1;
+                    sprintf(out_file_name, "%s-01_%d.jpg", out_base_name, index);
+                    strcpy(cmd, out_command);
+                    strcat(cmd, " ");
+                    strcat(cmd, out_file_name);
+                    parse_command(cmd, analy);
+                    
+                }
+                dmax = dmax + incr;//1.0 - ( * sin(2*PI*j*incr));
+            }
+            
         
        }
         
