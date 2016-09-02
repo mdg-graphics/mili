@@ -1056,7 +1056,7 @@ parse_single_command( char *buf, Analysis *analy )
             else
                 temp_ival = ival;
 
-            if ( (ival - 1) == analy->hilite_num
+            if ( (ival) == analy->hilite_label
                     && p_mo_class == analy->hilite_class )
             {
                 /* Hilited existing hilit object -> de-hilite. */
@@ -1066,7 +1066,7 @@ parse_single_command( char *buf, Analysis *analy )
             else
             {
                 analy->hilite_class = p_mo_class;
-                analy->hilite_num   = temp_ival-1;
+                analy->hilite_num   = temp_ival;
                 if ( analy->hilite_num<0 )
                 {
                     analy->hilite_num=1;
@@ -1194,10 +1194,10 @@ parse_single_command( char *buf, Analysis *analy )
                             {
                                 if ( !strcmp( "node", p_mo_class->short_name  ) )
                                 {
-                                    if ( !is_node_visible( analy, temp_ival-1 ) )
+                                    if ( !is_node_visible( analy, temp_ival ) )
                                         continue;
                                 }
-                                else if ( !is_elem_mat_visible( analy, temp_ival-1, p_mo_class ) )
+                                else if ( !is_elem_mat_visible( analy, temp_ival, p_mo_class ) )
                                     continue;
                             }
 
@@ -1211,7 +1211,7 @@ parse_single_command( char *buf, Analysis *analy )
                                 if ( !unselect )
                                 {
                                     p_so = NEW( Specified_obj, "New object selection" );
-                                    p_so->ident = temp_ival-1;
+                                    p_so->ident = temp_ival;
                                     p_so->label = obj;
                                     p_so->mo_class = p_mo_class;
                                     APPEND( p_so, analy->selected_objects );
@@ -1257,7 +1257,7 @@ parse_single_command( char *buf, Analysis *analy )
                                 if ( !unselect )
                                 {
                                     p_so = NEW( Specified_obj, "New object selection" );
-                                    p_so->ident    = temp_ival - 1;
+                                    p_so->ident    = temp_ival;
                                     p_so->mo_class = p_mo_class;
                                     p_so->label = obj;
                                     APPEND( p_so, analy->selected_objects );
@@ -1294,10 +1294,10 @@ parse_single_command( char *buf, Analysis *analy )
                             {
                                 if ( !strcmp( "node", p_mo_class->short_name  ) )
                                 {
-                                    if ( !is_node_visible( analy, temp_ival-1 ) )
+                                    if ( !is_node_visible( analy, temp_ival ) )
                                         continue;
                                 }
-                                else if ( !is_elem_mat_visible( analy, temp_ival-1, p_mo_class ) )
+                                else if ( !is_elem_mat_visible( analy, temp_ival, p_mo_class ) )
                                     continue;
                             }
 
@@ -1309,7 +1309,7 @@ parse_single_command( char *buf, Analysis *analy )
                                     NEXT( p_so ) )
                             {
                                 if( p_so->mo_class == p_mo_class &&
-                                        p_so->ident == temp_ival - 1 )
+                                        p_so->ident == temp_ival)
                                     break;
                             }
 
@@ -1323,8 +1323,8 @@ parse_single_command( char *buf, Analysis *analy )
                                 if ( !unselect )
                                 {
                                     p_so = NEW( Specified_obj, "New object selection" );
-                                    p_so->ident = temp_ival-1;
-                                    p_so->label = label_num-1;
+                                    p_so->ident = temp_ival;
+                                    p_so->label = label_num;
                                     p_so->mo_class = p_mo_class;
                                     APPEND( p_so, analy->selected_objects );
                                 }
@@ -1352,10 +1352,10 @@ parse_single_command( char *buf, Analysis *analy )
                             {
                                 if ( !strcmp( "node", p_mo_class->short_name ) )
                                 {
-                                    if ( !is_node_visible( analy, temp_ival-1 ) )
+                                    if ( !is_node_visible( analy, temp_ival ) )
                                         continue;
                                 }
-                                else if ( !is_elem_mat_visible( analy, temp_ival-1, p_mo_class ) )
+                                else if ( !is_elem_mat_visible( analy, temp_ival, p_mo_class ) )
                                     continue;
                             }
 
@@ -1366,7 +1366,7 @@ parse_single_command( char *buf, Analysis *analy )
                             for( p_so = analy->selected_objects; p_so != NULL;
                                     NEXT( p_so ) )
                             {
-                                if( p_so->mo_class == p_mo_class && p_so->ident == temp_ival - 1 )
+                                if( p_so->mo_class == p_mo_class && p_so->ident == temp_ival)
                                     break;
                             }
 
@@ -1380,8 +1380,8 @@ parse_single_command( char *buf, Analysis *analy )
                                 if ( !unselect )
                                 {
                                     p_so = NEW( Specified_obj, "New object selection" );
-                                    p_so->ident    = temp_ival-1;
-                                    p_so->label    = j-1;
+                                    p_so->ident    = temp_ival;
+                                    p_so->label    = j;
                                     p_so->mo_class = p_mo_class;
                                     APPEND( p_so, analy->selected_objects );
                                 }
@@ -1424,7 +1424,7 @@ parse_single_command( char *buf, Analysis *analy )
                                 NEXT( p_so ) )
                         {
                             if ( p_so->mo_class == p_mo_class &&
-                                    (p_so->ident == temp_ival-1) )
+                                    (p_so->ident == temp_ival) )
                                 break;
                         }
 
@@ -1441,7 +1441,7 @@ parse_single_command( char *buf, Analysis *analy )
                             if ( !unselect && p_so == NULL)
                             {
                                 p_so = NEW( Specified_obj, "New object selection" );
-                                p_so->ident = temp_ival-1;
+                                p_so->ident = temp_ival;
                                 p_so->label = j;
                                 p_so->mo_class = p_mo_class;
                                 APPEND( p_so, analy->selected_objects );
@@ -1470,7 +1470,7 @@ parse_single_command( char *buf, Analysis *analy )
                         for ( p_so = analy->selected_objects; p_so != NULL;
                                 NEXT( p_so ) )
                             if ( p_so->mo_class == p_mo_class &&
-                                    (p_so->ident == j-1 || p_so->label == j) )
+                                    (p_so->ident == j || p_so->label == j) )
                                 break;
 
                         /* If object exists, delete to de-select, else add. */
@@ -1486,7 +1486,7 @@ parse_single_command( char *buf, Analysis *analy )
                                 if ( p_mo_class->labels_found )
                                     p_so->ident = get_class_label_index( p_mo_class, j );
                                 else
-                                    p_so->ident = j-1;
+                                    p_so->ident = j;
                                 p_so->label = j;
                                 p_so->mo_class = p_mo_class;
                                 APPEND( p_so, analy->selected_objects );
@@ -1556,7 +1556,7 @@ parse_single_command( char *buf, Analysis *analy )
                                         NEXT( p_so ) )
                                 {
                                     if ( p_so->mo_class == p_mo_class &&
-                                            (p_so->ident == ival - 1) )
+                                            (p_so->ident == ival ) )
                                         break;
                                 }
 
@@ -1569,7 +1569,7 @@ parse_single_command( char *buf, Analysis *analy )
                                 else
                                 {
                                     p_so = NEW( Specified_obj, "New object selection" );
-                                    p_so->ident = temp_ival-1;
+                                    p_so->ident = temp_ival;
                                     p_so->label = ival;
                                     p_so->mo_class = p_mo_class;
                                     APPEND( p_so, analy->selected_objects );
@@ -8756,7 +8756,7 @@ parse_vcent( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
             analy->center_view = NODE;
             /*analy->center_node = ival - 1;
             analy->center_node = ival - MESH( analy ).node_geom->labels_min; */
-            ival -= 1;
+            //ival -= 1;
             analy->center_node = ival;
             center_view( analy );
             *p_redraw = BINDING_MESH_VISUAL;

@@ -15709,7 +15709,7 @@ get_class_label_index( MO_class_data *class, int label_num )
     result_ptr = bsearch( &label_num, &class->labels[0], class->qty,
                           sizeof(class->labels[0]), label_compare );
     if ( result_ptr )
-        return( result_ptr->local_id+1 );
+        return( result_ptr->local_id );
     else
         return (M_INVALID_LABEL);
 

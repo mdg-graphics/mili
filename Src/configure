@@ -2120,7 +2120,7 @@ _ACEOF
 
 
 cat >>confdefs.h <<\_ACEOF
-#define PACKAGE_DATE "2016/06/02"
+#define PACKAGE_DATE "2016/06/13"
 _ACEOF
 
 
@@ -2130,7 +2130,7 @@ _ACEOF
 
 
 cat >>confdefs.h <<\_ACEOF
-#define PACKAGE_DATETIME "2016/06/02 07:00:00"
+#define PACKAGE_DATETIME "2016/06/13 07:00:00"
 _ACEOF
 
 
@@ -2138,7 +2138,7 @@ cat >>confdefs.h <<\_ACEOF
 #define PACKAGE_BUGREPORT_ALT "Kevin Durrenberger ext:4-3015 email:durrenberger1@llnl.gov"
 _ACEOF
 
-PACKAGE_DATETIME="2016/06/02 07:00:00"
+PACKAGE_DATETIME="2016/06/13 07:00:00"
 
 
 ac_ext=c

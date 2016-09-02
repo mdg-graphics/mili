@@ -2516,8 +2516,8 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                  * Must already have processed the range start ident so
                  * process the range.
                  */
-                range_stop = atoi( tokens[i] ) - 1;
-                add_mo_nodes( &so_list, p_class, range_start + 1,
+                range_stop = atoi( tokens[i] ) ;
+                add_mo_nodes( &so_list, p_class, range_start,
                               range_stop );
                 o_ident = NON_IDENT;
                 parsing_range = FALSE;
@@ -2534,12 +2534,12 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                     p_so->ident = atoi( tokens[i] ) - 1;
                 } else
                 {
-                    label_index = atoi(tokens[i]) - 1;
+                    label_index = atoi(tokens[i]);
                     p_so->ident = get_class_label_index(p_class, label_index);
                  
                 }
               
-                INSERT( p_so, so_list );
+                APPEND( p_so, so_list );
                 o_ident = p_so->ident;
             }
             break;
@@ -2563,14 +2563,14 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                      * contains the range stop ident.  Process the rest
                      * of the range here.
                      */
-                    range_stop = atoi( nstr ) - 1;
-                    add_mo_nodes( &so_list, p_class, o_ident + 1,
+                    range_stop = atoi( nstr );
+                    add_mo_nodes( &so_list, p_class, o_ident ,
                                   range_stop );
                     o_ident = NON_IDENT;
                 }
                 else if ( p_class != NULL )
                 {
-                    o_ident = atoi( nstr ) - 1;
+                    o_ident = atoi( nstr ) ;
                     range_start = o_ident;
                     p_h = strchr( tokens[i], (int) '-' );
 
@@ -2589,7 +2589,7 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                             p_so->ident = atoi( tokens[i] ) - 1;
                         } else
                         {
-                            label_index = atoi(tokens[i]) - 1;
+                            label_index = atoi(tokens[i]);
                             p_so->ident = get_class_label_index(p_class, label_index);
                         }
                         INSERT( p_so, so_list );
@@ -2598,13 +2598,13 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
 
                         parsing_range = TRUE;
                     }
-                    else if ( extract_numeric_str( p_h + 1, nstr ) )
+                    else if ( extract_numeric_str( p_h , nstr ) )
                     {
                         /*
                          * This compound token has both start and stop
                          * idents so process the whole range here.
                          */
-                        range_stop = atoi( nstr ) - 1;
+                        range_stop = atoi( nstr ) ;
                         add_mo_nodes( &so_list, p_class,
                                       range_start, range_stop );
                         o_ident = NON_IDENT;
