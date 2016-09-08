@@ -4897,22 +4897,18 @@ parse_single_command( char *buf, Analysis *analy )
                     j = i;
                 }
             }
-            if(j > 0)
+            if(i >= token_cnt)
             {
                 popup_dialog(INFO_POPUP, "Must select or specify an element class before using the plot command"); 
                 return;
             }
             /* no oblects are selected but how we must see which element classes are specified in the command line */
-            for(i = 0; i < token_cnt; i++)
+            rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
+            if(rval == OK)
             {
-                rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
-                if(rval == OK)
-                {
-                    p_class = (MO_class_data *) p_hte->data;
-                    elem_class[p_class->superclass] = 1;
-                }
+                p_class = (MO_class_data *) p_hte->data;
+                elem_class[p_class->superclass] = 1;
             }
-            
         }
         /* Delete the plot for this result if computing an EI result */
         if ( analy->ei_result && strlen(analy->ei_result_name)>0 )

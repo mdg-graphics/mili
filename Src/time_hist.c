@@ -2313,7 +2313,7 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
             else
             {
                 /* Good result; put on list. */
-                INSERT( p_r, res_list );
+                APPEND( p_r, res_list );
                 idx++;
                 p_r = NULL;
             }
@@ -2548,7 +2548,7 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
             if ( p_class != NULL && o_ident != NON_IDENT )
             {
                 parsing_range = TRUE;
-                range_start = o_ident;
+                range_start = label_index +1;
             }
             break;
 
@@ -3521,7 +3521,7 @@ prepare_plot_objects( Result *res_list, Specified_obj *so_list,
                                      ? analy->times : p_tso2;
                     p_po->abscissa->reference_count++;
 
-                    INSERT( p_po, plot_list );
+                    APPEND( p_po, plot_list );
                 }
             }
         }
@@ -3544,7 +3544,7 @@ prepare_plot_objects( Result *res_list, Specified_obj *so_list,
                         p_po->abscissa = analy->times;
                         p_po->abscissa->reference_count++;
 
-                        INSERT( p_po, plot_list );
+                        APPEND( p_po, plot_list );
                     }else
                     {
                         for(abscissa_result = analy->abscissa;
@@ -3570,7 +3570,7 @@ prepare_plot_objects( Result *res_list, Specified_obj *so_list,
                                     p_po->abscissa = p_tso2;
                                     p_po->abscissa->reference_count++;
 
-                                    INSERT( p_po, plot_list );
+                                    APPEND( p_po, plot_list );
                                     }
                                 }
                             }
@@ -4868,18 +4868,25 @@ add_mo_nodes( Specified_obj **list, MO_class_data *p_class, int start_ident,
               int stop_ident )
 {
     int i;
+    int ident; 
     Specified_obj *p_so;
 
     for ( i = start_ident; i <= stop_ident; i++ )
     {
-        p_so = NEW( Specified_obj , "Parsed MO" );
+        
         if(!p_class->labels_found)
         {
-            p_so->ident = i;
+            ident = i;
         } else
         {
-            p_so->ident = get_class_label_index(p_class, i);
+            ident = get_class_label_index(p_class, i);
         }
+        if(ident == M_INVALID_LABEL)
+        {
+            continue;
+        }
+        p_so = NEW( Specified_obj , "Parsed MO" );
+        p_so->ident = ident;
         p_so->mo_class = p_class;
         APPEND( p_so, *list );
     }
