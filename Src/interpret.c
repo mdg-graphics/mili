@@ -4881,34 +4881,26 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->ref_surf = MIDDLE;
             }
         }
+        for(i = 0; i < token_cnt; i++)
+        {
+            rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
+            if(rval == OK)
+            {
+                /* we found an element class */
+                p_class = (MO_class_data *) p_hte->data;
+                elem_class[p_class->superclass] = 1;
+                break;
+            }
+                
+        }
         if(analy->selected_objects == NULL)
         {
-            j = 0;
-            for(i = 0; i < token_cnt; i++)
-            {
-                rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
-                if(rval == OK)
-                {
-                    /* we found an element class */
-                    break;
-                }
-                if(!strcmp(tokens[i], "vs"))
-                {
-                    j = i;
-                }
-            }
             if(i >= token_cnt)
             {
                 popup_dialog(INFO_POPUP, "Must select or specify an element class before using the plot command"); 
                 return;
             }
-            /* no oblects are selected but how we must see which element classes are specified in the command line */
-            rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
-            if(rval == OK)
-            {
-                p_class = (MO_class_data *) p_hte->data;
-                elem_class[p_class->superclass] = 1;
-            }
+           
         }
         /* Delete the plot for this result if computing an EI result */
         if ( analy->ei_result && strlen(analy->ei_result_name)>0 )
@@ -4924,7 +4916,7 @@ parse_single_command( char *buf, Analysis *analy )
             if(token_cnt > 1)
             {
 
-                for(i = 0; i < token_cnt; i++)
+                for(i = 1; i < token_cnt; i++)
                 {
                     rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
                     if(rval == OK && start == -1)
@@ -4934,7 +4926,7 @@ parse_single_command( char *buf, Analysis *analy )
                 }
                 i = 1;
                 int qty = 0;
-                for(j = 0; j < token_cnt; j++)
+                for(j = 1; j < token_cnt; j++)
                 {
                     strcpy(original_tokens[j], tokens[j]);
                 } 
@@ -4948,11 +4940,6 @@ parse_single_command( char *buf, Analysis *analy )
                     delete_result_list(&res_ptr, analy);
                 }
              
-                if(qty > 0)
-                {
-                    token_cnt = qty + 1;
-                }
-
                 j = 1;
                 if(start > 1)
                 {
