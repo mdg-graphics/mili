@@ -1,3 +1,6 @@
 Src/CONFIGURE_OPTIONS
 Src/GRIZ*/
 Src/*.log
+Src/test/scripts/*.pyc
+Src/test/scripts/analyzer/*.pyc
+Src/autom4te.cache/
