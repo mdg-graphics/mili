@@ -1402,7 +1402,7 @@ parse_single_command( char *buf, Analysis *analy )
                             obj_max = p_mo_class->labels_max;
 
                         if ( j < 1 || j > obj_max ||
-                                get_class_label_index( p_mo_class, j ) ==
+                                (temp_ival=get_class_label_index( p_mo_class, j )) ==
                                 M_INVALID_LABEL )
                         {
                             popup_dialog( INFO_POPUP,
@@ -1410,12 +1410,12 @@ parse_single_command( char *buf, Analysis *analy )
                                           j, p_mo_class->short_name, p_mo_class->long_name );
                             continue;
                         }
-
+/*
                         if ( p_mo_class->labels_found )
                             temp_ival = get_class_label_index( p_mo_class, j );
                         else
                             temp_ival = j;
-
+*/
                         /*
                          * Traverse currently selected objects to see if current
                          * candidate already exists.

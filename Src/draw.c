@@ -6962,9 +6962,9 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
     data_array = p_mo_class->data_buffer;
 
     if ( p_mo_class->labels_found )
-        hilite_label = get_class_label( p_mo_class, hilite_num+1 );
+        hilite_label = get_class_label( p_mo_class, hilite_num );
     else
-        hilite_label = hilite_num+1;
+        hilite_label = hilite_num;
 
     if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) &&
             analy->particle_nodes_enabled &&
@@ -6992,7 +6992,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
     if( p_mo_class->superclass !=  G_SURFACE)
     {
         if ( !is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
-            if ( hilite_num < 0 || hilite_num >= obj_qty )
+            if ( hilite_num < 0 || hilite_num > obj_qty )
             {
                 if ( analy->mesh_view_mode != RENDER_POINT_CLOUD )
                     popup_dialog( INFO_POPUP, "%s ident out of range.", cname );
@@ -7356,7 +7356,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
         else
             sprintf( label, " %s %d", cname, hilite_label );
 
-        get_hex_verts( hilite_num, p_mo_class, analy, verts );
+        get_hex_verts( hilite_num , p_mo_class, analy, verts );
         vert_cnt = 8;
 
         VEC_SUB( vec, verts[1], verts[0] );
@@ -7470,11 +7470,11 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
                       ? data_array[hilite_num]
                       * analy->conversion_scale + analy->conversion_offset
                       : data_array[hilite_num];
-                sprintf( label, " %s %d (%.*e)", cname, hilite_num+1,
+                sprintf( label, " %s %d (%.*e)", cname, hilite_num,
                          fracsz, val );
             }
             else
-                sprintf( label, " %s %d", cname, hilite_num+1 );
+                sprintf( label, " %s %d", cname, hilite_num );
         }
 
         if ( dim == 3 )
@@ -7806,7 +7806,7 @@ draw_class_numbers( Analysis *analy )
                 {
                     get_node_vert_2d_3d( i, p_mo_class, analy, pt );
 
-                    class_label = get_class_label( p_mo_class, i+1 );
+                    class_label = get_class_label( p_mo_class, i );
 
                     sprintf( label, "%d", class_label );
                     draw_3d_text( pt, label, TRUE );
@@ -7838,7 +7838,7 @@ draw_class_numbers( Analysis *analy )
                     for ( k=0; k < 3; k++ )
                         pt[k] = .5*(verts[0][k]+verts[1][k]);
 
-                    class_label = get_class_label( p_mo_class, i+1 );
+                    class_label = get_class_label( p_mo_class, i );
 
                     sprintf( label, "%d", class_label );
                     draw_3d_text( pt, label, TRUE );
@@ -7870,7 +7870,7 @@ draw_class_numbers( Analysis *analy )
                         pt[k] = .5*(verts[0][k]+verts[2][k]);
                     }
 
-                    class_label = get_class_label( p_mo_class, i+1 );
+                    class_label = get_class_label( p_mo_class, i );
 
                     sprintf( label, "%d", class_label );
                     draw_3d_text( pt, label, TRUE );
@@ -7951,7 +7951,7 @@ draw_class_numbers( Analysis *analy )
                         for ( k=0; k < 3; k++ )
                             pt[k] = .5*(verts[0][k]+verts[3][k]);
 
-                        class_label = get_class_label( p_mo_class, i+1 );
+                        class_label = get_class_label( p_mo_class, i);
 
                         sprintf( label, "%d", class_label );
                         draw_3d_text( pt, label, TRUE );
@@ -7997,7 +7997,7 @@ draw_class_numbers( Analysis *analy )
                                 k++ )
                             pt[k] = .5*(verts[0][k]+verts[6][k]);
 
-                        class_label = get_class_label( p_mo_class, i+1 );
+                        class_label = get_class_label( p_mo_class, i );
 
                         sprintf( label, "%d", class_label );
 
@@ -8041,7 +8041,7 @@ draw_class_numbers( Analysis *analy )
                             for ( k=0; k < 3; k++ )
                                 pt[k] = .5*(verts[0][k]+verts[2][k]);
 
-                            class_label = get_class_label( p_mo_class, face_el[i]+1 );
+                            class_label = get_class_label( p_mo_class, face_el[i] );
 
                             sprintf( label, "%d", class_label);
                             draw_3d_text( pt, label, TRUE );
@@ -15639,7 +15639,7 @@ get_class_label( MO_class_data *class, int object_index )
     if ( object_index>class->qty )
         return (M_INVALID_LABEL);
 
-    label_index = class->labels_index[object_index-1];
+    label_index = class->labels_index[object_index];
 
     /* We have a valid label - return it */
     return ( class->labels[label_index].label_num );
@@ -15701,7 +15701,7 @@ get_class_label_index( MO_class_data *class, int label_num )
     MO_class_labels *result_ptr;
 
     if ( !class->labels_found )
-        return( label_num );
+        return( label_num -1);
 
     /* Perform a binary search on the label array to detrermine
      * the index number for this label.

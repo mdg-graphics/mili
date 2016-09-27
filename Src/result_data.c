@@ -3518,7 +3518,7 @@ dump_result( Analysis *analy, char *fname_input )
                 data_sclass[result_index] = p_class->superclass;
                 data_ids[result_index]    = k+ 1;
                 class_label_index = get_class_label_index( p_class, k+1 );
-                data_result[result_index] = p_class->data_buffer[class_label_index-1];
+                data_result[result_index] = p_class->data_buffer[class_label_index];
                 class_name_index[result_index] = class_index;
                 if ( data_sclass[i]>0 && data_hide[i]==FALSE )
                 {
