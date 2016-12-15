@@ -1051,11 +1051,13 @@ parse_single_command( char *buf, Analysis *analy )
         if ( token_cnt == 3 && is_numeric_token( tokens[2] ) )
         {
             sscanf( tokens[2], "%d", &ival );
+            temp_ival = get_class_label_index( p_mo_class, ival );
+            /*
             if ( p_mo_class->labels_found )
-                temp_ival = get_class_label_index( p_mo_class, ival );
+                
             else
                 temp_ival = ival;
-
+            */
             if ( (ival) == analy->hilite_label
                     && p_mo_class == analy->hilite_class )
             {
@@ -1184,11 +1186,15 @@ parse_single_command( char *buf, Analysis *analy )
                                     NEXT( p_so ) )
                                 if ( p_so->mo_class == p_mo_class && p_so->label == obj )
                                     break;
+                                    
+                            temp_ival = get_class_label_index( p_mo_class, obj );
 
+                            /*
                             if ( p_mo_class->labels_found )
                                 temp_ival = get_class_label_index( p_mo_class, obj );
                             else
                                 temp_ival = obj;
+                            */
 
                             if ( analy->selectonmat )
                             {

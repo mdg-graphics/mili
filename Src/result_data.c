@@ -166,7 +166,7 @@ update_min_max( Analysis *analy )
         if ( result[i] < state_mm[0] )
         {
             state_mm[0] = result[i];
-            mm_nodes[0] = i + 1;
+            mm_nodes[0] = i;
             mm_class_long_name[0] = class_name;
             mm_class_long_name[1] = class_name;
             mm_sclass[0] = sclass;
@@ -175,7 +175,7 @@ update_min_max( Analysis *analy )
         else if ( result[i] > state_mm[1] )
         {
             state_mm[1] = result[i];
-            mm_nodes[1] = i + 1;
+            mm_nodes[1] = i ;
         }
     }
 
@@ -412,8 +412,8 @@ init_nodal_min_max( Analysis *analy )
     analy->state_mm[0] = MAXFLOAT;
     analy->state_mm[1] = -MAXFLOAT;
 
-    analy->state_mm_nodes[0] = ident + 1;
-    analy->state_mm_nodes[1] = ident + 1;
+    analy->state_mm_nodes[0] = ident ;
+    analy->state_mm_nodes[1] = ident ;
 }
 
 
@@ -517,14 +517,14 @@ update_nodal_min_max( Analysis *analy )
                 if ( val < state_mm[0] )
                 {
                     state_mm[0]  = val;
-                    mm_nodes[0]  = i + 1;
+                    mm_nodes[0]  = i;
                     mm_class[0]  = class_name;
                     mm_sclass[0] = superclass;
                 }
                 if ( val > state_mm[1] )
                 {
                     state_mm[1]  = val;
-                    mm_nodes[1]  = i + 1;
+                    mm_nodes[1]  = i;
                     mm_class[1]  = class_name;
                     mm_sclass[1] = superclass;
                 }
@@ -577,14 +577,14 @@ update_nodal_min_max( Analysis *analy )
         if ( val < state_mm[0] )
         {
             state_mm[0] = val;
-            mm_nodes[0] = ident + 1;
+            mm_nodes[0] = ident;
             mm_class[0] = class_name;
             analy->state_mm_sclass[0] = superclass;
         }
         else if ( val > state_mm[1] )
         {
             state_mm[1] = val;
-            mm_nodes[1] = ident + 1;
+            mm_nodes[1] = ident;
             mm_class[1] = class_name;
             analy->state_mm_sclass[1] = superclass;
         }
@@ -626,14 +626,14 @@ update_nodal_min_max( Analysis *analy )
                 if ( val < state_mm[0] )
                 {
                     state_mm[0]  = val;
-                    mm_nodes[0]  = ident + 1;
+                    mm_nodes[0]  = ident;
                     mm_class[0]  = class_name;
                     mm_sclass[0] = superclass;
                 }
                 else if ( val > state_mm[1] )
                 {
                     state_mm[1]  = val;
-                    mm_nodes[1]  = ident + 1;
+                    mm_nodes[1]  = ident;
                     mm_class[1]  = class_name;
                     mm_sclass[1] = superclass;
                 }
@@ -726,7 +726,7 @@ elem_get_minmax( float *val_elem, int qty, Analysis *analy )
         if ( val < mm_val[0] )
         {
             mm_val[0] = val;
-            elem_ids[0] = elem_id + 1;
+            elem_ids[0] = elem_id ;
             classes[0] = class_long_name;
             sclasses[0] = sclass;
         }
@@ -734,7 +734,7 @@ elem_get_minmax( float *val_elem, int qty, Analysis *analy )
         if ( val > mm_val[1] )
         {
             mm_val[1] = val;
-            elem_ids[1] = elem_id + 1;
+            elem_ids[1] = elem_id;
             classes[1] = class_long_name;
             sclasses[1] = sclass;
         }
@@ -800,7 +800,7 @@ unit_get_minmax( float *val_unit, Analysis *analy )
         if ( val < mm_val[0] )
         {
             mm_val[0]   = val;
-            unit_ids[0] = unit_id + 1;
+            unit_ids[0] = unit_id;
             classes[0]  = class_long_name;
             sclasses[0] = sclass;
         }
@@ -808,7 +808,7 @@ unit_get_minmax( float *val_unit, Analysis *analy )
         if ( val > mm_val[1] )
         {
             mm_val[1]   = val;
-            unit_ids[1] = unit_id + 1;
+            unit_ids[1] = unit_id;
             classes[1]  = class_long_name;
             sclasses[1] = sclass;
         }
@@ -881,7 +881,7 @@ mat_get_minmax( float *val_mat, Analysis *analy )
         if ( val < mm_val[0] )
         {
             mm_val[0]   = val;
-            mat_ids[0]  = mat_id + 1;
+            mat_ids[0]  = mat_id;
             classes[0]  = class_long_name;
             sclasses[0] = sclass;
         }
@@ -889,7 +889,7 @@ mat_get_minmax( float *val_mat, Analysis *analy )
         if ( val > mm_val[1] )
         {
             mm_val[1]   = val;
-            mat_ids[1]  = mat_id + 1;
+            mat_ids[1]  = mat_id;
             classes[1]  = class_long_name;
             sclasses[1] = sclass;
         }
@@ -1306,7 +1306,7 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
         if ( val_hex[hex_id] < mm_val[0] )
         {
             mm_val[0]   = val_hex[hex_id];
-            el_id[0]    = hex_id + 1;
+            el_id[0]    = hex_id ;
             classes[0]  = p_hex_class->long_name;
             sclasses[0] = p_hex_class->superclass;
         }
@@ -1314,7 +1314,7 @@ hex_to_nodal( float *val_hex, float *val_nodal, MO_class_data *p_hex_class,
         if ( val_hex[hex_id] > mm_val[1] )
         {
             mm_val[1]   = val_hex[hex_id];
-            el_id[1]    = hex_id + 1;
+            el_id[1]    = hex_id ;
             classes[1]  = p_hex_class->long_name;
             sclasses[1] = p_hex_class->superclass;
         }
@@ -1555,7 +1555,7 @@ particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_clas
         if ( val_part[part_id] < mm_val[0] )
         {
             mm_val[0]   = val_part[part_id];
-            el_id[0] = part_id + 1;
+            el_id[0] = part_id ;
             classes[0]  = p_part_class->long_name;
         }
 
@@ -1813,7 +1813,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
                 if ( val_hex[hex_id] < mm_val[0] )
                 {
                     mm_val[0] = val_hex[hex_id];
-                    el_id[0] = hex_id + 1;
+                    el_id[0] = hex_id ;
                     classes[0] = p_hex_class->long_name;
                     sclasses[0] = p_hex_class->superclass;
                 }
@@ -1821,7 +1821,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
                 if ( val_hex[hex_id] > mm_val[1] )
                 {
                     mm_val[1] = val_hex[hex_id];
-                    el_id[1] = hex_id + 1;
+                    el_id[1] = hex_id;
                     classes[1] = p_hex_class->long_name;
                     sclasses[1] = p_hex_class->superclass;
                 }
@@ -2020,7 +2020,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
                     if ( ei_elem_val < mm_val[0] )
                     {
                         mm_val[0]   = ei_elem_val;
-                        el_id[0]    = hex_id + 1;
+                        el_id[0]    = hex_id ;
                         classes[0]  = p_hex_class->long_name;
                         sclasses[0] = p_hex_class->superclass;
                     }
@@ -2029,7 +2029,7 @@ hex_to_nodal_by_mat( float *val_hex, float *val_nodal,
                 if ( ei_elem_val > mm_val[1] )
                 {
                     mm_val[1]   = ei_elem_val;
-                    el_id[1]    = hex_id + 1;
+                    el_id[1]    = hex_id;
                     classes[1]  = p_hex_class->long_name;
                     sclasses[1] = p_hex_class->superclass;
                 }
@@ -2203,7 +2203,7 @@ tet_to_nodal( float *val_tet, float *val_nodal, MO_class_data *p_tet_class,
         if ( val_tet[tet_id] < mm_val[0] )
         {
             mm_val[0]   = val_tet[tet_id];
-            el_id[0]    = tet_id + 1;
+            el_id[0]    = tet_id ;
             classes[0]  = p_tet_class->long_name;
             sclasses[0] = p_tet_class->superclass;
         }
@@ -2211,7 +2211,7 @@ tet_to_nodal( float *val_tet, float *val_nodal, MO_class_data *p_tet_class,
         if ( val_tet[tet_id] > mm_val[1] )
         {
             mm_val[1]   = val_tet[tet_id];
-            el_id[1]    = tet_id + 1;
+            el_id[1]    = tet_id ;
             classes[1]  = p_tet_class->long_name;
             sclasses[1] = p_tet_class->superclass;
         }
@@ -2389,7 +2389,7 @@ quad_to_nodal( float *val_quad, float *val_nodal, MO_class_data *p_quad_class,
         if ( val_quad[quad_id] < mm_val[0] )
         {
             mm_val[0] = val_quad[quad_id];
-            el_id[0] = quad_id + 1;
+            el_id[0] = quad_id ;
             classes[0] = p_quad_class->long_name;
             sclasses[0] = p_quad_class->superclass;
         }
@@ -2397,7 +2397,7 @@ quad_to_nodal( float *val_quad, float *val_nodal, MO_class_data *p_quad_class,
         if ( val_quad[quad_id] > mm_val[1] )
         {
             mm_val[1] = val_quad[quad_id];
-            el_id[1] = quad_id + 1;
+            el_id[1] = quad_id;
             classes[1] = p_quad_class->long_name;
             sclasses[1] = p_quad_class->superclass;
         }
@@ -2526,14 +2526,14 @@ surf_to_nodal( float *val_surf, float *val_nodal, MO_class_data *p_surf_class,
         if ( val_surf[surf_id] < mm_val[0] )
         {
             mm_val[0] = val_surf[surf_id];
-            el_id[0] = surf_id + 1;
+            el_id[0] = surf_id;
             classes[0] = p_surf_class->long_name;
         }
 
         if ( val_surf[surf_id] > mm_val[1] )
         {
             mm_val[1] = val_surf[surf_id];
-            el_id[1] = surf_id + 1;
+            el_id[1] = surf_id;
             classes[1] = p_surf_class->long_name;
         }
 
@@ -2685,7 +2685,7 @@ tri_to_nodal( float *val_tri, float *val_nodal, MO_class_data *p_tri_class,
         if ( val_tri[tri_id] < mm_val[0] )
         {
             mm_val[0]   = val_tri[tri_id];
-            el_id[0]    = tri_id + 1;
+            el_id[0]    = tri_id;
             classes[0]  = p_tri_class->long_name;
             sclasses[0] = p_tri_class->superclass;
         }
@@ -2693,7 +2693,7 @@ tri_to_nodal( float *val_tri, float *val_nodal, MO_class_data *p_tri_class,
         if ( val_tri[tri_id] > mm_val[1] )
         {
             mm_val[1]   = val_tri[tri_id];
-            el_id[1]    = tri_id + 1;
+            el_id[1]    = tri_id;
             classes[1]  = p_tri_class->long_name;
             sclasses[1] = p_tri_class->superclass;
         }
@@ -2807,7 +2807,7 @@ beam_to_nodal( float *val_beam, float *val_nodal, MO_class_data *p_beam_class,
         if ( val_beam[beam_id] < mm_val[0] )
         {
             mm_val[0]   = val_beam[beam_id];
-            el_id[0]    = beam_id + 1;
+            el_id[0]    = beam_id ;
             classes[0]  = p_beam_class->long_name;
             sclasses[0] = p_beam_class->superclass;
         }
@@ -2815,7 +2815,7 @@ beam_to_nodal( float *val_beam, float *val_nodal, MO_class_data *p_beam_class,
         if ( val_beam[beam_id] > mm_val[1] )
         {
             mm_val[1]   = val_beam[beam_id];
-            el_id[1]    = beam_id + 1;
+            el_id[1]    = beam_id ;
             classes[1]  = p_beam_class->long_name;
             sclasses[1] = p_beam_class->superclass;
         }
@@ -2942,7 +2942,7 @@ truss_to_nodal( float *val_truss, float *val_nodal,
         if ( val_truss[truss_id] < mm_val[0] )
         {
             mm_val[0]   = val_truss[truss_id];
-            el_id[0]    = truss_id + 1;
+            el_id[0]    = truss_id ;
             classes[0]  = p_truss_class->long_name;
             sclasses[0] = p_truss_class->superclass;
         }
@@ -2950,7 +2950,7 @@ truss_to_nodal( float *val_truss, float *val_nodal,
         if ( val_truss[truss_id] > mm_val[1] )
         {
             mm_val[1]   = val_truss[truss_id];
-            el_id[1]    = truss_id + 1;
+            el_id[1]    = truss_id ;
             classes[1]  = p_truss_class->long_name;
             sclasses[1] = p_truss_class->superclass;
         }

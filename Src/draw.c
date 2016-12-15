@@ -187,6 +187,7 @@ char particle_name[256];
 
 #ifdef PNG_SUPPORT
 #include <png.h>        /* libpng header; includes zlib.h and setjmp.h */
+#include <zlib.h>
 #endif
 
 
@@ -6961,11 +6962,12 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
     obj_qty = p_mo_class->qty;
     data_array = p_mo_class->data_buffer;
 
-    if ( p_mo_class->labels_found )
-        hilite_label = get_class_label( p_mo_class, hilite_num );
+    hilite_label = get_class_label( p_mo_class, hilite_num );
+    /*if ( p_mo_class->labels_found )
+        
     else
         hilite_label = hilite_num;
-
+*/
     if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) &&
             analy->particle_nodes_enabled &&
             p_mo_class->labels_found )
@@ -15634,7 +15636,7 @@ get_class_label( MO_class_data *class, int object_index )
         return( object_index );
 
     if ( !class->labels_found )
-        return( object_index );
+        return( object_index+1 );
 
     if ( object_index>class->qty )
         return (M_INVALID_LABEL);

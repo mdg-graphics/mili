@@ -5515,7 +5515,7 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
         return 0;
     }
 
-    if ( !find_only && near_num != 0 )
+    if ( !find_only && near_num >= 0 )
     {
         /* Translate index into a label number */
         node_near_num = near_num;
@@ -5589,6 +5589,7 @@ select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
     face_el = p_vd->face_el;
     face_fc = p_vd->face_fc;
     face_cnt = p_vd->face_cnt;
+    near_num = -1;
 
     if ( analy->displace_exag )
     {
@@ -5679,7 +5680,7 @@ select_hex( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
         *p_near = 0;
     }
     else
-        *p_near = near_num + 1;
+        *p_near = near_num;
 }
 
 
@@ -5802,7 +5803,7 @@ select_pyramid( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
         *p_near = 0;
     }
     else
-        *p_near = near_num + 1;
+        *p_near = near_num;
 }
 
 /************************************************************
@@ -5923,7 +5924,7 @@ select_tet( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
         *p_near = 0;
     }
     else
-        *p_near = near_num + 1;
+        *p_near = near_num;
 }
 
 
@@ -6116,7 +6117,7 @@ select_planar( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
         *p_near = 0;
     }
     else
-        *p_near = near_num + 1;
+        *p_near = near_num ;
 }
 
 
@@ -6319,7 +6320,7 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
         p_surf->sel_facet_num = -1;
     }
     else
-        *p_near = near_num + 1;
+        *p_near = near_num ;
 }
 
 /************************************************************
@@ -6489,7 +6490,7 @@ select_linear( Analysis *analy, Mesh_data *p_mesh, MO_class_data *p_mo_class,
         *p_near = 0;
     }
     else
-        *p_near = near_num + 1;
+        *p_near = near_num ;
 }
 
 
@@ -6837,7 +6838,7 @@ select_node( Analysis *analy, Mesh_data *p_mesh, Bool_type ml_node,
             }
         }
     }
-    *p_near = near_num + 1;
+    *p_near = near_num ;
 }
 
 
@@ -6980,7 +6981,7 @@ select_particle( Analysis *analy, Mesh_data *p_mesh,
 #endif
     }
 
-    *p_near = near_num + 1;
+    *p_near = near_num ;
 }
 
 
