@@ -4895,6 +4895,7 @@ parse_single_command( char *buf, Analysis *analy )
                 /* we found an element class */
                 p_class = (MO_class_data *) p_hte->data;
                 elem_class[p_class->superclass] = 1;
+                start = i;
                 break;
             }
                 

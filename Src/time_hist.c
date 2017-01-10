@@ -1540,7 +1540,7 @@ output_interleaved_series( FILE *ofile, Plot_obj *output_list, Analysis *analy )
         {
             if(p_po->ordinate->mo_class->labels_found)
             {
-                label = get_class_label(p_po->ordinate->mo_class, p_po->ordinate->ident + 1);
+                label = get_class_label(p_po->ordinate->mo_class, p_po->ordinate->ident);
             } else
             {
                 label = p_po->ordinate->ident + 1;
@@ -2531,11 +2531,18 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                 p_so->mo_class = p_class;
                 if(!p_class->labels_found)
                 {
-                    p_so->ident = atoi( tokens[i] ) - 1;
+                    p_so->label = atoi( tokens[i] );
+                    p_so->ident = p_so->label - 1;
                 } else
                 {
                     label_index = atoi(tokens[i]);
+                    p_so->label = label_index;
                     p_so->ident = get_class_label_index(p_class, label_index);
+                    if(p_so->ident == M_INVALID_LABEL)
+                    {
+                        free(p_so);
+                        continue;
+                    }
                  
                 }
               
@@ -2586,10 +2593,12 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                         p_so->mo_class = p_class;
                         if(!p_class->labels_found)
                         {
-                            p_so->ident = atoi( tokens[i] ) - 1;
+                            p_so->label = atoi( tokens[i] );
+                            p_so->ident = p_so->label - 1;
                         } else
                         {
                             label_index = atoi(tokens[i]);
+                            p_so->label = label_index;
                             p_so->ident = get_class_label_index(p_class, label_index);
                         }
                         INSERT( p_so, so_list );
@@ -4840,6 +4849,7 @@ copy_obj_list( Specified_obj *src_list )
     {
         p_dio = NEW( Specified_obj, "Copy MO" );
         p_dio->ident = p_so->ident;
+        p_dio->label = p_so->label;
         p_dio->mo_class = p_so->mo_class;
         INSERT( p_dio, tmp_list );
     }
@@ -4876,7 +4886,7 @@ add_mo_nodes( Specified_obj **list, MO_class_data *p_class, int start_ident,
         
         if(!p_class->labels_found)
         {
-            ident = i;
+            ident = i-1;
         } else
         {
             ident = get_class_label_index(p_class, i);
@@ -4887,6 +4897,7 @@ add_mo_nodes( Specified_obj **list, MO_class_data *p_class, int start_ident,
         }
         p_so = NEW( Specified_obj , "Parsed MO" );
         p_so->ident = ident;
+        p_so->label = i;
         p_so->mo_class = p_class;
         APPEND( p_so, *list );
     }
@@ -5975,7 +5986,7 @@ draw_plots( Analysis *analy )
 
         if ( p_po->ordinate->mo_class )
             if ( p_po->ordinate->mo_class->labels_found )
-                label = get_class_label(  p_po->ordinate->mo_class, p_po->ordinate->ident+1 );
+                label = get_class_label(  p_po->ordinate->mo_class, p_po->ordinate->ident );
             else
                 label = p_po->ordinate->ident+1;
         else
