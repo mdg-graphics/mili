@@ -62,6 +62,7 @@
  *
  *  I. R. Corey - May 2nd, 2012: Added path to top of window panes.
  *                See TeamForge#17900
+ *
  *************************************************************************
  */
 
