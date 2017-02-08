@@ -277,8 +277,5 @@ extern void do_nothing_stub( char * );
 extern void blocks_to_list( int qty_blocks, int *mo_blocks, int *list,
                             Bool_type decrement_indices );
 
-/* IRC: 12/14/05: New temp memory management functions */
-extern void *get_temp_mem_ptr( void *, int );
-extern void  init_temp_mem_ptr( );
 
 #endif

@@ -11007,8 +11007,11 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 
                                 block_start       = blocks[block_index] ;
                                 block_end         = blocks[block_index+1] ;
-                                block_label_start = get_class_label( class_ptr, block_start );
-                                block_label_end   = get_class_label( class_ptr, block_end );
+                                /* Unfortunately this is one spot that I am stuck leaving a -1 for the 
+                                *  indexing.  It derives from the blocking which 1 based.
+                                */
+                                block_label_start = get_class_label( class_ptr, block_start-1 );
+                                block_label_end   = get_class_label( class_ptr, block_end-1 );
 
                                 sprintf( temp_text,
                                          "\tblock[%d]: %d-%d (Labels: %d-%d)\n", block_count++,

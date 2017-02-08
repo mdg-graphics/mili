@@ -7903,7 +7903,7 @@ draw_class_numbers( Analysis *analy )
                     for ( k=0; k < 3; k++ )
                         pt[k] = .5*(verts[0][k]+verts[2][k]);
 
-                    class_label = get_class_label( p_mo_class, i+1 );
+                    class_label = get_class_label( p_mo_class, i );
 
                     sprintf( label, "%d", class_label );
                     draw_3d_text( pt, label, TRUE );
@@ -8072,7 +8072,7 @@ draw_class_numbers( Analysis *analy )
                             k++ )
                         pt[k] = verts[0][k];
 
-                    class_label = get_class_label( p_mo_class, i+1 );
+                    class_label = get_class_label( p_mo_class, i );
 
                     sprintf( label, "%d", class_label );
 

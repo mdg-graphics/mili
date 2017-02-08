@@ -2906,39 +2906,6 @@ outview( FILE *fp, Analysis *analy )
 
 
 /*****************************************************************
- * TAG( get_tmp_mem_ptr )
- *
- * Realloc
- */
-void *
-get_temp_mem_ptr(  void *analy, int num_objects )
-{
-    float *temp_ptr, *temp_result_ptr;
-    Analysis *analy_ptr;
-    int i;
-
-    analy_ptr       = (Analysis *) analy;
-    temp_result_ptr = analy_ptr->tmp_result[0];
-
-    temp_ptr  = analy_ptr->tmp_result[0];
-
-    temp_ptr = (float *) &temp_result_ptr[temp_mem_ptr];
-
-    for (i=temp_mem_ptr; i<num_objects; i++)
-        temp_ptr[i] = 0.0;
-
-    temp_mem_ptr += num_objects;
-
-    return (void *)temp_ptr;
-}
-
-void
-init_temp_mem_ptr( )
-{
-    temp_mem_ptr = 0;
-}
-
-/*****************************************************************
  * TAG( string_to_upper )
  *
  * Converts an input string to uppercase.
