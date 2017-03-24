@@ -2579,12 +2579,12 @@ draw_grid( Analysis *analy )
 
     qty_classes = p_mesh->classes_by_sclass[G_PARTICLE].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PARTICLE].list;
-    if(qty_classes > 0)
-    {
+    //if(qty_classes > 0)
+    //{
         /*analy->show_particle_class = FALSE; */
-        analy->show_particle_class = TRUE;
+    //    analy->show_particle_class = TRUE;
         
-    } 
+    //} 
 
     /*  Set glMaterial to draw from the correct color property data base */
     if ( analy->show_particle_class )
