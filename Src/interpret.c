@@ -4859,6 +4859,7 @@ parse_single_command( char *buf, Analysis *analy )
         Result * ptr;
         int cnt = token_cnt;
         int i, k;
+        int versus =0;
         int start = -1;
         MO_class_data * p_class;
         int elem_class[14];
@@ -4889,6 +4890,7 @@ parse_single_command( char *buf, Analysis *analy )
         }
         for(i = 0; i < token_cnt; i++)
         {
+            
             rval = htable_search(MESH(analy).class_table, tokens[i], FIND_ENTRY, &p_hte);
             if(rval == OK)
             {
@@ -5087,7 +5089,9 @@ parse_single_command( char *buf, Analysis *analy )
             
                     }
                 }
-            } else if(token_cnt == 1 && analy->cur_result != NULL && analy->cur_result->result_funcs[0] == load_primal_result)
+            } else if(token_cnt == 1 && 
+                      analy->cur_result != NULL && 
+                      analy->cur_result->result_funcs[0] == load_primal_result)
             {
                 i = 1;
                 if(strstr(analy->cur_result->name, "sxy"))
@@ -5163,7 +5167,7 @@ parse_single_command( char *buf, Analysis *analy )
                 } 
             }
 
-            if(!strcmp(original_tokens, "") && analy->cur_result != NULL)
+            if(!strcmp(original_tokens[0], "") && analy->cur_result != NULL)
             {
                 if(token_cnt == 1)
                 {
