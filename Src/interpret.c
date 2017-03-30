@@ -2809,8 +2809,6 @@ parse_single_command( char *buf, Analysis *analy )
             {
                 parse_command("off autoselect", analy);
                 analy->use_global_mm = TRUE;
-                analy->use_cglobal_mm = TRUE;
-                analy->global_mm_found = FALSE;
                 get_global_minmax( analy );
                 if ( !analy->mm_result_set[0] )
                     analy->result_mm[0] = analy->global_mm[0];

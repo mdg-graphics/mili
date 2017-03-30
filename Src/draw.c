@@ -10726,13 +10726,8 @@ draw_foreground( Analysis *analy )
         }
         else
         {
+            get_global_minmax( analy );
             /* Take min/max from global store. */
-//        	if ( !(analy->global_mm_found) )
-//        	{
-//            	get_global_minmax( analy );
-//            	analy->global_mm_found = TRUE;
-//        	}
-
             if ( analy->cur_result->origin.is_node_result )
             {
                 el_mm    = analy->global_mm;

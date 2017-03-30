@@ -1121,8 +1121,6 @@ typedef struct _Analysis
     Minmax_obj elem_global_mm;     /* For result on element. */
     Minmax_obj elem_state_mm;      /* For result on element. */
     Minmax_obj tmp_elem_mm;        /* For result on element. */
-    Bool_type use_cglobal_mm; 		/* are we in cumulative mode for global minmax*/
-    Bool_type global_mm_found;			/* have we calculated the global mm*/
 
     Plot_obj *current_plots;
     Result *abscissa;
