@@ -1105,6 +1105,8 @@ typedef struct _Analysis
     Ref_frame_type ref_frame;
 
     Bool_type use_global_mm;
+    Bool_type use_cumulative_mm;
+    Bool_type found_global_mm;
     Bool_type result_mod;
     float result_mm[2];            /* For result at nodes. */
     float time_mm[2];

@@ -10618,6 +10618,8 @@ draw_foreground( Analysis *analy )
     static char *st_min = "State Minimum:";
     static char *glob_max = "Global Maximum:";
     static char *glob_min = "Global Minimum:";
+    static char *cum_max = "Cumulative Maximum:";
+    static char *cum_min = "Cumulative Minimum:";
     char *maximum_label;
     char *minimum_label;
     int nstripes, i, frst, lst;
@@ -10704,29 +10706,57 @@ draw_foreground( Analysis *analy )
     {
         if ( !analy->use_global_mm )
         {
-            /* Take min/max from current state's data. */
+        	if(analy->use_cumulative_mm)
+        	{
+                /* Take min/max from global store. */
+                if ( analy->cur_result->origin.is_node_result )
+                {
+                    el_mm    = analy->global_mm;
+                    classes  = analy->global_mm_class_long_name;
+                    sclasses = analy->global_mm_sclass;
+                    el_id    = analy->global_mm_nodes;
+                }
+                else
+                {
+                    el_mm    = analy->elem_global_mm.object_minmax;
+                    classes  = analy->elem_global_mm.class_long_name;
+                    sclasses = analy->elem_global_mm.sclass;
+                    el_id    = analy->elem_global_mm.object_id;
+                }
 
-            if ( analy->cur_result->origin.is_node_result )
-            {
-                el_mm    = analy->state_mm;
-                classes  = analy->state_mm_class_long_name;
-                sclasses = analy->state_mm_sclass;
-                el_id    = analy->state_mm_nodes;
-            }
-            else
-            {
-                el_mm    = analy->elem_state_mm.object_minmax;
-                classes  = analy->elem_state_mm.class_long_name;
-                sclasses = analy->elem_state_mm.sclass;
-                el_id    = analy->elem_state_mm.object_id;
-            }
+                minimum_label = cum_min;
+                maximum_label = cum_max;
+        	}
+        	else
+        	{
+				/* Take min/max from current state's data. */
 
-            minimum_label = st_min;
-            maximum_label = st_max;
+				if ( analy->cur_result->origin.is_node_result )
+				{
+					el_mm    = analy->state_mm;
+					classes  = analy->state_mm_class_long_name;
+					sclasses = analy->state_mm_sclass;
+					el_id    = analy->state_mm_nodes;
+				}
+				else
+				{
+					el_mm    = analy->elem_state_mm.object_minmax;
+					classes  = analy->elem_state_mm.class_long_name;
+					sclasses = analy->elem_state_mm.sclass;
+					el_id    = analy->elem_state_mm.object_id;
+				}
+
+				minimum_label = st_min;
+				maximum_label = st_max;
+        	}
         }
         else
         {
-            get_global_minmax( analy );
+        	if(!analy->found_global_mm)
+        	{
+        		get_global_minmax( analy );
+        		analy->found_global_mm = TRUE;
+        	}
             /* Take min/max from global store. */
             if ( analy->cur_result->origin.is_node_result )
             {
