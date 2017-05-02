@@ -2799,6 +2799,8 @@ parse_single_command( char *buf, Analysis *analy )
             else if( strcmp( tokens[i], "mstat" ) == 0 )
             {
                 analy->use_global_mm = FALSE;
+                analy->use_cumulative_mm = FALSE;
+                analy->found_global_mm = FALSE;
                 if ( !analy->mm_result_set[0] )
                     analy->result_mm[0] = analy->state_mm[0];
                 if ( !analy->mm_result_set[1] )
@@ -2809,6 +2811,22 @@ parse_single_command( char *buf, Analysis *analy )
             {
                 parse_command("off autoselect", analy);
                 analy->use_global_mm = TRUE;
+                analy->use_cumulative_mm = FALSE;
+                analy->found_global_mm = FALSE;
+                get_global_minmax( analy );
+                if ( !analy->mm_result_set[0] )
+                    analy->result_mm[0] = analy->global_mm[0];
+                if ( !analy->mm_result_set[1] )
+                    analy->result_mm[1] = analy->global_mm[1];
+                analy->display_mode_refresh( analy );
+            }
+            else if( strcmp( tokens[i], "mcstat" ) == 0 )
+            {
+                parse_command("off autoselect", analy);
+                analy->use_global_mm = FALSE;
+                analy->use_cumulative_mm = TRUE;
+                analy->found_global_mm = FALSE;
+                get_global_minmax( analy );
                 if ( !analy->mm_result_set[0] )
                     analy->result_mm[0] = analy->global_mm[0];
                 if ( !analy->mm_result_set[1] )

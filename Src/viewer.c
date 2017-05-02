@@ -994,7 +994,9 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->auto_frac_size = TRUE;
     analy->hidden_line_width = 1.0;
     analy->show_colorscale = TRUE;
-    analy->use_global_mm = TRUE;
+    analy->use_global_mm = FALSE;
+    analy->use_cumulative_mm = TRUE;
+    analy->found_global_mm = FALSE;
     analy->strain_variety = INFINITESIMAL;
     analy->ref_surf = MIDDLE;
     analy->ref_frame = GLOBAL;

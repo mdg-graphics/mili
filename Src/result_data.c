@@ -279,7 +279,12 @@ update_min_max( Analysis *analy )
             if ( analy->use_global_mm )
                 analy->result_mm[i] = analy->global_mm[i];
             else
-                analy->result_mm[i] = analy->state_mm[i];
+            	if(analy->use_cumulative_mm)
+            	{
+            		analy->result_mm[i] = analy->global_mm[i];
+            	}
+            	else
+                	analy->result_mm[i] = analy->state_mm[i];
         }
 
     if(analy->autoselect)
