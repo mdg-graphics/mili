@@ -935,7 +935,7 @@ compute_node_velocity( Analysis *analy, float *resultArr,
                                      "Tmp DP node cache for calc node velocity" );
 
                 load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
-                             analy->cur_state + 1, FALSE,
+                             analy->cur_state, FALSE,
                              (void *) tmp_nodesDp );
 
                 tmp_nodesDp_lastState = NEW_N( double, num_nodes*analy->dimension,
@@ -946,7 +946,7 @@ compute_node_velocity( Analysis *analy, float *resultArr,
                     tmp_state = 1;
 
                 load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
-                             tmp_state, FALSE,
+                             tmp_state -1, FALSE,
                              (void *) tmp_nodesDp_lastState );
 
                 pos3dDp_0 = (GVec3D2P *) tmp_nodesDp_lastState;
@@ -979,13 +979,13 @@ compute_node_velocity( Analysis *analy, float *resultArr,
                     {
                         tmp[0] = pos3dDp_1[i][0] - pos3dDp_0[i][0];
                         tmp[1] = pos3dDp_1[i][1] - pos3dDp_0[i][1];
-                        tmp[2] = pos3dDp_1[i][1] - pos3dDp_0[i][1];
+                        tmp[2] = pos3dDp_1[i][2] - pos3dDp_0[i][2];
                     }
                     else
                     {
                         tmp[0] = pos3d_1[i][0] - pos3d_0[i][0];
                         tmp[1] = pos3d_1[i][1] - pos3d_0[i][1];
-                        tmp[2] = pos3d_1[i][1] - pos3d_0[i][1];
+                        tmp[2] = pos3d_1[i][2] - pos3d_0[i][2];
                     }
 
                     resultArr[i] = VEC_LENGTH( tmp ) / delta_t;
