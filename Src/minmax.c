@@ -52,29 +52,86 @@ get_global_minmax( Analysis *analy )
 {
     int cur_state, max_state, min_state;
     int i;
+    int rval;
     Minmax_obj mm_save;
-
+    Htable_entry *p_hte;
     if ( analy->cur_result == NULL )
         return;
 
-    cur_state = analy->cur_state;
-    mm_save = analy->elem_state_mm;
-    min_state = GET_MIN_STATE( analy );
-    max_state = get_max_state( analy );
-
-    for ( i = min_state; i <= max_state; i++ )
+    //if we have not found this global min max yet, find it, add it, and return to original location.
+    rval = htable_search(analy->prev_mm_globals,analy->curr_result,FIND_ENTRY,&p_hte);
+    //if we found a null table
+    if (rval == NULL_POINTER)
     {
-        analy->cur_state = i;
-        analy->db_get_state( analy, i, analy->state_p, &analy->state_p, NULL );
-
-        /* Update displayed result. */
-        load_result( analy, TRUE, TRUE, FALSE );
+    	printf("old mm table empty\n");
+    	printf(analy->curr_result);
+    	printf("\n");
+    	analy->prev_mm_globals = htable_create(128);
+    	rval = htable_search(analy->prev_mm_globals,analy->curr_result,FIND_ENTRY,&p_hte);
     }
+    if( rval == ENTRY_NOT_FOUND)
+    {
+    	printf("calculating mm\n");
+		cur_state = analy->cur_state;
+		mm_save = analy->elem_state_mm;
+		min_state = GET_MIN_STATE( analy );
+		max_state = get_max_state( analy );
+		if(p_hte == NULL){
+			p_hte = NEW(Htable_entry,"Hashtable Entry");
+			if(p_hte == NULL){
+				return;
+			}
+		}
 
-    /* Go back to where we were before. */
-    analy->elem_state_mm = mm_save;
-    analy->cur_state     = cur_state;
-    change_state( analy );
+		for ( i = min_state; i <= max_state; i++ )
+		{
+			analy->cur_state = i;
+			analy->db_get_state( analy, i, analy->state_p, &analy->state_p, NULL );
+
+			/* Update displayed result. */
+			load_result( analy, TRUE, TRUE, FALSE );
+		}
+
+		/* Go back to where we were before. */
+		analy->elem_state_mm = mm_save;
+		analy->cur_state     = cur_state;
+		change_state( analy );
+		//add mm to previous mm list
+//		Minmax_obj *temp_mm_loc;
+//		Minmax_obj temp_mm;
+//		temp_mm_loc = &temp_mm;
+//		temp_mm = (Minmax_obj*)malloc(sizeof(struct Minmax_obj));
+//		Minmax_obj * temp_mm;
+//		temp_mm = (Minmax_obj*)calloc(1,sizeof(Minmax_obj));
+//		init_mm_obj(temp_mm);
+//		temp_mm = &analy->elem_global_mm;
+		mmHistEnt *temp_mm;
+		//temp_mm = (mmHistEnt*)calloc(1,sizeof(mmHistEnt));
+		temp_mm = NEW(mmHistEnt,"MinMax HistEntry");
+		if(temp_mm == NULL){
+			return;
+		}
+		temp_mm->elem_global_mm = analy->elem_global_mm;
+		temp_mm->global_mm[0] = analy->global_mm[0];
+		temp_mm->global_mm[1] = analy->global_mm[1];
+		temp_mm->global_mm_class_long_name[0] = analy->global_mm_class_long_name[0];
+		temp_mm->global_mm_class_long_name[1] = analy->global_mm_class_long_name[1];
+		temp_mm->global_mm_nodes[0] = analy->global_mm_nodes[0];
+		temp_mm->global_mm_nodes[1] = analy->global_mm_nodes[1];
+		temp_mm->global_mm_sclass[0] = analy->global_mm_sclass[0];
+		temp_mm->global_mm_sclass[1] = analy->global_mm_sclass[1];
+//		void *tempVoid = NULL;
+//		tempVoid = temp_mm;
+//		p_hte->data = tempVoid;
+		p_hte->data = (void *) temp_mm;
+		htable_add_entry_data(analy->prev_mm_globals,analy->curr_result,ENTER_UNIQUE,&p_hte);
+    }
+	else // we have this min max already, find and
+	{
+    	printf("found old mm\n");
+		Minmax_obj *temp_mm = ((Minmax_obj *) p_hte->data);
+		analy->elem_state_mm =  *temp_mm;
+	}
 }
 
 
