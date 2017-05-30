@@ -2153,6 +2153,7 @@ static Result empty_result =
     { '\0' },                   /* Name */
     { '\0' },                   /* Title */
     { '\0' },                   /* Original Name */
+    NULL,                       /* Original Names */
     0,                          /* Quantity of supporting subrecords */
     NULL,                       /* Subrecord id array */
     NULL,                       /* Superclass array */
