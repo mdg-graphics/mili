@@ -2826,7 +2826,6 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->use_global_mm = FALSE;
                 analy->use_cumulative_mm = TRUE;
                 analy->found_global_mm = FALSE;
-                get_global_minmax( analy );
                 if ( !analy->mm_result_set[0] )
                     analy->result_mm[0] = analy->global_mm[0];
                 if ( !analy->mm_result_set[1] )

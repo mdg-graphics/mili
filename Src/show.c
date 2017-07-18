@@ -485,6 +485,10 @@ parse_show_command( char *token, Analysis *analy )
      */
     lookup_global_minmax( analy->cur_result, analy );
 
+    if(analy->use_global_mm){
+    	get_global_minmax( analy );
+    }
+
     /* Update cut planes, isosurfs, contours. */
     update_vis( analy );
 

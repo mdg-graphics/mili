@@ -952,6 +952,15 @@ typedef struct _intPtMessages
 } intPtMessages;
 
 
+typedef struct _mmHisEnt
+{
+	Minmax_obj elem_global_mm;		   	/* For result on element. */
+	float global_mm[2];            	/* For result at nodes. */
+	int global_mm_sclass[2];
+	int global_mm_nodes[2];        	/* For result at nodes. */
+	char *global_mm_class_long_name[2];
+}mmHistEnt;
+
 /*****************************************************************
  * TAG( Analysis )
  *
@@ -1004,6 +1013,7 @@ typedef struct _Analysis
     int previous_state;
     float *state_times;
     int reference_state;
+    //mmHisEnt previous_MM_List[50];
 
     float  *cur_ref_state_data;
     float  *ref_state_data;
@@ -1123,6 +1133,7 @@ typedef struct _Analysis
     Minmax_obj elem_global_mm;     /* For result on element. */
     Minmax_obj elem_state_mm;      /* For result on element. */
     Minmax_obj tmp_elem_mm;        /* For result on element. */
+    Hash_table *prev_mm_globals; 		/* hash table to store previously found global mm's*/
 
     Plot_obj *current_plots;
     Result *abscissa;
