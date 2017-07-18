@@ -167,6 +167,22 @@ change_time( float time, Analysis *analy )
     int srec_id_a, srec_id_b;
     static Bool_type warn_once = TRUE, warn_time=TRUE;
     int mesh_id;
+    /**
+     *  Added to hold enough information to reset the values for the
+     *  selected elements. 
+     */
+    struct temp_subrecord
+    {
+      int subrecord_id; 
+      int obj_qty;
+      int *object_ids;
+      int data_size;
+      float *data;
+    };
+    int subrec_qty= 0;
+    Subrec_obj *p_subrec;
+    struct temp_subrecord *subrecords_b =NULL;
+    float *temp_results;
 
     /*
      * This routine should really go through and interpolate everything
@@ -228,21 +244,43 @@ change_time( float time, Analysis *analy )
                      (void *) &mesh_id );
 
     node_qty = analy->mesh_table[mesh_id].node_geom->qty;
-
+    
+    
+    /**
+     * JKD reworked this as we were originally were setting the 
+     * incorrect values expecting them to show up in the graphics.
+     */
     if ( interp_result )
     {
         result_b = NEW_N( float, node_qty, "Interpolate result" );
         result_a = NODAL_RESULT_BUFFER( analy );
-        load_result( analy, TRUE, TRUE, FALSE );
         analy->state_p = state_b;
         NODAL_RESULT_BUFFER( analy ) = result_b;
         analy->cur_state = st_num_b;
         load_result( analy, TRUE, TRUE, FALSE );
+        subrec_qty = analy->cur_result->qty;
+        subrecords_b = malloc(sizeof(struct temp_subrecord)* analy->cur_result->qty);
+        for(i=0 ; i< analy->cur_result->qty;i++)
+        {
+            subrecords_b[i].subrecord_id = analy->cur_result->subrecs[i];
+            p_subrec = analy->srec_tree[srec_id_b].subrecs + subrecords_b[i].subrecord_id;
+            subrecords_b[i].obj_qty = p_subrec->subrec.qty_objects;
+            subrecords_b[i].object_ids = malloc(sizeof(int)*p_subrec->subrec.qty_objects);
+            subrecords_b[i].object_ids = memcpy((void*)subrecords_b[i].object_ids, 
+                                              (void*)p_subrec->object_ids, 
+                                              p_subrec->subrec.qty_objects*sizeof(int));
+            subrecords_b[i].data_size = p_subrec->p_object_class->qty;
+            subrecords_b[i].data = malloc(sizeof(float)*subrecords_b[i].data_size);
+            subrecords_b[i].data = memcpy((void*)subrecords_b[i].data, 
+                                          (void*)p_subrec->p_object_class->data_buffer, 
+                                          subrecords_b[i].data_size*sizeof(float));
+        }
         analy->state_p = state_a;
         NODAL_RESULT_BUFFER( analy ) = result_a;
         analy->cur_state = st_num_a;
+        load_result( analy, TRUE, TRUE, FALSE );
     }
-
+    
     t_a = state_a->time;
     t_b = state_b->time;
     interp = (time-t_a) / (t_b-t_a);
@@ -252,6 +290,10 @@ change_time( float time, Analysis *analy )
      * Stash the interpolated nodal values in state_a and
      * the interpolated result values in result_a.
      */
+    int max_obj,j;
+    int *obj_ids;
+    int obj_count;
+    float *class_data_buffer;
     if ( analy->dimension == 3 )
     {
         nodes3d_a = state_a->nodes.nodes3d;
@@ -265,10 +307,9 @@ change_time( float time, Analysis *analy )
                               + interp * nodes3d_b[i][1];
             nodes3d_a[i][2] = ninterp * nodes3d_a[i][2]
                               + interp * nodes3d_b[i][2];
-
-            if ( interp_result )
-                result_a[i] = ninterp * result_a[i] + interp * result_b[i];
         }
+        
+        
     }
     else
     {
@@ -282,11 +323,40 @@ change_time( float time, Analysis *analy )
             nodes2d_a[i][1] = ninterp * nodes2d_a[i][1]
                               + interp * nodes2d_b[i][1];
 
-            if ( interp_result )
-                result_a[i] = ninterp * result_a[i] + interp * result_b[i];
-
         }
     }
+    
+    
+    if ( interp_result )
+    {
+       // The following commented linewas the original calculation extracted  
+       // from the above if else statements.
+       //result_a[i] = ninterp * result_a[i] + interp * result_b[i];
+       for(i=0 ; i< analy->cur_result->qty;i++)
+       {
+           p_subrec = analy->srec_tree[srec_id_b].subrecs + analy->cur_result->subrecs[i];
+           max_obj = p_subrec->subrec.qty_objects;
+               
+           class_data_buffer = p_subrec->p_object_class->data_buffer;
+           for(j=0; j<max_obj; j++)
+           {
+               class_data_buffer[p_subrec->object_ids[j]] = 
+                   ninterp * class_data_buffer[p_subrec->object_ids[j]] + 
+                   interp * subrecords_b[i].data[subrecords_b[i].object_ids[j]];
+                       
+           }
+               
+        }
+    }
+    
+    
+    for (i = 0; i< subrec_qty; i++)
+    {
+        free(subrecords_b[i].data);
+        free(subrecords_b[i].object_ids);
+    }
+    
+    free(subrecords_b);
 
 #ifdef DEBUG_TIME
     int count=0;
@@ -321,7 +391,7 @@ change_time( float time, Analysis *analy )
     /* Gotta recompute normals, unless node positions don't change. */
     if ( !analy->normals_constant || recompute_norms )
         compute_normals( analy );
-
+    
     /*
      * Update cut planes, isosurfs, contours.
      *
