@@ -1765,6 +1765,21 @@ parse_single_command( char *buf, Analysis *analy )
         }
         if ( valid_command )
             analy->extreme_result = FALSE;
+        float st_time;
+        int st = analy->state_p->state_no+1;
+        rval = mc_query_family( analy->db_ident, STATE_TIME, 
+                               (void *) &st, NULL,
+                            (void *) &st_time );
+        if ( rval != 0 )
+        {
+            mc_print_error( "parse_single_command() call "
+                            "mc_query_family( STATE_TIME )", rval );
+            return GRIZ_FAIL;
+        }
+        if(st_time != analy->state_p->time)
+        {
+           change_time( analy->state_p->time, analy);
+        }
     }
 
     /* Multi-commands like "show" should go here for faster parsing.
