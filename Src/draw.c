@@ -6121,7 +6121,7 @@ draw_surfaces_2d( Color_property *p_cp,
     int surface_qty;
     float *data_array;
     int *p_index_source;
-    GVec2D *nodes, *onodes;
+    GVec2D *nodes; 
     Interp_mode_type save_interp_mode;
 
     if ( analy->mesh_view_mode != RENDER_FILLED &&
@@ -6138,7 +6138,7 @@ draw_surfaces_2d( Color_property *p_cp,
     hide_surf = p_mesh->hide_surface;
 
     nodes = analy->state_p->nodes.nodes2d;
-    onodes = (GVec3D *) analy->cur_ref_state_data;
+    
     /* 2D, so set Z coord of every vertex to zero. */
     verts[0][2] = verts[1][2] = verts[2][2] = verts[3][2] = 0.0;
 

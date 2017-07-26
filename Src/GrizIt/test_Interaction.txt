@@ -1,4 +1,0 @@
-savhis test_history.txt
-#include test_MeshControl.txt
-endhis
-//Need to write more tests here

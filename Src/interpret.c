@@ -1765,6 +1765,21 @@ parse_single_command( char *buf, Analysis *analy )
         }
         if ( valid_command )
             analy->extreme_result = FALSE;
+        float st_time;
+        int st = analy->state_p->state_no+1;
+        rval = mc_query_family( analy->db_ident, STATE_TIME, 
+                               (void *) &st, NULL,
+                            (void *) &st_time );
+        if ( rval != 0 )
+        {
+            mc_print_error( "parse_single_command() call "
+                            "mc_query_family( STATE_TIME )", rval );
+            return;
+        }
+        if(st_time != analy->state_p->time)
+        {
+           change_time( analy->state_p->time, analy);
+        }
     }
 
     /* Multi-commands like "show" should go here for faster parsing.
@@ -4189,7 +4204,7 @@ parse_single_command( char *buf, Analysis *analy )
                                            p_uc,
                                            setval, include_selected, mat_selected );
 
-               p_disable_qty = MESH(analy).mat_disable_qty;
+               *p_disable_qty = MESH(analy).mat_disable_qty;
                p_uc = MESH(analy).disable_material;
            
                process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
@@ -10511,7 +10526,7 @@ int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Anal
     mat_qty = MESH(analy).material_qty;
     if(analy->int_labels == NULL)
     {
-        return;
+        return GRIZ_FAIL;
     }
 
     strcpy(warning_templates[0], "\nINFO: Label array invalid for element set");        
