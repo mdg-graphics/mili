@@ -1774,7 +1774,7 @@ parse_single_command( char *buf, Analysis *analy )
         {
             mc_print_error( "parse_single_command() call "
                             "mc_query_family( STATE_TIME )", rval );
-            return GRIZ_FAIL;
+            return;
         }
         if(st_time != analy->state_p->time)
         {
@@ -4204,7 +4204,7 @@ parse_single_command( char *buf, Analysis *analy )
                                            p_uc,
                                            setval, include_selected, mat_selected );
 
-               p_disable_qty = MESH(analy).mat_disable_qty;
+               *p_disable_qty = MESH(analy).mat_disable_qty;
                p_uc = MESH(analy).disable_material;
            
                process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
@@ -10526,7 +10526,7 @@ int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Anal
     mat_qty = MESH(analy).material_qty;
     if(analy->int_labels == NULL)
     {
-        return;
+        return GRIZ_FAIL;
     }
 
     strcpy(warning_templates[0], "\nINFO: Label array invalid for element set");        
