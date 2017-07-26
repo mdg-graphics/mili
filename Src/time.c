@@ -205,12 +205,10 @@ change_time( float time, Analysis *analy )
 
     /* OK to interpolate results if state rec formats are the same. */
     st_num = st_num_a + 1;
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, (void *) &st_num,
-                     NULL, &srec_id_a );
+    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, (void *) &st_num, NULL, &srec_id_a );
 
     st_num = st_num_b + 1;
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, (void *) &st_num,
-                     NULL, &srec_id_b );
+    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, (void *) &st_num, NULL, &srec_id_b );
 
     can_interp = ( srec_id_a == srec_id_b );
     interp_result = ( analy->cur_result != NULL && can_interp );
@@ -224,8 +222,7 @@ change_time( float time, Analysis *analy )
         warn_once = FALSE;
     }
 
-    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id_a, NULL,
-                     (void *) &mesh_id );
+    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id_a, NULL, (void *) &mesh_id );
 
     node_qty = analy->mesh_table[mesh_id].node_geom->qty;
 
@@ -259,12 +256,9 @@ change_time( float time, Analysis *analy )
 
         for ( i = 0; i < node_qty; i++ )
         {
-            nodes3d_a[i][0] = ninterp * nodes3d_a[i][0]
-                              + interp * nodes3d_b[i][0];
-            nodes3d_a[i][1] = ninterp * nodes3d_a[i][1]
-                              + interp * nodes3d_b[i][1];
-            nodes3d_a[i][2] = ninterp * nodes3d_a[i][2]
-                              + interp * nodes3d_b[i][2];
+            nodes3d_a[i][0] = ninterp * nodes3d_a[i][0] + interp * nodes3d_b[i][0];
+            nodes3d_a[i][1] = ninterp * nodes3d_a[i][1] + interp * nodes3d_b[i][1];
+            nodes3d_a[i][2] = ninterp * nodes3d_a[i][2] + interp * nodes3d_b[i][2];
 
             if ( interp_result )
                 result_a[i] = ninterp * result_a[i] + interp * result_b[i];
@@ -277,10 +271,8 @@ change_time( float time, Analysis *analy )
 
         for ( i = 0; i < node_qty; i++ )
         {
-            nodes2d_a[i][0] = ninterp * nodes2d_a[i][0]
-                              + interp * nodes2d_b[i][0];
-            nodes2d_a[i][1] = ninterp * nodes2d_a[i][1]
-                              + interp * nodes2d_b[i][1];
+            nodes2d_a[i][0] = ninterp * nodes2d_a[i][0] + interp * nodes2d_b[i][0];
+            nodes2d_a[i][1] = ninterp * nodes2d_a[i][1] + interp * nodes2d_b[i][1];
 
             if ( interp_result )
                 result_a[i] = ninterp * result_a[i] + interp * result_b[i];
@@ -321,6 +313,10 @@ change_time( float time, Analysis *analy )
     /* Gotta recompute normals, unless node positions don't change. */
     if ( !analy->normals_constant || recompute_norms )
         compute_normals( analy );
+
+
+    //NODAL_RESULT_BUFFER( analy ) = result_a;
+    //load_result( analy, TRUE, TRUE, FALSE );
 
     /*
      * Update cut planes, isosurfs, contours.
