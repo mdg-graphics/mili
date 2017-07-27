@@ -266,9 +266,15 @@ change_time( float time, Analysis *analy )
             p_subrec = analy->srec_tree[srec_id_b].subrecs + subrecords_b[i].subrecord_id;
             subrecords_b[i].obj_qty = p_subrec->subrec.qty_objects;
             subrecords_b[i].object_ids = malloc(sizeof(int)*p_subrec->subrec.qty_objects);
-            subrecords_b[i].object_ids = memcpy((void*)subrecords_b[i].object_ids, 
+            if(p_subrec->object_ids)
+            {
+                subrecords_b[i].object_ids = memcpy((void*)subrecords_b[i].object_ids, 
                                               (void*)p_subrec->object_ids, 
                                               p_subrec->subrec.qty_objects*sizeof(int));
+            }else
+            {
+                subrecords_b[i].object_ids = p_subrec->object_ids;
+            }
             subrecords_b[i].data_size = p_subrec->p_object_class->qty;
             subrecords_b[i].data = malloc(sizeof(float)*subrecords_b[i].data_size);
             subrecords_b[i].data = memcpy((void*)subrecords_b[i].data, 
@@ -340,10 +346,16 @@ change_time( float time, Analysis *analy )
            class_data_buffer = p_subrec->p_object_class->data_buffer;
            for(j=0; j<max_obj; j++)
            {
-               class_data_buffer[p_subrec->object_ids[j]] = 
-                   ninterp * class_data_buffer[p_subrec->object_ids[j]] + 
-                   interp * subrecords_b[i].data[subrecords_b[i].object_ids[j]];
-                       
+               if(p_subrec->object_ids)
+               {
+                   class_data_buffer[p_subrec->object_ids[j]] = 
+                       ninterp * class_data_buffer[p_subrec->object_ids[j]] + 
+                       interp * subrecords_b[i].data[subrecords_b[i].object_ids[j]];
+               }else
+               {
+                   class_data_buffer[j] =  ninterp * class_data_buffer[j] + 
+                                           interp * subrecords_b[i].data[j];
+               }       
            }
                
         }
