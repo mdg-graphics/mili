@@ -4204,7 +4204,7 @@ parse_single_command( char *buf, Analysis *analy )
                                            p_uc,
                                            setval, include_selected, mat_selected );
 
-               *p_disable_qty = MESH(analy).mat_disable_qty;
+               p_disable_qty = MESH(analy).mat_disable_qty;
                p_uc = MESH(analy).disable_material;
            
                process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
