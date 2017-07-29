@@ -128,6 +128,8 @@
 #include "griz_config.h"
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
+
 
 #ifdef sgi
 #define TAN tanf
@@ -346,8 +348,10 @@ GLfloat vechd_default[] = { 0.0, 0.0, 0.0 };    /* Black. */
 
 /* Local routines. */
 static void look_rot_mat( float [3], float [3], float [3], Transf_mat * );
-static void create_color_prop_arrays( Color_property *, int );
-static void define_one_color_property( Color_property *, int, GLfloat [][3], int );
+static void create_color_prop_arrays( Color_property *, int);
+//static void create_color_prop_arrays( Color_property *, int, Analysis *, int**);
+//static void define_color_properties( Color_property *, int *, int, GLfloat *, int, int* );
+static void define_one_color_property( Color_property *, int, int, GLfloat [][3], int );
 static void color_lookup( float [4], float, float, float, float, int, Bool_type, Bool_type );
 static void surf_color_lookup( float [4], float, float, float, float, int, Bool_type );
 
@@ -618,9 +622,67 @@ init_mesh_window( Analysis *analy )
                           FIND_ENTRY, &p_hte );
     mtl_qty = ( rval == OK ) ? analy->max_mesh_mat_qty + 1
               : analy->max_mesh_mat_qty;
-    create_color_prop_arrays( &v_win->mesh_materials, mtl_qty );
-    define_color_properties( &v_win->mesh_materials, NULL, mtl_qty,
-                             material_colors, MATERIAL_COLOR_CNT );
+    int* defaultsList;
+    defaultsList = (int*) malloc(mtl_qty*sizeof(int));
+
+    //test code
+    int  num_entries = 0;
+    num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "*", "NULL", "NULL", NULL );
+    char **wildcard_list = NULL;
+    wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+    num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "SetRGB", "NULL", "NULL", wildcard_list );
+    int testi = 0;
+    for(testi = 0; testi < num_entries; testi++){
+    	char* teststr = wildcard_list[testi];
+    	//printf("RGB: %c",wildcard_list[testi]);
+    	int num_items_read = 0;
+    	float* testset = NULL;
+    	testset = (float*)malloc(3*sizeof(float));
+    	int status = 0;
+    	status = mc_ti_read_array(analy->db_ident, teststr, (void*)& testset, &num_items_read );
+    	int testo = 0;
+    	for(testo = 0; testo < 3; testo++){
+    		float val1 = testset[testo];
+    	}
+    }
+    //test code - works I think
+
+    //create defaultslist and init
+    int* defaultslist = (int*) malloc (mtl_qty * sizeof(int));
+    int dummy = 0;
+    for(dummy = 0; dummy < mtl_qty;dummy++){
+    	defaultsList[dummy] = 0;
+    }
+    for(testi = 0; testi < num_entries; testi++){
+    	char temp[10];
+    	char* fullname = wildcard_list[testi];
+    	int pos = 0;
+    	temp[0] = '\0';
+    	int status = 0;
+    	while(fullname[pos] != '\0'){
+    		pos++;
+    	}
+    	strcpy(temp, &fullname[7]);
+    	int current = atoi(temp);
+    	defaultsList[current] = 1;
+    }
+
+    create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
+    define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
+    for(dummy = 0; dummy < mtl_qty;dummy++){
+    	if(defaultsList[dummy] == 1){
+    		GLfloat defaultColor[3];
+    		char teststr[20];
+    		teststr[0] = '\0';
+    		int num_items_read = 0;
+        	int status = 0;
+    		sprintf(teststr,"SetRGB_",dummy);
+        	status = mc_ti_read_array(analy->db_ident, teststr, (void*)& defaultColor, &num_items_read );
+    		define_one_color_property(&v_win->mesh_materials,(dummy-1),0,defaultColor,1);
+    	}
+    }
+    //create_color_prop_arrays( &v_win->mesh_materials, mtl_qty, analy, &defaultsList);
+    //define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT, &defaultsList);
 
     if ( (qty = MESH_P( analy )->classes_by_sclass[G_SURFACE].qty) > 0 )
     {
@@ -630,8 +692,10 @@ init_mesh_window( Analysis *analy )
         for ( i = 0; i < qty; i++ )
             sum += p_classes[i]->qty;
 
-        create_color_prop_arrays( &v_win->surfaces, sum );
-        define_color_properties( &v_win->surfaces, NULL, sum, surface_colors, SURFACE_COLOR_CNT );
+        create_color_prop_arrays( &v_win->surfaces, sum);
+        define_color_properties( &v_win->surfaces, NULL, sum, surface_colors, SURFACE_COLOR_CNT);
+        //create_color_prop_arrays( &v_win->surfaces, sum, analy, NULL );
+        //define_color_properties( &v_win->surfaces, NULL, sum, surface_colors, SURFACE_COLOR_CNT, NULL );
     }
 
     if ( (qty = MESH_P( analy )->classes_by_sclass[G_PARTICLE].qty) > 0 )
@@ -642,8 +706,10 @@ init_mesh_window( Analysis *analy )
         for ( i = 0; i < qty; i++ )
             sum += p_classes[i]->qty;
 
-        create_color_prop_arrays( &v_win->particles, sum );
-        define_color_properties( &v_win->particles, NULL, sum, particle_colors, PARTICLE_COLOR_CNT );
+        create_color_prop_arrays( &v_win->particles, sum);
+        define_color_properties( &v_win->particles, NULL, sum, particle_colors, PARTICLE_COLOR_CNT);
+        //create_color_prop_arrays( &v_win->particles, sum, analy, NULL );
+        //define_color_properties( &v_win->particles, NULL, sum, particle_colors, PARTICLE_COLOR_CNT, NULL );
     }
     /* Init lighting even if 2D db so a subsequent 3D db load will be OK. */
 
@@ -773,7 +839,8 @@ reset_mesh_window( Analysis *analy )
  * Allocate arrays for color property data.
  */
 static void
-create_color_prop_arrays( Color_property *p_color_property, int size )
+create_color_prop_arrays( Color_property *p_color_property, int size)
+//create_color_prop_arrays( Color_property *p_color_property, int size, Analysis *analy, int** defaultsList )
 {
     float gslevel=.40, gslevel_increment=0.;
     int i;
@@ -806,6 +873,17 @@ create_color_prop_arrays( Color_property *p_color_property, int size )
             i<size;
             i++ )
     {
+    	/* allocate memory and read in the label names */
+    	/*int num_items_read = 0;
+    	GLfloat* rgbList;
+    	char searchString[20];
+    	sprintf(searchString, "SetRGB_%d",i);
+    	rgbList = (GLfloat *) malloc(3 * sizeof(GLfloat));
+    	int status = 0;
+    	status = mc_ti_read_array(analy->db_ident, searchString, (void**)& rgbList, &num_items_read );
+    	if(status != NULL){
+    		printf("default color for material: %d , exists and contains: R: %s, G: %s, B: %s \n",i,rgbList[0],rgbList[1],rgbList[2]);
+    	}*/
         p_color_property->gslevel[i] = gslevel;
         gslevel+=gslevel_increment;
     }
@@ -851,7 +929,8 @@ extend_color_prop_arrays( Color_property *p_cp, int new_size, GLfloat rgb_array[
     for ( i = 0; i < add; i++ )
         tmp_color_property_indicies[i] = old + i;
 
-    define_color_properties( p_cp, tmp_color_property_indicies, add, rgb_array, rgb_size );
+    define_color_properties( p_cp, tmp_color_property_indicies, add, rgb_array, rgb_size);
+    //define_color_properties( p_cp, tmp_color_property_indicies, add, rgb_array, rgb_size, NULL );
 
     free( tmp_color_property_indicies );
 }
@@ -1588,20 +1667,23 @@ print_view( void )
  * Defines gl color properties for a Color_property.
  */
 extern void
-define_color_properties( Color_property *p_color_property, int *indices, int qty,
-                         GLfloat rgb_array[][ 3 ], int rgb_array_size )
+define_color_properties( Color_property *p_color_property, int *indices, int qty, GLfloat rgb_array[][ 3 ], int rgb_array_size)
+//define_color_properties( Color_property *p_color_property, int *indices, int qty, GLfloat rgb_array[][ 3 ], int rgb_array_size, int* defaultsList )
 {
-    int i;
+    int i,idx;
 
     if ( indices == NULL )
         /* Define color properties for all materials. */
-        for ( i = 0; i < qty; i++ )
-            define_one_color_property( p_color_property, i, rgb_array, rgb_array_size );
+        for ( i = 0; i < qty; i++ ){
+            idx = i % rgb_array_size;
+            define_one_color_property( p_color_property, i, idx, rgb_array, rgb_array_size );
+        }
     else
         /* Define color properties only for the listed materials. */
-        for ( i = 0; i < qty; i++ )
-            define_one_color_property( p_color_property, indices[i],
-                                       rgb_array, rgb_array_size );
+        for ( i = 0; i < qty; i++ ){
+            idx = indices[i] % rgb_array_size;
+            define_one_color_property( p_color_property, indices[i],idx, rgb_array, rgb_array_size );
+        }
 }
 
 
@@ -1611,10 +1693,10 @@ define_color_properties( Color_property *p_color_property, int *indices, int qty
  * Defines gl material properties for one material in the mesh.
  */
 static void
-define_one_color_property( Color_property *p_color_property, int index,
+define_one_color_property( Color_property *p_color_property, int index, int idx,
                            GLfloat rgb_array[][3], int rgb_array_size )
 {
-    int idx, j;
+    int j;
 
     /*
      * Here are the OpenGL material default values.
@@ -1629,7 +1711,7 @@ define_one_color_property( Color_property *p_color_property, int index,
 
     for ( j = 0; j < 3; j++ )
     {
-        idx = index % rgb_array_size;
+        //idx = index % rgb_array_size;
         p_color_property->ambient[index][j] = rgb_array[idx][j];
         p_color_property->diffuse[index][j] = rgb_array[idx][j];
         p_color_property->specular[index][j] = 0.0;

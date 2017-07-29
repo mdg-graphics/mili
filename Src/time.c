@@ -387,15 +387,11 @@ change_time( float time, Analysis *analy )
     /* Gotta recompute normals, unless node positions don't change. */
     if ( !analy->normals_constant || recompute_norms )
         compute_normals( analy );
-<<<<<<< HEAD
 
 
     //NODAL_RESULT_BUFFER( analy ) = result_a;
     //load_result( analy, TRUE, TRUE, FALSE );
 
-=======
-    
->>>>>>> 29ec24913f9b7c3be6b273ba61a915dfd7c0f707
     /*
      * Update cut planes, isosurfs, contours.
      *
