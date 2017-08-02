@@ -671,13 +671,17 @@ init_mesh_window( Analysis *analy )
     define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
     for(dummy = 0; dummy < mtl_qty;dummy++){
     	if(defaultsList[dummy] == 1){
-    		GLfloat defaultColor[3];
+    		GLfloat defaultColor[1][3] = {{0.0,0.0,0.0}};
     		char teststr[20];
     		teststr[0] = '\0';
     		int num_items_read = 0;
         	int status = 0;
-    		sprintf(teststr,"SetRGB_",dummy);
-        	status = mc_ti_read_array(analy->db_ident, teststr, (void*)& defaultColor, &num_items_read );
+    		sprintf(teststr,"SetRGB_%d",dummy);
+    		GLfloat* test = (GLfloat*)malloc(3*sizeof(GLfloat));
+        	status = mc_ti_read_array(analy->db_ident, teststr, (void*) &test, &num_items_read );
+        	defaultColor[0][0] = test[0];
+        	defaultColor[0][1] = test[1];
+        	defaultColor[0][2] = test[2];
     		define_one_color_property(&v_win->mesh_materials,(dummy-1),0,defaultColor,1);
     	}
     }
