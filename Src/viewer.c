@@ -896,6 +896,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     /* Open the database. */
     stat = analy->db_open( temp_fname, &analy->db_ident );
+
     if ( stat != OK )
     {
         reset_db_io( db_type );
@@ -2131,6 +2132,37 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     /* Save max quantity of materials. */
     analy->max_mesh_mat_qty = mat_sz;
+
+    //NEW_MAT_CODE
+	Hash_table *forNames;
+	Hash_table *revNames;
+	forNames = htable_create( 1000 );
+	revNames = htable_create( 1000 );
+	Htable_entry *tempEnt;
+	int pos2;
+	for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
+		//check if name exists
+		char teststr[20];
+		teststr[0] = '\0';
+		int num_items_read = 0;
+		int status = 0;
+		sprintf(teststr,"MAT_NAME_%d",pos2+1);
+		char test[100];
+		test[0] = '\0';
+		status = mc_ti_read_string(analy->db_ident, teststr, (void*) &test);
+		//if so then print name
+		if (status == OK){
+			char str[10];
+			sprintf(str,"%d",pos2+1);
+			htable_add_entry_data(forNames,str ,ENTER_UNIQUE,(void *) test);
+			htable_search(forNames,str,FIND_ENTRY,&tempEnt);
+			htable_add_entry_data(revNames,test ,ENTER_UNIQUE,(void *) str);
+			htable_search(revNames,test,FIND_ENTRY,&tempEnt);
+		}
+	}
+	analy->mat_names = forNames;
+	analy->mat_names_reversed = revNames;
+	//END NEW
 
     /* Save max quantity of surfaces. */
     analy->max_mesh_surf_qty = surface_sz;

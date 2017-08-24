@@ -11338,7 +11338,26 @@ draw_foreground( Analysis *analy )
 
             glColor3fv( v_win->text_color );
             hmove2( xp - 0.5*text_height, yp );
-            sprintf( str, "%d", i+1 );
+            //MAT_NAMES_CHECK
+            //make names hash table
+
+            //check if name exists
+    		char teststr[20];
+    		teststr[0] = '\0';
+    		int num_items_read = 0;
+        	int status = 0;
+    		sprintf(teststr,"MAT_NAME_%d",i+1);
+    		char test[100];
+    		test[0] = '\0';
+        	status = mc_ti_read_string(analy->db_ident, teststr, (void*) &test);
+            //if so then print name
+        	if (status == OK){
+        		sprintf(str, test);
+        	}
+            //else just use number
+        	else{
+        		sprintf( str, "%d", i+1 );
+        	}
             hcharstr( str );
 
             yp -= 1.5*text_height;

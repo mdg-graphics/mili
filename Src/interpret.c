@@ -3369,12 +3369,12 @@ parse_single_command( char *buf, Analysis *analy )
         {
             return;
         }
-
+        //DUPLICATE-BEGIN
         else if(token_cnt > 2 && strcmp(tokens[0], "vis") == 0 && strcmp(tokens[1], "all") == 0)
         {
             return;
         }
-
+        //DUPLICATE-END
         if ( !strcmp( "BRICK", tmp_token ) && !class_selected )
         {
             string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
