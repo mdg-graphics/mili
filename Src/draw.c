@@ -622,69 +622,72 @@ init_mesh_window( Analysis *analy )
                           FIND_ENTRY, &p_hte );
     mtl_qty = ( rval == OK ) ? analy->max_mesh_mat_qty + 1
               : analy->max_mesh_mat_qty;
-    int* defaultsList;
-    defaultsList = (int*) malloc(mtl_qty*sizeof(int));
 
-    //test code
-    int  num_entries = 0;
-    num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "*", "NULL", "NULL", NULL );
-    char **wildcard_list = NULL;
-    wildcard_list=(char**) malloc( num_entries*sizeof(char *));
-    num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "SetRGB", "NULL", "NULL", wildcard_list );
-    int testi = 0;
-    for(testi = 0; testi < num_entries; testi++){
-    	char* teststr = wildcard_list[testi];
-    	//printf("RGB: %c",wildcard_list[testi]);
-    	int num_items_read = 0;
-    	float* testset = NULL;
-    	testset = (float*)malloc(3*sizeof(float));
-    	int status = 0;
-    	status = mc_ti_read_array(analy->db_ident, teststr, (void*)& testset, &num_items_read );
-    	int testo = 0;
-    	for(testo = 0; testo < 3; testo++){
-    		float val1 = testset[testo];
-    	}
-    }
-    //test code - works I think
+    if(env.ti_enable){
+		int* defaultsList;
+		defaultsList = (int*) malloc(mtl_qty*sizeof(int));
 
-    //create defaultslist and init
-    int* defaultslist = (int*) malloc (mtl_qty * sizeof(int));
-    int dummy = 0;
-    for(dummy = 0; dummy < mtl_qty;dummy++){
-    	defaultsList[dummy] = 0;
-    }
-    for(testi = 0; testi < num_entries; testi++){
-    	char temp[10];
-    	char* fullname = wildcard_list[testi];
-    	int pos = 0;
-    	temp[0] = '\0';
-    	int status = 0;
-    	while(fullname[pos] != '\0'){
-    		pos++;
-    	}
-    	strcpy(temp, &fullname[7]);
-    	int current = atoi(temp);
-    	defaultsList[current] = 1;
-    }
+		//test code
+		int  num_entries = 0;
+		num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "*", "NULL", "NULL", NULL );
+		char **wildcard_list = NULL;
+		wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+		num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "SetRGB", "NULL", "NULL", wildcard_list );
+		int testi = 0;
+		for(testi = 0; testi < num_entries; testi++){
+			char* teststr = wildcard_list[testi];
+			//printf("RGB: %c",wildcard_list[testi]);
+			int num_items_read = 0;
+			float* testset = NULL;
+			testset = (float*)malloc(3*sizeof(float));
+			int status = 0;
+			status = mc_ti_read_array(analy->db_ident, teststr, (void*)& testset, &num_items_read );
+			int testo = 0;
+			for(testo = 0; testo < 3; testo++){
+				float val1 = testset[testo];
+			}
+		}
+		//test code - works I think
 
-    create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
-    define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
-    for(dummy = 0; dummy < mtl_qty;dummy++){
-    	if(defaultsList[dummy] == 1){
-    		GLfloat defaultColor[1][3] = {{0.0,0.0,0.0}};
-    		char teststr[20];
-    		teststr[0] = '\0';
-    		int num_items_read = 0;
-        	int status = 0;
-    		sprintf(teststr,"SetRGB_%d",dummy);
-    		GLfloat* test = (GLfloat*)malloc(3*sizeof(GLfloat));
-        	status = mc_ti_read_array(analy->db_ident, teststr, (void*) &test, &num_items_read );
-        	defaultColor[0][0] = test[0];
-        	defaultColor[0][1] = test[1];
-        	defaultColor[0][2] = test[2];
-    		define_one_color_property(&v_win->mesh_materials,(dummy-1),0,defaultColor,1);
-    	}
-    }
+		//create defaultslist and init
+		int* defaultslist = (int*) malloc (mtl_qty * sizeof(int));
+		int dummy = 0;
+		for(dummy = 0; dummy < mtl_qty;dummy++){
+			defaultsList[dummy] = 0;
+		}
+		for(testi = 0; testi < num_entries; testi++){
+			char temp[10];
+			char* fullname = wildcard_list[testi];
+			int pos = 0;
+			temp[0] = '\0';
+			int status = 0;
+			while(fullname[pos] != '\0'){
+				pos++;
+			}
+			strcpy(temp, &fullname[7]);
+			int current = atoi(temp);
+			defaultsList[current] = 1;
+		}
+
+		create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
+		define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
+		for(dummy = 0; dummy < mtl_qty;dummy++){
+			if(defaultsList[dummy] == 1){
+				GLfloat defaultColor[1][3] = {{0.0,0.0,0.0}};
+				char teststr[20];
+				teststr[0] = '\0';
+				int num_items_read = 0;
+				int status = 0;
+				sprintf(teststr,"SetRGB_%d",dummy);
+				GLfloat* test = (GLfloat*)malloc(3*sizeof(GLfloat));
+				status = mc_ti_read_array(analy->db_ident, teststr, (void*) &test, &num_items_read );
+				defaultColor[0][0] = test[0];
+				defaultColor[0][1] = test[1];
+				defaultColor[0][2] = test[2];
+				define_one_color_property(&v_win->mesh_materials,(dummy-1),0,defaultColor,1);
+			}
+		}
+	}
     //create_color_prop_arrays( &v_win->mesh_materials, mtl_qty, analy, &defaultsList);
     //define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT, &defaultsList);
 
@@ -11326,7 +11329,15 @@ draw_foreground( Analysis *analy )
         hrightjustify( TRUE );
 
         p_mesh = MESH_P( analy );
-
+		//NEW
+		//check if name exists
+		char teststr[20];
+		teststr[0] = '\0';
+		int num_items_read = 0;
+		int status = 0;
+		char test[100];
+		test[0] = '\0';
+		//NEW
         for ( i = 0; i < p_mesh->material_qty; i++ )
         {
             /* Don't show material in legend if it's invisible. */
@@ -11341,15 +11352,11 @@ draw_foreground( Analysis *analy )
             //MAT_NAMES_CHECK
             //make names hash table
 
-            //check if name exists
-    		char teststr[20];
-    		teststr[0] = '\0';
-    		int num_items_read = 0;
-        	int status = 0;
+    		/*//TEMP_DISABLED
     		sprintf(teststr,"MAT_NAME_%d",i+1);
-    		char test[100];
-    		test[0] = '\0';
-        	status = mc_ti_read_string(analy->db_ident, teststr, (void*) &test);
+    		if(env.ti_enable == TRUE){
+    			status = mc_ti_read_string(analy->db_ident, teststr, (void*) &test);
+    		}
             //if so then print name
         	if (status == OK){
         		sprintf(str, test);
@@ -11358,6 +11365,9 @@ draw_foreground( Analysis *analy )
         	else{
         		sprintf( str, "%d", i+1 );
         	}
+        	*/
+
+        	sprintf( str, "%d", i+1 );
             hcharstr( str );
 
             yp -= 1.5*text_height;
