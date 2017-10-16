@@ -370,7 +370,7 @@ static void show_ipt_avail(Analysis *);
 static void intpts_selected(Analysis *);
 
 void
-mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt);
+mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt);
 
 void
 process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
@@ -914,7 +914,7 @@ parse_single_command( char *buf, Analysis *analy )
     clear_popup_dialogs();
 
     //mat name substitution here
-    mat_name_sub(analy,tokens,token_cnt);
+    mat_name_sub(analy,tokens,&token_cnt);
 
     if ( strncmp("echo", tokens[0], 4) )
         alias_substitute( tokens, &token_cnt );
@@ -9994,7 +9994,7 @@ dump_tokens ( int token_cnt,
 
 
 /*****************************************************************
- * TAG(mat_name_sub)
+ * TAG(mat_range)
  *
  * This function will process the given token list and substitute
  * any tokens containing material names for their corresponding
@@ -10003,7 +10003,7 @@ dump_tokens ( int token_cnt,
 void
 mat_range(Analysis *analy, char *token1, char *token2, int *nums[analy->max_mesh_mat_qty], int *token_cnt){
 	Htable_entry *tempEnt;
-	nums = malloc();
+	//int *nums = malloc();
 	*token_cnt = 0;
 	Bool_type failure = False;
 	//
@@ -10016,11 +10016,11 @@ mat_range(Analysis *analy, char *token1, char *token2, int *nums[analy->max_mesh
 
 	//search list for names
 	for(pos = 0; pos < analy->max_mesh_mat_qty; pos++){
-		if(strstr(analy->sorted_names[pos],*token1) == 0){
+		if(strstr(analy->sorted_names[pos],token1) == 0){
 			found1 = True;
 			pos1 = pos;
 		}
-		if(strstr(analy->sorted_names[pos],*token2) == 0){
+		if(strstr(analy->sorted_names[pos],token2) == 0){
 			found2 = True;
 			pos2 = pos;
 		}
@@ -10059,22 +10059,22 @@ mat_range(Analysis *analy, char *token1, char *token2, int *nums[analy->max_mesh
  * numbers
  */
 void
-mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt){
+mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt){
 	int namepos,tokenpos = 0;
 	Htable_entry *tempEnt;
-	char **new_tokens[MAXTOKENS][TOKENLENGTH];
+	char new_tokens[MAXTOKENS][TOKENLENGTH];
 	//char **new_tokens = (char**)malloc(MAXTOKENS * sizeof(char*);
 	int new_token_cnt = 0;
-	new_tokens = malloc(MAXTOKENS*sizeof(char*));
+	//new_tokens = (char**)malloc(MAXTOKENS * sizeof(char*));
 	//do we at least have a command and 1 argument
 	if(*token_cnt > 1){
-		if(	(strcmp(*tokens[0],"include") == 0) || (strcmp(*tokens[0],"exclude") == 0) 	||
-			(strcmp(*tokens[0],"vis") == 0) 	|| (strcmp(*tokens[0],"invis") == 0) 	||
-			(strcmp(*tokens[0],"enable") == 0) 	|| (strcmp(*tokens[0],"disable") == 0) 	||
-			(strcmp(*tokens[0],"hilite") == 0) 	|| (strcmp(*tokens[0],"mat") == 0)		){
+		if(	(strcmp(tokens[0],"include") == 0) 	|| (strcmp(tokens[0],"exclude") == 0) 	||
+			(strcmp(tokens[0],"vis") == 0) 		|| (strcmp(tokens[0],"invis") == 0) 	||
+			(strcmp(tokens[0],"enable") == 0) 	|| (strcmp(tokens[0],"disable") == 0) 	||
+			(strcmp(tokens[0],"hilite") == 0) 	|| (strcmp(tokens[0],"mat") == 0)		){
 			Bool_type dash_found = False;
 			Bool_type next_is_dash = False;
-			new_tokens[0] = *tokens[0];
+			*new_tokens[0] = tokens[0];
 			int new_token_pos = 1;
 			for(tokenpos = 1; tokenpos < *token_cnt; tokenpos++){
 				dash_found = strstr(tokens[tokenpos],"-");
@@ -10082,11 +10082,11 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 					next_is_dash = strstr(tokens[tokenpos+1],"-");
 				}
 				if(!dash_found && !next_is_dash){
-					htable_search(analy->mat_names,*tokens[tokenpos],FIND_ENTRY,&tempEnt);
+					htable_search(analy->mat_names,tokens[tokenpos],FIND_ENTRY,&tempEnt);
 					if(tempEnt != NULL){
 						//replace token with value from HTable
 						//new_tokens[tokenpos] = (char*)malloc(TOKENLENGTH * sizeof(char));
-						new_tokens[tokenpos] = tempEnt->data;
+						*new_tokens[tokenpos] = tempEnt->data;
 						new_token_cnt++;
 						//progress normally - do nothing more
 					}
@@ -10096,14 +10096,14 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 					char tokholder[TOKENLENGTH];
 					//which case do we have? token-token, token -token, token- token, or token - token
 					// if second token is just a dash we have the last case, merge all 3 and tokenize
-					if(strcmp(*tokens[tokenpos+1],"-") == 0){
+					if(strcmp(tokens[tokenpos+1],"-") == 0){
 						//merge
 						sprintf(tokholder,"%s%s%s",tokens[tokenpos],tokens[tokenpos+1],tokens[tokenpos+2]);
 						tokenpos+=2;
 					}
 					else{
 						//if current token contains a dash but does not end with it, we have the first case
-						if(dash_found && (!strcmp(*tokens[tokenpos] + strlen(*tokens[tokenpos]) -1,"-"))){
+						if(dash_found && (!strcmp(*tokens[tokenpos] + strlen(tokens[tokenpos]) -1,"-"))){
 							//no merging needed
 							sprintf(tokholder,"%s",tokens[tokenpos]);
 							//no altering to tokenpos
@@ -10127,7 +10127,7 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 					int pos = 0;
 					for (pos = 0; pos < numnums; pos++){
 						//new_tokens[]
-						sprintf(new_tokens[new_token_pos],"%i",nums[pos]);
+						sprintf(*new_tokens[new_token_pos],"%i",nums[pos]);
 						new_token_pos +=1;
 					}
 					//advance to next open slot for next token transfer
@@ -10135,11 +10135,28 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 				}
 			}
 		}
-		if(	(strcmp(*tokens[0],"select") == 0) ){
-
-
-
-		}
+//		if(	(strcmp(tokens[0],"select") == 0) ){
+//			Bool_type dash_found = False;
+//			Bool_type next_is_dash = False;
+//			new_tokens[0] = *tokens[0];
+//			int new_token_pos = 1;
+//			Bool_type mat_sect = False;
+//			for(tokenpos = 1; tokenpos < *token_cnt; tokenpos++){
+//				if((strcmp(*tokens[tokenpos],"mat") == 0)){
+//					mat_sect = True;
+//				}
+//				else{
+//					int nampos = 0;
+//					Mesh_data *p_md;
+//					p_md = MESH_P( analy );
+//					for(nampos = 0; nampos < p_md->qty_class_selections; nampos++){
+//						if(){
+//
+//						}
+//					}
+//				}
+//			}
+//		}
 		// otherwise no supstitution needed
 	}
 

@@ -228,9 +228,9 @@ AC_ARG_ENABLE([nopng],
       CONFIGURE_PNG
    ]
 ) 
-
 EXTERNAL_CONFIGURATIONS
-  AC_MSG_RESULT([$TARGET_DNS_DOMAIN])
+#  AC_MSG_RESULT([$TARGET_DNS_DOMAIN])
+MY_LIBS=$LIBS
 case "$TARGET_DNS_DOMAIN" in 
    *llnl.gov)
       AC_MSG_RESULT([Configuring for LLNL])
@@ -311,7 +311,7 @@ case "$TARGET_DNS_DOMAIN" in
       AC_SEARCH_LIBS([OSMesaGetCurrentContext],[OSMesa],
          [
             OSMESA_LIBRARY="$LIBS"
-            LIBS=""
+            LIBS=$MY_LIBS
 				BATCH_ENABLE="True"
 				BATCH_DEFINES="-DSERIAL_BATCH"
          ],
@@ -330,6 +330,15 @@ case "$TARGET_DNS_DOMAIN" in
       
       ) 
       
+       AC_SEARCH_LIBS([XtAppInitialize],[Xt],
+         [
+         ],
+         [
+            AC_MSG_ERROR([No Xt Library available])
+         ]
+      
+      )
+      
       AC_SEARCH_LIBS([XmStringFree],[Xm],
          [
          ],
@@ -339,14 +348,7 @@ case "$TARGET_DNS_DOMAIN" in
       
       ) 
 	   
-      AC_SEARCH_LIBS([XtAppInitialize],[Xt],
-         [
-         ],
-         [
-            AC_MSG_ERROR([No Xt Library available])
-         ]
-      
-      )
+     
 	   
       AC_SEARCH_LIBS([glXChooseVisual],[GL],
          [

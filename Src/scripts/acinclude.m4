@@ -299,7 +299,7 @@ AC_DEFUN([CONFIGURE_JPEG],
    JPEG_HOME=""
    JPEG_INCLUDE_PATHS=""
 	JPEG_LIBRARY_PATHS=""
-	JPEG_LIBRARY=""
+   JPEG_LIBRARY=""
 	JPEG_DEFINES=""
    AC_SEARCH_LIBS([jpeg_destroy],[jpeg],
       [  
@@ -308,8 +308,7 @@ AC_DEFUN([CONFIGURE_JPEG],
             AC_DEFINE([HAVE_JPEGLIB_H],[1],[define to 1 if you have <jpeglib.h>])
          ]
          )
-         
-		   CONFIG_JPEG="False"
+         CONFIG_JPEG="False"
       ],
       [ 
          JPEG_HOME=".."
@@ -776,7 +775,7 @@ AC_DEFUN([CONFIGURE_MESA],
 		if test "$OS_NAME" = "Linux" -o \
 		        "$OS_NAME" = "HPUX"; then
 		        MESA_LIBRARY_PATHS="-L/usr/X11R6/lib64 "
-			MESA_LIBRARY="-lXm -lXt -lX11 -lm -lGLU -lOSMesa -lGLw "
+			MESA_LIBRARY="-lXt -lXm -lX11 -lm -lGLU -lOSMesa -lGLw "
 		fi
 
 		if test "$OS_NAME" = "AIX"; then
@@ -1133,7 +1132,7 @@ AC_DEFUN([CONFIGURE_PNG],
 		ZLIB_HOME="None"
 		ZLIB_INCLUDE_PATHS=""
 		ZLIB_LIBRARY_PATHS=""
-		PNG_LIBRARY=""
+      PNG_LIBRARY=""
 		PNG_DEFINES=""
 		CONFIG_PNG="false"
       CONFIG_ZLIB="false"
@@ -1679,7 +1678,7 @@ AC_DEFUN([CONFIGURE_GRIZ_LIBRARIES],
         fi
 
         LDLIBPATH="/usr/lib64/nvidia"
-        if test "$OS_NAME" = "Linux"; -o "$OS_NAME" = "Darwin"; then
+        if test "$OS_NAME" = "Linux" -o "$OS_NAME" = "Darwin"; then
                 SYSLIBS="$SYSLIBS "
                 LDLIBPATH="$LDLIBPATH:/usr/X11R6/lib"
 

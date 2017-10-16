@@ -1034,7 +1034,7 @@ typedef struct _Analysis
     Hash_table *derived_results;
     Hash_table *mat_names;
     Hash_table *mat_names_reversed;
-    char *sorted_names[32];
+    char **sorted_names;
     Hash_table *es_components_table;
     Result_table_type result_source;
     char **component_menu_specs;
