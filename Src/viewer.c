@@ -997,6 +997,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->show_colorscale = TRUE;
     analy->use_global_mm = FALSE;
     analy->use_cumulative_mm = TRUE;
+    analy->show_interp = FALSE;
+    analy->use_snap = FALSE;
     analy->found_global_mm = FALSE;
     analy->strain_variety = INFINITESIMAL;
     analy->ref_surf = MIDDLE;
@@ -2140,6 +2142,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 	revNames = htable_create( 1000 );
 	Htable_entry *tempEnt;
 	int pos2;
+	analy->sorted_names = malloc(analy->max_mesh_mat_qty * (sizeof(char) * 32));
 	for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
 		//check if name exists
 		char teststr[20];
@@ -2158,8 +2161,11 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			htable_search(forNames,str,FIND_ENTRY,&tempEnt);
 			htable_add_entry_data(revNames,test ,ENTER_UNIQUE,(void *) str);
 			htable_search(revNames,test,FIND_ENTRY,&tempEnt);
+			analy->sorted_names[pos2] = test;
 		}
+		//ADD TO NAME ALPHA LIST
 	}
+	qsort(analy->sorted_names, analy->max_mesh_mat_qty, 32, strcmp);
 	analy->mat_names = forNames;
 	analy->mat_names_reversed = revNames;
 	//END NEW

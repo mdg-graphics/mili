@@ -11373,6 +11373,7 @@ draw_foreground( Analysis *analy )
             yp -= 1.5*text_height;
         }
         hmove2( xp + text_height, ypos + ysize + 1.5*text_height );
+        //MAT_TITLE
         hcharstr( "Materials" );
 
         antialias_lines( FALSE, 0 );
@@ -11410,6 +11411,8 @@ draw_foreground( Analysis *analy )
     if ( analy->show_time )
     {
         char time_name[256], mode_name[32];
+        char interp_name[32];
+        strcpy(interp_name, "Interpolated State" );
         strcpy( mode_name, "State" );
         strcpy( time_name, "t" );
         if ( analy->time_name!=NULL )
@@ -11420,8 +11423,12 @@ draw_foreground( Analysis *analy )
         glColor3fv( v_win->text_color );
         hcentertext( TRUE );
         hmove2( 0.0, -cy + 1.0 * text_height );
-        sprintf( str, "%s = %.5e [%s = %d/%d]", time_name, analy->state_p->time, mode_name,
-                 analy->cur_state+1, get_max_state(analy)+1);
+        if(analy->show_interp){
+        	sprintf( str, "%s = %.5e [%s = %d/%d] [%s]", time_name, analy->state_p->time, mode_name, analy->cur_state+1, get_max_state(analy)+1, interp_name);
+        }
+        else{
+        	sprintf( str, "%s = %.5e [%s = %d/%d]", time_name, analy->state_p->time, mode_name, analy->cur_state+1, get_max_state(analy)+1);
+        }
         hcharstr( str );
         hcentertext( FALSE );
 

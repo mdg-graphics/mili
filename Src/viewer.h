@@ -1034,6 +1034,7 @@ typedef struct _Analysis
     Hash_table *derived_results;
     Hash_table *mat_names;
     Hash_table *mat_names_reversed;
+    char *sorted_names[32];
     Hash_table *es_components_table;
     Result_table_type result_source;
     char **component_menu_specs;
@@ -1076,6 +1077,8 @@ typedef struct _Analysis
     Bool_type show_deleted_elements, show_only_deleted_elements;
     Bool_type show_tinfo;
     Bool_type show_master, show_slave;
+    Bool_type show_interp;
+    Bool_type use_snap;
 
     Bool_type use_colormap_pos;
     float hidden_line_width;

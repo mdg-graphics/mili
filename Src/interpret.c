@@ -370,6 +370,9 @@ static void show_ipt_avail(Analysis *);
 static void intpts_selected(Analysis *);
 
 void
+mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt);
+
+void
 process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
                             int idx, int token_cnt, int mat_qty,
                             int elem_qty, MO_class_data *p_class,
@@ -646,6 +649,8 @@ tokenize_line( char *buf, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt )
         }
     }
 
+    //NEWLOC
+
     *token_cnt = word;
 }
 
@@ -907,6 +912,9 @@ parse_single_command( char *buf, Analysis *analy )
      * hasn't acknowledged.
      */
     clear_popup_dialogs();
+
+    //mat name substitution here
+    mat_name_sub(analy,tokens,token_cnt);
 
     if ( strncmp("echo", tokens[0], 4) )
         alias_substitute( tokens, &token_cnt );
@@ -1975,7 +1983,7 @@ parse_single_command( char *buf, Analysis *analy )
 
         if (analy->rb_vcent_flag)
         {
-            analy->rb_vcent_flag==FALSE;
+            analy->rb_vcent_flag=FALSE;
             adjust_near_far( analy );
         }
         redraw = BINDING_MESH_VISUAL;
@@ -2080,6 +2088,8 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->show_coord = setval;
             else if ( strcmp( tokens[i], "time" ) == 0 )
                 analy->show_time = setval;
+            else if ( strcmp( tokens[i], "snap" ) == 0 )
+                analy->use_snap = setval;
             else if ( strcmp( tokens[i], "title" ) == 0 )
             {
                 analy->show_title      = setval;
@@ -9982,6 +9992,160 @@ dump_tokens ( int token_cnt,
     printf("\n");
 }
 
+
+/*****************************************************************
+ * TAG(mat_name_sub)
+ *
+ * This function will process the given token list and substitute
+ * any tokens containing material names for their corresponding
+ * numbers
+ */
+void
+mat_range(Analysis *analy, char *token1, char *token2, int *nums[analy->max_mesh_mat_qty], int *token_cnt){
+	Htable_entry *tempEnt;
+	nums = malloc();
+	*token_cnt = 0;
+	Bool_type failure = False;
+	//
+	Bool_type found1 = False;
+	int pos1 = -1;
+	Bool_type found2 = False;
+	int pos2 = -1;
+	int pos = 0;
+
+
+	//search list for names
+	for(pos = 0; pos < analy->max_mesh_mat_qty; pos++){
+		if(strstr(analy->sorted_names[pos],*token1) == 0){
+			found1 = True;
+			pos1 = pos;
+		}
+		if(strstr(analy->sorted_names[pos],*token2) == 0){
+			found2 = True;
+			pos2 = pos;
+		}
+	}
+
+	if(found1 && found2){
+		int begin = 0;
+		int end = 0;
+		int loc = 0;
+		//are they in proper order?
+		if(pos2 >= pos1){
+			begin = pos1;
+			end = pos2;
+		}
+		//reverse order if needed
+		else{
+			begin = pos2;
+			end = pos1;
+		}
+		pos = 0;
+		for(loc = begin; loc <= end; loc++){
+			htable_search(analy->mat_names,analy->sorted_names[loc],FIND_ENTRY,&tempEnt);
+			*nums[pos] = atoi(tempEnt->data);
+			pos++;
+		}
+		*token_cnt = pos;
+	}
+	//nums now contains the list of all the material numbers for names between entry 1 and 2
+}
+
+/*****************************************************************
+ * TAG(mat_name_sub)
+ *
+ * This function will process the given token list and substitute
+ * any tokens containing material names for their corresponding
+ * numbers
+ */
+void
+mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt){
+	int namepos,tokenpos = 0;
+	Htable_entry *tempEnt;
+	char **new_tokens[MAXTOKENS][TOKENLENGTH];
+	//char **new_tokens = (char**)malloc(MAXTOKENS * sizeof(char*);
+	int new_token_cnt = 0;
+	new_tokens = malloc(MAXTOKENS*sizeof(char*));
+	//do we at least have a command and 1 argument
+	if(*token_cnt > 1){
+		if(	(strcmp(*tokens[0],"include") == 0) || (strcmp(*tokens[0],"exclude") == 0) 	||
+			(strcmp(*tokens[0],"vis") == 0) 	|| (strcmp(*tokens[0],"invis") == 0) 	||
+			(strcmp(*tokens[0],"enable") == 0) 	|| (strcmp(*tokens[0],"disable") == 0) 	||
+			(strcmp(*tokens[0],"hilite") == 0) 	|| (strcmp(*tokens[0],"mat") == 0)		){
+			Bool_type dash_found = False;
+			Bool_type next_is_dash = False;
+			new_tokens[0] = *tokens[0];
+			int new_token_pos = 1;
+			for(tokenpos = 1; tokenpos < *token_cnt; tokenpos++){
+				dash_found = strstr(tokens[tokenpos],"-");
+				if(tokenpos+1 < *token_cnt){
+					next_is_dash = strstr(tokens[tokenpos+1],"-");
+				}
+				if(!dash_found && !next_is_dash){
+					htable_search(analy->mat_names,*tokens[tokenpos],FIND_ENTRY,&tempEnt);
+					if(tempEnt != NULL){
+						//replace token with value from HTable
+						//new_tokens[tokenpos] = (char*)malloc(TOKENLENGTH * sizeof(char));
+						new_tokens[tokenpos] = tempEnt->data;
+						new_token_cnt++;
+						//progress normally - do nothing more
+					}
+				}
+				//found a dash, means we have a range
+				else{
+					char tokholder[TOKENLENGTH];
+					//which case do we have? token-token, token -token, token- token, or token - token
+					// if second token is just a dash we have the last case, merge all 3 and tokenize
+					if(strcmp(*tokens[tokenpos+1],"-") == 0){
+						//merge
+						sprintf(tokholder,"%s%s%s",tokens[tokenpos],tokens[tokenpos+1],tokens[tokenpos+2]);
+						tokenpos+=2;
+					}
+					else{
+						//if current token contains a dash but does not end with it, we have the first case
+						if(dash_found && (!strcmp(*tokens[tokenpos] + strlen(*tokens[tokenpos]) -1,"-"))){
+							//no merging needed
+							sprintf(tokholder,"%s",tokens[tokenpos]);
+							//no altering to tokenpos
+						}
+						//otherwise we have the 2nd or 3rd cases, which both behave the same, merg and tokenize
+						else{
+							//merge
+							sprintf(tokholder,"%s%s",tokens[tokenpos],tokens[tokenpos+1]);
+							tokenpos+=1;
+						}
+					}
+					//progress past range - add 0,1, or 2 depending on scenario to original token position - already done
+					char *token;
+					token = strtok(tokholder,"-");
+					char *firstName = token;
+					token = strtok(NULL,"-");
+					char *secondName = token;
+					int nums[analy->max_mesh_mat_qty];
+					int numnums = 0;
+					mat_range(analy,firstName,secondName,&nums,&numnums);
+					int pos = 0;
+					for (pos = 0; pos < numnums; pos++){
+						//new_tokens[]
+						sprintf(new_tokens[new_token_pos],"%i",nums[pos]);
+						new_token_pos +=1;
+					}
+					//advance to next open slot for next token transfer
+					new_token_pos += 1;
+				}
+			}
+		}
+		if(	(strcmp(*tokens[0],"select") == 0) ){
+
+
+
+		}
+		// otherwise no supstitution needed
+	}
+
+}
+
+
 /*****************************************************************
  * TAG( process_mat_obj_selection )
  *
@@ -10013,6 +10177,8 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
 
     local_setval = setval;
 
+    //MAT SUB HERE
+    //mat_name_sub(analy, &tokens, &token_cnt, mat_qty);
     /* Material based selection */
     if ( p_mat != NULL && mat_selected )
     {

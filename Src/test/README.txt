@@ -2,6 +2,15 @@ This is a very brief readme on how to run the testing suite for Griz.
 
 A very simple run would consist of running the entire derived suite
 
+
+Test.py lives in  Dyna3dx/Checkout/scripts/Test.py
+
+griz_env lives there also
+
+
+
+
+
 scripts/Test.py -e griz_env -c path to the code" -s derived
 
 

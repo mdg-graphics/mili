@@ -123,6 +123,8 @@ change_state( Analysis *analy )
     if ( !analy->normals_constant || recompute_norms )
         compute_normals( analy );
 
+    analy->show_interp = FALSE;
+
     /* If new mesh, may need to compute edge list. */
     if ( MESH( analy ).edge_list == NULL )
         get_mesh_edges( analy->cur_mesh_id, analy );
@@ -183,6 +185,7 @@ change_time( float time, Analysis *analy )
     Subrec_obj *p_subrec;
     struct temp_subrecord *subrecords_b =NULL;
     float *temp_results;
+    int s1time, s2time = 0;
 
     /*
      * This routine should really go through and interpolate everything
@@ -219,6 +222,19 @@ change_time( float time, Analysis *analy )
     analy->db_get_state( analy, st_num_b, NULL, &state_b, NULL );
     analy->cur_state      = st_num_a;
 
+    //SNAP code
+    if(analy->use_snap){
+    	if(abs(time - state_a->time) < abs(time - state_b->time)){
+    		analy->cur_state = st_num_a;
+    	}
+    	else{
+    		analy->cur_state = st_num_b;
+    	}
+    	change_state(analy);
+    	return;
+    }
+
+
     /* OK to interpolate results if state rec formats are the same. */
     st_num = st_num_a + 1;
     analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, (void *) &st_num, NULL, &srec_id_a );
@@ -249,6 +265,7 @@ change_time( float time, Analysis *analy )
      */
     if ( interp_result )
     {
+    	analy->show_interp = TRUE;
         result_b = NEW_N( float, node_qty, "Interpolate result" );
         result_a = NODAL_RESULT_BUFFER( analy );
         analy->state_p = state_b;
@@ -403,6 +420,10 @@ change_time( float time, Analysis *analy )
 
     //NODAL_RESULT_BUFFER( analy ) = result_a;
     //load_result( analy, TRUE, TRUE, FALSE );
+
+    if(!can_interp){
+    	analy->show_interp = FALSE;
+    }
 
     /*
      * Update cut planes, isosurfs, contours.
