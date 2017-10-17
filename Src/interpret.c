@@ -10063,9 +10063,7 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 	int namepos,tokenpos = 0;
 	Htable_entry *tempEnt;
 	char *new_tokens[MAXTOKENS][TOKENLENGTH];
-	//char **new_tokens = (char**)malloc(MAXTOKENS * sizeof(char*);
 	int new_token_cnt = 0;
-	//new_tokens = (char**)malloc(MAXTOKENS * sizeof(char*));
 	//do we at least have a command and 1 argument
 	if(*token_cnt > 1){
 		if(	(strcmp(*tokens[0],"include") == 0) 	|| (strcmp(*tokens[0],"exclude") == 0) 	||
@@ -10120,7 +10118,6 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 									mat_range(analy,firstName,secondName,&nums,&numnums);
 									int pos = 0;
 									for (pos = 0; pos < numnums; pos++){
-										//*new_tokens[]
 										sprintf(*new_tokens[new_token_cnt],"%i",nums[pos]);
 										new_token_cnt +=1;
 									}
@@ -10155,26 +10152,20 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 									mat_range(analy,firstName,secondName,&nums,&numnums);
 									int pos = 0;
 									for (pos = 0; pos < numnums; pos++){
-										//*new_tokens[]
 										sprintf(*new_tokens[new_token_cnt],"%i",nums[pos]);
 										new_token_cnt +=1;
 									}
 								}
 								else{
 									*new_tokens[new_token_cnt] = *tokens[tokenpos];
-									//*new_tokens[new_token_cnt+1] = *tokens[tokenpos+1];
 									new_token_cnt+=1;
-									//tokenpos += 1;
 								}
 							}
-
 						}
 					}
 					//otherwise dash is in the second item
 					else{
 						//is second token only a dash?
-//						Bool_type next_only_dash = False;
-//						next_only_dash = (str);
 						if(strcmp(*tokens[tokenpos+1],"-") == 0){
 							//merge 3 tokens
 							sprintf(tokholder,"%s%s%s",*tokens[tokenpos],*tokens[tokenpos+1],*tokens[tokenpos+2]);
@@ -10208,7 +10199,6 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 								new_token_cnt+=3;
 								tokenpos += 2;
 							}
-
 						}
 						else{
 							//does second token begin with a dash?
@@ -10233,7 +10223,6 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 									mat_range(analy,firstName,secondName,&nums,&numnums);
 									int pos = 0;
 									for (pos = 0; pos < numnums; pos++){
-										//new_tokens[]
 										sprintf(*new_tokens[new_token_cnt],"%i",nums[pos]);
 										new_token_cnt +=1;
 									}
@@ -10261,7 +10250,6 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 							}
 						}
 					}
-
 				}
 				//if not just see about potentially replacing single token then proceed
 				else{
@@ -10278,59 +10266,6 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 					}
 					new_token_cnt+=1;
 				}
-
-//				if(!dash_found && !next_is_dash){
-//					htable_search(analy->mat_names,tokens[tokenpos],FIND_ENTRY,&tempEnt);
-//					if(tempEnt != NULL){
-//						//replace token with value from HTable
-//						//new_tokens[tokenpos] = (char*)malloc(TOKENLENGTH * sizeof(char));
-//						*new_tokens[tokenpos] = tempEnt->data;
-//						new_token_cnt++;
-//						//progress normally - do nothing more
-//					}
-//				}
-//				//found a dash, means we have a range
-//				else{
-//					char tokholder[TOKENLENGTH];
-//					//which case do we have? token-token, token -token, token- token, or token - token
-//					// if second token is just a dash we have the last case, merge all 3 and tokenize
-//					if(strcmp(tokens[tokenpos+1],"-") == 0){
-//						//merge
-//						sprintf(tokholder,"%s%s%s",tokens[tokenpos],tokens[tokenpos+1],tokens[tokenpos+2]);
-//						tokenpos+=2;
-//					}
-//					else{
-//						//if current token contains a dash but does not end with it, we have the first case
-//						if(dash_found && (!strcmp(*tokens[tokenpos] + strlen(tokens[tokenpos]) -1,"-"))){
-//							//no merging needed
-//							sprintf(tokholder,"%s",tokens[tokenpos]);
-//							//no altering to tokenpos
-//						}
-//						//otherwise we have the 2nd or 3rd cases, which both behave the same, merg and tokenize
-//						else{
-//							//merge
-//							sprintf(tokholder,"%s%s",tokens[tokenpos],tokens[tokenpos+1]);
-//							tokenpos+=1;
-//						}
-//					}
-//					//progress past range - add 0,1, or 2 depending on scenario to original token position - already done
-//					char *token;
-//					token = strtok(tokholder,"-");
-//					char *firstName = token;
-//					token = strtok(NULL,"-");
-//					char *secondName = token;
-//					int nums[analy->max_mesh_mat_qty];
-//					int numnums = 0;
-//					mat_range(analy,firstName,secondName,&nums,&numnums);
-//					int pos = 0;
-//					for (pos = 0; pos < numnums; pos++){
-//						//new_tokens[]
-//						sprintf(*new_tokens[new_token_pos],"%i",nums[pos]);
-//						new_token_pos +=1;
-//					}
-//					//advance to next open slot for next token transfer
-//					new_token_pos += 1;
-//				}
 			}
 			////////////////////////////////////////////////////////////////////////////////////////////////
 		}
