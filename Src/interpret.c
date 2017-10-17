@@ -10293,7 +10293,7 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 //		}
 		// otherwise no supstitution needed
 		tokens = new_tokens;
-		token_cnt = new_token_cnt;
+		token_cnt = &new_token_cnt;
 	}
 
 }
