@@ -2151,23 +2151,32 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		int num_items_read = 0;
 		int status = 0;
 		sprintf(teststr,"MAT_NAME_%d",pos2+1);
-		char test[32];
-		test[0] = '\0';
-		status = mc_ti_read_string(analy->db_ident, teststr, (void*) &test);
+		char **test;
+		test = malloc(1 * sizeof(char*));
+		test[0] = malloc(32 * sizeof(char));
+		//test[0] = '\0';
+		status = mc_ti_read_string(analy->db_ident, teststr, (void*) test);
 		//if so then print name
 		if (status == OK){
-			char str[10];
+			char *str;
+			str = malloc(10 * sizeof(char));
 			sprintf(str,"%d",pos2+1);
-			htable_add_entry_data(forNames,str ,ENTER_UNIQUE,(void *) test);
-			htable_search(forNames,str,FIND_ENTRY,&tempEnt);
-			htable_add_entry_data(revNames,test ,ENTER_UNIQUE,(void *) str);
-			htable_search(revNames,test,FIND_ENTRY,&tempEnt);
+			htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
+			//htable_search(forNames,str,FIND_ENTRY,&tempEnt);
+			htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
+			//htable_search(revNames,test,FIND_ENTRY,&tempEnt);
 			strcpy(sortedNames[pos2], test);
 		}
 		//ADD TO NAME ALPHA LIST
 	}
 	qsort(sortedNames, analy->max_mesh_mat_qty, 32, strcmp);
-	analy->sorted_names = &sortedNames;
+	analy->sorted_names = malloc(analy->max_mesh_mat_qty * sizeof(char*));
+	int pos3 = 0;
+	for(pos3 = 0; pos3 < analy->max_mesh_mat_qty; pos3++){
+		analy->sorted_names[pos3] = malloc(32 * sizeof(char));
+		strcpy(analy->sorted_names[pos3],sortedNames[pos3]);
+	}
+	//analy->sorted_names = &sortedNames;
 	analy->mat_names = forNames;
 	analy->mat_names_reversed = revNames;
 	//END NEW

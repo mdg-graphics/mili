@@ -11352,22 +11352,21 @@ draw_foreground( Analysis *analy )
             //MAT_NAMES_CHECK
             //make names hash table
 
-    		/*//TEMP_DISABLED
+    		//TEMP_DISABLED
     		sprintf(teststr,"MAT_NAME_%d",i+1);
     		if(env.ti_enable == TRUE){
     			status = mc_ti_read_string(analy->db_ident, teststr, (void*) &test);
     		}
             //if so then print name
         	if (status == OK){
-        		sprintf(str, test);
+        		sprintf( str, test);
         	}
             //else just use number
         	else{
         		sprintf( str, "%d", i+1 );
         	}
-        	*/
 
-        	sprintf( str, "%d", i+1 );
+        	//sprintf( str, "%d", i+1 );
             hcharstr( str );
 
             yp -= 1.5*text_height;

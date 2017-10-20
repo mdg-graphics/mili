@@ -371,6 +371,8 @@ static void intpts_selected(Analysis *);
 
 void
 mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt);
+//void
+//mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt);
 
 void
 process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
@@ -914,7 +916,7 @@ parse_single_command( char *buf, Analysis *analy )
     clear_popup_dialogs();
 
     if ( strncmp("echo", tokens[0], 4) )
-        alias_substitute( tokens, &token_cnt );
+        alias_substitute( &tokens, &token_cnt );
 
     /*
      * Should call getnum in slots below to make sure input is valid,
@@ -923,7 +925,7 @@ parse_single_command( char *buf, Analysis *analy )
      */
 
     //mat name substitution here
-    mat_name_sub(analy,&tokens,&token_cnt);
+    mat_name_sub(analy,tokens,&token_cnt);
 
     redraw = NO_VISUAL_CHANGE;
     renorm = FALSE;
@@ -10001,7 +10003,7 @@ dump_tokens ( int token_cnt,
  * numbers
  */
 void
-mat_range(Analysis *analy, char *token1, char *token2, int *nums[analy->max_mesh_mat_qty], int *token_cnt){
+mat_range(Analysis *analy, char *token1, char *token2, int nums[analy->max_mesh_mat_qty], int *token_cnt){
 	Htable_entry *tempEnt;
 	//int *nums = malloc();
 	*token_cnt = 0;
@@ -10016,11 +10018,11 @@ mat_range(Analysis *analy, char *token1, char *token2, int *nums[analy->max_mesh
 
 	//search list for names
 	for(pos = 0; pos < analy->max_mesh_mat_qty; pos++){
-		if(strstr(analy->sorted_names[pos],token1) == 0){
+		if(strcmp(analy->sorted_names[pos],token1) == 0){
 			found1 = True;
 			pos1 = pos;
 		}
-		if(strstr(analy->sorted_names[pos],token2) == 0){
+		if(strcmp(analy->sorted_names[pos],token2) == 0){
 			found2 = True;
 			pos2 = pos;
 		}
@@ -10043,7 +10045,7 @@ mat_range(Analysis *analy, char *token1, char *token2, int *nums[analy->max_mesh
 		pos = 0;
 		for(loc = begin; loc <= end; loc++){
 			htable_search(analy->mat_names,analy->sorted_names[loc],FIND_ENTRY,&tempEnt);
-			*nums[pos] = atoi(tempEnt->data);
+			nums[pos] = atoi((char*)tempEnt->data);
 			pos++;
 		}
 		*token_cnt = pos;
@@ -10059,29 +10061,39 @@ mat_range(Analysis *analy, char *token1, char *token2, int *nums[analy->max_mesh
  * numbers
  */
 void
-mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt){
+mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt){
 	int namepos,tokenpos = 0;
 	Htable_entry *tempEnt;
-	char *new_tokens[MAXTOKENS][TOKENLENGTH];
+	char new_tokens[MAXTOKENS][TOKENLENGTH];
 	int new_token_cnt = 0;
+	//new_tokens = (char**)malloc(MAXTOKENS * sizeof(char*));
+//	int initnum = 0;
+//	for(initnum = 0; initnum < MAXTOKENS; initnum ++){
+//		new_tokens[initnum] = (char*)malloc(TOKENLENGTH * sizeof(char));
+//		strcpy(new_tokens[initnum], "\0");
+//	}
 	//do we at least have a command and 1 argument
 	if(*token_cnt > 1){
-		if(	(strcmp(*tokens[0],"include") == 0) 	|| (strcmp(*tokens[0],"exclude") == 0) 	||
-			(strcmp(*tokens[0],"vis") == 0) 		|| (strcmp(*tokens[0],"invis") == 0) 	||
-			(strcmp(*tokens[0],"enable") == 0) 	|| (strcmp(*tokens[0],"disable") == 0) 	||
-			(strcmp(*tokens[0],"hilite") == 0) 	|| (strcmp(*tokens[0],"mat") == 0)		){
+		char token[TOKENLENGTH];
+		sprintf(token, "%s",tokens[0]);
+		//new_tokens = (char**) malloc(MAXTOKENS * sizeof(char*));
+		if(	(strcmp(tokens[0],"include") == 0) 	|| (strcmp(tokens[0],"exclude") == 0) 	||
+			(strcmp(tokens[0],"vis") == 0) 		|| (strcmp(tokens[0],"invis") == 0) 	||
+			(strcmp(tokens[0],"enable") == 0) 	|| (strcmp(tokens[0],"disable") == 0) 	||
+			(strcmp(tokens[0],"hilite") == 0) 	|| (strcmp(tokens[0],"mat") == 0)		){
 			Bool_type dash_found = False;
 			Bool_type next_has_dash = False;
 
 			char temp[TOKENLENGTH];
-			*new_tokens[0] = *tokens[0];
+			//new_tokens[0] = (char*)malloc(TOKENLENGTH * sizeof(char));
+			strcpy(new_tokens[0], tokens[0]);
 			new_token_cnt = 1;
 			for(tokenpos = 1; tokenpos < *token_cnt; tokenpos++){
 				//does our token contain a dash?
-				dash_found = (strstr(*tokens[tokenpos],"-") != NULL);
+				dash_found = (strstr(tokens[tokenpos],"-") != NULL);
 				//does our next token(if any) contain a dash
 				if(tokenpos+1 < *token_cnt){
-					next_has_dash = (strstr(*tokens[tokenpos+1],"-") != NULL);
+					next_has_dash = (strstr(tokens[tokenpos+1],"-") != NULL);
 				}
 				char tokholder[TOKENLENGTH];
 				//is there a dash of any kind?
@@ -10089,17 +10101,18 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 					//if dash found in first item
 					if(dash_found){
 						//if first item begins with dash, we have hit an invalid case
-						if( strncmp(*tokens[tokenpos],"-",1) == 0 ){
+						if( strncmp(tokens[tokenpos],"-",1) == 0 ){
 							//process only 1 token
-							*new_tokens[new_token_cnt] = *tokens[tokenpos];
+							//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+							strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
 							new_token_cnt+=1;
 						}
 						//we have to check further
 						else{
 							//does first token end with dash?
-							if( strcmp(*tokens[tokenpos]+(strlen(*tokens[tokenpos])-1),"-") == 0 ){
+							if( strcmp(tokens[tokenpos]+(strlen(tokens[tokenpos])-1),"-") == 0 ){
 								//merge 2 tokens
-								sprintf(tokholder,"%s%s",*tokens[tokenpos],*tokens[tokenpos+1]);
+								sprintf(tokholder,"%s%s",tokens[tokenpos],tokens[tokenpos+1]);
 								//handle range
 								char *token;
 								token = strtok(tokholder,"-");
@@ -10113,18 +10126,21 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 								htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
 								token1str = (tempEnt != NULL);
 								htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
-								token1str = (tempEnt != NULL);
+								token2str = (tempEnt != NULL);
 								if(token1str && token2str){
-									mat_range(analy,firstName,secondName,&nums,&numnums);
+									mat_range(analy,firstName,secondName,nums,&numnums);
 									int pos = 0;
 									for (pos = 0; pos < numnums; pos++){
-										sprintf(*new_tokens[new_token_cnt],"%i",nums[pos]);
+										//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+										sprintf(new_tokens[new_token_cnt],"%i",nums[pos]);
 										new_token_cnt +=1;
 									}
-								}
+								}//
 								else{
-									*new_tokens[new_token_cnt] = *tokens[tokenpos];
-									*new_tokens[new_token_cnt+1] = *tokens[tokenpos+1];
+									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+									//new_tokens[new_token_cnt+1] = (char*)malloc(TOKENLENGTH * sizeof(char));
+									strcpy(new_tokens[new_token_cnt+1], tokens[tokenpos+1]);
 									new_token_cnt+=2;
 									tokenpos += 1;
 								}
@@ -10133,7 +10149,7 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 							//if not we have a full range in one token
 							else{
 								//no merge necessary
-								sprintf(tokholder,"%s",*tokens[tokenpos]);
+								sprintf(tokholder,"%s",tokens[tokenpos]);
 								//handle range
 								char *token;
 								token = strtok(tokholder,"-");
@@ -10147,17 +10163,19 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 								htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
 								token1str = (tempEnt != NULL);
 								htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
-								token1str = (tempEnt != NULL);
+								token2str = (tempEnt != NULL);
 								if(token1str && token2str){
-									mat_range(analy,firstName,secondName,&nums,&numnums);
+									mat_range(analy,firstName,secondName,nums,&numnums);
 									int pos = 0;
 									for (pos = 0; pos < numnums; pos++){
-										sprintf(*new_tokens[new_token_cnt],"%i",nums[pos]);
+										//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+										sprintf(new_tokens[new_token_cnt],"%i",nums[pos]);
 										new_token_cnt +=1;
 									}
 								}
 								else{
-									*new_tokens[new_token_cnt] = *tokens[tokenpos];
+									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
 									new_token_cnt+=1;
 								}
 							}
@@ -10166,9 +10184,9 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 					//otherwise dash is in the second item
 					else{
 						//is second token only a dash?
-						if(strcmp(*tokens[tokenpos+1],"-") == 0){
+						if(strcmp(tokens[tokenpos+1],"-") == 0){
 							//merge 3 tokens
-							sprintf(tokholder,"%s%s%s",*tokens[tokenpos],*tokens[tokenpos+1],*tokens[tokenpos+2]);
+							sprintf(tokholder,"%s%s%s",tokens[tokenpos],tokens[tokenpos+1],tokens[tokenpos+2]);
 							//handle range
 							char *token;
 							token = strtok(tokholder,"-");
@@ -10182,29 +10200,32 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 							htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
 							token1str = (tempEnt != NULL);
 							htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
-							token1str = (tempEnt != NULL);
+							token2str = (tempEnt != NULL);
 							if(token1str && token2str){
-								mat_range(analy,firstName,secondName,&nums,&numnums);
+								mat_range(analy,firstName,secondName,nums,&numnums);
 								int pos = 0;
 								for (pos = 0; pos < numnums; pos++){
-									//new_tokens[]
-									sprintf(*new_tokens[new_token_cnt],"%i",nums[pos]);
+									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+									sprintf(new_tokens[new_token_cnt],"%i",nums[pos]);
 									new_token_cnt +=1;
 								}
 							}
 							else{
-								*new_tokens[new_token_cnt] = *tokens[tokenpos];
-								*new_tokens[new_token_cnt+1] = *tokens[tokenpos+1];
-								*new_tokens[new_token_cnt+2] = *tokens[tokenpos+2];
+								//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+								strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+								//new_tokens[new_token_cnt+1] = (char*)malloc(TOKENLENGTH * sizeof(char));
+								strcpy(new_tokens[new_token_cnt+1], tokens[tokenpos+1]);
+								//new_tokens[new_token_cnt+2] = (char*)malloc(TOKENLENGTH * sizeof(char));
+								strcpy(new_tokens[new_token_cnt+2], tokens[tokenpos+2]);
 								new_token_cnt+=3;
 								tokenpos += 2;
 							}
 						}
 						else{
 							//does second token begin with a dash?
-							if(strncmp(*tokens[tokenpos+1],"-",1) == 0){
-								//merge 2 *tokens
-								sprintf(tokholder,"%s%s",*tokens[tokenpos],tokens[tokenpos+1]);
+							if(strncmp(tokens[tokenpos+1],"-",1) == 0){
+								//merge 2 tokens
+								sprintf(tokholder,"%s%s",tokens[tokenpos],tokens[tokenpos+1]);
 								//handle range
 								char *token;
 								token = strtok(tokholder,"-");
@@ -10218,18 +10239,21 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 								htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
 								token1str = (tempEnt != NULL);
 								htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
-								token1str = (tempEnt != NULL);
+								token2str = (tempEnt != NULL);
 								if(token1str && token2str){
-									mat_range(analy,firstName,secondName,&nums,&numnums);
+									mat_range(analy,firstName,secondName,nums,&numnums);
 									int pos = 0;
 									for (pos = 0; pos < numnums; pos++){
-										sprintf(*new_tokens[new_token_cnt],"%i",nums[pos]);
+										//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+										sprintf(new_tokens[new_token_cnt],"%i",nums[pos]);
 										new_token_cnt +=1;
 									}
 								}
 								else{
-									*new_tokens[new_token_cnt] = *tokens[tokenpos];
-									*new_tokens[new_token_cnt+1] = *tokens[tokenpos+1];
+									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+									strcpy(new_tokens[new_token_cnt+1], tokens[tokenpos+1]);
 									new_token_cnt+=2;
 									tokenpos += 1;
 								}
@@ -10238,13 +10262,14 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 							else{
 								//process only 1
 								//search table
-								htable_search(analy->mat_names,*tokens[tokenpos],FIND_ENTRY,&tempEnt);
+								htable_search(analy->mat_names,tokens[tokenpos],FIND_ENTRY,&tempEnt);
+								//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
 								if(tempEnt != NULL){
-									*new_tokens[new_token_cnt] = tempEnt->data;
+									strcpy(new_tokens[new_token_cnt], tempEnt->data);
 								}
 								//no match pass through and proceed
 								else{
-									*new_tokens[new_token_cnt] = *tokens[tokenpos];
+									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
 								}
 								new_token_cnt+=1;
 							}
@@ -10256,27 +10281,38 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 					//is the current token a number?
 					//if so copy into new tokens as is
 					//otherwise check hash table and replace with number to copy as is
-					htable_search(analy->mat_names,*tokens[tokenpos],FIND_ENTRY,&tempEnt);
+					htable_search(analy->mat_names,tokens[tokenpos],FIND_ENTRY,&tempEnt);
+					//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
 					if(tempEnt != NULL){
-						*new_tokens[new_token_cnt] = tempEnt->data;
+						strcpy(new_tokens[new_token_cnt], tempEnt->data);
 					}
 					//no match pass through and proceed
 					else{
-						*new_tokens[new_token_cnt] = *tokens[tokenpos];
+						strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
 					}
 					new_token_cnt+=1;
 				}
+
 			}
 			////////////////////////////////////////////////////////////////////////////////////////////////
+//			int wrappos = 0;
+//			for(wrappos = 0; wrappos <new_token_cnt; wrappos ++){
+//				strcpy(tokens[wrappos],new_tokens[wrappos]);
+//			}
+			int wrappos = 0;
+			for(wrappos = 0; wrappos < new_token_cnt; wrappos ++){
+				strcpy(tokens[wrappos],new_tokens[wrappos]);
+			}
+			*token_cnt = new_token_cnt;
 		}
 //		if(	(strcmp(tokens[0],"select") == 0) ){
 //			Bool_type dash_found = False;
 //			Bool_type next_is_dash = False;
-//			new_tokens[0] = *tokens[0];
+//			new_tokens[0] = tokens[0];
 //			int new_token_pos = 1;
 //			Bool_type mat_sect = False;
 //			for(tokenpos = 1; tokenpos < *token_cnt; tokenpos++){
-//				if((strcmp(*tokens[tokenpos],"mat") == 0)){
+//				if((strcmp(tokens[tokenpos],"mat") == 0)){
 //					mat_sect = True;
 //				}
 //				else{
@@ -10292,8 +10328,12 @@ mat_name_sub(Analysis *analy, char *tokens[MAXTOKENS][TOKENLENGTH], int *token_c
 //			}
 //		}
 		// otherwise no supstitution needed
-		tokens = new_tokens;
-		token_cnt = &new_token_cnt;
+		//tokens = &new_tokens;
+//		int wrappos = 0;
+//		for(wrappos = 0; wrappos < new_token_cnt; wrappos ++){
+//			strcpy(tokens[wrappos],new_tokens[wrappos]);
+//		}
+//		*token_cnt = new_token_cnt;
 	}
 
 }
