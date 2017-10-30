@@ -1147,6 +1147,10 @@ gui_start( int argc, char **argv , Analysis *analy )
 
     /* Start-up notices go into the monitor window. */
     write_start_text();
+//    int pos = 0;
+//    for(pos = 0; pos < analy->num_messages; pos++){
+//    	wrt_text(analy->conflict_messages[pos]);
+//    }
 
     /*
      * Have the control window, now build the rendering window.
@@ -11037,6 +11041,16 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                 }
             }
         }
+
+
+    if ((cnt + analy->num_messages + 1) <= (MAX_DBTEXT_LINES-5)){
+    	start_text[cnt++] = (char *) strdup("\n");
+    	int pos = 0;
+		for(pos = 0; pos < analy->num_messages; pos++){
+			start_text[cnt++] = (char *) strdup(analy->conflict_messages[pos]) ;
+			//wrt_text();
+		}
+    }
 
     strcat( temp_text, "\n" );
     start_text[cnt] = (char *) strdup(temp_text) ;

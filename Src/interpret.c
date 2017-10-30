@@ -924,8 +924,10 @@ parse_single_command( char *buf, Analysis *analy )
      * Also getint and getstring.
      */
 
-    //mat name substitution here
-    mat_name_sub(analy,tokens,&token_cnt);
+    if(analy->mat_labels_active){
+		//mat name substitution here
+		mat_name_sub(analy,tokens,&token_cnt);
+    }
 
     redraw = NO_VISUAL_CHANGE;
     renorm = FALSE;
@@ -2090,8 +2092,12 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->show_coord = setval;
             else if ( strcmp( tokens[i], "time" ) == 0 )
                 analy->show_time = setval;
+            //NEW
             else if ( strcmp( tokens[i], "snap" ) == 0 )
                 analy->use_snap = setval;
+            else if ( strcmp( tokens[i], "mat_labels" ) == 0 )
+                analy->mat_labels_active = setval;
+            //END
             else if ( strcmp( tokens[i], "title" ) == 0 )
             {
                 analy->show_title      = setval;
@@ -10080,7 +10086,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 		if(	(strcmp(tokens[0],"include") == 0) 	|| (strcmp(tokens[0],"exclude") == 0) 	||
 			(strcmp(tokens[0],"vis") == 0) 		|| (strcmp(tokens[0],"invis") == 0) 	||
 			(strcmp(tokens[0],"enable") == 0) 	|| (strcmp(tokens[0],"disable") == 0) 	||
-			(strcmp(tokens[0],"hilite") == 0) 	|| (strcmp(tokens[0],"mat") == 0)		){
+			(strcmp(tokens[0],"hilite") == 0) 	|| (strcmp(tokens[0],"select") == 0)	){
 			Bool_type dash_found = False;
 			Bool_type next_has_dash = False;
 
@@ -10305,28 +10311,15 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 			}
 			*token_cnt = new_token_cnt;
 		}
-//		if(	(strcmp(tokens[0],"select") == 0) ){
-//			Bool_type dash_found = False;
-//			Bool_type next_is_dash = False;
-//			new_tokens[0] = tokens[0];
-//			int new_token_pos = 1;
-//			Bool_type mat_sect = False;
-//			for(tokenpos = 1; tokenpos < *token_cnt; tokenpos++){
-//				if((strcmp(tokens[tokenpos],"mat") == 0)){
-//					mat_sect = True;
-//				}
-//				else{
-//					int nampos = 0;
-//					Mesh_data *p_md;
-//					p_md = MESH_P( analy );
-//					for(nampos = 0; nampos < p_md->qty_class_selections; nampos++){
-//						if(){
-//
-//						}
-//					}
-//				}
-//			}
-//		}
+		if(	(strcmp(tokens[0],"mat") == 0) ){
+
+			htable_search(analy->mat_names,tokens[1],FIND_ENTRY,&tempEnt);
+			//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+			if(tempEnt != NULL){
+				strcpy(tokens[1], tempEnt->data);
+			}
+			//no match pass through and proceed
+		}
 		// otherwise no supstitution needed
 		//tokens = &new_tokens;
 //		int wrappos = 0;

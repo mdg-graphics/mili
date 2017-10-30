@@ -2136,49 +2136,105 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->max_mesh_mat_qty = mat_sz;
 
     //NEW_MAT_CODE
-	Hash_table *forNames;
-	Hash_table *revNames;
-	char sortedNames[analy->max_mesh_mat_qty][32];
-	forNames = htable_create( 1000 );
-	revNames = htable_create( 1000 );
-	Htable_entry *tempEnt;
-	int pos2;
-	//analy->sorted_names = malloc(analy->max_mesh_mat_qty * (sizeof(char) * 32));
-	for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
-		//check if name exists
-		char teststr[20];
-		teststr[0] = '\0';
-		int num_items_read = 0;
-		int status = 0;
-		sprintf(teststr,"MAT_NAME_%d",pos2+1);
-		char **test;
-		test = malloc(1 * sizeof(char*));
-		test[0] = malloc(32 * sizeof(char));
-		//test[0] = '\0';
-		status = mc_ti_read_string(analy->db_ident, teststr, (void*) test);
-		//if so then print name
-		if (status == OK){
-			char *str;
-			str = malloc(10 * sizeof(char));
-			sprintf(str,"%d",pos2+1);
-			htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
-			//htable_search(forNames,str,FIND_ENTRY,&tempEnt);
-			htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
-			//htable_search(revNames,test,FIND_ENTRY,&tempEnt);
-			strcpy(sortedNames[pos2], test);
+
+    analy->mat_labels_active = True;
+
+    if(analy->mat_labels_active){
+		//Gen list of banned names
+		//char* banned[100] = {"node","brick","shell","steel"};
+		//int sizeofbanned = 4;
+    	analy->banned_names = malloc(100 * sizeof(char*));
+    	analy->num_banned_names = 0;
+    	//predefined names
+    	char *tempnames[16] = {"vis","invis","enable","disable","include","exclude","hilite","select","mat","all","amb","diff","spec","spotdir","spot","exp"};
+    	int tempcount = 16;
+    	int tmppos = 0;
+    	for(tmppos = 0; tmppos < tempcount; tmppos++){
+    		analy->banned_names[tmppos] = malloc(100 * sizeof(char));
+    		strcpy(analy->banned_names[tmppos],tempnames[tmppos]);
+    		analy->num_banned_names++;
+    	}
+
+    	//class names
+        int  qty_classes=0;
+        char *class_names[2000];
+        int  superclasses[2000];
+    	status = mili_get_class_names( analy, &qty_classes, class_names, superclasses );
+    	for(tmppos = 0; tmppos < qty_classes; tmppos++){
+    		analy->banned_names[analy->num_banned_names] = malloc(100 * sizeof(char));
+    		strcpy(analy->banned_names[analy->num_banned_names],class_names[tmppos]);
+    		analy->num_banned_names++;
+    	}
+
+		Hash_table *forNames;
+		Hash_table *revNames;
+		char sortedNames[analy->max_mesh_mat_qty][32];
+		forNames = htable_create( 1001 );
+		revNames = htable_create( 1001 );
+		Htable_entry *tempEnt;
+		int pos2;
+		analy->sorted_names = malloc(analy->max_mesh_mat_qty * (sizeof(char) * 32));
+		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*) * 200));
+		analy->num_messages = 0;
+		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
+			//check if name exists
+			char teststr[20];
+			teststr[0] = '\0';
+			int num_items_read = 0;
+			int status = 0;
+			sprintf(teststr,"MAT_NAME_%d",pos2+1);
+			char **test;
+			test = malloc(1 * sizeof(char*));
+			test[0] = malloc(32 * sizeof(char));
+			//test[0] = '\0';
+			status = mc_ti_read_string(analy->db_ident, teststr, (void*) test);
+			//if so then print name
+			if (status == OK){
+				char *str;
+				str = malloc(10 * sizeof(char));
+				sprintf(str,"%d",pos2+1);
+				int bpos = 0;
+				for(bpos = 0; bpos < analy->num_banned_names; bpos ++){
+					if(strcmp(analy->banned_names[bpos],test) == 0){
+						char *merged = malloc(32 * sizeof(char));
+						char *temp = malloc(32 * sizeof(char));
+						sprintf(temp,"%s",test);
+						sprintf(merged,"%s%s","_",test);
+						sprintf(test,"%s",merged);
+						char *message = malloc(120 * sizeof(char));
+						sprintf(message, "Conflicting Material Label: \"%s\" is now \"%s\"\n", temp, merged);
+						analy->conflict_messages[analy->num_messages] = malloc(120 * sizeof(char));
+						sprintf(analy->conflict_messages[analy->num_messages], "%s", message);
+						analy->num_messages++;
+						//wrt_text( "Conflicting Material Label: \"%s\" is now \"%s\"\n", temp, merged);
+						//XmTextInsert( monitor_widg, wpr_position, message );
+						//wpr_position += strlen( message );
+						//sprintf(test,"_%s",test);
+					}
+				}
+
+				htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
+				//htable_search(forNames,str,FIND_ENTRY,&tempEnt);
+				htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
+				//htable_search(revNames,test,FIND_ENTRY,&tempEnt);
+				strcpy(sortedNames[pos2], test);
+			}
+			//ADD TO NAME ALPHA LIST
 		}
-		//ADD TO NAME ALPHA LIST
-	}
-	qsort(sortedNames, analy->max_mesh_mat_qty, 32, strcmp);
-	analy->sorted_names = malloc(analy->max_mesh_mat_qty * sizeof(char*));
-	int pos3 = 0;
-	for(pos3 = 0; pos3 < analy->max_mesh_mat_qty; pos3++){
-		analy->sorted_names[pos3] = malloc(32 * sizeof(char));
-		strcpy(analy->sorted_names[pos3],sortedNames[pos3]);
-	}
-	//analy->sorted_names = &sortedNames;
-	analy->mat_names = forNames;
-	analy->mat_names_reversed = revNames;
+		qsort(sortedNames, analy->max_mesh_mat_qty, 32, strcmp);
+		analy->sorted_names = malloc(analy->max_mesh_mat_qty * sizeof(char*));
+		int pos3 = 0;
+		for(pos3 = 0; pos3 < analy->max_mesh_mat_qty; pos3++){
+			analy->sorted_names[pos3] = malloc(32 * sizeof(char));
+			strcpy(analy->sorted_names[pos3],sortedNames[pos3]);
+		}
+		//analy->sorted_names = &sortedNames;
+		analy->mat_names = forNames;
+		analy->mat_names_reversed = revNames;
+
+
+
+    }
 	//END NEW
 
     /* Save max quantity of surfaces. */

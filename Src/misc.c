@@ -3306,3 +3306,33 @@ replace_string( char *input_str, char *sub_str, char *replace_str )
     }
     return ( str_buffer );
 }
+
+/*****************************************************************
+ * TAG( Begins_with )
+ *
+ * This function will check the beginnig of str for substr
+ */
+Bool_type
+begins_with(char* str, char* substr){
+	Bool_type result = False;
+	if(strncmp(str,substr,strlen(substr)) == 0){
+		result = True;
+	}
+	return result;
+}
+
+/*****************************************************************
+ * TAG( ends_with )
+ *
+ * This function will check the beginnig of str for substr
+ */
+Bool_type
+ends_with(char* str, char* substr){
+	Bool_type result = False;
+	if(strcmp(str + strlen(substr) - 1,substr) == 0){
+		result = True;
+	}
+	return result;
+}
+
+

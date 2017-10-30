@@ -1032,9 +1032,14 @@ typedef struct _Analysis
     Hash_table *st_var_table;
     Hash_table *primal_results;
     Hash_table *derived_results;
+    Bool_type mat_labels_active;
     Hash_table *mat_names;
     Hash_table *mat_names_reversed;
     char **sorted_names;
+    char **banned_names;
+    int num_banned_names;
+    char **conflict_messages;
+    int num_messages;
     Hash_table *es_components_table;
     Result_table_type result_source;
     char **component_menu_specs;
