@@ -1975,8 +1975,8 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
      */
 
     rval = htable_search( p_primal_ht, p_name, ENTER_MERGE, &p_hte );
-   
-    if(first == 0)
+   if(analy->es_components_table == NULL)
+    //if(first == 0)
     { 
         size = p_primal_ht->size;
         p_es_components_ht = htable_create( size );

@@ -1945,7 +1945,9 @@ parse_single_command( char *buf, Analysis *analy )
     }
     else if ( strcmp( tokens[0], "reload" ) == 0 )
     {
-        if ( !load_analysis(  env.plotfile_name, analy, TRUE ) )
+        //if ( !load_analysis(  env.plotfile_name, analy, TRUE ) )
+    	sprintf(filename_with_path,"%s%s",analy->path_name,env.plotfile_name);
+    	if ( !load_analysis( filename_with_path, analy, TRUE ) )
             return;
         redraw = BINDING_MESH_VISUAL;
     }
