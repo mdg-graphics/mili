@@ -3329,7 +3329,7 @@ begins_with(char* str, char* substr){
 Bool_type
 ends_with(char* str, char* substr){
 	Bool_type result = False;
-	if(strcmp(str + strlen(substr) - 1,substr) == 0){
+	if(strcmp(str + strlen(str) - strlen(substr),substr) == 0){
 		result = True;
 	}
 	return result;
