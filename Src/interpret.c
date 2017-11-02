@@ -10242,10 +10242,10 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 								int numnums = 0;
 								Bool_type token1str = False;
 								Bool_type token2str = False;
-								htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
-								token1str = (tempEnt != NULL);
 								htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
 								token2str = (tempEnt != NULL);
+								htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
+								token1str = (tempEnt != NULL);
 								if(token1str && token2str){
 									mat_range(analy,firstName,secondName,nums,&numnums);
 									int pos = 0;
@@ -10256,8 +10256,13 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 									}
 								}
 								else{
-									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+									if (token1str){
+										strcpy(new_tokens[new_token_cnt], tempEnt->data);
+									}
+									else{
+										//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+										strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+									}
 									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
 									strcpy(new_tokens[new_token_cnt+1], tokens[tokenpos+1]);
 									new_token_cnt+=2;
@@ -10267,6 +10272,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 							// next token is not connected to this token
 							else{
 								//process only 1
+								int len = 1;
 								//search table
 								htable_search(analy->mat_names,tokens[tokenpos],FIND_ENTRY,&tempEnt);
 								//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
@@ -10275,7 +10281,31 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 								}
 								//no match pass through and proceed
 								else{
-									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+									if(begins_with(tokens[tokenpos],"*") || ends_with(tokens[tokenpos],"*")){
+										int num_entries = 0;
+										num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], NULL );
+										if (num_entries > 0){
+											char **wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+											int new_num_entries;
+											new_num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], wildcard_list );
+											int pos = 0;
+											for (pos = 0; pos < num_entries; pos++){
+												//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+												htable_search(analy->mat_names,wildcard_list[pos],FIND_ENTRY,&tempEnt);
+												if(tempEnt != NULL){
+													strcpy(new_tokens[new_token_cnt], tempEnt->data);
+													new_token_cnt +=1;
+												}
+											}
+
+										}
+										else{
+											strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+										}
+									}
+									else{
+										strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+									}
 								}
 								new_token_cnt+=1;
 							}
@@ -10294,7 +10324,30 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 					}
 					//no match pass through and proceed
 					else{
-						strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+						if(begins_with(tokens[tokenpos],"*") || ends_with(tokens[tokenpos],"*")){
+							int num_entries = 0;
+							num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], NULL );
+							if (num_entries > 0){
+								char **wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+								int new_num_entries;
+								new_num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], wildcard_list );
+								int pos = 0;
+								for (pos = 0; pos < num_entries; pos++){
+									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+									htable_search(analy->mat_names,wildcard_list[pos],FIND_ENTRY,&tempEnt);
+									if(tempEnt != NULL){
+										strcpy(new_tokens[new_token_cnt], tempEnt->data);
+										new_token_cnt +=1;
+									}
+								}
+							}
+							else{
+								strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+							}
+						}
+						else{
+							strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+						}
 					}
 					new_token_cnt+=1;
 				}

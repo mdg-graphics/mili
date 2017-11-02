@@ -2010,6 +2010,8 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                 strcpy(p_es->component_name, p_sv->components[j]);
                 strcpy(p_es->parent_menu, "");
                 p_es->in_menu = FALSE;
+//                int num_entries = 0;
+//                num_entries = mc_ti_htable_search_wildcard(p_es_components_ht, 0, FALSE, "*", "NULL", "NULL", NULL);
                 if(p_es_components_ht->qty_entries > 0)
                 { 
                     rval = htable_search(p_es_components_ht, p_es->component_name, FIND_ENTRY, &p_hte3);
