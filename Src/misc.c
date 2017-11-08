@@ -73,6 +73,7 @@
 #include "misc.h"
 #include "mdg.h"
 #include "io_wrap.h"
+//#include "alphanum_comp.c"
 
 extern Bool_type include_util_panel, include_mtl_panel, include_utilmtl_panel;
 
@@ -3334,5 +3335,115 @@ ends_with(char* str, char* substr){
 	}
 	return result;
 }
+
+/*****************************************************************
+ * TAG( my_str_cmp )
+ *
+ * This function will check the beginnig of str for substr
+ */
+int
+my_str_cmp(char *str1, char *str2){
+	int pos = 0;
+	int s1pos = 0;
+	int s2pos = 0;
+	int maxlen = 0;
+
+	//base case
+	if(strlen(str1) == 0 && strlen(str2) != 0){
+		return 1;
+	}
+	//basecase
+	if(strlen(str1) == 0 && strlen(str2) != 0){
+		return -1;
+	}
+
+	//determine max length
+	if(strlen(str1) > strlen(str2)){
+		maxlen = strlen(str1)+1;
+	}
+	else{
+		maxlen = strlen(str2)+1;
+	}
+
+	//base case
+	//are they the same? if so just return
+	if(strcmp(str1,str2) == 0){
+		return 0;
+	}
+
+	//else we have work to do
+	else{
+		//skip matching section
+		while(((pos < strlen(str1)) && (pos < strlen(str2))) && (str1[pos] == str2[pos])){
+			pos++;
+			s1pos++;
+			s2pos++;
+		}
+		//there is a distinct difference
+		if((strlen(str1) > pos) || (strlen(str2) > pos)){
+			return strcmp(str1,str2);
+		}
+
+		//str1 is at a number
+		if(isdigit(str1[pos])){
+			//str1 is at a number
+			if(isdigit(str2[pos])){
+				char* tempnum1 = malloc(maxlen * sizeof(char));
+				char* tempnum2 = malloc(maxlen * sizeof(char));
+				//read till we dont hit a digit on both
+				while(s1pos < strlen(str1) && (isdigit(str1[s1pos]))){
+					tempnum1[s1pos-pos] = str1[s1pos];
+					s1pos++;
+				}
+				tempnum1[s1pos-pos] = '\0';
+				while(s2pos < strlen(str2) && (isdigit(str2[s2pos]))){
+					tempnum2[s2pos-pos] = str2[s2pos];
+					s2pos++;
+				}
+				tempnum2[s2pos-pos] = '\0';
+
+				int num1 = atoi(tempnum1);
+				int num2 = atoi(tempnum2);
+				//are the substrings equivalent numbers?
+				//>
+				if (num1 > num2){
+					return -1;
+				}
+				//<
+				else if (num1 < num2){
+					return 1;
+				}
+				//=
+				else{
+					return my_str_cmp((str1 + s1pos),(str2 + s2pos));
+				}
+					//return
+			}
+			//str1 is at a charachter
+			else{
+				return strcmp(str1,str2);
+			}
+		}
+		//str1 is at a charachter
+		else{
+			return strcmp(str1,str2);
+		}
+	}
+}
+
+/*****************************************************************
+ * TAG( my_comparator )
+ *
+ * This function will
+ */
+int
+my_comparator(void const *item1, void const *item2){
+	char *str1 = (char*) item1;
+	char *str2 = (char*) item2;
+	int val = my_str_cmp(str1,str2);
+	return val;
+	//return alphanum_cmp(item1,item2);
+}
+
 
 

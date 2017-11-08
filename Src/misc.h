@@ -277,5 +277,6 @@ extern void do_nothing_stub( char * );
 extern void blocks_to_list( int qty_blocks, int *mo_blocks, int *list,
                             Bool_type decrement_indices );
 
+extern int my_comparator(void const *item1, void const *item2);
 
 #endif

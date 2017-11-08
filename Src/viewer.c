@@ -128,6 +128,8 @@
 #include <math.h>
 #include "viewer.h"
 #include "mesh.h"
+#include "misc.h"
+#include "alphanum_comp.c"
 
 #ifdef SERIAL_BATCH
 #include <GL/osmesa.h>
@@ -2169,6 +2171,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		Hash_table *forNames;
 		Hash_table *revNames;
 		char sortedNames[analy->max_mesh_mat_qty][32];
+		//char** sortedNames;
 		forNames = htable_create( 1001 );
 		revNames = htable_create( 1001 );
 		Htable_entry *tempEnt;
@@ -2212,7 +2215,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 						//sprintf(test,"_%s",test);
 					}
 				}
-
 				htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
 				//htable_search(forNames,str,FIND_ENTRY,&tempEnt);
 				htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
@@ -2221,7 +2223,29 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			}
 			//ADD TO NAME ALPHA LIST
 		}
-		qsort(sortedNames, analy->max_mesh_mat_qty, 32, strcmp);
+		Bool_type test = ends_with("test","st");
+		printf("%s",sortedNames[0]);
+		printf("CHad");
+
+		char* testarray[] = {"material122","material1222","blue10","blue7","12a3","12a3"};
+
+		char test123[32];
+		sprintf(test123, "%s", sortedNames[0]);
+		int testPos = 0;
+		for( testPos = 0; testPos < analy->max_mesh_mat_qty; testPos ++){
+                        fprintf(stderr,"%s \n",sortedNames[testPos]);
+        }
+
+
+		int test25 = sizeof(sortedNames);
+		int test26 = sizeof(char *);
+		int test27 = sizeof(sortedNames)/sizeof(char *);
+
+		int test25a = sizeof(testarray);
+		int test26a = sizeof(char *);
+		int test27a = sizeof(testarray)/sizeof(char *);
+
+		qsort(sortedNames, analy->max_mesh_mat_qty, 32*8, (void*)alphanum_cmp);
 		analy->sorted_names = malloc(analy->max_mesh_mat_qty * sizeof(char*));
 		int pos3 = 0;
 		for(pos3 = 0; pos3 < analy->max_mesh_mat_qty; pos3++){
