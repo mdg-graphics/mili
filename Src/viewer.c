@@ -129,7 +129,6 @@
 #include "viewer.h"
 #include "mesh.h"
 #include "misc.h"
-#include "alphanum_comp.c"
 
 #ifdef SERIAL_BATCH
 #include <GL/osmesa.h>
@@ -161,6 +160,7 @@ extern  void init_mesh_window( Analysis *analy );
 extern  void init_btn_pick_classes();
 */
 #endif /* SERIAL_BATCH */
+int alphanum_cmp(const void* ,const void*);
 
 
 Environ env;
@@ -202,6 +202,8 @@ Bool_type  history_inputCB_cmd;
 static char      *model_history_log[MAXHIST]; /* A log of specific commands for the current model */
 static int        model_history_log_index=0;
 static Bool_type  model_loading_phase=FALSE;
+
+static int label_length = 32;
 
 /* The current version of the code. */
 char *griz_version = GRIZ_VERSION;
@@ -745,24 +747,6 @@ scan_args( int argc, char *argv[], Analysis *analy )
             env.enable_logging = TRUE;
 }
 
-/************************************************************
- * TAG( compints )
- *
- * used by qsort to compare two values and return for
- * ascending order 
- */
-int compints(const int * i, const int* j)
-{
-    if( *i < *j)
-    {
-        return -1;
-    }
-    if(*i > *j)
-    {
-        return 1;
-    }
-    return 0;
-}
 
 /************************************************************
  * TAG( open_analysis )
@@ -2170,13 +2154,14 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
 		Hash_table *forNames;
 		Hash_table *revNames;
-		char sortedNames[analy->max_mesh_mat_qty][32];
+		//char sortedNames[analy->max_mesh_mat_qty][32];
+		char** sortedNames = malloc(analy->max_mesh_mat_qty * sizeof(char*));
 		//char** sortedNames;
 		forNames = htable_create( 1001 );
 		revNames = htable_create( 1001 );
 		Htable_entry *tempEnt;
 		int pos2;
-		analy->sorted_names = malloc(analy->max_mesh_mat_qty * (sizeof(char) * 32));
+		analy->sorted_names = malloc(analy->max_mesh_mat_qty * (sizeof(char) * label_length));
 		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*) * 200));
 		analy->num_messages = 0;
 		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
@@ -2186,10 +2171,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			int num_items_read = 0;
 			int status = 0;
 			sprintf(teststr,"MAT_NAME_%d",pos2+1);
-			char **test;
-			test = malloc(1 * sizeof(char*));
-			test[0] = malloc(32 * sizeof(char));
-			//test[0] = '\0';
+			char *test;
+			test = malloc(label_length * sizeof(char));
 			status = mc_ti_read_string(analy->db_ident, teststr, (void*) test);
 			//if so then print name
 			if (status == OK){
@@ -2199,8 +2182,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 				int bpos = 0;
 				for(bpos = 0; bpos < analy->num_banned_names; bpos ++){
 					if(strcmp(analy->banned_names[bpos],test) == 0){
-						char *merged = malloc(32 * sizeof(char));
-						char *temp = malloc(32 * sizeof(char));
+						char *merged = malloc(label_length * sizeof(char));
+						char *temp = malloc(label_length * sizeof(char));
 						sprintf(temp,"%s",test);
 						sprintf(merged,"%s%s","_",test);
 						sprintf(test,"%s",merged);
@@ -2209,47 +2192,22 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 						analy->conflict_messages[analy->num_messages] = malloc(120 * sizeof(char));
 						sprintf(analy->conflict_messages[analy->num_messages], "%s", message);
 						analy->num_messages++;
-						//wrt_text( "Conflicting Material Label: \"%s\" is now \"%s\"\n", temp, merged);
-						//XmTextInsert( monitor_widg, wpr_position, message );
-						//wpr_position += strlen( message );
-						//sprintf(test,"_%s",test);
 					}
 				}
 				htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
-				//htable_search(forNames,str,FIND_ENTRY,&tempEnt);
 				htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
-				//htable_search(revNames,test,FIND_ENTRY,&tempEnt);
-				strcpy(sortedNames[pos2], test);
+				sortedNames[pos2] = malloc(label_length * sizeof(char));
+				sprintf(sortedNames[pos2],"%s",test);
 			}
 			//ADD TO NAME ALPHA LIST
 		}
-//		Bool_type test = ends_with("test","st");
-//		printf("%s",sortedNames[0]);
-//		printf("CHad");
-//
-//		char* testarray[] = {"material122","material1222","blue10","blue7","12a3","12a3"};
-//
-//		char test123[32];
-//		sprintf(test123, "%s", sortedNames[0]);
-//		int testPos = 0;
-//		for( testPos = 0; testPos < analy->max_mesh_mat_qty; testPos ++){
-//                        fprintf(stderr,"%s \n",sortedNames[testPos]);
-//        }
-//
-//
-//		int test25 = sizeof(sortedNames);
-//		int test26 = sizeof(char *);
-//		int test27 = sizeof(sortedNames)/sizeof(char *);
-//
-//		int test25a = sizeof(testarray);
-//		int test26a = sizeof(char *);
-//		int test27a = sizeof(testarray)/sizeof(char *);
 
-		qsort(sortedNames, analy->max_mesh_mat_qty, 32*8, (void*)alphanum_cmp);
+		qsort(sortedNames, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
+
 		analy->sorted_names = malloc(analy->max_mesh_mat_qty * sizeof(char*));
 		int pos3 = 0;
 		for(pos3 = 0; pos3 < analy->max_mesh_mat_qty; pos3++){
-			analy->sorted_names[pos3] = malloc(32 * sizeof(char));
+			analy->sorted_names[pos3] = malloc(label_length * sizeof(char));
 			strcpy(analy->sorted_names[pos3],sortedNames[pos3]);
 		}
 		//analy->sorted_names = &sortedNames;

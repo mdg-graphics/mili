@@ -5994,16 +5994,31 @@ draw_plots( Analysis *analy )
 
         if ( oper_plot )
             build_oper_series_label( p_po->ordinate, TRUE, str );
-        else if ( ordinates_same )
-            sprintf( str, "%s %d",
-                     p_po->ordinate->mo_class->long_name,
-                     label );
+        else if ( ordinates_same ){
+        	if(analy->mat_labels_active && (strcmp(p_po->ordinate->mo_class->short_name,"mat") == 0)){
+        		Htable_entry *tempEnt;
+				char tempname[32];
+				sprintf(tempname,"%d",label);
+				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+        		sprintf( str, "%s", tempEnt->data);
+        	}
+        	else{
+        		sprintf( str, "%s %d", p_po->ordinate->mo_class->long_name, label );
+        	}
+        }
         else
         {
-            sprintf( str, "%s %d %s",
-                     p_po->ordinate->mo_class->long_name,
-                     label,
-                     p_po->ordinate->result->title );
+
+        	if(analy->mat_labels_active && (strcmp(p_po->ordinate->mo_class->short_name,"mat") == 0)){
+        		Htable_entry *tempEnt;
+				char tempname[32];
+				sprintf(tempname,"%d",label);
+				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+        		sprintf( str, "%s %s", tempEnt->data, p_po->ordinate->result->title);
+        	}
+        	else{
+        		sprintf( str, "%s %d %s", p_po->ordinate->mo_class->long_name, label, p_po->ordinate->result->title );
+        	}
         }
 
         if ( oper_plot )

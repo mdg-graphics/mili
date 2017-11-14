@@ -157,7 +157,7 @@ OBJS = \
 	offscreen.o \
 	hidden_inline.o \
 	free_nodes.o \
-	alphanum.o
+	alphanum_comp.o
 
 SRCS = $(OBJS:%.o=%.c)
 

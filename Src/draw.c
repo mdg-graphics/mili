@@ -688,8 +688,10 @@ init_mesh_window( Analysis *analy )
 			}
 		}
 	}
-    //create_color_prop_arrays( &v_win->mesh_materials, mtl_qty, analy, &defaultsList);
-    //define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT, &defaultsList);
+    else{
+    	create_color_prop_arrays( &v_win->mesh_materials, mtl_qty, analy, &defaultsList);
+    	define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT, &defaultsList);
+    }
 
     if ( (qty = MESH_P( analy )->classes_by_sclass[G_SURFACE].qty) > 0 )
     {
@@ -11645,17 +11647,32 @@ draw_foreground( Analysis *analy )
             class_ptr = mili_get_class_ptr( analy, sclasses[1], classes[1] );
 
             class_label = get_class_label( class_ptr, el_id[1] );
-
-            sprintf( str, "%s %.*e, %s %d", maximum_label, fracsz, high,
-                     classes[1], class_label );
+            if(analy->mat_labels_active && (strcmp(class_ptr->short_name,"mat") == 0)){
+				Htable_entry *tempEnt;
+				char tempname[32];
+				sprintf(tempname,"%d",class_label);
+				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, high, tempEnt->data );
+			}
+			else{
+				sprintf( str, "%s %.*e, %s %d", maximum_label, fracsz, high, classes[1], class_label );
+			}
             hcharstr( str );
 
             class_ptr = mili_get_class_ptr( analy, sclasses[0], classes[0] );
 
             class_label = get_class_label( class_ptr, el_id[0] );
             hmove2( xp, yp - LINE_SPACING_COEFF * text_height );
-            sprintf( str, "%s %.*e, %s %d", minimum_label, fracsz, low,
-                     classes[0], class_label );
+            if(analy->mat_labels_active && (strcmp(class_ptr->short_name,"mat") == 0)){
+				Htable_entry *tempEnt;
+				char tempname[32];
+				sprintf(tempname,"%d",class_label);
+				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, low, tempEnt->data );
+			}
+			else{
+				sprintf( str, "%s %.*e, %s %d", minimum_label, fracsz, low, classes[0], class_label );
+			}
             hcharstr( str );
             ylines+=2;
         }
