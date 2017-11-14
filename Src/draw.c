@@ -689,8 +689,8 @@ init_mesh_window( Analysis *analy )
 		}
 	}
     else{
-    	create_color_prop_arrays( &v_win->mesh_materials, mtl_qty, analy, &defaultsList);
-    	define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT, &defaultsList);
+    	create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
+    	define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
     }
 
     if ( (qty = MESH_P( analy )->classes_by_sclass[G_SURFACE].qty) > 0 )
