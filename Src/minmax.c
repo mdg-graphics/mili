@@ -1457,7 +1457,7 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
     char *mm_out_format_mat =
         " %5d   %12.6e %13.6e     %5d    %13.6e     %5d\t%s ";
 
-    char *header_new =		       "# Material  State     Time       Maximum    %.*s%s%.*sMinimum    %.*s%s\n";
+    char *header_new = "#                           Material  State     Time       Maximum    %.*s%s%.*sMinimum    %.*s%s\n";
     char *std_out_format_new = "   %32s    %5d  %12.6e  %13.6e %*d  %13.6e %*d\n";
     char *mm_out_format_new =  "   %32s    %5d  %12.6e  %13.6e %*d  %13.6e %*d\t%s";
 
@@ -1521,16 +1521,6 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
     /* Loop over materials, dumping all states per material. */
     for ( i = 0; i < req_mat_qty; i++ )
     {
-        /* Dump column headers. */
-        fprintf( outfile, "#\n#\n" );
-
-        if ( !show_mat_result )
-            fprintf( outfile, header,
-                     2 + node_pre, blanks, object_label,
-                     ident_width - object_label_width - node_pre + 4, blanks,
-                     2 + node_pre, blanks, object_label );
-        else
-            fprintf( outfile, header_mat );
 
         /* Determine states with min and max values. */
         minval = mat_min_row[0];
@@ -1565,6 +1555,25 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
 				sprintf( mat_name, tempEnt->data);
 			}
         }
+
+        /* Dump column headers. */
+        fprintf( outfile, "#\n#\n" );
+
+        if ( !show_mat_result )
+        	if(analy->mat_labels_active && mat_name){
+				fprintf( outfile, header_new,
+						 2 + node_pre, blanks, object_label,
+						 ident_width - object_label_width - node_pre + 4, blanks,
+						 2 + node_pre, blanks, object_label );
+        	}
+        	else{
+				fprintf( outfile, header,
+						 2 + node_pre, blanks, object_label,
+						 ident_width - object_label_width - node_pre + 4, blanks,
+						 2 + node_pre, blanks, object_label );
+        	}
+        else
+            fprintf( outfile, header_mat );
 
         /* Dump states before the first min or max extreme. */
 
