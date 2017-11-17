@@ -4957,15 +4957,15 @@ parse_single_command( char *buf, Analysis *analy )
             }
                 
         }
-        if(analy->selected_objects == NULL)
-        {
-            if(i >= token_cnt)
-            {
-                popup_dialog(INFO_POPUP, "Must select or specify an element class before using the plot command"); 
-                return;
-            }
-           
-        }
+//        if(analy->selected_objects == NULL)
+//        {
+//            if(i >= token_cnt)
+//            {
+//                popup_dialog(INFO_POPUP, "Must select or specify an element class before using the plot command");
+//                return;
+//            }
+//
+//        }
         /* Delete the plot for this result if computing an EI result */
         if ( analy->ei_result && strlen(analy->ei_result_name)>0 )
         {
@@ -4994,6 +4994,7 @@ parse_single_command( char *buf, Analysis *analy )
                 {
                     strcpy(original_tokens[j], tokens[j]);
                 } 
+                //WHY? --V
                 for(; i < start; i++)
                 {
                     res_ptr = create_result_list(original_tokens[i], analy);
@@ -5144,7 +5145,8 @@ parse_single_command( char *buf, Analysis *analy )
             
                     }
                 }
-            } else if(token_cnt == 1 && 
+            }
+            else if(token_cnt == 1 &&
                       analy->cur_result != NULL && 
                       analy->cur_result->result_funcs[0] == load_primal_result)
             {
