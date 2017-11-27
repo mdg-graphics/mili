@@ -1711,6 +1711,8 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
         mat_min_id += qty_states;
         mat_max_row += qty_states;
         mat_max_id += qty_states;
+        free(mat_name);
+        //free(tempEnt);
     }
     free( state_times );
 }

@@ -3445,5 +3445,25 @@ my_comparator(void const *item1, void const *item2){
 	//return alphanum_cmp(item1,item2);
 }
 
+/*****************************************************************
+ * TAG( safeStrCpy )
+ *
+ * This function will copy the source string to the destination string
+ * using the safest method available
+ *
+ * has option of only a partial copy if length of source > destination
+ */
+Bool_type
+safeStrCpy(char* dest, int dlen, char* src, int slen, int flag){
+	Bool_type status = TRUE;
+	if(dlen >= src){
+		snprintf(dest,slen,"%s",src);
+	}
+	else{
+		snprintf(dest,dlen-1,"%s",src);
+		dest[dlen-1] = "\0";
+	}
+	return status;
+}
 
 

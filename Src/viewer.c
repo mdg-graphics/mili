@@ -2192,14 +2192,19 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 						analy->conflict_messages[analy->num_messages] = malloc(120 * sizeof(char));
 						sprintf(analy->conflict_messages[analy->num_messages], "%s", message);
 						analy->num_messages++;
+						//free(merged);
+						//free(temp);
+						//free(message);
 					}
 				}
 				htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
 				htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
 				sortedNames[pos2] = malloc(label_length * sizeof(char));
 				sprintf(sortedNames[pos2],"%s",test);
+				//free(str);
 			}
 			//ADD TO NAME ALPHA LIST
+			//free(test);
 		}
 
 		qsort(sortedNames, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
@@ -2209,11 +2214,12 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		for(pos3 = 0; pos3 < analy->max_mesh_mat_qty; pos3++){
 			analy->sorted_names[pos3] = malloc(label_length * sizeof(char));
 			strcpy(analy->sorted_names[pos3],sortedNames[pos3]);
+			free(sortedNames[pos3]);
 		}
 		//analy->sorted_names = &sortedNames;
 		analy->mat_names = forNames;
 		analy->mat_names_reversed = revNames;
-
+		free(sortedNames);
 
 
     }
