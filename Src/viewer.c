@@ -2123,7 +2123,12 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     //NEW_MAT_CODE
 
-    analy->mat_labels_active = True;
+    if(env.ti_enable){
+    	analy->mat_labels_active = TRUE;
+    }
+    else{
+    	analy->mat_labels_active = FALSE;
+    }
 
     if(analy->mat_labels_active){
 		//Gen list of banned names
@@ -2162,7 +2167,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		Htable_entry *tempEnt;
 		int pos2;
 		analy->sorted_names = malloc(analy->max_mesh_mat_qty * (sizeof(char) * label_length));
-		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*) * 200));
+		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*)));
 		analy->num_messages = 0;
 		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
 			//check if name exists
@@ -2182,12 +2187,15 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 				int bpos = 0;
 				for(bpos = 0; bpos < analy->num_banned_names; bpos ++){
 					if(strcmp(analy->banned_names[bpos],test) == 0){
-						char *merged = malloc(label_length * sizeof(char));
-						char *temp = malloc(label_length * sizeof(char));
+//						char *merged = malloc(label_length * sizeof(char));
+//						char *temp = malloc(label_length * sizeof(char));
+//						char *message = malloc(120 * sizeof(char));
+						char merged[label_length];
+						char temp[label_length];
+						char message[120];
 						sprintf(temp,"%s",test);
 						sprintf(merged,"%s%s","_",test);
 						sprintf(test,"%s",merged);
-						char *message = malloc(120 * sizeof(char));
 						sprintf(message, "Conflicting Material Label: \"%s\" is now \"%s\"\n", temp, merged);
 						analy->conflict_messages[analy->num_messages] = malloc(120 * sizeof(char));
 						sprintf(analy->conflict_messages[analy->num_messages], "%s", message);

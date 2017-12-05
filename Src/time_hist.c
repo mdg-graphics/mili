@@ -6000,7 +6000,12 @@ draw_plots( Analysis *analy )
 				char tempname[32];
 				sprintf(tempname,"%d",label);
 				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
-        		sprintf( str, "%s", tempEnt->data);
+				if(tempEnt != NULL){
+					sprintf( str, "%s", tempEnt->data);
+				}
+				else{
+					sprintf( str, "%s", "#ERROR#");
+				}
         	}
         	else{
         		sprintf( str, "%s %d", p_po->ordinate->mo_class->long_name, label );
@@ -6014,7 +6019,12 @@ draw_plots( Analysis *analy )
 				char tempname[32];
 				sprintf(tempname,"%d",label);
 				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
-        		sprintf( str, "%s %s", tempEnt->data, p_po->ordinate->result->title);
+				if(tempEnt != NULL){
+					sprintf( str, "%s %s", tempEnt->data, p_po->ordinate->result->title);
+				}
+				else{
+					sprintf( str, "%s %s""#ERROR#", p_po->ordinate->result->title);
+				}
         	}
         	else{
         		sprintf( str, "%s %d %s", p_po->ordinate->mo_class->long_name, label, p_po->ordinate->result->title );
