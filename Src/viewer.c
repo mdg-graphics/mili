@@ -2123,8 +2123,18 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     //NEW_MAT_CODE
 
+
     if(env.ti_enable){
-    	analy->mat_labels_active = TRUE;
+    	char *pretest;
+		pretest = malloc(label_length * sizeof(char));
+		status = mc_ti_read_string(analy->db_ident, "MAT_NAME_1", (void*) pretest);
+		if(status == OK){
+			analy->mat_labels_active = TRUE;
+		}
+		else{
+			analy->mat_labels_active = FALSE;
+		}
+		free(pretest);
     }
     else{
     	analy->mat_labels_active = FALSE;
@@ -2210,6 +2220,15 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 				sortedNames[pos2] = malloc(label_length * sizeof(char));
 				sprintf(sortedNames[pos2],"%s",test);
 				//free(str);
+			}
+			else{
+				char *str;
+				str = malloc(10 * sizeof(char));
+				sprintf(str,"%d",pos2+1);
+				htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) str);
+				htable_add_entry_data(forNames,str ,ENTER_UNIQUE,(void *) str);
+				sortedNames[pos2] = malloc(label_length * sizeof(char));
+				sprintf(sortedNames[pos2],"%s",str);
 			}
 			//ADD TO NAME ALPHA LIST
 			//free(test);
