@@ -2010,14 +2010,16 @@ void fr_state2( State2 *p_state, Analysis *analy )
 extern void
 set_ref_state( Analysis *analy, int new_ref_state )
 {
-    int qty, srec_id, mesh_id, rval, first_state=1;
-    State_rec_obj *p_sro;
-
-    int       num_nodes=0;
-    Mesh_data *p_md;
-    MO_class_data *p_node_class;
-
-    double *tmp_nodesDp;
+    int qty, 
+        srec_id, 
+        mesh_id, 
+        rval, 
+        first_state=1;
+    State_rec_obj *p_sro = NULL;
+    int index;
+    int num_nodes=0;
+    Mesh_data *p_md = NULL;
+    MO_class_data *p_node_class = NULL;
 
     p_node_class = MESH_P( analy )->node_geom;
     num_nodes    = p_node_class->qty;
@@ -2047,17 +2049,15 @@ set_ref_state( Analysis *analy, int new_ref_state )
             mesh_id = p_sro->subrecs[0].p_object_class->mesh_id;
             p_md = analy->mesh_table + mesh_id;
 
-            if (analy->cur_ref_state_dataDp)
-                free(analy->cur_ref_state_dataDp);
-
-            tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
+            if (!analy->cur_ref_state_dataDp)
+            {
+                analy->cur_ref_state_dataDp = NEW_N( double, num_nodes*analy->dimension,
                                  "Tmp DP node cache" );
-
+            }
+            
             load_nodpos( analy, p_sro, p_md, analy->dimension, 1,
-                         FALSE, (void *) tmp_nodesDp );
+                         FALSE, (void *) analy->cur_ref_state_dataDp );
 
-            /* Assign the reference pointer to the data that was just read in. */
-            analy->cur_ref_state_dataDp = tmp_nodesDp;
         }
     }
     else if ( new_ref_state == analy->reference_state )
@@ -2069,11 +2069,11 @@ set_ref_state( Analysis *analy, int new_ref_state )
     {
         /* Not the current and not the original - have to do I/O. */
 
-        if ( analy->ref_state_data == NULL )
+        if ( analy->cur_ref_state_data == NULL )
         {
             /* Need buffer. */
             qty = MESH( analy ).node_geom->qty * analy->dimension;
-            analy->ref_state_data = NEW_N( float, qty, "Ref st node buffer" );
+            analy->cur_ref_state_data = NEW_N( float, qty, "Ref st node buffer" );
         }
 
         /* Get the max state possible (may be a user set limit). */
@@ -2107,30 +2107,22 @@ set_ref_state( Analysis *analy, int new_ref_state )
 
         /* Go get it... */
         analy->reference_state = new_ref_state;
-        if (!MESH_P( analy )->double_precision_nodpos)
-        {
-            load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
-                         TRUE, analy->ref_state_data );
+        load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
+                     TRUE, analy->cur_ref_state_data );
 
-            /* Assign the reference pointer to the data that was just read in. */
-            analy->cur_ref_state_data = analy->ref_state_data;
-        }
-        else
+        /* Assign the reference pointer to the data that was just read in. */
+        
+        if (MESH_P( analy )->double_precision_nodpos)
         {
-            if ( analy->cur_ref_state_dataDp )
-                free (analy->cur_ref_state_dataDp);
-            if ( analy->ref_state_dataDp )
-                free (analy->ref_state_dataDp);
-
-            tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
+            if ( !analy->cur_ref_state_dataDp )
+            {    
+                analy->cur_ref_state_dataDp = NEW_N( double, num_nodes*analy->dimension,
                                  "Tmp DP node cache" );
-
+            }
+            
             load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
-                         FALSE, tmp_nodesDp );
-
-            /* Assign the reference pointer to the data that was just read in. */
-            analy->cur_ref_state_dataDp = tmp_nodesDp;;
-            /*analy->cur_ref_state_dataDp = analy->ref_state_dataDp;*/
+                         FALSE, analy->cur_ref_state_dataDp );
+            
         }
 
     }
@@ -3456,7 +3448,7 @@ my_comparator(void const *item1, void const *item2){
 Bool_type
 safeStrCpy(char* dest, int dlen, char* src, int slen, int flag){
 	Bool_type status = TRUE;
-	if(dlen >= src){
+	if(dlen >= strlen(src)){
 		snprintf(dest,slen,"%s",src);
 	}
 	else{

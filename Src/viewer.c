@@ -2320,7 +2320,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     /* Set initial reference state for nodes to mesh definition data. */
     analy->cur_ref_state_dataDp  = NULL;
-    analy->ref_state_dataDp      = NULL;
     analy->center_view           = NO_CENTER;
     analy->suppress_updates      = FALSE;
     analy->show_sph_ghost        = TRUE;
@@ -2421,9 +2420,6 @@ close_analysis( Analysis *analy )
 
     fr_state2( analy->state_p, analy );
     analy->state_p = NULL;
-
-    if ( analy->ref_state_data != NULL )
-        free( analy->ref_state_data );
 
     free( analy->bbox_source );
 
