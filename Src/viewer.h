@@ -1016,9 +1016,7 @@ typedef struct _Analysis
     //mmHisEnt previous_MM_List[50];
 
     float  *cur_ref_state_data;
-    float  *ref_state_data;
     double *cur_ref_state_dataDp;
-    double *ref_state_dataDp;
 
     int cur_mesh_id;
     Mesh_data *mesh_table;
