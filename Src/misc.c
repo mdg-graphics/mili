@@ -3461,7 +3461,7 @@ safeStrCpy(char* dest, int dlen, char* src, int slen, int flag){
 	}
 	else{
 		snprintf(dest,dlen-1,"%s",src);
-		dest[dlen-1] = "\0";
+		dest[dlen-1] = '\0';
 	}
 	return status;
 }
