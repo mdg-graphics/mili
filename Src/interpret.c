@@ -1221,13 +1221,13 @@ parse_single_command( char *buf, Analysis *analy )
                             }
 
                             /* If object exists, delete to de-select, else add. */
-                            if ( p_so != NULL )
+                            if ( p_so != NULL && unselect )
                             {
                                 DELETE( p_so, analy->selected_objects );
                             }
                             else
                             {
-                                if ( !unselect )
+                                if ( !unselect && p_so == NULL)
                                 {
                                     p_so = NEW( Specified_obj, "New object selection" );
                                     p_so->ident = temp_ival;
@@ -1267,13 +1267,13 @@ parse_single_command( char *buf, Analysis *analy )
                                     break;
 
                             /* If object exists, delete to de-select, else add. */
-                            if ( p_so != NULL )
+                            if ( p_so != NULL && unselect)
                             {
                                 DELETE( p_so, analy->selected_objects );
                             }
                             else
                             {
-                                if ( !unselect )
+                                if ( !unselect && p_so == NULL)
                                 {
                                     p_so = NEW( Specified_obj, "New object selection" );
                                     p_so->ident    = temp_ival;
@@ -1333,13 +1333,13 @@ parse_single_command( char *buf, Analysis *analy )
                             }
 
                             /* If object exists, delete to de-select, else add. */
-                            if ( p_so != NULL )
+                            if ( p_so != NULL && unselect)
                             {
                                 DELETE( p_so, analy->selected_objects );
                             }
                             else
                             {
-                                if ( !unselect )
+                                if ( !unselect && p_so == NULL)
                                 {
                                     p_so = NEW( Specified_obj, "New object selection" );
                                     p_so->ident = temp_ival;
@@ -1390,13 +1390,13 @@ parse_single_command( char *buf, Analysis *analy )
                             }
 
                             /* If object exists, delete to de-select, else add. */
-                            if( p_so != NULL )
+                            if( p_so != NULL && unselect )
                             {
                                 DELETE( p_so, analy->selected_objects );
                             }
                             else
                             {
-                                if ( !unselect )
+                                if ( !unselect && p_so == NULL)
                                 {
                                     p_so = NEW( Specified_obj, "New object selection" );
                                     p_so->ident    = temp_ival;
@@ -1493,13 +1493,13 @@ parse_single_command( char *buf, Analysis *analy )
                                 break;
 
                         /* If object exists, delete to de-select, else add. */
-                        if ( p_so != NULL )
+                        if ( p_so != NULL && unselect)
                         {
                             DELETE( p_so, analy->selected_objects );
                         }
                         else
                         {
-                            if ( !unselect )
+                            if ( !unselect && p_so == NULL)
                             {
                                 p_so = NEW( Specified_obj, "New object selection" );
                                 if ( p_mo_class->labels_found )
