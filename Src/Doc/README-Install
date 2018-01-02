@@ -53,4 +53,15 @@ Once the Griz tarfile has been extracted, execute the following steps in this or
     h). cp griz4s.linux-gnu_opt_batch griz4s.linux-gnu_opt_batch-MM.DD.YYYY
     i). take -f username
     j). Most Important - logout as mdgadmin and run a test using the new installed version
+    
+    
+(8) to install without killing running jobs
+	a - e.2
+	e.3-a) mv griz4s.linux-gnu_opt_batch griz4s.linux-gnu_opt_batch-MM.DD.YYY
+	e.3-b) mv griz4s.linux-gnu_opt griz4s.linux-gnu_opt-MM.DD.YYY
+	f) take username
+	g) chmod g+rx griz4s.linux-gnu_opt
+	h) chmod g+rx griz4s.linux-gnu_opt_batch
+	i) Most Important - logout as mdgadmin and run a test using the new installed version
+	
 
