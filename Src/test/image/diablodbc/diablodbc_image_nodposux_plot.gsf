@@ -32,7 +32,8 @@ posmap .91 -.77 .07 .5
 sw flat
 
 # Object selection 
-select node 1 11 21 100 225 17-22
+select node 1 11 100 225 17-22
+unselect 21
 select mat 1
 
 # Images for variable nodposux
