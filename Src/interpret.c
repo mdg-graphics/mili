@@ -10096,36 +10096,124 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 			(strcmp(tokens[0],"hilite") == 0) 	|| (strcmp(tokens[0],"select") == 0)	){
 			Bool_type dash_found = False;
 			Bool_type next_has_dash = False;
+			Bool_type hunting = True;
 
 			char temp[TOKENLENGTH];
 			//new_tokens[0] = (char*)malloc(TOKENLENGTH * sizeof(char));
 			strcpy(new_tokens[0], tokens[0]);
 			new_token_cnt = 1;
 			for(tokenpos = 1; tokenpos < *token_cnt; tokenpos++){
-				//does our token contain a dash?
-				dash_found = (strstr(tokens[tokenpos],"-") != NULL);
-				//does our next token(if any) contain a dash
-				if(tokenpos+1 < *token_cnt){
-					next_has_dash = (strstr(tokens[tokenpos+1],"-") != NULL);
+				char tempToken[TOKENLENGTH];
+				strcpy(tempToken,tokens[tokenpos]);
+				//should we be hunting for mat names
+				if(isClassname(tempToken,analy)){
+					if((strcmp(tokens[tokenpos],"mat") == 0) || (strcmp(tokens[tokenpos],"MAT") == 0)){
+						hunting = True;
+					}
+					else{
+						hunting = False;
+					}
 				}
-				char tokholder[TOKENLENGTH];
-				//is there a dash of any kind?
-				if(dash_found || next_has_dash){
-					//if dash found in first item
-					if(dash_found){
-						//if first item begins with dash, we have hit an invalid case
-						if( strncmp(tokens[tokenpos],"-",1) == 0 ){
-							//process only 1 token
-							//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-							strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
-							new_token_cnt+=1;
+
+				if(hunting){
+					//does our token contain a dash?
+					dash_found = (strstr(tokens[tokenpos],"-") != NULL);
+					//does our next token(if any) contain a dash
+					if(tokenpos+1 < *token_cnt){
+						next_has_dash = (strstr(tokens[tokenpos+1],"-") != NULL);
+					}
+					char tokholder[TOKENLENGTH];
+					//is there a dash of any kind?
+					if(dash_found || next_has_dash){
+						//if dash found in first item
+						if(dash_found){
+							//if first item begins with dash, we have hit an invalid case
+							if( strncmp(tokens[tokenpos],"-",1) == 0 ){
+								//process only 1 token
+								//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+								strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+								new_token_cnt+=1;
+							}
+							//we have to check further
+							else{
+								//does first token end with dash?
+								if( strcmp(tokens[tokenpos]+(strlen(tokens[tokenpos])-1),"-") == 0 ){
+									//merge 2 tokens
+									sprintf(tokholder,"%s%s",tokens[tokenpos],tokens[tokenpos+1]);
+									//handle range
+									char *token;
+									token = strtok(tokholder,"-");
+									char *firstName = token;
+									token = strtok(NULL,"-");
+									char *secondName = token;
+									int nums[analy->max_mesh_mat_qty];
+									int numnums = 0;
+									Bool_type token1str = False;
+									Bool_type token2str = False;
+									htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
+									token1str = (tempEnt != NULL);
+									htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
+									token2str = (tempEnt != NULL);
+									if(token1str && token2str){
+										mat_range(analy,firstName,secondName,nums,&numnums);
+										int pos = 0;
+										for (pos = 0; pos < numnums; pos++){
+											//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+											sprintf(new_tokens[new_token_cnt],"%i",nums[pos]);
+											new_token_cnt +=1;
+										}
+									}//
+									else{
+										//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+										strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+										//new_tokens[new_token_cnt+1] = (char*)malloc(TOKENLENGTH * sizeof(char));
+										strcpy(new_tokens[new_token_cnt+1], tokens[tokenpos+1]);
+										new_token_cnt+=2;
+										tokenpos += 1;
+									}
+
+								}
+								//if not we have a full range in one token
+								else{
+									//no merge necessary
+									sprintf(tokholder,"%s",tokens[tokenpos]);
+									//handle range
+									char *token;
+									token = strtok(tokholder,"-");
+									char *firstName = token;
+									token = strtok(NULL,"-");
+									char *secondName = token;
+									int nums[analy->max_mesh_mat_qty];
+									int numnums = 0;
+									Bool_type token1str = False;
+									Bool_type token2str = False;
+									htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
+									token1str = (tempEnt != NULL);
+									htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
+									token2str = (tempEnt != NULL);
+									if(token1str && token2str){
+										mat_range(analy,firstName,secondName,nums,&numnums);
+										int pos = 0;
+										for (pos = 0; pos < numnums; pos++){
+											//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+											sprintf(new_tokens[new_token_cnt],"%i",nums[pos]);
+											new_token_cnt +=1;
+										}
+									}
+									else{
+										//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+										strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+										new_token_cnt+=1;
+									}
+								}
+							}
 						}
-						//we have to check further
+						//otherwise dash is in the second item
 						else{
-							//does first token end with dash?
-							if( strcmp(tokens[tokenpos]+(strlen(tokens[tokenpos])-1),"-") == 0 ){
-								//merge 2 tokens
-								sprintf(tokholder,"%s%s",tokens[tokenpos],tokens[tokenpos+1]);
+							//is second token only a dash?
+							if(strcmp(tokens[tokenpos+1],"-") == 0){
+								//merge 3 tokens
+								sprintf(tokholder,"%s%s%s",tokens[tokenpos],tokens[tokenpos+1],tokens[tokenpos+2]);
 								//handle range
 								char *token;
 								token = strtok(tokholder,"-");
@@ -10148,215 +10236,146 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 										sprintf(new_tokens[new_token_cnt],"%i",nums[pos]);
 										new_token_cnt +=1;
 									}
-								}//
+								}
 								else{
 									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
 									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
 									//new_tokens[new_token_cnt+1] = (char*)malloc(TOKENLENGTH * sizeof(char));
 									strcpy(new_tokens[new_token_cnt+1], tokens[tokenpos+1]);
-									new_token_cnt+=2;
-									tokenpos += 1;
-								}
-
-							}
-							//if not we have a full range in one token
-							else{
-								//no merge necessary
-								sprintf(tokholder,"%s",tokens[tokenpos]);
-								//handle range
-								char *token;
-								token = strtok(tokholder,"-");
-								char *firstName = token;
-								token = strtok(NULL,"-");
-								char *secondName = token;
-								int nums[analy->max_mesh_mat_qty];
-								int numnums = 0;
-								Bool_type token1str = False;
-								Bool_type token2str = False;
-								htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
-								token1str = (tempEnt != NULL);
-								htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
-								token2str = (tempEnt != NULL);
-								if(token1str && token2str){
-									mat_range(analy,firstName,secondName,nums,&numnums);
-									int pos = 0;
-									for (pos = 0; pos < numnums; pos++){
-										//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-										sprintf(new_tokens[new_token_cnt],"%i",nums[pos]);
-										new_token_cnt +=1;
-									}
-								}
-								else{
-									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
-									new_token_cnt+=1;
-								}
-							}
-						}
-					}
-					//otherwise dash is in the second item
-					else{
-						//is second token only a dash?
-						if(strcmp(tokens[tokenpos+1],"-") == 0){
-							//merge 3 tokens
-							sprintf(tokholder,"%s%s%s",tokens[tokenpos],tokens[tokenpos+1],tokens[tokenpos+2]);
-							//handle range
-							char *token;
-							token = strtok(tokholder,"-");
-							char *firstName = token;
-							token = strtok(NULL,"-");
-							char *secondName = token;
-							int nums[analy->max_mesh_mat_qty];
-							int numnums = 0;
-							Bool_type token1str = False;
-							Bool_type token2str = False;
-							htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
-							token1str = (tempEnt != NULL);
-							htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
-							token2str = (tempEnt != NULL);
-							if(token1str && token2str){
-								mat_range(analy,firstName,secondName,nums,&numnums);
-								int pos = 0;
-								for (pos = 0; pos < numnums; pos++){
-									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-									sprintf(new_tokens[new_token_cnt],"%i",nums[pos]);
-									new_token_cnt +=1;
+									//new_tokens[new_token_cnt+2] = (char*)malloc(TOKENLENGTH * sizeof(char));
+									strcpy(new_tokens[new_token_cnt+2], tokens[tokenpos+2]);
+									new_token_cnt+=3;
+									tokenpos += 2;
 								}
 							}
 							else{
-								//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-								strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
-								//new_tokens[new_token_cnt+1] = (char*)malloc(TOKENLENGTH * sizeof(char));
-								strcpy(new_tokens[new_token_cnt+1], tokens[tokenpos+1]);
-								//new_tokens[new_token_cnt+2] = (char*)malloc(TOKENLENGTH * sizeof(char));
-								strcpy(new_tokens[new_token_cnt+2], tokens[tokenpos+2]);
-								new_token_cnt+=3;
-								tokenpos += 2;
-							}
-						}
-						else{
-							//does second token begin with a dash?
-							if(strncmp(tokens[tokenpos+1],"-",1) == 0){
-								//merge 2 tokens
-								sprintf(tokholder,"%s%s",tokens[tokenpos],tokens[tokenpos+1]);
-								//handle range
-								char *token;
-								token = strtok(tokholder,"-");
-								char *firstName = token;
-								token = strtok(NULL,"-");
-								char *secondName = token;
-								int nums[analy->max_mesh_mat_qty];
-								int numnums = 0;
-								Bool_type token1str = False;
-								Bool_type token2str = False;
-								htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
-								token2str = (tempEnt != NULL);
-								htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
-								token1str = (tempEnt != NULL);
-								if(token1str && token2str){
-									mat_range(analy,firstName,secondName,nums,&numnums);
-									int pos = 0;
-									for (pos = 0; pos < numnums; pos++){
-										//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-										sprintf(new_tokens[new_token_cnt],"%i",nums[pos]);
-										new_token_cnt +=1;
-									}
-								}
-								else{
-									if (token1str){
-										strcpy(new_tokens[new_token_cnt], tempEnt->data);
+								//does second token begin with a dash?
+								if(strncmp(tokens[tokenpos+1],"-",1) == 0){
+									//merge 2 tokens
+									sprintf(tokholder,"%s%s",tokens[tokenpos],tokens[tokenpos+1]);
+									//handle range
+									char *token;
+									token = strtok(tokholder,"-");
+									char *firstName = token;
+									token = strtok(NULL,"-");
+									char *secondName = token;
+									int nums[analy->max_mesh_mat_qty];
+									int numnums = 0;
+									Bool_type token1str = False;
+									Bool_type token2str = False;
+									htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
+									token2str = (tempEnt != NULL);
+									htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
+									token1str = (tempEnt != NULL);
+									if(token1str && token2str){
+										mat_range(analy,firstName,secondName,nums,&numnums);
+										int pos = 0;
+										for (pos = 0; pos < numnums; pos++){
+											//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+											sprintf(new_tokens[new_token_cnt],"%i",nums[pos]);
+											new_token_cnt +=1;
+										}
 									}
 									else{
+										if (token1str){
+											strcpy(new_tokens[new_token_cnt], tempEnt->data);
+										}
+										else{
+											//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+											strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+										}
 										//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-										strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+										strcpy(new_tokens[new_token_cnt+1], tokens[tokenpos+1]);
+										new_token_cnt+=2;
+										tokenpos += 1;
 									}
-									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-									strcpy(new_tokens[new_token_cnt+1], tokens[tokenpos+1]);
-									new_token_cnt+=2;
-									tokenpos += 1;
 								}
-							}
-							// next token is not connected to this token
-							else{
-								//process only 1
-								int len = 1;
-								//search table
-								htable_search(analy->mat_names,tokens[tokenpos],FIND_ENTRY,&tempEnt);
-								//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-								if(tempEnt != NULL){
-									strcpy(new_tokens[new_token_cnt], tempEnt->data);
-								}
-								//no match pass through and proceed
+								// next token is not connected to this token
 								else{
-									if(begins_with(tokens[tokenpos],"*") || ends_with(tokens[tokenpos],"*")){
-										int num_entries = 0;
-										num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], NULL );
-										if (num_entries > 0){
-											char **wildcard_list=(char**) malloc( num_entries*sizeof(char *));
-											int new_num_entries;
-											new_num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], wildcard_list );
-											int pos = 0;
-											for (pos = 0; pos < num_entries; pos++){
-												//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-												htable_search(analy->mat_names,wildcard_list[pos],FIND_ENTRY,&tempEnt);
-												if(tempEnt != NULL){
-													strcpy(new_tokens[new_token_cnt], tempEnt->data);
-													new_token_cnt +=1;
+									//process only 1
+									int len = 1;
+									//search table
+									htable_search(analy->mat_names,tokens[tokenpos],FIND_ENTRY,&tempEnt);
+									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+									if(tempEnt != NULL){
+										strcpy(new_tokens[new_token_cnt], tempEnt->data);
+									}
+									//no match pass through and proceed
+									else{
+										if(begins_with(tokens[tokenpos],"*") || ends_with(tokens[tokenpos],"*")){
+											int num_entries = 0;
+											num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], NULL );
+											if (num_entries > 0){
+												char **wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+												int new_num_entries;
+												new_num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], wildcard_list );
+												int pos = 0;
+												for (pos = 0; pos < num_entries; pos++){
+													//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+													htable_search(analy->mat_names,wildcard_list[pos],FIND_ENTRY,&tempEnt);
+													if(tempEnt != NULL){
+														strcpy(new_tokens[new_token_cnt], tempEnt->data);
+														new_token_cnt +=1;
+													}
 												}
-											}
 
+											}
+											else{
+												strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+											}
 										}
 										else{
 											strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
 										}
 									}
-									else{
-										strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
-									}
+									new_token_cnt+=1;
 								}
-								new_token_cnt+=1;
 							}
 						}
 					}
-				}
-				//if not just see about potentially replacing single token then proceed
-				else{
-					//is the current token a number?
-					//if so copy into new tokens as is
-					//otherwise check hash table and replace with number to copy as is
-					htable_search(analy->mat_names,tokens[tokenpos],FIND_ENTRY,&tempEnt);
-					//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-					if(tempEnt != NULL){
-						strcpy(new_tokens[new_token_cnt], tempEnt->data);
-					}
-					//no match pass through and proceed
+					//if not just see about potentially replacing single token then proceed
 					else{
-						if(begins_with(tokens[tokenpos],"*") || ends_with(tokens[tokenpos],"*")){
-							int num_entries = 0;
-							num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], NULL );
-							if (num_entries > 0){
-								char **wildcard_list=(char**) malloc( num_entries*sizeof(char *));
-								int new_num_entries;
-								new_num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], wildcard_list );
-								int pos = 0;
-								for (pos = 0; pos < num_entries; pos++){
-									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-									htable_search(analy->mat_names,wildcard_list[pos],FIND_ENTRY,&tempEnt);
-									if(tempEnt != NULL){
-										strcpy(new_tokens[new_token_cnt], tempEnt->data);
-										new_token_cnt +=1;
+						//is the current token a number?
+						//if so copy into new tokens as is
+						//otherwise check hash table and replace with number to copy as is
+						htable_search(analy->mat_names,tokens[tokenpos],FIND_ENTRY,&tempEnt);
+						//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+						if(tempEnt != NULL){
+							strcpy(new_tokens[new_token_cnt], tempEnt->data);
+						}
+						//no match pass through and proceed
+						else{
+							if(begins_with(tokens[tokenpos],"*") || ends_with(tokens[tokenpos],"*")){
+								int num_entries = 0;
+								num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], NULL );
+								if (num_entries > 0){
+									char **wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+									int new_num_entries;
+									new_num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], wildcard_list );
+									int pos = 0;
+									for (pos = 0; pos < num_entries; pos++){
+										//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+										htable_search(analy->mat_names,wildcard_list[pos],FIND_ENTRY,&tempEnt);
+										if(tempEnt != NULL){
+											strcpy(new_tokens[new_token_cnt], tempEnt->data);
+											new_token_cnt +=1;
+										}
 									}
+								}
+								else{
+									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
 								}
 							}
 							else{
 								strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
 							}
 						}
-						else{
-							strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
-						}
+						new_token_cnt+=1;
 					}
-					new_token_cnt+=1;
+				}
+				else{
+					strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+					new_token_cnt +=1;
 				}
 
 			}

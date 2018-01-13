@@ -3458,4 +3458,22 @@ safeStrCpy(char* dest, int dlen, char* src, int slen, int flag){
 	return status;
 }
 
-
+Bool_type
+isClassname(char* input, Analysis *analy){
+	Bool_type result = False;
+	Htable_entry *p_hte;
+	int rval;
+	char token_upper[256];
+	string_to_upper( input, token_upper );
+	rval = htable_search( MESH( analy ).class_table, input, FIND_ENTRY, &p_hte );
+	if ( rval!=OK ){
+		rval = htable_search( MESH( analy ).class_table, token_upper, FIND_ENTRY, &p_hte );
+	}
+	if (rval != OK){
+		result = False;
+	}
+	else{
+		result = True;
+	}
+	return result;
+}
