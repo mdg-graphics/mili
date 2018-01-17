@@ -2155,6 +2155,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     		strcpy(analy->banned_names[tmppos],tempnames[tmppos]);
     		analy->num_banned_names++;
     	}
+    	//command name list
 
     	//class names
         int  qty_classes=0;
