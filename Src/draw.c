@@ -11355,23 +11355,18 @@ draw_foreground( Analysis *analy )
             //make names hash table
 
     		//TEMP_DISABLED
-    		sprintf(teststr,"MAT_NAME_%d",i+1);
-    		if(env.ti_enable == TRUE){
-    			status = mc_ti_read_string(analy->db_ident, teststr, (void*) &test);
-    		}
+//    		sprintf(teststr,"MAT_NAME_%d",i+1);
+//    		if(env.ti_enable == TRUE){
+//    			status = mc_ti_read_string(analy->db_ident, teststr, (void*) &test);
+//    		}
             //if so then print name
-        	if (status == OK && analy->mat_labels_active){
-        		Htable_entry *tempEnt;
-        		char tempname[32];
-        		sprintf(tempname,"%d",i+1);
-        		htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
-        		if(tempEnt != NULL){
-        			sprintf( str, tempEnt->data);
-        		}
-        		else{
-        			sprintf( str, test);
-        		}
-        	}
+			Htable_entry *tempEnt;
+			char tempname[32];
+			sprintf(tempname,"%d",i+1);
+			htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+			if(tempEnt != NULL){
+				sprintf( str, tempEnt->data);
+			}
             //else just use number
         	else{
         		sprintf( str, "%d", i+1 );

@@ -2124,23 +2124,25 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     //NEW_MAT_CODE
 
 
-    if(env.ti_enable){
-    	char *pretest;
-		pretest = malloc(label_length * sizeof(char));
-		status = mc_ti_read_string(analy->db_ident, "MAT_NAME_1", (void*) pretest);
-		if(status == OK){
-			analy->mat_labels_active = TRUE;
-		}
-		else{
-			analy->mat_labels_active = FALSE;
-		}
-		free(pretest);
-    }
-    else{
-    	analy->mat_labels_active = FALSE;
-    }
+//    if(env.ti_enable){
+//    	char *pretest;
+//		pretest = malloc(label_length * sizeof(char));
+//		status = mc_ti_read_string(analy->db_ident, "MAT_NAME_1", (void*) pretest);
+//		if(status == OK){
+//			analy->mat_labels_active = TRUE;
+//		}
+//		else{
+//			analy->mat_labels_active = FALSE;
+//		}
+//		free(pretest);
+//    }
+//    else{
+//    	analy->mat_labels_active = FALSE;
+//    }
 
-    if(analy->mat_labels_active){
+    analy->mat_labels_active = TRUE;
+
+    if(analy->mat_labels_active && env.ti_enable){
 		//Gen list of banned names
 		//char* banned[100] = {"node","brick","shell","steel"};
 		//int sizeofbanned = 4;

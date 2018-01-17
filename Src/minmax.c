@@ -1545,7 +1545,7 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
 
         mat = req_mats[i] + 1;
 
-        if(analy->mat_labels_active && mat > 0){
+        if(mat > 0){
         	mat_name = malloc(33 * sizeof(char));
         	Htable_entry *tempEnt;
 			char tempname[32];
@@ -1560,7 +1560,7 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
         fprintf( outfile, "#\n#\n" );
 
         if ( !show_mat_result )
-        	if(analy->mat_labels_active && mat_name){
+        	if(mat_name){
 				fprintf( outfile, header_new,
 						 2 + node_pre, blanks, object_label,
 						 ident_width - object_label_width - node_pre + 4, blanks,
@@ -1581,7 +1581,7 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
         for ( j = 0; j < limit_st; j++ )
             if ( !show_mat_result )
             {
-            	if(analy->mat_labels_active && mat_name){
+            	if(mat_name){
             		fprintf( outfile, std_out_format_new,
 							 mat_name, min_state + j + 1, state_times[j],
 							 mat_max_row[j], ident_width, mat_max_id[j],
@@ -1605,7 +1605,7 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
         /* Dump the min or max extreme which occurs first. */
 
         if ( !show_mat_result ){
-        	if(analy->mat_labels_active && mat_name){
+        	if(mat_name){
 				fprintf( outfile, mm_out_format_new,
 						 mat_name, min_state + j + 1, state_times[j], mat_max_row[j],
 						 ident_width, mat_max_id[j], mat_min_row[j], ident_width,
@@ -1636,7 +1636,7 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
         limit_st = min_first ? max_st : min_st;
         for ( ; j < limit_st; j++ )
             if ( !show_mat_result ){
-            	if(analy->mat_labels_active && mat_name){
+            	if(mat_name){
             		fprintf( outfile, std_out_format_new,
 							 mat_name, min_state + j + 1, state_times[j], mat_max_row[j],
 							 ident_width, mat_max_id[j], mat_min_row[j],
@@ -1660,7 +1660,7 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
         if ( min_st != max_st )
         {
             if ( !show_mat_result )
-            	if(analy->mat_labels_active && mat_name){
+            	if(mat_name){
 					fprintf( outfile, mm_out_format_new,
 							 mat_name, min_state + j + 1, state_times[j], mat_max_row[j],
 							 ident_width, mat_max_id[j], mat_min_row[j],
@@ -1688,7 +1688,7 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
         /* Dump the states after the second extreme. */
         for ( ; j < qty_states; j++ )
             if ( !show_mat_result ){
-            	if(analy->mat_labels_active && mat_name){
+            	if(mat_name){
 					fprintf( outfile, std_out_format_new,
 							 mat_name, min_state + j + 1, state_times[j], mat_max_row[j],
 							 ident_width, mat_max_id[j], mat_min_row[j],

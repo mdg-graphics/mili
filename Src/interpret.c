@@ -924,10 +924,10 @@ parse_single_command( char *buf, Analysis *analy )
      * Also getint and getstring.
      */
 
-    if(analy->mat_labels_active){
+    //if(analy->mat_labels_active){
 		//mat name substitution here
-		mat_name_sub(analy,tokens,&token_cnt);
-    }
+	mat_name_sub(analy,tokens,&token_cnt);
+    //}
 
     redraw = NO_VISUAL_CHANGE;
     renorm = FALSE;

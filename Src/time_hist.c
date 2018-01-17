@@ -5995,7 +5995,7 @@ draw_plots( Analysis *analy )
         if ( oper_plot )
             build_oper_series_label( p_po->ordinate, TRUE, str );
         else if ( ordinates_same ){
-        	if(analy->mat_labels_active && (strcmp(p_po->ordinate->mo_class->short_name,"mat") == 0)){
+        	if((strcmp(p_po->ordinate->mo_class->short_name,"mat") == 0)){
         		Htable_entry *tempEnt;
 				char tempname[32];
 				sprintf(tempname,"%d",label);
@@ -6014,7 +6014,7 @@ draw_plots( Analysis *analy )
         else
         {
 
-        	if(analy->mat_labels_active && (strcmp(p_po->ordinate->mo_class->short_name,"mat") == 0)){
+        	if((strcmp(p_po->ordinate->mo_class->short_name,"mat") == 0)){
         		Htable_entry *tempEnt;
 				char tempname[32];
 				sprintf(tempname,"%d",label);
