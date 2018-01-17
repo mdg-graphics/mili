@@ -85,7 +85,7 @@ outth bending-71_th.jansw cur
 
 #  Plot for variable dispx
 refstate 5
-plot dispx node 1 4 12 14
+plot dispx node 2 4 12 14
 outth bending-71_th.jansw cur
 
 #  Plot for variable accmag

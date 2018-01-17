@@ -19,7 +19,8 @@ fracsz 8
 jpegqual 100
 
 # Object selection 
-select node 1 11 21 100 221-225 17-22
+select node 1 11 100 221-225 17-22
+unselect 21
 select mat 1
 
 # Images for variable nodposux

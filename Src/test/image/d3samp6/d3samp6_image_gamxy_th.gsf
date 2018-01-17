@@ -17,7 +17,7 @@ off path
 
 # Object selection 
 select brick all
-select brick 5 17 28 15 36 18 20-24 30
+unselect brick 5 17 28 15 36 18 20-24 30
 select mat 1
 
 # Images for variable gamxy

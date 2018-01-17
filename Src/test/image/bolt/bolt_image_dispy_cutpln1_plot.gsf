@@ -21,7 +21,7 @@ jpegqual 100
 off all; on cmap; on title; on time; on coord
 off box; on minmax
 off path
-rdhis bolt.V1
+rdhis bolt_V1.gsf
 
 # Object selection 
 select brick 2 757 6049 13483 14134 106425 51912 10824 11656 11842 106824
