@@ -1,0 +1,20 @@
+# ntet20
+# Title: Simple meshless particle example of bar impact (same problem as bar71)
+# Material Model: 3
+# Units: gm-cm-ms
+# End Time: 80
+# Griz Script File: ntet20.gsf
+# XY Plot File Prefix: plot_ntet20_
+# XY Data File Prefix: xy_ntet20_
+# Image File Prefix: image_ntet20_
+# Min/Max Switch: global
+# Verbatim To Griz: off all; on cmap; on title; on time; on coord
+off all; on cmap; on title; on time; on coord
+switch mglob
+#  Image for variable sz
+clrsel 
+time 80
+rview; ry 90; rx 45; ry -35.26; rz -30
+show sz
+outjpeg ntet20_image_sz_plot.answ.jpg
+# EndCase 

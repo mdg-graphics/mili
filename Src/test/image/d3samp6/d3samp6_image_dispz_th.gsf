@@ -17,7 +17,7 @@ off path
 
 # Object selection 
 select node 1-2 10 11 12 15 25 21 40 58-61 7 69 138 132 
-select node 10 60
+unselect node 10 60
 select mat 1
 
 # Images for variable dispz

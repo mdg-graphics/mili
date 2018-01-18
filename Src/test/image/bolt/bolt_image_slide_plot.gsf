@@ -20,7 +20,7 @@ jpegqual 100
 # Set viewing 
 off all; on cmap; on title; on time; on coord; on box; on minmax
 off path
-rdhis bolt.V1
+rdhis bolt_V1.gsf
 
 # Object selection 
 select nike all

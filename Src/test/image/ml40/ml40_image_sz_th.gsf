@@ -11,7 +11,6 @@ off path
 switch mglob
 fracsz 8
 alias s80 state 80
-on thsinglecol
 jpegqual 100
 alias selml select ml 1 667 963 1010 200-204
 

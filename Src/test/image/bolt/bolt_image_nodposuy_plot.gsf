@@ -21,7 +21,7 @@ jpegqual 100
 off all; on cmap; on title; on time; on coord; on box; on minmax
 off path
 vcent node 14691
-rdhis bolt.V1
+rdhis bolt_V1.gsf
 
 # Object selection 
 select node 1 334 703 741 777 1369 117467

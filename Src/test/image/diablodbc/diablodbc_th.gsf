@@ -19,8 +19,8 @@ jpegqual 100
 
 # Object selection 
 select brick 1 45 48 116 80 68 97-100
-select node 1 11 21 100 225 17-22
-select node 20
+select node 1 11 100 225 17-22
+unselect node 20 21
 select mat 1
 
 # Append output to TH file

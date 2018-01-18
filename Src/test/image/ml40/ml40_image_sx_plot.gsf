@@ -24,6 +24,7 @@ clrsel
 l
 selml
 select ml 1000 1012 1369 200-201
+unselect ml 200
 show "stress[sx]"
 outjpg ml40_image_sx_plot.answ.jpg
 
