@@ -9,7 +9,7 @@ griz_env lives there also
 
 To checkout locally do the following: 
 
-cvs co -d scripts Dyna3dx/Checkout/scripts
+cvs co -d scripts Dyna3dx/CheckOut/scripts
 
 
 scripts/Test.py -e griz_env -c path to the code" -s derived
