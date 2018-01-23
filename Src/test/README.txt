@@ -7,8 +7,9 @@ Test.py lives in  Dyna3dx/Checkout/scripts/Test.py
 
 griz_env lives there also
 
+To checkout locally do the following: 
 
-
+cvs co -d scripts Dyna3dx/Checkout/scripts
 
 
 scripts/Test.py -e griz_env -c path to the code" -s derived

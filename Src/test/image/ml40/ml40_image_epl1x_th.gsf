@@ -3,7 +3,7 @@
 # Material Model: 3
 # Units: gm-cm-ms
 # End Time: 80
-# Griz Script File: ml40_epl1x_th.gsf
+# Griz Script File: ml40_image_epl1x_th.gsf
 # Min/Max Switch: global
 
 off all; on cmap; on title; on time; on coord; on box; on minmax
@@ -11,7 +11,6 @@ off path
 switch mglob
 fracsz 8
 alias s80 state 80
-on thsinglecol
 jpegqual 100
 alias selml select ml 1 667 963 1010
 
@@ -24,7 +23,6 @@ s80
 selml
 select ml 1369 1000
 show "ml_ellipse[elp1_x]"
-invis all
 plot
 outjpg ml40_image_epl1x_th.answ.jpg
 

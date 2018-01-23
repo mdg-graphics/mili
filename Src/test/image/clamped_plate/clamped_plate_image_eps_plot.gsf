@@ -31,7 +31,7 @@ select mat 1
 sw mstat
 show et_1 
 state 1499 
-outjpeg clamped_plate_image_et1_plot.answ.jpg
+outjpeg clamped_plate_image_eps_plot.answ.jpg
 
 # EndCase 
 
