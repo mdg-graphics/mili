@@ -10363,11 +10363,21 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 									}
 								}
 								else{
-									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+									if(isClassname(tokens[tokenpos],analy)){
+										strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+									}
+									else{
+										strcpy(new_tokens[new_token_cnt],"");
+									}
 								}
 							}
 							else{
-								strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+								if(isClassname(tokens[tokenpos],analy)){
+									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
+								}
+								else{
+									strcpy(new_tokens[new_token_cnt],"");
+								}
 							}
 						}
 						new_token_cnt+=1;
