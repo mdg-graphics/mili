@@ -28,7 +28,7 @@ ty -.25; tx -.225; tz .01
 
 # Object selection 
 select node all
-select node 1 4-5 15 
+unselect node 1 4-5 15 
 select mat 1
 disable 1
 
