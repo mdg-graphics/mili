@@ -10106,11 +10106,17 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 				char tempToken[TOKENLENGTH];
 				strcpy(tempToken,tokens[tokenpos]);
 				//should we be hunting for mat names
-				if(isClassname(tempToken,analy)){
+				if(isClassname(tempToken, MESH( analy ).class_table)){
 					if((strcmp(tokens[tokenpos],"mat") == 0) || (strcmp(tokens[tokenpos],"MAT") == 0)){
 						hunting = True;
 					}
 					else{
+						hunting = False;
+					}
+				}
+				//other reserved words to not be substituted
+				else{
+					if((strcmp(tempToken,"all") == 0) || (strcmp(tempToken,"allb") == 0)){
 						hunting = False;
 					}
 				}
@@ -10363,7 +10369,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 									}
 								}
 								else{
-									if(isClassname(tokens[tokenpos],analy)){
+									if(isClassname(tokens[tokenpos], MESH( analy ).class_table)){
 										strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
 									}
 									else{
@@ -10372,7 +10378,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 								}
 							}
 							else{
-								if(isClassname(tokens[tokenpos],analy)){
+								if(isClassname(tokens[tokenpos], MESH( analy ).class_table)){
 									strcpy(new_tokens[new_token_cnt], tokens[tokenpos]);
 								}
 								else{
