@@ -11340,40 +11340,32 @@ draw_foreground( Analysis *analy )
 		char test[100];
 		test[0] = '\0';
 		//NEW
+      Htable_entry *tempEnt;
+      char *name;
+      int mat_number;
         for ( i = 0; i < p_mesh->material_qty; i++ )
         {
+            name =  analy->sorted_names[i];
+            
+            status = htable_search(analy->mat_names,name,FIND_ENTRY,&tempEnt);
+            if(status != OK)
+            {
+               continue;
+            }else
+            {
+               mat_number = atoi(tempEnt->data)-1;
+            }
             /* Don't show material in legend if it's invisible. */
-            if ( p_mesh->hide_material[i] )
+            if ( p_mesh->hide_material[mat_number] )
                 continue;
 
-            glColor3fv( v_win->mesh_materials.diffuse[i] );
+            glColor3fv( v_win->mesh_materials.diffuse[mat_number] );
             glRectf( xp, yp, xp + text_height, yp + text_height );
 
             glColor3fv( v_win->text_color );
             hmove2( xp - 0.5*text_height, yp );
-            //MAT_NAMES_CHECK
-            //make names hash table
-
-    		//TEMP_DISABLED
-//    		sprintf(teststr,"MAT_NAME_%d",i+1);
-//    		if(env.ti_enable == TRUE){
-//    			status = mc_ti_read_string(analy->db_ident, teststr, (void*) &test);
-//    		}
-            //if so then print name
-			Htable_entry *tempEnt;
-			char tempname[32];
-			sprintf(tempname,"%d",i+1);
-			htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
-			if(tempEnt != NULL){
-				sprintf( str, tempEnt->data);
-			}
-            //else just use number
-        	else{
-        		sprintf( str, "%d", i+1 );
-        	}
-
-        	//sprintf( str, "%d", i+1 );
-            hcharstr( str );
+            
+            hcharstr( name );
 
             yp -= 1.5*text_height;
         }
