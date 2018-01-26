@@ -2179,12 +2179,16 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		revNames = htable_create( 1001 );
 		Htable_entry *tempEnt;
 		int pos2;
-		analy->sorted_names = malloc(analy->max_mesh_mat_qty * (sizeof(char) * label_length));
+		//analy->sorted_names = malloc(analy->max_mesh_mat_qty * (sizeof(char) * label_length));
 		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*)));
 		analy->num_messages = 0;
+      char teststr[20];
+      char merged[label_length];
+		char temp[label_length];
+		char message[120];
 		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
 			//check if name exists
-			char teststr[20];
+			
 			teststr[0] = '\0';
 			int num_items_read = 0;
 			int status = 0;
@@ -2192,20 +2196,18 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			char *test;
 			test = malloc(label_length * sizeof(char));
 			status = mc_ti_read_string(analy->db_ident, teststr, (void*) test);
-			//if so then print name
-			if (status == OK){
-				char *str;
-				str = malloc(10 * sizeof(char));
-				sprintf(str,"%d",pos2+1);
-				int bpos = 0;
-				for(bpos = 0; bpos < analy->num_banned_names; bpos ++){
-					if(strcmp(analy->banned_names[bpos],test) == 0){
-//						char *merged = malloc(label_length * sizeof(char));
-//						char *temp = malloc(label_length * sizeof(char));
-//						char *message = malloc(120 * sizeof(char));
-						char merged[label_length];
-						char temp[label_length];
-						char message[120];
+			char *str;
+			str = malloc(10 * sizeof(char));
+			sprintf(str,"%d",pos2+1);//if so then print name
+			
+         if (status == OK){
+				
+            int bpos = 0;
+				for(bpos = 0; bpos < analy->num_banned_names; bpos ++){					
+               if(strcmp(analy->banned_names[bpos],test) == 0){
+						merged[0]='\0';
+						temp[0]='\0';
+						message[0]='\0';
 						sprintf(temp,"%s",test);
 						sprintf(merged,"%s%s","_",test);
 						sprintf(test,"%s",merged);
@@ -2213,44 +2215,30 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 						analy->conflict_messages[analy->num_messages] = malloc(120 * sizeof(char));
 						sprintf(analy->conflict_messages[analy->num_messages], "%s", message);
 						analy->num_messages++;
-						//free(merged);
-						//free(temp);
-						//free(message);
-					}
-				}
-				htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
-				htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
-				sortedNames[pos2] = malloc(label_length * sizeof(char));
-				sprintf(sortedNames[pos2],"%s",test);
-				//free(str);
+					}               
+				}				
 			}
 			else{
-				char *str;
-				str = malloc(10 * sizeof(char));
-				sprintf(str,"%d",pos2+1);
-				htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) str);
-				htable_add_entry_data(forNames,str ,ENTER_UNIQUE,(void *) str);
-				sortedNames[pos2] = malloc(label_length * sizeof(char));
-				sprintf(sortedNames[pos2],"%s",str);
+				sprintf(test,"%s",str);
 			}
+         
+         htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
+			htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
+			sortedNames[pos2] = malloc(label_length * sizeof(char));
+			sprintf(sortedNames[pos2],"%s",test);
 			//ADD TO NAME ALPHA LIST
-			//free(test);
 		}
 
 		qsort(sortedNames, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
 
-		analy->sorted_names = malloc(analy->max_mesh_mat_qty * sizeof(char*));
-		int pos3 = 0;
-		for(pos3 = 0; pos3 < analy->max_mesh_mat_qty; pos3++){
-			analy->sorted_names[pos3] = malloc(label_length * sizeof(char));
-			strcpy(analy->sorted_names[pos3],sortedNames[pos3]);
-			free(sortedNames[pos3]);
-		}
-		//analy->sorted_names = &sortedNames;
-		analy->mat_names = forNames;
+		analy->sorted_names = sortedNames;
+      analy->mat_names = forNames;
 		analy->mat_names_reversed = revNames;
-		free(sortedNames);
-
+		// Make sure we get rid of dangling pointers
+      // DO NOT free this as it is now your analy->sorted_names pointer
+      // Simply setting it to NULL makes sure w do not have a dangling
+      // pointer.
+      sortedNames= NULL;
 
     }
 	//END NEW
