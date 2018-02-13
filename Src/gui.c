@@ -4076,6 +4076,9 @@ create_mtl_manager( Widget main_widg )
         Material_list_obj *p_mtl;
 
         mtl = i + 1;
+
+        //env.curr_analy.sorted_names[i];
+
         if ( mtl < 10 )
             sprintf( mtl_toggle_name, " %d ", mtl );
         else
