@@ -3507,7 +3507,7 @@ create_mtl_manager( Widget main_widg )
            frame, col_comp;
     Arg args[10];
     char win_title[256];
-    char mtl_toggle_name[8];
+    char mtl_toggle_name[35];
     int n, i, mtl, qty_mtls;
     int gid=3;
     Dimension width, max_child_width, margin_width, spacing, scrollbar_width,
@@ -4077,12 +4077,14 @@ create_mtl_manager( Widget main_widg )
 
         mtl = i + 1;
 
-        //env.curr_analy.sorted_names[i];
+        //env.curr_analy->sorted_names[i];
 
-        if ( mtl < 10 )
-            sprintf( mtl_toggle_name, " %d ", mtl );
-        else
-            sprintf( mtl_toggle_name, "%d", mtl );
+//        if ( mtl < 10 )
+//            sprintf( mtl_toggle_name, " %d ", mtl );
+//        else
+//            sprintf( mtl_toggle_name, "%d", env.curr_analy->sorted_names[i] );
+
+        sprintf( mtl_toggle_name, "%s", env.curr_analy->sorted_names[i] );
 
         widg = XtVaCreateManagedWidget(
                    mtl_toggle_name, xmToggleButtonWidgetClass, mtl_row_col,
@@ -4099,7 +4101,7 @@ create_mtl_manager( Widget main_widg )
         INSERT( p_mtl, mtl_deselect_list );
 
         XtAddCallback( widg, XmNdisarmCallback, mtl_select_CB,
-                       (XtPointer) mtl );
+                       (XtPointer) env.curr_analy->sorted_names[i] );
     }
 
     /*
