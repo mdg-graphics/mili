@@ -9986,7 +9986,7 @@ load_selected_mtls( char *p_buf, int *p_tok_cnt )
 
     for ( p_mtl = mtl_select_list; p_mtl != NULL; p_mtl = p_mtl->next )
     {
-        sprintf( p_dest, "%d ", p_mtl->mtl );
+        sprintf( p_dest, "%s ", p_mtl->mtl );
         p_dest += strlen( p_dest );
         t_cnt++;
     }
