@@ -4101,7 +4101,7 @@ create_mtl_manager( Widget main_widg )
         INSERT( p_mtl, mtl_deselect_list );
 
         XtAddCallback( widg, XmNdisarmCallback, mtl_select_CB,
-                       (XtPointer) env.curr_analy->sorted_names[i] );
+                       (XtPointer) i );
     }
 
     /*
@@ -7479,7 +7479,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 p_mtl = p_mtl->next, i-- )
         {
             XtVaSetValues( children[i], XmNset, True, NULL );
-            p_mtl->mtl = i + 1;
+            p_mtl->mtl = i;
         }
     }
     else if ( w == ctl_buttons[1][NONE] )
@@ -7515,7 +7515,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 XtVaSetValues( children[i], XmNset, True, NULL );
                 if ( p_mtl != NULL )
                 {
-                    p_mtl->mtl = i + 1;
+                    p_mtl->mtl = i;
                     p_mtl = p_mtl->next;
                 }
                 else
@@ -7551,7 +7551,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i + 1;
+                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
@@ -7565,7 +7565,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i + 1;
+                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
@@ -7579,7 +7579,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i + 1;
+                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
@@ -7593,7 +7593,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i + 1;
+                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
@@ -7607,7 +7607,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i + 1;
+                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
@@ -7621,7 +7621,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i + 1;
+                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
@@ -7635,7 +7635,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i + 1;
+                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
@@ -7649,7 +7649,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i + 1;
+                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
@@ -7665,7 +7665,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i + 1;
+                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
             else
@@ -9986,7 +9986,7 @@ load_selected_mtls( char *p_buf, int *p_tok_cnt )
 
     for ( p_mtl = mtl_select_list; p_mtl != NULL; p_mtl = p_mtl->next )
     {
-        sprintf( p_dest, "%s ", p_mtl->mtl );
+        sprintf( p_dest, "%s ", env.curr_analy->sorted_names[p_mtl->mtl] );
         p_dest += strlen( p_dest );
         t_cnt++;
     }

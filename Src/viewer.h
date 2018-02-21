@@ -1034,6 +1034,7 @@ typedef struct _Analysis
     Hash_table *mat_names;
     Hash_table *mat_names_reversed;
     char **sorted_names;
+    int sorted_names_reversed;
     char **banned_names;
     int num_banned_names;
     char **conflict_messages;

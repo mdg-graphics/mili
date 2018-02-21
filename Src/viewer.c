@@ -2174,6 +2174,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		Hash_table *revNames;
 		//char sortedNames[analy->max_mesh_mat_qty][32];
 		char** sortedNames = malloc(analy->max_mesh_mat_qty * sizeof(char*));
+		int* revSortedNames = malloc(analy->max_mesh_mat_qty * sizeof(int));
 		//char** sortedNames;
 		forNames = htable_create( 1001 );
 		revNames = htable_create( 1001 );
@@ -2182,8 +2183,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		//analy->sorted_names = malloc(analy->max_mesh_mat_qty * (sizeof(char) * label_length));
 		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*)));
 		analy->num_messages = 0;
-      char teststr[20];
-      char merged[label_length];
+		char teststr[20];
+		char merged[label_length];
 		char temp[label_length];
 		char message[120];
 		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
@@ -2203,7 +2204,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
          if (status == OK){
 				
             int bpos = 0;
-				for(bpos = 0; bpos < analy->num_banned_names; bpos ++){					
+			for(bpos = 0; bpos < analy->num_banned_names; bpos ++){
                if(strcmp(analy->banned_names[bpos],test) == 0){
 						merged[0]='\0';
 						temp[0]='\0';
@@ -2222,7 +2223,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 				sprintf(test,"%s",str);
 			}
          
-         htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
+         	htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
 			htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
 			sortedNames[pos2] = malloc(label_length * sizeof(char));
 			sprintf(sortedNames[pos2],"%s",test);
@@ -2232,8 +2233,14 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		qsort(sortedNames, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
 
 		analy->sorted_names = sortedNames;
-      analy->mat_names = forNames;
+		analy->mat_names = forNames;
 		analy->mat_names_reversed = revNames;
+		int rspos = 0;
+		for(rspos = 0; rspos < analy->max_mesh_mat_qty; rspos++){
+			htable_search(analy->mat_names,analy->sorted_names[rspos],FIND_ENTRY,&tempEnt);
+			revSortedNames[rspos] = tempEnt->data;
+		}
+		analy->sorted_names_reversed = revSortedNames;
 		// Make sure we get rid of dangling pointers
       // DO NOT free this as it is now your analy->sorted_names pointer
       // Simply setting it to NULL makes sure w do not have a dangling
