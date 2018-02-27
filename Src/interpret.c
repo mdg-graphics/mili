@@ -4504,20 +4504,21 @@ parse_single_command( char *buf, Analysis *analy )
         if((token_cnt > 1) && (!strcmp(tokens[1], "invis") || !strcmp(tokens[1], "vis") ||
                                !strcmp(tokens[1], "disable") || !strcmp(tokens[1], "enable")))
         {
-            strncpy(newcmd, tokens[1], LASTCMD - 2);
-            strcat(newcmd, " ");
-            for( i = 2; i < token_cnt; i++)
-            {
-                if((strlen(tokens[i] + 1) < LASTCMD - strlen(newcmd) - 2))
-                {
-                    strcat(newcmd, tokens[i]);
-                    if ( i < token_cnt - 1)
-                    {
-                        strcat(newcmd, " ");
-                    }
-                }
-            }
-            parse_single_command(&newcmd[0], analy);
+//            strncpy(newcmd, tokens[1], LASTCMD - 2);
+//            strcat(newcmd, " ");
+//            for( i = 2; i < token_cnt; i++)
+//            {
+//                if((strlen(tokens[i] + 1) < LASTCMD - strlen(newcmd) - 2))
+//                {
+//                    strcat(newcmd, tokens[i]);
+//                    if ( i < token_cnt - 1)
+//                    {
+//                        strcat(newcmd, " ");
+//                    }
+//                }
+//            }
+//            parse_single_command(&newcmd[0], analy);
+            parse_single_command(&buf[4],analy);
         }
         else
         {
@@ -7144,7 +7145,8 @@ parse_single_command( char *buf, Analysis *analy )
     {
         draw_vid_title();
     }
-    else if ( strcmp( tokens[0], "dscala") == 0)
+    else if ( strcmp( tokens[0], "dscala") == 0 ||
+    		  strcmp( tokens[0], "dscalc") == 0 )
     {
         char cmd[512];
         char scale[32];
@@ -7160,6 +7162,10 @@ parse_single_command( char *buf, Analysis *analy )
         int output_file = 0;
         out_command[0] = '\0';
         parse_command("on dscal", analy);
+        Bool_Type cflag = false;
+        if (strcmp( tokens[0], "dscalc") == 0) {
+        	cflag = true;
+        }
         if(token_cnt > 1)
         {
             sscanf(tokens[1], "%f", &num_divisions);
@@ -7176,7 +7182,6 @@ parse_single_command( char *buf, Analysis *analy )
                     popup_dialog(USAGE_POPUP, "The number of cycles must be > 1\n");
                     return;
                 }
-
                 if(token_cnt > 3)
                 {
                     sscanf(tokens[3], "%f", &amplification);
@@ -7202,51 +7207,46 @@ parse_single_command( char *buf, Analysis *analy )
                         {
                             strcpy(out_base_name, analy->root_name);
                         }
-                            
                     }
                 }
-                
             }
         }
-        
         incr = (2*PI)/num_divisions;
+        int digits = 0;
+        int tempDiv = num_divisions;
+        while(tempDiv){
+        	tempDiv /= 10;
+        	digits++;
+        }
         for(i = 0; i < reps; i++)
         {
-            /*incr = (max - min)/num_divisions; 
-            incr = 1/num_divisions;
-            for(j = 0; j <= num_divisions; j++)
-            {
-                dmax = 1.0 - (amplification * sin(2*PI*j*incr));
-                sprintf(scale, "%f", dmax);
-                strcpy(cmd, "dscal ");
-                strcat(cmd, scale);
-                parse_command(cmd, analy);
-            }
-            */
             dmax = 0.0;
             for(j = 0; j <= num_divisions; j++)
             {
-                
-                sprintf(scale, "%f", (amplification*sin(dmax)));
+            	if(cflag){
+            		sprintf(scale, "%f", (amplification*cos(dmax)));
+            	}
+            	else{
+            		sprintf(scale, "%f", (amplification*sin(dmax)));
+            	}
                 strcpy(cmd, "dscal ");
                 strcat(cmd, scale);
                 parse_command(cmd, analy);
                 if(output_file)
                 {
                     int index = (j+(i*num_divisions))+1;
-                    sprintf(out_file_name, "%s-01_%d.jpg", out_base_name, index);
+                    sprintf(out_file_name, "%s-01_%0*d.jpg", out_base_name, digits, index);
                     strcpy(cmd, out_command);
                     strcat(cmd, " ");
                     strcat(cmd, out_file_name);
                     parse_command(cmd, analy);
-                    
                 }
                 dmax = dmax + incr;//1.0 - ( * sin(2*PI*j*incr));
             }
-            
-        
-       }
-        
+        }
+        strcpy(cmd, "dscal ");
+        strcat(cmd, amplification);
+        parse_command(cmd, analy);
     }
     else if ( strcmp( tokens[0], "dscal" ) == 0 ||
               strcmp( tokens[0], "dscale" ) == 0 )

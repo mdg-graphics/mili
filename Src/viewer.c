@@ -2141,6 +2141,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 //    }
 
     analy->mat_labels_active = TRUE;
+    analy.maxLabelLength = 0;
 
     if(analy->mat_labels_active && env.ti_enable){
 		//Gen list of banned names
@@ -2227,6 +2228,10 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
 			sortedNames[pos2] = malloc(label_length * sizeof(char));
 			sprintf(sortedNames[pos2],"%s",test);
+			int curlen = strlen(str);
+			if(curlen > analy.maxLabelLength){
+				analy.maxLabelLength = curlen;
+			}
 			//ADD TO NAME ALPHA LIST
 		}
 
