@@ -2141,7 +2141,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 //    }
 
     analy->mat_labels_active = TRUE;
-    analy.maxLabelLength = 0;
+    analy->maxLabelLength = malloc(sizeof(int));
+    analy->maxLabelLength = 0;
 
     if(analy->mat_labels_active && env.ti_enable){
 		//Gen list of banned names
@@ -2202,11 +2203,10 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			str = malloc(10 * sizeof(char));
 			sprintf(str,"%d",pos2+1);//if so then print name
 			
-         if (status == OK){
-				
-            int bpos = 0;
-			for(bpos = 0; bpos < analy->num_banned_names; bpos ++){
-               if(strcmp(analy->banned_names[bpos],test) == 0){
+			if (status == OK){
+				int bpos = 0;
+				for(bpos = 0; bpos < analy->num_banned_names; bpos ++){
+				    if(strcmp(analy->banned_names[bpos],test) == 0){
 						merged[0]='\0';
 						temp[0]='\0';
 						message[0]='\0';
@@ -2229,8 +2229,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			sortedNames[pos2] = malloc(label_length * sizeof(char));
 			sprintf(sortedNames[pos2],"%s",test);
 			int curlen = strlen(str);
-			if(curlen > analy.maxLabelLength){
-				analy.maxLabelLength = curlen;
+			if(curlen > analy->maxLabelLength){
+				analy->maxLabelLength = curlen;
 			}
 			//ADD TO NAME ALPHA LIST
 		}

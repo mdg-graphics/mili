@@ -3507,7 +3507,8 @@ create_mtl_manager( Widget main_widg )
            frame, col_comp;
     Arg args[10];
     char win_title[256];
-    char mtl_toggle_name[env.curr_analy.maxLabelLength];
+    int len = env.curr_analy->maxLabelLength+1;
+    char mtl_toggle_name[len];
     int n, i, mtl, qty_mtls;
     int gid=3;
     Dimension width, max_child_width, margin_width, spacing, scrollbar_width,

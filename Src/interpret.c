@@ -2101,7 +2101,7 @@ parse_single_command( char *buf, Analysis *analy )
             else if ( strcmp( tokens[i], "snap" ) == 0 )
                 analy->use_snap = setval;
             else if ( strcmp( tokens[i], "mat_labels" ) == 0 )
-                analy->mat_labels_active = setval;
+                analy->mat_labels_active = TRUE;
             //END
             else if ( strcmp( tokens[i], "title" ) == 0 )
             {
@@ -4332,102 +4332,6 @@ parse_single_command( char *buf, Analysis *analy )
 
             }
 
-            /*p_elem  = MESH(analy).by_class_select[i].hide_class_elem; */
-            /*if ( !mat_brick_selected )
-            {
-                p_uc    = MESH( analy ).disable_particle;
-
-                p_hide_qty = &MESH( analy ).particle_disable_qty;
-                if(p_hide_qty != NULL && *p_hide_qty < 0)
-                {
-                    *p_hide_qty = 0;
-                }
-                if(p_hide_elem_qty != NULL && *p_hide_elem_qty < 0)
-                {
-                    *p_hide_elem_qty = 0;
-                }
-                
-                elem_qty   = mat_qty;
-                process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-                                            elem_qty, p_class,
-                                            p_elem, p_hide_qty, p_hide_elem_qty,
-                                            p_uc,
-                                            setval, include_selected, mat_selected );
-            }
-
-            if(p_hide_qty != NULL && *p_hide_qty < 0)
-            {
-                *p_hide_qty = 0;
-            }
-            if(p_hide_elem_qty != NULL && *p_hide_elem_qty < 0)
-            {
-                *p_hide_elem_qty = 0;
-            }
-            process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-                                        elem_qty, p_class,
-                                        p_elem2, p_hide_qty, p_hide_elem_qty2,
-                                        p_uc2,
-                                        setval, include_selected, mat_selected ); 
-
-            if ( !mat_brick_selected )
-            {
-                p_uc2   = MESH( analy ).hide_particle;
-
-                p_hide_qty = &MESH( analy ).particle_disable_qty;
-                if(p_hide_qty != NULL && *p_hide_qty < 0)
-                {
-                    *p_hide_qty = 0;
-                }
-                if(p_hide_elem_qty != NULL && *p_hide_elem_qty < 0)
-                {
-                    *p_hide_elem_qty = 0;
-                }
-                elem_qty   = mat_qty;
-                process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-                                            elem_qty, p_class,
-                                            p_elem2, p_hide_qty, p_hide_elem_qty2,
-                                            p_uc2,
-                                            setval, include_selected, mat_selected );/
-            }
-
-            if( ( i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
-            {
-                p_elem = MESH( analy ).by_class_select[i].exclude_class_elem;
-                elem_qty = MESH( analy ).by_class_select[i].p_class->qty;
-            }
-
-            if(p_hide_qty != NULL && *p_hide_qty < 0)
-            {
-                *p_hide_qty = 0;
-            }
-            if(p_hide_elem_qty != NULL && *p_hide_elem_qty < 0)
-            {
-                *p_hide_elem_qty = 0;
-            }
-            process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-                                        elem_qty, p_class,
-                                        p_elem, p_hide_qty, p_hide_elem_qty,
-                                        p_uc,
-                                        setval, include_selected, mat_selected ); */
-
-            /*if(class_selected == FALSE)
-            {
-                for(i = 0; i < MESH(analy).qty_class_selections; i++)
-                {
-                    p_class = MESH(analy).by_class_select[i].p_class;
-                    elem_qty = p_class->qty;
-                    p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
-                    p_disable_elem_qty = &MESH(analy).by_class_select[i].disable_class_elem_qty;
-                    p_uc = NULL;
-
-                    p_elem = MESH(analy).by_class_select[i].exclude_class_elem;
-                    process_mat_obj_selection(analy, tokens, idx, token_cnt, mat_qty,
-                                              elem_qty, p_class,
-                                              p_elem, p_hide_qty, p_hide_elem_qty,
-                                              p_uc, setval, include_selected, 0);
-
-                }
-            }*/
         }
 
 
@@ -4435,39 +4339,7 @@ parse_single_command( char *buf, Analysis *analy )
         {
             include_all_elements(analy);
         }
-        /*else if(!strcmp(tokens[0], "include"))
-        {
-            for(i = 0; i < MESH(analy).qty_class_selections; i++)
-            {
-                p_class = MESH(analy).by_class_select[i].p_class;
-                if( ( i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
-                {
-                    if(strcmp(tokens[1], p_class->short_name) == 0)
-                    {
-                        elem_qty = MESH(analy).by_class_select[i].p_class->qty;
-                        p_hide_elem_qty = &MESH(analy).by_class_select[i].hide_class_elem_qty;
-                        mat_selected = FALSE;
-                        class_selected = TRUE;
-                        idx = 0;
 
-                        p_elem  = MESH(analy).by_class_select[i].exclude_class_elem;
-                        process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-                                                    elem_qty, p_class,
-                                                    p_elem, p_hide_qty, p_hide_elem_qty,
-                                                    p_uc,
-                                                    setval, include_selected, mat_selected );
-
-                        p_elem  = MESH(analy).by_class_select[i].disable_class_elem;
-                        process_mat_obj_selection ( analy,  tokens, idx, token_cnt, mat_qty,
-                                                    elem_qty, p_class,
-                                                    p_elem, p_hide_qty, p_hide_elem_qty,
-                                                    p_uc,
-                                                    setval, include_selected, mat_selected );
-                    }
-
-                }
-            }
-        } */
 
         process_node_selection ( analy );
         if ( analy->show_cut || analy->show_roughcut )
@@ -7162,9 +7034,9 @@ parse_single_command( char *buf, Analysis *analy )
         int output_file = 0;
         out_command[0] = '\0';
         parse_command("on dscal", analy);
-        Bool_Type cflag = false;
+        Bool_type cflag = FALSE;
         if (strcmp( tokens[0], "dscalc") == 0) {
-        	cflag = true;
+        	cflag = TRUE;
         }
         if(token_cnt > 1)
         {
@@ -7218,6 +7090,7 @@ parse_single_command( char *buf, Analysis *analy )
         	tempDiv /= 10;
         	digits++;
         }
+        //digits = ceil(log10(num_divisions));
         for(i = 0; i < reps; i++)
         {
             dmax = 0.0;
@@ -7244,9 +7117,7 @@ parse_single_command( char *buf, Analysis *analy )
                 dmax = dmax + incr;//1.0 - ( * sin(2*PI*j*incr));
             }
         }
-        strcpy(cmd, "dscal ");
-        strcat(cmd, amplification);
-        parse_command(cmd, analy);
+        VEC_SET( analy->displace_scale, amplification, amplification, amplification )
     }
     else if ( strcmp( tokens[0], "dscal" ) == 0 ||
               strcmp( tokens[0], "dscale" ) == 0 )
