@@ -2101,7 +2101,7 @@ parse_single_command( char *buf, Analysis *analy )
             else if ( strcmp( tokens[i], "snap" ) == 0 )
                 analy->use_snap = setval;
             else if ( strcmp( tokens[i], "mat_labels" ) == 0 )
-                analy->mat_labels_active = TRUE;
+                analy->mat_labels_active = setval;
             //END
             else if ( strcmp( tokens[i], "title" ) == 0 )
             {

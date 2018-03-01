@@ -2141,13 +2141,11 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 //    }
 
     analy->mat_labels_active = TRUE;
-    analy->maxLabelLength = malloc(sizeof(int));
+    //analy->maxLabelLength = malloc(sizeof(int));
     analy->maxLabelLength = 0;
 
     if(analy->mat_labels_active && env.ti_enable){
 		//Gen list of banned names
-		//char* banned[100] = {"node","brick","shell","steel"};
-		//int sizeofbanned = 4;
     	analy->banned_names = malloc(100 * sizeof(char*));
     	analy->num_banned_names = 0;
     	//predefined names
@@ -2174,15 +2172,12 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
 		Hash_table *forNames;
 		Hash_table *revNames;
-		//char sortedNames[analy->max_mesh_mat_qty][32];
 		char** sortedNames = malloc(analy->max_mesh_mat_qty * sizeof(char*));
 		int* revSortedNames = malloc(analy->max_mesh_mat_qty * sizeof(int));
-		//char** sortedNames;
 		forNames = htable_create( 1001 );
 		revNames = htable_create( 1001 );
 		Htable_entry *tempEnt;
 		int pos2;
-		//analy->sorted_names = malloc(analy->max_mesh_mat_qty * (sizeof(char) * label_length));
 		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*)));
 		analy->num_messages = 0;
 		char teststr[20];
@@ -2191,7 +2186,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		char message[120];
 		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
 			//check if name exists
-			
 			teststr[0] = '\0';
 			int num_items_read = 0;
 			int status = 0;
@@ -2240,12 +2234,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		analy->sorted_names = sortedNames;
 		analy->mat_names = forNames;
 		analy->mat_names_reversed = revNames;
-		int rspos = 0;
-		for(rspos = 0; rspos < analy->max_mesh_mat_qty; rspos++){
-			htable_search(analy->mat_names,analy->sorted_names[rspos],FIND_ENTRY,&tempEnt);
-			revSortedNames[rspos] = tempEnt->data;
-		}
-		analy->sorted_names_reversed = revSortedNames;
 		// Make sure we get rid of dangling pointers
       // DO NOT free this as it is now your analy->sorted_names pointer
       // Simply setting it to NULL makes sure w do not have a dangling
