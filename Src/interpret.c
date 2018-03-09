@@ -313,6 +313,9 @@ char *griz_home=NULL;
 
 static char last_command[LASTCMD] = "\n";
 
+
+int alphanum_cmp(const void* ,const void*);
+
 /* Local routines. */
 static void tokenize_line( char *buf, char tokens[MAXTOKENS][TOKENLENGTH],
                            int *token_cnt );
@@ -2100,8 +2103,34 @@ parse_single_command( char *buf, Analysis *analy )
             //NEW
             else if ( strcmp( tokens[i], "snap" ) == 0 )
                 analy->use_snap = setval;
-            else if ( strcmp( tokens[i], "mat_labels" ) == 0 )
+            else if ( strcmp( tokens[i], "mat_labels" ) == 0 ){
                 analy->mat_labels_active = setval;
+                if (setval == FALSE){
+					Hash_table *forNames;
+					Hash_table *revNames;
+					forNames = htable_create( 1001 );
+					revNames = htable_create( 1001 );
+					char** sortedNames = malloc(analy->max_mesh_mat_qty * sizeof(char*));
+					int pos2;
+					int label_length = 35;
+					for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
+						char *test;
+						test = malloc(label_length * sizeof(char));
+						char *str;
+						str = malloc(10 * sizeof(char));
+						sprintf(str,"%d",pos2+1);
+						sprintf(test,"%s",str);
+						htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
+						htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
+						sortedNames[pos2] = malloc(label_length * sizeof(char));
+						sprintf(sortedNames[pos2],"%s",test);
+					}
+					qsort(sortedNames, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
+					analy->sorted_names = sortedNames;
+					analy->mat_names = forNames;
+					analy->mat_names_reversed = revNames;
+                }
+            }
             //END
             else if ( strcmp( tokens[i], "title" ) == 0 )
             {
