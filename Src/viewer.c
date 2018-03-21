@@ -2784,12 +2784,19 @@ void
 model_history_log_update( char *command, Analysis *analy )
 {
     int i;
-    char *first_token, copy_command[512], timestamp[64], timestr[64];
+    char *first_token;
+    char *copy_command;
+    char *comment;
+    char timestamp[64];
+    char timestr[64];
     char hist_fname[256];
-    char comment[512];
     char header[] = "# This is the history file for debugging purposes only\
   \n# and is for use by the griz team. Do not modify or alter in any way.\n";
+    int cmdlen;
+    cmdlen = strlen(command);
 
+    copy_command = (char *)malloc((cmdlen+1)*sizeof(char));
+    comment = (char *)malloc((cmdlen+20)*sizeof(char));
     time_t curtime;
     struct tm *timeinfo=NULL;
 
@@ -2847,7 +2854,10 @@ model_history_log_update( char *command, Analysis *analy )
             sprintf(comment, "# end %s\n", copy_command);
             model_history_log_comment(comment, analy);
         }
+
     }
+    free(copy_command);
+    free(comment);
 }
 
 /************************************************************

@@ -977,6 +977,8 @@ static int cap_style  = CapButt;  /* CapRound */
 static int join_style = 0;  /* JoinRound */
 static int line_width = 1; /* Pixels */
 
+static int label_length = 32;
+
 static int screen_num;
 static int obj_kind = RECTANGLE;
 static int startX, startY, lastX, lastY;
@@ -4134,7 +4136,7 @@ create_mtl_manager( Widget main_widg )
 
     /* Buffer to hold commands for parser. */
     n = (int) (ceil( log10( (double) qty_mtls ) )) + 1;
-    mtl_mgr_cmd = NEW_N( char, 128 + qty_mtls * n, "Mtl mgr cmd bufr" );
+    mtl_mgr_cmd = NEW_N( char, 128 + qty_mtls * label_length, "Mtl mgr cmd bufr" );
 
     XtOverrideTranslations( mtl_base, key_trans );
 
