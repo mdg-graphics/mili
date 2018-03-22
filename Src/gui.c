@@ -757,7 +757,7 @@ static Widget surf_mgr_button = NULL;
 static Widget surf_base = NULL;
 static Widget util_button = NULL;
 static Widget quit_button = NULL;
-static Widget *mtl_mgr_func_toggles = NULL;
+static Widget mtl_mgr_func_toggles[MTL_FUNC_QTY];
 static Widget surf_mgr_func_toggles[SURF_FUNC_QTY];
 static Widget util_panel_widg = NULL;
 static Widget mtl_row_col = NULL;
@@ -770,7 +770,7 @@ static Widget color_comps[MTL_PROP_QTY];
 static Widget prop_checks[MTL_PROP_QTY];
 static Widget col_ed_scales[2][4];
 static Widget swatch_label = NULL;
-static Widget *op_buttons = NULL;
+static Widget op_buttons[MTL_OP_QTY];
 static Widget surf_op_buttons[SURF_OP_QTY];
 static Widget swatch_frame = NULL;
 static Widget util_panel_main = NULL;
@@ -3541,8 +3541,6 @@ create_mtl_manager( Widget main_widg )
 
     key_trans = XtParseTranslationTable( trans );
 
-    mtl_mgr_func_toggles = NEW_N( Widget, MTL_FUNC_QTY, "Mtl func toggle" );
-
     ctl_buttons[0] = mtl_mgr_func_toggles;
     ctl_buttons[1] = select_buttons;
     qty_mtls = env.curr_analy->mesh_table[0].material_qty;
@@ -3560,8 +3558,8 @@ create_mtl_manager( Widget main_widg )
                                   topLevelShellWidgetClass,
                                   XtDisplay( main_widg ), args, n );
 
-    /* XtAddCallback( mtl_shell, XmNdestroyCallback,
-                   destroy_mtl_mgr_CB, (XtPointer) NULL ); */
+    XtAddCallback( mtl_shell, XmNdestroyCallback,
+                   destroy_mtl_mgr_CB, (XtPointer) NULL ); 
 
     XtAddEventHandler( mtl_shell, EnterWindowMask | LeaveWindowMask, False,
                        gress_mtl_mgr_EH, NULL );
@@ -3573,8 +3571,8 @@ create_mtl_manager( Widget main_widg )
                    "mtl_base", xmFormWidgetClass, mtl_shell,
                    NULL );
 
-    XtAddCallback( mtl_base, XmNdestroyCallback,
-                   destroy_mtl_mgr_CB, (XtPointer) NULL );
+    /*XtAddCallback( mtl_base, XmNdestroyCallback,
+                   destroy_mtl_mgr_CB, (XtPointer) NULL );*/
 
     if ( env.griz_id>0 )
     {
@@ -3758,7 +3756,7 @@ create_mtl_manager( Widget main_widg )
     XtOverrideTranslations( widg, key_trans );
 
     /* Use a pixmap of a check as the modify indicator. */
-    for ( i = 0; i < (EMISSIVE + 1); i++ )
+    for ( i = 0; i <= EMISSIVE; i++ )
     {
         prop_checks[i] = XtVaCreateManagedWidget(
                              "check", xmLabelWidgetClass, widg,
@@ -3940,8 +3938,6 @@ create_mtl_manager( Widget main_widg )
     XtOverrideTranslations( func_operate, key_trans );
 
     max_child_width = 0;
-
-    op_buttons = NEW_N( Widget, MTL_OP_QTY, "Mtl Op Btns" );
 
     for ( i = 0; i < sizeof( op_names ) / sizeof( op_names[0] ); i++ )
     {
@@ -4135,7 +4131,6 @@ create_mtl_manager( Widget main_widg )
     XtSetSensitive( color_editor, False );
 
     /* Buffer to hold commands for parser. */
-    n = (int) (ceil( log10( (double) qty_mtls ) )) + 1;
     mtl_mgr_cmd = NEW_N( char, 128 + qty_mtls * label_length, "Mtl mgr cmd bufr" );
 
     XtOverrideTranslations( mtl_base, key_trans );
@@ -8126,22 +8121,15 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     if ( preview_set )
         send_mtl_cmd( "mtl cancel", 2 );
-
+    fprintf(stderr, "%s\n", "destroy_mtl_mgr_CB 1");
     for ( i = AMBIENT; i < MTL_PROP_QTY; i++ )
     {
         if (property_vals[i])
             free( property_vals[i] );
         property_vals[i] = NULL;
     } 
-
-    if (mtl_mgr_func_toggles)
-        free( mtl_mgr_func_toggles );
-    mtl_mgr_func_toggles = NULL;
-
-    if ( op_buttons)
-        free( op_buttons );
-    op_buttons = NULL; 
-
+    fprintf(stderr, "%s\n", "destroy_mtl_mgr_CB 2");
+    
     if (mtl_select_list)
         DELETE_LIST( mtl_select_list );
     if (mtl_deselect_list)
@@ -8162,8 +8150,8 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
     mtl_mgr_widg = NULL;
 
     session->win_mtl_active = 0;
-    
-    destroy_mtl_mgr(); 
+    fprintf(stderr, "%s\n", "destroy_mtl_mgr_CB 4");
+    //destroy_mtl_mgr(); 
 
 
 }
@@ -9489,12 +9477,12 @@ destroy_mtl_mgr( void )
         return;
     }
 
-    my_win = XtWindow( mtl_base );
-    XDestroyWindow( dpy, my_win );
-    my_win = 0;
+    //my_win = XtWindow( mtl_mgr_widg );
+    //XDestroyWindow( dpy, my_win );
+    //my_win = 0;
 
-    XtDestroyWidget( mtl_base );
-    mtl_base = NULL;
+    XtDestroyWidget( mtl_mgr_widg );
+    //mtl_base = NULL;
 
     mtl_mgr_top_win = 0;
     mtl_base = NULL;
