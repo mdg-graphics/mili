@@ -398,6 +398,8 @@ void disable_particles( Analysis *analy,
                         Bool_type all_flag, Bool_type disable,
                         int mat );
 
+//this is a test
+
 Bool_type
 is_elem_mat_visible( Analysis *analy, int elem_id, MO_class_data *p_class );
 
@@ -2106,6 +2108,7 @@ parse_single_command( char *buf, Analysis *analy )
             else if ( strcmp( tokens[i], "mat_labels" ) == 0 ){
                 analy->mat_labels_active = setval;
                 if (setval == FALSE){
+                	//this is for a branch test commit REMOVETHIS
 					Hash_table *forNames;
 					Hash_table *revNames;
 					forNames = htable_create( 1001 );
