@@ -11345,9 +11345,9 @@ draw_foreground( Analysis *analy )
       int mat_number;
         for ( i = 0; i < p_mesh->material_qty; i++ )
         {
-            name =  analy->sorted_names[i];
+            name =  analy->sorted_labels[i];
             
-            status = htable_search(analy->mat_names,name,FIND_ENTRY,&tempEnt);
+            status = htable_search(analy->mat_labels,name,FIND_ENTRY,&tempEnt);
             if(status != OK)
             {
                continue;
@@ -11638,7 +11638,7 @@ draw_foreground( Analysis *analy )
 				Htable_entry *tempEnt;
 				char tempname[32];
 				sprintf(tempname,"%d",class_label);
-				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+				htable_search(analy->mat_labels_reversed,tempname,FIND_ENTRY,&tempEnt);
 				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, high, tempEnt->data );
 			}
 			else{
@@ -11654,7 +11654,7 @@ draw_foreground( Analysis *analy )
 				Htable_entry *tempEnt;
 				char tempname[32];
 				sprintf(tempname,"%d",class_label);
-				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+				htable_search(analy->mat_labels_reversed,tempname,FIND_ENTRY,&tempEnt);
 				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, low, tempEnt->data );
 			}
 			else{
