@@ -287,7 +287,7 @@ compute_hex_effstress( Analysis *analy, float *resultArr,
                                + hexStress[4]*hexStress[4]
                                + hexStress[5]*hexStress[5] ;
 
-        resultElem[elem_idx] = sqrt( (double)(3.0*resultElem[elem_idx]) );
+        resultElem[elem_idx] = sqrtf( 3.0*resultElem[elem_idx]);
     }
 
     if ( interpolate )

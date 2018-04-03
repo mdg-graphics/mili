@@ -3795,22 +3795,22 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
             strcpy(primal_list[i], p_subrec->subrec.svar_names[0]);
         }
         strcat(primal_list[0], "[sx");
-        for(p = &primal_spec; *p != ','; p++);
+        for(p = primal_spec; *p != ','; p++);
         strcat(primal_list[0], p);
         strcat(primal_list[1], "[sy");
-        for(p = &primal_spec; *p != ','; p++);
+        for(p = primal_spec; *p != ','; p++);
         strcat(primal_list[1], p);
         strcat(primal_list[2], "[sz");
-        for(p = &primal_spec; *p != ','; p++);
+        for(p = primal_spec; *p != ','; p++);
         strcat(primal_list[2], p);
         strcat(primal_list[3], "[sxy");
-        for(p = &primal_spec; *p != ','; p++);
+        for(p = primal_spec; *p != ','; p++);
         strcat(primal_list[3], p);
         strcat(primal_list[4], "[syz");
-        for(p = &primal_spec; *p != ','; p++);
+        for(p = primal_spec; *p != ','; p++);
         strcat(primal_list[4], p);
         strcat(primal_list[5], "[szx");
-        for(p = &primal_spec; *p != ','; p++);
+        for(p = primal_spec; *p != ','; p++);
         strcat(primal_list[5], p);
         found = TRUE;
                

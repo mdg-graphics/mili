@@ -491,7 +491,7 @@ manage_timer( int timer, int end_flag )
 
         sprintf(walltime_str," -W %d.%03d ", (int) st, (int) mt );
         strcpy( version, " -v " );
-        strcat( version, GRIZ_VERSION );
+        strcat( version, PACKAGE_VERSION );
         strcat( version, " " );
 
         strcpy( problem_str, " -I ");
@@ -2961,7 +2961,7 @@ write_log_message( void )
                 env.systype,
                 elapsed_time,
                 env.command_line,
-                GRIZ_VERSION, MILI_VERSION);
+                PACKAGE_VERSION, MILI_VERSION);
 
         fclose(fp);
     }

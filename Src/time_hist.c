@@ -6023,7 +6023,7 @@ draw_plots( Analysis *analy )
 					sprintf( str, "%s %s", tempEnt->data, p_po->ordinate->result->title);
 				}
 				else{
-					sprintf( str, "%s %s""#ERROR#", p_po->ordinate->result->title);
+					sprintf( str, "#ERROR# %s", p_po->ordinate->result->title);
 				}
         	}
         	else{

@@ -919,7 +919,7 @@ parse_single_command( char *buf, Analysis *analy )
     clear_popup_dialogs();
 
     if ( strncmp("echo", tokens[0], 4) )
-        alias_substitute( &tokens, &token_cnt );
+        alias_substitute( tokens, &token_cnt );
 
     /*
      * Should call getnum in slots below to make sure input is valid,
@@ -10525,7 +10525,6 @@ process_node_selection ( Analysis *analy )
     Bool_type particle_class=FALSE;
 
     p_mesh      = MESH_P( analy );
-    mats        = p_mesh->disable_material;
     p_node_geom = p_mesh->node_geom;
     qty_nodes   = p_node_geom->qty;
 
@@ -11229,7 +11228,7 @@ int set_inpt(int index, int ipt, char * token, int select, int usetoken, Analysi
  
     if(analy->int_labels == NULL)
     {
-        return;
+        return 0;
     }
     labels = analy->int_labels;
     size = labels->labelSizes[index] - 1;

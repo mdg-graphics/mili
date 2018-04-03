@@ -23,19 +23,15 @@
 #include <math.h>
 #include <string.h>
 #include <limits.h>
+#include "griz_config.h"
 
 #ifndef GRIZ_VERSION
-#define GRIZ_VERSION        "V17_2 - 000001"
-#define GRIZ_VERSION_NUMBER "V17_2"
+#define GRIZ_VERSION PACKAGE_VERSION
 #endif
-
-#define GRIZ_MAJOR 15
-#define GRIZ_MINOR 2
-#define GRIZ_BUG   0
 
 
 #ifndef MILI_VERSION
-#define MILI_VERSION "V15_02"
+#define MILI_VERSION "V17_01"
 #endif
 
 
