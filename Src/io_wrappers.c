@@ -4093,28 +4093,28 @@ mili_db_close( Analysis *analy )
     /* Free the mat name hash table. */
     if (  analy->mat_names != NULL )
     {
-        htable_delete( analy->mat_names, delete_mat_names, TRUE );
+        htable_delete( analy->mat_names, delete_mat_name, TRUE );
         analy->mat_names = NULL;
     }
 
     /* Free the mat name reversed hash table. */
     if ( analy->mat_names_reversed != NULL )
     {
-        htable_delete( analy->mat_names_reversed, delete_mat_names, TRUE );
+        htable_delete( analy->mat_names_reversed, delete_mat_name, TRUE );
         analy->mat_names_reversed = NULL;
     }
 
     /* Free the mat num hash table. */
     if ( analy->mat_nums != NULL )
     {
-        htable_delete( analy->mat_nums, delete_mat_names, TRUE );
+        htable_delete( analy->mat_nums, delete_mat_name, TRUE );
         analy->mat_nums = NULL;
     }
 
     /* Free the mat num reversed hash table. */
     if ( analy->mat_nums_reversed != NULL )
     {
-        htable_delete( analy->mat_nums_reversed, delete_mat_names, TRUE );
+        htable_delete( analy->mat_nums_reversed, delete_mat_name, TRUE );
         analy->mat_nums_reversed = NULL;
     }
 
