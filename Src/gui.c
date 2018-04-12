@@ -202,7 +202,6 @@
 #include <GL/gl_mangle.h>
 #endif
 
-#define GRIZ_VERSION "                      WELCOME TO GRIZ " PACKAGE_VERSION "\n"
 #define GRIZ_DATE    "                        Updated: " PACKAGE_DATE "\n"
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
@@ -757,7 +756,7 @@ static Widget surf_mgr_button = NULL;
 static Widget surf_base = NULL;
 static Widget util_button = NULL;
 static Widget quit_button = NULL;
-static Widget mtl_mgr_func_toggles[MTL_FUNC_QTY];
+static Widget *mtl_mgr_func_toggles = NULL;
 static Widget surf_mgr_func_toggles[SURF_FUNC_QTY];
 static Widget util_panel_widg = NULL;
 static Widget mtl_row_col = NULL;
@@ -770,7 +769,7 @@ static Widget color_comps[MTL_PROP_QTY];
 static Widget prop_checks[MTL_PROP_QTY];
 static Widget col_ed_scales[2][4];
 static Widget swatch_label = NULL;
-static Widget op_buttons[MTL_OP_QTY];
+static Widget *op_buttons = NULL;
 static Widget surf_op_buttons[SURF_OP_QTY];
 static Widget swatch_frame = NULL;
 static Widget util_panel_main = NULL;
@@ -946,6 +945,7 @@ static int double_buf_no_z[] = { GLX_RGBA, GLX_DOUBLEBUFFER, GLX_RED_SIZE, 1,
 static XtWorkProcId anim_work_proc_id = 0;
 static Boolean stop_animate;
 
+void
 test()
 {
     dpy = XtDisplay( ctl_shell_widg );
@@ -1542,6 +1542,19 @@ create_menu_bar( Widget parent, Analysis *analy )
     Widget colormap_menu;
     Arg args[10];
     int n;
+    static int btn_cpyright, 
+               btn_util_panel, 
+               btn_mtl_mgr,
+               btn_save_session_global,
+               btn_save_session_plot,
+               btn_load_session_global,
+               btn_load_session_plot,
+               btn_quit;
+    
+    btn_cpyright = BTN_COPYRIGHT;
+    btn_util_panel = BTN_UTIL_PANEL;
+    btn_mtl_mgr = BTN_MTL_MGR; 
+    
     XmString accel_str;
 
     n = 0;
@@ -1563,7 +1576,7 @@ create_menu_bar( Widget parent, Analysis *analy )
     button = XmCreatePushButtonGadget( ctl_menu_pane, "Copyright", args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_COPYRIGHT );
+                   &btn_cpyright );
 
     /* If utility panel not part of control window, allow it from pulldown. */
     if ( !include_util_panel )
@@ -1579,7 +1592,7 @@ create_menu_bar( Widget parent, Analysis *analy )
         XmStringFree( accel_str );
         XtManageChild( util_button );
         XtAddCallback( util_button, XmNactivateCallback, menu_CB,
-                       (XtPointer) BTN_UTIL_PANEL );
+                       &btn_util_panel );
     }
 
     accel_str = XmStringCreateSimple( "Ctrl+m" );
@@ -1593,7 +1606,7 @@ create_menu_bar( Widget parent, Analysis *analy )
     XmStringFree( accel_str );
     XtManageChild( mtl_mgr_button );
     XtAddCallback( mtl_mgr_button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_MTL_MGR );
+                   &btn_mtl_mgr );
 
     if( env.curr_analy->mesh_table[0].surface_qty > 0 )
     {
@@ -1614,45 +1627,51 @@ create_menu_bar( Widget parent, Analysis *analy )
     n = 0;
     button = XmCreateSeparatorGadget( ctl_menu_pane, "separator", args, n );
     XtManageChild( button );
-
+    
+    btn_save_session_global = BTN_SAVE_SESSION_GLOBAL;
     button = XmCreatePushButtonGadget( ctl_menu_pane, "Save Session - Global", args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_SAVE_SESSION_GLOBAL );
+                   &btn_save_session_global );
 
+    btn_save_session_plot = BTN_SAVE_SESSION_PLOT;
     button = XmCreatePushButtonGadget( ctl_menu_pane, "Save Session - Plotfile", args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_SAVE_SESSION_PLOT );
+                   &btn_save_session_plot );
 
 
     button = XmCreateSeparatorGadget( ctl_menu_pane, "separator", args, n );
     XtManageChild( button );
 
+    btn_load_session_global = BTN_LOAD_SESSION_GLOBAL;
     button = XmCreatePushButtonGadget( ctl_menu_pane, "Load Session - Global", args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_LOAD_SESSION_GLOBAL );
+                   &btn_load_session_global );
 
+    btn_load_session_plot = BTN_LOAD_SESSION_PLOT;
     button = XmCreatePushButtonGadget( ctl_menu_pane, "Load Session - Plotfile", args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_LOAD_SESSION_PLOT );
+                   &btn_load_session_plot );
 
     button = XmCreateSeparatorGadget( ctl_menu_pane, "separator", args, n );
     XtManageChild( button );
 
+    btn_quit = BTN_QUIT;
     accel_str = XmStringCreateSimple( "Ctrl+q" );
     n = 0;
     XtSetArg( args[n], XmNaccelerator, "Ctrl<Key>q" );
     n++;
     XtSetArg( args[n], XmNacceleratorText, accel_str );
     n++;
+    
     quit_button = XmCreatePushButtonGadget( ctl_menu_pane, "Quit", args, n );
     XmStringFree( accel_str );
     XtManageChild( quit_button );
     XtAddCallback( quit_button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_QUIT );
+                   &btn_quit);
 
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, ctl_menu_pane );
@@ -3541,6 +3560,8 @@ create_mtl_manager( Widget main_widg )
 
     key_trans = XtParseTranslationTable( trans );
 
+    mtl_mgr_func_toggles = NEW_N( Widget, MTL_FUNC_QTY, "Mtl func toggle" );
+
     ctl_buttons[0] = mtl_mgr_func_toggles;
     ctl_buttons[1] = select_buttons;
     qty_mtls = env.curr_analy->mesh_table[0].material_qty;
@@ -3558,8 +3579,8 @@ create_mtl_manager( Widget main_widg )
                                   topLevelShellWidgetClass,
                                   XtDisplay( main_widg ), args, n );
 
-    XtAddCallback( mtl_shell, XmNdestroyCallback,
-                   destroy_mtl_mgr_CB, (XtPointer) NULL ); 
+    /* XtAddCallback( mtl_shell, XmNdestroyCallback,
+                   destroy_mtl_mgr_CB, (XtPointer) NULL ); */
 
     XtAddEventHandler( mtl_shell, EnterWindowMask | LeaveWindowMask, False,
                        gress_mtl_mgr_EH, NULL );
@@ -3571,8 +3592,8 @@ create_mtl_manager( Widget main_widg )
                    "mtl_base", xmFormWidgetClass, mtl_shell,
                    NULL );
 
-    /*XtAddCallback( mtl_base, XmNdestroyCallback,
-                   destroy_mtl_mgr_CB, (XtPointer) NULL );*/
+    XtAddCallback( mtl_base, XmNdestroyCallback,
+                   destroy_mtl_mgr_CB, (XtPointer) NULL );
 
     if ( env.griz_id>0 )
     {
@@ -3756,7 +3777,7 @@ create_mtl_manager( Widget main_widg )
     XtOverrideTranslations( widg, key_trans );
 
     /* Use a pixmap of a check as the modify indicator. */
-    for ( i = 0; i <= EMISSIVE; i++ )
+    for ( i = 0; i < (EMISSIVE + 1); i++ )
     {
         prop_checks[i] = XtVaCreateManagedWidget(
                              "check", xmLabelWidgetClass, widg,
@@ -3939,6 +3960,8 @@ create_mtl_manager( Widget main_widg )
 
     max_child_width = 0;
 
+    op_buttons = NEW_N( Widget, MTL_OP_QTY, "Mtl Op Btns" );
+
     for ( i = 0; i < sizeof( op_names ) / sizeof( op_names[0] ); i++ )
     {
         op_buttons[i] = XtVaCreateManagedWidget(
@@ -4070,12 +4093,13 @@ create_mtl_manager( Widget main_widg )
 
     mtl_deselect_list = NULL;
     mtl_select_list = NULL;
+    static int mat_num;
     for ( i = 0; i < qty_mtls; i++ )
     {
         Material_list_obj *p_mtl;
 
         mtl = i + 1;
-
+        mat_num = i;
         //env.curr_analy->sorted_names[i];
 
 //        if ( mtl < 10 )
@@ -4100,7 +4124,7 @@ create_mtl_manager( Widget main_widg )
         INSERT( p_mtl, mtl_deselect_list );
 
         XtAddCallback( widg, XmNdisarmCallback, mtl_select_CB,
-                       (XtPointer) i );
+                       &mat_num );
     }
 
     /*
@@ -4131,6 +4155,7 @@ create_mtl_manager( Widget main_widg )
     XtSetSensitive( color_editor, False );
 
     /* Buffer to hold commands for parser. */
+    n = (int) (ceil( log10( (double) qty_mtls ) )) + 1;
     mtl_mgr_cmd = NEW_N( char, 128 + qty_mtls * label_length, "Mtl mgr cmd bufr" );
 
     XtOverrideTranslations( mtl_base, key_trans );
@@ -4608,6 +4633,7 @@ create_utility_panel( Widget main_widg )
               margin_width, spacing;
     char stride_text[5];
     XmString stride_str;
+    static int step;
     Analysis *analy;
     String trans =
         "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
@@ -4674,7 +4700,8 @@ create_utility_panel( Widget main_widg )
                XmNlabelType, XmPIXMAP,
                XmNlabelPixmap, pixmap_leftstop,
                NULL );
-    XtAddCallback( widg, XmNactivateCallback, step_CB, STEP_FIRST );
+    step = STEP_FIRST;
+    XtAddCallback( widg, XmNactivateCallback, step_CB, &step );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
@@ -4687,7 +4714,8 @@ create_utility_panel( Widget main_widg )
                XmNlabelType, XmPIXMAP,
                XmNlabelPixmap, pixmap_left,
                NULL );
-    XtAddCallback( widg, XmNactivateCallback, step_CB, (XtPointer) STEP_DOWN );
+    static int step_down = STEP_DOWN;
+    XtAddCallback( widg, XmNactivateCallback, step_CB, &step_down);
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
@@ -4700,7 +4728,8 @@ create_utility_panel( Widget main_widg )
                XmNlabelType, XmPIXMAP,
                XmNlabelPixmap, pixmap_right,
                NULL );
-    XtAddCallback( widg, XmNactivateCallback, step_CB, (XtPointer) STEP_UP );
+    static int step_up = STEP_UP;
+    XtAddCallback( widg, XmNactivateCallback, step_CB, &step_up );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
@@ -4713,7 +4742,8 @@ create_utility_panel( Widget main_widg )
                XmNlabelType, XmPIXMAP,
                XmNlabelPixmap, pixmap_rightstop,
                NULL );
-    XtAddCallback( widg, XmNactivateCallback, step_CB, (XtPointer) STEP_LAST );
+    static int last_step = STEP_LAST;
+    XtAddCallback( widg, XmNactivateCallback, step_CB, &last_step  );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
@@ -6121,13 +6151,13 @@ res_menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Btn_type btn;
+    int* btn;
     XmString text=NULL;
     Widget hist_list;
     int status;
-    btn = (Btn_type)client_data;
+    btn = (int*)(client_data);
 
-    switch( btn )
+    switch( *btn )
     {
     case BTN_COPYRIGHT:
         text = XmStringCreateSimple( "copyrt\0" );
@@ -8121,15 +8151,22 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     if ( preview_set )
         send_mtl_cmd( "mtl cancel", 2 );
-    fprintf(stderr, "%s\n", "destroy_mtl_mgr_CB 1");
+
     for ( i = AMBIENT; i < MTL_PROP_QTY; i++ )
     {
         if (property_vals[i])
             free( property_vals[i] );
         property_vals[i] = NULL;
     } 
-    fprintf(stderr, "%s\n", "destroy_mtl_mgr_CB 2");
-    
+
+    if (mtl_mgr_func_toggles)
+        free( mtl_mgr_func_toggles );
+    mtl_mgr_func_toggles = NULL;
+
+    if ( op_buttons)
+        free( op_buttons );
+    op_buttons = NULL; 
+
     if (mtl_select_list)
         DELETE_LIST( mtl_select_list );
     if (mtl_deselect_list)
@@ -8150,8 +8187,8 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
     mtl_mgr_widg = NULL;
 
     session->win_mtl_active = 0;
-    fprintf(stderr, "%s\n", "destroy_mtl_mgr_CB 4");
-    //destroy_mtl_mgr(); 
+    
+    destroy_mtl_mgr(); 
 
 
 }
@@ -8810,15 +8847,15 @@ step_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     XmString text= NULL;
     Widget hist_list;
-    Util_panel_button_type btn;
+    int* btn;
     Analysis *analy;
     int st_num;
     char cmd[16];
-
-    btn = (Util_panel_button_type) client_data;
+    
+    btn = (int*) client_data;
     analy = env.curr_analy;
 
-    switch( btn )
+    switch( *btn )
     {
     case STEP_FIRST:
         text = XmStringCreateSimple( "f\0" );
@@ -9477,12 +9514,12 @@ destroy_mtl_mgr( void )
         return;
     }
 
-    //my_win = XtWindow( mtl_mgr_widg );
-    //XDestroyWindow( dpy, my_win );
-    //my_win = 0;
+    my_win = XtWindow( mtl_base );
+    XDestroyWindow( dpy, my_win );
+    my_win = 0;
 
-    XtDestroyWidget( mtl_mgr_widg );
-    //mtl_base = NULL;
+    XtDestroyWidget( mtl_base );
+    mtl_base = NULL;
 
     mtl_mgr_top_win = 0;
     mtl_base = NULL;
