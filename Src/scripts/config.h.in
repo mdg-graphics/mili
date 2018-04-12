@@ -148,6 +148,15 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* Define the Major version for the package */
+#undef GRIZ_MAJOR
+
+/* Define the Minor version for the package */
+#undef GRIZ_MINOR
+
+/* Define the Bug version for the package */
+#undef GRIZ_BUG
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 

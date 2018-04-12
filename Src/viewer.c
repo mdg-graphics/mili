@@ -206,7 +206,7 @@ static Bool_type  model_loading_phase=FALSE;
 static int label_length = 32;
 
 /* The current version of the code. */
-char *griz_version = GRIZ_VERSION;
+char *griz_version = PACKAGE_VERSION;
 
 /* Required short name for a particle G_UNIT class. */
 char *particle_cname = "part";
@@ -2799,10 +2799,10 @@ model_history_log_update( char *command, Analysis *analy )
     comment = (char *)malloc((cmdlen+20)*sizeof(char));
     time_t curtime;
     struct tm *timeinfo=NULL;
-
+    
     if ( model_loading_phase ) /* We do not want to log commands from the log data */
         return;
-
+    
     strcpy( copy_command, command );
 
     /*first_token = strtok( copy_command, "\t " );*/
@@ -2856,8 +2856,15 @@ model_history_log_update( char *command, Analysis *analy )
         }
 
     }
-    free(copy_command);
-    free(comment);
+
+    if(copy_command)
+    {
+      free(copy_command);
+    }
+    if(comment)
+    {
+      free(comment);
+    }
 }
 
 /************************************************************

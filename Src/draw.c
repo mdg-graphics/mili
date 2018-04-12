@@ -9826,7 +9826,7 @@ draw_poly( int cnt, float pts[4][3], float norm[4][3], float cols[4][4],
                                      rpoly->vals, matl, p_mesh, analy, FALSE );
                 else
                     draw_plain_poly( cnt, rpoly->pts, rpoly->norm, rpoly->cols,
-                                     rpoly->vals, matl, p_mesh, analy, NULL );
+                                     rpoly->vals, matl, p_mesh, analy, FALSE );
 
                 INSERT( rpoly, reflpoly );
             }
@@ -13956,12 +13956,15 @@ float
 get_free_node_result( Analysis  *analy, MO_class_data *p_mo_class, int particle_num, Bool_type *result_defined,
                       Bool_type *valid_free_node )
 {
-    int   node_num=0, (*particle_nodes)[8];
+    int   node_num=0, *particle_nodes;
     float val=0.0, *nodal_data;
+    int node_loc = 0;
 
     Bool_type nodal_result=TRUE;
 
     *valid_free_node = FALSE;
+    
+    node_loc = 8*particle_num;
 
     particle_nodes = p_mo_class->objects.elems->nodes;
     nodal_data     = NODAL_RESULT_BUFFER( analy );
@@ -13975,7 +13978,7 @@ get_free_node_result( Analysis  *analy, MO_class_data *p_mo_class, int particle_
     if ( nodal_data!=NULL )
         *result_defined = TRUE;
 
-    node_num = particle_nodes[particle_num][0];
+    node_num = (particle_nodes+node_loc)[0];
     *valid_free_node = TRUE;
     if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
         val = p_mo_class->data_buffer[particle_num];
@@ -14002,7 +14005,7 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
     float ** sand_arrays;
 
     int i,j;
-    int (*connects_hex)[8], (*connects_particle)[1];
+    int *connects_hex, *connects_particle;
 
 
     *result_defined  = FALSE;
@@ -14038,12 +14041,12 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
     if ( p_mo_class->superclass==G_HEX )
     {
         connects_hex = p_mo_class->objects.elems->nodes;
-        node_num     = connects_hex[elem_num][0];
+        node_num     = (connects_hex+(elem_num*8))[0];
     }
     else
     {
         connects_particle = p_mo_class->objects.elems->nodes;
-        node_num          = connects_particle[elem_num][0];
+        node_num          = connects_particle[elem_num];
     }
 
     if ( !nodal_result )

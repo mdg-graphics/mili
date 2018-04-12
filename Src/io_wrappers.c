@@ -1278,21 +1278,34 @@ gen_material_data( MO_class_data *p_mat_class, Mesh_data *p_mesh )
         {
             elem_qty = mo_classes[j]->qty;
             mats = mo_classes[j]->objects.elems->mat;
-
+            int mat_offset = -1;
+            int cur_offset = 0;
             /* Record the element id at the current offset for its material. */
-            for ( k = 0; k < elem_qty; k++ )
-                mat_elem_lists[ offsets[ mats[k] ]++ ] = k;
+            for ( k = 0; k < elem_qty; k++, cur_offset++ )
+            {
+               if(mat_offset != offsets[mats[k]])
+               {
+                  mat_offset = offsets[mats[k]];
+                  cur_offset = 0;
+               }
+               mat_elem_lists[ mat_offset+cur_offset] = k;
+               
+            }
         }
     }
 
     /* Re-init the offsets. */
-    offsets[0] = 0;
+    /*offsets[0] = 0;
     for ( i = 1; i < qty_mats; i++ )
         offsets[i] = offsets[i - 1] + mat_elem_qtys[i - 1];
-
+*/
     /* Compress material element lists into material element block lists. */
     for ( i = 0; i < qty_mats; i++ )
     {
+        if(mat_elem_qtys[i] == 0)
+        {
+          continue;
+        }
         elem_list = mat_elem_lists + offsets[i];
         elem_qty = mat_elem_qtys[i];
 

@@ -90,7 +90,7 @@ parse_show_command( char *token, Analysis *analy )
     int status=OK;
     int *map;
     char ipt[125];
-    char c_ptr = NULL;
+    char c_ptr = '\0';
     es_Result_candidate *p_es_rc;
     Hash_table * p_es_components_ht;
     Hash_table * p_sv_ht;
@@ -205,7 +205,7 @@ parse_show_command( char *token, Analysis *analy )
         combined_es_result.subrecs = calloc(qty, sizeof(int));
         combined_es_result.superclasses = calloc(qty, sizeof(int));
         combined_es_result.indirect_flags = calloc(qty, sizeof(int));
-        combined_es_result.result_funcs = (void **) calloc(qty, sizeof(void (**)()));
+        combined_es_result.result_funcs = calloc(qty, sizeof(void (**)()));
         if(combined_es_result.subrecs == NULL || combined_es_result.superclasses == NULL ||
            combined_es_result.indirect_flags == NULL || combined_es_result.result_funcs == NULL)
         {
@@ -214,7 +214,7 @@ parse_show_command( char *token, Analysis *analy )
         }
         combined_es_result.original_names = (char **) malloc(qty*sizeof(char *));
        
-        combined_es_result.primals = NEW_N(char ***, qty, "Result primals array");
+        combined_es_result.primals = NEW_N(char **, qty, "Result primals array");
         i = 0;
         for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
         {
@@ -272,7 +272,7 @@ parse_show_command( char *token, Analysis *analy )
  
         i = 0;
         c_ptr = res_ptr->name[0];   
-        while( c_ptr != NULL && c_ptr != ']')
+        while( c_ptr != '\0' && c_ptr != ']')
         {
            c_ptr = res_ptr->name[i];
            if(c_ptr == '[')
@@ -307,7 +307,7 @@ parse_show_command( char *token, Analysis *analy )
         {
             i = 0;
             c_ptr = res_ptr->title[0];
-            while(c_ptr != NULL && c_ptr != ']')
+            while(c_ptr != '\0' && c_ptr != ']')
             {
                 c_ptr = res_ptr->title[i];
                 if(c_ptr == ',')
@@ -332,7 +332,7 @@ parse_show_command( char *token, Analysis *analy )
         {
             i = 0;
             c_ptr = res_ptr->title[0];
-            while(c_ptr != NULL && c_ptr != ']')
+            while(c_ptr != '\0' && c_ptr != ']')
             {
                 c_ptr = res_ptr->title[i];
                 if(c_ptr == '[')

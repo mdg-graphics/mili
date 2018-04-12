@@ -74,6 +74,9 @@
 
 m4_define(GRIZ_NAME_M4, Griz4)
 m4_define(GRIZ_VERSION_M4, V18_01)
+m4_define(GRIZ_MAJOR_M4, 18)
+m4_define(GRIZ_MINOR_M4, 1)
+m4_define(GRIZ_BUG_M4, 0)
 m4_define(MILI_VERSION_M4, V18_01)
 m4_define(GRIZ_DATE_M4, 2018/3/9)
 m4_define(GRIZ_TIME_M4, 07:00:00)
@@ -81,7 +84,7 @@ m4_define(GRIZ_DATETIME_M4, [GRIZ_DATE_M4 GRIZ_TIME_M4])
 m4_define(GRIZ_BUGS_M4,[Chad Cooper  ext: 2-1056 email: cooper67@llnl.gov])
 m4_define(GRIZ_TOP_SRC_DIR_M4, `pwd`)
 
-AC_INIT(GRIZ_NAME_M4, GRIZ_VERSION_M4, GRIZ_BUGS_M4, GRIZ_NAME_M4)
+AC_INIT(GRIZ_NAME_M4, GRIZ_VERSION_M4, GRIZ_BUGS_M4,GRIZ_MAJOR_VERSION_M4,GRIZ_MINOR_VERSION_M4,GRIZ_BUG_VERSION_M4)
 
 AC_CONFIG_AUX_DIR(scripts)
 
@@ -114,10 +117,13 @@ regulations and orders; and U.S. statutes.])
 AC_DEFINE([PACKAGE_NAME], ["GRIZ_NAME_M4"], [Name of release])
 AC_DEFINE([PACKAGE_DATE], ["GRIZ_DATE_M4"], [Date of release])
 AC_DEFINE([PACKAGE_TIME], ["GRIZ_TIME_M4"], [Time of release])
+AC_DEFINE([GRIZ_MAJOR], ["GRIZ_MAJOR_M4"], [Major version of the release])
+AC_DEFINE([GRIZ_MINOR], ["GRIZ_MINOR_M4"], [Minor version of the release])
+AC_DEFINE([GRIZ_BUG], ["GRIZ_BUG_M4"], [Bug version of the release])
 AC_DEFINE([PACKAGE_DATETIME], ["GRIZ_DATETIME_M4"], [Date and time of release])
 AC_DEFINE([PACKAGE_BUGREPORT_ALT],["Kevin Durrenberger ext:4-3015 email:durrenberger1@llnl.gov"],[Alternate contact for bugs])
-PACKAGE_DATETIME="GRIZ_DATE_M4 GRIZ_TIME_M4"
-AC_SUBST([PACKAGE_DATETIME])
+#PACKAGE_DATETIME="GRIZ_DATE_M4 GRIZ_TIME_M4"
+#AC_SUBST([PACKAGE_DATETIME])
 
 AC_PROG_CC([icc xlc gcc cc])
 

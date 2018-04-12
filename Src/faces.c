@@ -6150,7 +6150,7 @@ select_surf_planar( Analysis *analy, Mesh_data *p_mesh,
     int near_facet;
 
     /* for now assume quad connects */
-    connects = (int (*)[4]) p_mo_class->objects.elems->nodes;
+    connects = p_mo_class->objects.elems->nodes;
 
     intersect_func = intersect_line_quad;
     hide_surf = p_mesh->hide_surface;

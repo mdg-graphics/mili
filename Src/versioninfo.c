@@ -125,7 +125,7 @@ char *bi_link(void)
 void VersionInfo(Bool_type quiet_mode)
 {
     fprintf(stdout, "\n%s\n\n", bi_version_string());
-    fprintf(stdout, "\nGriz Version %d.%d.%d\n\n", GRIZ_MAJOR, GRIZ_MINOR, GRIZ_BUG);
+    fprintf(stdout, "\nGriz Version %s.%s.%s\n\n", GRIZ_MAJOR, GRIZ_MINOR, GRIZ_BUG);
 
     if ( quiet_mode )
     {
