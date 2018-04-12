@@ -9464,7 +9464,7 @@ write_preamble( FILE *ofile )
     fprintf( ofile, "#---------------------------------------------------------------" );
     fprintf( ofile, "\n#---------------------- Griz Version Info ----------------------" );
     fprintf( ofile, "\n#" );
-    fprintf( ofile, "\n# Griz Version %d.%d.%d", GRIZ_MAJOR, GRIZ_MINOR, GRIZ_BUG);
+    fprintf( ofile, "\n# Griz Version %s.%s.%s", GRIZ_MAJOR, GRIZ_MINOR, GRIZ_BUG);
     fprintf( ofile, "\n# Built: %s", bi_date());
     fprintf( ofile, "\n#        on - %s",bi_system());
     fprintf( ofile, "\n#        by - %s",bi_developer());
