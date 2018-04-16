@@ -3753,7 +3753,7 @@ create_mtl_manager( Widget main_widg )
         XtOverrideTranslations( color_comps[i], key_trans );
 
         XtAddCallback( color_comps[i], XmNdisarmCallback,
-                       col_comp_disarm_CB, (XtPointer) i );
+                       col_comp_disarm_CB, &i );
 
         prop_val_changed[i] = FALSE;
         property_vals[i] = NEW_N( GLfloat, 3, "Col comp val" );
@@ -3868,11 +3868,11 @@ create_mtl_manager( Widget main_widg )
                                   NULL );
 
         XtAddCallback( col_ed_scales[0][i], XmNdragCallback,
-                       col_ed_scale_CB, (XtPointer) i );
+                       col_ed_scale_CB, &i );
         XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                       col_ed_scale_CB, (XtPointer) i );
+                       col_ed_scale_CB, &i );
         XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                       col_ed_scale_update_CB, (XtPointer) i );
+                       col_ed_scale_update_CB, &i );
     }
 
     XmStringFree( val_text );
@@ -7747,11 +7747,11 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    int mtl;
+    int *mtl;
     Material_list_obj *p_mtl;
     XmToggleButtonCallbackStruct *cb_data;
 
-    mtl = (int) client_data;
+    mtl = (int*) client_data;
     cb_data = (XmToggleButtonCallbackStruct *) call_data;
 
     /*
@@ -7769,7 +7769,7 @@ mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
         {
             p_mtl = mtl_deselect_list;
             UNLINK( p_mtl, mtl_deselect_list );
-            p_mtl->mtl = mtl;
+            p_mtl->mtl = *mtl;
             INSERT( p_mtl, mtl_select_list );
         }
         else
@@ -7778,7 +7778,7 @@ mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     else
     {
         for ( p_mtl = mtl_select_list; p_mtl != NULL; p_mtl = p_mtl->next )
-            if ( p_mtl->mtl == mtl )
+            if ( p_mtl->mtl == *mtl )
                 break;
         if ( p_mtl != NULL )
         {
@@ -7819,12 +7819,12 @@ mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 col_comp_disarm_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Material_property_type comp;
+    int *comp;
     int i;
     Material_property_type j;
     XmToggleButtonCallbackStruct *cb_data;
 
-    comp = (Material_property_type) client_data;
+    comp = (int*) client_data;
     cb_data = (XmToggleButtonCallbackStruct *) call_data;
 
     /* Find which component has been set/unset. */
@@ -7834,7 +7834,7 @@ col_comp_disarm_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     if ( cb_data->set )
     {
-        cur_mtl_comp = comp;
+        cur_mtl_comp = *comp;
         for ( i = 0; i < 3; i++ )
             if ( !XtIsSensitive( col_ed_scales[0][i] ) )
                 XtSetSensitive( col_ed_scales[0][i], True );
@@ -7916,14 +7916,14 @@ col_ed_scale_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     XmString sval;
     char valbuf[5];
-    Color_editor_scale_type scale;
+    int *scale;
     GLfloat fval;
     XmScaleCallbackStruct *cb_data;
 
-    scale = (Color_editor_scale_type) client_data;
+    scale = (int*) client_data;
     cb_data = (XmScaleCallbackStruct *) call_data;
 
-    if ( scale != SHININESS_SCALE )
+    if ( *scale != SHININESS_SCALE )
     {
         fval = (GLfloat) cb_data->value / 100.0;
         sprintf( valbuf, "%4.2f", fval );
@@ -7932,12 +7932,12 @@ col_ed_scale_CB( Widget w, XtPointer client_data, XtPointer call_data )
         sprintf( valbuf, "%d", (int) cb_data->value );
 
     sval = XmStringCreateLocalized( valbuf );
-    XtVaSetValues( col_ed_scales[1][scale], XmNlabelString, sval, NULL );
+    XtVaSetValues( col_ed_scales[1][*scale], XmNlabelString, sval, NULL );
     XmStringFree( sval );
 
-    if ( scale != SHININESS_SCALE )
+    if ( *scale != SHININESS_SCALE )
     {
-        cur_color[scale] = fval;
+        cur_color[*scale] = fval;
         draw_mtl_swatch( cur_color );
     }
 }
@@ -7953,14 +7953,14 @@ col_ed_scale_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 col_ed_scale_update_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Color_editor_scale_type scale;
+    int *scale;
     int i, ival;
     XmScaleCallbackStruct *cb_data;
 
-    scale = (Color_editor_scale_type) client_data;
+    scale = (int*) client_data;
     cb_data = (XmScaleCallbackStruct *) call_data;
 
-    if ( scale == SHININESS_SCALE )
+    if ( *scale == SHININESS_SCALE )
     {
         prop_val_changed[SHININESS] = TRUE;
         property_vals[SHININESS][0] = (GLfloat) cb_data->value;
@@ -7974,7 +7974,7 @@ col_ed_scale_update_CB( Widget w, XtPointer client_data, XtPointer call_data )
         prop_val_changed[cur_mtl_comp] = TRUE;
         for ( i = 0; i < 3; i++ )
         {
-            if ( i == scale )
+            if ( i == *scale )
                 property_vals[cur_mtl_comp][i] = (GLfloat) cb_data->value
                                                  / 100.0;
             else
@@ -7997,12 +7997,12 @@ col_ed_scale_update_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Mtl_mgr_op_type op;
+    int *op;
     char *p_src, *p_dest;
     int t_cnt, token_cnt, i;
     size_t len;
 
-    op = (Mtl_mgr_op_type) client_data;
+    op = (int*) client_data;
     token_cnt = 0;
 
     switch_opengl_win( MESH_VIEW );
@@ -8016,7 +8016,7 @@ mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
             p_src++, p_dest++ );
     token_cnt++;
 
-    switch( op )
+    switch( *op )
     {
     case OP_PREVIEW:
         /* Preview is only a color function option. */
