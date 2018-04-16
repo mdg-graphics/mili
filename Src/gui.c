@@ -1291,8 +1291,10 @@ gui_start( int argc, char **argv , Analysis *analy )
     XtAddCallback( ogl_widg[MESH_VIEW], GLwNinputCallback, input_CB, 0 );
     XtManageChild( ogl_widg[MESH_VIEW] );
 
+    static int render_shell_win = RENDER_SHELL_WIN;
+
     XtAddEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False,
-                       stack_init_EH, (XtPointer) RENDER_SHELL_WIN );
+                       stack_init_EH, &render_shell_win );
 
     XtAddEventHandler( ogl_widg[MESH_VIEW],
                        EnterWindowMask | LeaveWindowMask, False,
@@ -4163,9 +4165,11 @@ create_mtl_manager( Widget main_widg )
     /* All done, pop it up. */
     XtPopup( mtl_shell, XtGrabNone );
 
+    static int mtl_mgr_shell_win = MTL_MGR_SHELL_WIN;
+
     /* Add handler to init stacking order control. */
     XtAddEventHandler( mtl_shell, StructureNotifyMask, False,
-                       stack_init_EH, (XtPointer) MTL_MGR_SHELL_WIN );
+                       stack_init_EH, &mtl_mgr_shell_win );
 
     session->win_mtl_active = 1;
 
@@ -4597,9 +4601,11 @@ create_free_util_panel( Widget main_widg )
     /* Pop it up. */
     XtPopup( util_shell, XtGrabNone );
 
+    static int util_panel_shell_win = UTIL_PANEL_SHELL_WIN;
+
     /* XtAddEventHandler( util_shell, ExposureMask, False, stack_init_EH,  */
     XtAddEventHandler( util_shell, StructureNotifyMask, False, stack_init_EH,
-                       (XtPointer) UTIL_PANEL_SHELL_WIN );
+                       &util_panel_shell_win );
 
     session->win_util_active = 1;
 
@@ -7114,16 +7120,22 @@ static void
 stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
                Boolean *continue_dispatch )
 {
-    Shell_win_type swtype;
+    int* swtype;
 
-    swtype = (Shell_win_type) client_data;
+    swtype = (int *) client_data;
 
-    switch ( swtype )
+    static int render_shell_win = RENDER_SHELL_WIN,
+    		util_panel_shell_win = UTIL_PANEL_SHELL_WIN,
+    		mtl_mgr_shell_win = MTL_MGR_SHELL_WIN,
+    		surf_mgr_shell_win = SURF_MGR_SHELL_WIN,
+    		control_shell_win = CONTROL_SHELL_WIN;
+
+    switch ( *swtype )
     {
     case RENDER_SHELL_WIN:
         /* Remove self. */
         XtRemoveEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False,
-                              stack_init_EH, (XtPointer) RENDER_SHELL_WIN );
+                              stack_init_EH, &render_shell_win );
 
         /*
          * Now add the event handler on the top-level visible widgets
@@ -7132,26 +7144,26 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
 
         /* Rendering window widget. */
         XtAddEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False,
-                           stack_window_EH, (XtPointer) RENDER_SHELL_WIN );
+                           stack_window_EH, &render_shell_win );
 
         /* Control window widgets. */
         XtAddEventHandler( menu_widg, ExposureMask, False,
-                           stack_window_EH, (XtPointer) CONTROL_SHELL_WIN );
+                           stack_window_EH, &control_shell_win );
         XtAddEventHandler( monitor_widg, ExposureMask, False,
-                           stack_window_EH, (XtPointer) CONTROL_SHELL_WIN );
+                           stack_window_EH, &control_shell_win );
         XtAddEventHandler( command_widg, ExposureMask, False,
-                           stack_window_EH, (XtPointer) CONTROL_SHELL_WIN );
+                           stack_window_EH, &control_shell_win );
         if ( util_panel_widg != NULL && include_util_panel )
         {
             XtAddEventHandler( util_panel_main, ExposureMask, False,
                                stack_window_EH,
-                               (XtPointer) CONTROL_SHELL_WIN );
+                               &control_shell_win );
             XtAddEventHandler( util_render_ctl, ExposureMask, False,
                                stack_window_EH,
-                               (XtPointer) UTIL_PANEL_SHELL_WIN );
+                               &util_panel_shell_win );
             XtAddEventHandler( util_state_ctl, ExposureMask, False,
                                stack_window_EH,
-                               (XtPointer) UTIL_PANEL_SHELL_WIN );
+                               &util_panel_shell_win );
         }
         break;
 
@@ -7170,18 +7182,18 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
         /* Remove self. */
         XtRemoveEventHandler( util_panel_widg, StructureNotifyMask, False,
                               stack_init_EH,
-                              (XtPointer) UTIL_PANEL_SHELL_WIN );
+                              &util_panel_shell_win );
 
         /* Add handlers to cover the face of the Utility Panel. */
         XtAddEventHandler( util_panel_main, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) UTIL_PANEL_SHELL_WIN );
+                           &util_panel_shell_win );
         XtAddEventHandler( util_render_ctl, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) UTIL_PANEL_SHELL_WIN );
+                           &util_panel_shell_win );
         XtAddEventHandler( util_state_ctl, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) UTIL_PANEL_SHELL_WIN );
+                           &util_panel_shell_win );
         break;
 
     case MTL_MGR_SHELL_WIN:
@@ -7197,15 +7209,15 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
         /* Remove self. */
         XtRemoveEventHandler( mtl_mgr_widg, StructureNotifyMask, False,
                               stack_init_EH,
-                              (XtPointer) MTL_MGR_SHELL_WIN );
+                              &mtl_mgr_shell_win );
 
         /* Add handlers to cover the face of the Material Manager. */
         XtAddEventHandler( mtl_base, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) MTL_MGR_SHELL_WIN );
+                           &mtl_mgr_shell_win );
         XtAddEventHandler( color_editor, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) MTL_MGR_SHELL_WIN );
+                           &mtl_mgr_shell_win );
         break;
 
     case SURF_MGR_SHELL_WIN:
@@ -7215,12 +7227,12 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
         /* Remove self. */
         XtRemoveEventHandler( surf_mgr_widg, StructureNotifyMask, False,
                               stack_init_EH,
-                              (XtPointer) SURF_MGR_SHELL_WIN );
+                              &surf_mgr_shell_win );
 
         /* Add handlers to cover the face of the Surface Manager. */
         XtAddEventHandler( surf_base, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) SURF_MGR_SHELL_WIN );
+                           &surf_mgr_shell_win );
     }
 }
 
@@ -7229,6 +7241,7 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
  * TAG( stack_window_EH )
  *
  * Event handler for updating the window stacking order.
+ * client data is unused, consider removing
  */
 static void
 stack_window_EH( Widget w, XtPointer client_data, XEvent *event,
