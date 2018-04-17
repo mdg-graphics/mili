@@ -1692,86 +1692,102 @@ create_menu_bar( Widget parent, Analysis *analy )
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Draw Solid", args, n );
     XtManageChild( button );
+    static int btn_drawfilled = BTN_DRAWFILLED;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_DRAWFILLED );
+                   &btn_drawfilled );
 
     button = XmCreatePushButtonGadget( menu_pane, "Draw Hidden", args, n );
     XtManageChild( button );
+    static int btn_drawhidden = BTN_DRAWHIDDEN;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_DRAWHIDDEN );
+                   &btn_drawhidden );
 
     button = XmCreatePushButtonGadget( menu_pane, "Draw Wireframe", args, n );
     XtManageChild( button );
+    static int btn_drawwireframe = BTN_DRAWWIREFRAME;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_DRAWWIREFRAME );
+                   &btn_drawwireframe );
 
     button = XmCreatePushButtonGadget( menu_pane, "Draw Wireframe Transparent", args, n );
     XtManageChild( button );
+    static int btn_drawwireframetrans = BTN_DRAWWIREFRAMETRANS;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_DRAWWIREFRAMETRANS );
+                   &btn_drawwireframetrans );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
 
     button = XmCreatePushButtonGadget( menu_pane, "Coord Sys On/Off", args, n );
     XtManageChild( button );
+    static int btn_coordsys = BTN_COORDSYS;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_COORDSYS );
+                   &btn_coordsys );
 
     button = XmCreatePushButtonGadget( menu_pane, "Title On/Off", args, n );
     XtManageChild( button );
+    static int btn_title = BTN_TITLE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_TITLE );
+                   &btn_title );
 
     button = XmCreatePushButtonGadget( menu_pane, "Time On/Off", args, n );
     XtManageChild( button );
+    static int btn_time = BTN_TIME;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_TIME );
+                   &btn_time );
 
     button = XmCreatePushButtonGadget( menu_pane, "Colormap On/Off", args, n );
     XtManageChild( button );
+    static int btn_colormap = BTN_COLORMAP;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_COLORMAP );
+                   &btn_colormap );
 
     button = XmCreatePushButtonGadget( menu_pane, "Min/max On/Off", args, n );
     XtManageChild( button );
+    static int btn_minmax = BTN_MINMAX;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_MINMAX );
+                   &btn_minmax );
 
     button = XmCreatePushButtonGadget( menu_pane, "Disp Scale On/Off", args, n );
     XtManageChild( button );
+    static int btn_scale = BTN_SCALE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_SCALE );
+                   &btn_scale );
 
     button = XmCreatePushButtonGadget( menu_pane, "Error Indicator On/Off", args, n );
     XtManageChild( button );
+    static int btn_ei = BTN_EI;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_EI );
+                   &btn_ei );
 
     button = XmCreatePushButtonGadget( menu_pane, "All On", args, n );
     XtManageChild( button );
+    static int btn_allon = BTN_ALLON;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_ALLON );
+                   &btn_allon );
 
     button = XmCreatePushButtonGadget( menu_pane, "All Off", args, n );
     XtManageChild( button );
+    static int btn_alloff = BTN_ALLOFF;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_ALLOFF );
+                   &btn_alloff );
 
     button = XmCreatePushButtonGadget( menu_pane, "Bound Box On/Off", args, n );
     XtManageChild( button );
+    static int btn_bbox = BTN_BBOX;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_BBOX );
+                   &btn_bbox );
 
     button = XmCreatePushButtonGadget( menu_pane, "Edges On/Off", args, n );
     XtManageChild( button );
+    static int btn_edges = BTN_EDGES;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_EDGES );
+                   &btn_edges );
 
     button = XmCreatePushButtonGadget( menu_pane, "Greyscale On/Off", args, n );
     XtManageChild( button );
+    static int btn_gs = BTN_GS;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_GS );
+                   &btn_gs );
 
 
     if ( analy->free_nodes_found || analy->particle_nodes_found )
@@ -1783,16 +1799,18 @@ create_menu_bar( Widget parent, Analysis *analy )
         {
             button = XmCreatePushButtonGadget( menu_pane, "Free Nodes On/Off", args, n );
             XtManageChild( button );
+            static int btn_fn = BTN_FN;
             XtAddCallback( button, XmNactivateCallback, menu_CB,
-                           (XtPointer) BTN_FN );
+                           &btn_fn );
         }
 
         if ( analy->particle_nodes_found )
         {
             button = XmCreatePushButtonGadget( menu_pane, "Particle Nodes On/Off", args, n );
             XtManageChild( button );
+            static int btn_pn = BTN_PN;
             XtAddCallback( button, XmNactivateCallback, menu_CB,
-                           (XtPointer) BTN_PN );
+                           &btn_pn );
         }
     }
 
@@ -1801,34 +1819,39 @@ create_menu_bar( Widget parent, Analysis *analy )
 
     button = XmCreatePushButtonGadget( menu_pane, "Perspective", args, n );
     XtManageChild( button );
+    static int btn_perspective = BTN_PERSPECTIVE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_PERSPECTIVE );
+                   &btn_perspective );
 
     button = XmCreatePushButtonGadget( menu_pane, "Orthographic", args, n );
     XtManageChild( button );
+    static int btn_orthographic = BTN_ORTHOGRAPHIC;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_ORTHOGRAPHIC );
+                   &btn_orthographic );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
 
     button = XmCreatePushButtonGadget( menu_pane, "Adjust Near/Far", args, n );
     XtManageChild( button );
+    static int btn_adjustnf = BTN_ADJUSTNF;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_ADJUSTNF );
+                   &btn_adjustnf );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
 
     button = XmCreatePushButtonGadget( menu_pane, "Reset View", args, n );
     XtManageChild( button );
+    static int btn_resetview = BTN_RESETVIEW;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_RESETVIEW );
+                   &btn_resetview );
 
     button = XmCreatePushButtonGadget( menu_pane, "Supress Screen Refresh", args, n );
     XtManageChild( button );
+    static int btn_su = BTN_SU;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_SU );
+                   &btn_su );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
@@ -1853,31 +1876,36 @@ create_menu_bar( Widget parent, Analysis *analy )
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Mouse Hilite", args, n );
     XtManageChild( button );
+    static int btn_hilite = BTN_HILITE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_HILITE );
+                   &btn_hilite );
 
     button = XmCreatePushButtonGadget( menu_pane, "Mouse Select", args, n );
     XtManageChild( button );
+    static int btn_select = BTN_SELECT;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_SELECT );
+                   &btn_select );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
 
     button = XmCreatePushButtonGadget( menu_pane, "Clear Hilite", args, n );
     XtManageChild( button );
+    static int btn_clearhilite = BTN_CLEARHILITE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CLEARHILITE );
+                   &btn_clearhilite );
 
     button = XmCreatePushButtonGadget( menu_pane, "Clear Select", args, n );
     XtManageChild( button );
+    static int btn_clearselect = BTN_CLEARSELECT;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CLEARSELECT );
+                   &btn_clearselect );
 
     button = XmCreatePushButtonGadget( menu_pane, "Clear All", args, n );
     XtManageChild( button );
+    static int btn_clearall = BTN_CLEARALL;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CLEARALL );
+                   &btn_clearall );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
@@ -1897,13 +1925,15 @@ create_menu_bar( Widget parent, Analysis *analy )
 
     button = XmCreatePushButtonGadget( menu_pane, "Center Hilite On", args, n);
     XtManageChild( button );
+    static int btn_centeron = BTN_CENTERON;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CENTERON );
+                   &btn_centeron );
 
     button = XmCreatePushButtonGadget( menu_pane, "Center Hilite Off", args, n);
     XtManageChild( button );
+    static int btn_centeroff = BTN_CENTEROFF;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CENTEROFF );
+                   &btn_centeroff );
 
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, menu_pane );
@@ -1925,38 +1955,45 @@ create_menu_bar( Widget parent, Analysis *analy )
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Next State", args, n );
     XtManageChild( button );
+    static int btn_nextstate = BTN_NEXTSTATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_NEXTSTATE );
+                   &btn_nextstate );
 
     button = XmCreatePushButtonGadget( menu_pane, "Prev State", args, n );
     XtManageChild( button );
+    static int btn_prevstate = BTN_PREVSTATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_PREVSTATE );
+                   &btn_prevstate );
 
     button = XmCreatePushButtonGadget( menu_pane, "First State", args, n );
     XtManageChild( button );
+    static int btn_firststate = BTN_FIRSTSTATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_FIRSTSTATE );
+                   &btn_firststate );
 
     button = XmCreatePushButtonGadget( menu_pane, "Last State", args, n );
     XtManageChild( button );
+    static int btn_laststate = BTN_LASTSTATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_LASTSTATE );
+                   &btn_laststate );
 
     button = XmCreatePushButtonGadget( menu_pane, "Animate States", args, n );
     XtManageChild( button );
+    static int btn_animate = BTN_ANIMATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_ANIMATE );
+                   &btn_animate );
 
     button = XmCreatePushButtonGadget( menu_pane, "Stop Animate", args, n );
     XtManageChild( button );
+    static int btn_stopanimate = BTN_STOPANIMATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_STOPANIMATE );
+                   &btn_stopanimate );
 
     button = XmCreatePushButtonGadget( menu_pane, "Continue Animate", args, n );
     XtManageChild( button );
+    static int btn_contanimate = BTN_CONTANIMATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CONTANIMATE );
+                   &btn_contanimate );
 
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, menu_pane );
@@ -1975,8 +2012,9 @@ create_menu_bar( Widget parent, Analysis *analy )
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Time Hist Plot", args, n );
     XtManageChild( button );
+    static int btn_timeplot = BTN_TIMEPLOT;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_TIMEPLOT );
+                   &btn_timeplot );
 
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, menu_pane );
@@ -1995,14 +2033,16 @@ create_menu_bar( Widget parent, Analysis *analy )
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Display Griz Manual", args, n );
     XtManageChild( button );
+    static int btn_help = BTN_HELP;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_HELP );
+                   &btn_help );
 
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Display Release Notes", args, n );
     XtManageChild( button );
+    static int btn_relnotes = BTN_RELNOTES;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_RELNOTES );
+                   &btn_relnotes );
 
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, menu_pane );
@@ -3975,9 +4015,9 @@ create_mtl_manager( Widget main_widg )
                             NULL );
 
         XtOverrideTranslations( op_buttons[i], key_trans );
-
+        int operater = OP_PREVIEW + i;
         XtAddCallback( op_buttons[i], XmNdisarmCallback, mtl_func_operate_CB,
-                       (XtPointer) (OP_PREVIEW + i) );
+                       &operater );
 
         XtVaGetValues( op_buttons[i], XmNwidth, &width, NULL );
         if ( width > max_child_width )
