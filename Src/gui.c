@@ -4007,22 +4007,58 @@ create_mtl_manager( Widget main_widg )
 
     op_buttons = NEW_N( Widget, MTL_OP_QTY, "Mtl Op Btns" );
 
-    for ( i = 0; i < sizeof( op_names ) / sizeof( op_names[0] ); i++ )
-    {
-        op_buttons[i] = XtVaCreateManagedWidget(
-                            op_names[i], xmPushButtonGadgetClass, func_operate,
-                            XmNsensitive, False,
-                            NULL );
+    //UNROLL
+    static int op_preview0 = OP_PREVIEW + 0;
+    op_buttons[0] = XtVaCreateManagedWidget(
+                                op_names[0], xmPushButtonGadgetClass, func_operate,
+                                XmNsensitive, False,
+                                NULL );
+	XtOverrideTranslations( op_buttons[0], key_trans );
+	XtAddCallback( op_buttons[0], XmNdisarmCallback, mtl_func_operate_CB,
+				   &op_preview0 );
+	XtVaGetValues( op_buttons[0], XmNwidth, &width, NULL );
+	if ( width > max_child_width )
+		max_child_width = width;
 
-        XtOverrideTranslations( op_buttons[i], key_trans );
-        int operater = OP_PREVIEW + i;
-        XtAddCallback( op_buttons[i], XmNdisarmCallback, mtl_func_operate_CB,
-                       &operater );
 
-        XtVaGetValues( op_buttons[i], XmNwidth, &width, NULL );
-        if ( width > max_child_width )
-            max_child_width = width;
-    }
+    static int op_preview1 = OP_PREVIEW + 1;
+    op_buttons[1] = XtVaCreateManagedWidget(
+                                op_names[1], xmPushButtonGadgetClass, func_operate,
+                                XmNsensitive, False,
+                                NULL );
+	XtOverrideTranslations( op_buttons[1], key_trans );
+	XtAddCallback( op_buttons[1], XmNdisarmCallback, mtl_func_operate_CB,
+				   &op_preview1 );
+	XtVaGetValues( op_buttons[1], XmNwidth, &width, NULL );
+	if ( width > max_child_width )
+		max_child_width = width;
+
+
+    static int op_preview2 = OP_PREVIEW + 2;
+    op_buttons[2] = XtVaCreateManagedWidget(
+                                op_names[2], xmPushButtonGadgetClass, func_operate,
+                                XmNsensitive, False,
+                                NULL );
+	XtOverrideTranslations( op_buttons[2], key_trans );
+	XtAddCallback( op_buttons[2], XmNdisarmCallback, mtl_func_operate_CB,
+				   &op_preview2 );
+	XtVaGetValues( op_buttons[2], XmNwidth, &width, NULL );
+	if ( width > max_child_width )
+		max_child_width = width;
+
+
+    static int op_preview3 = OP_PREVIEW + 3;
+    op_buttons[3] = XtVaCreateManagedWidget(
+                                op_names[3], xmPushButtonGadgetClass, func_operate,
+                                XmNsensitive, False,
+                                NULL );
+	XtOverrideTranslations( op_buttons[3], key_trans );
+	XtAddCallback( op_buttons[3], XmNdisarmCallback, mtl_func_operate_CB,
+				   &op_preview3 );
+	XtVaGetValues( op_buttons[3], XmNwidth, &width, NULL );
+	if ( width > max_child_width )
+		max_child_width = width;
+
 
     /*
      * Now set the right offset so that the middle of the RowColumn
@@ -5404,79 +5440,88 @@ create_colormap_submenu( Widget parent, colormap_type btn_type,
     pick_submenu = XmCreatePulldownMenu( parent, "colormap_pane", args, n );
 
     btn_type = CM_INVERSE;
+    static int cm_inverse = CM_INVERSE;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Inverse Colormap",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_inverse );
 
     button = XmCreateSeparatorGadget( pick_submenu, "separator", args, n );
     XtManageChild( button );
 
     btn_type = CM_COOL;
+    static int cm_cool = CM_COOL;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Cool",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_cool );
 
     btn_type = CM_DEFAULT;
+    static int cm_default = CM_DEFAULT;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Hotmap(default)",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_default );
 
     btn_type = CM_GRAYSCALE;
+    static int cm_grayscale = CM_GRAYSCALE;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "GrayScale",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_grayscale );
 
     btn_type = CM_INVERSE_GRAYSCALE;
+    static int cm_inverse_grayscale = CM_INVERSE_GRAYSCALE;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Inverse GrayScale",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_inverse_grayscale );
 
     btn_type = CM_HSV;
+    static int cm_hsv = CM_HSV;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "HSV",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_hsv );
 
     btn_type = CM_JET;
+    static int cm_jet = CM_JET;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Jet",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_jet );
 
     btn_type = CM_PRISM;
+    static int cm_prism = CM_PRISM;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Prism",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_prism );
 
     btn_type = CM_WINTER;
+    static int cm_winter = CM_WINTER;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Winter",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_winter );
 
     return pick_submenu;
 }
@@ -9076,7 +9121,7 @@ menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     XmString text=NULL;
     Widget hist_list;
-    colormap_type btn;
+    int *btn;
     int btn_num;
 
     Analysis *analy;
@@ -9084,9 +9129,9 @@ menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     analy = env.curr_analy;
 
-    btn = (Util_panel_button_type) client_data;
+    btn = (int*) client_data;
 
-    switch ( btn )
+    switch ( *btn )
     {
     case CM_INVERSE:
         parse_command( "invmap" ,analy );
