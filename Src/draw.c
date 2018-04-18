@@ -171,7 +171,7 @@ time_t tm;
 *
 */
 
-int  label_compare( const int *key, const MO_class_labels *label );
+int  label_compare( const void *key, const void *label );
 int  get_class_label_index( MO_class_data *class, int label_num );
 void dump_class_labels( MO_class_data *class );
 void populate_result(int superclass, char map[], int size, MO_class_data * p_class, Analysis * analy);
@@ -2683,25 +2683,6 @@ draw_grid( Analysis *analy )
         strcpy(particle_name, "DBC1");
         for(i=0; i < qty_classes; i++)
         {
-            /*strcpy(particle_cname, mo_classes[i]->short_name);
-         
-            v_win->particles = v_win->current_color_property; 
-            /*change_current_color_property( &v_win->particles,
-                                           v_win->particles.current_index );
-
-            rval = htable_search( p_mesh->class_table, particle_name, FIND_ENTRY,
-                                  &p_hte );
-            if ( rval == OK )
-            {
-                p_mo_class = (MO_class_data *) p_hte->data;
-
-                rval = htable_search( analy->primal_results, "partpos", FIND_ENTRY,
-                                      &p_hte );
-                if ( rval == OK )
-                {
-                    draw_particles_3d( p_mo_class, analy );
-                }
-            } */
             draw_particles_3d( mo_classes[i], analy);
         } 
     }
@@ -6592,7 +6573,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
         return;
     }
 
-    gluQuadricCallback( sphere, (GLenum) GLU_ERROR, particle_error );
+    gluQuadricCallback( sphere, (GLenum) GLU_ERROR, (GLvoid(*)() )particle_error );
 
     gluQuadricDrawStyle( sphere, (GLenum) GLU_FILL );
     gluQuadricNormals( sphere, (GLenum) GLU_SMOOTH );
@@ -6695,7 +6676,7 @@ draw_particles_2d( MO_class_data *p_particle_class, Analysis *analy )
         return;
     }
 
-    gluQuadricCallback( circle, (GLenum) GLU_ERROR, particle_error );
+    gluQuadricCallback( circle, (GLenum) GLU_ERROR, (GLvoid(*)() )particle_error );
 
     gluQuadricDrawStyle( circle, (GLenum) GLU_FILL );
     gluQuadricNormals( circle, (GLenum) GLU_SMOOTH );
@@ -11639,7 +11620,7 @@ draw_foreground( Analysis *analy )
 				char tempname[32];
 				sprintf(tempname,"%d",class_label);
 				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
-				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, high, tempEnt->data );
+				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, high, (char*)tempEnt->data );
 			}
 			else{
 				sprintf( str, "%s %.*e, %s %d", maximum_label, fracsz, high, classes[1], class_label );
@@ -11655,7 +11636,7 @@ draw_foreground( Analysis *analy )
 				char tempname[32];
 				sprintf(tempname,"%d",class_label);
 				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
-				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, low, tempEnt->data );
+				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, low, (char*)tempEnt->data );
 			}
 			else{
 				sprintf( str, "%s %.*e, %s %d", minimum_label, fracsz, low, classes[0], class_label );
@@ -14613,7 +14594,7 @@ draw_free_nodes( Analysis *analy )
     {
         display_list = glGenLists( 1 );
         sphere       = gluNewQuadric();
-        gluQuadricCallback( sphere, (GLenum) GLU_ERROR, particle_error );
+        gluQuadricCallback( sphere, (GLenum) GLU_ERROR, (GLvoid(*)() ) particle_error );
 
         gluQuadricDrawStyle( sphere, (GLenum) GLU_FILL );
         gluQuadricNormals( sphere, (GLenum) GLU_SMOOTH );
@@ -15855,9 +15836,11 @@ dump_class_labels( MO_class_data *class )
  */
 
 int
-label_compare( const int *key, const MO_class_labels *label )
+label_compare( const void *in_key, const void *in_label )
 {
     int test;
+    int* key = (int*)in_key;
+    MO_class_labels * label = (MO_class_labels *)in_label;
     test = label->label_num;
     return( *key - label->label_num );
 }
@@ -16093,44 +16076,6 @@ is_brick_class( Analysis *analy, char *short_name )
 
     return( FALSE );
 }
-
-/************************************************************
- * TAG( is_elem_class )
- *
- * Added November 05, 2012: IRC
- *
- * Returns TRUE if this class is an element type class.
- *
-
-
-Bool_type
-is_elem_class( Analysis *analy, char *short_name )
-{
-  char short_name_upper[M_MAX_NAME_LEN], class_name_upper[M_MAX_NAME_LEN];
-  MO_class_data **class_array, *p_mocd;
-  Mesh_data *p_md;
-  int class_qty=0;
-  int i;
-  int status=OK;
-  string_to_upper( short_name, short_name_upper ); /* Make case insensitive
-
-  p_md = MESH_P( analy );
-  status = htable_get_data( p_md->class_table,
-			    (void ***) &class_array,
-			    &class_qty);
-  for ( i = 0;
-	i < class_qty;
-	i++ )
-  {
-        p_mocd = class_array[i];
-        if ( !strcmp( p_mocd->short_name, short_name ) ||
-	     !strcmp( p_mocd->short_name, short_name_upper ) ) {
-	     return( TRUE );
-	}
-  }
-
-  return( FALSE );
-} */
 
 
 Bool_type
