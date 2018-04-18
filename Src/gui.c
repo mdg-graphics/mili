@@ -415,10 +415,10 @@ static Widget create_mtl_manager( Widget main_widg );
 static Widget create_surf_manager( Widget main_widg );
 static Widget create_free_util_panel( Widget main_widg );
 static Widget create_utility_panel( Widget main_widg );
-static Widget create_pick_menu( Widget parent, Util_panel_button_type btn_type,
+static Widget create_pick_menu( Widget parent, int *btn_type,
                                 char *cascade_name );
 static Widget create_pick_submenu( Widget parent,
-                                   Util_panel_button_type btn_type,
+                                   int *btn_type,
                                    char *cascade_name,
                                    Widget *p_initial_button );
 static void get_pick_superclass( Util_panel_button_type, int * );
@@ -1291,8 +1291,10 @@ gui_start( int argc, char **argv , Analysis *analy )
     XtAddCallback( ogl_widg[MESH_VIEW], GLwNinputCallback, input_CB, 0 );
     XtManageChild( ogl_widg[MESH_VIEW] );
 
+    static int render_shell_win = RENDER_SHELL_WIN;
+
     XtAddEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False,
-                       stack_init_EH, (XtPointer) RENDER_SHELL_WIN );
+                       stack_init_EH, &render_shell_win );
 
     XtAddEventHandler( ogl_widg[MESH_VIEW],
                        EnterWindowMask | LeaveWindowMask, False,
@@ -1690,86 +1692,102 @@ create_menu_bar( Widget parent, Analysis *analy )
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Draw Solid", args, n );
     XtManageChild( button );
+    static int btn_drawfilled = BTN_DRAWFILLED;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_DRAWFILLED );
+                   &btn_drawfilled );
 
     button = XmCreatePushButtonGadget( menu_pane, "Draw Hidden", args, n );
     XtManageChild( button );
+    static int btn_drawhidden = BTN_DRAWHIDDEN;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_DRAWHIDDEN );
+                   &btn_drawhidden );
 
     button = XmCreatePushButtonGadget( menu_pane, "Draw Wireframe", args, n );
     XtManageChild( button );
+    static int btn_drawwireframe = BTN_DRAWWIREFRAME;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_DRAWWIREFRAME );
+                   &btn_drawwireframe );
 
     button = XmCreatePushButtonGadget( menu_pane, "Draw Wireframe Transparent", args, n );
     XtManageChild( button );
+    static int btn_drawwireframetrans = BTN_DRAWWIREFRAMETRANS;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_DRAWWIREFRAMETRANS );
+                   &btn_drawwireframetrans );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
 
     button = XmCreatePushButtonGadget( menu_pane, "Coord Sys On/Off", args, n );
     XtManageChild( button );
+    static int btn_coordsys = BTN_COORDSYS;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_COORDSYS );
+                   &btn_coordsys );
 
     button = XmCreatePushButtonGadget( menu_pane, "Title On/Off", args, n );
     XtManageChild( button );
+    static int btn_title = BTN_TITLE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_TITLE );
+                   &btn_title );
 
     button = XmCreatePushButtonGadget( menu_pane, "Time On/Off", args, n );
     XtManageChild( button );
+    static int btn_time = BTN_TIME;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_TIME );
+                   &btn_time );
 
     button = XmCreatePushButtonGadget( menu_pane, "Colormap On/Off", args, n );
     XtManageChild( button );
+    static int btn_colormap = BTN_COLORMAP;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_COLORMAP );
+                   &btn_colormap );
 
     button = XmCreatePushButtonGadget( menu_pane, "Min/max On/Off", args, n );
     XtManageChild( button );
+    static int btn_minmax = BTN_MINMAX;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_MINMAX );
+                   &btn_minmax );
 
     button = XmCreatePushButtonGadget( menu_pane, "Disp Scale On/Off", args, n );
     XtManageChild( button );
+    static int btn_scale = BTN_SCALE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_SCALE );
+                   &btn_scale );
 
     button = XmCreatePushButtonGadget( menu_pane, "Error Indicator On/Off", args, n );
     XtManageChild( button );
+    static int btn_ei = BTN_EI;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_EI );
+                   &btn_ei );
 
     button = XmCreatePushButtonGadget( menu_pane, "All On", args, n );
     XtManageChild( button );
+    static int btn_allon = BTN_ALLON;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_ALLON );
+                   &btn_allon );
 
     button = XmCreatePushButtonGadget( menu_pane, "All Off", args, n );
     XtManageChild( button );
+    static int btn_alloff = BTN_ALLOFF;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_ALLOFF );
+                   &btn_alloff );
 
     button = XmCreatePushButtonGadget( menu_pane, "Bound Box On/Off", args, n );
     XtManageChild( button );
+    static int btn_bbox = BTN_BBOX;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_BBOX );
+                   &btn_bbox );
 
     button = XmCreatePushButtonGadget( menu_pane, "Edges On/Off", args, n );
     XtManageChild( button );
+    static int btn_edges = BTN_EDGES;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_EDGES );
+                   &btn_edges );
 
     button = XmCreatePushButtonGadget( menu_pane, "Greyscale On/Off", args, n );
     XtManageChild( button );
+    static int btn_gs = BTN_GS;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_GS );
+                   &btn_gs );
 
 
     if ( analy->free_nodes_found || analy->particle_nodes_found )
@@ -1781,16 +1799,18 @@ create_menu_bar( Widget parent, Analysis *analy )
         {
             button = XmCreatePushButtonGadget( menu_pane, "Free Nodes On/Off", args, n );
             XtManageChild( button );
+            static int btn_fn = BTN_FN;
             XtAddCallback( button, XmNactivateCallback, menu_CB,
-                           (XtPointer) BTN_FN );
+                           &btn_fn );
         }
 
         if ( analy->particle_nodes_found )
         {
             button = XmCreatePushButtonGadget( menu_pane, "Particle Nodes On/Off", args, n );
             XtManageChild( button );
+            static int btn_pn = BTN_PN;
             XtAddCallback( button, XmNactivateCallback, menu_CB,
-                           (XtPointer) BTN_PN );
+                           &btn_pn );
         }
     }
 
@@ -1799,34 +1819,39 @@ create_menu_bar( Widget parent, Analysis *analy )
 
     button = XmCreatePushButtonGadget( menu_pane, "Perspective", args, n );
     XtManageChild( button );
+    static int btn_perspective = BTN_PERSPECTIVE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_PERSPECTIVE );
+                   &btn_perspective );
 
     button = XmCreatePushButtonGadget( menu_pane, "Orthographic", args, n );
     XtManageChild( button );
+    static int btn_orthographic = BTN_ORTHOGRAPHIC;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_ORTHOGRAPHIC );
+                   &btn_orthographic );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
 
     button = XmCreatePushButtonGadget( menu_pane, "Adjust Near/Far", args, n );
     XtManageChild( button );
+    static int btn_adjustnf = BTN_ADJUSTNF;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_ADJUSTNF );
+                   &btn_adjustnf );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
 
     button = XmCreatePushButtonGadget( menu_pane, "Reset View", args, n );
     XtManageChild( button );
+    static int btn_resetview = BTN_RESETVIEW;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_RESETVIEW );
+                   &btn_resetview );
 
     button = XmCreatePushButtonGadget( menu_pane, "Supress Screen Refresh", args, n );
     XtManageChild( button );
+    static int btn_su = BTN_SU;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_SU );
+                   &btn_su );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
@@ -1851,40 +1876,48 @@ create_menu_bar( Widget parent, Analysis *analy )
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Mouse Hilite", args, n );
     XtManageChild( button );
+    static int btn_hilite = BTN_HILITE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_HILITE );
+                   &btn_hilite );
 
     button = XmCreatePushButtonGadget( menu_pane, "Mouse Select", args, n );
     XtManageChild( button );
+    static int btn_select = BTN_SELECT;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_SELECT );
+                   &btn_select );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
 
     button = XmCreatePushButtonGadget( menu_pane, "Clear Hilite", args, n );
     XtManageChild( button );
+    static int btn_clearhilite = BTN_CLEARHILITE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CLEARHILITE );
+                   &btn_clearhilite );
 
     button = XmCreatePushButtonGadget( menu_pane, "Clear Select", args, n );
     XtManageChild( button );
+    static int btn_clearselect = BTN_CLEARSELECT;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CLEARSELECT );
+                   &btn_clearselect );
 
     button = XmCreatePushButtonGadget( menu_pane, "Clear All", args, n );
     XtManageChild( button );
+    static int btn_clearall = BTN_CLEARALL;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CLEARALL );
+                   &btn_clearall );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
     XtManageChild( button );
 
-    setpick_menu1_widg = create_pick_menu( menu_pane, BTN1_PICK,
+    static int btn1_pick = BTN1_PICK;
+    static int btn2_pick = BTN2_PICK;
+    static int btn3_pick = BTN3_PICK;
+    setpick_menu1_widg = create_pick_menu( menu_pane, &btn1_pick,
                                            "Set Btn 1 Pick" );
-    setpick_menu2_widg = create_pick_menu( menu_pane, BTN2_PICK,
+    setpick_menu2_widg = create_pick_menu( menu_pane, &btn2_pick,
                                            "Set Btn 2 Pick" );
-    setpick_menu3_widg = create_pick_menu( menu_pane, BTN3_PICK,
+    setpick_menu3_widg = create_pick_menu( menu_pane, &btn3_pick,
                                            "Set Btn 3 Pick" );
 
     button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
@@ -1892,13 +1925,15 @@ create_menu_bar( Widget parent, Analysis *analy )
 
     button = XmCreatePushButtonGadget( menu_pane, "Center Hilite On", args, n);
     XtManageChild( button );
+    static int btn_centeron = BTN_CENTERON;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CENTERON );
+                   &btn_centeron );
 
     button = XmCreatePushButtonGadget( menu_pane, "Center Hilite Off", args, n);
     XtManageChild( button );
+    static int btn_centeroff = BTN_CENTEROFF;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CENTEROFF );
+                   &btn_centeroff );
 
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, menu_pane );
@@ -1920,38 +1955,45 @@ create_menu_bar( Widget parent, Analysis *analy )
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Next State", args, n );
     XtManageChild( button );
+    static int btn_nextstate = BTN_NEXTSTATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_NEXTSTATE );
+                   &btn_nextstate );
 
     button = XmCreatePushButtonGadget( menu_pane, "Prev State", args, n );
     XtManageChild( button );
+    static int btn_prevstate = BTN_PREVSTATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_PREVSTATE );
+                   &btn_prevstate );
 
     button = XmCreatePushButtonGadget( menu_pane, "First State", args, n );
     XtManageChild( button );
+    static int btn_firststate = BTN_FIRSTSTATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_FIRSTSTATE );
+                   &btn_firststate );
 
     button = XmCreatePushButtonGadget( menu_pane, "Last State", args, n );
     XtManageChild( button );
+    static int btn_laststate = BTN_LASTSTATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_LASTSTATE );
+                   &btn_laststate );
 
     button = XmCreatePushButtonGadget( menu_pane, "Animate States", args, n );
     XtManageChild( button );
+    static int btn_animate = BTN_ANIMATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_ANIMATE );
+                   &btn_animate );
 
     button = XmCreatePushButtonGadget( menu_pane, "Stop Animate", args, n );
     XtManageChild( button );
+    static int btn_stopanimate = BTN_STOPANIMATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_STOPANIMATE );
+                   &btn_stopanimate );
 
     button = XmCreatePushButtonGadget( menu_pane, "Continue Animate", args, n );
     XtManageChild( button );
+    static int btn_contanimate = BTN_CONTANIMATE;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CONTANIMATE );
+                   &btn_contanimate );
 
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, menu_pane );
@@ -1970,8 +2012,9 @@ create_menu_bar( Widget parent, Analysis *analy )
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Time Hist Plot", args, n );
     XtManageChild( button );
+    static int btn_timeplot = BTN_TIMEPLOT;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_TIMEPLOT );
+                   &btn_timeplot );
 
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, menu_pane );
@@ -1990,14 +2033,16 @@ create_menu_bar( Widget parent, Analysis *analy )
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Display Griz Manual", args, n );
     XtManageChild( button );
+    static int btn_help = BTN_HELP;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_HELP );
+                   &btn_help );
 
     n = 0;
     button = XmCreatePushButtonGadget( menu_pane, "Display Release Notes", args, n );
     XtManageChild( button );
+    static int btn_relnotes = BTN_RELNOTES;
     XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_RELNOTES );
+                   &btn_relnotes );
 
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, menu_pane );
@@ -3751,7 +3796,7 @@ create_mtl_manager( Widget main_widg )
         XtOverrideTranslations( color_comps[i], key_trans );
 
         XtAddCallback( color_comps[i], XmNdisarmCallback,
-                       col_comp_disarm_CB, (XtPointer) i );
+                       col_comp_disarm_CB, &i );
 
         prop_val_changed[i] = FALSE;
         property_vals[i] = NEW_N( GLfloat, 3, "Col comp val" );
@@ -3866,11 +3911,11 @@ create_mtl_manager( Widget main_widg )
                                   NULL );
 
         XtAddCallback( col_ed_scales[0][i], XmNdragCallback,
-                       col_ed_scale_CB, (XtPointer) i );
+                       col_ed_scale_CB, &i );
         XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                       col_ed_scale_CB, (XtPointer) i );
+                       col_ed_scale_CB, &i );
         XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                       col_ed_scale_update_CB, (XtPointer) i );
+                       col_ed_scale_update_CB, &i );
     }
 
     XmStringFree( val_text );
@@ -3962,22 +4007,58 @@ create_mtl_manager( Widget main_widg )
 
     op_buttons = NEW_N( Widget, MTL_OP_QTY, "Mtl Op Btns" );
 
-    for ( i = 0; i < sizeof( op_names ) / sizeof( op_names[0] ); i++ )
-    {
-        op_buttons[i] = XtVaCreateManagedWidget(
-                            op_names[i], xmPushButtonGadgetClass, func_operate,
-                            XmNsensitive, False,
-                            NULL );
+    //UNROLL
+    static int op_preview0 = OP_PREVIEW + 0;
+    op_buttons[0] = XtVaCreateManagedWidget(
+                                op_names[0], xmPushButtonGadgetClass, func_operate,
+                                XmNsensitive, False,
+                                NULL );
+	XtOverrideTranslations( op_buttons[0], key_trans );
+	XtAddCallback( op_buttons[0], XmNdisarmCallback, mtl_func_operate_CB,
+				   &op_preview0 );
+	XtVaGetValues( op_buttons[0], XmNwidth, &width, NULL );
+	if ( width > max_child_width )
+		max_child_width = width;
 
-        XtOverrideTranslations( op_buttons[i], key_trans );
 
-        XtAddCallback( op_buttons[i], XmNdisarmCallback, mtl_func_operate_CB,
-                       (XtPointer) (OP_PREVIEW + i) );
+    static int op_preview1 = OP_PREVIEW + 1;
+    op_buttons[1] = XtVaCreateManagedWidget(
+                                op_names[1], xmPushButtonGadgetClass, func_operate,
+                                XmNsensitive, False,
+                                NULL );
+	XtOverrideTranslations( op_buttons[1], key_trans );
+	XtAddCallback( op_buttons[1], XmNdisarmCallback, mtl_func_operate_CB,
+				   &op_preview1 );
+	XtVaGetValues( op_buttons[1], XmNwidth, &width, NULL );
+	if ( width > max_child_width )
+		max_child_width = width;
 
-        XtVaGetValues( op_buttons[i], XmNwidth, &width, NULL );
-        if ( width > max_child_width )
-            max_child_width = width;
-    }
+
+    static int op_preview2 = OP_PREVIEW + 2;
+    op_buttons[2] = XtVaCreateManagedWidget(
+                                op_names[2], xmPushButtonGadgetClass, func_operate,
+                                XmNsensitive, False,
+                                NULL );
+	XtOverrideTranslations( op_buttons[2], key_trans );
+	XtAddCallback( op_buttons[2], XmNdisarmCallback, mtl_func_operate_CB,
+				   &op_preview2 );
+	XtVaGetValues( op_buttons[2], XmNwidth, &width, NULL );
+	if ( width > max_child_width )
+		max_child_width = width;
+
+
+    static int op_preview3 = OP_PREVIEW + 3;
+    op_buttons[3] = XtVaCreateManagedWidget(
+                                op_names[3], xmPushButtonGadgetClass, func_operate,
+                                XmNsensitive, False,
+                                NULL );
+	XtOverrideTranslations( op_buttons[3], key_trans );
+	XtAddCallback( op_buttons[3], XmNdisarmCallback, mtl_func_operate_CB,
+				   &op_preview3 );
+	XtVaGetValues( op_buttons[3], XmNwidth, &width, NULL );
+	if ( width > max_child_width )
+		max_child_width = width;
+
 
     /*
      * Now set the right offset so that the middle of the RowColumn
@@ -4163,9 +4244,11 @@ create_mtl_manager( Widget main_widg )
     /* All done, pop it up. */
     XtPopup( mtl_shell, XtGrabNone );
 
+    static int mtl_mgr_shell_win = MTL_MGR_SHELL_WIN;
+
     /* Add handler to init stacking order control. */
     XtAddEventHandler( mtl_shell, StructureNotifyMask, False,
-                       stack_init_EH, (XtPointer) MTL_MGR_SHELL_WIN );
+                       stack_init_EH, &mtl_mgr_shell_win );
 
     session->win_mtl_active = 1;
 
@@ -4368,7 +4451,7 @@ create_surf_manager( Widget main_widg )
         XtOverrideTranslations( surf_op_buttons[i], key_trans );
 
         XtAddCallback( surf_op_buttons[i], XmNdisarmCallback, surf_func_operate_CB,
-                       (XtPointer) (i) );
+                       &i );
 
         XtVaGetValues( surf_op_buttons[i], XmNwidth, &width, NULL );
         if ( width > max_child_width )
@@ -4514,7 +4597,7 @@ create_surf_manager( Widget main_widg )
         INSERT( p_surf, surf_deselect_list );
 
         XtAddCallback( widg, XmNdisarmCallback, surf_select_CB,
-                       (XtPointer) surf );
+                       &surf );
     }
 
     /*
@@ -4597,9 +4680,11 @@ create_free_util_panel( Widget main_widg )
     /* Pop it up. */
     XtPopup( util_shell, XtGrabNone );
 
+    static int util_panel_shell_win = UTIL_PANEL_SHELL_WIN;
+
     /* XtAddEventHandler( util_shell, ExposureMask, False, stack_init_EH,  */
     XtAddEventHandler( util_shell, StructureNotifyMask, False, stack_init_EH,
-                       (XtPointer) UTIL_PANEL_SHELL_WIN );
+                       &util_panel_shell_win );
 
     session->win_util_active = 1;
 
@@ -4766,8 +4851,9 @@ create_utility_panel( Widget main_widg )
                        XmNresizeWidth, True,
                        XmNvalue, stride_text,
                        NULL );
+    static int stride_edit = STRIDE_EDIT;
     XtAddCallback( stride_label, XmNactivateCallback, stride_CB,
-                   (XtPointer) STRIDE_EDIT );
+                   &stride_edit );
     XtVaGetValues( stride_label, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
@@ -4775,8 +4861,9 @@ create_utility_panel( Widget main_widg )
                "stride_incr", xmArrowButtonWidgetClass, util_state_ctl,
                NULL );
     XtOverrideTranslations( widg, key_trans );
+    static int stride_increment = STRIDE_INCREMENT;
     XtAddCallback( widg, XmNactivateCallback, stride_CB,
-                   (XtPointer) STRIDE_INCREMENT );
+                   &stride_increment );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
@@ -4785,8 +4872,9 @@ create_utility_panel( Widget main_widg )
                XmNarrowDirection, XmARROW_DOWN,
                NULL );
     XtOverrideTranslations( widg, key_trans );
+    static int stride_decrement = STRIDE_DECREMENT;
     XtAddCallback( widg, XmNactivateCallback, stride_CB,
-                   (XtPointer) STRIDE_DECREMENT );
+                   &stride_decrement );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
@@ -4893,8 +4981,9 @@ create_utility_panel( Widget main_widg )
     XtVaGetValues( util_render_btns[VIEW_SOLID], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
+    static int view_solid = VIEW_SOLID;
     XtAddCallback( util_render_btns[VIEW_SOLID], XmNvalueChangedCallback,
-                   util_render_CB, (XtPointer) VIEW_SOLID );
+                   util_render_CB, &view_solid );
 
     XtOverrideTranslations( util_render_btns[VIEW_SOLID], key_trans );
 
@@ -4908,8 +4997,9 @@ create_utility_panel( Widget main_widg )
     XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
+    static int view_solid_mesh = VIEW_SOLID_MESH;
     XtAddCallback( util_render_btns[VIEW_SOLID_MESH], XmNvalueChangedCallback,
-                   util_render_CB, (XtPointer) VIEW_SOLID_MESH );
+                   util_render_CB, &view_solid_mesh );
 
     XtOverrideTranslations( util_render_btns[VIEW_SOLID_MESH], key_trans );
 
@@ -4924,8 +5014,9 @@ create_utility_panel( Widget main_widg )
     XtVaGetValues( util_render_btns[VIEW_EDGES], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
+    static int view_edges = VIEW_EDGES;
     XtAddCallback( util_render_btns[VIEW_EDGES], XmNvalueChangedCallback,
-                   util_render_CB, (XtPointer) VIEW_EDGES );
+                   util_render_CB, &view_edges );
 
     XtOverrideTranslations( util_render_btns[VIEW_EDGES], key_trans );
 
@@ -4942,8 +5033,9 @@ create_utility_panel( Widget main_widg )
     XtVaGetValues( util_render_btns[VIEW_WIREFRAME], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
+    static int view_wireframe = VIEW_WIREFRAME;
     XtAddCallback( util_render_btns[VIEW_WIREFRAME], XmNvalueChangedCallback,
-                   util_render_CB, (XtPointer) VIEW_WIREFRAME );
+                   util_render_CB, &view_wireframe );
 
     XtOverrideTranslations( util_render_btns[VIEW_WIREFRAME], key_trans );
 
@@ -4959,8 +5051,9 @@ create_utility_panel( Widget main_widg )
     XtVaGetValues( util_render_btns[VIEW_GS], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
+    static int view_gs = VIEW_GS;
     XtAddCallback( util_render_btns[VIEW_GS], XmNvalueChangedCallback,
-                   util_render_CB, (XtPointer) VIEW_GS );
+                   util_render_CB, &view_gs );
 
     XtOverrideTranslations( util_render_btns[VIEW_GS], key_trans );
 
@@ -4996,8 +5089,9 @@ create_utility_panel( Widget main_widg )
     XtVaGetValues( util_render_btns[PICK_MODE_SELECT], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
+    static int pick_mode_select = PICK_MODE_SELECT;
     XtAddCallback( util_render_btns[PICK_MODE_SELECT], XmNvalueChangedCallback,
-                   util_render_CB, (XtPointer) PICK_MODE_SELECT );
+                   util_render_CB, &pick_mode_select );
 
     XtOverrideTranslations( util_render_btns[PICK_MODE_SELECT], key_trans );
 
@@ -5011,8 +5105,9 @@ create_utility_panel( Widget main_widg )
     XtVaGetValues( util_render_btns[PICK_MODE_HILITE], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
+    static int pick_mode_hilite = PICK_MODE_HILITE;
     XtAddCallback( util_render_btns[PICK_MODE_HILITE], XmNvalueChangedCallback,
-                   util_render_CB, (XtPointer) PICK_MODE_HILITE );
+                   util_render_CB, &pick_mode_hilite );
 
     XtOverrideTranslations( util_render_btns[PICK_MODE_HILITE], key_trans );
 
@@ -5036,24 +5131,24 @@ create_utility_panel( Widget main_widg )
     XtVaGetValues( widg, XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
-
-    util_render_btns[BTN1_PICK] = create_pick_menu( rend_child, BTN1_PICK,
+    static int btn1_pick = BTN1_PICK;
+    util_render_btns[BTN1_PICK] = create_pick_menu( rend_child, &btn1_pick,
                                   NULL );
     XtVaGetValues( util_render_btns[BTN1_PICK], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
 
     XtOverrideTranslations( util_render_btns[BTN1_PICK], key_trans );
-
-    util_render_btns[BTN2_PICK] = create_pick_menu( rend_child, BTN2_PICK,
+    static int btn2_pick = BTN2_PICK;
+    util_render_btns[BTN2_PICK] = create_pick_menu( rend_child, &btn2_pick,
                                   NULL );
     XtVaGetValues( util_render_btns[BTN2_PICK], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
 
     XtOverrideTranslations( util_render_btns[BTN2_PICK], key_trans );
-
-    util_render_btns[BTN3_PICK] = create_pick_menu( rend_child, BTN3_PICK,
+    static int btn3_pick = BTN3_PICK;
+    util_render_btns[BTN3_PICK] = create_pick_menu( rend_child, &btn3_pick,
                                   NULL );
     XtVaGetValues( util_render_btns[BTN3_PICK], XmNwidth, &width, NULL );
     if ( width > child_width )
@@ -5129,7 +5224,7 @@ create_utility_panel( Widget main_widg )
  * classes for pick actions.
  */
 static Widget
-create_pick_menu( Widget parent, Util_panel_button_type btn_type,
+create_pick_menu( Widget parent, int *btn_type,
                   char *cascade_name )
 {
     int n;
@@ -5176,10 +5271,11 @@ create_pick_menu( Widget parent, Util_panel_button_type btn_type,
  * select mesh object classes for pick actions.
  */
 static Widget
-create_pick_submenu( Widget parent, Util_panel_button_type btn_type,
+create_pick_submenu( Widget parent, int *btn_type,
                      char *cascade_name, Widget *p_initial_button )
 {
     int n, i, j;
+    int *nbtn_type = (int*)btn_type;
     Arg args[5];
     Widget pick_submenu, button;
     Mesh_data *p_mesh;
@@ -5197,7 +5293,7 @@ create_pick_submenu( Widget parent, Util_panel_button_type btn_type,
 
     p_mesh = MESH_P( env.curr_analy );
 
-    switch ( btn_type )
+    switch ( *nbtn_type )
     {
     case BTN1_PICK:
         pref_class = &btn1_mo_class;
@@ -5212,7 +5308,7 @@ create_pick_submenu( Widget parent, Util_panel_button_type btn_type,
         pref_class = NULL;
     }
 
-    get_pick_superclass( btn_type, &pref_sclass );
+    get_pick_superclass( *nbtn_type, &pref_sclass );
 
     /*
      * Traverse the classes in the mesh and create PushButtonGadgets
@@ -5257,10 +5353,10 @@ create_pick_submenu( Widget parent, Util_panel_button_type btn_type,
 
                 if ( cascade_name == NULL )
                     XtAddCallback( button, XmNactivateCallback, util_render_CB,
-                                   (XtPointer) btn_type );
+                                   nbtn_type );
                 else
                     XtAddCallback( button, XmNactivateCallback, menu_setpick_CB,
-                                   (XtPointer) btn_type );
+                                   nbtn_type );
 
                 /*
                  * For option menu, save button for user-specified class
@@ -5344,79 +5440,88 @@ create_colormap_submenu( Widget parent, colormap_type btn_type,
     pick_submenu = XmCreatePulldownMenu( parent, "colormap_pane", args, n );
 
     btn_type = CM_INVERSE;
+    static int cm_inverse = CM_INVERSE;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Inverse Colormap",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_inverse );
 
     button = XmCreateSeparatorGadget( pick_submenu, "separator", args, n );
     XtManageChild( button );
 
     btn_type = CM_COOL;
+    static int cm_cool = CM_COOL;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Cool",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_cool );
 
     btn_type = CM_DEFAULT;
+    static int cm_default = CM_DEFAULT;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Hotmap(default)",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_default );
 
     btn_type = CM_GRAYSCALE;
+    static int cm_grayscale = CM_GRAYSCALE;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "GrayScale",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_grayscale );
 
     btn_type = CM_INVERSE_GRAYSCALE;
+    static int cm_inverse_grayscale = CM_INVERSE_GRAYSCALE;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Inverse GrayScale",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_inverse_grayscale );
 
     btn_type = CM_HSV;
+    static int cm_hsv = CM_HSV;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "HSV",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_hsv );
 
     btn_type = CM_JET;
+    static int cm_jet = CM_JET;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Jet",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_jet );
 
     btn_type = CM_PRISM;
+    static int cm_prism = CM_PRISM;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Prism",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_prism );
 
     btn_type = CM_WINTER;
+    static int cm_winter = CM_WINTER;
     button = XmCreatePushButtonGadget( pick_submenu,
                                        "Winter",
                                        args, n );
     XtManageChild( button );
     XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   (XtPointer) btn_type );
+                   &cm_winter );
 
     return pick_submenu;
 }
@@ -5542,7 +5647,8 @@ regenerate_pick_menus( void )
     XtDestroyWidget( submenu );
 
     /* Create new setpick1 menu and assign it. */
-    submenu = create_pick_submenu( menu, BTN1_PICK, "Set Btn 1 Pick", NULL );
+    static int btn1_pick = BTN1_PICK;
+    submenu = create_pick_submenu( menu, &btn1_pick, "Set Btn 1 Pick", NULL );
     XtVaSetValues( setpick_menu1_widg, XmNsubMenuId, submenu, NULL );
 
     /* Destroy the existing setpick2 menu. */
@@ -5552,7 +5658,8 @@ regenerate_pick_menus( void )
     XtDestroyWidget( submenu );
 
     /* Create new setpick2 menu and assign it. */
-    submenu = create_pick_submenu( menu, BTN2_PICK, "Set Btn 2 Pick", NULL );
+    static int btn2_pick = BTN2_PICK;
+    submenu = create_pick_submenu( menu, &btn2_pick, "Set Btn 2 Pick", NULL );
     XtVaSetValues( setpick_menu2_widg, XmNsubMenuId, submenu, NULL );
 
     /* Destroy the existing setpick3 menu. */
@@ -5562,7 +5669,8 @@ regenerate_pick_menus( void )
     XtDestroyWidget( submenu );
 
     /* Create new setpick3 menu and assign it. */
-    submenu = create_pick_submenu( menu, BTN3_PICK, "Set Btn 3 Pick", NULL );
+    static int btn3_pick = BTN3_PICK;
+    submenu = create_pick_submenu( menu, &btn3_pick, "Set Btn 3 Pick", NULL );
     XtVaSetValues( setpick_menu3_widg, XmNsubMenuId, submenu, NULL );
 }
 
@@ -7114,16 +7222,22 @@ static void
 stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
                Boolean *continue_dispatch )
 {
-    Shell_win_type swtype;
+    int* swtype;
 
-    swtype = (Shell_win_type) client_data;
+    swtype = (int *) client_data;
 
-    switch ( swtype )
+    static int render_shell_win = RENDER_SHELL_WIN,
+    		util_panel_shell_win = UTIL_PANEL_SHELL_WIN,
+    		mtl_mgr_shell_win = MTL_MGR_SHELL_WIN,
+    		surf_mgr_shell_win = SURF_MGR_SHELL_WIN,
+    		control_shell_win = CONTROL_SHELL_WIN;
+
+    switch ( *swtype )
     {
     case RENDER_SHELL_WIN:
         /* Remove self. */
         XtRemoveEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False,
-                              stack_init_EH, (XtPointer) RENDER_SHELL_WIN );
+                              stack_init_EH, &render_shell_win );
 
         /*
          * Now add the event handler on the top-level visible widgets
@@ -7132,26 +7246,26 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
 
         /* Rendering window widget. */
         XtAddEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False,
-                           stack_window_EH, (XtPointer) RENDER_SHELL_WIN );
+                           stack_window_EH, &render_shell_win );
 
         /* Control window widgets. */
         XtAddEventHandler( menu_widg, ExposureMask, False,
-                           stack_window_EH, (XtPointer) CONTROL_SHELL_WIN );
+                           stack_window_EH, &control_shell_win );
         XtAddEventHandler( monitor_widg, ExposureMask, False,
-                           stack_window_EH, (XtPointer) CONTROL_SHELL_WIN );
+                           stack_window_EH, &control_shell_win );
         XtAddEventHandler( command_widg, ExposureMask, False,
-                           stack_window_EH, (XtPointer) CONTROL_SHELL_WIN );
+                           stack_window_EH, &control_shell_win );
         if ( util_panel_widg != NULL && include_util_panel )
         {
             XtAddEventHandler( util_panel_main, ExposureMask, False,
                                stack_window_EH,
-                               (XtPointer) CONTROL_SHELL_WIN );
+                               &control_shell_win );
             XtAddEventHandler( util_render_ctl, ExposureMask, False,
                                stack_window_EH,
-                               (XtPointer) UTIL_PANEL_SHELL_WIN );
+                               &util_panel_shell_win );
             XtAddEventHandler( util_state_ctl, ExposureMask, False,
                                stack_window_EH,
-                               (XtPointer) UTIL_PANEL_SHELL_WIN );
+                               &util_panel_shell_win );
         }
         break;
 
@@ -7170,18 +7284,18 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
         /* Remove self. */
         XtRemoveEventHandler( util_panel_widg, StructureNotifyMask, False,
                               stack_init_EH,
-                              (XtPointer) UTIL_PANEL_SHELL_WIN );
+                              &util_panel_shell_win );
 
         /* Add handlers to cover the face of the Utility Panel. */
         XtAddEventHandler( util_panel_main, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) UTIL_PANEL_SHELL_WIN );
+                           &util_panel_shell_win );
         XtAddEventHandler( util_render_ctl, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) UTIL_PANEL_SHELL_WIN );
+                           &util_panel_shell_win );
         XtAddEventHandler( util_state_ctl, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) UTIL_PANEL_SHELL_WIN );
+                           &util_panel_shell_win );
         break;
 
     case MTL_MGR_SHELL_WIN:
@@ -7197,15 +7311,15 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
         /* Remove self. */
         XtRemoveEventHandler( mtl_mgr_widg, StructureNotifyMask, False,
                               stack_init_EH,
-                              (XtPointer) MTL_MGR_SHELL_WIN );
+                              &mtl_mgr_shell_win );
 
         /* Add handlers to cover the face of the Material Manager. */
         XtAddEventHandler( mtl_base, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) MTL_MGR_SHELL_WIN );
+                           &mtl_mgr_shell_win );
         XtAddEventHandler( color_editor, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) MTL_MGR_SHELL_WIN );
+                           &mtl_mgr_shell_win );
         break;
 
     case SURF_MGR_SHELL_WIN:
@@ -7215,12 +7329,12 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
         /* Remove self. */
         XtRemoveEventHandler( surf_mgr_widg, StructureNotifyMask, False,
                               stack_init_EH,
-                              (XtPointer) SURF_MGR_SHELL_WIN );
+                              &surf_mgr_shell_win );
 
         /* Add handlers to cover the face of the Surface Manager. */
         XtAddEventHandler( surf_base, ExposureMask, False,
                            stack_window_EH,
-                           (XtPointer) SURF_MGR_SHELL_WIN );
+                           &surf_mgr_shell_win );
     }
 }
 
@@ -7229,6 +7343,7 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
  * TAG( stack_window_EH )
  *
  * Event handler for updating the window stacking order.
+ * client data is unused, consider removing
  */
 static void
 stack_window_EH( Widget w, XtPointer client_data, XEvent *event,
@@ -7734,11 +7849,11 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    int mtl;
+    int *mtl;
     Material_list_obj *p_mtl;
     XmToggleButtonCallbackStruct *cb_data;
 
-    mtl = (int) client_data;
+    mtl = (int*) client_data;
     cb_data = (XmToggleButtonCallbackStruct *) call_data;
 
     /*
@@ -7756,7 +7871,7 @@ mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
         {
             p_mtl = mtl_deselect_list;
             UNLINK( p_mtl, mtl_deselect_list );
-            p_mtl->mtl = mtl;
+            p_mtl->mtl = *mtl;
             INSERT( p_mtl, mtl_select_list );
         }
         else
@@ -7765,7 +7880,7 @@ mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     else
     {
         for ( p_mtl = mtl_select_list; p_mtl != NULL; p_mtl = p_mtl->next )
-            if ( p_mtl->mtl == mtl )
+            if ( p_mtl->mtl == *mtl )
                 break;
         if ( p_mtl != NULL )
         {
@@ -7806,12 +7921,12 @@ mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 col_comp_disarm_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Material_property_type comp;
+    int *comp;
     int i;
     Material_property_type j;
     XmToggleButtonCallbackStruct *cb_data;
 
-    comp = (Material_property_type) client_data;
+    comp = (int*) client_data;
     cb_data = (XmToggleButtonCallbackStruct *) call_data;
 
     /* Find which component has been set/unset. */
@@ -7821,7 +7936,7 @@ col_comp_disarm_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     if ( cb_data->set )
     {
-        cur_mtl_comp = comp;
+        cur_mtl_comp = *comp;
         for ( i = 0; i < 3; i++ )
             if ( !XtIsSensitive( col_ed_scales[0][i] ) )
                 XtSetSensitive( col_ed_scales[0][i], True );
@@ -7903,14 +8018,14 @@ col_ed_scale_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     XmString sval;
     char valbuf[5];
-    Color_editor_scale_type scale;
+    int *scale;
     GLfloat fval;
     XmScaleCallbackStruct *cb_data;
 
-    scale = (Color_editor_scale_type) client_data;
+    scale = (int*) client_data;
     cb_data = (XmScaleCallbackStruct *) call_data;
 
-    if ( scale != SHININESS_SCALE )
+    if ( *scale != SHININESS_SCALE )
     {
         fval = (GLfloat) cb_data->value / 100.0;
         sprintf( valbuf, "%4.2f", fval );
@@ -7919,12 +8034,12 @@ col_ed_scale_CB( Widget w, XtPointer client_data, XtPointer call_data )
         sprintf( valbuf, "%d", (int) cb_data->value );
 
     sval = XmStringCreateLocalized( valbuf );
-    XtVaSetValues( col_ed_scales[1][scale], XmNlabelString, sval, NULL );
+    XtVaSetValues( col_ed_scales[1][*scale], XmNlabelString, sval, NULL );
     XmStringFree( sval );
 
-    if ( scale != SHININESS_SCALE )
+    if ( *scale != SHININESS_SCALE )
     {
-        cur_color[scale] = fval;
+        cur_color[*scale] = fval;
         draw_mtl_swatch( cur_color );
     }
 }
@@ -7940,14 +8055,14 @@ col_ed_scale_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 col_ed_scale_update_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Color_editor_scale_type scale;
+    int *scale;
     int i, ival;
     XmScaleCallbackStruct *cb_data;
 
-    scale = (Color_editor_scale_type) client_data;
+    scale = (int*) client_data;
     cb_data = (XmScaleCallbackStruct *) call_data;
 
-    if ( scale == SHININESS_SCALE )
+    if ( *scale == SHININESS_SCALE )
     {
         prop_val_changed[SHININESS] = TRUE;
         property_vals[SHININESS][0] = (GLfloat) cb_data->value;
@@ -7961,7 +8076,7 @@ col_ed_scale_update_CB( Widget w, XtPointer client_data, XtPointer call_data )
         prop_val_changed[cur_mtl_comp] = TRUE;
         for ( i = 0; i < 3; i++ )
         {
-            if ( i == scale )
+            if ( i == *scale )
                 property_vals[cur_mtl_comp][i] = (GLfloat) cb_data->value
                                                  / 100.0;
             else
@@ -7984,12 +8099,12 @@ col_ed_scale_update_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Mtl_mgr_op_type op;
+    int *op;
     char *p_src, *p_dest;
     int t_cnt, token_cnt, i;
     size_t len;
 
-    op = (Mtl_mgr_op_type) client_data;
+    op = (int*) client_data;
     token_cnt = 0;
 
     switch_opengl_win( MESH_VIEW );
@@ -8003,7 +8118,7 @@ mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
             p_src++, p_dest++ );
     token_cnt++;
 
-    switch( op )
+    switch( *op )
     {
     case OP_PREVIEW:
         /* Preview is only a color function option. */
@@ -8245,12 +8360,12 @@ surf_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 surf_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Surf_mgr_op_type op;
+    int *op;
     char *p_src, *p_dest;
     int t_cnt, token_cnt, i;
     size_t len;
 
-    op = (Surf_mgr_op_type) client_data;
+    op = (int*) client_data;
     token_cnt = 0;
 
     switch_opengl_win( MESH_VIEW );
@@ -8263,7 +8378,7 @@ surf_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
             p_src++, p_dest++ );
     token_cnt++;
 
-    switch( op )
+    switch( *op )
     {
     case SURF_OP_APPLY:
         /* Build whole new command. */
@@ -8534,11 +8649,11 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 surf_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    int surf;
+    int *surf;
     Surface_list_obj *p_surf;
     XmToggleButtonCallbackStruct *cb_data;
 
-    surf = (int) client_data;
+    surf = (int*) client_data;
     cb_data = (XmToggleButtonCallbackStruct *) call_data;
 
     /*
@@ -8556,7 +8671,7 @@ surf_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
         {
             p_surf = surf_deselect_list;
             UNLINK( p_surf, surf_deselect_list );
-            p_surf->surf = surf;
+            p_surf->surf = *surf;
             INSERT( p_surf, surf_select_list );
         }
         else
@@ -8565,7 +8680,7 @@ surf_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     else
     {
         for ( p_surf = surf_select_list; p_surf != NULL; p_surf = p_surf->next )
-            if ( p_surf->surf == surf )
+            if ( p_surf->surf == *surf )
                 break;
         if ( p_surf != NULL )
         {
@@ -8651,7 +8766,7 @@ util_render_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     XmString text[5];
     Widget hist_list;
-    Util_panel_button_type btn;
+    int *btn;
     XmString label;
     char cbuf[M_MAX_NAME_LEN], cmdbuf[M_MAX_NAME_LEN];
     unsigned char *hide_mtl;
@@ -8665,10 +8780,10 @@ util_render_CB( Widget w, XtPointer client_data, XtPointer call_data )
     hide_mtl = env.curr_analy->mesh_table[0].hide_material;
     qty_mtls = env.curr_analy->mesh_table[0].material_qty;
 
-    btn = (Util_panel_button_type) client_data;
+    btn = (int*) client_data;
 
     item_cnt = 0;
-    switch( btn )
+    switch( *btn )
     {
     case VIEW_SOLID:
         if ( cb_data->set )
@@ -8811,8 +8926,8 @@ util_render_CB( Widget w, XtPointer client_data, XtPointer call_data )
                                               cbuf );
         if ( p_mo_class != NULL )
         {
-            btn_num = ( btn == BTN1_PICK ) ? 1 :
-                      (( btn == BTN2_PICK ) ? 2 : 3);
+            btn_num = ( *btn == BTN1_PICK ) ? 1 :
+                      (( *btn == BTN2_PICK ) ? 2 : 3);
             sprintf( cmdbuf, "setpick %d %s", btn_num,
                      p_mo_class->short_name );
             util_panel_CB_active = TRUE;
@@ -8900,12 +9015,12 @@ stride_CB( Widget w, XtPointer client_data, XtPointer call_data )
     XmString htext= NULL;
     Widget hist_list;
     char stride_str[8];
-    Util_panel_button_type stride_mod;
+    int  *stride_mod;
     int sval;
     char *text;
     int max_state;
 
-    stride_mod = (Util_panel_button_type) client_data;
+    stride_mod = (int*) client_data;
 
     /**/
     /* May prove too slow.  Could keep analy->num_states field for use in
@@ -8914,7 +9029,7 @@ stride_CB( Widget w, XtPointer client_data, XtPointer call_data )
      */
     max_state = get_max_state( env.curr_analy );
 
-    switch ( stride_mod )
+    switch ( *stride_mod )
     {
     case STRIDE_INCREMENT:
         if ( step_stride < max_state )
@@ -8963,13 +9078,13 @@ menu_setpick_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     XmString text= NULL;
     Widget hist_list;
-    Util_panel_button_type btn;
+    int *btn;
     XmString label;
     char cbuf[M_MAX_NAME_LEN], cmdbuf[M_MAX_NAME_LEN];
     int btn_num;
     MO_class_data *p_mo_class;
 
-    btn = (Util_panel_button_type) client_data;
+    btn = (int*) client_data;
 
     XtVaGetValues( w, XmNlabelString, &label, NULL );
     string_convert( label, cbuf );
@@ -8977,8 +9092,8 @@ menu_setpick_CB( Widget w, XtPointer client_data, XtPointer call_data )
                                           cbuf );
     if ( p_mo_class != NULL )
     {
-        btn_num = ( btn == BTN1_PICK ) ? 1 :
-                  (( btn == BTN2_PICK ) ? 2 : 3);
+        btn_num = ( *btn == BTN1_PICK ) ? 1 :
+                  (( *btn == BTN2_PICK ) ? 2 : 3);
         sprintf( cmdbuf, "setpick %d %s", btn_num,
                  p_mo_class->short_name );
         text = XmStringCreateSimple( cmdbuf );
@@ -9006,7 +9121,7 @@ menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     XmString text=NULL;
     Widget hist_list;
-    colormap_type btn;
+    int *btn;
     int btn_num;
 
     Analysis *analy;
@@ -9014,9 +9129,9 @@ menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     analy = env.curr_analy;
 
-    btn = (Util_panel_button_type) client_data;
+    btn = (int*) client_data;
 
-    switch ( btn )
+    switch ( *btn )
     {
     case CM_INVERSE:
         parse_command( "invmap" ,analy );
