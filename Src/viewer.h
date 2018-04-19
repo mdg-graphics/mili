@@ -1033,8 +1033,14 @@ typedef struct _Analysis
     Bool_type mat_labels_active;
     Hash_table *mat_names;
     Hash_table *mat_names_reversed;
-    int maxLabelLength;
     char **sorted_names;
+    Hash_table *mat_nums;
+    Hash_table *mat_nums_reversed;
+    char **sorted_nums;
+    Hash_table *mat_labels;
+    Hash_table *mat_labels_reversed;
+    char **sorted_labels;
+    int maxLabelLength;
     int sorted_names_reversed;
     char **banned_names;
     int num_banned_names;

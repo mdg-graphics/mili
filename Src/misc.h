@@ -272,6 +272,7 @@ extern int calc_fracsz( float, float, int );
 extern void st_var_delete( void * );
 extern void delete_primal_result( void * );
 extern void delete_derived_result( void * );
+extern void delete_mat_name( void * );
 extern void delete_mo_class_data( void * );
 extern void do_nothing_stub( char * );
 extern void blocks_to_list( int qty_blocks, int *mo_blocks, int *list,
