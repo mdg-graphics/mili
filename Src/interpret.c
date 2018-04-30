@@ -6355,6 +6355,35 @@ parse_single_command( char *buf, Analysis *analy )
         invert_colormap();
         redraw = BINDING_MESH_VISUAL;
     }
+    else if( strcmp( tokens[0], "coolmap" ) == 0 )
+    {
+        loadPresetCM("Cool");
+        redraw = BINDING_MESH_VISUAL;
+    }
+    else if( strcmp( tokens[0], "hsvmap" ) == 0 )
+    {
+    	loadPresetCM("Hsv");
+        redraw = BINDING_MESH_VISUAL;
+    }
+    else if( strcmp( tokens[0], "jetmap" ) == 0 )
+    {
+    	loadPresetCM("Jet");
+        redraw = BINDING_MESH_VISUAL;
+    }
+    else if( strcmp( tokens[0], "prismmap" ) == 0 )
+    {
+        loadPresetCM("Prism");
+        redraw = BINDING_MESH_VISUAL;
+    }
+    else if( strcmp( tokens[0], "wintermap" ) == 0 )
+    {
+    	loadPresetCM("Winter");
+        redraw = BINDING_MESH_VISUAL;
+    }
+
+
+
+
     else if( strcmp( tokens[0], "conmap" ) == 0 ||
              strcmp( tokens[0], "chmap" ) == 0 ||
              strcmp( tokens[0], "cgmap" ) == 0 )
