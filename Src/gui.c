@@ -316,6 +316,23 @@ typedef enum
     BTN_GS
 } Btn_type;
 
+typedef enum
+{
+    FUNC_VISIBLE, 
+    FUNC_INVISIBLE, 
+    FUNC_ENABLE, 
+    FUNC_DISABLE, 
+    FUNC_COLOR
+} Func_buttons;
+
+typedef enum
+{
+    SELECT_ALL, 
+    SELECT_NONE, 
+    SELECT_INVERT, 
+    SELECT_BY_FUNC, 
+    SELECT_PREV
+} Select_buttons;
 
 /* Local routines. */
 static void init_gui( void );
@@ -756,7 +773,8 @@ static Widget surf_mgr_button = NULL;
 static Widget surf_base = NULL;
 static Widget util_button = NULL;
 static Widget quit_button = NULL;
-static Widget *mtl_mgr_func_toggles = NULL;
+static Widget mtl_mgr_func_toggles[5];
+static Widget select_buttons[4];
 static Widget surf_mgr_func_toggles[SURF_FUNC_QTY];
 static Widget util_panel_widg = NULL;
 static Widget mtl_row_col = NULL;
@@ -769,7 +787,7 @@ static Widget color_comps[MTL_PROP_QTY];
 static Widget prop_checks[MTL_PROP_QTY];
 static Widget col_ed_scales[2][4];
 static Widget swatch_label = NULL;
-static Widget *op_buttons = NULL;
+static Widget op_buttons[4];
 static Widget surf_op_buttons[SURF_OP_QTY];
 static Widget swatch_frame = NULL;
 static Widget util_panel_main = NULL;
@@ -834,7 +852,7 @@ static Bool_type prop_val_changed[MTL_PROP_QTY];
 static Bool_type preview_set = FALSE;
 
 /* Storage for new values of material properties. */
-static GLfloat *property_vals[MTL_PROP_QTY];
+static GLfloat property_vals[MTL_PROP_QTY][3];
 
 /* Material manager command buffer. */
 char *mtl_mgr_cmd;
@@ -1011,7 +1029,6 @@ gui_start( int argc, char **argv , Analysis *analy )
     Atom  WM_DELETE_WINDOW;
     int gid=0;
     int status;
-    IntLabels * labels;
     int i;
 
     init_griz_name( analy );
@@ -1102,7 +1119,7 @@ gui_start( int argc, char **argv , Analysis *analy )
     }
 
     pane = XmCreatePanedWindow( mainwin_widg, "pane", args, n );
-
+    XtManageChild( pane );
     n = 0;
     XtSetArg( args[n], XmNeditable, FALSE );
     n++;
@@ -1138,7 +1155,7 @@ gui_start( int argc, char **argv , Analysis *analy )
     command_widg = XmCreateCommand( pane, "command", args, n );
     XtAddCallback( command_widg, XmNcommandEnteredCallback, parse_CB, NULL );
     XtManageChild( command_widg );
-    XtManageChild( pane );
+    
 
     /* Set initial keyboard focus to the command widget. */
     XtVaSetValues( pane, XmNinitialFocus, command_widg, NULL );
@@ -1416,14 +1433,14 @@ gui_start( int argc, char **argv , Analysis *analy )
         put_window_attributes() ;
         put_griz_session( env.curr_analy, session );
     }
-    labels = analy->int_labels;
-    if(labels != NULL)
+    //labels = analy->int_labels;
+    if(analy->int_labels != NULL)
     {
-        for(i = 0; i < labels->numLabels; i++)
+        for(i = 0; i < analy->int_labels->numLabels; i++)
         {
-            if(labels->valid[i] == 0)
+            if(analy->int_labels->valid[i] == 0)
             { 
-                wrt_text("\nelement set %d was marked as invalid because the labels array \nwas not in ascending order\n", labels->mats[i]);
+                wrt_text("\nelement set %d was marked as invalid because the labels array \nwas not in ascending order\n", analy->int_labels->mats[i]);
             }
         }
     }
@@ -3568,31 +3585,46 @@ regenerate_result_menus( void )
 static Widget
 create_mtl_manager( Widget main_widg )
 {
-    Widget mtl_shell, widg, func_select, scroll_win, sep1,
+    Widget widg, func_select, scroll_win, sep1,
            sep2, sep3, vert_scroll, func_operate, mtl_label,
            frame, col_comp;
     Arg args[10];
     char win_title[256];
     int len = env.curr_analy->maxLabelLength+1;
     char mtl_toggle_name[len];
+    static int ambient = 0, 
+               diffuse = 1, 
+               specular = 2, 
+               emissive = 3,
+               visible = FUNC_VISIBLE, 
+               invisible = FUNC_INVISIBLE, 
+               enable = FUNC_ENABLE, 
+               disable = FUNC_DISABLE, 
+               color = FUNC_COLOR,
+               all = SELECT_ALL, 
+               none = SELECT_NONE, 
+               invert = SELECT_INVERT, 
+               by_func = SELECT_BY_FUNC;
+               
     int n, i, mtl, qty_mtls;
     int gid=3;
     Dimension width, max_child_width, margin_width, spacing, scrollbar_width,
               name_len, col_ed_width, max_mgr_width, height, sw_height, fudge;
     short func_width, max_cols, rows;
     XtActionsRec rec;
-    static Widget select_buttons[4];
-    static Widget *ctl_buttons[2];
+    
+    //static Widget *ctl_buttons[2];
     XmString val_text;
     int scale_len, val_len, vert_space, vert_height,
         vert_pos, hori_offset, vert_offset, loc;
+    
     char *func_names[] =
     {
         "Visible", "Invisible", "Enable", "Disable", "Color"
     };
     char *select_names[] =
     {
-        "All", "None", "Invert", "By func", "Prev"
+        "All", "None", "Invert", "By func"
     };
     char *op_names[] = { "Preview", "Cancel", "Apply", "Default" };
     char *scale_names[] = { "Red", "Green", "Blue", "Shininess" };
@@ -3605,36 +3637,16 @@ create_mtl_manager( Widget main_widg )
 
     key_trans = XtParseTranslationTable( trans );
 
-    mtl_mgr_func_toggles = NEW_N( Widget, MTL_FUNC_QTY, "Mtl func toggle" );
+    //mtl_mgr_func_toggles = NEW_N( Widget, MTL_FUNC_QTY, "Mtl func toggle" );
 
-    ctl_buttons[0] = mtl_mgr_func_toggles;
-    ctl_buttons[1] = select_buttons;
+    //ctl_buttons[0] = mtl_mgr_func_toggles;
+    //ctl_buttons[1] = select_buttons;
     qty_mtls = env.curr_analy->mesh_table[0].material_qty;
-
-    sprintf( win_title, "Material Manager %s", path_string );
-    n = 0;
-    XtSetArg( args[n], XtNtitle, win_title );
-    n++;
-    XtSetArg( args[n], XmNiconic, FALSE );
-    n++;
-    XtSetArg( args[n], XmNwindowGroup, XtWindow( main_widg ) );
-    n++;
-
-    mtl_shell = XtAppCreateShell( "GRIZ", "mtl_shell",
-                                  topLevelShellWidgetClass,
-                                  XtDisplay( main_widg ), args, n );
-
-    /* XtAddCallback( mtl_shell, XmNdestroyCallback,
-                   destroy_mtl_mgr_CB, (XtPointer) NULL ); */
-
-    XtAddEventHandler( mtl_shell, EnterWindowMask | LeaveWindowMask, False,
-                       gress_mtl_mgr_EH, NULL );
-
 
     /* Use a Form widget to manage everything else. */
 
     mtl_base = XtVaCreateManagedWidget(
-                   "mtl_base", xmFormWidgetClass, mtl_shell,
+                   "mtl_base", xmFormWidgetClass, main_widg,
                    NULL );
 
     XtAddCallback( mtl_base, XmNdestroyCallback,
@@ -3677,7 +3689,7 @@ create_mtl_manager( Widget main_widg )
                       XmNrightPosition, 50,
                       NULL );
 
-    XtOverrideTranslations( func_select, key_trans );
+    XtOverrideTranslations( func_select, XtParseTranslationTable( trans )/*key_trans*/ );
 
     /* Get these for geometry adjustment later. */
     XtVaGetValues( func_select,
@@ -3687,25 +3699,99 @@ create_mtl_manager( Widget main_widg )
 
     max_mgr_width = 0;
     max_child_width = 0;
+    
+    mtl_mgr_func_toggles[0] = XtVaCreateManagedWidget(
+                                  func_names[0], xmToggleButtonWidgetClass, func_select,
+                                  XmNindicatorOn, False,
+                                  XmNshadowThickness, 3,
+                                  XmNfillOnSelect, True,
+                                  NULL );
 
-    for ( i = 0; i < 5; i++ )
+    XtOverrideTranslations( mtl_mgr_func_toggles[0], key_trans );
+
+    XtAddCallback( mtl_mgr_func_toggles[0], XmNdisarmCallback,
+                   mtl_func_select_CB, &visible );
+
+    XtVaGetValues( mtl_mgr_func_toggles[0], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
     {
-        mtl_mgr_func_toggles[i] = XtVaCreateManagedWidget(
-                                      func_names[i], xmToggleButtonWidgetClass, func_select,
-                                      XmNindicatorOn, False,
-                                      XmNshadowThickness, 3,
-                                      XmNfillOnSelect, True,
-                                      NULL );
-
-        XtOverrideTranslations( mtl_mgr_func_toggles[i], key_trans );
-
-        XtAddCallback( mtl_mgr_func_toggles[i], XmNdisarmCallback,
-                       mtl_func_select_CB, (XtPointer) mtl_mgr_func_toggles );
-
-        XtVaGetValues( mtl_mgr_func_toggles[i], XmNwidth, &width, NULL );
-        if ( width > max_child_width )
-            max_child_width = width;
+        max_child_width = width;
     }
+    
+    mtl_mgr_func_toggles[1] = XtVaCreateManagedWidget(
+                                  func_names[1], xmToggleButtonWidgetClass, func_select,
+                                  XmNindicatorOn, False,
+                                  XmNshadowThickness, 3,
+                                  XmNfillOnSelect, True,
+                                  NULL );
+
+    XtOverrideTranslations( mtl_mgr_func_toggles[1], key_trans );
+
+    XtAddCallback( mtl_mgr_func_toggles[1], XmNdisarmCallback,
+                   mtl_func_select_CB, &invisible );
+
+    XtVaGetValues( mtl_mgr_func_toggles[1], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+    {
+        max_child_width = width;
+    }
+    
+    mtl_mgr_func_toggles[2] = XtVaCreateManagedWidget(
+                                  func_names[2], xmToggleButtonWidgetClass, func_select,
+                                  XmNindicatorOn, False,
+                                  XmNshadowThickness, 3,
+                                  XmNfillOnSelect, True,
+                                  NULL );
+
+    XtOverrideTranslations( mtl_mgr_func_toggles[2], key_trans );
+
+    XtAddCallback( mtl_mgr_func_toggles[2], XmNdisarmCallback,
+                   mtl_func_select_CB, &enable );
+
+    XtVaGetValues( mtl_mgr_func_toggles[2], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+    {
+        max_child_width = width;
+    }
+    
+    mtl_mgr_func_toggles[3] = XtVaCreateManagedWidget(
+                                  func_names[3], xmToggleButtonWidgetClass, func_select,
+                                  XmNindicatorOn, False,
+                                  XmNshadowThickness, 3,
+                                  XmNfillOnSelect, True,
+                                  NULL );
+
+    XtOverrideTranslations( mtl_mgr_func_toggles[3], key_trans );
+
+    XtAddCallback( mtl_mgr_func_toggles[3], XmNdisarmCallback,
+                   mtl_func_select_CB, &disable );
+
+    XtVaGetValues( mtl_mgr_func_toggles[3], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+    {
+        max_child_width = width;
+    }
+    
+    
+    mtl_mgr_func_toggles[4] = XtVaCreateManagedWidget(
+                                  func_names[4], xmToggleButtonWidgetClass, func_select,
+                                  XmNindicatorOn, False,
+                                  XmNshadowThickness, 3,
+                                  XmNfillOnSelect, True,
+                                  NULL );
+
+    XtOverrideTranslations( mtl_mgr_func_toggles[4], key_trans );
+
+    XtAddCallback( mtl_mgr_func_toggles[4], XmNdisarmCallback,
+                   mtl_func_select_CB, &color );
+
+    XtVaGetValues( mtl_mgr_func_toggles[4], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+    {
+        max_child_width = width;
+    }
+    
+    
 
     /*
      * Now that all function selects have been created and the total width
@@ -3782,26 +3868,76 @@ create_mtl_manager( Widget main_widg )
                " Property", xmLabelGadgetClass, col_comp,
                NULL );
     XtVaGetValues( widg, XmNwidth, &name_len, NULL );
-
-    for ( i = 0; i < 4; i++ )
-    {
-        color_comps[i] = XtVaCreateManagedWidget(
-                             comp_names[i], xmToggleButtonWidgetClass, col_comp,
+    
+    //Ambient property
+    color_comps[0] = XtVaCreateManagedWidget(
+                             comp_names[0], xmToggleButtonWidgetClass, col_comp,
                              XmNset, False,
                              XmNindicatorOn, False,
                              XmNshadowThickness, 3,
                              XmNfillOnSelect, True,
                              NULL );
 
-        XtOverrideTranslations( color_comps[i], key_trans );
+    XtOverrideTranslations( color_comps[0], key_trans );
 
-        XtAddCallback( color_comps[i], XmNdisarmCallback,
-                       col_comp_disarm_CB, &i );
+    XtAddCallback( color_comps[0], XmNdisarmCallback,
+                   col_comp_disarm_CB, &ambient );
 
-        prop_val_changed[i] = FALSE;
-        property_vals[i] = NEW_N( GLfloat, 3, "Col comp val" );
-    }
+    prop_val_changed[0] = FALSE;
+    //property_vals[0] = NEW_N( GLfloat, 3, "Col comp val" );
+    
+    //Diffuse property
+    color_comps[1] = XtVaCreateManagedWidget(
+                             comp_names[1], xmToggleButtonWidgetClass, col_comp,
+                             XmNset, False,
+                             XmNindicatorOn, False,
+                             XmNshadowThickness, 3,
+                             XmNfillOnSelect, True,
+                             NULL );
 
+    XtOverrideTranslations( color_comps[1], key_trans );
+
+    XtAddCallback( color_comps[1], XmNdisarmCallback,
+                   col_comp_disarm_CB, &diffuse );
+
+    prop_val_changed[1] = FALSE;
+    //property_vals[1] = NEW_N( GLfloat, 3, "Col comp val" );
+    
+    //Specular property
+    color_comps[2] = XtVaCreateManagedWidget(
+                             comp_names[2], xmToggleButtonWidgetClass, col_comp,
+                             XmNset, False,
+                             XmNindicatorOn, False,
+                             XmNshadowThickness, 3,
+                             XmNfillOnSelect, True,
+                             NULL );
+
+    XtOverrideTranslations( color_comps[2], key_trans );
+
+    XtAddCallback( color_comps[2], XmNdisarmCallback,
+                   col_comp_disarm_CB, &specular );
+
+    prop_val_changed[2] = FALSE;
+    //property_vals[2] = NEW_N( GLfloat, 3, "Col comp val" );
+    
+    //Emissive property
+    color_comps[3] = XtVaCreateManagedWidget(
+                         comp_names[3], xmToggleButtonWidgetClass, col_comp,
+                         XmNset, False,
+                         XmNindicatorOn, False,
+                         XmNshadowThickness, 3,
+                         XmNfillOnSelect, True,
+                         NULL );
+
+    XtOverrideTranslations( color_comps[3], key_trans );
+
+    XtAddCallback( color_comps[3], XmNdisarmCallback,
+                   col_comp_disarm_CB, &emissive );
+
+    prop_val_changed[3] = FALSE;
+    //property_vals[3] = NEW_N( GLfloat, 3, "Col comp val" );
+    
+    
     XtVaGetValues( color_editor, XmNforeground, &fg, XmNbackground, &bg, NULL );
     mtl_check = XCreatePixmapFromBitmapData( dpy,
                 RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizCheck_bits,
@@ -3833,7 +3969,7 @@ create_mtl_manager( Widget main_widg )
                              XmNmappedWhenManaged, False,
                              XmNmarginWidth, 0,
                              XmNmarginHeight, 0,
-                             XmNpositionIndex, ((short) i),
+                             XmNpositionIndex, ((GLshort) i),
                              NULL );
 
         XtOverrideTranslations( prop_checks[i], key_trans );
@@ -3863,61 +3999,222 @@ create_mtl_manager( Widget main_widg )
     XtOverrideTranslations( prop_checks[SHININESS], key_trans );
 
     val_text = XmStringCreateLocalized( "0.00" );
+    
+    //Ambient color selection
+    i = 0;
+    vert_pos = vert_offset + i * vert_height + i * vert_space;
+    if ( i == SHININESS_SCALE )
+        vert_pos += vert_height / 2 + vert_space;
 
-    for ( i = 0; i < 4; i++ )
-    {
-        vert_pos = vert_offset + i * vert_height + i * vert_space;
-        if ( i == SHININESS_SCALE )
-            vert_pos += vert_height / 2 + vert_space;
+    widg = XtVaCreateManagedWidget(
+               scale_names[i], xmLabelGadgetClass, color_editor,
+               XmNx, hori_offset,
+               XmNy, vert_pos,
+               XmNwidth, name_len,
+               XmNheight, vert_height,
+               XmNalignment, XmALIGNMENT_END,
+               NULL );
 
-        widg = XtVaCreateManagedWidget(
-                   scale_names[i], xmLabelGadgetClass, color_editor,
-                   XmNx, hori_offset,
-                   XmNy, vert_pos,
-                   XmNwidth, name_len,
-                   XmNheight, vert_height,
-                   XmNalignment, XmALIGNMENT_END,
-                   NULL );
+    XtOverrideTranslations( widg, key_trans );
 
-        XtOverrideTranslations( widg, key_trans );
+    col_ed_scales[0][i] = XtVaCreateManagedWidget(
+                              "scale", xmScaleWidgetClass, color_editor,
+                              XmNx, hori_offset + name_len + spacing,
+                              XmNy, vert_pos + (vert_height - 20) / 2,
+                              XmNwidth, scale_len,
+                              XmNheight, 20,
+                              XmNorientation, XmHORIZONTAL,
+                              XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ),
+                              XmNvalue, 0,
+                              XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ),
+                              NULL );
 
-        col_ed_scales[0][i] = XtVaCreateManagedWidget(
-                                  "scale", xmScaleWidgetClass, color_editor,
-                                  XmNx, hori_offset + name_len + spacing,
-                                  XmNy, vert_pos + (vert_height - 20) / 2,
-                                  XmNwidth, scale_len,
-                                  XmNheight, 20,
-                                  XmNorientation, XmHORIZONTAL,
-                                  XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ),
-                                  XmNvalue, 0,
-                                  XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ),
-                                  NULL );
+    XtOverrideTranslations( col_ed_scales[0][i], key_trans );
 
-        XtOverrideTranslations( col_ed_scales[0][i], key_trans );
+    frame = XtVaCreateManagedWidget(
+                "frame", xmFrameWidgetClass, color_editor,
+                XmNx, hori_offset + name_len + scale_len + spacing,
+                XmNy, vert_pos,
+                XmNheight, vert_height,
+                NULL );
 
-        frame = XtVaCreateManagedWidget(
-                    "frame", xmFrameWidgetClass, color_editor,
-                    XmNx, hori_offset + name_len + scale_len + spacing,
-                    XmNy, vert_pos,
-                    XmNheight, vert_height,
-                    NULL );
+    XtOverrideTranslations( frame, key_trans );
 
-        XtOverrideTranslations( frame, key_trans );
+    col_ed_scales[1][i] = XtVaCreateManagedWidget(
+                              "scale_val", xmLabelGadgetClass, frame,
+                              XmNalignment, XmALIGNMENT_CENTER,
+                              XmNlabelString, val_text,
+                              NULL );
 
-        col_ed_scales[1][i] = XtVaCreateManagedWidget(
-                                  "scale_val", xmLabelGadgetClass, frame,
-                                  XmNalignment, XmALIGNMENT_CENTER,
-                                  XmNlabelString, val_text,
-                                  NULL );
+    XtAddCallback( col_ed_scales[0][i], XmNdragCallback,
+                   col_ed_scale_CB, &ambient );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
+                   col_ed_scale_CB, &ambient );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
+                   col_ed_scale_update_CB, &ambient );
+    
+    //Diffuse color selection
+    i = 1;
+    vert_pos = vert_offset + i * vert_height + i * vert_space;
+    if ( i == SHININESS_SCALE )
+        vert_pos += vert_height / 2 + vert_space;
 
-        XtAddCallback( col_ed_scales[0][i], XmNdragCallback,
-                       col_ed_scale_CB, &i );
-        XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                       col_ed_scale_CB, &i );
-        XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                       col_ed_scale_update_CB, &i );
-    }
+    widg = XtVaCreateManagedWidget(
+               scale_names[i], xmLabelGadgetClass, color_editor,
+               XmNx, hori_offset,
+               XmNy, vert_pos,
+               XmNwidth, name_len,
+               XmNheight, vert_height,
+               XmNalignment, XmALIGNMENT_END,
+               NULL );
 
+    XtOverrideTranslations( widg, key_trans );
+
+    col_ed_scales[0][i] = XtVaCreateManagedWidget(
+                              "scale", xmScaleWidgetClass, color_editor,
+                              XmNx, hori_offset + name_len + spacing,
+                              XmNy, vert_pos + (vert_height - 20) / 2,
+                              XmNwidth, scale_len,
+                              XmNheight, 20,
+                              XmNorientation, XmHORIZONTAL,
+                              XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ),
+                              XmNvalue, 0,
+                              XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ),
+                              NULL );
+
+    XtOverrideTranslations( col_ed_scales[0][i], key_trans );
+
+    frame = XtVaCreateManagedWidget(
+                "frame", xmFrameWidgetClass, color_editor,
+                XmNx, hori_offset + name_len + scale_len + spacing,
+                XmNy, vert_pos,
+                XmNheight, vert_height,
+                NULL );
+
+    XtOverrideTranslations( frame, key_trans );
+
+    col_ed_scales[1][i] = XtVaCreateManagedWidget(
+                              "scale_val", xmLabelGadgetClass, frame,
+                              XmNalignment, XmALIGNMENT_CENTER,
+                              XmNlabelString, val_text,
+                              NULL );
+
+    XtAddCallback( col_ed_scales[0][i], XmNdragCallback,
+                   col_ed_scale_CB, &diffuse );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
+                   col_ed_scale_CB, &diffuse );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
+                   col_ed_scale_update_CB, &diffuse );
+    
+    
+    
+    //Specular color selection
+    i = 2;
+    vert_pos = vert_offset + i * vert_height + i * vert_space;
+    if ( i == SHININESS_SCALE )
+        vert_pos += vert_height / 2 + vert_space;
+
+    widg = XtVaCreateManagedWidget(
+               scale_names[i], xmLabelGadgetClass, color_editor,
+               XmNx, hori_offset,
+               XmNy, vert_pos,
+               XmNwidth, name_len,
+               XmNheight, vert_height,
+               XmNalignment, XmALIGNMENT_END,
+               NULL );
+
+    XtOverrideTranslations( widg, key_trans );
+
+    col_ed_scales[0][i] = XtVaCreateManagedWidget(
+                              "scale", xmScaleWidgetClass, color_editor,
+                              XmNx, hori_offset + name_len + spacing,
+                              XmNy, vert_pos + (vert_height - 20) / 2,
+                              XmNwidth, scale_len,
+                              XmNheight, 20,
+                              XmNorientation, XmHORIZONTAL,
+                              XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ),
+                              XmNvalue, 0,
+                              XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ),
+                              NULL );
+
+    XtOverrideTranslations( col_ed_scales[0][i], key_trans );
+
+    frame = XtVaCreateManagedWidget(
+                "frame", xmFrameWidgetClass, color_editor,
+                XmNx, hori_offset + name_len + scale_len + spacing,
+                XmNy, vert_pos,
+                XmNheight, vert_height,
+                NULL );
+
+    XtOverrideTranslations( frame, key_trans );
+
+    col_ed_scales[1][i] = XtVaCreateManagedWidget(
+                              "scale_val", xmLabelGadgetClass, frame,
+                              XmNalignment, XmALIGNMENT_CENTER,
+                              XmNlabelString, val_text,
+                              NULL );
+
+    XtAddCallback( col_ed_scales[0][i], XmNdragCallback,
+                   col_ed_scale_CB, &specular );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
+                   col_ed_scale_CB, &specular );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
+                   col_ed_scale_update_CB, &specular );
+    
+    //Ambient color selection
+    i = 3;
+    vert_pos = vert_offset + i * vert_height + i * vert_space;
+    if ( i == SHININESS_SCALE )
+        vert_pos += vert_height / 2 + vert_space;
+
+    widg = XtVaCreateManagedWidget(
+               scale_names[i], xmLabelGadgetClass, color_editor,
+               XmNx, hori_offset,
+               XmNy, vert_pos,
+               XmNwidth, name_len,
+               XmNheight, vert_height,
+               XmNalignment, XmALIGNMENT_END,
+               NULL );
+
+    XtOverrideTranslations( widg, key_trans );
+
+    col_ed_scales[0][i] = XtVaCreateManagedWidget(
+                              "scale", xmScaleWidgetClass, color_editor,
+                              XmNx, hori_offset + name_len + spacing,
+                              XmNy, vert_pos + (vert_height - 20) / 2,
+                              XmNwidth, scale_len,
+                              XmNheight, 20,
+                              XmNorientation, XmHORIZONTAL,
+                              XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ),
+                              XmNvalue, 0,
+                              XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ),
+                              NULL );
+
+    XtOverrideTranslations( col_ed_scales[0][i], key_trans );
+
+    frame = XtVaCreateManagedWidget(
+                "frame", xmFrameWidgetClass, color_editor,
+                XmNx, hori_offset + name_len + scale_len + spacing,
+                XmNy, vert_pos,
+                XmNheight, vert_height,
+                NULL );
+
+    XtOverrideTranslations( frame, key_trans );
+
+    col_ed_scales[1][i] = XtVaCreateManagedWidget(
+                              "scale_val", xmLabelGadgetClass, frame,
+                              XmNalignment, XmALIGNMENT_CENTER,
+                              XmNlabelString, val_text,
+                              NULL );
+
+    XtAddCallback( col_ed_scales[0][i], XmNdragCallback,
+                   col_ed_scale_CB, &emissive );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
+                   col_ed_scale_CB, &emissive );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
+                   col_ed_scale_update_CB, &emissive );
+    
+    
     XmStringFree( val_text );
     /* Reset the shininess scale text to an integer rep. */
     val_text = XmStringCreateLocalized( "0" );
@@ -3970,7 +4267,7 @@ create_mtl_manager( Widget main_widg )
 
     /* Init some globals associated with the color editor. */
     prop_val_changed[SHININESS] = FALSE;
-    property_vals[SHININESS] = NEW( GLfloat, "Shine comp val" );
+    //property_vals[SHININESS] = NEW( GLfloat, "Shine comp val" );
     cur_mtl_comp = MTL_PROP_QTY; /* Guaranteed to be a non-functional value. */
     cur_color[0] = 0.0;
     cur_color[1] = 0.0;
@@ -4005,10 +4302,10 @@ create_mtl_manager( Widget main_widg )
 
     max_child_width = 0;
 
-    op_buttons = NEW_N( Widget, MTL_OP_QTY, "Mtl Op Btns" );
+    //op_buttons = NEW_N( Widget, MTL_OP_QTY, "Mtl Op Btns" );
 
     //UNROLL
-    static int op_preview0 = OP_PREVIEW + 0;
+    static int op_preview0 = OP_PREVIEW;
     op_buttons[0] = XtVaCreateManagedWidget(
                                 op_names[0], xmPushButtonGadgetClass, func_operate,
                                 XmNsensitive, False,
@@ -4021,7 +4318,7 @@ create_mtl_manager( Widget main_widg )
 		max_child_width = width;
 
 
-    static int op_preview1 = OP_PREVIEW + 1;
+    static int op_preview1 = OP_CANCEL;
     op_buttons[1] = XtVaCreateManagedWidget(
                                 op_names[1], xmPushButtonGadgetClass, func_operate,
                                 XmNsensitive, False,
@@ -4034,7 +4331,7 @@ create_mtl_manager( Widget main_widg )
 		max_child_width = width;
 
 
-    static int op_preview2 = OP_PREVIEW + 2;
+    static int op_preview2 = OP_APPLY ;
     op_buttons[2] = XtVaCreateManagedWidget(
                                 op_names[2], xmPushButtonGadgetClass, func_operate,
                                 XmNsensitive, False,
@@ -4047,7 +4344,7 @@ create_mtl_manager( Widget main_widg )
 		max_child_width = width;
 
 
-    static int op_preview3 = OP_PREVIEW + 3;
+    static int op_preview3 = OP_DEFAULT;
     op_buttons[3] = XtVaCreateManagedWidget(
                                 op_names[3], xmPushButtonGadgetClass, func_operate,
                                 XmNsensitive, False,
@@ -4107,22 +4404,64 @@ create_mtl_manager( Widget main_widg )
 
     max_child_width = 0;
 
-    for ( i = 0; i < 4; i++ )
-    {
-        select_buttons[i] = XtVaCreateManagedWidget(
-                                select_names[i], xmPushButtonGadgetClass, mtl_quick_select,
-                                XmNshadowThickness, 3,
-                                NULL );
+    select_buttons[0] = XtVaCreateManagedWidget(
+                            select_names[0], xmPushButtonGadgetClass, mtl_quick_select,
+                            XmNshadowThickness, 3,
+                            NULL );
 
-        XtOverrideTranslations( select_buttons[i], key_trans );
+    XtOverrideTranslations( select_buttons[0], key_trans );
 
-        XtAddCallback( select_buttons[i], XmNdisarmCallback,
-                       mtl_quick_select_CB, (XtPointer) ctl_buttons );
+    XtAddCallback( select_buttons[0], XmNdisarmCallback,
+                   mtl_quick_select_CB, &all );
 
-        XtVaGetValues( select_buttons[i], XmNwidth, &width, NULL );
-        if ( width > max_child_width )
-            max_child_width = width;
-    }
+    XtVaGetValues( select_buttons[0], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+         max_child_width = width;
+    
+    select_buttons[1] = XtVaCreateManagedWidget(
+                            select_names[1], xmPushButtonGadgetClass, mtl_quick_select,
+                            XmNshadowThickness, 3,
+                            NULL );
+
+    XtOverrideTranslations( select_buttons[1], key_trans );
+
+    XtAddCallback( select_buttons[1], XmNdisarmCallback,
+                   mtl_quick_select_CB, &none );
+
+    XtVaGetValues( select_buttons[1], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+         max_child_width = width;
+    
+    select_buttons[2] = XtVaCreateManagedWidget(
+                            select_names[2], xmPushButtonGadgetClass, mtl_quick_select,
+                            XmNshadowThickness, 3,
+                            NULL );
+
+    XtOverrideTranslations( select_buttons[2], key_trans );
+
+    XtAddCallback( select_buttons[2], XmNdisarmCallback,
+                   mtl_quick_select_CB, &invert );
+
+    XtVaGetValues( select_buttons[2], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+         max_child_width = width;
+            
+    select_buttons[3] = XtVaCreateManagedWidget(
+                            select_names[3], xmPushButtonGadgetClass, mtl_quick_select,
+                            XmNshadowThickness, 3,
+                            NULL );
+
+    XtOverrideTranslations( select_buttons[3], key_trans );
+
+    XtAddCallback( select_buttons[3], XmNdisarmCallback,
+                   mtl_quick_select_CB, &by_func );
+
+    XtVaGetValues( select_buttons[3], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+         max_child_width = width;
+    
+           
+    
 
     /*
      * Now set the right offset so that the middle of the RowColumn
@@ -4181,12 +4520,6 @@ create_mtl_manager( Widget main_widg )
 
         mtl = i + 1;
         mat_num = i;
-        //env.curr_analy->sorted_names[i];
-
-//        if ( mtl < 10 )
-//            sprintf( mtl_toggle_name, " %d ", mtl );
-//        else
-//            sprintf( mtl_toggle_name, "%d", env.curr_analy->sorted_names[i] );
 
         sprintf( mtl_toggle_name, "%s", env.curr_analy->sorted_names[i] );
 
@@ -4205,7 +4538,7 @@ create_mtl_manager( Widget main_widg )
         INSERT( p_mtl, mtl_deselect_list );
 
         XtAddCallback( widg, XmNdisarmCallback, mtl_select_CB,
-                       &mat_num );
+                       p_mtl );
     }
 
     /*
@@ -4239,20 +4572,9 @@ create_mtl_manager( Widget main_widg )
     n = (int) (ceil( log10( (double) qty_mtls ) )) + 1;
     mtl_mgr_cmd = NEW_N( char, 128 + qty_mtls * label_length, "Mtl mgr cmd bufr" );
 
-    XtOverrideTranslations( mtl_base, key_trans );
-
-    /* All done, pop it up. */
-    XtPopup( mtl_shell, XtGrabNone );
-
-    static int mtl_mgr_shell_win = MTL_MGR_SHELL_WIN;
-
-    /* Add handler to init stacking order control. */
-    XtAddEventHandler( mtl_shell, StructureNotifyMask, False,
-                       stack_init_EH, &mtl_mgr_shell_win );
-
-    session->win_mtl_active = 1;
-
-    return mtl_shell;
+    //XtOverrideTranslations( mtl_base, key_trans );
+  
+    return mtl_base;
 }
 
 
@@ -4639,6 +4961,55 @@ create_surf_manager( Widget main_widg )
     session->win_surf_active = 1;
 
     return surf_shell;
+}
+
+/*****************************************************************
+ * TAG( create_free_mtl_panel )
+ *
+ * Create the utility panel widget.
+ */
+static Widget
+create_free_mtl_panel( Widget main_widg )
+{
+    int n;
+    char win_title[256];
+    Arg args[10];
+    Widget mtl_shell, mtl_panel;
+    String trans =
+        "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
+
+    sprintf( win_title, "Material Manager %s", path_string );
+
+    n = 0;
+    XtSetArg( args[n], XtNtitle, win_title );
+    n++;
+
+    XtSetArg( args[n], XmNiconic, FALSE );
+    n++;
+    XtSetArg( args[n], XmNinitialResourcesPersistent, FALSE );
+    n++;
+    XtSetArg( args[n], XmNwindowGroup, XtWindow( main_widg ) );
+    n++;
+    mtl_shell = XtAppCreateShell( "GRIZ", "mtl_panel",
+                                   topLevelShellWidgetClass,
+                                   XtDisplay( main_widg ), args, n );
+
+    mtl_base = create_mtl_manager( mtl_shell );
+
+    XtOverrideTranslations( mtl_base, XtParseTranslationTable( trans ) );
+
+    /* Pop it up. */
+    XtPopup( mtl_shell, XtGrabNone );
+
+    static int mtl_panel_shell_win = MTL_MGR_SHELL_WIN;
+
+    /* XtAddEventHandler( util_shell, ExposureMask, False, stack_init_EH,  */
+    XtAddEventHandler( mtl_shell, StructureNotifyMask, False, stack_init_EH,
+                       &mtl_panel_shell_win );
+
+    session->win_util_active = 1;
+
+    return mtl_shell;
 }
 
 
@@ -7206,7 +7577,10 @@ static void
 enter_render_EH( Widget w, XtPointer client_data, XEvent *event,
                  Boolean *continue_dispatch )
 {
-    XmProcessTraversal( command_widg, XmTRAVERSE_CURRENT );
+    if(XmIsTraversable(command_widg))
+    {
+        XmProcessTraversal( command_widg, XmTRAVERSE_CURRENT );
+    }
 }
 
 
@@ -7227,10 +7601,10 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
     swtype = (int *) client_data;
 
     static int render_shell_win = RENDER_SHELL_WIN,
-    		util_panel_shell_win = UTIL_PANEL_SHELL_WIN,
-    		mtl_mgr_shell_win = MTL_MGR_SHELL_WIN,
-    		surf_mgr_shell_win = SURF_MGR_SHELL_WIN,
-    		control_shell_win = CONTROL_SHELL_WIN;
+    		      util_panel_shell_win = UTIL_PANEL_SHELL_WIN,
+    		      mtl_mgr_shell_win = MTL_MGR_SHELL_WIN,
+    		      surf_mgr_shell_win = SURF_MGR_SHELL_WIN,
+    		      control_shell_win = CONTROL_SHELL_WIN;
 
     switch ( *swtype )
     {
@@ -7481,19 +7855,18 @@ parse_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 mtl_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    Widget *function_toggles;
     Boolean set, comp_set, color_set;
-    int i;
+    int i = *((int*)client_data);
     Mtl_mgr_func_type compliment;
     XmToggleButtonCallbackStruct *cb_data;
 
-    function_toggles = (Widget *) client_data;
+    //function_toggles = (Widget *) client_data;
     cb_data = (XmToggleButtonCallbackStruct *) call_data;
 
     /* Find the index of the complimentary function to the widget executed. */
-    for ( i = 0; i < 4; i++ )
-        if ( w == function_toggles[i] )
-            break;
+    //for ( i = 0; i < 4; i++ )
+    //    if ( w == function_toggles[i] )
+    //        break;
     switch ( i )
     {
     case VIS:
@@ -7511,26 +7884,26 @@ mtl_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     }
 
     /* Color function toggle. */
-    if ( w == function_toggles[COLOR] )
+    if ( w == mtl_mgr_func_toggles[COLOR] )
     {
         if ( cb_data->set )
         {
             mtl_color_active=TRUE;
 
             /* Exclude other functions while color is selected. */
-            XtVaGetValues( function_toggles[VIS], XmNset, &set, NULL );
-            XtVaGetValues( function_toggles[INVIS], XmNset, &comp_set, NULL );
+            XtVaGetValues( mtl_mgr_func_toggles[VIS], XmNset, &set, NULL );
+            XtVaGetValues( mtl_mgr_func_toggles[INVIS], XmNset, &comp_set, NULL );
             if ( set )
-                XtVaSetValues( function_toggles[VIS], XmNset, False, NULL );
+                XtVaSetValues( mtl_mgr_func_toggles[VIS], XmNset, False, NULL );
             else if ( comp_set )
-                XtVaSetValues( function_toggles[INVIS], XmNset, False, NULL );
+                XtVaSetValues( mtl_mgr_func_toggles[INVIS], XmNset, False, NULL );
 
-            XtVaGetValues( function_toggles[ENABLE], XmNset, &set, NULL );
-            XtVaGetValues( function_toggles[DISABLE], XmNset, &comp_set, NULL );
+            XtVaGetValues( mtl_mgr_func_toggles[ENABLE], XmNset, &set, NULL );
+            XtVaGetValues( mtl_mgr_func_toggles[DISABLE], XmNset, &comp_set, NULL );
             if ( set )
-                XtVaSetValues( function_toggles[ENABLE], XmNset, False, NULL );
+                XtVaSetValues( mtl_mgr_func_toggles[ENABLE], XmNset, False, NULL );
             else if ( comp_set )
-                XtVaSetValues( function_toggles[DISABLE], XmNset, False, NULL );
+                XtVaSetValues( mtl_mgr_func_toggles[DISABLE], XmNset, False, NULL );
 
             XtSetSensitive( color_editor, True );
 
@@ -7555,11 +7928,11 @@ mtl_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     else
     {
         /* If color or invisible functions set, unset them. */
-        XtVaGetValues( function_toggles[COLOR], XmNset, &color_set, NULL );
-        XtVaGetValues( function_toggles[compliment], XmNset, &set, NULL );
+        XtVaGetValues( mtl_mgr_func_toggles[COLOR], XmNset, &color_set, NULL );
+        XtVaGetValues( mtl_mgr_func_toggles[compliment], XmNset, &set, NULL );
         if ( color_set )
         {
-            XtVaSetValues( function_toggles[COLOR], XmNset, False, NULL );
+            XtVaSetValues( mtl_mgr_func_toggles[COLOR], XmNset, False, NULL );
 
             switch_opengl_win( MESH_VIEW );
             XtUnmanageChild( swatch_frame );
@@ -7576,7 +7949,7 @@ mtl_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
             }
         }
         else if ( set )
-            XtVaSetValues( function_toggles[compliment], XmNset, False, NULL );
+            XtVaSetValues( mtl_mgr_func_toggles[compliment], XmNset, False, NULL );
     }
 
     update_actions_sens();
@@ -7608,10 +7981,9 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     ctl_buttons = (Widget **) client_data;
     XtVaGetValues( mtl_row_col, XmNchildren, &children, NULL );
 
-    if ( w == ctl_buttons[1][ALL_MTL] )
+    if ( w == select_buttons[ALL_MTL] )
     {
         /* Select all materials. */
-
         if ( mtl_deselect_list != NULL )
         {
             APPEND( mtl_deselect_list, mtl_select_list );
@@ -7625,7 +7997,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
             p_mtl->mtl = i;
         }
     }
-    else if ( w == ctl_buttons[1][NONE] )
+    else if ( w == select_buttons[NONE] )
     {
         /* Deselect all materials. */
 
@@ -7637,7 +8009,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
         for ( i = 0; i < qty_mtls; i++ )
             XtVaSetValues( children[i], XmNset, False, NULL );
     }
-    else if ( w == ctl_buttons[1][INVERT] )
+    else if ( w == select_buttons[INVERT] )
     {
         /* Invert all selections. */
 
@@ -7667,7 +8039,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
             }
         }
     }
-    else if ( w == ctl_buttons[1][BY_FUNC] )
+    else if ( w == select_buttons[BY_FUNC] )
     {
         /*
          * Select materials which are the intersection of the
@@ -7681,10 +8053,10 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
             mtl_select_list = NULL;
         }
 
-        XtVaGetValues( ctl_buttons[0][VIS], XmNset, &vis_set, NULL );
-        XtVaGetValues( ctl_buttons[0][INVIS], XmNset, &invis_set, NULL );
-        XtVaGetValues( ctl_buttons[0][ENABLE], XmNset, &enable_set, NULL );
-        XtVaGetValues( ctl_buttons[0][DISABLE], XmNset, &disable_set, NULL );
+        XtVaGetValues( mtl_mgr_func_toggles[VIS], XmNset, &vis_set, NULL );
+        XtVaGetValues( mtl_mgr_func_toggles[INVIS], XmNset, &invis_set, NULL );
+        XtVaGetValues( mtl_mgr_func_toggles[ENABLE], XmNset, &enable_set, NULL );
+        XtVaGetValues( mtl_mgr_func_toggles[DISABLE], XmNset, &disable_set, NULL );
 
         if ( vis_set && enable_set )
         {
@@ -7801,7 +8173,7 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
         else
         {
             /* Set all if color function selected, else unset all. */
-            XtVaGetValues( ctl_buttons[0][COLOR], XmNset, &set, NULL );
+            XtVaGetValues( mtl_mgr_func_toggles[COLOR], XmNset, &set, NULL );
             if ( set )
                 for ( i = 0; i < qty_mtls; i++ )
                 {
@@ -7849,11 +8221,11 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 static void
 mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
-    int *mtl;
-    Material_list_obj *p_mtl;
+    int mtl;
+    //Material_list_obj *p_mtl_next;
+    Material_list_obj *p_mtl = (Material_list_obj *)client_data;
     XmToggleButtonCallbackStruct *cb_data;
 
-    mtl = (int*) client_data;
     cb_data = (XmToggleButtonCallbackStruct *) call_data;
 
     /*
@@ -7869,19 +8241,16 @@ mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     {
         if ( mtl_deselect_list != NULL )
         {
-            p_mtl = mtl_deselect_list;
             UNLINK( p_mtl, mtl_deselect_list );
-            p_mtl->mtl = *mtl;
             INSERT( p_mtl, mtl_select_list );
         }
         else
+        {
             return;
+        }
     }
     else
     {
-        for ( p_mtl = mtl_select_list; p_mtl != NULL; p_mtl = p_mtl->next )
-            if ( p_mtl->mtl == *mtl )
-                break;
         if ( p_mtl != NULL )
         {
             UNLINK( p_mtl, mtl_select_list );
@@ -8267,21 +8636,23 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
     if ( preview_set )
         send_mtl_cmd( "mtl cancel", 2 );
 
-    for ( i = AMBIENT; i < MTL_PROP_QTY; i++ )
+    /*for ( i = AMBIENT; i < MTL_PROP_QTY; i++ )
     {
         if (property_vals[i])
             free( property_vals[i] );
         property_vals[i] = NULL;
-    } 
+    } */
 
-    if (mtl_mgr_func_toggles)
+    /*if (mtl_mgr_func_toggles)
         free( mtl_mgr_func_toggles );
-    mtl_mgr_func_toggles = NULL;
+    */    
+    //mtl_mgr_func_toggles = NULL;
 
-    if ( op_buttons)
+    /*if ( op_buttons)
         free( op_buttons );
+       
     op_buttons = NULL; 
-
+    */
     if (mtl_select_list)
         DELETE_LIST( mtl_select_list );
     if (mtl_deselect_list)
@@ -8293,9 +8664,9 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
         free( mtl_mgr_cmd );
     mtl_mgr_cmd = NULL; 
 
-    if ( mtl_check)
-        XFreePixmap( dpy, mtl_check );
-    mtl_check = NULL; 
+    //if ( mtl_check)
+    //    XFreePixmap( dpy, mtl_check );
+    //mtl_check = (Pixmap)NULL; 
 
     mtl_mgr_top_win = 0; 
     XtDestroyWidget( mtl_mgr_widg );
@@ -8303,7 +8674,7 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     session->win_mtl_active = 0;
     
-    destroy_mtl_mgr(); 
+    //destroy_mtl_mgr(); 
 
 
 }
@@ -8735,17 +9106,17 @@ destroy_util_panel_CB( Widget w, XtPointer client_data, XtPointer call_data )
     util_render_btns = NULL;
 
     XFreePixmap( dpy, pixmap_start );
-    pixmap_start = NULL;
+    pixmap_start = (Pixmap)NULL;
     XFreePixmap( dpy, pixmap_stop );
-    pixmap_stop = NULL;
+    pixmap_stop = (Pixmap)NULL;
     XFreePixmap( dpy, pixmap_leftstop );
-    pixmap_leftstop = NULL;
+    pixmap_leftstop = (Pixmap)NULL;
     XFreePixmap( dpy, pixmap_left );
-    pixmap_left = NULL;
+    pixmap_left = (Pixmap)NULL;
     XFreePixmap( dpy, pixmap_right );
-    pixmap_right = NULL;
+    pixmap_right = (Pixmap)NULL;
     XFreePixmap( dpy, pixmap_rightstop );
-    pixmap_rightstop = NULL;
+    pixmap_rightstop = (Pixmap)NULL;
 
     util_panel_top_win = 0;
     XtDestroyWidget( util_panel_widg );
@@ -9256,7 +9627,7 @@ create_app_widg( Btn_type btn )
     if ( btn == BTN_MTL_MGR )
     {
         app_widg = &mtl_mgr_widg;
-        create_func = create_mtl_manager;
+        create_func = create_free_mtl_panel;
     }
     else if ( btn == BTN_SURF_MGR )
     {
@@ -9901,7 +10272,7 @@ send_mtl_cmd( char *cmd, int tok_qty )
                 limit++; /* Want last token counted when "sent" is updated. */
             }
 
-            text = XmStringCreateSimple( cbuf );
+            text = XmStringCreateLocalized( cbuf );
             parse_command( cbuf, env.curr_analy );
 
             free( cbuf );
@@ -9912,7 +10283,7 @@ send_mtl_cmd( char *cmd, int tok_qty )
     }
     else
     {
-        text = XmStringCreateSimple( cmd );
+        text = XmStringCreateLocalized( cmd );
         parse_command( cmd, env.curr_analy );
     }
 

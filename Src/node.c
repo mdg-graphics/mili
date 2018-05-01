@@ -663,11 +663,11 @@ compute_node_modaldisplacement_mag( Analysis *analy, float *resultArr,
         }
     else if ( sv.num_type==M_FLOAT )
     {
-        modedispscalar    = (float (*)[3]) result_buf;
+        modedispscalar    = (float *) result_buf;
     }
     else
     {
-        modedispscalar_dp = (double (*)[3]) result_buf;
+        modedispscalar_dp = (double *) result_buf;
     }
 
     free( primal_list[0] );

@@ -1276,17 +1276,17 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     
             }
             /*analy->int_labels->map = (int *) calloc(highest_mat_num+1, sizeof(int)); */
-            analy->int_labels->map = (int *) calloc(num_entries+1, sizeof(int));
+            /*analy->int_labels->map = (int *) calloc(num_entries+1, sizeof(int));
             if(analy->int_labels->map == NULL)
             {
                 popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
                 abort();
             }
-  
+             */
             /* not using the first entry */
-            analy->int_labels->map[0] = -1;
+            /*analy->int_labels->map[0] = -1;*/
             /*analy->int_labels->mapsize = highest_mat_num+1;*/
-            analy->int_labels->mapsize = num_entries + 1;
+            //analy->int_labels->mapsize = num_entries + 1;
 
             {
                 int qty, rval, index;
@@ -1364,14 +1364,14 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                         strcpy(svar_name, subrec.svar_names[0]);
                         if(strncmp(svar_name, "es_", 3) == 0)
                         {
-                            m = 0;
+                            /*m = 0;
                             ii = 0;
                             index = strlen(svar_name) - 1;
                             p[1] = '\0';
                             for(l = 0; l <= strlen(svar_name) - 1; l++)
-                            {
+                            {*/
                                 /**p = svar_name[index]; */
-                                p[0] = svar_name[index];
+                            /*    p[0] = svar_name[index];
                                 if(isdigit(p[0]))
                                 {
                                     m += atoi(p)*pow(10, ii);
@@ -1386,7 +1386,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                                     analy->int_labels->map[k + 1] = k;
                                     break;
                                 }
-                            } 
+                            } */
                             /* allocate memory to add the svar_name to the es_names string array */
                             analy->int_labels->es_names[k] = (char *) malloc((strlen(svar_name) + 1)*sizeof(char));
                             analy->int_labels->result_names[k] = (char *) malloc(64*sizeof(char));
@@ -1412,8 +1412,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                 int datatype=0, datalength=0;
                 char *es_ptr=NULL;
 
-                status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
-                                             &datatype, &datalength );
+                /*status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
+                                             &datatype, &datalength );*/
                 /* Read int the integration point labels. The last element of the array is
                  * the total number of integration points.
                  * For example:
@@ -1428,10 +1428,10 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                 analy->es_intpoints[i].in_mid_out_default[1] = -1;
                 analy->es_intpoints[i].in_mid_out_default[2] = -1;
 
-                analy->es_intpoints[i].labels =  NEW_N( int, datalength, "Element Set Labels" );
+                /*analy->es_intpoints[i].labels =  NEW_N( int, datalength, "Element Set Labels" );*/
 
                 status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
-                                          (void **) & analy->es_intpoints[i].labels, &num_items_read );
+                                          (void **) & analy->es_intpoints[i].labels, &datalength );
 
                 analy->es_intpoints[i].labels_cnt      = datalength-1;
                 analy->es_intpoints[i].intpoints_total = analy->es_intpoints[i].labels[datalength-2];

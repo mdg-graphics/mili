@@ -928,11 +928,11 @@ typedef struct _IntLabels
     int * int_pts_selected;  /* For each material, which integration point is selected,  0 
                                 means none is selected for that material.  The size of
                                 this array is also numLabels */
-    int * map;               /* When accessing the materal array and in case the material numbers
+    /*int * map;*/               /* When accessing the materal array and in case the material numbers
                                 in the material array are not in consecutive order then selecting
                                 a material say j maps map[j] to the indes of that material in the
                                 mats array.  Prevents looping every time this is accessed. */
-   int mapsize;             /* size of the map array and is equal to the highest material number plus 1 */
+   /*int mapsize;*/             /* size of the map array and is equal to the highest material number plus 1 */
    int * valid;             /* set to 1 if the labels array is in ascending order otherwise set to 0 */
 
    char ** es_names;       /* The names of all the element sets written to the plot file.  e.g.  "es_1a" */
@@ -2458,4 +2458,7 @@ void
 update_file_path( Analysis *analy, char *filename, char *filename_with_path );
 extern void draw_grid(Analysis * );
 extern void draw_grid_2d(Analysis * );
+int
+get_class_label( MO_class_data *, int  );
+
 #endif

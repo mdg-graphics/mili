@@ -139,5 +139,4 @@ extern GLfloat blue[];
 extern GLfloat magenta[];
 extern GLfloat cyan[];
 extern GLfloat yellow[];
-
 #endif /* DRAW_H */

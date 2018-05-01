@@ -77,7 +77,7 @@ static void check_degen_tris( MO_class_data *p_tri_class );
 extern void fix_title( char *title );
 char        *get_subrecord( Analysis *analy, int num );
 
-int mili_compare_labels( MO_class_labels *label1, MO_class_labels *label2 );
+int mili_compare_labels( const void *label1, const void *label2 );
 
 
 /************************************************************
@@ -5535,8 +5535,10 @@ mili_get_class_names( Analysis *analy, int *qty_classes,
  */
 
 int
-mili_compare_labels( MO_class_labels *label1, MO_class_labels *label2 )
+mili_compare_labels(const void *in_label1, const void *in_label2 )
 {
+    MO_class_labels *label1 = (MO_class_labels *)in_label1;
+    MO_class_labels *label2 = (MO_class_labels *)in_label2;
     if ( label1->label_num < label2->label_num )
         return -1;
 

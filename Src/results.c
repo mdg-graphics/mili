@@ -5341,7 +5341,7 @@ Result * create_result_list( char * token, Analysis *analy)
         /* we are looking for a primal result */
         for(qty_candidates = 0; possible_results[qty_candidates].superclass != QTY_SCLASS; qty_candidates++);
        k = 0;
-       p_rc = &possible_es_results[0];
+       p_es_rc = &possible_es_results[0];
        /* lets get the raw primal */
        for(i = 0; i < strlen(token); i++)
        {
