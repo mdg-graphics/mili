@@ -9506,13 +9506,15 @@ menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
     {
     case CM_INVERSE:
         parse_command( "invmap" ,analy );
+        strcpy( cmd, "invmap" );
         break;
     case CM_DEFAULT:
         parse_command( "hotmap", analy );
         strcpy( cmd, "hotmap" );
         break;
     case CM_COOL:
-        load_colormap( analy, "cool.cm" );
+    	parse_command( "coolmap", analy );
+        strcpy( cmd, "coolmap" );
         break;
     case CM_GRAYSCALE:
         parse_command( "grmap", analy );
@@ -9523,16 +9525,20 @@ menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
         strcpy( cmd, "igrmap" );
         break;
     case CM_HSV:
-        load_colormap( analy, "hsv.cm" );
+    	parse_command( "hsvmap", analy );
+        strcpy( cmd, "hsvmap" );
         break;
     case CM_JET:
-        load_colormap( analy, "jet.cm" );
+    	parse_command( "jetmap", analy );
+        strcpy( cmd, "jetmap" );
         break;
     case CM_PRISM:
-        load_colormap( analy, "prism.cm" );
+    	parse_command( "prismmap", analy );
+        strcpy( cmd, "prismmap" );
         break;
     case CM_WINTER:
-        load_colormap( analy, "winter.cm" );
+    	parse_command( "wintermap", analy );
+        strcpy( cmd, "wintermap" );
         break;
     }
 
