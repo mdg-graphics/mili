@@ -1099,38 +1099,58 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             analy->ti_vars[i].nodal      = isNodal;
         }
 
-        htable_delete_wildcard_list( num_entries, wildcard_list ) ;
         analy->ti_data_found = TRUE;
-
-        /* Load particle element names from list if available */
+        
+        htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+        free(wildcard_list);
+        wildcard_list = NULL;
+        
+        /* Get particle element names count */
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "particle_element", "NULL", "NULL",
-                      wildcard_list );
-
-        if ( num_entries>0 )
+                      NULL );
+        if(num_entries > 0)
         {
-            status = mc_ti_undef_class( analy->db_ident );
-            analy->mesh_table->particle_class_names = NEW_N( char *, num_entries, "Particle Class Titles" );
-            analy->mesh_table->num_particle_classes = num_entries;
-            for ( i=0;
-                    i<num_entries;
-                    i++ )
+            wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+
+            if(wildcard_list == NULL)
             {
-                status = mc_ti_read_string( analy->db_ident, wildcard_list[i], particle_class_name );
-                analy->mesh_table->particle_class_names[i] = (char *) strdup( particle_class_name );
+                return ALLOC_FAILED;
+            }              
+        
+            /* Load particle element names from list if available */
+            num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+                          "particle_element", "NULL", "NULL",
+                          wildcard_list );
+
+            if ( num_entries>0 )
+            {
+                status = mc_ti_undef_class( analy->db_ident );
+                analy->mesh_table->particle_class_names = NEW_N( char *, num_entries, "Particle Class Titles" );
+                analy->mesh_table->num_particle_classes = num_entries;
+                for ( i=0;
+                        i<num_entries;
+                        i++ )
+                {
+                    status = mc_ti_read_string( analy->db_ident, wildcard_list[i], particle_class_name );
+                    analy->mesh_table->particle_class_names[i] = (char *) strdup( particle_class_name );
+                }
+                htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+                free(wildcard_list);
+                wildcard_list = NULL;
             }
-            htable_delete_wildcard_list( num_entries, wildcard_list ) ;
         }
-
-
+        
+        
         /* Get Modal analysis variables if they exist */
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "analysis_type", "NULL", "NULL",
-                      wildcard_list );
+                      NULL );
+        
         if ( num_entries==1 )
         {
             char tmp_string[256];
-            status = mc_ti_read_string( analy->db_ident, wildcard_list[0], tmp_string );
+            status = mc_ti_read_string( analy->db_ident, "analysis_type", tmp_string );
             if ( !strcmp( tmp_string, "modal" ) )
             {
                 analy->analysis_type = MODAL;
@@ -1138,21 +1158,15 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
         }
 
-        if( num_entries >0)
-        {
-            htable_delete_wildcard_list( num_entries, wildcard_list ) ;
-        }
-
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "changevar_timestep", "NULL", "NULL",
-                      wildcard_list );
+                      NULL );
 
         if ( num_entries==1 )
         {
             char tmp_string[256];
-            status = mc_ti_read_string( analy->db_ident, wildcard_list[0], tmp_string );
+            status = mc_ti_read_string( analy->db_ident, "changevar_timestep", tmp_string );
             analy->time_name = strdup( tmp_string );
-            htable_delete_wildcard_list( num_entries, wildcard_list ) ;
         }
         else
         {
@@ -1161,11 +1175,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
         
     }
-    if(wildcard_list != NULL)
-    {
-        free(wildcard_list);
-
-    }
+    
     /*
      * Loop over meshes to complete mesh-specific initializations.
      */
@@ -1823,12 +1833,23 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     if ( env.ti_enable )
     {
         /* Shell Integration Point Labels */
+        
+        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+                      "IntLabel", "NULL", "NULL",
+                      NULL );
+        
+        wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+
+        if(wildcard_list == NULL)
+        {
+            return ALLOC_FAILED;
+        }
 
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "IntLabel", "NULL", "NULL",
                       wildcard_list );
+        
         analy->es_cnt = 0;
-
 
         if ( num_entries>0 )
         {
@@ -2066,8 +2087,6 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                 analy->es_intpoints[i].in_mid_out_default[1] = -1;
                 analy->es_intpoints[i].in_mid_out_default[2] = -1;
 
-                /*analy->es_intpoints[i].labels =  NEW_N( int, datalength, "Element Set Labels" );*/
-
                 status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
                                           (void **) & analy->es_intpoints[i].labels, &datalength );
 
@@ -2094,6 +2113,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
         }
         htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+        free(wildcard_list);
+        wildcard_list = NULL;
     }
     if ( face_qty > max_face_qty )
         max_face_qty = face_qty;
@@ -2121,7 +2142,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 //    }
 
     analy->mat_labels_active = TRUE;
-    //analy->maxLabelLength = malloc(sizeof(int));
+    
     analy->maxLabelLength = 0;
 
     if(analy->mat_labels_active && env.ti_enable){

@@ -11071,20 +11071,21 @@ for element set");
                    }
                    
                    chosen_materials[j]=1;
-                   size = labels->labelSizes[j] - 1;
+                   index = labels->map[j];
+                   size = labels->labelSizes[index] - 1;
                    if(!strcmp(tokens[1], "inner"))
                    {
                        pt = 1;
                    } else if(!strcmp(tokens[1], "middle"))
                    {
-                       pt = (labels->labels[j][size])/2 + (labels->labels[index][size] % 2);
-                   } else if(!strcmp(tokens[1], "outer"))
+                       pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
+                   } else if(!strcmp(tokens[index], "outer"))
                    {
-                       pt = labels->labels[j][size];
+                       pt = labels->labels[index][size];
                    }
                        
  
-                   return_status = set_inpt(j, pt, tokens[1], select, usetoken, analy);
+                   return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
                    if(return_status != 0)
                    {
                        p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
@@ -11108,14 +11109,7 @@ for element set");
                        p->next = NULL;
                            /*sprintf(p->messages, warning_templates[message_map[return_status]]); */
                        sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
-                           /*if(return_status == 21)
-                           {
-                               sprintf(suffix, ", %d\n", labels->mats[index]);
-                           } else
-                           {
-                               sprintf(suffix, " %d \nselected the nearest value\n", labels->mats[index]);
-                           }
-                           strcat(p->messages, suffix); */
+                           
                    }
               }
            } else
