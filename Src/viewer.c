@@ -1159,303 +1159,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             analy->ti_data_found = FALSE;
         }
 
-        /* Shell Integration Point Labels */
-
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-                      "IntLabel", "NULL", "NULL",
-                      wildcard_list );
-        analy->es_cnt = 0;
-
-
-        if ( num_entries>0 )
-        {
-            analy->es_intpoints = NEW_N( Integration_points, num_entries, "Integration Point Data" );
-            analy->es_cnt       = num_entries ;
-
-            analy->int_labels = NEW_N(IntLabels, 1, "Integration Point Labels");
-            analy->int_labels->numLabels = num_entries;
-            analy->int_labels->LabelNames = (char**) malloc(num_entries*sizeof(char*));
-            if(analy->int_labels->LabelNames == NULL)
-            {
-                printf("Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
-            
-            analy->int_labels->labels = (int**)malloc(num_entries*sizeof(int*));
-           
-
-            if(analy->int_labels->labels == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
-                
-            analy->int_labels->labelSizes = (int *) malloc(num_entries*sizeof(int)); 
-            if(analy->int_labels->labels == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
- 
-            analy->int_labels->mats = (int *) calloc(num_entries, sizeof(int));
-            if(analy->int_labels->mats == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
-
-            analy->int_labels->int_pts_selected = (int *) calloc(num_entries, sizeof(int));
-            if(analy->int_labels->labels == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
-
-            analy->int_labels->valid = (int *) calloc(num_entries, sizeof(int));
-            if(analy->int_labels->valid == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
- 
-
-            int num_items_read=0;
-            int highest_mat_num = 0;
- 
-            for(i = 0; i < num_entries; i++)
-            {
-
-                /* allocate memory and read in the label names */
-                analy->int_labels->LabelNames[i] = (char *) malloc(strlen(wildcard_list[i]) + 1);
-                if(analy->int_labels->LabelNames[i] == NULL)
-                {
-                    popup_dialog(WARNING_POPUP, "Out of memory in func open_analysis. Terminating\n");
-                    abort();
-                }
-                strcpy(analy->int_labels->LabelNames[i], wildcard_list[i]);
-
-                status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
-                    (void**)& analy->int_labels->labels[i], &num_items_read );
-                analy->int_labels->labelSizes[i] = num_items_read;
-                analy->int_labels->valid[i] = 1; 
-                /*qsort(analy->int_labels->labels[i], num_items_read, sizeof(int), compints);*/ 
-                /* extract the material number from the Label Name and store it in the Label Data Struct */ 
-                int m = 0;
-                char str[20];
-                int k = 0;
- 
-                for(j = strlen(analy->int_labels->LabelNames[i]) - 1; j >= 0; j--)
-                {
-                    if(isdigit(analy->int_labels->LabelNames[i][j]))
-                    {
-                        str[0] = analy->int_labels->LabelNames[i][j];
-                        str[1] = '\0';
-                        m += atoi(str)*pow(10, k);
-                        k++;
-                    }
-                }
-                analy->int_labels->mats[i] = m;
-                if(m > highest_mat_num)
-                {
-                    highest_mat_num = m;
-                } 
-
-                /* initialize to select the first integration point for each entry */
-                analy->int_labels->int_pts_selected[i] = analy->int_labels->labels[i][0];
-                for(j = 0; j < analy->int_labels->labelSizes[i] - 1; j++)
-                {
-                    if(analy->int_labels->labels[i][j] > analy->int_labels->labels[i][j+1])
-                    {
-                        /* mark this labels array as invalid because it is not in ascending order */
-                        analy->int_labels->valid[i] = 0;
-                        popup_dialog(WARNING_POPUP, "ERROR: Integration points not written in the labels array in ascending \ 
- order for some element sets. Aborting\n");
-                        parse_command("quit", analy);
-                    }
-                }    
-    
-            }
-            /*analy->int_labels->map = (int *) calloc(highest_mat_num+1, sizeof(int)); */
-            analy->int_labels->map = (int *) calloc(num_entries+1, sizeof(int));
-            if(analy->int_labels->map == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
-             
-            /* not using the first entry */
-            analy->int_labels->map[0] = -1;
-            /*analy->int_labels->mapsize = highest_mat_num+1;*/
-            analy->int_labels->mapsize = num_entries + 1;
-
-            {
-                int qty, rval, index;
-                int i, j, k, l, m;
-                int ii;
-                int dbid;
-                char  svar_name[32];
-                char p[2];
-                int srec_qty, subrec_qty;
-                Subrecord subrec;
-                
-                dbid = analy->db_ident;
-                srec_qty = 0;
-                analy->int_labels->num_es_sets = 0;
-
-                analy->db_query(dbid, QRY_QTY_SREC_FMTS, NULL, NULL, (void *) &srec_qty);
-                /* loop over srecs */
-                for(i = 0; i < srec_qty; i++)
-                {
-                    /*Get subrecord count for this state record. */
-                    rval = analy->db_query(dbid, QRY_QTY_SUBRECS, (void *) &i, NULL, (void *) &subrec_qty);
-                    if(rval != OK)
-                    {
-                        continue;
-                    } 
-                    
-                    /* loop over subrecs looking for "es_" */
-                    for(j = 0; j < subrec_qty; j++)
-                    {
-                        rval = analy->db_get_subrec_def(dbid, i, j, &subrec);
-                        if(rval != OK)
-                        {
-                            continue;
-                        }
-                        strcpy(svar_name, subrec.svar_names[0]);
-                        if(strncmp(svar_name, "es_", 3) == 0)
-                        {
-                            analy->int_labels->num_es_sets++;
-                        }
-                    }
-                }
-
-                /* now that we know the number of element sets written to the plot file allocate an array of strings of that size */
-                if(analy->int_labels->num_es_sets > 0)
-                {
-                    analy->int_labels->es_names = (char **) malloc(analy->int_labels->num_es_sets*sizeof(char*));
-                    analy->int_labels->result_names = (char **) malloc(analy->int_labels->num_es_sets * sizeof(char*));
-
-                    if(analy->int_labels->es_names == NULL || analy->int_labels->result_names == NULL)
-                    {
-                        popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis.  Exiting\n");
-                        parse_command("quit", analy); 
-                    }
-
-                 
-                }
-
-                for(i = 0; i < srec_qty; i++)
-                {
-                    /*Get subrecord count for this state record. */
-                    rval = analy->db_query(dbid, QRY_QTY_SUBRECS, (void *) &i, NULL, (void *) &subrec_qty);
-                    if(rval != OK)
-                    {
-                        continue;
-                    } 
-                    k = 0; 
-                    /* loop over subrecs looking for "es_" */
-                    for(j = 0; j < subrec_qty; j++)
-                    {
-                        rval = analy->db_get_subrec_def(dbid, i, j, &subrec);
-                        if(rval != OK)
-                        {
-                            continue;
-                        }
-                        strcpy(svar_name, subrec.svar_names[0]);
-                        if(strncmp(svar_name, "es_", 3) == 0)
-                        {
-                            m = 0;
-                            ii = 0;
-                            index = strlen(svar_name) - 1;
-                            p[1] = '\0';
-                            for(l = 0; l <= strlen(svar_name) - 1; l++)
-                            {
-                                /**p = svar_name[index]; */
-                                p[0] = svar_name[index];
-                                if(isdigit(p[0]))
-                                {
-                                    m += atoi(p)*pow(10, ii);
-                                    ii++;
-                                }
-                                index --;
-                            }
-                            for(index = 0; index < num_entries; index++)
-                            {
-                                if(analy->int_labels->mats[index] == m )
-                                {                            
-                                    analy->int_labels->map[k + 1] = k;
-                                    break;
-                                }
-                            } 
-                            /* allocate memory to add the svar_name to the es_names string array */
-                            analy->int_labels->es_names[k] = (char *) malloc((strlen(svar_name) + 1)*sizeof(char));
-                            analy->int_labels->result_names[k] = (char *) malloc(64*sizeof(char));
-                            if(analy->int_labels->es_names[k] == NULL || analy->int_labels->result_names[k] == NULL)
-                            {
-                                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis.  Exiting\n");
-                                parse_command("quit", analy); 
-                            } 
-                            strcpy(analy->int_labels->es_names[k], svar_name);
-                            strcpy(analy->int_labels->result_names[k], "\0");
-                            k++;
-                        }
-                    }
-                }
-            }
-
-            /* from here on it is Bob Corey's code. */
-            for ( i=0;
-                    i<num_entries;
-                    i++ )
-            {
-                int num_items_read=0;
-                int datatype=0, datalength=0;
-                char *es_ptr=NULL;
-
-                /*status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
-                                             &datatype, &datalength );*/
-                /* Read int the integration point labels. The last element of the array is
-                 * the total number of integration points.
-                 * For example:
-                 *  5 10 25 32 51
-                 *             ^- This element set has a max of 51 integration points.
-                 *
-                 *             Inner  =  5
-                 *             Middle = 25
-                 *             Outer  = 32
-                 */
-                analy->es_intpoints[i].in_mid_out_default[0] = -1; /* -1 = undefined inner integration point */
-                analy->es_intpoints[i].in_mid_out_default[1] = -1;
-                analy->es_intpoints[i].in_mid_out_default[2] = -1;
-
-                /*analy->es_intpoints[i].labels =  NEW_N( int, datalength, "Element Set Labels" );*/
-
-                status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
-                                          (void **) & analy->es_intpoints[i].labels, &datalength );
-
-                analy->es_intpoints[i].labels_cnt      = datalength-1;
-                analy->es_intpoints[i].intpoints_total = analy->es_intpoints[i].labels[datalength-2];
-
-                /* Strip off the element set uid from the end of the name field */
-                es_ptr = strstr( wildcard_list[i], "_es_" );
-                if ( es_ptr )
-                {
-                    analy->es_intpoints[i].es_id = get_element_set_id( wildcard_list[i] );
-                }
-                else
-                {
-                    continue;
-                } 
-                set_default_intpoints ( analy->es_intpoints[i].intpoints_total, analy->es_intpoints[i].labels_cnt,
-                                        analy->es_intpoints[i].labels, analy->es_intpoints[i].in_mid_out_default );
-
-                analy->es_intpoints[i].in_mid_out_set[0] = analy->es_intpoints[i].in_mid_out_default[0];
-                analy->es_intpoints[i].in_mid_out_set[1] = analy->es_intpoints[i].in_mid_out_default[1];
-                analy->es_intpoints[i].in_mid_out_set[2] = analy->es_intpoints[i].in_mid_out_default[2];
-            }
-
-        }
-        htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+        
     }
     if(wildcard_list != NULL)
     {
@@ -2114,7 +1818,283 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
         free( class_array );
     }
+    
+    
+    if ( env.ti_enable )
+    {
+        /* Shell Integration Point Labels */
 
+        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
+                      "IntLabel", "NULL", "NULL",
+                      wildcard_list );
+        analy->es_cnt = 0;
+
+
+        if ( num_entries>0 )
+        {
+            analy->es_intpoints = NEW_N( Integration_points, num_entries, "Integration Point Data" );
+            analy->es_cnt       = num_entries ;
+
+            analy->int_labels = NEW_N(IntLabels, 1, "Integration Point Labels");
+            analy->int_labels->numLabels = num_entries;
+            analy->int_labels->LabelNames = (char**) malloc(num_entries*sizeof(char*));
+            if(analy->int_labels->LabelNames == NULL)
+            {
+                printf("Out of memory in function open_analysis. terminating\n");
+                abort();
+            }
+            
+            analy->int_labels->labels = (int**)malloc(num_entries*sizeof(int*));
+           
+
+            if(analy->int_labels->labels == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
+                abort();
+            }
+                
+            analy->int_labels->labelSizes = (int *) malloc(num_entries*sizeof(int)); 
+            if(analy->int_labels->labels == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
+                abort();
+            }
+ 
+            analy->int_labels->mats = (int *) calloc(num_entries, sizeof(int));
+            if(analy->int_labels->mats == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
+                abort();
+            }
+
+            analy->int_labels->int_pts_selected = (int *) calloc(num_entries, sizeof(int));
+            if(analy->int_labels->labels == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
+                abort();
+            }
+
+            analy->int_labels->valid = (int *) calloc(num_entries, sizeof(int));
+            if(analy->int_labels->valid == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
+                abort();
+            }
+            
+            analy->int_labels->map = (int *) calloc(cur_mesh_mat_qty+1, sizeof(int));
+            if(analy->int_labels->map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
+                abort();
+            }
+            
+            for(i=0; i<cur_mesh_mat_qty+1;i++)
+            {
+                analy->int_labels->map[i] = -1;
+            }
+            
+            analy->int_labels->mapsize = cur_mesh_mat_qty + 1;
+
+            int num_items_read=0;
+            int highest_mat_num = 0;
+ 
+            for(i = 0; i < num_entries; i++)
+            {
+
+                /* allocate memory and read in the label names */
+                analy->int_labels->LabelNames[i] = (char *) malloc(strlen(wildcard_list[i]) + 1);
+                if(analy->int_labels->LabelNames[i] == NULL)
+                {
+                    popup_dialog(WARNING_POPUP, "Out of memory in func open_analysis. Terminating\n");
+                    abort();
+                }
+                strcpy(analy->int_labels->LabelNames[i], wildcard_list[i]);
+
+                status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
+                    (void**)& analy->int_labels->labels[i], &num_items_read );
+                analy->int_labels->labelSizes[i] = num_items_read;
+                analy->int_labels->valid[i] = 1; 
+                /*qsort(analy->int_labels->labels[i], num_items_read, sizeof(int), compints);*/ 
+                /* extract the material number from the Label Name and store it in the Label Data Struct */ 
+                int m = 0;
+                char str;
+                int k = 0;
+ 
+                for(j = strlen(analy->int_labels->LabelNames[i]) - 1; j >= 0; j--)
+                {
+                    if(isdigit(analy->int_labels->LabelNames[i][j]))
+                    {
+                        str = analy->int_labels->LabelNames[i][j];
+                        m += atoi(&str)*pow(10, k);
+                        k++;
+                    }
+                }
+                analy->int_labels->mats[i] = m;
+                analy->int_labels->map[m] = i;
+
+                /* initialize to select the first integration point for each entry */
+                analy->int_labels->int_pts_selected[i] = analy->int_labels->labels[i][0];
+                for(j = 0; j < analy->int_labels->labelSizes[i] - 1; j++)
+                {
+                    if(analy->int_labels->labels[i][j] > analy->int_labels->labels[i][j+1])
+                    {
+                        /* mark this labels array as invalid because it is not in ascending order */
+                        analy->int_labels->valid[i] = 0;
+                        popup_dialog(WARNING_POPUP, "ERROR: Integration points not written in the labels array in ascending \ 
+ order for some element sets. Aborting\n");
+                        parse_command("quit", analy);
+                    }
+                }    
+    
+            }
+            
+
+            {
+                int qty, rval, index;
+                int i, j, k, l, m;
+                int ii;
+                int dbid;
+                char  svar_name[32];
+                char p;
+                int srec_qty, subrec_qty;
+                Subrecord subrec;
+                
+                dbid = analy->db_ident;
+                srec_qty = 0;
+                analy->int_labels->num_es_sets = 0;
+
+                analy->db_query(dbid, QRY_QTY_SREC_FMTS, NULL, NULL, (void *) &srec_qty);
+                /* loop over srecs */
+                for(i = 0; i < srec_qty; i++)
+                {
+                    /*Get subrecord count for this state record. */
+                    rval = analy->db_query(dbid, QRY_QTY_SUBRECS, (void *) &i, NULL, (void *) &subrec_qty);
+                    if(rval != OK)
+                    {
+                        continue;
+                    } 
+                    
+                    /* loop over subrecs looking for "es_" */
+                    for(j = 0; j < subrec_qty; j++)
+                    {
+                        rval = analy->db_get_subrec_def(dbid, i, j, &subrec);
+                        if(rval != OK)
+                        {
+                            continue;
+                        }
+                        strcpy(svar_name, subrec.svar_names[0]);
+                        if(strncmp(svar_name, "es_", 3) == 0)
+                        {
+                            analy->int_labels->num_es_sets++;
+                        }
+                    }
+                }
+
+                /* now that we know the number of element sets written to the plot file allocate an array of strings of that size */
+                if(analy->int_labels->num_es_sets > 0)
+                {
+                    analy->int_labels->es_names = (char **) malloc(analy->int_labels->num_es_sets*sizeof(char*));
+                    analy->int_labels->result_names = (char **) malloc(analy->int_labels->num_es_sets * sizeof(char*));
+
+                    if(analy->int_labels->es_names == NULL || analy->int_labels->result_names == NULL)
+                    {
+                        popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis.  Exiting\n");
+                        parse_command("quit", analy); 
+                    }
+
+                 
+                }
+
+                for(i = 0; i < srec_qty; i++)
+                {
+                    /*Get subrecord count for this state record. */
+                    rval = analy->db_query(dbid, QRY_QTY_SUBRECS, (void *) &i, NULL, (void *) &subrec_qty);
+                    if(rval != OK)
+                    {
+                        continue;
+                    } 
+                    k = 0; 
+                    /* loop over subrecs looking for "es_" */
+                    for(j = 0; j < subrec_qty; j++)
+                    {
+                        rval = analy->db_get_subrec_def(dbid, i, j, &subrec);
+                        if(rval != OK)
+                        {
+                            continue;
+                        }
+                        strcpy(svar_name, subrec.svar_names[0]);
+                        if(strncmp(svar_name, "es_", 3) == 0)
+                        {
+                            /* allocate memory to add the svar_name to the es_names string array */
+                            analy->int_labels->es_names[k] = (char *) malloc((strlen(svar_name) + 1)*sizeof(char));
+                            analy->int_labels->result_names[k] = (char *) malloc(64*sizeof(char));
+                            if(analy->int_labels->es_names[k] == NULL || analy->int_labels->result_names[k] == NULL)
+                            {
+                                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis.  Exiting\n");
+                                parse_command("quit", analy); 
+                            } 
+                            strcpy(analy->int_labels->es_names[k], svar_name);
+                            strcpy(analy->int_labels->result_names[k], "\0");
+                            k++;
+                        }
+                    }
+                }
+            }
+
+            /* from here on it is Bob Corey's code. */
+            for ( i=0;
+                    i<num_entries;
+                    i++ )
+            {
+                int num_items_read=0;
+                int datatype=0, datalength=0;
+                char *es_ptr=NULL;
+
+                /*status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
+                                             &datatype, &datalength );*/
+                /* Read int the integration point labels. The last element of the array is
+                 * the total number of integration points.
+                 * For example:
+                 *  5 10 25 32 51
+                 *             ^- This element set has a max of 51 integration points.
+                 *
+                 *             Inner  =  5
+                 *             Middle = 25
+                 *             Outer  = 32
+                 */
+                analy->es_intpoints[i].in_mid_out_default[0] = -1; /* -1 = undefined inner integration point */
+                analy->es_intpoints[i].in_mid_out_default[1] = -1;
+                analy->es_intpoints[i].in_mid_out_default[2] = -1;
+
+                /*analy->es_intpoints[i].labels =  NEW_N( int, datalength, "Element Set Labels" );*/
+
+                status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
+                                          (void **) & analy->es_intpoints[i].labels, &datalength );
+
+                analy->es_intpoints[i].labels_cnt      = datalength-1;
+                analy->es_intpoints[i].intpoints_total = analy->es_intpoints[i].labels[datalength-2];
+
+                /* Strip off the element set uid from the end of the name field */
+                es_ptr = strstr( wildcard_list[i], "_es_" );
+                if ( es_ptr )
+                {
+                    analy->es_intpoints[i].es_id = get_element_set_id( wildcard_list[i] );
+                }
+                else
+                {
+                    continue;
+                } 
+                set_default_intpoints ( analy->es_intpoints[i].intpoints_total, analy->es_intpoints[i].labels_cnt,
+                                        analy->es_intpoints[i].labels, analy->es_intpoints[i].in_mid_out_default );
+
+                analy->es_intpoints[i].in_mid_out_set[0] = analy->es_intpoints[i].in_mid_out_default[0];
+                analy->es_intpoints[i].in_mid_out_set[1] = analy->es_intpoints[i].in_mid_out_default[1];
+                analy->es_intpoints[i].in_mid_out_set[2] = analy->es_intpoints[i].in_mid_out_default[2];
+            }
+
+        }
+        htable_delete_wildcard_list( num_entries, wildcard_list ) ;
+    }
     if ( face_qty > max_face_qty )
         max_face_qty = face_qty;
 

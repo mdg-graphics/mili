@@ -370,7 +370,7 @@ static int  check_for_result( Analysis *analy, int display_warning );
 static int select_integration_pts(char [MAXTOKENS][TOKENLENGTH], int, Analysis *);
 static int set_inpt(int, int, char *, int, int, Analysis *);
 static void show_ipt_avail(Analysis *);
-static void intpts_selected(Analysis *);
+static void intpts_selected(Analysis *, int*);
 
 void
 mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt);
@@ -1112,7 +1112,7 @@ parse_single_command( char *buf, Analysis *analy )
     }
     else if(strcmp(tokens[0], "show_sel_int_pts") == 0)
     {
-        intpts_selected(analy);
+        intpts_selected(analy,NULL);
         valid_command = TRUE;
     }
     else if ( strcmp( tokens[0], "select" ) == 0 || strcmp( tokens[0], "unselect" ) == 0
@@ -10897,6 +10897,7 @@ int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Anal
     intPtMessages * message;
     intPtMessages * p;
     intPtMessages * q;
+    int *chosen_materials = NULL;
 
     mat_qty = MESH(analy).material_qty;
     if(analy->int_labels == NULL)
@@ -10957,15 +10958,14 @@ for element set");
     {
         select = FALSE;
     }
-    
+    // Use case "select_ipt [inner]| [middle] | [outer]"
     if((!strcmp(tokens[1], "inner") || !strcmp(tokens[1], "middle") || !strcmp(tokens[1], "outer")) && token_cnt == 2)
     {
         pt = 0;
         usetoken = 1;
         
-        for(i = 1; i <= labels->numLabels; i++)
+        for(index = 0; index < labels->numLabels; index)
         {
-            index = labels->map[i];
             size = labels->labelSizes[index] - 1;
             if(!strcmp(tokens[1], "inner"))
             {
@@ -10977,7 +10977,9 @@ for element set");
             {
                pt = labels->labels[index][size];
             } 
+            
             return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
+            
             if(return_status != 0)
             {
                 p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
@@ -11000,14 +11002,7 @@ for element set");
                 p->prev = q;
                 p->next = NULL;
                 sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
-                /*if(return_status == 21)
-                {
-                    sprintf(suffix, ", %d\n", labels->mats[index]);
-                } else
-                {
-                    sprintf(suffix, " %d \nselected the nearest value\n", labels->mats[index]);
-                }
-                strcat(p->messages, suffix); */
+                
             }
        }
     } else if(strcmp(tokens[1], "inner") && strcmp(tokens[1], "middle") && strcmp(tokens[1], "outer"))
@@ -11015,17 +11010,17 @@ for element set");
         pt = atoi(tokens[1]);
         if(pt == 0)
         {
-            popup_dialog(WARNING_POPUP, "invalid command syntax for select_ipt.\n");
+            popup_dialog(WARNING_POPUP, "Invalid command syntax for select_ipt.\n");
             return FALSE;
         }
     }
   
     if(token_cnt == 2 && !usetoken)
     {
-        for(i = 1; i <= labels->numLabels; i++)
+        for(index = 0; index < labels->numLabels; index++)
         {
-            index = labels->map[i];
             return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
+            
             if(return_status != 0)
             {
                 p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
@@ -11047,16 +11042,9 @@ for element set");
                 q->next = p;
                 p->prev = q;
                 p->next = NULL;
-                /*sprintf(p->messages, warning_templates[message_map[return_status]]); */
+                
                 sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
-                /*if(return_status == 21)
-                {
-                    sprintf(suffix, ", %d\n", labels->mats[index]);
-                } else
-                {
-                    sprintf(suffix, " %d \nselected the nearest value\n", labels->mats[index]);
-                }
-                strcat(p->messages, suffix); */
+                
             }
         }
     }
@@ -11067,63 +11055,59 @@ for element set");
            usetoken = 1;
            pt = 0;
         }
+        chosen_materials = calloc(labels->mapsize,sizeof(int));
         for(i = 2; i < token_cnt; i++)
         {
+           
            parse_mtl_range(tokens[i], mat_qty, &mat_min, &mat_max);
            if(mat_min < mat_max)
            {
               for(j = mat_min ; j <= mat_max; j++)
               {
                    found = FALSE;
-                   for(k = 0; k < labels->numLabels; k++)
+                   if(labels->map[j] <=0)
                    {
-                       index = labels->map[k+1];
-                       if(j == labels->mats[index])
-                       {
-                           found = TRUE;
-                           break;
-                       }
+                     continue;
                    }
-                   if(found)
+                   
+                   chosen_materials[j]=1;
+                   size = labels->labelSizes[j] - 1;
+                   if(!strcmp(tokens[1], "inner"))
                    {
-                       /*index = labels->map[j]; */
-                       size = labels->labelSizes[index] - 1;
-                       if(!strcmp(tokens[1], "inner"))
-                       {
-                           pt = 1;
-                       } else if(!strcmp(tokens[1], "middle"))
-                       {
-                           pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
-                       } else if(!strcmp(tokens[1], "outer"))
-                       {
-                           pt = labels->labels[index][size];
-                       }
+                       pt = 1;
+                   } else if(!strcmp(tokens[1], "middle"))
+                   {
+                       pt = (labels->labels[j][size])/2 + (labels->labels[index][size] % 2);
+                   } else if(!strcmp(tokens[1], "outer"))
+                   {
+                       pt = labels->labels[j][size];
+                   }
                        
  
-                       return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
-                       if(return_status != 0)
+                   return_status = set_inpt(j, pt, tokens[1], select, usetoken, analy);
+                   if(return_status != 0)
+                   {
+                       p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+                       if(p == NULL)
                        {
-                           p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
-                           if(p == NULL)
-                           {
-                               popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
-                               parse_command("quit", analy);
-                           }
+                           popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
+                           parse_command("quit", analy);
+                       }
  
-                           p->next = NULL;
-                           p->prev = NULL;
-                           strcpy(p->messages, "");
-                           q = message;
-                           while(q->next != NULL)
-                           {
-                               q = q->next;
-                           }
+                       p->next = NULL;
+                       p->prev = NULL;
+                       strcpy(p->messages, "");
+                       q = message;
+                       while(q->next != NULL)
+                       {
+                           q = q->next;
+                       }
                
-                           q->next = p;
-                           p->prev = q;
-                           p->next = NULL;
+                       q->next = p;
+                       p->prev = q;
+                       p->next = NULL;
                            /*sprintf(p->messages, warning_templates[message_map[return_status]]); */
-                           sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
+                       sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
                            /*if(return_status == 21)
                            {
                                sprintf(suffix, ", %d\n", labels->mats[index]);
@@ -11132,23 +11116,18 @@ for element set");
                                sprintf(suffix, " %d \nselected the nearest value\n", labels->mats[index]);
                            }
                            strcat(p->messages, suffix); */
-                      }
                    }
               }
            } else
            {
-                   found = FALSE;
-                   j = mat_min - 1; /* convert to zero based material numbers */
- 
-                   for(k = 0; k < labels->numLabels; k++)
-                   {
-                       if(j == labels->map[k + 1])
-                       {
-                           found = TRUE;
-                           index = j;
-                           break;
-                       }
-                   }
+               found = FALSE;
+               j = mat_min - 1; /* convert to zero based material numbers */
+               if(labels->map[mat_min] >0)
+               {
+                  found = TRUE;  
+                  index = labels->map[mat_min]    ;          
+               }
+               chosen_materials[mat_min]=1;
                if(found)
                {
                    size = labels->labelSizes[index] - 1;
@@ -11189,25 +11168,22 @@ for element set");
                        p->next = NULL;
                        /*sprintf(p->messages, warning_templates[message_map[return_status]]); */
                        sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
-                       /*if(return_status == 21)
-                       {
-                           sprintf(suffix, ", %d\n", labels->mats[index]);
-                       } else
-                       {
-                           sprintf(suffix, " %d \nselected the nearest value\n", labels->mats[index]);
-                       } 
-                       strcat(p->messages, suffix); */
+                       
+                  }
                }
            }
         }
-      }
+      
 
    }
      
 
     
-    intpts_selected(analy);
-   
+    intpts_selected(analy,chosen_materials);
+    if(chosen_materials != NULL)
+    {
+        free(chosen_materials);
+    }
     if(message->next != NULL)
     {
         wrt_text("\n\nWARNING: The desired integration point for element set/material\n is not available for:\n\n");
@@ -11245,7 +11221,6 @@ for element set");
     }
     return TRUE;
 }
- 
 
 int set_inpt(int index, int ipt, char * token, int select, int usetoken, Analysis * analy)
 {
@@ -11321,23 +11296,23 @@ int set_inpt(int index, int ipt, char * token, int select, int usetoken, Analysi
             } 
         }
         /* If we make it to this part of the code then the specified integration point
- *         falls in between two points that were written out.  The convention is that
- *         the integration points written out are in ascending order */
-       i = 0;
-       while(ipt > labels->labels[index][i])
-       {
-           i++;
-       }
+         * falls in between two points that were written out.  The convention is that
+         * the integration points written out are in ascending order */
+        i = 0;
+        while(ipt > labels->labels[index][i])
+        {
+            i++;
+        }
 
-       if(abs(ipt - labels->labels[index][i - 1]) <= abs(ipt - labels->labels[index][i]))
-       {
-           labels->int_pts_selected[index] = labels->labels[index][i-1] * select;
-           return 1;
-       } else
-       {
-           labels->int_pts_selected[index] = labels->labels[index][i] * select;
-           return 2;
-       } 
+        if(abs(ipt - labels->labels[index][i - 1]) <= abs(ipt - labels->labels[index][i]))
+        {
+            labels->int_pts_selected[index] = labels->labels[index][i-1] * select;
+            return 1;
+        } else
+        {
+            labels->int_pts_selected[index] = labels->labels[index][i] * select;
+            return 2;
+        } 
         
     } else if(!strcmp(token, "inner"))
     {
@@ -11365,7 +11340,7 @@ int set_inpt(int index, int ipt, char * token, int select, int usetoken, Analysi
            return 20;
         }
     }
-
+    
     return return_status;
 }
 
@@ -11387,15 +11362,19 @@ void show_ipt_avail(Analysis * analy)
     }
     labels = analy->int_labels;
     wrt_text("\n\nAvailable Integration Points in this plot file are as follows:\n");
-    for(i = 1; i <= labels->numLabels; i++)
+    
+    for(i = 1; i < labels->mapsize; i++)
     {
-	index = labels->map[i];
-        if(labels->valid[index] == 1)
+        if(labels->map[i] <= 0)
         {
-            wrt_text("material %d:     Integration Points\n", labels->mats[index]);
-            for(j = 0; j < labels->labelSizes[index] - 1; j++)
+            continue;
+        }
+	     if(labels->valid[labels->map[i]] == 1)
+        {
+            wrt_text("material %d:     Integration Points\n", i);
+            for(j = 0; j < labels->labelSizes[labels->map[i]] - 1; j++)
             {
-                wrt_text("                     %d\n", labels->labels[index][j]);
+                wrt_text("                     %d\n", labels->labels[labels->map[i]][j]);
             }
         } 
     } 
@@ -11407,7 +11386,7 @@ void show_ipt_avail(Analysis * analy)
  * prints the integration points selected on the 
  * feedback window 
  *******************************************************/
-void intpts_selected(Analysis * analy)
+void intpts_selected(Analysis * analy, int* materials_changed)
 {
     int i, j, k;
     int index, mat;
@@ -11421,14 +11400,18 @@ void intpts_selected(Analysis * analy)
     wrt_text("\n\nIntegration Points selected:\n");
     wrt_text("Material/Element Set               Integration Point\n");
 
-    for(i = 1; i <= labels->numLabels; i++)
+    
+    for(i = 1; i < labels->mapsize; i++)
     {
-        index = labels->map[i];
+        index =  labels->map[i];
         if(labels->valid[index] == 1)
         {
-            mat = labels->mats[index];
             k = labels->int_pts_selected[index];
-            wrt_text("  %d                                     %d\n", mat, k);
+            if((materials_changed != NULL && materials_changed[i]) || materials_changed == NULL )
+            {
+                wrt_text("  %d                                     %d\n", i, k);
+            }
+        
         }
     }
     return;

@@ -3434,54 +3434,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     {
         strcpy(primal_spec, p_result->name);
     } 
-    /*if(analy->int_labels != NULL && analy->int_labels->use_combined == TRUE) 
-    {
-        es_qty = analy->int_labels->num_es_sets;
-        if(!strncmp(p_subrec->subrec.svar_names[0], "es_", 3))
-        {
-            for(i = 0; i < es_qty; i++)
-            {
-                if(strncmp(p_subrec->subrec.svar_names[0], analy->int_labels->es_names[i], 5))
-                {
-                    strcpy(primal_spec, analy->int_labels->result_names[i]);
-                    break;
-                }
-            
-            }
-        } else
-        {
-            for(i = 0; i < p_subrec->subrec.qty_svars; i++)
-            {
-                strcpy(name, p_subrec->subrec.svar_names[i]);
-                strcat(name, "[");
-                strcat(name, p_result->name);
-                strcat(name, "]");
-                init_result(&test_result);
-                if(find_result(analy, analy->result_source, TRUE, &test_result, name))
-                {
-                    found = TRUE;
-                    break;
-                }
-            }
-            if(found)
-            {
-                strcpy(primal_spec, name);
-            } else
-            {
-                strcpy( primal_spec, p_result->name );
-            }
-          
-        }
-    } else
-    {
-        strcpy( primal_spec, p_result->name );
-    }
- 
-    if(p_result->original_names != NULL)
-    {
-        strcpy(primal_spec, p_result->original_names[index]);
-    }*/
-
+    
     primals[0] = primal_spec;
     primals[1] = NULL;
 
@@ -5239,9 +5192,10 @@ Result * create_result_list( char * token, Analysis *analy)
     }
 
     /* the only way match could be true is if there are element sets in the problem.
- *     so se still have the possible_es_results with the token match and the primals
- *     so build a query for each element set and build the result then add it to the
- *     linked list */
+     * so se still have the possible_es_results with the token match and the primals
+     * so build a query for each element set and build the result then add it to the
+     * linked list 
+     */
 
     if(match && analy->int_labels != NULL)
     {
