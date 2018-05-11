@@ -1133,33 +1133,6 @@ parse_single_command( char *buf, Analysis *analy )
                                   &p_hte );
         }
 
-        if ( rval == OK && token_cnt == 2 )
-        {
-            /* If a class named on the select and no other
-            				       * options, select then all.
-            				       */
-            /*if ( is_elem_class( analy, tokens[1] ) ) {
-                 token_cnt++;
-                 strcpy( tokens[2], "ALL" );
-            } */
-
-            for(i = 0; i < MESH(analy).qty_class_selections; i++)
-            {
-                p_class = MESH(analy).by_class_select[i].p_class;
-                if(!strcmp(tokens[1], p_class->short_name))
-                {
-                    break;
-                }
-            }
-
-            if( (i < MESH(analy).qty_class_selections) && is_elem_class(p_class->superclass))
-            {
-                token_cnt++;
-                strcpy(tokens[2], "ALL");
-            }
-
-        }
-
         if ( rval == OK && token_cnt > 2 )
         {
             p_mo_class = (MO_class_data *) p_hte->data;
@@ -1527,91 +1500,6 @@ parse_single_command( char *buf, Analysis *analy )
                 redraw = BINDING_MESH_VISUAL;
             }
         }
-//        else if( token_cnt == 2 )
-//        {
-//            if ( (select_file = fopen( tokens[1], "r" )) == NULL )
-//            {
-//                popup_dialog( WARNING_POPUP,
-//                              "Unable to open file \"%s\".", tokens[1] );
-//                valid_command = FALSE;
-//            }
-//            else
-//            {
-//                qty = 0;
-//                while ( !feof( select_file ) )
-//                {
-//                    if( fgets( line_buf, 2000, select_file ) != NULL )
-//                    {
-//                        tokenize_line( line_buf, tokens, &token_cnt );
-//                        rval = htable_search( MESH( analy ).class_table, tokens[0],
-//                                              FIND_ENTRY,&p_hte );
-//
-//                        if ( rval == OK && token_cnt > 1)
-//                        {
-//                            p_mo_class = (MO_class_data *) p_hte->data;
-//
-//                            for ( i = 1; i < token_cnt; i++ )
-//                            {
-//                                ival = atoi( tokens[i] );
-//                                if ( p_mo_class->labels_found )
-//                                    temp_ival = get_class_label_index( p_mo_class, ival );
-//                                else
-//                                    temp_ival = ival;
-//
-//                                obj_max = p_mo_class->qty;
-//                                if ( p_mo_class->labels )
-//                                    obj_max = p_mo_class->labels_max;
-//
-//                                if ( ival < 1 || ival > obj_max )
-//                                {
-//                                    popup_dialog( INFO_POPUP,
-//                                                  "Invalid ident (%d) for class %s (%s); ignored.",
-//                                                  ival, p_mo_class->short_name, p_mo_class->long_name );
-//                                    continue;
-//                                }
-//
-//                                /*
-//                                 * Traverse currently selected objects to see if current
-//                                 * candidate already exists.
-//                                 */
-//                                for ( p_so = analy->selected_objects; p_so != NULL;
-//                                        NEXT( p_so ) )
-//                                {
-//                                    if ( p_so->mo_class == p_mo_class &&
-//                                            (p_so->ident == ival ) )
-//                                        break;
-//                                }
-//
-//
-//                                /* If object exists, delete to de-select, else add. */
-//                                if ( p_so != NULL )
-//                                {
-//                                    DELETE( p_so, analy->selected_objects );
-//                                }
-//                                else
-//                                {
-//                                    p_so = NEW( Specified_obj, "New object selection" );
-//                                    p_so->ident = temp_ival;
-//                                    p_so->label = ival;
-//                                    p_so->mo_class = p_mo_class;
-//                                    APPEND( p_so, analy->selected_objects );
-//                                }
-//
-//                                qty++; /* Additions or deletions should cause redraw. */
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                if ( qty > 0 )
-//                {
-//                    /* clear_gather( analy ); */
-//                    redraw = BINDING_MESH_VISUAL;
-//                }
-//
-//            }
-//
-//        }
         else
         {
             popup_dialog( USAGE_POPUP, "select <class name> <ident>...\n" );
