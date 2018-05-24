@@ -11238,26 +11238,30 @@ void show_ipt_avail(Analysis * analy)
     labels = analy->int_labels;
     wrt_text("\n\nAvailable Integration Points in this plot file are as follows:\n");
     
+	Htable_entry *tempEnt;
+	char label[34];
+	char intpts[40];
+	char intpt[4];
+	int snum;
     for(i = 1; i < labels->mapsize; i++)
     {
 		// INSERT NEW CODE
-		Htable_entry *tempEnt;
-		char label[34];
 		sprintf(label,"%s",analy->sorted_labels[i-1]);
 		htable_search(analy->mat_labels,label,FIND_ENTRY,&tempEnt);
-		int snum = atoi((char*)tempEnt->data);
+		snum = atoi((char*)tempEnt->data);
         if(labels->map[snum] < 0)
         {
             continue;
         }
 	    if(labels->valid[labels->map[snum]] == 1)
         {
-
-            wrt_text("material %.*s:     Integration Points\n",  34, label);
+	    	sprintf(intpts,"");
             for(j = 0; j < labels->labelSizes[labels->map[snum]] - 1; j++)
             {
-                wrt_text("                     %d\n", labels->labels[labels->map[snum]][j]);
+            	sprintf(intpt,"%d ",labels->labels[labels->map[snum]][j]);
+                strcat(intpts, intpt);
             }
+            wrt_text("material %-.*s:     Int. Points: %.*s\n",  34, label, 40, intpts);
         } 
     } 
     return;
@@ -11298,11 +11302,10 @@ void intpts_selected(Analysis * analy, int* materials_changed)
         if(labels->valid[index] == 1)
         {
             k = labels->int_pts_selected[index];
-            if((materials_changed != NULL && materials_changed[snum-1]) || materials_changed == NULL )
+            if((materials_changed != NULL && materials_changed[snum]) || materials_changed == NULL )
             {
 				// INSERT NEW CODE
 				wrt_text("  %.*s        %d\n", 33, label, k);
-                //wrt_text("  %d                                     %d\n", i, k);
             }
         
         }
