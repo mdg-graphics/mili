@@ -1139,11 +1139,7 @@ parse_single_command( char *buf, Analysis *analy )
             superclass = p_mo_class->superclass;
 
             qty = 0;
-            for ( i = 2;
-                    i < token_cnt;
-                    i++ )
-            {
-
+            for ( i = 2; i < token_cnt; i++ ){
                 /* IRC: Added March 29, 2005 */
                 /* Check for a range in the object list */
                 if ( is_numeric_range_token( tokens[i] ) )
@@ -9910,7 +9906,9 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 		if(	(strcmp(tokens[0],"include") == 0) 	|| (strcmp(tokens[0],"exclude") == 0) 	||
 			(strcmp(tokens[0],"vis") == 0) 		|| (strcmp(tokens[0],"invis") == 0) 	||
 			(strcmp(tokens[0],"enable") == 0) 	|| (strcmp(tokens[0],"disable") == 0) 	||
-			(strcmp(tokens[0],"hilite") == 0) 	|| (strcmp(tokens[0],"select") == 0)	){
+//			(strcmp(tokens[0],"hilite") == 0) 	|| (strcmp(tokens[0],"select") == 0)	){
+			(strcmp(tokens[0],"hilite") == 0) 	|| (strcmp(tokens[0],"select") == 0)	||
+			(strcmp(tokens[0],"select_ipt") == 0)	){
 			Bool_type dash_found = False;
 			Bool_type next_has_dash = False;
 			Bool_type hunting = True;
@@ -9919,7 +9917,13 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 			//new_tokens[0] = (char*)malloc(TOKENLENGTH * sizeof(char));
 			strcpy(new_tokens[0], tokens[0]);
 			new_token_cnt = 1;
-			for(tokenpos = 1; tokenpos < *token_cnt; tokenpos++){
+			tokenpos = 1;
+			if(strcmp(tokens[0],"select_ipt") == 0){
+				strcpy(new_tokens[1], tokens[1]);
+				new_token_cnt = 2;
+				tokenpos = 2;
+			}
+			for(tokenpos; tokenpos < *token_cnt; tokenpos++){
 				char tempToken[TOKENLENGTH];
 				strcpy(tempToken,tokens[tokenpos]);
 				//should we be hunting for mat names
@@ -11247,16 +11251,23 @@ void show_ipt_avail(Analysis * analy)
     
     for(i = 1; i < labels->mapsize; i++)
     {
-        if(labels->map[i] <= 0)
+		// INSERT NEW CODE
+		Htable_entry *tempEnt;
+		char label[34];
+		sprintf(label,"%s",analy->sorted_names[i-1]);
+		htable_search(analy->mat_names,label,FIND_ENTRY,&tempEnt);
+		int snum = atoi((char*)tempEnt->data);
+        if(labels->map[snum] < 0)
         {
             continue;
         }
-	     if(labels->valid[labels->map[i]] == 1)
+	    if(labels->valid[labels->map[snum]] == 1)
         {
-            wrt_text("material %d:     Integration Points\n", i);
-            for(j = 0; j < labels->labelSizes[labels->map[i]] - 1; j++)
+
+            wrt_text("material %.*s:     Integration Points\n",  34, label);
+            for(j = 0; j < labels->labelSizes[labels->map[snum]] - 1; j++)
             {
-                wrt_text("                     %d\n", labels->labels[labels->map[i]][j]);
+                wrt_text("                     %d\n", labels->labels[labels->map[snum]][j]);
             }
         } 
     } 
@@ -11267,6 +11278,7 @@ void show_ipt_avail(Analysis * analy)
  * TAG( intpts_selected )
  * prints the integration points selected on the 
  * feedback window 
+ * passed in analy and an array which show which of all the materials have been changed
  *******************************************************/
 void intpts_selected(Analysis * analy, int* materials_changed)
 {
@@ -11282,19 +11294,30 @@ void intpts_selected(Analysis * analy, int* materials_changed)
     wrt_text("\n\nIntegration Points selected:\n");
     wrt_text("Material/Element Set               Integration Point\n");
 
+	Htable_entry *tempEnt;
+	char label[34];
+	int snum;
     
     for(i = 1; i < labels->mapsize; i++)
     {
-        index =  labels->map[i];
+		// INSERT NEW CODE
+		sprintf(label,"%s",analy->sorted_names[i-1]);
+		htable_search(analy->mat_names,label,FIND_ENTRY,&tempEnt);
+		snum = atoi((char*)tempEnt->data);
+        index =  labels->map[snum];
+
         if(labels->valid[index] == 1)
         {
             k = labels->int_pts_selected[index];
-            if((materials_changed != NULL && materials_changed[i]) || materials_changed == NULL )
+            if((materials_changed != NULL && materials_changed[snum-1]) || materials_changed == NULL )
             {
-                wrt_text("  %d                                     %d\n", i, k);
+				// INSERT NEW CODE
+				wrt_text("  %.*s        %d\n", 33, label, k);
+                //wrt_text("  %d                                     %d\n", i, k);
             }
         
         }
     }
+
     return;
 }
