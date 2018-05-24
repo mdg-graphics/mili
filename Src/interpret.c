@@ -11243,8 +11243,8 @@ void show_ipt_avail(Analysis * analy)
 		// INSERT NEW CODE
 		Htable_entry *tempEnt;
 		char label[34];
-		sprintf(label,"%s",analy->sorted_names[i-1]);
-		htable_search(analy->mat_names,label,FIND_ENTRY,&tempEnt);
+		sprintf(label,"%s",analy->sorted_labels[i-1]);
+		htable_search(analy->mat_labels,label,FIND_ENTRY,&tempEnt);
 		int snum = atoi((char*)tempEnt->data);
         if(labels->map[snum] < 0)
         {
@@ -11290,8 +11290,8 @@ void intpts_selected(Analysis * analy, int* materials_changed)
     for(i = 1; i < labels->mapsize; i++)
     {
 		// INSERT NEW CODE
-		sprintf(label,"%s",analy->sorted_names[i-1]);
-		htable_search(analy->mat_names,label,FIND_ENTRY,&tempEnt);
+		sprintf(label,"%s",analy->sorted_labels[i-1]);
+		htable_search(analy->mat_labels,label,FIND_ENTRY,&tempEnt);
 		snum = atoi((char*)tempEnt->data);
         index =  labels->map[snum];
 
