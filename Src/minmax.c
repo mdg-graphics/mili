@@ -1550,7 +1550,7 @@ write_mm_report( Analysis *analy, FILE *outfile, int min_state, int max_state,
         	Htable_entry *tempEnt;
 			char tempname[32];
 			sprintf(tempname,"%d",mat);
-			htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+			htable_search(analy->mat_labels_reversed,tempname,FIND_ENTRY,&tempEnt);
 			if(tempEnt != NULL){
 				sprintf( mat_name, tempEnt->data);
 			}

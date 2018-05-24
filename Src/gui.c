@@ -4521,7 +4521,7 @@ create_mtl_manager( Widget main_widg )
         mtl = i + 1;
         mat_num = i;
 
-        sprintf( mtl_toggle_name, "%s", env.curr_analy->sorted_names[i] );
+        sprintf( mtl_toggle_name, "%s", env.curr_analy->sorted_labels[i] );
 
         widg = XtVaCreateManagedWidget(
                    mtl_toggle_name, xmToggleButtonWidgetClass, mtl_row_col,
@@ -10506,7 +10506,7 @@ load_selected_mtls( char *p_buf, int *p_tok_cnt )
 
     for ( p_mtl = mtl_select_list; p_mtl != NULL; p_mtl = p_mtl->next )
     {
-        sprintf( p_dest, "%s ", env.curr_analy->sorted_names[p_mtl->mtl] );
+        sprintf( p_dest, "%s ", env.curr_analy->sorted_labels[p_mtl->mtl] );
         p_dest += strlen( p_dest );
         t_cnt++;
     }

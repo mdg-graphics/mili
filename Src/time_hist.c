@@ -5999,7 +5999,7 @@ draw_plots( Analysis *analy )
         		Htable_entry *tempEnt;
 				char tempname[32];
 				sprintf(tempname,"%d",label);
-				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+				htable_search(analy->mat_labels_reversed,tempname,FIND_ENTRY,&tempEnt);
 				if(tempEnt != NULL){
 					sprintf( str, "%s", (char*)tempEnt->data);
 				}
@@ -6018,7 +6018,7 @@ draw_plots( Analysis *analy )
         		Htable_entry *tempEnt;
 				char tempname[32];
 				sprintf(tempname,"%d",label);
-				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+				htable_search(analy->mat_labels_reversed,tempname,FIND_ENTRY,&tempEnt);
 				if(tempEnt != NULL){
 					sprintf( str, "%s %s", (char*)tempEnt->data, p_po->ordinate->result->title);
 				}

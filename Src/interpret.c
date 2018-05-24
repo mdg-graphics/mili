@@ -398,6 +398,8 @@ void disable_particles( Analysis *analy,
                         Bool_type all_flag, Bool_type disable,
                         int mat );
 
+//this is a test
+
 Bool_type
 is_elem_mat_visible( Analysis *analy, int elem_id, MO_class_data *p_class );
 
@@ -1989,31 +1991,18 @@ parse_single_command( char *buf, Analysis *analy )
                 analy->use_snap = setval;
             else if ( strcmp( tokens[i], "mat_labels" ) == 0 ){
                 analy->mat_labels_active = setval;
-                if (setval == FALSE){
-					Hash_table *forNames;
-					Hash_table *revNames;
-					forNames = htable_create( 1001 );
-					revNames = htable_create( 1001 );
-					char** sortedNames = malloc(analy->max_mesh_mat_qty * sizeof(char*));
-					int pos2;
-					int label_length = 35;
-					for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
-						char *test;
-						test = malloc(label_length * sizeof(char));
-						char *str;
-						str = malloc(10 * sizeof(char));
-						sprintf(str,"%d",pos2+1);
-						sprintf(test,"%s",str);
-						htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
-						htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
-						sortedNames[pos2] = malloc(label_length * sizeof(char));
-						sprintf(sortedNames[pos2],"%s",test);
-					}
-					qsort(sortedNames, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
-					analy->sorted_names = sortedNames;
-					analy->mat_names = forNames;
-					analy->mat_names_reversed = revNames;
+                if (setval == TRUE){
+                	//this is for a branch test commit REMOVETHIS
+					analy->sorted_labels = analy->sorted_names;
+					analy->mat_labels = analy->mat_names;
+					analy->mat_labels_reversed = analy->mat_names_reversed;
                 }
+                else{
+					//this is for a branch test commit REMOVETHIS
+					analy->sorted_labels = analy->sorted_nums;
+					analy->mat_labels = analy->mat_nums;
+					analy->mat_labels_reversed = analy->mat_nums_reversed;
+				}
             }
             //END
             else if ( strcmp( tokens[i], "title" ) == 0 )
@@ -9844,11 +9833,11 @@ mat_range(Analysis *analy, char *token1, char *token2, int nums[analy->max_mesh_
 
 	//search list for names
 	for(pos = 0; pos < analy->max_mesh_mat_qty; pos++){
-		if(strcmp(analy->sorted_names[pos],token1) == 0){
+		if(strcmp(analy->sorted_labels[pos],token1) == 0){
 			found1 = True;
 			pos1 = pos;
 		}
-		if(strcmp(analy->sorted_names[pos],token2) == 0){
+		if(strcmp(analy->sorted_labels[pos],token2) == 0){
 			found2 = True;
 			pos2 = pos;
 		}
@@ -9870,7 +9859,7 @@ mat_range(Analysis *analy, char *token1, char *token2, int nums[analy->max_mesh_
 		}
 		pos = 0;
 		for(loc = begin; loc <= end; loc++){
-			htable_search(analy->mat_names,analy->sorted_names[loc],FIND_ENTRY,&tempEnt);
+			htable_search(analy->mat_labels,analy->sorted_labels[loc],FIND_ENTRY,&tempEnt);
 			nums[pos] = atoi((char*)tempEnt->data);
 			pos++;
 		}
@@ -9977,9 +9966,9 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 									int numnums = 0;
 									Bool_type token1str = False;
 									Bool_type token2str = False;
-									htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
+									htable_search(analy->mat_labels,firstName,FIND_ENTRY,&tempEnt);
 									token1str = (tempEnt != NULL);
-									htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
+									htable_search(analy->mat_labels,secondName,FIND_ENTRY,&tempEnt);
 									token2str = (tempEnt != NULL);
 									if(token1str && token2str){
 										mat_range(analy,firstName,secondName,nums,&numnums);
@@ -10014,9 +10003,9 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 									int numnums = 0;
 									Bool_type token1str = False;
 									Bool_type token2str = False;
-									htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
+									htable_search(analy->mat_labels,firstName,FIND_ENTRY,&tempEnt);
 									token1str = (tempEnt != NULL);
-									htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
+									htable_search(analy->mat_labels,secondName,FIND_ENTRY,&tempEnt);
 									token2str = (tempEnt != NULL);
 									if(token1str && token2str){
 										mat_range(analy,firstName,secondName,nums,&numnums);
@@ -10051,9 +10040,9 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 								int numnums = 0;
 								Bool_type token1str = False;
 								Bool_type token2str = False;
-								htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
+								htable_search(analy->mat_labels,firstName,FIND_ENTRY,&tempEnt);
 								token1str = (tempEnt != NULL);
-								htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
+								htable_search(analy->mat_labels,secondName,FIND_ENTRY,&tempEnt);
 								token2str = (tempEnt != NULL);
 								if(token1str && token2str){
 									mat_range(analy,firstName,secondName,nums,&numnums);
@@ -10090,9 +10079,9 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 									int numnums = 0;
 									Bool_type token1str = False;
 									Bool_type token2str = False;
-									htable_search(analy->mat_names,secondName,FIND_ENTRY,&tempEnt);
+									htable_search(analy->mat_labels,secondName,FIND_ENTRY,&tempEnt);
 									token2str = (tempEnt != NULL);
-									htable_search(analy->mat_names,firstName,FIND_ENTRY,&tempEnt);
+									htable_search(analy->mat_labels,firstName,FIND_ENTRY,&tempEnt);
 									token1str = (tempEnt != NULL);
 									if(token1str && token2str){
 										mat_range(analy,firstName,secondName,nums,&numnums);
@@ -10122,7 +10111,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 									//process only 1
 									int len = 1;
 									//search table
-									htable_search(analy->mat_names,tokens[tokenpos],FIND_ENTRY,&tempEnt);
+									htable_search(analy->mat_labels,tokens[tokenpos],FIND_ENTRY,&tempEnt);
 									//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
 									if(tempEnt != NULL){
 										strcpy(new_tokens[new_token_cnt], tempEnt->data);
@@ -10131,15 +10120,15 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 									else{
 										if(begins_with(tokens[tokenpos],"*") || ends_with(tokens[tokenpos],"*")){
 											int num_entries = 0;
-											num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], NULL );
+											num_entries = htable_key_search(analy->mat_labels, 0, tokens[tokenpos], NULL );
 											if (num_entries > 0){
 												char **wildcard_list=(char**) malloc( num_entries*sizeof(char *));
 												int new_num_entries;
-												new_num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], wildcard_list );
+												new_num_entries = htable_key_search(analy->mat_labels, 0, tokens[tokenpos], wildcard_list );
 												int pos = 0;
 												for (pos = 0; pos < num_entries; pos++){
 													//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-													htable_search(analy->mat_names,wildcard_list[pos],FIND_ENTRY,&tempEnt);
+													htable_search(analy->mat_labels,wildcard_list[pos],FIND_ENTRY,&tempEnt);
 													if(tempEnt != NULL){
 														strcpy(new_tokens[new_token_cnt], tempEnt->data);
 														new_token_cnt +=1;
@@ -10165,7 +10154,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 						//is the current token a number?
 						//if so copy into new tokens as is
 						//otherwise check hash table and replace with number to copy as is
-						htable_search(analy->mat_names,tokens[tokenpos],FIND_ENTRY,&tempEnt);
+						htable_search(analy->mat_labels,tokens[tokenpos],FIND_ENTRY,&tempEnt);
 						//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
 						if(tempEnt != NULL){
 							strcpy(new_tokens[new_token_cnt], tempEnt->data);
@@ -10174,15 +10163,15 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 						else{
 							if(begins_with(tokens[tokenpos],"*") || ends_with(tokens[tokenpos],"*")){
 								int num_entries = 0;
-								num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], NULL );
+								num_entries = htable_key_search(analy->mat_labels, 0, tokens[tokenpos], NULL );
 								if (num_entries > 0){
 									char **wildcard_list=(char**) malloc( num_entries*sizeof(char *));
 									int new_num_entries;
-									new_num_entries = htable_key_search(analy->mat_names, 0, tokens[tokenpos], wildcard_list );
+									new_num_entries = htable_key_search(analy->mat_labels, 0, tokens[tokenpos], wildcard_list );
 									int pos = 0;
 									for (pos = 0; pos < num_entries; pos++){
 										//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-										htable_search(analy->mat_names,wildcard_list[pos],FIND_ENTRY,&tempEnt);
+										htable_search(analy->mat_labels,wildcard_list[pos],FIND_ENTRY,&tempEnt);
 										if(tempEnt != NULL){
 											strcpy(new_tokens[new_token_cnt], tempEnt->data);
 											new_token_cnt +=1;
@@ -10229,7 +10218,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 		}
 		if(	(strcmp(tokens[0],"mat") == 0) ){
 
-			htable_search(analy->mat_names,tokens[1],FIND_ENTRY,&tempEnt);
+			htable_search(analy->mat_labels,tokens[1],FIND_ENTRY,&tempEnt);
 			//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
 			if(tempEnt != NULL){
 				strcpy(tokens[1], tempEnt->data);

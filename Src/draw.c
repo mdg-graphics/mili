@@ -12891,9 +12891,9 @@ draw_foreground( Analysis *analy )
       int mat_number;
         for ( i = 0; i < p_mesh->material_qty; i++ )
         {
-            name =  analy->sorted_names[i];
+            name =  analy->sorted_labels[i];
             
-            status = htable_search(analy->mat_names,name,FIND_ENTRY,&tempEnt);
+            status = htable_search(analy->mat_labels,name,FIND_ENTRY,&tempEnt);
             if(status != OK)
             {
                continue;

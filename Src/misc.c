@@ -1009,6 +1009,21 @@ delete_mo_class_data( void *p_data )
     free( p_mocd );
 }
 
+/*****************************************************************
+ * TAG( delete_mat_name )
+ *
+ * Function to delete a material name.  Designed as a
+ * hash table data deletion function for htable_delete().
+ *
+ */
+void
+delete_mat_name( void *mat_name )
+{
+    char *matn;
+    matn = (char *) mat_name;
+    free( matn );
+}
+
 
 /*****************************************************************
  * TAG( do_nothing_stub )

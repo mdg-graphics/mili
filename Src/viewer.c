@@ -2174,9 +2174,15 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		Hash_table *forNames;
 		Hash_table *revNames;
 		char** sortedNames = malloc(analy->max_mesh_mat_qty * sizeof(char*));
-		int* revSortedNames = malloc(analy->max_mesh_mat_qty * sizeof(int));
+		Hash_table *forNums;
+		Hash_table *revNums;
+		char** sortedNums = malloc(analy->max_mesh_mat_qty * sizeof(char*));
+		//int* revSortedNames = malloc(analy->max_mesh_mat_qty * sizeof(int));
 		forNames = htable_create( 1001 );
 		revNames = htable_create( 1001 );
+		forNums = htable_create( 1001 );
+		revNums = htable_create( 1001 );
+
 		Htable_entry *tempEnt;
 		int pos2;
 		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*)));
@@ -2192,12 +2198,17 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			int status = 0;
 			sprintf(teststr,"MAT_NAME_%d",pos2+1);
 			char *test;
+			char *test2;
 			test = malloc(label_length * sizeof(char));
+			test2 = malloc(label_length * sizeof(char));
 			status = mc_ti_read_string(analy->db_ident, teststr, (void*) test);
 			char *str;
+			char *str2;
 			str = malloc(10 * sizeof(char));
+			str2 = malloc(10 * sizeof(char));
 			sprintf(str,"%d",pos2+1);//if so then print name
-			
+			sprintf(str2,"%d",pos2+1);//if so then print name
+			sprintf(test2,"%s",str2);
 			if (status == OK){
 				int bpos = 0;
 				for(bpos = 0; bpos < analy->num_banned_names; bpos ++){
@@ -2218,7 +2229,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			else{
 				sprintf(test,"%s",str);
 			}
-         
+
          	htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
 			htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
 			sortedNames[pos2] = malloc(label_length * sizeof(char));
@@ -2228,6 +2239,10 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 				analy->maxLabelLength = curlen;
 			}
 			//ADD TO NAME ALPHA LIST
+			htable_add_entry_data(revNums,str2 ,ENTER_UNIQUE,(void *) test2);
+			htable_add_entry_data(forNums,test2 ,ENTER_UNIQUE,(void *) str2);
+			sortedNums[pos2] = malloc(label_length * sizeof(char));
+			sprintf(sortedNums[pos2],"%s",test2);
 		}
 
 		qsort(sortedNames, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
@@ -2235,12 +2250,21 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		analy->sorted_names = sortedNames;
 		analy->mat_names = forNames;
 		analy->mat_names_reversed = revNames;
-		// Make sure we get rid of dangling pointers
-      // DO NOT free this as it is now your analy->sorted_names pointer
-      // Simply setting it to NULL makes sure w do not have a dangling
-      // pointer.
-      sortedNames= NULL;
+		analy->sorted_labels = analy->sorted_names;
+		analy->mat_labels = analy->mat_names;
+		analy->mat_labels_reversed = analy->mat_names_reversed;
 
+		qsort(sortedNums, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
+
+		analy->sorted_nums = sortedNums;
+		analy->mat_nums = forNums;
+		analy->mat_nums_reversed = revNums;
+		// Make sure we get rid of dangling pointers
+		// DO NOT free this as it is now your analy->sorted_names pointer
+		// Simply setting it to NULL makes sure w do not have a dangling
+		// pointer.
+		sortedNames = NULL;
+		sortedNums = NULL;
     }
 	//END NEW
 
