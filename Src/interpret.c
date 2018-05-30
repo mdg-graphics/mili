@@ -1103,7 +1103,7 @@ parse_single_command( char *buf, Analysis *analy )
         analy->hilite_class = NULL;
         redraw = BINDING_MESH_VISUAL;
     }
-    else if (strcmp(tokens[0], "select_ipt") == 0 || strcmp( tokens[0], "deselect_ipt") == 0)
+    else if (strcmp(tokens[0], "set_ipt") == 0 || strcmp( tokens[0], "deset_ipt") == 0)
     {
         valid_command = select_integration_pts(tokens, token_cnt, analy);
     }
@@ -2799,7 +2799,7 @@ parse_single_command( char *buf, Analysis *analy )
                                     analy->ref_surf );
                 if(analy->int_labels != NULL && analy->int_labels->use_combined)
                 {
-                    parse_command("select_ipt middle", analy);
+                    parse_command("set_ipt middle", analy);
                 }
             }
             else if ( strcmp( tokens[i], "inner" ) == 0 )
@@ -2811,7 +2811,7 @@ parse_single_command( char *buf, Analysis *analy )
                                     analy->ref_surf );
                 if(analy->int_labels != NULL && analy->int_labels->use_combined)
                 {
-                    parse_command("select_ipt inner", analy);
+                    parse_command("set_ipt inner", analy);
                 }
             }
             else if ( strcmp( tokens[i], "outer" ) == 0 )
@@ -2823,7 +2823,7 @@ parse_single_command( char *buf, Analysis *analy )
                                     analy->ref_surf );
                 if(analy->int_labels != NULL && analy->int_labels->use_combined)
                 {
-                    parse_command("select_ipt outer", analy);
+                    parse_command("set_ipt outer", analy);
                 }
             }
 
@@ -9897,7 +9897,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 			(strcmp(tokens[0],"enable") == 0) 	|| (strcmp(tokens[0],"disable") == 0) 	||
 //			(strcmp(tokens[0],"hilite") == 0) 	|| (strcmp(tokens[0],"select") == 0)	){
 			(strcmp(tokens[0],"hilite") == 0) 	|| (strcmp(tokens[0],"select") == 0)	||
-			(strcmp(tokens[0],"select_ipt") == 0)	){
+			(strcmp(tokens[0],"set_ipt") == 0)	){
 			Bool_type dash_found = False;
 			Bool_type next_has_dash = False;
 			Bool_type hunting = True;
@@ -9907,7 +9907,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 			strcpy(new_tokens[0], tokens[0]);
 			new_token_cnt = 1;
 			tokenpos = 1;
-			if(strcmp(tokens[0],"select_ipt") == 0){
+			if(strcmp(tokens[0],"set_ipt") == 0){
 				strcpy(new_tokens[1], tokens[1]);
 				new_token_cnt = 2;
 				tokenpos = 2;
@@ -10831,14 +10831,14 @@ int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Anal
        strcpy(tokens[i], tok[i]);
     }
 
-    if(!strcmp(tokens[0], "select_ipt"))
+    if(!strcmp(tokens[0], "set_ipt"))
     {
         select = TRUE; 
     } else
     {
         select = FALSE;
     }
-    // Use case "select_ipt [inner]| [middle] | [outer]"
+    // Use case "set_ipt [inner]| [middle] | [outer]"
     if((!strcmp(tokens[1], "inner") || !strcmp(tokens[1], "middle") || !strcmp(tokens[1], "outer")) && token_cnt == 2)
     {
         pt = 0;
@@ -10891,7 +10891,7 @@ int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Anal
         pt = atoi(tokens[1]);
         if(pt == 0)
         {
-            popup_dialog(WARNING_POPUP, "Invalid command syntax for select_ipt.\n");
+            popup_dialog(WARNING_POPUP, "Invalid command syntax for set_ipt.\n");
             return FALSE;
         }
     }
