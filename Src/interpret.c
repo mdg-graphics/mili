@@ -1105,9 +1105,9 @@ parse_single_command( char *buf, Analysis *analy )
     }
     else if (strcmp(tokens[0], "select_ipt") == 0 || strcmp( tokens[0], "deselect_ipt") == 0)
     {
-        valid_command = select_integration_pts(tokens, token_cnt, analy); 
+        valid_command = select_integration_pts(tokens, token_cnt, analy);
     }
-    else if(strcmp(tokens[0], "show_avail_int_pts") == 0)
+    else if(strcmp(tokens[0], "show_avail_int_pts") == 0 || strcmp(tokens[0], "show_ipts") == 0)
     {
         show_ipt_avail(analy);
         valid_command = TRUE;
@@ -10787,8 +10787,7 @@ int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Anal
     }
 
     strcpy(warning_templates[0], "\nINFO: Label array invalid for element set");        
-    strcpy(warning_templates[1], "INFO: The integration point desired is lower than the lowest point available \n\
-for element set");        
+    strcpy(warning_templates[1], "INFO: The integration point desired is lower than the lowest point available \n\ for element set");
     strcpy(warning_templates[2], "INFO: The integration point is between two values written for element set");        
     strcpy(warning_templates[3], "INFO: The integration point specified is between \ntwo values written for element set");        
     strcpy(warning_templates[4], "INFO: The integration point specified is higher \nthan the value written for element set");        
@@ -10886,7 +10885,8 @@ for element set");
                 
             }
        }
-    } else if(strcmp(tokens[1], "inner") && strcmp(tokens[1], "middle") && strcmp(tokens[1], "outer"))
+    }
+    else if(strcmp(tokens[1], "inner") && strcmp(tokens[1], "middle") && strcmp(tokens[1], "outer"))
     {
         pt = atoi(tokens[1]);
         if(pt == 0)
@@ -11243,6 +11243,11 @@ void show_ipt_avail(Analysis * analy)
 	char intpts[40];
 	char intpt[4];
 	int snum;
+	char *line = "--------------------------------------------------------------------";
+    //wrt_text("\n%-62s\n", line);
+	wrt_text(" %-34s| %-10s | %-30s\n", "Material", "Int. Point", "Int. Point");
+	wrt_text(" %-34s| %-10s | %-30s\n", "", "Selected", "Available");
+    wrt_text("%-62s\n", line);
     for(i = 1; i < labels->mapsize; i++)
     {
 		// INSERT NEW CODE
@@ -11256,12 +11261,15 @@ void show_ipt_avail(Analysis * analy)
 	    if(labels->valid[labels->map[snum]] == 1)
         {
 	    	sprintf(intpts,"");
+	        index =  labels->map[snum];
+	    	int k = labels->int_pts_selected[index];
             for(j = 0; j < labels->labelSizes[labels->map[snum]] - 1; j++)
             {
             	sprintf(intpt,"%d ",labels->labels[labels->map[snum]][j]);
                 strcat(intpts, intpt);
             }
-            wrt_text("material %-.*s:     Int. Points: %.*s\n",  34, label, 40, intpts);
+            wrt_text(" %-34s|    %-6d  | %-30s\n", label, k, intpts);
+            //wrt_text("%-62s\n", line);
         } 
     } 
     return;
@@ -11285,7 +11293,7 @@ void intpts_selected(Analysis * analy, int* materials_changed)
     }
     labels = analy->int_labels;
     wrt_text("\n\nIntegration Points selected:\n");
-    wrt_text("Material/Element Set               Integration Point\n");
+    wrt_text("%.*s %s \n", 34,"Material/Element Set","Integration Point");
 
 	Htable_entry *tempEnt;
 	char label[34];
@@ -11305,7 +11313,7 @@ void intpts_selected(Analysis * analy, int* materials_changed)
             if((materials_changed != NULL && materials_changed[snum]) || materials_changed == NULL )
             {
 				// INSERT NEW CODE
-				wrt_text("  %.*s        %d\n", 33, label, k);
+				wrt_text("  %.*s        %d\n", 34, label, k);
             }
         
         }
