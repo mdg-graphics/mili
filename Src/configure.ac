@@ -385,7 +385,7 @@ case "$TARGET_DNS_DOMAIN" in
       ) 
       
       
-      GRIZ_EXE="griz4s.""$build_os""$EXE_SUFFIX"
+      GRIZ_EXE="griz.""$build_os""$EXE_SUFFIX"
 		
       case $CC in
          *icc)

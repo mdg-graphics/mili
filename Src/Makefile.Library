@@ -111,7 +111,7 @@ endif
 
 
 
-# Set name of griz binary appropriately. The name "griz4s" is used
+# Set name of griz binary appropriately. The name "griz" is used
 # for the Griz shell script make target, below.
 GRIZ_EXE_DEBUG = @GRIZ_EXE@_debug
 GRIZ_EXE_OPT   = @GRIZ_EXE@_opt
@@ -217,7 +217,7 @@ batch_debug:	  MILILIBPATH = @MILI_LIBRARY_PATHS@
 batch_debug:      CPPFLAGS = "@BATCH_DEFINES@ $(CPPFLAGS)"
 batch_debug: 	  DEFINES       = @CC_DEFINES_GRIZ@ @BATCH_DEFINES@
 batch_debug: 	  CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ $(INCLUDE_PATHS) -I$(OSMESA_HOME)/../include -I$(top_builddir)
-batch_debug:	  mk_dirs buildinfo.h build griz4s $(EXO_TARGET)
+batch_debug:	  mk_dirs buildinfo.h build griz $(EXO_TARGET)
 
 # Build Optimized Griz
 batch_opt:	LIBS = $(BASELIBS) $(OSMESA_LIBS) @X11_LIBRARY_PATHS@ @NO_MESA_X11_LIBS@
@@ -233,7 +233,7 @@ batch_opt:  MILILIBPATH = @MILI_LIBRARY_PATHS@
 batch_opt:	CPPFLAGS = "@BATCH_DEFINES@ $(CPPFLAGS)"
 batch_opt: 	DEFINES += @CC_DEFINES_GRIZ@ @BATCH_DEFINES@
 batch_opt: 	CPPFLAGS  = @CC_DEFINES_GRIZ@  @BATCH_DEFINES@ $(INCLUDE_PATHS) -I$(OSMESA_HOME)/../include -I$(top_builddir)
-batch_opt:	mk_dirs buildinfo.h build griz4s $(EXO_TARGET)
+batch_opt:	mk_dirs buildinfo.h build griz $(EXO_TARGET)
 else
 batch_opt: error_batch
 endif
@@ -250,7 +250,7 @@ opt:      GRIZ_BATCH_EXE = $(GRIZ_EXE_OPT)
 opt: 	    DEFINES += @CC_DEFINES_GRIZ@ 
 opt: 	    CPPFLAGS  = @CC_DEFINES_GRIZ@  $(INCLUDE_PATHS) -I$(top_builddir)
 opt:	    MILILIBPATH = @MILI_LIBRARY_PATHS@
-opt:	    cleanopt mk_dirs  buildinfo.h build griz4s $(EXO_TARGET)
+opt:	    cleanopt mk_dirs  buildinfo.h build griz $(EXO_TARGET)
 
 # Build Debug Griz
 debug:  LIBS = $(BASELIBS) @X11_LIBRARY_PATHS@ @X11_LIBS@
@@ -265,7 +265,7 @@ debug: 	DEFINES += @CC_DEFINES_GRIZ@
 debug: 	CPPFLAGS  = @CC_DEFINES_GRIZ@  $(INCLUDE_PATHS) -I$(top_builddir)
 debug:	GRIZ_BATCH_EXE = $(GRIZ_EXE_DEBUG)_batch
 debug:	MILILIBPATH = @MILI_LIBRARY_PATHS@
-debug:	mk_dirs alpha beta buildinfo.h build griz4s $(EXO_TARGET)
+debug:	mk_dirs alpha beta buildinfo.h build griz $(EXO_TARGET)
 
 alpha: 
 	ln -sf $(EXEC_PATH) $(ROOT_DIR)/alpha
@@ -283,12 +283,12 @@ build:  mililibcheck.txt update_objects $(OBJS)
 		@ -mv $(ROOT_DIR)/src/*.o $(OBJS_PATH)
 		mv $(GRIZ_EXE) $(EXEC_PATH)/$(GRIZ_EXE)
 		-cp ../Doc/griz_start_text $(EXEC_PATH)/. ;
-		if test -e ../Doc/Griz4-Manual-$(GRIZ_VERSION)/GrizUsersGuide-$(GRIZ_VERSION).pdf; then \
-			cp ../Doc/Griz4-Manual-$(GRIZ_VERSION)/GrizUsersGuide-$(GRIZ_VERSION).pdf $(EXEC_PATH)/.; \
+		if test -e ../Doc/Griz-Manual-$(GRIZ_VERSION)/GrizUsersGuide-$(GRIZ_VERSION).pdf; then \
+			cp ../Doc/Griz-Manual-$(GRIZ_VERSION)/GrizUsersGuide-$(GRIZ_VERSION).pdf $(EXEC_PATH)/.; \
 			ln -sf GrizUsersGuide-$(GRIZ_VERSION).pdf $(EXEC_PATH)/griz_manual.pdf; \
 		fi ;
-		if test -e ../Doc/Griz4-Manual-$(GRIZ_VERSION)/griz_relnotes.pdf; then \
-			cp ../Doc/Griz4-Manual-$(GRIZ_VERSION)/griz_relnotes.pdf $(EXEC_PATH)/.; \
+		if test -e ../Doc/Griz-Manual-$(GRIZ_VERSION)/griz_relnotes.pdf; then \
+			cp ../Doc/Griz-Manual-$(GRIZ_VERSION)/griz_relnotes.pdf $(EXEC_PATH)/.; \
 		fi 
 
 # Move objects for appropriate code (opt or debug) back into src
@@ -297,13 +297,13 @@ update_objects:
 		-mv $(OBJS_PATH)/*.o $(ROOT_DIR)/src
 
 #
-# The griz shell script will always rebuild when the "griz4s" make
+# The griz shell script will always rebuild when the "griz" make
 # target is evaluated.  It's cheap, and any changes to GRIZBINLOC,
 # HFONTLOC, or GRIZ_SERIAL will then always be reflected in the script. 
-# To eliminate this behavior, delete "force_rebuild" from the "griz4s"
+# To eliminate this behavior, delete "force_rebuild" from the "griz"
 # dependencies.
 #
-griz4s:	mililibcheck.txt griz.in
+griz:	mililibcheck.txt griz.in
 	sed '/_grizhome_/ s/_grizhome_/'`echo $(EXEC_PATH) | sed 's/\\//\\\\\//g'`'/' \
 		griz.in \
 	| sed '/_hfontlib_/ s/_hfontlib_/'`echo $(HFONTLOC) | sed 's/\\//\\\\\//g'`'/' \
@@ -361,24 +361,24 @@ install-build:
 	
 install: install-opt
 
-install-opt: install-griz4s
+install-opt: install-griz
 
 #
-# The griz shell script will always rebuild when the "griz4s" make
+# The griz shell script will always rebuild when the "griz" make
 # target is evaluated.  It's cheap, and any changes to GRIZBINLOC,
 # HFONTLOC, or GRIZ_SERIAL will then always be reflected in the script. 
-# To eliminate this behavior, delete "force_rebuild" from the "griz4s"
+# To eliminate this behavior, delete "force_rebuild" from the "griz"
 # dependencies.
 #
-install-griz4s: install-setversion griz.in	
+install-griz: install-setversion griz.in	
 	sed '/_grizhome_/ s/_grizhome_/'`echo $(INSTALL_HOME)/$(GRIZ_VERSION)/bin | sed 's/\\//\\\\\//g'`'/' \
 		griz.in \
 	| sed '/_hfontlib_/ s/_hfontlib_/'`echo $(INSTALL_HOME)/$(GRIZ_VERSION)/Font | sed 's/\\//\\\\\//g'`'/' \
 	| sed '/_grizbin_/ s/_grizbin_/$(GRIZ_EXE_OPT)/' \
 	| sed '/_grizbinbatch_/ s/_grizbinbatch_/$(GRIZ_EXE_OPT)_batch/' \
 	| sed '/_ldlibpath_/ s/_ldlibpath_/'`echo $(LDLIBPATH) | sed 's/\\//\\\\\//g'`'/' \
-	> $(INSTALL_HOME)/$(GRIZ_VERSION)/bin/griz4s;
-	chmod 755 $(INSTALL_HOME)/$(GRIZ_VERSION)/bin/griz4s;
+	> $(INSTALL_HOME)/$(GRIZ_VERSION)/bin/griz;
+	chmod 755 $(INSTALL_HOME)/$(GRIZ_VERSION)/bin/griz;
 	mv $(ROOT_DIR)/bin_opt/$(GRIZ_EXE_OPT) $(INSTALL_HOME)/$(GRIZ_VERSION)/bin/$(GRIZ_EXE_OPT);
 ifeq (@BATCH_ENABLE@,True)
 	mv $(ROOT_DIR)/bin_batch_opt/$(GRIZ_EXE_OPT)_batch $(INSTALL_HOME)/$(GRIZ_VERSION)/bin/$(GRIZ_EXE_OPT)_batch;
