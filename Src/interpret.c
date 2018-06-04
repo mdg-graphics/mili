@@ -1142,10 +1142,14 @@ parse_single_command( char *buf, Analysis *analy )
 
             qty = 0;
             for ( i = 2; i < token_cnt; i++ ){
+            	if(strcmp( tokens[i], "" ) == 0){
+					continue;
+				}
                 /* IRC: Added March 29, 2005 */
                 /* Check for a range in the object list */
                 if ( is_numeric_range_token( tokens[i] ) )
                 {
+
                     parse_mtl_range(tokens[i], p_mo_class->qty, &obj_min, &obj_max ) ;
                     obj = obj_min ;
                     for (obj =  obj_min ;
@@ -7886,7 +7890,6 @@ parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int cnt,
                             is_numeric_range_token( tokens[i] )) )
         {
             /* IRC - June 04, 2004: Added material range parsing */
-
             if ( is_numeric_range_token( tokens[i] ) )
             {
                 parse_mtl_range(tokens[i], MAX_MATERIALS, &mat_min, &mat_max);
@@ -8181,7 +8184,7 @@ parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int cnt,
  *
  * This function will parse a a material range tolken and return
  * the min material and max material. This function will also
- * parse a single vaue token.
+ * parse a single value token.
  */
 
 void
@@ -10304,7 +10307,10 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
                     i < token_cnt - idx;
                     i++ )
             {
-                parse_mtl_range(tokens[i+idx], mat_qty, &mat_min, &mat_max ) ;
+            	if(strcmp( tokens[i], "" ) == 0){
+            		continue;
+            	}
+            	parse_mtl_range(tokens[i+idx], mat_qty, &mat_min, &mat_max ) ;
 		
 		/*if(mat_min < 0 || mat_min > mat_qty || mat_max < 0 || mat_max > mat_qty || mat_min > mat_max)
                 {
@@ -10374,6 +10380,9 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
                         i < token_cnt - idx;
                         i++ )
                 {
+                	if(strcmp( tokens[i], "" ) == 0){
+						continue;
+					}
                     parse_mtl_range(tokens[i+idx], mat_qty, &mat_min, &mat_max) ;
 		    
 		    /*if(mat_min < 0 || mat_min > mat_qty || mat_max < 0 || mat_max > mat_qty || mat_min > mat_max)
@@ -10936,121 +10945,127 @@ int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Anal
            usetoken = 1;
            pt = 0;
         }
+
         chosen_materials = calloc(labels->mapsize,sizeof(int));
         for(i = 2; i < token_cnt; i++)
         {
            
-           parse_mtl_range(tokens[i], mat_qty, &mat_min, &mat_max);
-           if(mat_min < mat_max)
-           {
-              for(j = mat_min ; j <= mat_max; j++)
-              {
-                   found = FALSE;
-                   if(labels->map[j] <=0)
-                   {
-                     continue;
-                   }
-                   
-                   chosen_materials[j]=1;
-                   index = labels->map[j];
-                   size = labels->labelSizes[index] - 1;
-                   if(!strcmp(tokens[1], "inner"))
-                   {
-                       pt = 1;
-                   } else if(!strcmp(tokens[1], "middle"))
-                   {
-                       pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
-                   } else if(!strcmp(tokens[index], "outer"))
-                   {
-                       pt = labels->labels[index][size];
-                   }
-                       
- 
-                   return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
-                   if(return_status != 0)
-                   {
-                       p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
-                       if(p == NULL)
-                       {
-                           popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
-                           parse_command("quit", analy);
-                       }
- 
-                       p->next = NULL;
-                       p->prev = NULL;
-                       strcpy(p->messages, "");
-                       q = message;
-                       while(q->next != NULL)
-                       {
-                           q = q->next;
-                       }
-               
-                       q->next = p;
-                       p->prev = q;
-                       p->next = NULL;
-                           /*sprintf(p->messages, warning_templates[message_map[return_status]]); */
-                       sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
-                           
-                   }
-              }
-           } else
-           {
-               found = FALSE;
-               j = mat_min - 1; /* convert to zero based material numbers */
-               if(labels->map[mat_min] >0)
-               {
-                  found = TRUE;  
-                  index = labels->map[mat_min]    ;          
-               }
-               chosen_materials[mat_min]=1;
-               if(found)
-               {
-                   size = labels->labelSizes[index] - 1;
-                   if(!strcmp(tokens[1], "inner"))
-                   {
-                       pt = 1;
-                   } else if(!strcmp(tokens[1], "middle"))
-                   {
-                       pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
-                   } else if(!strcmp(tokens[1], "outer"))
-                   {
-                       pt = labels->labels[index][size];
-                   } else
-                   {
-                       pt = atoi(tokens[1]);
-                   }
-                   return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
-                   if(return_status != 0)
-                   {
-                       p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
-                       if(p == NULL)
-                       {
-                           popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
-                           parse_command("quit", analy);
-                       }
- 
-                       p->next = NULL;
-                       p->prev = NULL;
-                       strcpy(p->messages, "");
-                       q = message;
-                       while(q->next != NULL)
-                       {
-                           q = q->next;
-                       }
-               
-                       q->next = p;
-                       p->prev = q;
-                       p->next = NULL;
-                       /*sprintf(p->messages, warning_templates[message_map[return_status]]); */
-                       sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
-                       
-                  }
-               }
-           }
-        }
-      
 
-   }
+        	if(strcmp( tokens[i], "" ) == 0){
+        		wrt_text("\n Argument %d was invalid \n",i);
+        		continue;
+        	}
+
+        	parse_mtl_range(tokens[i], mat_qty, &mat_min, &mat_max);
+			if(mat_min < mat_max)
+			{
+				for(j = mat_min ; j <= mat_max; j++)
+				{
+					found = FALSE;
+					if(labels->map[j] <=0)
+					{
+					 continue;
+					}
+
+					chosen_materials[j]=1;
+					index = labels->map[j];
+					size = labels->labelSizes[index] - 1;
+					if(!strcmp(tokens[1], "inner"))
+					{
+					   pt = 1;
+					} else if(!strcmp(tokens[1], "middle"))
+					{
+					   pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
+					} else if(!strcmp(tokens[index], "outer"))
+					{
+					   pt = labels->labels[index][size];
+					}
+
+
+					return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
+					if(return_status != 0)
+					{
+					   p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+					   if(p == NULL)
+					   {
+						   popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
+						   parse_command("quit", analy);
+					   }
+
+					   p->next = NULL;
+					   p->prev = NULL;
+					   strcpy(p->messages, "");
+					   q = message;
+					   while(q->next != NULL)
+					   {
+						   q = q->next;
+					   }
+
+					   q->next = p;
+					   p->prev = q;
+					   p->next = NULL;
+						   /*sprintf(p->messages, warning_templates[message_map[return_status]]); */
+					   sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
+
+					}
+				}
+			}
+			else
+			{
+			   found = FALSE;
+			   j = mat_min - 1; /* convert to zero based material numbers */
+			   if(labels->map[mat_min] >0)
+			   {
+				   found = TRUE;
+				   index = labels->map[mat_min]    ;
+			   }
+			   chosen_materials[mat_min]=1;
+			   if(found)
+			   {
+				   size = labels->labelSizes[index] - 1;
+				   if(!strcmp(tokens[1], "inner"))
+				   {
+					   pt = 1;
+				   } else if(!strcmp(tokens[1], "middle"))
+				   {
+					   pt = (labels->labels[index][size])/2 + (labels->labels[index][size] % 2);
+				   } else if(!strcmp(tokens[1], "outer"))
+				   {
+					   pt = labels->labels[index][size];
+				   } else
+				   {
+					   pt = atoi(tokens[1]);
+				   }
+				   return_status = set_inpt(index, pt, tokens[1], select, usetoken, analy);
+				   if(return_status != 0)
+				   {
+					   p = (intPtMessages *) malloc(1*sizeof(intPtMessages));
+					   if(p == NULL)
+					   {
+						   popup_dialog(WARNING_POPUP, "Out of memory in function select_integration_pts. exiting\n");
+						   parse_command("quit", analy);
+					   }
+
+					   p->next = NULL;
+					   p->prev = NULL;
+					   strcpy(p->messages, "");
+					   q = message;
+					   while(q->next != NULL)
+					   {
+						   q = q->next;
+					   }
+
+					   q->next = p;
+					   p->prev = q;
+					   p->next = NULL;
+					   /*sprintf(p->messages, warning_templates[message_map[return_status]]); */
+					   sprintf(p->messages, "  %d                    %d                       %d      \n", labels->mats[index], pt, labels->int_pts_selected[index]);
+
+				  }
+			   }
+			}
+        }
+    }
      
 
     
