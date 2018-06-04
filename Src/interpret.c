@@ -10791,7 +10791,7 @@ int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Anal
     }
 
     strcpy(warning_templates[0], "\nINFO: Label array invalid for element set");        
-    strcpy(warning_templates[1], "INFO: The integration point desired is lower than the lowest point available \n\ for element set");
+    strcpy(warning_templates[1], "INFO: The integration point desired is lower than the lowest point available \n for element set");
     strcpy(warning_templates[2], "INFO: The integration point is between two values written for element set");        
     strcpy(warning_templates[3], "INFO: The integration point specified is between \ntwo values written for element set");        
     strcpy(warning_templates[4], "INFO: The integration point specified is higher \nthan the value written for element set");        
@@ -10848,7 +10848,7 @@ int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Anal
         pt = 0;
         usetoken = 1;
         
-        for(index = 0; index < labels->numLabels; index)
+        for(index = 0; index < labels->numLabels; index++)
         {
             size = labels->labelSizes[index] - 1;
             if(!strcmp(tokens[1], "inner"))
