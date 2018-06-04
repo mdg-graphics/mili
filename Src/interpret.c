@@ -1103,18 +1103,13 @@ parse_single_command( char *buf, Analysis *analy )
         analy->hilite_class = NULL;
         redraw = BINDING_MESH_VISUAL;
     }
-    else if (strcmp(tokens[0], "set_ipt") == 0 || strcmp( tokens[0], "deset_ipt") == 0)
+    else if (strcmp(tokens[0], "set_ipt") == 0 )
     {
         valid_command = select_integration_pts(tokens, token_cnt, analy);
     }
-    else if(strcmp(tokens[0], "show_avail_int_pts") == 0 || strcmp(tokens[0], "show_ipts") == 0)
+    else if(strcmp(tokens[0], "show_ipts") == 0)
     {
         show_ipt_avail(analy);
-        valid_command = TRUE;
-    }
-    else if(strcmp(tokens[0], "show_sel_int_pts") == 0)
-    {
-        intpts_selected(analy,NULL);
         valid_command = TRUE;
     }
     else if ( strcmp( tokens[0], "select" ) == 0 || strcmp( tokens[0], "unselect" ) == 0
