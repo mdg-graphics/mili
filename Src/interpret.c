@@ -1103,7 +1103,7 @@ parse_single_command( char *buf, Analysis *analy )
         analy->hilite_class = NULL;
         redraw = BINDING_MESH_VISUAL;
     }
-    else if (strcmp(tokens[0], "set_ipt") == 0 )
+    else if (strcmp(tokens[0], "set_ipt") == 0 || strcmp(tokens[0], "unset_ipt") == 0 )
     {
         valid_command = select_integration_pts(tokens, token_cnt, analy);
     }
