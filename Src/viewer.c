@@ -2369,10 +2369,12 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         {
             time(&curtime);
             timeinfo = localtime(&curtime);
+            
             sprintf(timestr, "%s", asctime(timeinfo));
             strcpy(timestamp, &timestr[4]);
+            int length =strlen(timestamp);
 
-            datetime = (char *) malloc(strlen(timestamp));
+            datetime = (char *) malloc(strlen(timestamp)+1);
             if(datetime == NULL)
             {
                 printf("Out of Memory, exiting\n");
