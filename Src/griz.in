@@ -79,7 +79,6 @@
 #
 GRIZHOME=_grizhome_
 HFONTLIB=_hfontlib_
-export LD_LIBRARY_PATH=_ldlibpath_
 
 GRIZLOGDIR=/usr/gapps/mdg
 GRIZLOGFILE=griz_usagelog
@@ -174,6 +173,34 @@ for argument in $*; do
 	version_requested="yes"
     fi
 done
+
+# We will try to set some things to get rid of error messages 
+# that pop up to GL library differences on the different platforms.
+
+system=${SYS_TYPE}
+
+case $system in 
+   toss_3*)
+      #This is only needed on the toss_3 system
+      if [ -f /usr/share/[mM]odules/init/bash ]; then
+         .  /usr/share/[mM]odules/init/bash
+      elif [ -f /usr/share/lmod/lmod/init/bash ]; then
+         . /usr/share/lmod/lmod/init/bash
+         export MODULEPATH="/usr/tce/modulefiles/Compiler:/usr/tce/modulefiles/Core:$MODULEPATH"
+      fi
+      # This gets rid of the Gl error message on startup
+      module load nvidia ;;
+   chaos_5*)
+      if test batch = "yes"
+      then
+      #This allows griz to run in batch mode without errors on chaos_5 systems
+      export LD_PRELOAD=/usr/lib64/libGL.so 
+      else
+      #This removes the "Xlib:  extension "NV-GLX" missing on display" error
+      #on chaos_5 systems
+      export LIBGL_ALWAYS_INDIRECT=y
+      fi ;;
+esac
 
 if test $production = "yes"
 then
