@@ -463,9 +463,6 @@ static Bool_type surf_func_active( void );
 static void action_create_app_widg( Widget w, XEvent *event, String params[],
                                     int *qty );
 static void resize_mtl_scrollwin( Widget , XtPointer, XtPointer );
-/*static void resize_mtl_scrollwin( Widget w, XEvent *event, String params[],
-                                  int qty );
-*/
 static void resize_surf_scrollwin( Widget w, XEvent *event, String params[],
                                    int qty );
 static void gress_mtl_mgr_EH( Widget w, XtPointer client_data, XEvent *event,
@@ -4497,11 +4494,7 @@ create_mtl_manager( Widget main_widg )
 
     XtVaGetValues( scroll_win, XmNverticalScrollBar, &vert_scroll, NULL );
     XtVaGetValues( vert_scroll, XmNwidth, &scrollbar_width, NULL );
-    //rec.string = "resize_mtl_scrollwin";
-    //rec.proc = (XtActionProc) resize_mtl_scrollwin;
-    //XtAppAddActions( app_context, &rec, 1 );
-    //XtOverrideTranslations( scroll_win,
-    //                        XtParseTranslationTable( "<Configure>: resize_mtl_scrollwin()" ) );
+    
     XtAddCallback (scroll_win, XmNactivateCallback, resize_mtl_scrollwin,NULL); 
                     
     mtl_row_col = XtVaCreateManagedWidget(
@@ -10832,7 +10825,6 @@ action_create_app_widg( Widget w, XEvent *event, String params[], int *qty )
  * Resize action routine for the material manager ScrolledWindow.
  */
 static void
-//resize_mtl_scrollwin( Widget w, XEvent *event, String params[], int qty )
 resize_mtl_scrollwin( Widget w, XtPointer client_data, XtPointer reason )
 {
     
@@ -10841,12 +10833,9 @@ resize_mtl_scrollwin( Widget w, XtPointer client_data, XtPointer reason )
     
     WidgetList children;
     Widget row_col, scroll;
-    //XConfigureEvent *cevent;
     int width;
     short max_cols, rows;
 
-    //cevent = (XConfigureEvent *) event;
-    //width = cevent->width;
     XtVaGetValues( w, XmNwidth, &width, NULL);
     XtVaGetValues( w,
                    XmNworkWindow, &row_col,
