@@ -13184,7 +13184,7 @@ draw_foreground( Analysis *analy )
 				Htable_entry *tempEnt;
 				char tempname[32];
 				sprintf(tempname,"%d",class_label);
-				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+				htable_search(analy->mat_labels_reversed,tempname,FIND_ENTRY,&tempEnt);
 				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, high, (char*)tempEnt->data );
 			}
 			else{
@@ -13200,7 +13200,7 @@ draw_foreground( Analysis *analy )
 				Htable_entry *tempEnt;
 				char tempname[32];
 				sprintf(tempname,"%d",class_label);
-				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+				htable_search(analy->mat_labels_reversed,tempname,FIND_ENTRY,&tempEnt);
 				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, low, (char*)tempEnt->data );
 			}
 			else{

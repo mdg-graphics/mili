@@ -10503,7 +10503,7 @@ load_selected_mtls( char *p_buf, int *p_tok_cnt )
 
     for ( p_mtl = mtl_select_list; p_mtl != NULL; p_mtl = p_mtl->next )
     {
-        sprintf( p_dest, "%s ", env.curr_analy->sorted_labels[p_mtl->mtl] );
+        sprintf( p_dest, "%s ", env.curr_analy->sorted_labels[(p_mtl->mtl - 1)] );
         p_dest += strlen( p_dest );
         t_cnt++;
     }
