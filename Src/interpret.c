@@ -4221,23 +4221,8 @@ parse_single_command( char *buf, Analysis *analy )
 		else if ( strcmp( tokens[0], "mtl" ) == 0 ||
 				  strcmp( tokens[0], "matl") == 0 )
 		{
-			if((token_cnt > 1) && (!strcmp(tokens[1], "invis") || !strcmp(tokens[1], "vis") ||
-								   !strcmp(tokens[1], "disable") || !strcmp(tokens[1], "enable")))
+			if((token_cnt > 1) && (!strcmp(tokens[1], "invis") || !strcmp(tokens[1], "vis") || !strcmp(tokens[1], "disable") || !strcmp(tokens[1], "enable")))
 			{
-	//            strncpy(newcmd, tokens[1], LASTCMD - 2);
-	//            strcat(newcmd, " ");
-	//            for( i = 2; i < token_cnt; i++)
-	//            {
-	//                if((strlen(tokens[i] + 1) < LASTCMD - strlen(newcmd) - 2))
-	//                {
-	//                    strcat(newcmd, tokens[i]);
-	//                    if ( i < token_cnt - 1)
-	//                    {
-	//                        strcat(newcmd, " ");
-	//                    }
-	//                }
-	//            }
-	//            parse_single_command(&newcmd[0], analy);
 				parse_single_command(&buf[4],analy);
 			}
 			else
@@ -9840,7 +9825,12 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 				}
 				//other reserved words to not be substituted
 				else{
-					if((strcmp(tempToken,"all") == 0) || (strcmp(tempToken,"allb") == 0)){
+					if(	(strcmp(tempToken,"all") == 0) || (strcmp(tempToken,"allb") == 0) ||
+						(strcmp(tempToken,"amb") == 0) || (strcmp(tempToken,"diff") == 0) ||
+						(strcmp(tempToken,"spec") == 0) || (strcmp(tempToken,"gslevel") == 0) ||
+						(strcmp(tempToken,"emis") == 0) || (strcmp(tempToken,"shine") == 0) ||
+						(strcmp(tempToken,"preview") == 0) || (strcmp(tempToken,"cancel") == 0) ||
+						(strcmp(tempToken,"apply") == 0) || (strcmp(tempToken,"default") == 0)){
 						hunting = False;
 					}
 				}

@@ -2234,7 +2234,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
 			sortedNames[pos2] = malloc(label_length * sizeof(char));
 			sprintf(sortedNames[pos2],"%s",test);
-			int curlen = strlen(str);
+			int curlen = strlen(test);
 			if(curlen > analy->maxLabelLength){
 				analy->maxLabelLength = curlen;
 			}

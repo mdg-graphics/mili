@@ -3589,8 +3589,7 @@ create_mtl_manager( Widget main_widg )
            frame, col_comp;
     Arg args[10];
     char win_title[256];
-    int len = env.curr_analy->maxLabelLength+1;
-    char mtl_toggle_name[len];
+    char mtl_toggle_name[256];
     static int ambient = 0, 
                diffuse = 1, 
                specular = 2, 
@@ -8025,14 +8024,14 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
             else
             {
                 XtVaSetValues( children[i], XmNset, True, NULL );
-                if ( p_mtl != NULL )
-                {
-                    p_mtl->mtl = i;
-                    p_mtl = p_mtl->next;
-                }
-                else
-                    popup_dialog( WARNING_POPUP,
-                                  "Material selection list does not match set state." );
+//                if ( p_mtl != NULL )
+//                {
+//                    p_mtl->mtl = i;
+//                    p_mtl = p_mtl->next;
+//                }
+//                else
+//                    popup_dialog( WARNING_POPUP,
+//                                  "Material selection list does not match set state." );
             }
         }
     }
@@ -10045,12 +10044,18 @@ update_swatch_label( void )
     XmString sw_label;
     char cbuf[18];
 
-    if ( mtl_select_list == NULL )
+    if ( mtl_select_list == NULL ){
         sprintf( cbuf, "No mat"  );
-    else if ( mtl_select_list->next == NULL )
+    }
+    else if ( mtl_select_list->next == NULL ){
+        //sprintf( cbuf, "Mat %s", mtl_select_list->mtl );
         sprintf( cbuf, "Mat %d", mtl_select_list->mtl );
-    else
+    }
+    else{
+        //sprintf( cbuf, "Mat %s...", mtl_select_list->mtl );
         sprintf( cbuf, "Mat %d...", mtl_select_list->mtl );
+    }
+
 
     sw_label = XmStringCreateLocalized( cbuf );
 
