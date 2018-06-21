@@ -3450,94 +3450,69 @@ set_material( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], int max_qty )
 
     for ( i = 2; i < token_cnt; i++ )
     {
-        if ( strcmp( tokens[i], "amb" ) == 0 )
-        {
+        if ( strcmp( tokens[i], "amb" ) == 0 ){
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.ambient[matl_num][0] );
             sscanf( tokens[i+2], "%f", &v_win->mesh_materials.ambient[matl_num][1] );
             sscanf( tokens[i+3], "%f", &v_win->mesh_materials.ambient[matl_num][2] );
             i += 3;
 
             /* Need to update GL if this material is currently in use. */
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,
-                              v_win->mesh_materials.ambient[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT, v_win->mesh_materials.ambient[matl_num] );
                 rval = TRUE;
             }
         }
-        else if ( strcmp( tokens[i], "diff" ) == 0 )
-        {
+        else if ( strcmp( tokens[i], "diff" ) == 0 ){
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.diffuse[matl_num][0] );
             sscanf( tokens[i+2], "%f", &v_win->mesh_materials.diffuse[matl_num][1] );
             sscanf( tokens[i+3], "%f", &v_win->mesh_materials.diffuse[matl_num][2] );
             i += 3;
 
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,
-                              v_win->mesh_materials.diffuse[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, v_win->mesh_materials.diffuse[matl_num] );
                 rval = TRUE;
             }
-
         }
-        else if ( strcmp( tokens[i], "spec" ) == 0 )
-        {
+        else if ( strcmp( tokens[i], "spec" ) == 0 ){
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.specular[matl_num][0] );
             sscanf( tokens[i+2], "%f", &v_win->mesh_materials.specular[matl_num][1] );
             sscanf( tokens[i+3], "%f", &v_win->mesh_materials.specular[matl_num][2] );
             i += 3;
 
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,
-                              v_win->mesh_materials.specular[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, v_win->mesh_materials.specular[matl_num] );
                 rval = TRUE;
             }
         }
-        else if ( strcmp( tokens[i], "emis" ) == 0 )
-        {
+        else if ( strcmp( tokens[i], "emis" ) == 0 ){
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.emission[matl_num][0] );
             sscanf( tokens[i+2], "%f", &v_win->mesh_materials.emission[matl_num][1] );
             sscanf( tokens[i+3], "%f", &v_win->mesh_materials.emission[matl_num][2] );
             i += 3;
 
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION,
-                              v_win->mesh_materials.emission[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, v_win->mesh_materials.emission[matl_num] );
                 rval = TRUE;
             }
         }
-        else if ( strcmp( tokens[i], "shine" ) == 0 )
-        {
+        else if ( strcmp( tokens[i], "shine" ) == 0 ){
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.shininess[matl_num] );
             i++;
 
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialf( GL_FRONT_AND_BACK, GL_SHININESS,
-                             v_win->mesh_materials.shininess[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialf( GL_FRONT_AND_BACK, GL_SHININESS, v_win->mesh_materials.shininess[matl_num] );
                 rval = TRUE;
             }
         }
-        else if ( strcmp( tokens[i], "alpha" ) == 0 )
-        {
+        else if ( strcmp( tokens[i], "alpha" ) == 0 ){
             /* The alpha value at a vertex is just the material's diffuse
              * alpha value -- the other alphas are ignored by OpenGL.
              */
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.diffuse[matl_num][3] );
             i++;
 
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,
-                              v_win->mesh_materials.diffuse[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, v_win->mesh_materials.diffuse[matl_num] );
                 rval = TRUE;
             }
         }
@@ -3546,6 +3521,66 @@ set_material( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], int max_qty )
     return rval ? BINDING_MESH_VISUAL : NO_VISUAL_CHANGE;
 }
 
+/************************************************************
+ * TAG( set_material )
+ *
+ * Define a material's rendering properties.
+ */
+void restore_colors(Bool_type lastColors, Analysis analy){
+
+	Bool_type continueRestore = FALSE;
+    float** ambient;
+    float** diffuse;
+    float** specular;
+    float** emission;
+    float shininess;
+
+	if(lastColors){
+		if(analy.lastColorActive){
+			ambient = analy.last_ambient;
+			diffuse = analy.last_diffuse;
+			specular = analy.last_specular;
+			emission = analy.last_emission;
+			shininess = analy.last_shininess;
+			continueRestore = TRUE;
+		}
+	}
+	else{
+		if(analy.cancelColorActive){
+			ambient = analy.cancel_ambient;
+			diffuse = analy.cancel_diffuse;
+			specular = analy.cancel_specular;
+			emission = analy.cancel_emission;
+			shininess = analy.cancel_shininess;
+			continueRestore = TRUE;
+		}
+	}
+	if(continueRestore){
+		int mtl = 0;
+		for(mtl = 1; mtl <= analy.max_mesh_mat_qty; mtl++){
+			char cmd_str[100];
+			//ambient
+			sprintf(cmd_str, "mat %s amb %f %f %f", mtl, ambient[mtl][0], ambient[mtl][1], ambient[mtl][2]);
+			parse_single_command(cmd_str, analy);
+			//diffuse
+			sprintf(cmd_str, "mat %s dif %f %f %f", mtl, diffuse[mtl][0], diffuse[mtl][1], diffuse[mtl][2]);
+			parse_single_command(cmd_str, analy);
+			//specular
+			sprintf(cmd_str, "mat %s spec %f %f %f", mtl, specular[mtl][0], specular[mtl][1], specular[mtl][2]);
+			parse_single_command(cmd_str, analy);
+			//emission
+			sprintf(cmd_str, "mat %s emis %f %f %f", mtl, emission[mtl][0], emission[mtl][1], emission[mtl][2]);
+			parse_single_command(cmd_str, analy);
+			//shininess
+			sprintf(cmd_str, "mat %s shine %f", mtl, shininess);
+			parse_single_command(cmd_str, analy);
+			//alpha
+			sprintf(cmd_str, "mat %s alpha %f", mtl, diffuse[mtl][3]);
+			parse_single_command(cmd_str, analy);
+		}
+	}
+
+}
 
 /*****************************************************************
  * TAG( set_color )

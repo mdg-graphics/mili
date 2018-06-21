@@ -333,7 +333,7 @@ static int parse_embedded_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH],
 static int parse_embedded_surf_cmd( Analysis *analy, char tokens[][TOKENLENGTH],
                                     int cnt, Bool_type *p_renorm );
 
-static void parse_single_command( char *buf, Analysis *analy );
+extern void parse_single_command( char *buf, Analysis *analy );
 static int include_all_elements( Analysis *analy);
 
 static void parse_vcent( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
@@ -775,7 +775,7 @@ parse_single_command( char *buf, Analysis *analy )
     Surface_data *p_surface;
     unsigned char *p_uc, *p_uc2;
     unsigned char *p_elem, *p_elem2;
-    int           elem_qty;
+    int elem_qty;
     int superclass;
     int qty_facets;
     int class_select_index=0;
@@ -3236,16 +3236,6 @@ parse_single_command( char *buf, Analysis *analy )
 				idx++;
 			}
 
-			else if(token_cnt > 2 && strcmp(tokens[0], "vis") == 0 && strcmp(tokens[1], "all") == 0)
-			{
-				return;
-			}
-			//DUPLICATE-BEGIN
-			else if(token_cnt > 2 && strcmp(tokens[0], "vis") == 0 && strcmp(tokens[1], "all") == 0)
-			{
-				return;
-			}
-			//DUPLICATE-END
 			if ( !strcmp( "BRICK", tmp_token ) && !class_selected )
 			{
 				string_to_upper( tokens[2], tmp_token );      /* Make case insensitive */
@@ -4218,17 +4208,16 @@ parse_single_command( char *buf, Analysis *analy )
 
 			redraw = BINDING_MESH_VISUAL;
 		}
-		else if ( strcmp( tokens[0], "mtl" ) == 0 ||
-				  strcmp( tokens[0], "matl") == 0 )
+		else if ( strcmp( tokens[0], "mtl" ) == 0 || strcmp( tokens[0], "matl") == 0 )
 		{
-			if((token_cnt > 1) && (!strcmp(tokens[1], "invis") || !strcmp(tokens[1], "vis") || !strcmp(tokens[1], "disable") || !strcmp(tokens[1], "enable")))
+			if( strcmp( tokens[0], "mtl") == 0 )
 			{
 				parse_single_command(&buf[4],analy);
 			}
 			else
 			{
-				parse_mtl_cmd( analy, tokens, token_cnt, TRUE, &redraw, &renorm );
-
+				parse_single_command(&buf[5],analy);
+				//parse_mtl_cmd( analy, tokens, token_cnt, TRUE, &redraw, &renorm );
 			}
 		}
 		else if ( strcmp( tokens[0], "surf" ) == 0 )
@@ -7652,9 +7641,7 @@ manage_render_mode( Render_mode_type new_rmode, Analysis *analy,
  * Parse a material manager command.
  */
 static void
-parse_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH],
-               int token_cnt, Bool_type src_mtl_mgr, Redraw_mode_type *p_redraw,
-               Bool_type *p_renorm )
+parse_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH], int token_cnt, Bool_type src_mtl_mgr, Redraw_mode_type *p_redraw, Bool_type *p_renorm )
 {
     int i, first_token, cnt, read, mtl_qty, qty_vals;
     static Bool_type preview_set = FALSE;
@@ -7696,6 +7683,7 @@ parse_mtl_cmd( Analysis *analy, char tokens[][TOKENLENGTH],
         }
         else if ( strcmp( tokens[i], "preview" ) == 0 )
         {
+        	//TO DO
             i++;
             preview_set = TRUE;
         }
@@ -10149,8 +10137,6 @@ process_mat_obj_selection ( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH]
 
     local_setval = setval;
 
-    //MAT SUB HERE
-    //mat_name_sub(analy, &tokens, &token_cnt, mat_qty);
     /* Material based selection */
     if ( p_mat != NULL && mat_selected )
     {

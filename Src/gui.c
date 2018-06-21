@@ -7990,7 +7990,6 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 p_mtl = p_mtl->next, i-- )
         {
             XtVaSetValues( children[i], XmNset, True, NULL );
-            p_mtl->mtl = i;
         }
     }
     else if ( w == select_buttons[NONE] )
@@ -8056,115 +8055,140 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
         if ( vis_set && enable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ )
-                if ( !mtl_invis[i] && !mtl_disable[i] )
+            for ( i = 0; i < qty_mtls; i++ ){
+            	Htable_entry *tempEnt;
+            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
+            	int mat_num = atoi((char*)tempEnt->key)-1;
+                if ( !mtl_invis[mat_num] && !mtl_disable[mat_num] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( vis_set && disable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ )
-                if ( !mtl_invis[i] && mtl_disable[i] )
+            for ( i = 0; i < qty_mtls; i++ ){
+            	Htable_entry *tempEnt;
+            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
+            	int mat_num = atoi((char*)tempEnt->key)-1;
+                if ( !mtl_invis[mat_num] && mtl_disable[mat_num] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( invis_set && enable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ )
-                if ( mtl_invis[i] && !mtl_disable[i] )
+            for ( i = 0; i < qty_mtls; i++ ){
+            	Htable_entry *tempEnt;
+            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
+            	int mat_num = atoi((char*)tempEnt->key)-1;
+                if ( mtl_invis[mat_num] && !mtl_disable[mat_num] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( invis_set && disable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ )
-                if ( mtl_invis[i] && mtl_disable[i] )
+            for ( i = 0; i < qty_mtls; i++ ){
+            	Htable_entry *tempEnt;
+            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
+            	int mat_num = atoi((char*)tempEnt->key)-1;
+                if ( mtl_invis[mat_num] && mtl_disable[mat_num] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+        	}
         }
         else if ( vis_set )
         {
-            for ( i = 0; i < qty_mtls; i++ )
-                if ( !mtl_invis[i] )
+            for ( i = 0; i < qty_mtls; i++ ){
+            	Htable_entry *tempEnt;
+            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
+            	int mat_num = atoi((char*)tempEnt->key)-1;
+                if ( !mtl_invis[mat_num] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( invis_set )
         {
-            for ( i = 0; i < qty_mtls; i++ )
-                if ( mtl_invis[i] )
+            for ( i = 0; i < qty_mtls; i++ ){
+            	Htable_entry *tempEnt;
+            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
+            	int mat_num = atoi((char*)tempEnt->key)-1;
+                if ( mtl_invis[mat_num] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( enable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ )
-                if ( !mtl_disable[i] )
+            for ( i = 0; i < qty_mtls; i++ ){
+            	Htable_entry *tempEnt;
+            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
+            	int mat_num = atoi((char*)tempEnt->key)-1;
+                if ( !mtl_disable[mat_num] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
                 else
                     XtVaSetValues( children[i], XmNset, False, NULL );
+            }
         }
         else if ( disable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ )
-                if ( mtl_disable[i] )
+            for ( i = 0; i < qty_mtls; i++ ){
+            	Htable_entry *tempEnt;
+            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
+            	int mat_num = atoi((char*)tempEnt->key)-1;
+                if ( mtl_disable[mat_num] )
                 {
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
-                else
+                else{
                     XtVaSetValues( children[i], XmNset, False, NULL );
+                }
+            }
         }
         else
         {
@@ -8173,15 +8197,21 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
             if ( set )
                 for ( i = 0; i < qty_mtls; i++ )
                 {
+//                	Htable_entry *tempEnt;
+//                	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
+//                	int mat_num = atoi((char*)tempEnt);
                     XtVaSetValues( children[i], XmNset, True, NULL );
                     p_mtl = mtl_deselect_list;
                     UNLINK( p_mtl, mtl_deselect_list );
-                    p_mtl->mtl = i;
                     INSERT( p_mtl, mtl_select_list );
                 }
             else
-                for ( i = 0; i < qty_mtls; i++ )
+                for ( i = 0; i < qty_mtls; i++ ){
+//                	Htable_entry *tempEnt;
+//                	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
+//                	int mat_num = atoi((char*)tempEnt);
                     XtVaSetValues( children[i], XmNset, False, NULL );
+                }
         }
     }
 
@@ -9952,7 +9982,6 @@ select_mtl_mgr_mtl( int mtl )
          */
         p_mtl = mtl_deselect_list;
         UNLINK( p_mtl, mtl_deselect_list );
-        p_mtl->mtl = mtl + 1;
         INSERT( p_mtl, mtl_select_list );
     }
 
