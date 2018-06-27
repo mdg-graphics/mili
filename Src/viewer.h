@@ -1248,7 +1248,7 @@ typedef struct _Analysis
     MO_class_data **classarray;
     int classqty;
 
-    Bool_type previewMode;
+    Bool_type preview_mode;
 
     //last colors
     Bool_type lastColorActive;
@@ -1256,15 +1256,15 @@ typedef struct _Analysis
     float** last_diffuse;
     float** last_specular;
     float** last_emission;
-    float last_shininess;
+    float* last_shininess;
 
     //cancel colors
-    Bool_type cancelColorActive;
-    float** cancel_ambient;
-    float** cancel_diffuse;
-    float** cancel_specular;
-    float** cancel_emission;
-    float cancel_shininess;
+    Bool_type defaultColorActive;
+    float** default_ambient;
+    float** default_diffuse;
+    float** default_specular;
+    float** default_emission;
+    float* default_shininess;
 
 
     Bool_type show_particle_class;

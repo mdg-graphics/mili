@@ -7968,7 +7968,10 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     int qty_mtls, i;
     WidgetList children;
     Material_list_obj *p_mtl;
+    Material_list_obj *temp_mtl;
     Mesh_data *p_mesh;
+	char* tempName;
+	Htable_entry *tempEnt;
 
     p_mesh = env.curr_analy->mesh_table;
     qty_mtls = p_mesh->material_qty;
@@ -8055,143 +8058,173 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
         if ( vis_set && enable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ ){
-            	Htable_entry *tempEnt;
-            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
-            	int mat_num = atoi((char*)tempEnt->key)-1;
-                if ( !mtl_invis[mat_num] && !mtl_disable[mat_num] )
-                {
-                    XtVaSetValues( children[i], XmNset, True, NULL );
-                    p_mtl = mtl_deselect_list;
-                    UNLINK( p_mtl, mtl_deselect_list );
-                    INSERT( p_mtl, mtl_select_list );
-                }
-                else
-                    XtVaSetValues( children[i], XmNset, False, NULL );
-            }
+        	p_mtl = mtl_deselect_list;
+        	int i = 0;
+        	while(p_mtl != NULL){
+        		i = p_mtl->mtl;
+				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+				int mat_num = atoi((char*)tempEnt->data);
+				if ( !mtl_invis[mat_num-1] && !mtl_disable[mat_num-1] ){
+					XtVaSetValues( children[i-1], XmNset, True, NULL );
+					temp_mtl = p_mtl->next;
+					UNLINK( p_mtl, mtl_deselect_list );
+					INSERT( p_mtl, mtl_select_list );
+					p_mtl = temp_mtl;
+				}
+				else{
+					XtVaSetValues( children[i-1], XmNset, False, NULL );
+					p_mtl = p_mtl->next;
+				}
+        	}
         }
         else if ( vis_set && disable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ ){
-            	Htable_entry *tempEnt;
-            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
-            	int mat_num = atoi((char*)tempEnt->key)-1;
-                if ( !mtl_invis[mat_num] && mtl_disable[mat_num] )
-                {
-                    XtVaSetValues( children[i], XmNset, True, NULL );
-                    p_mtl = mtl_deselect_list;
-                    UNLINK( p_mtl, mtl_deselect_list );
-                    INSERT( p_mtl, mtl_select_list );
-                }
-                else
-                    XtVaSetValues( children[i], XmNset, False, NULL );
-            }
+        	p_mtl = mtl_deselect_list;
+			int i = 0;
+			while(p_mtl != NULL){
+				i = p_mtl->mtl;
+				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+				int mat_num = atoi((char*)tempEnt->data);
+				if ( !mtl_invis[mat_num-1] && mtl_disable[mat_num-1] ){
+					XtVaSetValues( children[i-1], XmNset, True, NULL );
+					temp_mtl = p_mtl->next;
+					UNLINK( p_mtl, mtl_deselect_list );
+					INSERT( p_mtl, mtl_select_list );
+					p_mtl = temp_mtl;
+				}
+				else{
+					XtVaSetValues( children[i-1], XmNset, False, NULL );
+					p_mtl = p_mtl->next;
+				}
+			}
         }
         else if ( invis_set && enable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ ){
-            	Htable_entry *tempEnt;
-            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
-            	int mat_num = atoi((char*)tempEnt->key)-1;
-                if ( mtl_invis[mat_num] && !mtl_disable[mat_num] )
-                {
-                    XtVaSetValues( children[i], XmNset, True, NULL );
-                    p_mtl = mtl_deselect_list;
-                    UNLINK( p_mtl, mtl_deselect_list );
-                    INSERT( p_mtl, mtl_select_list );
-                }
-                else
-                    XtVaSetValues( children[i], XmNset, False, NULL );
-            }
+        	p_mtl = mtl_deselect_list;
+			int i = 0;
+			while(p_mtl != NULL){
+				i = p_mtl->mtl;
+				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+				int mat_num = atoi((char*)tempEnt->data);
+				if ( mtl_invis[mat_num-1] && !mtl_disable[mat_num-1] ){
+					XtVaSetValues( children[i-1], XmNset, True, NULL );
+					temp_mtl = p_mtl->next;
+					UNLINK( p_mtl, mtl_deselect_list );
+					INSERT( p_mtl, mtl_select_list );
+					p_mtl = temp_mtl;
+				}
+				else{
+					XtVaSetValues( children[i-1], XmNset, False, NULL );
+					p_mtl = p_mtl->next;
+				}
+			}
         }
         else if ( invis_set && disable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ ){
-            	Htable_entry *tempEnt;
-            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
-            	int mat_num = atoi((char*)tempEnt->key)-1;
-                if ( mtl_invis[mat_num] && mtl_disable[mat_num] )
-                {
-                    XtVaSetValues( children[i], XmNset, True, NULL );
-                    p_mtl = mtl_deselect_list;
-                    UNLINK( p_mtl, mtl_deselect_list );
-                    INSERT( p_mtl, mtl_select_list );
-                }
-                else
-                    XtVaSetValues( children[i], XmNset, False, NULL );
-        	}
+        	p_mtl = mtl_deselect_list;
+			int i = 0;
+			while(p_mtl != NULL){
+				i = p_mtl->mtl;
+				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+				int mat_num = atoi((char*)tempEnt->data);
+				if ( mtl_invis[mat_num-1] && mtl_disable[mat_num-1] ){
+					XtVaSetValues( children[i-1], XmNset, True, NULL );
+					temp_mtl = p_mtl->next;
+					UNLINK( p_mtl, mtl_deselect_list );
+					INSERT( p_mtl, mtl_select_list );
+					p_mtl = temp_mtl;
+				}
+				else{
+					XtVaSetValues( children[i-1], XmNset, False, NULL );
+					p_mtl = p_mtl->next;
+				}
+			}
         }
         else if ( vis_set )
         {
-            for ( i = 0; i < qty_mtls; i++ ){
-            	Htable_entry *tempEnt;
-            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
-            	int mat_num = atoi((char*)tempEnt->key)-1;
-                if ( !mtl_invis[mat_num] )
-                {
-                    XtVaSetValues( children[i], XmNset, True, NULL );
-                    p_mtl = mtl_deselect_list;
-                    UNLINK( p_mtl, mtl_deselect_list );
-                    INSERT( p_mtl, mtl_select_list );
-                }
-                else
-                    XtVaSetValues( children[i], XmNset, False, NULL );
-            }
+        	p_mtl = mtl_deselect_list;
+			int i = 0;
+			while(p_mtl != NULL){
+				i = p_mtl->mtl;
+				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+				int mat_num = atoi((char*)tempEnt->data);
+				if ( !mtl_invis[mat_num-1] ){
+					XtVaSetValues( children[i-1], XmNset, True, NULL );
+					temp_mtl = p_mtl->next;
+					UNLINK( p_mtl, mtl_deselect_list );
+					INSERT( p_mtl, mtl_select_list );
+					p_mtl = temp_mtl;
+				}
+				else{
+					XtVaSetValues( children[i-1], XmNset, False, NULL );
+					p_mtl = p_mtl->next;
+				}
+			}
         }
         else if ( invis_set )
         {
-            for ( i = 0; i < qty_mtls; i++ ){
-            	Htable_entry *tempEnt;
-            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
-            	int mat_num = atoi((char*)tempEnt->key)-1;
-                if ( mtl_invis[mat_num] )
-                {
-                    XtVaSetValues( children[i], XmNset, True, NULL );
-                    p_mtl = mtl_deselect_list;
-                    UNLINK( p_mtl, mtl_deselect_list );
-                    INSERT( p_mtl, mtl_select_list );
-                }
-                else
-                    XtVaSetValues( children[i], XmNset, False, NULL );
-            }
+        	p_mtl = mtl_deselect_list;
+			i = 0;
+			while(p_mtl != NULL){
+				i = p_mtl->mtl;
+				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+				int mat_num = atoi((char*)tempEnt->data);
+				if ( mtl_invis[mat_num-1] ){
+					XtVaSetValues( children[i-1], XmNset, True, NULL );
+					temp_mtl = p_mtl->next;
+					UNLINK( p_mtl, mtl_deselect_list );
+					INSERT( p_mtl, mtl_select_list );
+					p_mtl = temp_mtl;
+				}
+				else{
+					XtVaSetValues( children[i-1], XmNset, False, NULL );
+					p_mtl = p_mtl->next;
+				}
+			}
         }
         else if ( enable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ ){
-            	Htable_entry *tempEnt;
-            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
-            	int mat_num = atoi((char*)tempEnt->key)-1;
-                if ( !mtl_disable[mat_num] )
-                {
-                    XtVaSetValues( children[i], XmNset, True, NULL );
-                    p_mtl = mtl_deselect_list;
-                    UNLINK( p_mtl, mtl_deselect_list );
-                    INSERT( p_mtl, mtl_select_list );
-                }
-                else
-                    XtVaSetValues( children[i], XmNset, False, NULL );
-            }
+        	p_mtl = mtl_deselect_list;
+			int i = 0;
+			while(p_mtl != NULL){
+				i = p_mtl->mtl;
+				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+				int mat_num = atoi((char*)tempEnt->data);
+				if ( !mtl_disable[mat_num-1] ){
+					XtVaSetValues( children[i-1], XmNset, True, NULL );
+					temp_mtl = p_mtl->next;
+					UNLINK( p_mtl, mtl_deselect_list );
+					INSERT( p_mtl, mtl_select_list );
+					p_mtl = temp_mtl;
+				}
+				else{
+					XtVaSetValues( children[i-1], XmNset, False, NULL );
+					p_mtl = p_mtl->next;
+				}
+			}
         }
         else if ( disable_set )
         {
-            for ( i = 0; i < qty_mtls; i++ ){
-            	Htable_entry *tempEnt;
-            	htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i],FIND_ENTRY,&tempEnt);
-            	int mat_num = atoi((char*)tempEnt->key)-1;
-                if ( mtl_disable[mat_num] )
-                {
-                    XtVaSetValues( children[i], XmNset, True, NULL );
-                    p_mtl = mtl_deselect_list;
-                    UNLINK( p_mtl, mtl_deselect_list );
-                    INSERT( p_mtl, mtl_select_list );
-                }
-                else{
-                    XtVaSetValues( children[i], XmNset, False, NULL );
-                }
-            }
+        	p_mtl = mtl_deselect_list;
+			int i = 0;
+			while(p_mtl != NULL){
+				i = p_mtl->mtl;
+				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+				int mat_num = atoi((char*)tempEnt->data);
+				if ( mtl_disable[mat_num-1] ){
+					XtVaSetValues( children[i-1], XmNset, True, NULL );
+					temp_mtl = p_mtl->next;
+					UNLINK( p_mtl, mtl_deselect_list );
+					INSERT( p_mtl, mtl_select_list );
+					p_mtl = temp_mtl;
+				}
+				else{
+					XtVaSetValues( children[i-1], XmNset, False, NULL );
+					p_mtl = p_mtl->next;
+				}
+			}
         }
-        else
-        {
+        else{
             /* Set all if color function selected, else unset all. */
             XtVaGetValues( mtl_mgr_func_toggles[COLOR], XmNset, &set, NULL );
             if ( set )
