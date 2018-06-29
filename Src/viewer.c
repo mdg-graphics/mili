@@ -2269,14 +2269,14 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     //init color storage
     analy->preview_mode = False;
     //last colors
-	lastColorActive = False;
+	analy->lastColorActive = False;
 	analy->last_ambient = malloc(analy->max_mesh_mat_qty * sizeof(float*));
 	analy->last_diffuse = malloc(analy->max_mesh_mat_qty * sizeof(float*));
 	analy->last_specular = malloc(analy->max_mesh_mat_qty * sizeof(float*));
 	analy->last_emission = malloc(analy->max_mesh_mat_qty * sizeof(float*));
 	analy->last_shininess = malloc(analy->max_mesh_mat_qty * sizeof(float));
 	//default colors
-	defaultColorActive = False;
+	analy->defaultColorActive = False;
 	analy->default_ambient = malloc(analy->max_mesh_mat_qty * sizeof(float*));
 	analy->default_diffuse = malloc(analy->max_mesh_mat_qty * sizeof(float*));
 	analy->default_specular = malloc(analy->max_mesh_mat_qty * sizeof(float*));
@@ -2288,42 +2288,42 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 	for(colorPos = 0; colorPos < analy->max_mesh_mat_qty; colorPos++){
 		//last colors
 		analy->last_ambient[colorPos] = malloc(3 * sizeof(float));
-		analy->last_ambient[colorPos][0] = NULL;
-		analy->last_ambient[colorPos][1] = NULL;
-		analy->last_ambient[colorPos][2] = NULL;
+		analy->last_ambient[colorPos][0] = -1.0;
+		analy->last_ambient[colorPos][1] = -1.0;
+		analy->last_ambient[colorPos][2] = -1.0;
 		analy->last_diffuse[colorPos] = malloc(4 * sizeof(float));
-		analy->last_diffuse[colorPos][0] = NULL;
-		analy->last_diffuse[colorPos][1] = NULL;
-		analy->last_diffuse[colorPos][2] = NULL;
-		analy->last_diffuse[colorPos][3] = NULL;
+		analy->last_diffuse[colorPos][0] = -1.0;
+		analy->last_diffuse[colorPos][1] = -1.0;
+		analy->last_diffuse[colorPos][2] = -1.0;
+		analy->last_diffuse[colorPos][3] = -1.0;
 		analy->last_specular[colorPos] = malloc(3 * sizeof(float));
-		analy->last_specular[colorPos][0] = NULL;
-		analy->last_specular[colorPos][1] = NULL;
-		analy->last_specular[colorPos][2] = NULL;
+		analy->last_specular[colorPos][0] = -1.0;
+		analy->last_specular[colorPos][1] = -1.0;
+		analy->last_specular[colorPos][2] = -1.0;
 		analy->last_emission[colorPos] = malloc(3 * sizeof(float));
-		analy->last_emission[colorPos][0] = NULL;
-		analy->last_emission[colorPos][1] = NULL;
-		analy->last_emission[colorPos][2] = NULL;
-		analy->last_shininess = NULL;
+		analy->last_emission[colorPos][0] = -1.0;
+		analy->last_emission[colorPos][1] = -1.0;
+		analy->last_emission[colorPos][2] = -1.0;
+		analy->last_shininess[colorPos] = -1.0;
 		//default colors
 		analy->default_ambient[colorPos] = malloc(3 * sizeof(float));
-		analy->default_ambient[colorPos][0] = NULL;
-		analy->default_ambient[colorPos][1] = NULL;
-		analy->default_ambient[colorPos][2] = NULL;
+		analy->default_ambient[colorPos][0] = -1.0;
+		analy->default_ambient[colorPos][1] = -1.0;
+		analy->default_ambient[colorPos][2] = -1.0;
 		analy->default_diffuse[colorPos] = malloc(4 * sizeof(float));
-		analy->default_diffuse[colorPos][0] = NULL;
-		analy->default_diffuse[colorPos][1] = NULL;
-		analy->default_diffuse[colorPos][2] = NULL;
-		analy->default_diffuse[colorPos][3] = NULL;
+		analy->default_diffuse[colorPos][0] = -1.0;
+		analy->default_diffuse[colorPos][1] = -1.0;
+		analy->default_diffuse[colorPos][2] = -1.0;
+		analy->default_diffuse[colorPos][3] = -1.0;
 		analy->default_specular[colorPos] = malloc(3 * sizeof(float));
-		analy->default_specular[colorPos][0] = NULL;
-		analy->default_specular[colorPos][1] = NULL;
-		analy->default_specular[colorPos][2] = NULL;
+		analy->default_specular[colorPos][0] = -1.0;
+		analy->default_specular[colorPos][1] = -1.0;
+		analy->default_specular[colorPos][2] = -1.0;
 		analy->default_emission[colorPos] = malloc(3 * sizeof(float));
-		analy->default_emission[colorPos][0] = NULL;
-		analy->default_emission[colorPos][1] = NULL;
-		analy->default_emission[colorPos][2] = NULL;
-		analy->default_shininess = NULL;
+		analy->default_emission[colorPos][0] = -1.0;
+		analy->default_emission[colorPos][1] = -1.0;
+		analy->default_emission[colorPos][2] = -1.0;
+		analy->default_shininess[colorPos] = -1.0;
 	}
 
 	//END NEW

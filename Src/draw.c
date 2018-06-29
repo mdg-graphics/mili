@@ -3521,66 +3521,7 @@ set_material( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], int max_qty )
     return rval ? BINDING_MESH_VISUAL : NO_VISUAL_CHANGE;
 }
 
-/************************************************************
- * TAG( set_material )
- *
- * Define a material's rendering properties.
- */
-void restore_colors(Bool_type lastColors, Analysis analy){
 
-	Bool_type continueRestore = FALSE;
-    float** ambient;
-    float** diffuse;
-    float** specular;
-    float** emission;
-    float shininess;
-
-	if(lastColors){
-		if(analy.lastColorActive){
-			ambient = analy.last_ambient;
-			diffuse = analy.last_diffuse;
-			specular = analy.last_specular;
-			emission = analy.last_emission;
-			shininess = analy.last_shininess;
-			continueRestore = TRUE;
-		}
-	}
-	else{
-		if(analy.cancelColorActive){
-			ambient = analy.cancel_ambient;
-			diffuse = analy.cancel_diffuse;
-			specular = analy.cancel_specular;
-			emission = analy.cancel_emission;
-			shininess = analy.cancel_shininess;
-			continueRestore = TRUE;
-		}
-	}
-	if(continueRestore){
-		int mtl = 0;
-		for(mtl = 1; mtl <= analy.max_mesh_mat_qty; mtl++){
-			char cmd_str[100];
-			//ambient
-			sprintf(cmd_str, "mat %s amb %f %f %f", mtl, ambient[mtl][0], ambient[mtl][1], ambient[mtl][2]);
-			parse_single_command(cmd_str, analy);
-			//diffuse
-			sprintf(cmd_str, "mat %s dif %f %f %f", mtl, diffuse[mtl][0], diffuse[mtl][1], diffuse[mtl][2]);
-			parse_single_command(cmd_str, analy);
-			//specular
-			sprintf(cmd_str, "mat %s spec %f %f %f", mtl, specular[mtl][0], specular[mtl][1], specular[mtl][2]);
-			parse_single_command(cmd_str, analy);
-			//emission
-			sprintf(cmd_str, "mat %s emis %f %f %f", mtl, emission[mtl][0], emission[mtl][1], emission[mtl][2]);
-			parse_single_command(cmd_str, analy);
-			//shininess
-			sprintf(cmd_str, "mat %s shine %f", mtl, shininess);
-			parse_single_command(cmd_str, analy);
-			//alpha
-			sprintf(cmd_str, "mat %s alpha %f", mtl, diffuse[mtl][3]);
-			parse_single_command(cmd_str, analy);
-		}
-	}
-
-}
 
 /*****************************************************************
  * TAG( set_color )

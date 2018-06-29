@@ -10187,7 +10187,9 @@ set_scales_to_mtl( void )
     {
         /* Get material index. */
         /* idx = (mtl_select_list->mtl - 1) % MAX_MATERIALS; */
-        idx = (mtl_select_list->mtl - 1);
+        Htable_entry *tempEnt;
+        int status = htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[mtl_select_list->mtl - 1],FIND_ENTRY,&tempEnt);
+        idx = atoi(tempEnt->data)-1;
 
         /*
          * Set shininess according to value-changed flag.  If this routine

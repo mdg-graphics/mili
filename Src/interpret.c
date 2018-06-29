@@ -399,6 +399,9 @@ void disable_particles( Analysis *analy,
                         int mat );
 
 //this is a test
+void restore_color(Analysis * analy, Bool_type use_default);
+
+void backup_current_colors(Analysis *analy, Bool_type use_default);
 
 Bool_type
 is_elem_mat_visible( Analysis *analy, int elem_id, MO_class_data *p_class );
@@ -4652,15 +4655,6 @@ parse_single_command( char *buf, Analysis *analy )
 				}
 
 			}
-	//        if(analy->selected_objects == NULL)
-	//        {
-	//            if(i >= token_cnt)
-	//            {
-	//                popup_dialog(INFO_POPUP, "Must select or specify an element class before using the plot command");
-	//                return;
-	//            }
-	//
-	//        }
 			/* Delete the plot for this result if computing an EI result */
 			if ( analy->ei_result && strlen(analy->ei_result_name)>0 )
 			{
@@ -6765,33 +6759,26 @@ parse_single_command( char *buf, Analysis *analy )
 			//activate preview mode
 			analy->preview_mode = True;
 			//save current colors to last
-			backup_colors(analy,True);
+			backup_current_colors(analy,False);
 			//save current colors to default if not active
 			if(!analy->defaultColorActive){
-				backup_colors(analy,False);
+				backup_current_colors(analy,False);
 			}
 			//
 			if(token_cnt > 1){
-				char* tempCmd;
-				tempCmd = malloc(MAXTOKENS * TOKENLENGTH * sizeof(char));
-				tempCmd = "";
-				int x = 0;
-				for(x = 1; x < token_cnt;x++){
-					sprintf(tempCmd, "%s %s", tempCmd,tokens[x]);
-				}
-				parse_single_command(tempCmd, analy);
+				parse_single_command(&buf[8], analy);
 			}
 		}
 		else if ( strcmp( tokens[0], "cancel" ) == 0 ){
 			//restore last colors
-			restore_colors(analy,False);
+			restore_color(analy,False);
 			redraw = BINDING_MESH_VISUAL;
 		}
 		else if ( strcmp( tokens[0], "default" ) == 0 ){
 			//deactivate preview mode
 			analy->preview_mode = False;
 			//restore default set of colors
-			restore_colors(analy,True);
+			restore_color(analy,True);
 			//turn off both sets active flag
 			analy->defaultColorActive = False;
 			analy->lastColorActive = False;
@@ -11232,88 +11219,165 @@ void intpts_selected(Analysis * analy, int* materials_changed)
 }
 
 void restore_color(Analysis * analy, Bool_type use_default){
-	int colorPos = 0;
+
+	Bool_type continueRestore = FALSE;
+	float** ambient;
+	float** diffuse;
+	float** specular;
+	float** emission;
+	float* shininess;
+
 	if(use_default){
-		for(colorPos = 0; colorPos < analy->max_mesh_mat_qty; colorPos++){
-			//default colors
-			v_win->mesh_materials.ambient[colorPos][0] = analy->default_ambient[colorPos][0];
-			v_win->mesh_materials.ambient[colorPos][1] = analy->default_ambient[colorPos][1];
-			v_win->mesh_materials.ambient[colorPos][2] = analy->default_ambient[colorPos][2];
-			v_win->mesh_materials.diffuse[colorPos][0] = analy->default_diffuse[colorPos][0];
-			v_win->mesh_materials.diffuse[colorPos][1] = analy->default_diffuse[colorPos][1];
-			v_win->mesh_materials.diffuse[colorPos][2] = analy->default_diffuse[colorPos][2];
-			v_win->mesh_materials.diffuse[colorPos][3] = analy->default_diffuse[colorPos][3];
-			v_win->mesh_materials.specular[colorPos][0] = analy->default_specular[colorPos][0];
-			v_win->mesh_materials.specular[colorPos][1] = analy->default_specular[colorPos][1];
-			v_win->mesh_materials.specular[colorPos][2] = analy->default_specular[colorPos][2];
-			v_win->mesh_materials.emission[colorPos][0] = analy->default_emission[colorPos][0];
-			v_win->mesh_materials.emission[colorPos][1] = analy->default_emission[colorPos][1];
-			v_win->mesh_materials.emission[colorPos][2] = analy->default_emission[colorPos][2];
-			v_win->mesh_materials.shininess[colorPos] = analy->default_shininess[colorPos];
+		if(analy->defaultColorActive){
+			ambient = analy->default_ambient;
+			diffuse = analy->default_diffuse;
+			specular = analy->default_specular;
+			emission = analy->default_emission;
+			shininess = analy->default_shininess;
+			continueRestore = FALSE;
 		}
 	}
 	else{
+		if(analy->lastColorActive){
+			ambient = analy->last_ambient;
+			diffuse = analy->last_diffuse;
+			specular = analy->last_specular;
+			emission = analy->last_emission;
+			shininess = analy->last_shininess;
+			continueRestore = FALSE;
+		}
+	}
+
+	if(continueRestore){
+		int colorPos = 0;
 		for(colorPos = 0; colorPos < analy->max_mesh_mat_qty; colorPos++){
-			//last colors
-			v_win->mesh_materials.ambient[colorPos][0] = analy->last_ambient[colorPos][0];
-			v_win->mesh_materials.ambient[colorPos][1] = analy->last_ambient[colorPos][1];
-			v_win->mesh_materials.ambient[colorPos][2] = analy->last_ambient[colorPos][2];
-			v_win->mesh_materials.diffuse[colorPos][0] = analy->last_diffuse[colorPos][0];
-			v_win->mesh_materials.diffuse[colorPos][1] = analy->last_diffuse[colorPos][1];
-			v_win->mesh_materials.diffuse[colorPos][2] = analy->last_diffuse[colorPos][2];
-			v_win->mesh_materials.diffuse[colorPos][3] = analy->last_diffuse[colorPos][3];
-			v_win->mesh_materials.specular[colorPos][0] = analy->last_specular[colorPos][0];
-			v_win->mesh_materials.specular[colorPos][1] = analy->last_specular[colorPos][1];
-			v_win->mesh_materials.specular[colorPos][2] = analy->last_specular[colorPos][2];
-			v_win->mesh_materials.emission[colorPos][0] = analy->last_emission[colorPos][0];
-			v_win->mesh_materials.emission[colorPos][1] = analy->last_emission[colorPos][1];
-			v_win->mesh_materials.emission[colorPos][2] = analy->last_emission[colorPos][2];
-			v_win->mesh_materials.shininess[colorPos] = analy->last_shininess[colorPos];
+			//default colors
+			v_win->mesh_materials.ambient[colorPos][0] = ambient[colorPos][0];
+			v_win->mesh_materials.ambient[colorPos][1] = ambient[colorPos][1];
+			v_win->mesh_materials.ambient[colorPos][2] = ambient[colorPos][2];
+			glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT, v_win->mesh_materials.ambient[colorPos] );
+			v_win->mesh_materials.diffuse[colorPos][0] = diffuse[colorPos][0];
+			v_win->mesh_materials.diffuse[colorPos][1] = diffuse[colorPos][1];
+			v_win->mesh_materials.diffuse[colorPos][2] = diffuse[colorPos][2];
+			v_win->mesh_materials.diffuse[colorPos][3] = diffuse[colorPos][3];
+			glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, v_win->mesh_materials.diffuse[colorPos] );
+			v_win->mesh_materials.specular[colorPos][0] = specular[colorPos][0];
+			v_win->mesh_materials.specular[colorPos][1] = specular[colorPos][1];
+			v_win->mesh_materials.specular[colorPos][2] = specular[colorPos][2];
+			glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, v_win->mesh_materials.specular[colorPos] );
+			v_win->mesh_materials.emission[colorPos][0] = emission[colorPos][0];
+			v_win->mesh_materials.emission[colorPos][1] = emission[colorPos][1];
+			v_win->mesh_materials.emission[colorPos][2] = emission[colorPos][2];
+			glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, v_win->mesh_materials.emission[colorPos] );
+			v_win->mesh_materials.shininess[colorPos] = shininess[colorPos];
+			glMaterialf( GL_FRONT_AND_BACK, GL_SHININESS, v_win->mesh_materials.shininess[colorPos] );
 		}
 	}
 }
 
-void backup_colors(Analysis * analy, Bool_type use_default){
-	int colorPos = 0;
+void backup_current_colors(Analysis *analy, Bool_type use_default){
+
+	float** ambient;
+	float** diffuse;
+	float** specular;
+	float** emission;
+	float* shininess;
+
 	if(use_default){
 		analy->defaultColorActive = True;
-		for(colorPos = 0; colorPos < analy->max_mesh_mat_qty; colorPos++){
-			//default colors
-			analy->default_ambient[colorPos][0] = v_win->mesh_materials.ambient[colorPos][0];
-			analy->default_ambient[colorPos][1] = v_win->mesh_materials.ambient[colorPos][1];
-			analy->default_ambient[colorPos][2] = v_win->mesh_materials.ambient[colorPos][2];
-			analy->default_diffuse[colorPos][0] = v_win->mesh_materials.diffuse[colorPos][0];
-			analy->default_diffuse[colorPos][1] = v_win->mesh_materials.diffuse[colorPos][1];
-			analy->default_diffuse[colorPos][2] = v_win->mesh_materials.diffuse[colorPos][2];
-			analy->default_diffuse[colorPos][3] = v_win->mesh_materials.diffuse[colorPos][3];
-			analy->default_specular[colorPos][0] = v_win->mesh_materials.specular[colorPos][0];
-			analy->default_specular[colorPos][1] = v_win->mesh_materials.specular[colorPos][1];
-			analy->default_specular[colorPos][2] = v_win->mesh_materials.specular[colorPos][2];
-			analy->default_emission[colorPos][0] = v_win->mesh_materials.emission[colorPos][0];
-			analy->default_emission[colorPos][1] = v_win->mesh_materials.emission[colorPos][1];
-			analy->default_emission[colorPos][2] = v_win->mesh_materials.emission[colorPos][2];
-			analy->default_shininess[colorPos] = v_win->mesh_materials.shininess[colorPos];
-		}
+		ambient = analy->default_ambient;
+		diffuse = analy->default_diffuse;
+		specular = analy->default_specular;
+		emission = analy->default_emission;
+		shininess = analy->default_shininess;
 	}
 	else{
 		analy->lastColorActive = True;
-		for(colorPos = 0; colorPos < analy->max_mesh_mat_qty; colorPos++){
-			//last colors
-			analy->last_ambient[colorPos][0] = v_win->mesh_materials.ambient[colorPos][0];
-			analy->last_ambient[colorPos][1] = v_win->mesh_materials.ambient[colorPos][1];
-			analy->last_ambient[colorPos][2] = v_win->mesh_materials.ambient[colorPos][2];
-			analy->last_diffuse[colorPos][0] = v_win->mesh_materials.diffuse[colorPos][0];
-			analy->last_diffuse[colorPos][1] = v_win->mesh_materials.diffuse[colorPos][1];
-			analy->last_diffuse[colorPos][2] = v_win->mesh_materials.diffuse[colorPos][2];
-			analy->last_diffuse[colorPos][3] = v_win->mesh_materials.diffuse[colorPos][3];
-			analy->last_specular[colorPos][0] = v_win->mesh_materials.specular[colorPos][0];
-			analy->last_specular[colorPos][1] = v_win->mesh_materials.specular[colorPos][1];
-			analy->last_specular[colorPos][2] = v_win->mesh_materials.specular[colorPos][2];
-			analy->last_emission[colorPos][0] = v_win->mesh_materials.emission[colorPos][0];
-			analy->last_emission[colorPos][1] = v_win->mesh_materials.emission[colorPos][1];
-			analy->last_emission[colorPos][2] = v_win->mesh_materials.emission[colorPos][2];
-			analy->last_shininess[colorPos] = v_win->mesh_materials.shininess[colorPos];
-		}
+		ambient = analy->last_ambient;
+		diffuse = analy->last_diffuse;
+		specular = analy->last_specular;
+		emission = analy->last_emission;
+		shininess = analy->last_shininess;
+	}
+
+	int colorPos = 0;
+	for(colorPos = 0; colorPos < analy->max_mesh_mat_qty; colorPos++){
+		//default colors
+		ambient[colorPos][0] = v_win->mesh_materials.ambient[colorPos][0];
+		ambient[colorPos][1] = v_win->mesh_materials.ambient[colorPos][1];
+		ambient[colorPos][2] = v_win->mesh_materials.ambient[colorPos][2];
+		diffuse[colorPos][0] = v_win->mesh_materials.diffuse[colorPos][0];
+		diffuse[colorPos][1] = v_win->mesh_materials.diffuse[colorPos][1];
+		diffuse[colorPos][2] = v_win->mesh_materials.diffuse[colorPos][2];
+		diffuse[colorPos][3] = v_win->mesh_materials.diffuse[colorPos][3];
+		specular[colorPos][0] = v_win->mesh_materials.specular[colorPos][0];
+		specular[colorPos][1] = v_win->mesh_materials.specular[colorPos][1];
+		specular[colorPos][2] = v_win->mesh_materials.specular[colorPos][2];
+		emission[colorPos][0] = v_win->mesh_materials.emission[colorPos][0];
+		emission[colorPos][1] = v_win->mesh_materials.emission[colorPos][1];
+		emission[colorPos][2] = v_win->mesh_materials.emission[colorPos][2];
+		shininess[colorPos] = v_win->mesh_materials.shininess[colorPos];
 	}
 }
+
+///************************************************************
+// * TAG( restore_colors )
+// *
+// * restore a material's rendering properties.
+// */
+//void restore_colors(Analysis* analy, Bool_type lastColors){
+//
+//	Bool_type continueRestore = FALSE;
+//    float** ambient;
+//    float** diffuse;
+//    float** specular;
+//    float** emission;
+//    float* shininess;
+//
+//	if(lastColors){
+//		if(analy->lastColorActive){
+//			ambient = analy->last_ambient;
+//			diffuse = analy->last_diffuse;
+//			specular = analy->last_specular;
+//			emission = analy->last_emission;
+//			shininess = analy->last_shininess;
+//			continueRestore = TRUE;
+//		}
+//	}
+//	else{
+//		if(analy->defaultColorActive){
+//			ambient = analy->default_ambient;
+//			diffuse = analy->default_diffuse;
+//			specular = analy->default_specular;
+//			emission = analy->default_emission;
+//			shininess = analy->default_shininess;
+//			continueRestore = TRUE;
+//		}
+//	}
+//	if(continueRestore){
+//		int mtl = 0;
+//		for(mtl = 1; mtl <= analy->max_mesh_mat_qty; mtl++){
+//			char cmd_str[100];
+//			//ambient
+//			sprintf(cmd_str, "mat %s amb %f %f %f", mtl, ambient[mtl][0], ambient[mtl][1], ambient[mtl][2]);
+//			parse_single_command(cmd_str, analy);
+//			//diffuse
+//			sprintf(cmd_str, "mat %s dif %f %f %f", mtl, diffuse[mtl][0], diffuse[mtl][1], diffuse[mtl][2]);
+//			parse_single_command(cmd_str, analy);
+//			//specular
+//			sprintf(cmd_str, "mat %s spec %f %f %f", mtl, specular[mtl][0], specular[mtl][1], specular[mtl][2]);
+//			parse_single_command(cmd_str, analy);
+//			//emission
+//			sprintf(cmd_str, "mat %s emis %f %f %f", mtl, emission[mtl][0], emission[mtl][1], emission[mtl][2]);
+//			parse_single_command(cmd_str, analy);
+//			//shininess
+//			sprintf(cmd_str, "mat %s shine %f", mtl, shininess);
+//			parse_single_command(cmd_str, analy);
+//			//alpha
+//			sprintf(cmd_str, "mat %s alpha %f", mtl, diffuse[mtl][3]);
+//			parse_single_command(cmd_str, analy);
+//		}
+//	}
+//
+//}
 
