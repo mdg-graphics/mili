@@ -10481,15 +10481,15 @@ load_mtl_mgr_funcs( char *p_buf, int *p_token_cnt )
         for ( p_src = "mat "; *p_dest = *p_src; i++, p_src++, p_dest++ );
     }
     else{
-    	if(visset && enableset){
-			t_cnt++;
-			for ( p_src = "include "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-    	}
-    	else if(invisset && disableset){
-			t_cnt++;
-			for ( p_src = "exclude "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-    	}
-    	else{
+//    	if(visset && enableset){
+//			t_cnt++;
+//			for ( p_src = "include "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+//    	}
+//    	else if(invisset && disableset){
+//			t_cnt++;
+//			for ( p_src = "exclude "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+//    	}
+//    	else{
 			if ( visset )
 			{
 				t_cnt++;
@@ -10511,7 +10511,7 @@ load_mtl_mgr_funcs( char *p_buf, int *p_token_cnt )
 				t_cnt++;
 				for ( p_src = "disable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
 			}
-    	}
+//    	}
     }
 
     *p_token_cnt = t_cnt;
