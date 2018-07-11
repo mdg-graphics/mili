@@ -9885,6 +9885,9 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 						(strcmp(tempToken,"apply") == 0) || (strcmp(tempToken,"default") == 0)){
 						hunting = False;
 					}
+					else{
+						hunting = True;
+					}
 				}
 
 				if(hunting){
