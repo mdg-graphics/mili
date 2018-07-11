@@ -6753,7 +6753,21 @@ parse_single_command( char *buf, Analysis *analy )
 		}
 		else if ( strcmp( tokens[0], "mat" ) == 0 )
 		{
-			redraw = set_material( token_cnt, tokens, analy->max_mesh_mat_qty );
+			//redraw = set_material( token_cnt, tokens, analy->max_mesh_mat_qty );
+			//parse_mtl_cmd( analy, tokens, token_cnt, FALSE, &redraw, &renorm );
+		    static GLfloat *save_props[MTL_PROP_QTY];
+			parse_embedded_mtl_cmd( analy, tokens, token_cnt, FALSE, save_props, &renorm );
+			redraw = BINDING_MESH_VISUAL;
+		}
+		else if ( strcmp( tokens[0], "apply" ) == 0 ){
+			//activate preview mode
+			analy->preview_mode = False;
+			analy->defaultColorActive = False;
+			analy->lastColorActive = False;
+			//pas on anything else
+			if(token_cnt > 1){
+				parse_single_command(&buf[6], analy);
+			}
 		}
 		else if ( strcmp( tokens[0], "preview" ) == 0 ){
 			//activate preview mode
@@ -6762,7 +6776,7 @@ parse_single_command( char *buf, Analysis *analy )
 			backup_current_colors(analy,False);
 			//save current colors to default if not active
 			if(!analy->defaultColorActive){
-				backup_current_colors(analy,False);
+				backup_current_colors(analy,True);
 			}
 			//
 			if(token_cnt > 1){
@@ -6775,10 +6789,10 @@ parse_single_command( char *buf, Analysis *analy )
 			redraw = BINDING_MESH_VISUAL;
 		}
 		else if ( strcmp( tokens[0], "default" ) == 0 ){
-			//deactivate preview mode
-			analy->preview_mode = False;
 			//restore default set of colors
 			restore_color(analy,True);
+			//deactivate preview mode
+			analy->preview_mode = False;
 			//turn off both sets active flag
 			analy->defaultColorActive = False;
 			analy->lastColorActive = False;
@@ -9797,7 +9811,7 @@ mat_range(Analysis *analy, char *token1, char *token2, int nums[analy->max_mesh_
 int
 mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cnt){
 	int result = 1;
-	int namepos,tokenpos = 0;
+	int namepos,tokenpos,i = 0;
 	Htable_entry *tempEnt;
 	char new_tokens[MAXTOKENS][TOKENLENGTH];
 	int new_token_cnt = 0;
@@ -10117,11 +10131,17 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 			*token_cnt = new_token_cnt;
 		}
 		if(	(strcmp(tokens[0],"mat") == 0) ){
-
-			htable_search(analy->mat_labels,tokens[1],FIND_ENTRY,&tempEnt);
-			//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
-			if(tempEnt != NULL){
-				strcpy(tokens[1], tempEnt->data);
+			i = 1;
+			while( (i < *token_cnt) &&
+					!((strcmp(tokens[i],"amb") == 0) || (strcmp(tokens[i],"diff") == 0) ||
+					(strcmp(tokens[i],"spec") == 0) || (strcmp(tokens[i],"shine") == 0) ||
+					(strcmp(tokens[i],"emis") == 0) || (strcmp(tokens[i],"alpha") == 0))){
+				htable_search(analy->mat_labels,tokens[i],FIND_ENTRY,&tempEnt);
+				//new_tokens[new_token_cnt] = (char*)malloc(TOKENLENGTH * sizeof(char));
+				if(tempEnt != NULL){
+					strcpy(tokens[i], tempEnt->data);
+				}
+				i++;
 			}
 			//no match pass through and proceed
 		}
@@ -11220,7 +11240,7 @@ void intpts_selected(Analysis * analy, int* materials_changed)
 
 void restore_color(Analysis * analy, Bool_type use_default){
 
-	Bool_type continueRestore = FALSE;
+	Bool_type continueRestore = False;
 	float** ambient;
 	float** diffuse;
 	float** specular;
@@ -11234,7 +11254,7 @@ void restore_color(Analysis * analy, Bool_type use_default){
 			specular = analy->default_specular;
 			emission = analy->default_emission;
 			shininess = analy->default_shininess;
-			continueRestore = FALSE;
+			continueRestore = True;
 		}
 	}
 	else{
@@ -11244,7 +11264,7 @@ void restore_color(Analysis * analy, Bool_type use_default){
 			specular = analy->last_specular;
 			emission = analy->last_emission;
 			shininess = analy->last_shininess;
-			continueRestore = FALSE;
+			continueRestore = True;
 		}
 	}
 

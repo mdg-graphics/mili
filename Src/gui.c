@@ -10456,6 +10456,11 @@ static size_t
 load_mtl_mgr_funcs( char *p_buf, int *p_token_cnt )
 {
     Boolean set;
+    Boolean visset;
+    Boolean invisset;
+    Boolean enableset;
+    Boolean disableset;
+    Boolean colorset;
     char *p_dest, *p_src;
     int i, t_cnt;
 
@@ -10463,39 +10468,50 @@ load_mtl_mgr_funcs( char *p_buf, int *p_token_cnt )
     i = 0;
     t_cnt = 0;
 
-    XtVaGetValues( mtl_mgr_func_toggles[VIS], XmNset, &set, NULL );
-    if ( set )
-    {
-        t_cnt++;
-        for ( p_src = "vis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-    }
+    XtVaGetValues( mtl_mgr_func_toggles[VIS], XmNset, &visset, NULL );
+    XtVaGetValues( mtl_mgr_func_toggles[INVIS], XmNset, &invisset, NULL );
+    XtVaGetValues( mtl_mgr_func_toggles[ENABLE], XmNset, &enableset, NULL );
+    XtVaGetValues( mtl_mgr_func_toggles[DISABLE], XmNset, &disableset, NULL );
+    XtVaGetValues( mtl_mgr_func_toggles[COLOR], XmNset, &colorset, NULL );
 
-    XtVaGetValues( mtl_mgr_func_toggles[INVIS], XmNset, &set, NULL );
-    if ( set )
-    {
-        t_cnt++;
-        for ( p_src = "invis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-    }
 
-    XtVaGetValues( mtl_mgr_func_toggles[ENABLE], XmNset, &set, NULL );
-    if ( set )
-    {
-        t_cnt++;
-        for ( p_src = "enable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-    }
-
-    XtVaGetValues( mtl_mgr_func_toggles[DISABLE], XmNset, &set, NULL );
-    if ( set )
-    {
-        t_cnt++;
-        for ( p_src = "disable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-    }
-
-    XtVaGetValues( mtl_mgr_func_toggles[COLOR], XmNset, &set, NULL );
-    if ( set )
+    if ( colorset )
     {
         t_cnt++;
         for ( p_src = "mat "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+    }
+    else{
+    	if(visset && enableset){
+			t_cnt++;
+			for ( p_src = "include "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+    	}
+    	else if(invisset && disableset){
+			t_cnt++;
+			for ( p_src = "exclude "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+    	}
+    	else{
+			if ( visset )
+			{
+				t_cnt++;
+				for ( p_src = "vis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+			}
+			if ( invisset )
+			{
+				t_cnt++;
+				for ( p_src = "invis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+			}
+			if ( enableset )
+			{
+				t_cnt++;
+				for ( p_src = "enable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+			}
+
+			if ( disableset )
+			{
+				t_cnt++;
+				for ( p_src = "disable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+			}
+    	}
     }
 
     *p_token_cnt = t_cnt;
