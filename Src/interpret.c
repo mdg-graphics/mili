@@ -9860,6 +9860,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 				new_token_cnt = 2;
 				tokenpos = 2;
 			}
+			//skip
 			for(tokenpos; tokenpos < *token_cnt; tokenpos++){
 				char tempToken[TOKENLENGTH];
 				strcpy(tempToken,tokens[tokenpos]);
