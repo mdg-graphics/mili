@@ -8625,62 +8625,64 @@ mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     break;
             }
         }
-        Boolean visset;
-        Boolean invisset;
-        Boolean enableset;
-        Boolean disableset;
-        XtVaGetValues( mtl_mgr_func_toggles[VIS], XmNset, &visset, NULL );
-		XtVaGetValues( mtl_mgr_func_toggles[INVIS], XmNset, &invisset, NULL );
-		XtVaGetValues( mtl_mgr_func_toggles[ENABLE], XmNset, &enableset, NULL );
-		XtVaGetValues( mtl_mgr_func_toggles[DISABLE], XmNset, &disableset, NULL );
+//        Boolean visset;
+//        Boolean invisset;
+//        Boolean enableset;
+//        Boolean disableset;
+//        XtVaGetValues( mtl_mgr_func_toggles[VIS], XmNset, &visset, NULL );
+//		XtVaGetValues( mtl_mgr_func_toggles[INVIS], XmNset, &invisset, NULL );
+//		XtVaGetValues( mtl_mgr_func_toggles[ENABLE], XmNset, &enableset, NULL );
+//		XtVaGetValues( mtl_mgr_func_toggles[DISABLE], XmNset, &disableset, NULL );
+//
+//        if( ((visset)||(invisset))&&((enableset)||(disableset)) ){
+//        	// we have 2 commands to fire off
+//        	//init command strings
+//        	char* vis_cmd;
+//        	vis_cmd = (char*)malloc(sizeof(mtl_mgr_cmd));
+//        	int vis_cnt;
+//        	char* enable_cmd;
+//        	enable_cmd = (char*)malloc(sizeof(mtl_mgr_cmd));
+//        	int enable_cnt;
+//        	vis_cnt = 0;
+//        	enable_cnt = 0;
+//            memset(vis_cmd, 0, sizeof(mtl_mgr_cmd));
+//            memset(enable_cmd, 0, sizeof(mtl_mgr_cmd));
+//            //init finished
+//            //add on command string
+//            if(visset){
+//                for ( p_dest = vis_cmd, p_src = "mtl vis "; *p_dest = *p_src; p_src++, p_dest++ );
+//                vis_cnt+=2;
+//            }
+//            else{
+//                for ( p_dest = vis_cmd, p_src = "mtl invis "; *p_dest = *p_src; p_src++, p_dest++ );
+//                vis_cnt+=2;
+//            }
+//            //add on arguments
+//            len = load_selected_mtls( p_dest, &t_cnt );
+//            p_dest += len;
+//            token_cnt += t_cnt;
+//            //send
+//            send_mtl_cmd( vis_cmd, vis_cnt );
+//            if(enableset){
+//                for ( p_dest = enable_cmd, p_src = "mtl enable "; *p_dest = *p_src; p_src++, p_dest++ );
+//                enable_cnt+=2;
+//            }
+//            else{
+//                for ( p_dest = enable_cmd, p_src = "mtl disable "; *p_dest = *p_src; p_src++, p_dest++ );
+//                enable_cnt+=2;
+//            }
+//            //add on arguments
+//            len = load_selected_mtls( p_dest, &t_cnt );
+//            p_dest += len;
+//            token_cnt += t_cnt;
+//            //send
+//            send_mtl_cmd( enable_cmd, enable_cnt );
+//        }
+//        else{
+//        	send_mtl_cmd( mtl_mgr_cmd, token_cnt );
+//        }
 
-        if( ((visset)||(invisset))&&((enableset)||(disableset)) ){
-        	// we have 2 commands to fire off
-        	//init command strings
-        	char* vis_cmd;
-        	vis_cmd = (char*)malloc(sizeof(mtl_mgr_cmd));
-        	int vis_cnt;
-        	char* enable_cmd;
-        	enable_cmd = (char*)malloc(sizeof(mtl_mgr_cmd));
-        	int enable_cnt;
-        	vis_cnt = 0;
-        	enable_cnt = 0;
-            memset(vis_cmd, 0, sizeof(mtl_mgr_cmd));
-            memset(enable_cmd, 0, sizeof(mtl_mgr_cmd));
-            //init finished
-            //add on command string
-            if(visset){
-                for ( p_dest = vis_cmd, p_src = "mtl vis "; *p_dest = *p_src; p_src++, p_dest++ );
-                vis_cnt+=2;
-            }
-            else{
-                for ( p_dest = vis_cmd, p_src = "mtl invis "; *p_dest = *p_src; p_src++, p_dest++ );
-                vis_cnt+=2;
-            }
-            //add on arguments
-            len = load_selected_mtls( p_dest, &t_cnt );
-            p_dest += len;
-            token_cnt += t_cnt;
-            //send
-            send_mtl_cmd( vis_cmd, vis_cnt );
-            if(enableset){
-                for ( p_dest = enable_cmd, p_src = "mtl enable "; *p_dest = *p_src; p_src++, p_dest++ );
-                enable_cnt+=2;
-            }
-            else{
-                for ( p_dest = enable_cmd, p_src = "mtl disable "; *p_dest = *p_src; p_src++, p_dest++ );
-                enable_cnt+=2;
-            }
-            //add on arguments
-            len = load_selected_mtls( p_dest, &t_cnt );
-            p_dest += len;
-            token_cnt += t_cnt;
-            //send
-            send_mtl_cmd( enable_cmd, enable_cnt );
-        }
-        else{
-        	send_mtl_cmd( mtl_mgr_cmd, token_cnt );
-        }
+        send_mtl_cmd( mtl_mgr_cmd, token_cnt );
 
         for ( i = 0; i < MTL_PROP_QTY; i++ )
             prop_val_changed[i] = FALSE;
