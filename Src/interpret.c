@@ -11648,7 +11648,7 @@ int select_integration_pts(char tok[MAXTOKENS][TOKENLENGTH], int token_cnt, Anal
 			{
 			   found = FALSE;
 			   j = mat_min - 1; /* convert to zero based material numbers */
-			   if(labels->map[mat_min] >0)
+			   if(labels->map[mat_min] > -1)
 			   {
 				   found = TRUE;
 				   index = labels->map[mat_min]    ;
