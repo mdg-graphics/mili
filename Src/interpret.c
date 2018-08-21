@@ -2746,7 +2746,7 @@ parse_single_command( char *buf, Analysis *analy )
 					analy->result_mod = analy->check_mod_required( analy,
 										REFERENCE_SURFACE, old,
 										analy->ref_surf );
-					if(analy->int_labels != NULL && analy->int_labels->use_combined)
+					if(analy->int_labels != NULL) // && analy->int_labels->use_combined)
 					{
 						parse_command("set_ipt middle", analy);
 					}
@@ -2758,7 +2758,7 @@ parse_single_command( char *buf, Analysis *analy )
 					analy->result_mod = analy->check_mod_required( analy,
 										REFERENCE_SURFACE, old,
 										analy->ref_surf );
-					if(analy->int_labels != NULL && analy->int_labels->use_combined)
+					if(analy->int_labels != NULL) // && analy->int_labels->use_combined)
 					{
 						parse_command("set_ipt inner", analy);
 					}
@@ -2770,7 +2770,7 @@ parse_single_command( char *buf, Analysis *analy )
 					analy->result_mod = analy->check_mod_required( analy,
 										REFERENCE_SURFACE, old,
 										analy->ref_surf );
-					if(analy->int_labels != NULL && analy->int_labels->use_combined)
+					if(analy->int_labels != NULL) // && analy->int_labels->use_combined)
 					{
 						parse_command("set_ipt outer", analy);
 					}
