@@ -1296,15 +1296,15 @@ gui_start( int argc, char **argv , Analysis *analy )
                               XmNwidth, window_width, XmNheight, window_height,
                               NULL );
 #ifdef USE_OLD_CALLBACKS
-    XtAddCallback( ogl_widg[MESH_VIEW], GLwNexposeCallback, expose_CB, 0 );
-    XtAddCallback( ogl_widg[MESH_VIEW], GLwNresizeCallback, resize_CB, 0 );
+    XtAddCallback( ogl_widg[MESH_VIEW], GLwNexposeCallback, expose_CB, NULL );
+    XtAddCallback( ogl_widg[MESH_VIEW], GLwNresizeCallback, resize_CB, NULL );
 #else
     XtAddCallback( ogl_widg[MESH_VIEW], GLwNexposeCallback,
-                   expose_resize_CB, 0 );
+                   expose_resize_CB, NULL );
     XtAddCallback( ogl_widg[MESH_VIEW], GLwNresizeCallback,
-                   expose_resize_CB, 0 );
+                   expose_resize_CB, NULL );
 #endif
-    XtAddCallback( ogl_widg[MESH_VIEW], GLwNinputCallback, input_CB, 0 );
+    XtAddCallback( ogl_widg[MESH_VIEW], GLwNinputCallback, input_CB, NULL );
     XtManageChild( ogl_widg[MESH_VIEW] );
 
     static int render_shell_win = RENDER_SHELL_WIN;
@@ -1563,6 +1563,7 @@ create_menu_bar( Widget parent, Analysis *analy )
     static int btn_cpyright, 
                btn_util_panel, 
                btn_mtl_mgr,
+               btn_surf_mgr = BTN_SURF_MGR,
                btn_save_session_global,
                btn_save_session_plot,
                btn_load_session_global,
@@ -1639,7 +1640,7 @@ create_menu_bar( Widget parent, Analysis *analy )
         XmStringFree( accel_str );
         XtManageChild( surf_mgr_button );
         XtAddCallback( surf_mgr_button, XmNactivateCallback, menu_CB,
-                       (XtPointer) BTN_SURF_MGR );
+                       &btn_surf_mgr);
     }
 
     n = 0;
@@ -4986,10 +4987,13 @@ create_free_mtl_panel( Widget main_widg )
     n++;
     XtSetArg( args[n], XmNwindowGroup, XtWindow( main_widg ) );
     n++;
+    XtSetArg (args[n], XmNdeleteResponse, XmDO_NOTHING); 
+    n++;
     mtl_shell = XtAppCreateShell( "GRIZ", "mtl_panel",
                                    topLevelShellWidgetClass,
                                    XtDisplay( main_widg ), args, n );
 
+    
     mtl_panel = create_mtl_manager( mtl_shell );
 
     XtOverrideTranslations( mtl_panel, XtParseTranslationTable( trans ) );
@@ -5260,10 +5264,11 @@ create_utility_panel( Widget main_widg )
                XmNlabelType, XmPIXMAP,
                XmNlabelPixmap, pixmap_start,
                NULL );
+    static int  btn_animate = BTN_ANIMATE;
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
     XtAddCallback( widg, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_ANIMATE );
+                   &btn_animate );
 
     pixmap_stop = XCreatePixmapFromBitmapData( dpy,
                   RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizStop_bits,
@@ -5274,20 +5279,22 @@ create_utility_panel( Widget main_widg )
                XmNlabelType, XmPIXMAP,
                XmNlabelPixmap, pixmap_stop,
                NULL );
+    static int btn_stopanimate = BTN_STOPANIMATE;
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
     XtAddCallback( widg, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_STOPANIMATE );
+                   &btn_stopanimate );
 
     widg = XtVaCreateManagedWidget(
                "cont_anim", xmPushButtonGadgetClass, util_state_ctl,
                XmNlabelType, XmPIXMAP,
                XmNlabelPixmap, pixmap_right,
                NULL );
+    static int  btn_contanimate = BTN_CONTANIMATE;
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
     XtAddCallback( widg, XmNactivateCallback, menu_CB,
-                   (XtPointer) BTN_CONTANIMATE );
+                   &btn_contanimate );
 
     XtVaSetValues( util_state_ctl,
                    XmNrightOffset, -((int) (rc_width / 2)), NULL );
@@ -5550,8 +5557,9 @@ create_utility_panel( Widget main_widg )
     XtVaGetValues( util_render_btns[CLEAN_SELECT], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
+    static int btn_clearselect = BTN_CLEARSELECT;
     XtAddCallback( util_render_btns[CLEAN_SELECT], XmNactivateCallback,
-                   menu_CB, (XtPointer) BTN_CLEARSELECT );
+                   menu_CB, &btn_clearselect );
 
     util_render_btns[CLEAN_HILITE] = XtVaCreateManagedWidget(
                                          "Clear hilite", xmPushButtonGadgetClass, rend_child,
@@ -5559,8 +5567,9 @@ create_utility_panel( Widget main_widg )
     XtVaGetValues( util_render_btns[CLEAN_HILITE], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
+    static int btn_clearhilite = BTN_CLEARHILITE ;
     XtAddCallback( util_render_btns[CLEAN_HILITE], XmNactivateCallback,
-                   menu_CB, (XtPointer) BTN_CLEARHILITE );
+                   menu_CB, &btn_clearhilite );
 
     util_render_btns[CLEAN_NEARFAR] = XtVaCreateManagedWidget(
                                           "Set near/far", xmPushButtonGadgetClass, rend_child,
@@ -5568,8 +5577,9 @@ create_utility_panel( Widget main_widg )
     XtVaGetValues( util_render_btns[CLEAN_NEARFAR], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
+    static int btn_adjustnf = BTN_ADJUSTNF;
     XtAddCallback( util_render_btns[CLEAN_NEARFAR], XmNactivateCallback,
-                   menu_CB, (XtPointer) BTN_ADJUSTNF );
+                   menu_CB, &btn_adjustnf );
 
     /*
      * Finalize the column width for all the buttons.
@@ -6145,7 +6155,7 @@ update_gui( Analysis *analy, Render_mode_type new_rmode,
                               plot_input_CB, 0 );
 #endif
             XtAddCallback( ogl_widg[MESH_VIEW], GLwNinputCallback, input_CB,
-                           0 );
+                           NULL );
 
             manage_plot_cursor_display( analy->show_plot_coords, new_rmode,
                                         old_rmode );
@@ -6159,7 +6169,7 @@ update_gui( Analysis *analy, Render_mode_type new_rmode,
                               input_CB, 0 );
 #ifdef WANT_PLOT_CALLBACK
             XtAddCallback( ogl_widg[MESH_VIEW], GLwNinputCallback,
-                           plot_input_CB, 0 );
+                           plot_input_CB, NULL );
 #endif
             manage_plot_cursor_display( analy->show_plot_coords, new_rmode,
                                         old_rmode );
