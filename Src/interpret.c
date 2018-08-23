@@ -5367,7 +5367,7 @@ parse_single_command( char *buf, Analysis *analy )
 				{
 					analy->ref_surf = OUTER;
 
-				} else
+				} else if(strstr(tokens[1], "mid"))
 				{
 					analy->ref_surf = MIDDLE;
 				}
@@ -5410,7 +5410,7 @@ parse_single_command( char *buf, Analysis *analy )
 					}
 					i = 1;
 					int qty = 0;
-					for(j = 1; j < token_cnt; j++)
+					for(j = 0; j < token_cnt; j++)
 					{
 						strcpy(original_tokens[j], tokens[j]);
 					}
