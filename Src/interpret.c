@@ -5655,6 +5655,7 @@ parse_single_command( char *buf, Analysis *analy )
 				}
 				old_autoselect = analy->autoselect;
 
+
 				if((res_ptr != NULL && res_ptr->result_funcs[0] == load_primal_result) || (analy->cur_result != NULL &&
 					analy->cur_result->result_funcs[0] == load_primal_result))
 				{
@@ -5663,11 +5664,19 @@ parse_single_command( char *buf, Analysis *analy )
 					analy->autoselect = old_autoselect;
 				} else
 				{
-					analy->autoselect = FALSE;
-					create_plot_objects( cnt, original_tokens, analy, &analy->current_plots );
-					analy->autoselect = old_autoselect;
+					if(res_ptr != NULL){
+						analy->autoselect = FALSE;
+						create_plot_objects( cnt, original_tokens, analy, &analy->current_plots );
+						analy->autoselect = old_autoselect;
+					}
 				}
-				redraw = BINDING_PLOT_VISUAL;
+				if(res_ptr != NULL){
+					redraw = BINDING_PLOT_VISUAL;
+				}
+				else{
+					popup_dialog( INFO_POPUP, "Unkown result name entered" );
+				}
+
 			}
 			analy->th_plotting = TRUE;
 		}

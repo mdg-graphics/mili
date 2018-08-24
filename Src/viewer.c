@@ -2250,15 +2250,19 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		analy->sorted_names = sortedNames;
 		analy->mat_names = forNames;
 		analy->mat_names_reversed = revNames;
-		analy->sorted_labels = analy->sorted_names;
-		analy->mat_labels = analy->mat_names;
-		analy->mat_labels_reversed = analy->mat_names_reversed;
 
 		qsort(sortedNums, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
 
 		analy->sorted_nums = sortedNums;
 		analy->mat_nums = forNums;
 		analy->mat_nums_reversed = revNums;
+
+		//default setting area
+
+		analy->sorted_labels = analy->sorted_nums;
+		analy->mat_labels = analy->mat_nums;
+		analy->mat_labels_reversed = analy->mat_nums_reversed;
+
 		// Make sure we get rid of dangling pointers
 		// DO NOT free this as it is now your analy->sorted_names pointer
 		// Simply setting it to NULL makes sure w do not have a dangling
