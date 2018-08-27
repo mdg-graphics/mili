@@ -5655,6 +5655,7 @@ parse_single_command( char *buf, Analysis *analy )
 				}
 				old_autoselect = analy->autoselect;
 
+				Bool_type error_flag = FALSE;
 
 				if((res_ptr != NULL && res_ptr->result_funcs[0] == load_primal_result) || (analy->cur_result != NULL &&
 					analy->cur_result->result_funcs[0] == load_primal_result))
@@ -5664,17 +5665,24 @@ parse_single_command( char *buf, Analysis *analy )
 					analy->autoselect = old_autoselect;
 				} else
 				{
-					if(res_ptr != NULL){
+					//if we didnt find a result pointer
+					if(res_ptr == NULL){
+						//and our second argument does not match the current result
+						if(strcmp(original_tokens[1], analy->cur_result->name)){
+							error_flag = TRUE;
+						}
+					}
+					if(!error_flag){
 						analy->autoselect = FALSE;
 						create_plot_objects( cnt, original_tokens, analy, &analy->current_plots );
 						analy->autoselect = old_autoselect;
 					}
 				}
-				if(res_ptr != NULL){
+				if(!error_flag){
 					redraw = BINDING_PLOT_VISUAL;
 				}
 				else{
-					popup_dialog( INFO_POPUP, "Unkown result name entered" );
+					popup_dialog( INFO_POPUP, "Unknown result name entered" );
 				}
 
 			}
