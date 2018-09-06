@@ -108,8 +108,8 @@
  * to MAX_WIDTH and MAX_HEIGHT contained in Mesa Library /src/config.h
  */
 
-#define DEFAULT_WIDTH (600)
-#define DEFAULT_HEIGHT (600)
+#define DEFAULT_WIDTH (1200)
+#define DEFAULT_HEIGHT (1200)
 
 #else
 

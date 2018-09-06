@@ -2353,7 +2353,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			//sprintf(teststr,"MAT_NAME_%d",pos2+1);
 			char *test;
 			char *test2;
-			//test = malloc(label_length * sizeof(char));
+			test = malloc(label_length * sizeof(char));
 			test2 = malloc(label_length * sizeof(char));
 			//status = mc_ti_read_string(analy->db_ident, teststr, (void*) test);
 			char *str;
