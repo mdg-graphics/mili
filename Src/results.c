@@ -5104,28 +5104,28 @@ Result * create_result_list( char * token, Analysis *analy)
         return NULL;
     } 
    
-   k = 0;
-   if(!strncmp(token, "es_", 3))
-   {
-       for(i = 0; i < strlen(token); i++)
-       {
-           if(token[i] == '[')
-           {
-               raw = FALSE;
-               continue;
-           }
-        
-           if(raw == FALSE && token[i] != ']')
-           {
-               raw_primal[k] = token[i];
-               k++;
-           } else if(raw == FALSE && token[i] == ']')
-           {
-               raw_primal[k] = '\0';
-               break;
-           }
-       }
-   }        
+	k = 0;
+	if(!strncmp(token, "es_", 3))
+	{
+	   for(i = 0; i < strlen(token); i++)
+	   {
+		   if(token[i] == '[')
+		   {
+			   raw = FALSE;
+			   continue;
+		   }
+
+		   if(raw == FALSE && token[i] != ']')
+		   {
+			   raw_primal[k] = token[i];
+			   k++;
+		   } else if(raw == FALSE && token[i] == ']')
+		   {
+			   raw_primal[k] = '\0';
+			   break;
+		   }
+	   }
+	}
             
     /* allocate for a 1 based array so that the subrec number equals the indes into the array */
     subrecs = (int *) calloc(analy->srec_tree->qty + 1, sizeof(int));
