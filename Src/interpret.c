@@ -12087,6 +12087,77 @@ void backup_current_colors(Analysis *analy, Bool_type use_default){
 	}
 }
 
+
+void plotTokenParser(Analysis *analy, int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH]){//, char*** plotLineDefinitions){
+	//section 1
+	char*** finalPlotLines;
+	int finalLineCnt = 0;
+	char** ordResList;
+	int ordResCnt = 0;
+	char** absResList;
+	int absResCnt = 0;
+	char** curResList;
+	int curResCnt = 0;
+	char*** ordSOList;
+	int ordSOCnt = 0;
+	char*** absSOList;
+	int absSOCnt = 0;
+	char*** curSOList;
+	int curSOCnt = 0;
+    MO_class_data *p_class;
+    int range_start,range_stop,len;
+
+
+	//section 2
+	char* curClassName;
+	Bool_type vsFound = False;
+	Bool_type parsingRange = False;
+	curResList = ordResList;
+	curResCnt = ordResCnt;
+	curSOList = ordSOList;
+	curSOCnt = ordSOCnt;
+	int pos = 0;
+	int tokType = -1;
+	for( pos = 0; pos < token_cnt; pos++){
+		if(strcmp( tokens[i], "vs" ) == 0){
+			curResList = absResList;
+			curResCnt = absResCnt;
+			curSOList = absSOList;
+			curSOCnt = absSOCnt;
+			vsFound = True;
+			parsingRange = False;
+		}
+		else{
+			//tokType = get_token_type();
+			switch(get_token_type( tokens[i], analy, &p_class )){
+			case MESH_OBJ_CLASS:
+
+				break;
+			case NUMERIC:
+
+				break;
+			case RANGE_SEPARATOR:
+
+				break;
+			case COMPOUND_TOKEN:
+
+				break;
+			case MESH_OBJ_CLASS:
+
+				break;
+			default:
+				//we have an invalid token
+				printf("error");
+				break;
+			}
+		}
+
+	}
+
+	//section 3
+
+}
+
 ///************************************************************
 // * TAG( restore_colors )
 // *
