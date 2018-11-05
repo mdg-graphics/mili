@@ -4186,8 +4186,8 @@ taurus_db_open( char *path_root, int *p_dbid )
     char *p_root_start, *p_root_end;
     char *p_src, *p_dest;
     char *path;
-    char root[512];
-    char path_text[256];
+    char root[1024];
+    char path_text[1024];
     int rval;
     Famid dbid;
 
