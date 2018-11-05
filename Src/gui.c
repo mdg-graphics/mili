@@ -215,7 +215,7 @@ Bool_type include_mtl_panel     = FALSE;
 
 /* Griz name & version for window titles. */
 static char *griz_name=NULL;
-static char path_string[256];
+static char path_string[1024];
 
 /* Set to TRUE if the material Color-Mode is active */
 Bool_type mtl_color_active=FALSE;
@@ -1022,7 +1022,7 @@ gui_start( int argc, char **argv , Analysis *analy )
     Drawable d1;
     XmString command_label;
     Arg args[20];
-    char title[512], path[256]="";
+    char title[512], path[512]="";
     int n;
     XtActionsRec global_actions[3];
     Atom  WM_DELETE_WINDOW;

@@ -845,7 +845,7 @@ parse_single_command( char *buf, Analysis *analy )
 
     float vert_low[3], vert_hi[3], rel_pos[3];
 
-    char filename_with_path[512];
+    char filename_with_path[1024];
 
     int loop_count = 1;
     int path_index=0;

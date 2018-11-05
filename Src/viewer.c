@@ -786,7 +786,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     int brick_qty=0, shell_qty=0, truss_qty=0, beam_qty=0;
     int particle_qty=0, tet_qty = 0;
 
-    char temp_fname[256];
+    char temp_fname[1024];
     int dir_pos=-1;
 
     /* TI Variables */
@@ -859,7 +859,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     }
     else
     {
-        getcwd( analy->path_name, 128 );
+        getcwd( analy->path_name, 512 );
         strcat( analy->path_name, "/" );
     }
 
