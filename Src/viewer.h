@@ -84,6 +84,10 @@
 #include "mesh.h"
 #include "gahl.h"
 
+
+#define MAXPATHLENGTH 1024
+#define MAXFILENAMELENGTH 512
+
 #ifndef MAXINT
 #define MAXINT 2147483647
 #endif
@@ -994,8 +998,8 @@ typedef struct _Analysis
     Bool_type autoselect;
     void * original_results[ORIG_RESULTS];   /* for combined results need to hold the original results for each superclass */ 
     int db_ident;
-    char root_name[512];
-    char path_name[512];
+    char root_name[MAXPATHLENGTH];
+    char path_name[MAXPATHLENGTH];
     Bool_type path_found;
 
     char mili_version[100];
@@ -1802,7 +1806,7 @@ typedef struct
     char output_file_name[100];
     char partfile_name_c[256];
     char partfile_name_s[256];
-    char plotfile_name[1024];
+    char plotfile_name[MAXPATHLENGTH];
     char plotfile_prefix[256];
     char user_name[30];
     char date[32], time[32];
