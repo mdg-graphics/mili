@@ -2285,7 +2285,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     		analy->num_banned_names++;
     	}
     	//command name list
-    	char *tempnames2[192] = {"rx","ry","rz","tx","ty","tz","scale","scalax","zf","zb",
+    	char *tempnames2[] = {"rx","ry","rz","tx","ty","tz","scale","scalax","zf","zb",
     							"rview","rnf","vcent","on","off","minst","maxst","stride","state","f",
 								"l","n","p","time","anim","stopan","animc","autoimg","resetimg","load",
 								"quit","switch","sw","info","r","alias","exec","show","rzero","rmin",
