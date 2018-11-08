@@ -19,5 +19,5 @@ select ntet 1 2 261
 minst 1
 maxst 81
 select node 1
-plot nodepos[uz]
+plot nodpos[uz]
 outjpeg ntet20_image_nodepos_uz_th.answ.jpg

@@ -786,7 +786,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     int brick_qty=0, shell_qty=0, truss_qty=0, beam_qty=0;
     int particle_qty=0, tet_qty = 0;
 
-    char temp_fname[256];
+    char temp_fname[MAXPATHLENGTH];
     int dir_pos=-1;
 
     /* TI Variables */
@@ -859,7 +859,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     }
     else
     {
-        getcwd( analy->path_name, 128 );
+        getcwd( analy->path_name, MAXPATHLENGTH );
         strcat( analy->path_name, "/" );
     }
 
@@ -2234,7 +2234,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 			htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
 			sortedNames[pos2] = malloc(label_length * sizeof(char));
 			sprintf(sortedNames[pos2],"%s",test);
-			int curlen = strlen(str);
+			int curlen = strlen(test);
 			if(curlen > analy->maxLabelLength){
 				analy->maxLabelLength = curlen;
 			}
@@ -2250,15 +2250,19 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		analy->sorted_names = sortedNames;
 		analy->mat_names = forNames;
 		analy->mat_names_reversed = revNames;
-		analy->sorted_labels = analy->sorted_names;
-		analy->mat_labels = analy->mat_names;
-		analy->mat_labels_reversed = analy->mat_names_reversed;
 
 		qsort(sortedNums, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
 
 		analy->sorted_nums = sortedNums;
 		analy->mat_nums = forNums;
 		analy->mat_nums_reversed = revNums;
+
+		//default setting area
+
+		analy->sorted_labels = analy->sorted_nums;
+		analy->mat_labels = analy->mat_nums;
+		analy->mat_labels_reversed = analy->mat_nums_reversed;
+
 		// Make sure we get rid of dangling pointers
 		// DO NOT free this as it is now your analy->sorted_names pointer
 		// Simply setting it to NULL makes sure w do not have a dangling
@@ -2266,6 +2270,201 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 		sortedNames = NULL;
 		sortedNums = NULL;
     }
+    //otherwise fill names with numbers
+    else{
+		//Gen list of banned names
+    	analy->banned_names = malloc(100 * sizeof(char*));
+    	analy->num_banned_names = 0;
+    	//predefined names
+    	char *tempnames[16] = {"vis","invis","enable","disable","include","exclude","hilite","select","mat","all","amb","diff","spec","spotdir","spot","exp"};
+    	int tempcount = 16;
+    	int tmppos = 0;
+    	for(tmppos = 0; tmppos < tempcount; tmppos++){
+    		analy->banned_names[analy->num_banned_names] = malloc(100 * sizeof(char));
+    		strcpy(analy->banned_names[analy->num_banned_names],tempnames[tmppos]);
+    		analy->num_banned_names++;
+    	}
+    	//command name list
+    	char *tempnames2[192] = {"rx","ry","rz","tx","ty","tz","scale","scalax","zf","zb",
+    							"rview","rnf","vcent","on","off","minst","maxst","stride","state","f",
+								"l","n","p","time","anim","stopan","animc","autoimg","resetimg","load",
+								"quit","switch","sw","info","r","alias","exec","show","rzero","rmin",
+								"rmax","clrthr","refstate","coordfx","dirv","dir3n","dir3p","globmm","resetmm","conv",
+								"clrconv","pref","dia","ym","numclass","title","hilite","clrhil","select","deselect",
+								"clrsel","unselect","dscal","dscalx","dscaly","dscalz","plot","oplot","outth","gather",
+								"delth","glyphqty","glyphscl","mmloc","setcol","timhis","outps","outrgb","outjpeg","outpng",
+								"jpegequal","outmm","outobj","outview","outhid","outth","outvec","outpt","outgeom","outsgeom",
+								"dumpresult","tell","lts","tellmm","telliso","tellpos","tellem","surface","traction","cutpln",
+								"cutrpln","clrcut","conwid","ison","isop","isov","clriso","vec","vgrid1","vgrid2",
+								"vgrid3","clrvgr","setcol","veccm","vecscl","vhdscl","outvec","ptrace","ptrace","aptrace",
+								"ptstat","prake","clrpar","ptlim","ptwid","ptdis","outpt","inpt","pres","pscale",
+								"fres","fscale","inref","outref","clrref","inslp","savhis","endhis","rdhis","pause",
+								"echo","loop","savtxt","endtxt","ldmap","posmap","hotmap","grmap","igrmap","invmap",
+								"conmap","chmap","cgmap","sym","clrsym","tmx","tmy","tmz","clrtm","partrad",
+								"em","emsc","emsph","emcyl","emax","emrm","clrem","tellem","crease","getedg",
+								"edgwid","edgbias","setcol","inrgb","mat","light","tlx","tly","tlz","dellit",
+								"camang","lookfr","lookat","lookup","tfx","tfy","tfz","tax","tay","taz",
+								"near","far","fracsz","bbsrc","bbox","hidwid","bufqty","copyrt","setpick","mtl",
+								"vidti","vidttl"};
+    	int tempcount2 = 0;
+    	int tmppos2 = 0;
+    	for(tmppos2 = 0; tmppos2 < tempcount2; tmppos2++){
+    		analy->banned_names[analy->num_banned_names] = malloc(100 * sizeof(char));
+    		strcpy(analy->banned_names[analy->num_banned_names],tempnames2[tmppos2]);
+    		analy->num_banned_names++;
+    	}
+
+    	//class names
+//        int  qty_classes=0;
+//        char *class_names[2000];
+//        int  superclasses[2000];
+//    	status = mili_get_class_names( analy, &qty_classes, class_names, superclasses );
+//    	for(tmppos = 0; tmppos < qty_classes; tmppos++){
+//    		analy->banned_names[analy->num_banned_names] = malloc(100 * sizeof(char));
+//    		strcpy(analy->banned_names[analy->num_banned_names],class_names[tmppos]);
+//    		analy->num_banned_names++;
+//    	}
+
+		Hash_table *forNames;
+		Hash_table *revNames;
+		char** sortedNames = malloc(analy->max_mesh_mat_qty * sizeof(char*));
+		Hash_table *forNums;
+		Hash_table *revNums;
+		char** sortedNums = malloc(analy->max_mesh_mat_qty * sizeof(char*));
+		//int* revSortedNames = malloc(analy->max_mesh_mat_qty * sizeof(int));
+		forNames = htable_create( 1001 );
+		revNames = htable_create( 1001 );
+		forNums = htable_create( 1001 );
+		revNums = htable_create( 1001 );
+
+		Htable_entry *tempEnt;
+		int pos2;
+		analy->conflict_messages = malloc(analy->max_mesh_mat_qty * (sizeof(char*)));
+		analy->num_messages = 0;
+		//char teststr[20];
+		char merged[label_length];
+		char temp[label_length];
+		char message[120];
+		for(pos2 = 0; pos2 < analy->max_mesh_mat_qty; pos2++){
+			//check if name exists
+			//teststr[0] = '\0';
+			int num_items_read = 0;
+			int status = 0;
+			//sprintf(teststr,"MAT_NAME_%d",pos2+1);
+			char *test;
+			char *test2;
+			test = malloc(label_length * sizeof(char));
+			test2 = malloc(label_length * sizeof(char));
+			//status = mc_ti_read_string(analy->db_ident, teststr, (void*) test);
+			char *str;
+			char *str2;
+			str = malloc(10 * sizeof(char));
+			str2 = malloc(10 * sizeof(char));
+			sprintf(str2,"%d",pos2+1);//if so then print name
+			sprintf(test2,"%s",str2);
+			sprintf(str,"%d",pos2+1);//if so then print name
+			sprintf(test,"%s",str);
+
+         	htable_add_entry_data(revNames,str ,ENTER_UNIQUE,(void *) test);
+			htable_add_entry_data(forNames,test ,ENTER_UNIQUE,(void *) str);
+			sortedNames[pos2] = malloc(label_length * sizeof(char));
+			sprintf(sortedNames[pos2],"%s",test);
+			//ADD TO NAME ALPHA LIST
+			htable_add_entry_data(revNums,str2 ,ENTER_UNIQUE,(void *) test2);
+			htable_add_entry_data(forNums,test2 ,ENTER_UNIQUE,(void *) str2);
+			sortedNums[pos2] = malloc(label_length * sizeof(char));
+			sprintf(sortedNums[pos2],"%s",test2);
+			int curlen = strlen(test);
+			if(curlen > analy->maxLabelLength){
+				analy->maxLabelLength = curlen;
+			}
+		}
+
+		qsort(sortedNames, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
+
+		analy->sorted_names = sortedNames;
+		analy->mat_names = forNames;
+		analy->mat_names_reversed = revNames;
+
+		qsort(sortedNums, analy->max_mesh_mat_qty, sizeof(char*), (void*)alphanum_cmp);
+
+		analy->sorted_nums = sortedNums;
+		analy->mat_nums = forNums;
+		analy->mat_nums_reversed = revNums;
+
+		//default setting area
+
+		analy->sorted_labels = analy->sorted_nums;
+		analy->mat_labels = analy->mat_nums;
+		analy->mat_labels_reversed = analy->mat_nums_reversed;
+
+		// Make sure we get rid of dangling pointers
+		// DO NOT free this as it is now your analy->sorted_names pointer
+		// Simply setting it to NULL makes sure w do not have a dangling
+		// pointer.
+		sortedNames = NULL;
+		sortedNums = NULL;
+    }
+    //init color storage
+    analy->preview_mode = False;
+    //last colors
+	analy->lastColorActive = False;
+	analy->last_ambient = malloc(analy->max_mesh_mat_qty * sizeof(float*));
+	analy->last_diffuse = malloc(analy->max_mesh_mat_qty * sizeof(float*));
+	analy->last_specular = malloc(analy->max_mesh_mat_qty * sizeof(float*));
+	analy->last_emission = malloc(analy->max_mesh_mat_qty * sizeof(float*));
+	analy->last_shininess = malloc(analy->max_mesh_mat_qty * sizeof(float));
+	//default colors
+	analy->defaultColorActive = False;
+	analy->default_ambient = malloc(analy->max_mesh_mat_qty * sizeof(float*));
+	analy->default_diffuse = malloc(analy->max_mesh_mat_qty * sizeof(float*));
+	analy->default_specular = malloc(analy->max_mesh_mat_qty * sizeof(float*));
+	analy->default_emission = malloc(analy->max_mesh_mat_qty * sizeof(float*));
+	analy->default_shininess = malloc(analy->max_mesh_mat_qty * sizeof(float));
+
+	//init loop
+	int colorPos = 0;
+	for(colorPos = 0; colorPos < analy->max_mesh_mat_qty; colorPos++){
+		//last colors
+		analy->last_ambient[colorPos] = malloc(3 * sizeof(float));
+		analy->last_ambient[colorPos][0] = -1.0;
+		analy->last_ambient[colorPos][1] = -1.0;
+		analy->last_ambient[colorPos][2] = -1.0;
+		analy->last_diffuse[colorPos] = malloc(4 * sizeof(float));
+		analy->last_diffuse[colorPos][0] = -1.0;
+		analy->last_diffuse[colorPos][1] = -1.0;
+		analy->last_diffuse[colorPos][2] = -1.0;
+		analy->last_diffuse[colorPos][3] = -1.0;
+		analy->last_specular[colorPos] = malloc(3 * sizeof(float));
+		analy->last_specular[colorPos][0] = -1.0;
+		analy->last_specular[colorPos][1] = -1.0;
+		analy->last_specular[colorPos][2] = -1.0;
+		analy->last_emission[colorPos] = malloc(3 * sizeof(float));
+		analy->last_emission[colorPos][0] = -1.0;
+		analy->last_emission[colorPos][1] = -1.0;
+		analy->last_emission[colorPos][2] = -1.0;
+		analy->last_shininess[colorPos] = -1.0;
+		//default colors
+		analy->default_ambient[colorPos] = malloc(3 * sizeof(float));
+		analy->default_ambient[colorPos][0] = -1.0;
+		analy->default_ambient[colorPos][1] = -1.0;
+		analy->default_ambient[colorPos][2] = -1.0;
+		analy->default_diffuse[colorPos] = malloc(4 * sizeof(float));
+		analy->default_diffuse[colorPos][0] = -1.0;
+		analy->default_diffuse[colorPos][1] = -1.0;
+		analy->default_diffuse[colorPos][2] = -1.0;
+		analy->default_diffuse[colorPos][3] = -1.0;
+		analy->default_specular[colorPos] = malloc(3 * sizeof(float));
+		analy->default_specular[colorPos][0] = -1.0;
+		analy->default_specular[colorPos][1] = -1.0;
+		analy->default_specular[colorPos][2] = -1.0;
+		analy->default_emission[colorPos] = malloc(3 * sizeof(float));
+		analy->default_emission[colorPos][0] = -1.0;
+		analy->default_emission[colorPos][1] = -1.0;
+		analy->default_emission[colorPos][2] = -1.0;
+		analy->default_shininess[colorPos] = -1.0;
+	}
+
 	//END NEW
 
     /* Save max quantity of surfaces. */

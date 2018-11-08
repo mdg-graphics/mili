@@ -84,6 +84,10 @@
 #include "mesh.h"
 #include "gahl.h"
 
+
+#define MAXPATHLENGTH 1024
+#define MAXFILENAMELENGTH 512
+
 #ifndef MAXINT
 #define MAXINT 2147483647
 #endif
@@ -108,8 +112,8 @@
  * to MAX_WIDTH and MAX_HEIGHT contained in Mesa Library /src/config.h
  */
 
-#define DEFAULT_WIDTH (600)
-#define DEFAULT_HEIGHT (600)
+#define DEFAULT_WIDTH (1200)
+#define DEFAULT_HEIGHT (1200)
 
 #else
 
@@ -994,8 +998,8 @@ typedef struct _Analysis
     Bool_type autoselect;
     void * original_results[ORIG_RESULTS];   /* for combined results need to hold the original results for each superclass */ 
     int db_ident;
-    char root_name[256];
-    char path_name[256];
+    char root_name[MAXPATHLENGTH];
+    char path_name[MAXPATHLENGTH];
     Bool_type path_found;
 
     char mili_version[100];
@@ -1247,6 +1251,25 @@ typedef struct _Analysis
     char *num_class;
     MO_class_data **classarray;
     int classqty;
+
+    Bool_type preview_mode;
+
+    //last colors
+    Bool_type lastColorActive;
+    float** last_ambient;
+    float** last_diffuse;
+    float** last_specular;
+    float** last_emission;
+    float* last_shininess;
+
+    //cancel colors
+    Bool_type defaultColorActive;
+    float** default_ambient;
+    float** default_diffuse;
+    float** default_specular;
+    float** default_emission;
+    float* default_shininess;
+
 
     Bool_type show_particle_class;
 
@@ -1783,7 +1806,7 @@ typedef struct
     char output_file_name[100];
     char partfile_name_c[256];
     char partfile_name_s[256];
-    char plotfile_name[512];
+    char plotfile_name[MAXPATHLENGTH];
     char plotfile_prefix[256];
     char user_name[30];
     char date[32], time[32];

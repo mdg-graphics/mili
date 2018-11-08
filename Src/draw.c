@@ -3450,94 +3450,69 @@ set_material( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], int max_qty )
 
     for ( i = 2; i < token_cnt; i++ )
     {
-        if ( strcmp( tokens[i], "amb" ) == 0 )
-        {
+        if ( strcmp( tokens[i], "amb" ) == 0 ){
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.ambient[matl_num][0] );
             sscanf( tokens[i+2], "%f", &v_win->mesh_materials.ambient[matl_num][1] );
             sscanf( tokens[i+3], "%f", &v_win->mesh_materials.ambient[matl_num][2] );
             i += 3;
 
             /* Need to update GL if this material is currently in use. */
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,
-                              v_win->mesh_materials.ambient[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT, v_win->mesh_materials.ambient[matl_num] );
                 rval = TRUE;
             }
         }
-        else if ( strcmp( tokens[i], "diff" ) == 0 )
-        {
+        else if ( strcmp( tokens[i], "diff" ) == 0 ){
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.diffuse[matl_num][0] );
             sscanf( tokens[i+2], "%f", &v_win->mesh_materials.diffuse[matl_num][1] );
             sscanf( tokens[i+3], "%f", &v_win->mesh_materials.diffuse[matl_num][2] );
             i += 3;
 
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,
-                              v_win->mesh_materials.diffuse[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, v_win->mesh_materials.diffuse[matl_num] );
                 rval = TRUE;
             }
-
         }
-        else if ( strcmp( tokens[i], "spec" ) == 0 )
-        {
+        else if ( strcmp( tokens[i], "spec" ) == 0 ){
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.specular[matl_num][0] );
             sscanf( tokens[i+2], "%f", &v_win->mesh_materials.specular[matl_num][1] );
             sscanf( tokens[i+3], "%f", &v_win->mesh_materials.specular[matl_num][2] );
             i += 3;
 
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,
-                              v_win->mesh_materials.specular[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, v_win->mesh_materials.specular[matl_num] );
                 rval = TRUE;
             }
         }
-        else if ( strcmp( tokens[i], "emis" ) == 0 )
-        {
+        else if ( strcmp( tokens[i], "emis" ) == 0 ){
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.emission[matl_num][0] );
             sscanf( tokens[i+2], "%f", &v_win->mesh_materials.emission[matl_num][1] );
             sscanf( tokens[i+3], "%f", &v_win->mesh_materials.emission[matl_num][2] );
             i += 3;
 
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION,
-                              v_win->mesh_materials.emission[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, v_win->mesh_materials.emission[matl_num] );
                 rval = TRUE;
             }
         }
-        else if ( strcmp( tokens[i], "shine" ) == 0 )
-        {
+        else if ( strcmp( tokens[i], "shine" ) == 0 ){
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.shininess[matl_num] );
             i++;
 
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialf( GL_FRONT_AND_BACK, GL_SHININESS,
-                             v_win->mesh_materials.shininess[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialf( GL_FRONT_AND_BACK, GL_SHININESS, v_win->mesh_materials.shininess[matl_num] );
                 rval = TRUE;
             }
         }
-        else if ( strcmp( tokens[i], "alpha" ) == 0 )
-        {
+        else if ( strcmp( tokens[i], "alpha" ) == 0 ){
             /* The alpha value at a vertex is just the material's diffuse
              * alpha value -- the other alphas are ignored by OpenGL.
              */
             sscanf( tokens[i+1], "%f", &v_win->mesh_materials.diffuse[matl_num][3] );
             i++;
 
-            if ( v_win->current_color_property == &v_win->mesh_materials  &&
-                    matl_num == v_win->mesh_materials.current_index )
-            {
-                glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,
-                              v_win->mesh_materials.diffuse[matl_num] );
+            if ( v_win->current_color_property == &v_win->mesh_materials  && matl_num == v_win->mesh_materials.current_index ){
+                glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, v_win->mesh_materials.diffuse[matl_num] );
                 rval = TRUE;
             }
         }
@@ -3545,6 +3520,7 @@ set_material( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], int max_qty )
 
     return rval ? BINDING_MESH_VISUAL : NO_VISUAL_CHANGE;
 }
+
 
 
 /*****************************************************************
@@ -13184,7 +13160,7 @@ draw_foreground( Analysis *analy )
 				Htable_entry *tempEnt;
 				char tempname[32];
 				sprintf(tempname,"%d",class_label);
-				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+				htable_search(analy->mat_labels_reversed,tempname,FIND_ENTRY,&tempEnt);
 				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, high, (char*)tempEnt->data );
 			}
 			else{
@@ -13200,7 +13176,7 @@ draw_foreground( Analysis *analy )
 				Htable_entry *tempEnt;
 				char tempname[32];
 				sprintf(tempname,"%d",class_label);
-				htable_search(analy->mat_names_reversed,tempname,FIND_ENTRY,&tempEnt);
+				htable_search(analy->mat_labels_reversed,tempname,FIND_ENTRY,&tempEnt);
 				sprintf( str, "%s %.*e, %s", maximum_label, fracsz, low, (char*)tempEnt->data );
 			}
 			else{
