@@ -1,1 +1,0 @@
-g++ rocket.cpp -o rocket -I/usr/gapps/silo/4.6.1/chaos_4_x86_64/include -L/usr/gapps/silo/4.6.1/chaos_4_x86_64/lib -lsilo -lm
