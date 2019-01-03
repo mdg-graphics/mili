@@ -1,0 +1,18 @@
+#!/bin/sh
+#set -x
+if test -x scripts/bootstrap ; then
+##  rm -Rf INSTALL aclocal.m4 configure autom4te.cache config/acinclude.m4
+##  cp $AUTODIR/share/autoconf/INSTALL INSTALL
+##  cp $AUTODIR/share/aclocal/libtool.m4 aclocal.m4
+##  cp $AUTODIR/share/aclocal/libtool.m4 config/acinclude.m4
+##  libtoolize --force --copy
+#  aclocal -I scripts
+#  autoheader --force --include=scripts
+##  automake --add-missing --copy --force-missing --foreign
+#  autoconf --include=scripts
+# autoreconf, the preferred means, it's smart about autotools updates
+  autoreconf -v -i -f
+else
+  echo "must be in the same directory as ./configure to run this script"
+  exit 1
+fi

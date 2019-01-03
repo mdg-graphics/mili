@@ -1,0 +1,54 @@
+From: Kathleen Bonnell
+Date: March 20, 2009
+
+These patches are the minimum to get a static build 
+on windows.  The only test that I've verified that
+runs is MiliReader.  
+
+The win32 folder should be a peer with 'src'.
+These files will change as I add more tests and get
+a dll build working.
+
+During the build, there are a lot of warnings about
+1) unreferenced local variables 
+2) 'some method' undefined; assuming extern returning int.
+I didn't fix those -- I'm not sure if the same warnings pop
+up in 'nix, but thought you all could fix them.
+
+I can attempt fixing them if you want, sometimes I think Windows
+is a bit stricter than gcc.
+
+Also, if you want a true windows library, we should make sure
+the other tests can run so that more functionality is tested than
+just the read capabilities.
+
+Notes on the patches:
+
+I added win32-regex header and source.  It's the same
+regex VisIt uses on windows.
+
+Most modified files simply required #ifdef blocks
+around #includes not available on windows.
+
+mili_enum.h:  The 'SHORT' and 'LONG' enums in 
+Dump_verbosity conflicted with values in a windows header,
+so I added DV_ to the front (for DumpVerbosity), and
+modified all use-occurrances accordingly.  If the
+name-change isn't satisfactory, feel free to change it.
+
+list.h -- Name collision with DELETE I changed it to DELETE_ELEM.
+
+md.c -- path-parsing was searching only for unix-style path-separators.
+Added test for windows-style as well.
+
+mili.c -- mc_calc_bytecount was not handling M_INT4 case, and because
+byte_count was not initialized, windows barfed.  Added initialization
+as well as handling M_INT4 case.
+
+mr_funcs.c -- mr_open_input_dbase and mr_is_known_db made assumptions about
+fname containing only the rootname, I made them parse fname into path
+and rootname -- the code should probably be made into a utility method
+for pathi-parsing elsewhere.  
+
+util.c --  implemented a windows version for mili_scandir.
+

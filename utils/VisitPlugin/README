@@ -1,0 +1,50 @@
+** Notes on building the Mili PlugIn Makefile **
+
+(1) Edit Mili.xml
+
+(2) Run xml2makefile -clobber Mili.xml
+
+
+(3) To debug with visit and totalview enter:
+    visit -totalview engine_ser -o filename.mili -v 2.3
+	             [mdserver]
+
+
+To use Visit 2.3 do the following (Visit 2.3 now uses Cmake to
+generate the Makefiles:
+
+(1) Edit Mili.xml
+
+(2) /usr/gapps/visit/bin/xml2cmake -v 2.5.1 -clobber Mili.xml
+ 
+(3) /usr/gapps/visit/thirdparty_shared_2_6_0/cmake/2.8.8/linux-x86_64_gcc-4.4/bin/cmake .
+
+(4) gmake
+
+** IMPORTANT **
+   Mili must be compiled with the option -fPIC
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Mili TOC file format (*.mili):
+
+
+1 - Number of domains
+5 - Number of timesteps
+3 - Dims
+1 - Number meshes
+
+4 - Number Materials
+5 - Number vars
+
+Variables:
+
+       type   centering  dims    name
+	       (0=node)
+       ****   *********  ***     ****
+	1         1 	  1	 slide
+	2	  0	  3	 nodpos
+	2 	  0	  3	 nodvel
+	2	  1	  6	 stress
+	1	  1	  1	 eeff
+
