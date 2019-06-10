@@ -370,17 +370,32 @@ tellmm( Analysis *analy, char *desired_result_variable, int start_state,
             low  = el_mm[0];
             high = el_mm[1];
         }
-
+        int min_label;
+        int max_label;
+        if(analy->elem_state_mm.sclass[0] == G_MAT)
+        {
+            min_label = el_id[0] +1;
+        }else
+        {
+            min_label = p_mo_class->labels[p_mo_class->labels_index[el_id[0]]].label_num;
+        }
+        if(analy->elem_state_mm.sclass[1] == G_MAT)
+        {
+            max_label = el_id[1] +1;
+        }else
+        {
+            max_label = p_mo_class->labels[p_mo_class->labels_index[el_id[1]]].label_num;
+        }
         wrt_text( "     %*d    %9.2e  %*s %-*d    %9.2e  %*s %d\n",
                   st_fwid, state_id,
-                  high, nam_fwid, class[1], obj_fwid, el_id[1],
-                  low, nam_fwid, class[0], el_id[0] );
+                  high, nam_fwid, class[1], obj_fwid, max_label,
+                  low, nam_fwid, class[0], min_label );
 
         if ( high > maximum_of_states )
         {
             maximum_of_states    = high;
             maximum_element_type = class[1];
-            maximum_element_id   = el_id[1];
+            maximum_element_id   = max_label;
             maximum_state_id     = state_id;
         }
 
@@ -388,7 +403,7 @@ tellmm( Analysis *analy, char *desired_result_variable, int start_state,
         {
             minimum_of_states    = low;
             minimum_element_type = class[0];
-            minimum_element_id   = el_id[0];
+            minimum_element_id   = min_label;
             minimum_state_id     = state_id;
         }
 

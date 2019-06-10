@@ -1759,6 +1759,10 @@ parse_single_command( char *buf, Analysis *analy )
 		{
 			parse_tell_command( analy, tokens, token_cnt, FALSE, &redraw );
 		}
+        else if ( strcmp( tokens[0], "tellmm" ) == 0 )
+		{
+			parse_tell_command( analy, tokens, token_cnt, FALSE, &redraw );
+		}
 		else if ( strcmp( tokens[0], "tellpos" ) == 0)
 		{
 			parse_tell_command( analy, tokens, token_cnt, FALSE, &redraw );
@@ -7307,105 +7311,6 @@ parse_single_command( char *buf, Analysis *analy )
 			redraw = reset_global_minmax( analy );
 			if ( redraw != NO_VISUAL_CHANGE && analy->extreme_result == FALSE )
 				load_result( analy, TRUE, TRUE, FALSE );
-		}
-		else if ( strcmp( tokens[0], "tellmm" ) == 0 )
-		{
-			start_state        = GET_MIN_STATE( analy ) + 1;
-			stop_state         = get_max_state( analy ) + 1;
-
-			if ( token_cnt == 1 )
-			{
-				/*
-				 * Undocumented format:
-				 *
-				 * tellmm <no arguments> -- display minimums and maximums
-				 *                          for all states of current display result
-				 */
-				result_variable[0] = '\0';
-				tellmm( analy, result_variable, start_state, stop_state,
-						&tellmm_redraw );
-				redraw = tellmm_redraw;
-			}
-			else if ( token_cnt == 2 )
-			{
-				if ( strcmp( tokens[1], "mat" ) != 0 )
-				{
-					/*
-					 * tellmm valid_result; NOTE:  result MAY NOT be materials
-					 */
-					analy->result_mod = TRUE;
-					tellmm( analy, tokens[1], start_state, stop_state,
-							&tellmm_redraw );
-					redraw = tellmm_redraw;
-				}
-				else
-				{
-					/*
-					 * tellmm invalid_result
-					 */
-
-					popup_dialog( USAGE_POPUP, tellmm_usage );
-				}
-			}
-			else if ( token_cnt == 3 )
-			{
-				ival = (int)strtol( tokens[2], (char **)NULL, 10);
-
-				if ( strcmp( tokens[1], "mat" ) != 0
-						&& ival >= start_state )
-				{
-					/*
-					 * tellmm valid_result state_number
-					 *
-					 * NOTE:  result MAY NOT be materials;
-					 *        state_number != 0
-					 */
-					analy->result_mod = TRUE;
-					tellmm( analy, tokens[1], ival, ival, &tellmm_redraw );
-					redraw = tellmm_redraw;
-				}
-				else
-				{
-					/*
-					 * tellmm invalid_result
-					 */
-
-					popup_dialog( USAGE_POPUP, tellmm_usage );
-				}
-			}
-			else if ( token_cnt == 4 )
-			{
-
-				min_state = (int) strtol( tokens[2], (char **)NULL, 10 );
-				max_state = (int) strtol( tokens[3], (char **)NULL, 10 );
-
-				if ( strcmp( tokens[1], "mat" ) != 0
-						&& min_state >= start_state
-						&& max_state <= stop_state )
-				{
-					/*
-					 * tellmm result state_number state_number
-					 *
-					 * NOTE:  result MAY NOT be materials;
-					 *        state_number != 0
-					 */
-					analy->result_mod = TRUE;
-					tellmm( analy, tokens[1], min_state, max_state,
-							&tellmm_redraw );
-					redraw = tellmm_redraw;
-				}
-				else
-				{
-					/*
-					 * tellmm invalid_result
-					 */
-					popup_dialog( USAGE_POPUP, tellmm_usage );
-				}
-			}
-			else
-			{
-				popup_dialog( USAGE_POPUP, tellmm_usage );
-			}
 		}
 		else if ( strcmp( tokens[0], "outmm" ) == 0 )
 		{

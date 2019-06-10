@@ -17437,15 +17437,6 @@ dump_class_labels( MO_class_data *class )
 }
 
 
-/************************************************************
- * TAG( get_class_label_index )
- *
- * Added November 05, 2007: IRC
- *
- * Returns the index for for the specified label.
- *
- */
-
 int
 label_compare( const void *in_key, const void *in_label )
 {
@@ -17457,7 +17448,14 @@ label_compare( const void *in_key, const void *in_label )
 }
 
 
-
+/************************************************************
+ * TAG( get_class_label_index )
+ *
+ * Added November 05, 2007: IRC
+ *
+ * Returns the index for for the specified label.
+ *
+ */
 int
 get_class_label_index( MO_class_data *class, int label_num )
 {
