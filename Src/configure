@@ -2650,7 +2650,7 @@ CONFIG_CMD="configure $@"
 $as_echo "#define PACKAGE_NAME \"Griz4\"" >>confdefs.h
 
 
-$as_echo "#define PACKAGE_DATE \"2018/3/9\"" >>confdefs.h
+$as_echo "#define PACKAGE_DATE \"06/10/2019\"" >>confdefs.h
 
 
 $as_echo "#define PACKAGE_TIME \"07:00:00\"" >>confdefs.h
@@ -2665,7 +2665,7 @@ $as_echo "#define GRIZ_MINOR \"1\"" >>confdefs.h
 $as_echo "#define GRIZ_BUG \"0\"" >>confdefs.h
 
 
-$as_echo "#define PACKAGE_DATETIME \"2018/3/9 07:00:00\"" >>confdefs.h
+$as_echo "#define PACKAGE_DATETIME \"06/10/2019 07:00:00\"" >>confdefs.h
 
 
 $as_echo "#define PACKAGE_BUGREPORT_ALT \"Kevin Durrenberger ext:4-3015 email:durrenberger1@llnl.gov\"" >>confdefs.h

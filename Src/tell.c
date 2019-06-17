@@ -75,7 +75,8 @@ parse_tell_command( Analysis *analy, char tokens[][TOKENLENGTH],
             parse_tell_pos_command( analy, tokens + i, token_cnt - i,
                                     &addl_tokens );
         }
-        else if ( strcmp( tokens[i], "mm" ) == 0 )
+        else if ( strcmp( tokens[i], "mm" ) == 0 
+                  || strcmp( tokens[i], "tellmm") == 0)
         {
             parse_tell_mm_command( analy, tokens + i, token_cnt - i,
                                    &addl_tokens, p_redraw );
@@ -981,6 +982,7 @@ tell_coordinates( char class[], int id, Analysis *analy )
     GVec2D2P *nodes2d2p;
     int frac_size = 6;
     State_rec_obj *p_sro;
+    int node_index;
 
     if (MESH_P( analy )->double_precision_nodpos)
     {
@@ -1022,21 +1024,21 @@ tell_coordinates( char class[], int id, Analysis *analy )
 
     if ( p_mo_class->superclass == G_NODE )
     {
-
+        node_index = get_class_label_index(p_mo_class,id);
         if ( analy->dimension == 3 )
         {
             if (MESH_P( analy )->double_precision_nodpos)
                 wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n",
                           p_mo_class->long_name, id,
-                          frac_size, nodes3d2p[id - 1][0],
-                          frac_size, nodes3d2p[id - 1][1],
-                          frac_size, nodes3d2p[id - 1][2] );
+                          frac_size, nodes3d2p[node_index][0],
+                          frac_size, nodes3d2p[node_index][1],
+                          frac_size, nodes3d2p[node_index][2] );
             else
                 wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n",
                           p_mo_class->long_name, id,
-                          frac_size, nodes3d[id - 1][0],
-                          frac_size, nodes3d[id - 1][1],
-                          frac_size, nodes3d[id - 1][2] );
+                          frac_size, nodes3d[node_index][0],
+                          frac_size, nodes3d[node_index][1],
+                          frac_size, nodes3d[node_index][2] );
 
         }
         else
@@ -1044,13 +1046,13 @@ tell_coordinates( char class[], int id, Analysis *analy )
             if (MESH_P( analy )->double_precision_nodpos)
                 wrt_text( "%s %d  x: %.*e  y: %.*e\n",
                           p_mo_class->long_name, id,
-                          frac_size, nodes2d2p[id - 1][0],
-                          frac_size, nodes2d2p[id - 1][1] );
+                          frac_size, nodes2d2p[node_index][0],
+                          frac_size, nodes2d2p[node_index][1] );
             else
                 wrt_text( "%s %d  x: %.*e  y: %.*e\n",
                           p_mo_class->long_name, id,
-                          frac_size, nodes2d[id - 1][0],
-                          frac_size, nodes2d[id - 1][1] );
+                          frac_size, nodes2d[node_index][0],
+                          frac_size, nodes2d[node_index][1] );
         }
 
         wrt_text( "\n" );
@@ -1098,7 +1100,7 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
     if ( (int)analy->float_frac_size>frac_size )
         frac_size = (int) analy->float_frac_size;
 
-    el_idx = el_ident - 1;
+    el_idx = get_class_label_index(p_mo_class,el_ident);
     conn_qty = qty_connects[p_mo_class->superclass];
     el_conns = p_mo_class->objects.elems->nodes + el_idx * conn_qty;
     activity = ( state_p->sand_present )
