@@ -2569,42 +2569,25 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             time(&curtime);
             timeinfo = localtime(&curtime);
             
-            sprintf(timestr, "%s", asctime(timeinfo));
-            strcpy(timestamp, &timestr[4]);
-            int length =strlen(timestamp);
-
-            datetime = (char *) malloc(strlen(timestamp)+1);
-            if(datetime == NULL)
-            {
-                printf("Out of Memory, exiting\n");
-                exit(1);
-            }
-
-            strcpy(datetime, timestamp);
-            datetime[strlen(datetime) - 1] = '\0';
-
-            for(i = 0; i <= strlen(datetime); i++)
-            {
-                if(datetime[i] == ' ' || datetime[i] == ':')
-                {
-                    datetime[i] = '_';
-                }
-            }
-
-
-            strcpy(timestr, timestamp);
-            /* Remove ending NL */
-            timestr[strlen(timestr)-1] = '\0';
-            sprintf(timestamp, "[%s]", timestr);
-            strcpy( hist_fname, analy->root_name );
-            strcat( hist_fname, datetime);
+            sprintf(timestr, "_%d.%d.%d_%d:%d:%d", timeinfo->tm_mon
+                                                , timeinfo->tm_mday
+                                                , timeinfo->tm_year -100
+                                                , timeinfo->tm_hour
+                                                , timeinfo->tm_min
+                                                , timeinfo->tm_sec);
+            
+            sprintf(timestamp, "%s", asctime(timeinfo));
+            
+            strcpy (hist_fname, ".");
+            strcat( hist_fname, analy->root_name );
+            strcat( hist_fname, timestr);
             strcat( hist_fname, ".grizhist" );
             analy->p_histfile = fopen( hist_fname, "at");
             strcpy(analy->hist_fname, hist_fname);
             fseek(analy->p_histfile, 0L, SEEK_END);
             pos = ftell(analy->p_histfile);
             fprintf(analy->p_histfile, "#");
-            fprintf(analy->p_histfile, "%s\n", timestamp);
+            fprintf(analy->p_histfile, "%s", timestamp);
             if(pos == 0)
             {
                 fprintf(analy->p_histfile, "%s", header);
