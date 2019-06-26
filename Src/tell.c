@@ -41,8 +41,6 @@ static void parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH],
                                    int token_cnt, int *p_addl_tokens,
                                    Redraw_mode_type *p_redraw );
 static void tell_coordinates( char class[], int id, Analysis *analy );
-static void tell_element_coords( int el_ident, MO_class_data *p_mo_class,
-                                 State2 *state_p, int dimension, Analysis *analy );
 static void tell_mesh_classes( Analysis *analy );
 static void tell_results( Analysis *analy );
 static int max_id_string_width( int *connects, int node_cnt );
@@ -962,116 +960,6 @@ parse_tell_mm_command( Analysis *analy, char tokens[][TOKENLENGTH],
     *p_addl_tokens = mm_token_cnt - 1;
 }
 
-
-/************************************************************
- * TAG( tell_coordinates )
- *
- * Display nodal coordinates of:  a.) specified node id, or
- *                                b.) nodal components of
- *                                    specified element type id
- */
-static void
-tell_coordinates( char class[], int id, Analysis *analy )
-{
-    Htable_entry *p_hte;
-    int rval;
-    MO_class_data *p_mo_class;
-    GVec3D *nodes3d;
-    GVec2D *nodes2d;
-    GVec3D2P *nodes3d2p;
-    GVec2D2P *nodes2d2p;
-    int frac_size = 6;
-    State_rec_obj *p_sro;
-    int node_index;
-
-    if (MESH_P( analy )->double_precision_nodpos)
-    {
-        p_sro = analy->srec_tree + analy->state_p->srec_id;
-        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
-                     analy->cur_state + 1, FALSE,
-                     (void *)  analy->tmp_result[0] );
-        if ( analy->dimension == 3 )
-            nodes3d2p = ( GVec3D2P *) analy->tmp_result[0];
-        else
-            nodes2d2p = ( GVec2D2P *) analy->tmp_result[0];
-    }
-    else
-    {
-        if ( analy->dimension == 3 )
-            nodes3d = analy->state_p->nodes.nodes3d;
-        else
-            nodes2d = analy->state_p->nodes.nodes2d;
-    }
-
-    if ( (int) analy->float_frac_size>frac_size )
-        frac_size = (int) analy->float_frac_size;
-
-    rval = htable_search( MESH( analy ).class_table, class, FIND_ENTRY,
-                          &p_hte );
-    if ( rval != OK )
-    {
-        popup_dialog( USAGE_POPUP, "tell pos <class name> <ident>" );
-        return;
-    }
-
-    p_mo_class = (MO_class_data *) p_hte->data;
-
-    if ( id < 1 || id > p_mo_class->qty )
-    {
-        popup_dialog( INFO_POPUP, "Invalid %s number: %d\n", class, id );
-        return;
-    }
-
-    if ( p_mo_class->superclass == G_NODE )
-    {
-        node_index = get_class_label_index(p_mo_class,id);
-        if ( analy->dimension == 3 )
-        {
-            if (MESH_P( analy )->double_precision_nodpos)
-                wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n",
-                          p_mo_class->long_name, id,
-                          frac_size, nodes3d2p[node_index][0],
-                          frac_size, nodes3d2p[node_index][1],
-                          frac_size, nodes3d2p[node_index][2] );
-            else
-                wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n",
-                          p_mo_class->long_name, id,
-                          frac_size, nodes3d[node_index][0],
-                          frac_size, nodes3d[node_index][1],
-                          frac_size, nodes3d[node_index][2] );
-
-        }
-        else
-        {
-            if (MESH_P( analy )->double_precision_nodpos)
-                wrt_text( "%s %d  x: %.*e  y: %.*e\n",
-                          p_mo_class->long_name, id,
-                          frac_size, nodes2d2p[node_index][0],
-                          frac_size, nodes2d2p[node_index][1] );
-            else
-                wrt_text( "%s %d  x: %.*e  y: %.*e\n",
-                          p_mo_class->long_name, id,
-                          frac_size, nodes2d[node_index][0],
-                          frac_size, nodes2d[node_index][1] );
-        }
-
-        wrt_text( "\n" );
-    }
-    else if ( IS_ELEMENT_SCLASS( p_mo_class->superclass ) )
-    {
-        tell_element_coords( id, p_mo_class, analy->state_p, analy->dimension, analy );
-
-        wrt_text( "\n" );
-    }
-    else
-        popup_dialog( INFO_POPUP, "%s\n%s%s%s",
-                      "Griz cannot perform a position query on",
-                      "class \"", p_mo_class->short_name, "\" objects." );
-
-    return;
-}
-
-
 /*****************************************************************
  * TAG( tell_element_coords )
  *
@@ -1079,8 +967,8 @@ tell_coordinates( char class[], int id, Analysis *analy )
  * referenced by an element.
  */
 static void
-tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
-                     int dimension, Analysis *analy )
+tell_element_coords( int el_ident, int el_idx, MO_class_data *p_mo_class, 
+                     State2 *state_p, int dimension, Analysis *analy )
 {
     int i;
     int node_idx, node_id;
@@ -1094,13 +982,11 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
     GVec2D2P *nodes2d2p;
     int frac_size = 6;
     float *activity;
-    int el_idx;
     State_rec_obj *p_sro;
 
     if ( (int)analy->float_frac_size>frac_size )
         frac_size = (int) analy->float_frac_size;
 
-    el_idx = get_class_label_index(p_mo_class,el_ident);
     conn_qty = qty_connects[p_mo_class->superclass];
     el_conns = p_mo_class->objects.elems->nodes + el_idx * conn_qty;
     activity = ( state_p->sand_present )
@@ -1138,7 +1024,7 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
     {
         /* Get node ident and its coordinates. */
         node_idx = el_conns[i];
-        node_id = node_idx + 1;
+        node_id = analy->mesh_table->node_geom->labels[node_idx].label_num;
 
         if ( dimension == 3 )
         {
@@ -1204,6 +1090,118 @@ tell_element_coords( int el_ident, MO_class_data *p_mo_class, State2 *state_p,
     }
     return;
 }
+
+
+
+/************************************************************
+ * TAG( tell_coordinates )
+ *
+ * Display nodal coordinates of:  a.) specified node id, or
+ *                                b.) nodal components of
+ *                                    specified element type id
+ */
+static void
+tell_coordinates( char class[], int id, Analysis *analy )
+{
+    Htable_entry *p_hte;
+    int rval;
+    MO_class_data *p_mo_class;
+    GVec3D *nodes3d;
+    GVec2D *nodes2d;
+    GVec3D2P *nodes3d2p;
+    GVec2D2P *nodes2d2p;
+    int frac_size = 6;
+    State_rec_obj *p_sro;
+    int label_index = -1;
+
+    if (MESH_P( analy )->double_precision_nodpos)
+    {
+        p_sro = analy->srec_tree + analy->state_p->srec_id;
+        load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                     analy->cur_state + 1, FALSE,
+                     (void *)  analy->tmp_result[0] );
+        if ( analy->dimension == 3 )
+            nodes3d2p = ( GVec3D2P *) analy->tmp_result[0];
+        else
+            nodes2d2p = ( GVec2D2P *) analy->tmp_result[0];
+    }
+    else
+    {
+        if ( analy->dimension == 3 )
+            nodes3d = analy->state_p->nodes.nodes3d;
+        else
+            nodes2d = analy->state_p->nodes.nodes2d;
+    }
+
+    if ( (int) analy->float_frac_size>frac_size )
+        frac_size = (int) analy->float_frac_size;
+
+    rval = htable_search( MESH( analy ).class_table, class, FIND_ENTRY,
+                          &p_hte );
+    if ( rval != OK )
+    {
+        popup_dialog( USAGE_POPUP, "tell pos <class name> <ident>" );
+        return;
+    }
+
+    p_mo_class = (MO_class_data *) p_hte->data;
+    label_index = get_class_label_index(p_mo_class,id);
+    
+    if ( label_index < 1 || label_index > p_mo_class->qty )
+    {
+        popup_dialog( INFO_POPUP, "Invalid %s number: %d\n", class, id );
+        return;
+    }
+
+    if ( p_mo_class->superclass == G_NODE )
+    {
+        if ( analy->dimension == 3 )
+        {
+            if (MESH_P( analy )->double_precision_nodpos)
+                wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n",
+                          p_mo_class->long_name, id,
+                          frac_size, nodes3d2p[label_index][0],
+                          frac_size, nodes3d2p[label_index][1],
+                          frac_size, nodes3d2p[label_index][2] );
+            else
+                wrt_text( "%s %d  x: %.*e  y: %.*e  z: %.*e\n",
+                          p_mo_class->long_name, id,
+                          frac_size, nodes3d[label_index][0],
+                          frac_size, nodes3d[label_index][1],
+                          frac_size, nodes3d[label_index][2] );
+
+        }
+        else
+        {
+            if (MESH_P( analy )->double_precision_nodpos)
+                wrt_text( "%s %d  x: %.*e  y: %.*e\n",
+                          p_mo_class->long_name, id,
+                          frac_size, nodes2d2p[label_index][0],
+                          frac_size, nodes2d2p[label_index][1] );
+            else
+                wrt_text( "%s %d  x: %.*e  y: %.*e\n",
+                          p_mo_class->long_name, id,
+                          frac_size, nodes2d[label_index][0],
+                          frac_size, nodes2d[label_index][1] );
+        }
+
+        wrt_text( "\n" );
+    }
+    else if ( IS_ELEMENT_SCLASS( p_mo_class->superclass ) )
+    {
+        tell_element_coords( id, label_index, p_mo_class, analy->state_p, 
+                             analy->dimension, analy );
+
+        wrt_text( "\n" );
+    }
+    else
+        popup_dialog( INFO_POPUP, "%s\n%s%s%s",
+                      "Griz cannot perform a position query on",
+                      "class \"", p_mo_class->short_name, "\" objects." );
+
+    return;
+}
+
 
 
 /*****************************************************************
