@@ -73,12 +73,12 @@
 #############################################################################
 
 m4_define(GRIZ_NAME_M4, Griz4)
-m4_define(GRIZ_VERSION_M4, V18_01)
+m4_define(GRIZ_VERSION_M4, V19_01)
 m4_define(GRIZ_MAJOR_M4, 18)
 m4_define(GRIZ_MINOR_M4, 1)
 m4_define(GRIZ_BUG_M4, 0)
 m4_define(MILI_VERSION_M4, V18_01)
-m4_define(GRIZ_DATE_M4, 06/26/2019)
+m4_define(GRIZ_DATE_M4, 10/01/2019)
 m4_define(GRIZ_TIME_M4, 07:00:00)
 m4_define(GRIZ_DATETIME_M4, [GRIZ_DATE_M4 GRIZ_TIME_M4])
 m4_define(GRIZ_BUGS_M4,[Kevin Durrenberger  ext: 4-3015 email: durrenberger1@llnl.gov])
