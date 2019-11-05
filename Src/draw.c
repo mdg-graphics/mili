@@ -2016,7 +2016,8 @@ static void linear_variable_scale( float, float, int, float *, float *,
                                    float *, int * );
 extern void log_variable_scale( float, float, int, float *, float *,
                                 float *, float *, int * );
-extern void log_scale_data_shift( float val, float data_minimum, float data_maximum,
+extern void log_scale_data_shift( float val, float data_minimum, 
+                                  float data_maximum,
                                   float *new_val, float *new_data_minimum,
                                   float *new_data_maximum, float *data_shift,
                                   float *data_mult);
@@ -2034,7 +2035,8 @@ static void change_current_color_property( Color_property *, int );
 void update_current_color_property( Color_property *, Material_property_type );
 
 static float
-get_free_node_result( Analysis *, MO_class_data *, int, Bool_type *, Bool_type * );
+get_free_node_result( Analysis *, MO_class_data *, int, Bool_type *, 
+                      Bool_type * );
 
 static float
 get_ml_result( Analysis *, MO_class_data *, int, Bool_type * );
@@ -17622,7 +17624,7 @@ is_particle_class( Analysis *analy, int superclass, char *class_name )
                 !strcmp( short_name_upper, "PARTICLE_ELEM" )  ||
                 !strcmp( short_name_upper, "ML" )             ||
                 !strncmp( short_name_upper, "SPH", 3 )        ||
-                !strncmp( short_name_upper, "DBC", 3 )  )
+                (!strncmp( short_name_upper, "DBC", 3 ) && superclass != G_QUAD ))
             return ( TRUE );
         return ( FALSE );
     }
