@@ -1165,6 +1165,7 @@ mc_get_app_parameter_count(Famid fam_id)
 			num_copied++;
 		}
 	}
+   htable_delete_wildcard_list(count,list);
 	free(list);
 	return num_copied;
 	
@@ -1210,11 +1211,12 @@ void mc_get_app_parameter_names(Famid fam_id, char **names, int in_size)
 		if(p_fd->dir_entries[dir_index][TYPE_IDX] == APPLICATION_PARAM ||
 		   p_fd->dir_entries[dir_index][TYPE_IDX] == TI_PARAM)
 		{
-			
+			names[num_copied]= NEW_N(char, strlen(list[i])+1,"Allocating Name in get_app_parameter_names");      
 			strcpy(names[num_copied],list[i]);
 			num_copied++;
 		}
 	}
+   htable_delete_wildcard_list(count,list);
 	free(list);
 }
 

@@ -421,7 +421,11 @@ typedef struct _mili_family
    int root_len;
    char *path;
    char *file_root;
+   char *aFile;
    char access_mode;
+   int num_procs;
+   int post_modified;
+   int visit_file_on;
    Database_type db_type;
    int lock_file_descriptor;
    int st_suffix_width;
@@ -644,6 +648,8 @@ Return_value dump_param( Mili_family *fam, FILE *p_f,
                          int head_indent, int body_indent );
 
 /* util.c - utility routines. */
+int
+find_proc_count(Famid fam_id);
 void tab( int qty );
 Return_value parse_int_list( char *list_string, int *count, int **iarray );
 int str_dup( char **dest, char *src );
@@ -687,6 +693,7 @@ Return_value delete_svar_with_ios( Svar *psv, IO_mem_store *pcioms,
 void Mset_hash_dump_( int *compress );
 
 /* srec.c - routines for managing state record descriptors. */
+Return_value update_static_map(Famid fam_id,State_descriptor* p_sd);
 Return_value commit_srecs( Mili_family *fam );
 void delete_srecs( Mili_family *fam );
 void delete_subrec( void *ptr_subrec );

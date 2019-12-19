@@ -70,7 +70,7 @@ typedef int Famid;
 #include "mili_enum.h"
 
 #ifndef MILI_VERSION
-#define MILI_VERSION "V16_01"
+#define MILI_VERSION "V19_02"
 #endif
 
 #if defined(_WIN32) || defined(WIN32)
@@ -260,7 +260,7 @@ typedef struct _subrecord
    int *surface_variable_flag;
 } Subrecord;
 
-/* Obj Group */
+/* Obj Group *
 typedef struct _objgroup
 {
    char   *group_name;
@@ -280,8 +280,8 @@ typedef struct _objgroup
    int    **pointsVertex;
    int    *facesNormal;
 } ObjGroup;
-
-/* Obj top-level */
+*/
+/* Obj top-level *
 typedef struct _objdef
 {
    char *obj_name;
@@ -289,7 +289,7 @@ typedef struct _objdef
    char **group_names;
    ObjGroup *groups;
 } ObjDef;
-
+*/
 /* Mili version */
 /* const char *mili_version; */
 
@@ -1689,16 +1689,6 @@ mc_silo_ti_enable_only(  Famid fam_id ) ;
  *****************************************************************
  */
 
-
-/*
- * Obj File functions.
- */
-int
-mc_OBJ_read(       /* Load an OBJ file into memory */
-   char *fname,   /* Name of OBJ file to load */
-   int group,     /* Group number (-1 if all groups) */
-   ObjDef **obj);
-
 int
 mc_calc_bytecount(
    int datatype,
@@ -1786,6 +1776,29 @@ int *global_ids,
 int *local_ids ,
 int total_count);
 
+/*
+ *  Functions from util.c
+ */
+char *
+mc_determine_naming( char *p_name , State_variable *p_sv);
+
+/**
+ *  Functions for writing Makemili files
+ */
+int 
+mc_activate_visit_file(Famid fam_id, 
+                       int on_off_switch);
+int 
+mc_update_global_times(Famid database_id);
+
+int
+mc_write_global_metadata(Famid database_id);
+
+int 
+mc_update_visit_file(Famid database_id);
+
+Return_value
+mc_write_mili_metadata(Famid database_id);
 /******************** Temporary ***********************/
 
 /*

@@ -79,7 +79,8 @@ c    mc_query_family
 c    mc_get_class_info
 c    mc_get_simple_class_info
 c    mc_set_buffer_qty
-
+c    mc_write_global_metadata
+c    mc_activate_visit_file
 
 c.....MILI Fortran API
 
@@ -137,6 +138,9 @@ c     mf_query_family           Query information about contents of a family
 c     mf_get_class_info         Get name and size of an mesh object class
 c     mf_get_simple_class_info  Get name and start/stop idents of a mesh class
 c     mf_set_buffer_qty         Set quantity of input buffers for object classes
+c     mf_write_global_metadata  Update the global .mili JSON file.
+c     mf_update_global_times    Updates the time within a global JSON file.
+c     mf_activate_visit_file    Turn on and off the visit output 1 on, 0 off
 c 
 c TI Functions
 c
@@ -214,6 +218,9 @@ c  FORTRAN/C calling convention stuff...  More in wrap_c.c.
 #define mc_get_simple_class_info mc_get_simple_class_info_
 #define mc_set_buffer_qty mc_set_buffer_qty_
 #define mc_get_metadata mc_get_metadata_
+#define mc_write_global_metadata mc_write_global_metadata_
+#define mc_update_global_times mc_update_global_times_
+#define mc_activate_visit_file mc_activate_visit_file_
 
 c Labels
 #define mc_def_conn_labels  mc_def_conn_labels_
@@ -272,6 +279,22 @@ c ************************************************************************
       return
       end
       
+      subroutine mf_activate_visit_file( fam_id, on_off, rval )
+      
+      implicit none
+      
+      integer fam_id
+      integer on_off
+      integer rval 
+      
+      external mc_activate_visit_file
+      integer mc_activate_visit_file 
+      
+      rval = mc_activate_visit_file( fam_id, on_off)
+      
+      return
+      end
+      
       subroutine mf_open( root_name, path, mode, fam_id, rval )
 
       implicit none
@@ -309,8 +332,39 @@ c ************************************************************************
 
       return
       end
-
-
+      
+      
+      subroutine mf_update_global_times( fam_id, rval)
+      
+      implicit none
+      
+      integer fam_id
+      integer rval
+      
+      external mc_update_global_times
+      integer mc_update_global_times
+      
+      rval = mc_update_global_times(fam_id)
+      
+      return
+      
+      end 
+       
+      subroutine mf_write_global_metadata( fam_id, rval)
+      
+      implicit none
+      
+      integer fam_id
+      integer rval
+      
+      external mc_write_global_metadata
+      integer mc_write_global_metadata
+      
+      rval = mc_write_global_metadata( fam_id )
+      
+      return
+      
+      end  
 
 
       subroutine mf_close( fam_id, rval )

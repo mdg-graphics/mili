@@ -430,7 +430,10 @@ read_htable_array(Famid fam_id, char *name, void **p_data,
    
    table = fam->param_table;
    status = htable_search( table, name,FIND_ENTRY, &phte ); 
-   
+   if(status !=OK)
+   {
+      return status; 
+   }
    next = phte;
    
    while(next){

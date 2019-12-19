@@ -35,9 +35,9 @@
 #############################################################################
 
 m4_define(MILI_NAME_M4, Mili)
-m4_define(MILI_VERSION_M4, V18_01)
-m4_define(MILI_DATE_M4, 08/20/2018)
-m4_define(MILI_TIME_M4, 09:00:00)
+m4_define(MILI_VERSION_M4, V19_02)
+m4_define(MILI_DATE_M4, 12/19/2019)
+m4_define(MILI_TIME_M4, 08:00:00)
 m4_define(MILI_DATETIME_M4, [MILI_DATE_M4 MILI_TIME_M4])
 m4_define(MILI_BUGS_M4,durrenberger1@llnl.gov)
 m4_define(MILI_TOP_SRC_DIR_M4, `pwd`)
@@ -47,7 +47,7 @@ AC_INIT([MILI_NAME_M4],[MILI_VERSION_M4],[MILI_BUGS_M4],[MILI_NAME_M4])
 MILI_VERSION=MILI_VERSION_M4
 AC_SUBST([MILI_VERSION])
 
-AC_REVISION($Revision: 1.32 $)
+AC_REVISION($Revision: 1.37 $)
 
 
 AC_PREREQ(2.63)

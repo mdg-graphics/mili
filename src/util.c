@@ -49,7 +49,7 @@
 #include <windows.h>   //this will give us tchar.h
 #include <stdio.h>
 #endif
-
+#include <dirent.h>
 #include <string.h>
 #include <ctype.h>
 #include "mili_internal.h"
@@ -93,6 +93,228 @@ extern int fam_array_length;
 extern Bool_type milisilo;
 
 static void to_base26( int num, Bool_type upper, char *base26_rep );
+
+
+
+/************************************************************
+ * TAG( determine_naming )
+ * 
+ * Determine if the es_ naming is a stress or strain.
+ *
+ * Return NULL if it is not a full set of the required parameters.
+ *
+ */
+char *
+mc_determine_naming( char *p_name , State_variable *p_sv)
+{
+   char *stresses[]={"sx","sy","sz","sxy","szx","syz"};
+   char *strains[]={"ex","ey","ez","exy","ezx","eyz"};
+   int int_array[6]={0};
+   int i,j;
+   int valid;
+   char *return_value = NULL;
+   
+   if(p_sv->agg_type != VEC_ARRAY && p_sv->agg_type != VECTOR)
+   {
+       return NULL;
+   }
+   if(!strcmp(p_name,"strain") || !strcmp(p_name,"stress"))
+   {
+       return NULL;
+   }
+   /*lets check stresses first*/
+   for(i=0;i<6;i++)
+   {
+      for(j=0;j<p_sv->vec_size;j++)
+      {
+          if(!int_array[i] && 
+             !strcmp(stresses[i],p_sv->components[j]))
+          {
+              int_array[i] = 1;
+              break;
+          }
+      }
+   }
+   
+   valid = 1;
+   
+   for(i=0;i<6;i++)
+   {
+       if(!int_array[i])
+       {
+         valid = 0;
+       }
+   }
+   
+   if(valid)
+   {
+       return_value = (char*)malloc(7);
+       strcpy(return_value,"stress");
+       return return_value;   
+   }
+   
+   /* Well we might as well check for strains if we made it this far. */
+   for(i=0;i<6;i++)
+   {
+       int_array[i]=0;
+   }
+   
+   for(i=0;i<6;i++)
+   {
+      for(j=0;j<p_sv->vec_size;j++)
+      {
+          if(!strcmp(strains[i],p_sv->components[j]))
+          {
+              int_array[i] = 1;
+              break;
+          }
+      }
+   }
+   
+   valid = 1;
+   
+   for(i=0;i<6;i++)
+   {
+       if(!int_array[i])
+       {
+         valid = 0;
+       }
+   }
+   
+   if(valid)
+   {
+       return_value = (char*)malloc(7);
+       strcpy(return_value,"strain");
+       return return_value;   
+   }
+   
+   return NULL;
+}
+
+/************************************************************
+ * TAG( find_proc_count )
+ *
+ * This function is to get the number of processor for family 
+ * that is being opened.  This was mainly added for backward 
+ * compatibility for plot files that do not contain the parameter
+ * nproc which Mili checks for now as part of the startup process.
+ *
+ */
+int
+find_proc_count(Famid fam_id)
+{
+    DIR *dirp;
+    struct dirent   *entry;
+    int start_check;
+    int found_A = 0;
+    Mili_family *family;
+    int rval;
+    int ptr,
+        cptr,
+        count = 0;
+    int multifiles_found = 0;
+    int single_file = 0;
+    int numbers=0;
+    
+    rval = validate_fam_id( fam_id );
+    
+    if ( rval != OK )
+    {
+        return rval;
+    }
+    
+    family = fam_list[fam_id];
+	
+    //Just make sure if the database does have the nproc
+    //then we do not need to go through everything else.
+    rval = mc_read_scalar( fam_id, "nproc", &count );
+    if(rval == OK)
+    {
+        return count;
+    }
+    
+    if((dirp = opendir(family->path)) == NULL) {
+        
+        return -1;
+    }
+    
+    cptr = strlen(family->file_root);
+    
+    do{
+        if((entry = readdir(dirp)) != NULL) 
+        {
+            if ((strcmp(entry->d_name, ".")== 0) ||
+                (strcmp(entry->d_name, "..") == 0)) {
+                    continue;
+            }
+            
+            ptr = strlen(entry->d_name);
+        
+            if ((strncmp(family->file_root,entry->d_name,strlen(family->file_root)) ==0))
+            {
+                
+                if(!(entry->d_name[ptr-1]== 'A'))
+                {
+                    continue;
+                }
+                
+                //We need to check on a few different scenarios
+                
+                //Let's see if this is just a single file.
+                if(ptr == cptr+1)
+                {
+                    count++;
+                    found_A=1;
+                    single_file = 1;
+                    continue;
+                }
+                
+                // If it was not a single file then check that the next 
+                // letter is a digit
+                if(!(entry->d_name[cptr]>='0' && entry->d_name[cptr]<='9'))
+                {
+                    continue;
+                }
+                
+                //Check for how many processor files.           
+		        for(start_check = strlen(family->file_root); start_check< strlen(entry->d_name) && !found_A; start_check++)
+                {
+			        if(entry->d_name[start_check] == 'A' && start_check == strlen(entry->d_name)-1 )
+                    {
+				        
+                        found_A=1;
+			        }
+			
+			        if(entry->d_name[start_check]>='0' && entry->d_name[start_check]<='9')
+                    {
+                        numbers++;
+			        }
+		        }
+		        if(found_A && numbers>0)
+                {
+      	            count++;
+                    multifiles_found=1;
+                    found_A = 0;
+		        }
+            }
+            numbers =0;
+        }
+        
+        
+        
+    
+    }while(entry != NULL);
+    
+    if(multifiles_found && single_file)
+    {
+        count--;
+    }else if(single_file && count>1)
+    {
+        //This should not happen
+        count =1;
+    }
+    return count;
+}
 
 /*****************************************************************
  * TAG( get_mili_version ) PRIVATE
@@ -2060,6 +2282,14 @@ mc_print_error( char *preamble, int rval )
          break;
       case (int)SVAR_VEC_ARRAY_ORG_MISMATCH:
          fprintf( stderr, "%sMili - Cannot combine Vector Arrays with Result Order Subrecord.\n",
+                  pre );
+         break;
+      case (int)INVALID_VISIT_JSON_FILE:
+         fprintf( stderr, "%sMili - Cannot Unable to open  the json formatted .mili file.\n",
+                  pre );
+         break;
+      case (int)NO_A_FILE_FOR_STATEMAP:
+         fprintf( stderr, "%sMili - The A file to output state map info is missing.\n",
                   pre );
          break;
       default:

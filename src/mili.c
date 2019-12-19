@@ -278,7 +278,16 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    {
       return ALLOC_FAILED;
    }
-
+   //The plus 3 is for the path separator, 'A' and null terminator
+   fam->aFile = malloc(strlen(fam->root)+strlen(fam->path)+3);
+   if(fam->aFile == NULL)
+   {
+       return ALLOC_FAILED;
+   }
+   
+   fam->aFile[0] ='\0';
+   strcat(fam->aFile,fam->root);
+   strcat(fam->aFile,"A");
    /* If control string is old format, map into new format. */
    if ( !match_old_control_string_format( control_string, &ctl_str ) )
    {
@@ -319,6 +328,7 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    fam->state_closed = 0;
    fam->hide_states = FALSE;
    fam->state_dirty = 0;
+   fam->visit_file_on = 0;
    /* State data file pointer. */
    fam->cur_st_file = NULL;
 
@@ -550,11 +560,7 @@ mc_open( char *root_name, char *path, char *control_string, Famid *p_fam_id )
       fam->pid = (long) getpid();
 #endif
       *p_fam_id = fam_id;
-      if(fam->access_mode != 'r')
-      {
-        wrt_flag = 1;
-        mc_wrt_scalar(fam_id,M_INT,"OPEN_FOR_WRITE",(void*)&wrt_flag);
-      }
+      
       return OK;
       
    }
@@ -1277,9 +1283,14 @@ open_family( Famid fam_id )
    if(status != OK){
       fam->bytes_per_file_limit=0;
    }
-
+   
    status = OK;
-
+   status = mc_read_scalar( fam_id, "post_modified",
+                            &fam->post_modified);
+   if(status != OK){
+      fam->post_modified=0;
+   }
+   status = OK;
    /* With directory (and param table) loaded, get fam->states_per_file. */
    if(!fam->hide_states)
    {
@@ -1300,7 +1311,20 @@ open_family( Famid fam_id )
          return status;
       }
    }
-
+   
+   status = mc_read_scalar( fam_id, "nproc", &fam->num_procs );
+   if (status != OK)
+   {
+      fam->num_procs = find_proc_count(fam_id);
+      if(fam->num_procs <1)
+      {
+        return status;
+      }else
+      {
+         status = OK;
+      }
+   }
+   
    if ( fam->access_mode == 'a' && fam->st_file_count > 0 )
    {
       /*
@@ -1411,8 +1435,6 @@ load_descriptors( Mili_family *fam )
    stop1 = clock();
    cumalative1 =((double)(stop1 - start1))/CLOCKS_PER_SEC;
    printf("Function load_srec_formats() Opening time is: %f\n",cumalative1);
-#endif
-#if TIMER
    stop = clock();
    cumalative =((double)(stop - start))/CLOCKS_PER_SEC;
    printf("Function load_descriptors()\nOpening time is: %f\n",cumalative);
@@ -1728,6 +1750,7 @@ create_family( Mili_family *fam )
    fam->partition_scheme = DEFAULT_PARTITION_SCHEME;
    fam->states_per_file  = 0;
    fam->bytes_per_file_limit   = 0;
+   fam->post_modified = 0;
 
    fam->st_file_count = 0;
    fam->file_count = 0;
@@ -2133,6 +2156,12 @@ mc_init_metadata( Famid fam_id )
    {
       return rval;
    }
+   
+   mc_wrt_scalar(fam_id,M_INT,"post_modified",(void*)&(fam->post_modified));
+   if (rval != OK)
+   {
+      return rval;
+   }
    /* Host name and OS type. */
 #if defined(_WIN32) || defined(WIN32)
    sprintf( nambuf, "windows_machine");
@@ -2263,10 +2292,7 @@ mc_close( Famid fam_id )
    }
 
    fam = fam_list[fam_id];
-   if(fam->access_mode != 'r')
-   {
-        mc_wrt_scalar(fam_id,M_INT,"OPEN_FOR_WRITE",(void*)&wrt_flag);
-   }
+   
    /*
     * Reset the non-state file count to 1 for taurus databases.
     * There may be more than one physical file for all the non-state
@@ -3161,6 +3187,7 @@ cleanse( Mili_family *fam )
    free( fam->char_header );
    free( fam->path );
    free( fam->file_root );
+   free( fam->aFile);
 
    if ( fam->file_map != NULL )
    {

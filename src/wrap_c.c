@@ -114,6 +114,8 @@
 #define mc_get_simple_class_info_   MC_GET_SIMPLE_CLASS_INFO
 #define mc_set_buffer_qty_          MC_SET_BUFFER_QTY
 #define mc_read_param_array_        MC_READ_PARAM_ARRAY
+#define mc_write_global_metadata_   MC_WRITE_GLOBAL_METADATA
+#define mc_update_global_times_     MC_UPDATE_GLOBAL_TIMES
 
 /************************************************************************
  *
@@ -220,6 +222,8 @@
 #define mc_ti_read_array_          MC_TI_READ_ARRAY
 #define mc_ti_get_metadata_        MC_TI_GET_METADATA
 #define mc_ti_check_arch_          MC_TI_CHECK_ARCH
+#define mc_write_global_metadata_  MC_WRITE_GLOBAL_METADATA
+#define mc_update_global_times_    MC_UPDATE_GLOBAL_TIMES
 
 #endif
 
@@ -287,6 +291,10 @@
 #define mc_get_simple_class_info_   MC_GET_SIMPLE_CLASS_INFO
 #define mc_set_buffer_qty_          MC_SET_BUFFER_QTY
 #define mc_read_param_array_        MC_READ_PARAM_ARRAY
+#define mc_update_visit_file_       MC_UPDATE_VISIT_FILE
+#define mc_write_global_metadata_   MC_WRITE_GLOBAL_METADATA
+#define mc_update_global_times_     MC_UPDATE_GLOBAL_TIMES
+#define mc_activate_visit_file_     MC_ACTIVATE_VISIT_FILE
 
 /************************************************************************
  *
@@ -365,6 +373,7 @@
 #define mc_set_buffer_qty_          MC_SET_BUFFER_QTY_
 #define mc_read_param_array_        MC_READ_PARAM_ARRAY_
 #define mc_get_metadata_            MC_GET_METADATA_   /* JAL */
+#define mc_write_global_metadata_   MC_WRITE_GLOBAL_METADATA_
 
 #define mc_ti_undef_class_         MC_TI_UNDEF_CLASS_
 #define mc_ti_def_class_           MC_TI_DEF_CLASS_
@@ -399,6 +408,8 @@
 #define mc_def_conn_seq_labels_global_ids_     MC_DEF_CONN_SEQ_LABELS_GLOBAL_IDS_
 #define mc_def_seq_labels_                     MC_DEF_SEQ_LABELS_
 #define mc_def_global_ids_                     MC_DEF_GLOBAL_IDS_
+#define mc_update_visit_file_                  MC_UPDATE_VISIT_FILE_
+#define mc_update_global_times_                MC_UPDATE_GLOBAL_TIMES_
 
 #endif
 
@@ -426,6 +437,11 @@ mc_end_state_( Famid *fam_id , int *srec_id )
    return mc_end_state(*fam_id, *srec_id);
 }
 
+Return_value
+mc_activate_visit_file_( Famid *fam_id , int *on_off_switch )
+{
+   return mc_activate_visit_file(*fam_id, *on_off_switch);
+}
          
 Return_value
 mc_open_( CHAR_DESCR param_root, CHAR_DESCR param_path,
@@ -440,6 +456,17 @@ mc_open_( CHAR_DESCR param_root, CHAR_DESCR param_path,
    return mc_open( c_param_root, c_param_path, c_param_mode, fam_id );
 }
 
+Return_value
+mc_update_global_times_( Famid *fam_id )
+{
+   return mc_update_global_times( *fam_id );
+}
+
+Return_value
+mc_write_global_metadata_( Famid *fam_id )
+{
+   return mc_write_global_metadata( *fam_id );
+}
 
 Return_value
 mc_close_( Famid *fam_id )
@@ -447,6 +474,11 @@ mc_close_( Famid *fam_id )
    return mc_close( *fam_id );
 }
 
+Return_value
+mc_update_visit_file_( Famid *fam_id)
+{
+   return mc_update_visit_file(*fam_id);
+}
 
 void
 mc_filelock_enable_( void )

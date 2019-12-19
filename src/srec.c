@@ -132,8 +132,51 @@ static Return_value set_metrics( Mili_family *fam, int data_org,
 static Return_value get_start_index( Mili_family *fam );
 static Return_value truncate_family( Mili_family *p_fam, int st_index );
 static int find_file_index(Famid fam_id,int *global_state_index);
-static Return_value make_srec( Mili_family *fam, int mesh_id, int *srec_id );
 static int svar_atom_qty( Svar *p_svar );
+
+
+/*****************************************************************
+ * TAG( make_srec ) LOCAL
+ *
+ * Create an uninitialized state record descriptor.
+ */
+static Return_value
+make_srec( Mili_family *fam, int mesh_id, int *srec_id )
+{
+   Srec *p_sr;
+   Return_value rval;
+
+   /*
+    * Grow arrays to hold a pointer to the new srec descriptor
+    * and a pointer to its associated mesh descriptor.
+    */
+   fam->srecs = RENEW_N( Srec *, fam->srecs, fam->qty_srecs, 1,
+                         "Srec pointer" );
+   fam->srec_meshes = RENEW_N( Mesh_descriptor *, fam->srec_meshes,
+                               fam->qty_srecs, 1, "Srec mesh pointer" );
+
+   /* Allocate the state record descriptor. */
+   p_sr = NEW( Srec, "State record format" );
+
+   if (fam->srecs != NULL && fam->srec_meshes != NULL && p_sr != NULL)
+   {
+      /* Store addresses of the srec descriptor and its mesh descriptor. */
+      fam->srecs[fam->qty_srecs] = p_sr;
+      fam->srec_meshes[fam->qty_srecs] = fam->meshes[mesh_id];
+
+      /* Ident is just the (previous) count. */
+      *srec_id = fam->qty_srecs;
+      fam->qty_srecs++;
+      rval = OK;
+   }
+   else
+   {
+      rval = ALLOC_FAILED;
+   }
+
+   return rval;
+}
+
 
 
 /*****************************************************************
@@ -186,47 +229,6 @@ mc_open_srec( Famid fam_id, int mesh_id, int *p_srec_id )
 }
 
 
-/*****************************************************************
- * TAG( make_srec ) LOCAL
- *
- * Create an uninitialized state record descriptor.
- */
-static Return_value
-make_srec( Mili_family *fam, int mesh_id, int *srec_id )
-{
-   Srec *p_sr;
-   Return_value rval;
-
-   /*
-    * Grow arrays to hold a pointer to the new srec descriptor
-    * and a pointer to its associated mesh descriptor.
-    */
-   fam->srecs = RENEW_N( Srec *, fam->srecs, fam->qty_srecs, 1,
-                         "Srec pointer" );
-   fam->srec_meshes = RENEW_N( Mesh_descriptor *, fam->srec_meshes,
-                               fam->qty_srecs, 1, "Srec mesh pointer" );
-
-   /* Allocate the state record descriptor. */
-   p_sr = NEW( Srec, "State record format" );
-
-   if (fam->srecs != NULL && fam->srec_meshes != NULL && p_sr != NULL)
-   {
-      /* Store addresses of the srec descriptor and its mesh descriptor. */
-      fam->srecs[fam->qty_srecs] = p_sr;
-      fam->srec_meshes[fam->qty_srecs] = fam->meshes[mesh_id];
-
-      /* Ident is just the (previous) count. */
-      *srec_id = fam->qty_srecs;
-      fam->qty_srecs++;
-      rval = OK;
-   }
-   else
-   {
-      rval = ALLOC_FAILED;
-   }
-
-   return rval;
-}
 
 
 /*****************************************************************
@@ -265,8 +267,9 @@ mc_close_srec( Famid fam_id, int srec_id )
       /* Indicate there's data ready for output. */
       fam->non_state_ready = TRUE;
    }
-
-   return OK;
+   
+   return mc_write_mili_metadata(fam_id);
+   
 }
 
 
@@ -3143,20 +3146,18 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
    int header[QTY_DIR_HEADER_FIELDS];
    int cur_state;
    FILE *fp = NULL; 
-   char fname[256]; 
    
    int file,srec_id;
    LONGLONG file_offset;
    float time;
    int file_count=-1;
    offset = 0;
+   char fname[1024]; 
    
-   fname[0] ='\0';
-   strcat(fname,fam->root);
-   strcat(fname,"A");
-
+   strcpy(fname,fam->aFile);
+   
    p_fmap = &fam->file_map;
-   if(fam->access_mode = 'r')
+   if(fam->access_mode == 'r')
    {
       fp = fopen(fname,"rb");
    }else
@@ -3169,12 +3170,14 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
       if ( status != 0 )
       {
          fclose(fp);
+         free(fname);
          return SEEK_FAILED;
       }
       nitems = fam->read_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
       if ( nitems != QTY_DIR_HEADER_FIELDS )
       {
          fclose( fp );
+         free(fname);
          return BAD_LOAD_READ;
       }
       state_count = header[QTY_STATES_IDX];
@@ -3184,6 +3187,7 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
       if ( status != 0 )
       {
          fclose(fp);
+         free(fname);
          return SEEK_FAILED;
       }
       fam->state_map = NEW_N(State_descriptor,state_count,"State map descriptors");
@@ -3235,27 +3239,27 @@ update_static_map(Famid fam_id,State_descriptor* p_sd) {
    int header[QTY_DIR_HEADER_FIELDS];
    Return_value rval = OK; 
    FILE *fp = NULL;
-   char fname[256]; 
-   fname[0] ='\0';
-   strcat(fname,fam->root);
-   strcat(fname,"A");
+   char fname[1024]; 
+   
+   strcpy(fname,fam->aFile);
    
    fp = fopen(fname,"r+b");
 
    if(fp)
    {
-      /*fprintf(stderr,"Opened the file %s\n",fname);*/
       offset = -(QTY_DIR_HEADER_FIELDS) * EXT_SIZE( fam, M_INT );
       status = fseek( fp, offset, SEEK_END );
       if ( status != 0 )
       {
          fclose(fp);
+         free(fname);
          return SEEK_FAILED;
       }
       nitems = fam->read_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
       if ( nitems != QTY_DIR_HEADER_FIELDS )
       {
          fclose( fp );
+         free(fname);
          return BAD_LOAD_READ;
       }
       header[QTY_STATES_IDX]++;
@@ -3271,9 +3275,13 @@ update_static_map(Famid fam_id,State_descriptor* p_sd) {
       fclose(fp);
       if (num_written != QTY_DIR_HEADER_FIELDS)
       {
+         free(fname);
          return SHORT_WRITE;
       }
       mc_wrt_scalar(fam_id,M_INT,"state_count",(void*)&header[QTY_STATES_IDX]);
+   }else
+   {
+       rval = NO_A_FILE_FOR_STATEMAP;
    }
    
    return rval;
@@ -3307,10 +3315,14 @@ mc_end_state( Famid fam_id, int srec_id)
       fam->state_dirty = 0;
       if(!(fam->state_closed) && state_qty >0){
          p_sd = fam->state_map + (state_qty-1);
-         update_static_map(fam_id,p_sd);
+         rval =  update_static_map(fam_id,p_sd);
       }
    }
-   fam->state_closed = 1;
+   if(rval == OK)
+   {
+       fam->state_closed = 1;
+       mc_update_visit_file(fam_id);
+   }
    return rval;
 }
 /*****************************************************************
@@ -3387,7 +3399,11 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
       if(!(fam->state_closed) && state_qty >0)
       {
          p_sd = fam->state_map + (state_qty-1);
-         update_static_map(fam_id,p_sd);
+         rval = update_static_map(fam_id,p_sd);
+         if(rval)
+         {
+            return rval;
+         }
       }
    }
    
@@ -4424,7 +4440,7 @@ dump_state_rec_data( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
          free(c_data);
          return rval;
       }
-      printf( cbuf );
+      printf( "%s",cbuf );
       ADVANCE_STRING( subrec_c_data, cbound );
       left = 75 - (int) strlen( cbuf );
       vcnt = 1;
