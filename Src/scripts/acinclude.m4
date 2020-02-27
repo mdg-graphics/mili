@@ -204,28 +204,7 @@ AC_DEFUN([CONFIGURE_GPROF],
         fi
   ])
 
-AC_DEFUN([CONFIGURE_BITMAPS],
-  [       
-        #
-        # Set options for Bitmaps
-        #
 
-        BITMAPS_HOME=".."
-
-        AC_ARG_WITH([bitmaps],
-               AC_HELP_STRING(
-	            [--with-bitmaps=[PATH]],
-                    [Use given base PATH for BITMAPS files]),
-	            BITMAPS_HOME="${withval}" &&
-	            AC_MSG_RESULT("Using BITMAPS Path : $withval")
-	           )
-
-        BITMAPS_INCLUDE_PATHS="-I$BITMAPS_HOME"
-
-        # Bitmaps Options
-        AC_SUBST(BITMAPS_HOME)
-        AC_SUBST(BITMAPS_INCLUDE_PATHS)
-  ])
 
 AC_DEFUN([CONFIGURE_HERSHEY],
   [       
@@ -1272,7 +1251,7 @@ AC_DEFUN([CONFIGURE_DIRS],
 	LIB_DIRS=""
 	EXT_DIRS=""
 	SRC_DIRS=""
-	MISC_DIRS="Bitmaps HersheyLib/data HersheyLib/fonts HersheyLib/hfonts"
+	MISC_DIRS="HersheyLib/data HersheyLib/fonts HersheyLib/hfonts"
 	MAKEFILES=""
         #
         # Setup JPEG

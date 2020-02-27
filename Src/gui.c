@@ -185,7 +185,7 @@
 
 #include "GL/gl.h"
 #include "GL/glx.h"
-#include "image.h"
+//#include "image.h"
 #include "viewer.h"
 #include "draw.h"
 #include "results.h"

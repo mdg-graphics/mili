@@ -649,8 +649,6 @@ IMAGE_INCLUDE_PATHS
 IMAGE_LIBRARY_PATHS
 IMAGE_LIBRARY
 IMAGE_HOME
-BITMAPS_INCLUDE_PATHS
-BITMAPS_HOME
 SET_OSMESA
 NO_MESA_X11_LIBS
 BATCH_DEFINES
@@ -816,7 +814,6 @@ enable_kw
 with_kw
 with_x
 with_mesa
-with_bitmaps
 with_image
 with_hershey
 with_hershey_fonts
@@ -1473,7 +1470,6 @@ Optional Packages:
 			  --with-mesa=PATH        Use given base PATH for MESA libraries and header
                           files
 
-  --with-bitmaps=PATH     Use given base PATH for BITMAPS files
   --with-image=PATH       Use given base PATH for IMAGE libraries and header
                           files
   --with-hershey=PATH     Use given base PATH for HERSHEY libraries and header
@@ -2650,7 +2646,7 @@ CONFIG_CMD="configure $@"
 $as_echo "#define PACKAGE_NAME \"Griz4\"" >>confdefs.h
 
 
-$as_echo "#define PACKAGE_DATE \"10/01/2019\"" >>confdefs.h
+$as_echo "#define PACKAGE_DATE \"02/25/2019\"" >>confdefs.h
 
 
 $as_echo "#define PACKAGE_TIME \"07:00:00\"" >>confdefs.h
@@ -2665,7 +2661,7 @@ $as_echo "#define GRIZ_MINOR \"1\"" >>confdefs.h
 $as_echo "#define GRIZ_BUG \"0\"" >>confdefs.h
 
 
-$as_echo "#define PACKAGE_DATETIME \"10/01/2019 07:00:00\"" >>confdefs.h
+$as_echo "#define PACKAGE_DATETIME \"02/25/2019 07:00:00\"" >>confdefs.h
 
 
 $as_echo "#define PACKAGE_BUGREPORT_ALT \"\"" >>confdefs.h
@@ -4344,7 +4340,7 @@ $as_echo "#define HAVE_MILI 1" >>confdefs.h
 	LIB_DIRS=""
 	EXT_DIRS=""
 	SRC_DIRS=""
-	MISC_DIRS="Bitmaps HersheyLib/data HersheyLib/fonts HersheyLib/hfonts"
+	MISC_DIRS="HersheyLib/data HersheyLib/fonts HersheyLib/hfonts"
 	MAKEFILES=""
         #
         # Setup JPEG
@@ -7525,30 +7521,6 @@ $as_echo "$as_me: WARNING: Unknown compiler" >&2;};;
       esac
       ;;
 esac
-
-
-        #
-        # Set options for Bitmaps
-        #
-
-        BITMAPS_HOME=".."
-
-
-# Check whether --with-bitmaps was given.
-if test "${with_bitmaps+set}" = set; then :
-  withval=$with_bitmaps; BITMAPS_HOME="${withval}" &&
-	            { $as_echo "$as_me:${as_lineno-$LINENO}: result: \"Using BITMAPS Path : $withval\"" >&5
-$as_echo "\"Using BITMAPS Path : $withval\"" >&6; }
-
-fi
-
-
-        BITMAPS_INCLUDE_PATHS="-I$BITMAPS_HOME"
-
-        # Bitmaps Options
-
-
-
 
 
         #
