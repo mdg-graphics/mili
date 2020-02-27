@@ -32,9 +32,6 @@
 #include "viewer.h"
 #include "cell_cases.h"
 
-static Bool_type is_degen_triangle( Triangle_poly *tri );
-static void hex_isosurface( float isoval, Subrec_obj *p_so,
-                            MO_class_data *p_hex_class, Analysis * analy );
 static void hex_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
                           float plane_pt[3], float plane_norm[3] );
 /*
@@ -45,7 +42,8 @@ static void tet_fine_cut( Analysis *analy, MO_class_data *p_elem_class,
 void
 particle_rough_cut( Analysis *analy, float *plane_ppt, float *norm, MO_class_data *p_particle_class,
                     GVec3D *nodes, unsigned char *particle_visib );
-
+static void hex_isosurface( float isoval, Subrec_obj *p_so,
+                            MO_class_data *p_hex_class, Analysis * analy );
 /*****************************************************************
  * TAG( is_degen_triangle )
  *

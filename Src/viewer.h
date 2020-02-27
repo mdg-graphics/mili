@@ -1872,7 +1872,7 @@ typedef struct
 
 extern Environ env;
 
-#define MAXTOKENS 200
+#define MAXTOKENS 2000
 #define TOKENLENGTH 100
 
 /* viewer.c */
