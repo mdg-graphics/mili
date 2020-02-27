@@ -42,8 +42,41 @@
 
 #include "viewer.h"
 
+/************************************************************
+ * TAG( transpose_tensors )
+ *
+ * Transpose the tensors in analy->tmp_result[0], storing a
+ * single component into a result array (used to transform
+ * all components back into analy->tmp_result[0...5]).
+ */
+static Bool_type
+transpose_tensors( int qty, Analysis *analy, float *res_array )
+{
+    int comp_idx, i;
+    float (*tens)[6];
+    char *name;
 
-static Bool_type transpose_tensors( int, Analysis *, float * );
+    name = analy->cur_result->name;
+
+    /*
+     * Hack to get the correct tensor component index (component name
+     * is one of sx, sy, sz, sxy, syz, szx, OR ex, ey, ez, exy, eyz, ezx,
+     * OR gamxy, gamyz, gamzx).
+     */
+    if ( name[0] == 'e' || name[0] == 's' )
+        comp_idx = (int) name[1] - (int) 'x' + (( name[2] ) ? 3 : 0);
+    else if ( strncmp( name, "gam", 3 ) == 0 )
+        comp_idx = (int) name[3] - (int) 'x' + 3;
+    else
+        return FALSE;
+
+    /* Extract the requested component into the result array. */
+    tens = (float (*)[6]) analy->tmp_result[0];
+    for ( i = 0; i < qty; i++ )
+        res_array[i] = tens[i][comp_idx];
+
+    return TRUE;
+}
 
 /************************************************************
  * TAG( hex_g2l_mtx )
@@ -411,39 +444,5 @@ transform_stress_strain( char **primals, int primal_index, Analysis *analy,
 }
 
 
-/************************************************************
- * TAG( transpose_tensors )
- *
- * Transpose the tensors in analy->tmp_result[0], storing a
- * single component into a result array (used to transform
- * all components back into analy->tmp_result[0...5]).
- */
-static Bool_type
-transpose_tensors( int qty, Analysis *analy, float *res_array )
-{
-    int comp_idx, i;
-    float (*tens)[6];
-    char *name;
 
-    name = analy->cur_result->name;
-
-    /*
-     * Hack to get the correct tensor component index (component name
-     * is one of sx, sy, sz, sxy, syz, szx, OR ex, ey, ez, exy, eyz, ezx,
-     * OR gamxy, gamyz, gamzx).
-     */
-    if ( name[0] == 'e' || name[0] == 's' )
-        comp_idx = (int) name[1] - (int) 'x' + (( name[2] ) ? 3 : 0);
-    else if ( strncmp( name, "gam", 3 ) == 0 )
-        comp_idx = (int) name[3] - (int) 'x' + 3;
-    else
-        return FALSE;
-
-    /* Extract the requested component into the result array. */
-    tens = (float (*)[6]) analy->tmp_result[0];
-    for ( i = 0; i < qty; i++ )
-        res_array[i] = tens[i][comp_idx];
-
-    return TRUE;
-}
 

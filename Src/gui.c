@@ -189,14 +189,6 @@
 #include "viewer.h"
 #include "draw.h"
 #include "results.h"
-/* Bitmaps. */
-#include "Bitmaps/GrizCheck"
-#include "Bitmaps/GrizStart"
-#include "Bitmaps/GrizStop"
-#include "Bitmaps/GrizLeftStop"
-#include "Bitmaps/GrizLeft"
-#include "Bitmaps/GrizRight"
-#include "Bitmaps/GrizRightStop"
 
 #ifdef xSERIAL_BATCHx
 #include <GL/gl_mangle.h>
@@ -205,6 +197,64 @@
 #define GRIZ_DATE    "                        Updated: " PACKAGE_DATE "\n"
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
+
+/* Define buttons for the utility panel*/
+
+#define GrizCheck_width 23
+#define GrizCheck_height 22
+static unsigned char GrizCheck_bits[] = {
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x03,
+   0x00, 0x80, 0x07, 0x00, 0x80, 0x07, 0x00, 0xc0, 0x0f, 0x00, 0xe0, 0x07,
+   0x00, 0xe0, 0x03, 0x20, 0xf0, 0x01, 0x70, 0xf0, 0x00, 0x78, 0x78, 0x00,
+   0xf8, 0x38, 0x00, 0xf0, 0x1c, 0x00, 0xe0, 0x1d, 0x00, 0xc0, 0x0d, 0x00,
+   0x80, 0x0f, 0x00, 0x00, 0x07, 0x00, 0x00, 0x07, 0x00, 0x00, 0x02, 0x00,
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+#define GrizButton_width 23
+#define GrizButton_height 17
+
+static unsigned char GrizLeft_bits[] = {
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x0f,
+   0x00, 0xe0, 0x0f, 0x00, 0xfc, 0x0f, 0x80, 0xff, 0x0f, 0xf0, 0xff, 0x0f,
+   0xfc, 0xff, 0x0f, 0xf0, 0xff, 0x0f, 0x80, 0xff, 0x0f, 0x00, 0xfc, 0x0f,
+   0x00, 0xe0, 0x0f, 0x00, 0x00, 0x0f, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00,
+   0x00, 0x00, 0x00};
+
+static unsigned char GrizLeftStop_bits[] = {
+   0x07, 0x00, 0x00, 0x07, 0x00, 0x00, 0x07, 0x00, 0x40, 0x07, 0x00, 0x78,
+   0x07, 0x00, 0x7f, 0x07, 0xe0, 0x7f, 0x07, 0xfc, 0x7f, 0x87, 0xff, 0x7f,
+   0xe7, 0xff, 0x7f, 0x87, 0xff, 0x7f, 0x07, 0xfc, 0x7f, 0x07, 0xe0, 0x7f,
+   0x07, 0x00, 0x7f, 0x07, 0x00, 0x78, 0x07, 0x00, 0x40, 0x07, 0x00, 0x00,
+   0x07, 0x00, 0x00};
+
+static unsigned char GrizRightStop_bits[] = {
+   0x00, 0x00, 0x70, 0x00, 0x00, 0x70, 0x01, 0x00, 0x70, 0x0f, 0x00, 0x70,
+   0x7f, 0x00, 0x70, 0xff, 0x03, 0x70, 0xff, 0x1f, 0x70, 0xff, 0xff, 0x70,
+   0xff, 0xff, 0x73, 0xff, 0xff, 0x70, 0xff, 0x1f, 0x70, 0xff, 0x03, 0x70,
+   0x7f, 0x00, 0x70, 0x0f, 0x00, 0x70, 0x01, 0x00, 0x70, 0x00, 0x00, 0x70,
+   0x00, 0x00, 0x70};
+
+static unsigned char GrizRight_bits[] = {
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x3c, 0x00, 0x00,
+   0xfc, 0x01, 0x00, 0xfc, 0x0f, 0x00, 0xfc, 0x7f, 0x00, 0xfc, 0xff, 0x03,
+   0xfc, 0xff, 0x0f, 0xfc, 0xff, 0x03, 0xfc, 0x7f, 0x00, 0xfc, 0x0f, 0x00,
+   0xfc, 0x01, 0x00, 0x3c, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
+   0x00, 0x00, 0x00};
+
+static unsigned char GrizStart_bits[] = {
+   0x07, 0x00, 0x00, 0x07, 0x00, 0x00, 0x27, 0x00, 0x00, 0xe7, 0x01, 0x00,
+   0xe7, 0x0f, 0x00, 0xe7, 0x7f, 0x00, 0xe7, 0xff, 0x03, 0xe7, 0xff, 0x1f,
+   0xe7, 0xff, 0x7f, 0xe7, 0xff, 0x1f, 0xe7, 0xff, 0x03, 0xe7, 0x7f, 0x00,
+   0xe7, 0x0f, 0x00, 0xe7, 0x01, 0x00, 0x27, 0x00, 0x00, 0x07, 0x00, 0x00,
+   0x07, 0x00, 0x00};
+
+static unsigned char GrizStop_bits[] = {
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03,
+   0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03,
+   0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03,
+   0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0x00, 0x00, 0x00,
+   0x00, 0x00, 0x00};
+
 
 /*
  * Global boolean to allow utility and material panels to be part of control window.
@@ -523,117 +573,6 @@ String fallback_resources[] =
 };
 
 static void load_colormap( Analysis *analy, char *colormap );
-
-#ifdef OLD_MENU_CODE
-/*
- * Menu buttons in results sub-menus.
- */
-
-static int share_btns[] =
-{
-    VAL_SHARE_SIGX,
-    VAL_SHARE_SIGY,
-    VAL_SHARE_SIGZ,
-    VAL_SHARE_SIGXY,
-    VAL_SHARE_SIGYZ,
-    VAL_SHARE_SIGZX,
-    VAL_SHARE_SIG_EFF,
-    VAL_SHARE_SIG_PD1,       /* 1st prinicipal deviatoric stress */
-    VAL_SHARE_SIG_PD2,       /* 2nd prinicipal deviatoric stress */
-    VAL_SHARE_SIG_PD3,       /* 3rd prinicipal deviatoric stress */
-    VAL_SHARE_SIG_MAX_SHEAR, /* Maximum shear stress */
-    VAL_SHARE_SIG_P1,        /* 1st principle stress */
-    VAL_SHARE_SIG_P2,        /* 2nd principle stress */
-    VAL_SHARE_SIG_P3,        /* 3rd principle stress */
-    VAL_SHARE_EPSX,
-    VAL_SHARE_EPSY,
-    VAL_SHARE_EPSZ,
-    VAL_SHARE_EPSXY,
-    VAL_SHARE_EPSYZ,
-    VAL_SHARE_EPSZX,
-    VAL_SHARE_EPS_EFF,
-    VAL_SHARE_PRESS,
-    VAL_ALL_END
-};
-
-static int hex_btns[] =
-{
-    VAL_HEX_RELVOL,        /* Relative volume */
-    VAL_HEX_SIG_P3,        /* 3rd principle stress */
-    VAL_HEX_EPS_PD1,       /* 1st prinicipal deviatoric strain */
-    VAL_HEX_EPS_PD2,       /* 2nd prinicipal deviatoric strain */
-    VAL_HEX_EPS_PD3,       /* 3rd prinicipal deviatoric strain */
-    VAL_HEX_EPS_MAX_SHEAR, /* Maximum shear strain */
-    VAL_HEX_EPS_P1,        /* 1st principle strain */
-    VAL_HEX_EPS_P2,        /* 2nd principle strain */
-    VAL_HEX_EPS_P3,        /* 3rd principle strain */
-    VAL_ALL_END
-};
-
-static int shell_btns[] =
-{
-    VAL_SHELL_RES1,        /* M_xx bending resultant */
-    VAL_SHELL_RES2,        /* M_yy bending resultant */
-    VAL_SHELL_RES3,        /* M_zz bending resultant */
-    VAL_SHELL_RES4,        /* Q_xx shear resultant */
-    VAL_SHELL_RES5,        /* Q_yy shear resultant */
-    VAL_SHELL_RES6,        /* N_xx normal resultant */
-    VAL_SHELL_RES7,        /* N_yy normal resultant */
-    VAL_SHELL_RES8,        /* N_zz normal resultant */
-    VAL_SHELL_THICKNESS,   /* Thickness */
-    VAL_SHELL_INT_ENG,     /* Internal energy */
-    VAL_SHELL_SURF1,       /* Surface stress ( taurus 34 ) */
-    VAL_SHELL_SURF2,       /* Surface stress ( taurus 35 ) */
-    VAL_SHELL_SURF3,       /* Surface stress ( taurus 36 ) */
-    VAL_SHELL_SURF4,       /* Surface stress ( taurus 37 ) */
-    VAL_SHELL_SURF5,       /* Surface stress ( taurus 38 ) */
-    VAL_SHELL_SURF6,       /* Surface stress ( taurus 39 ) */
-    VAL_SHELL_EFF1,        /* Effective upper surface stress */
-    VAL_SHELL_EFF2,        /* Effective lower surface stress */
-    VAL_SHELL_EFF3,        /* Maximum effective surface stress */
-    VAL_ALL_END
-};
-
-static int beam_btns[] =
-{
-    VAL_BEAM_AX_FORCE,     /* Axial force */
-    VAL_BEAM_S_SHEAR,      /* S shear resultant */
-    VAL_BEAM_T_SHEAR,      /* T shear resultant */
-    VAL_BEAM_S_MOMENT,     /* S moment */
-    VAL_BEAM_T_MOMENT,     /* T moment */
-    VAL_BEAM_TOR_MOMENT,   /* Torsional resultant */
-    VAL_BEAM_S_AX_STRN_P,  /* S axial strain (+) */
-    VAL_BEAM_S_AX_STRN_M,  /* S axial strain (-) */
-    VAL_BEAM_T_AX_STRN_P,  /* T axial strain (+) */
-    VAL_BEAM_T_AX_STRN_M,  /* T axial strain (-) */
-    VAL_ALL_END
-};
-
-static int node_btns[] =
-{
-    VAL_NODE_VELX,         /* Nodal X velocity */
-    VAL_NODE_VELY,         /* Nodal Y velocity */
-    VAL_NODE_VELZ,         /* Nodal Z velocity */
-    VAL_NODE_VELMAG,       /* Nodal velocity magnitude */
-    VAL_NODE_ACCX,         /* Nodal X acceleration */
-    VAL_NODE_ACCY,         /* Nodal Y acceleration */
-    VAL_NODE_ACCZ,         /* Nodal Z acceleration */
-    VAL_NODE_ACCMAG,       /* Nodal acceleration magnitude */
-    VAL_NODE_TEMP,         /* Nodal temperature */
-    VAL_NODE_DISPX,        /* Nodal X displacement */
-    VAL_NODE_DISPY,        /* Nodal Y displacement */
-    VAL_NODE_DISPZ,        /* Nodal Z displacement */
-    VAL_NODE_DISPMAG,      /* Nodal displacement magnitude */
-    VAL_NODE_PINTENSE,     /* Nodal pressure intensity */
-    VAL_NODE_HELICITY,     /* Nodal helicity */
-    VAL_NODE_ENSTROPHY,    /* Nodal enstrophy */
-    VAL_NODE_K,            /* Nodal k */
-    VAL_NODE_EPSILON,      /* Nodal epsilon */
-    VAL_NODE_A2,           /* Nodal a2 */
-    VAL_PROJECTED_VEC,     /* Projected vector magnitude */
-    VAL_ALL_END
-};
-#endif
 
 
 /* Material manager function button values. */
@@ -5149,7 +5088,7 @@ create_utility_panel( Widget main_widg )
 
     pixmap_leftstop = XCreatePixmapFromBitmapData( dpy,
                       RootWindow( dpy, DefaultScreen( dpy ) ), (char *)  GrizLeftStop_bits,
-                      GrizLeftStop_width, GrizLeftStop_height, fg, bg,
+                      GrizButton_width, GrizButton_height, fg, bg,
                       DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget(
                "first_state", xmPushButtonGadgetClass, util_state_ctl,
@@ -5163,7 +5102,7 @@ create_utility_panel( Widget main_widg )
 
     pixmap_left = XCreatePixmapFromBitmapData( dpy,
                   RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizLeft_bits,
-                  GrizLeft_width, GrizLeft_height, fg, bg,
+                  GrizButton_width, GrizButton_height, fg, bg,
                   DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget(
                "prev_state", xmPushButtonGadgetClass, util_state_ctl,
@@ -5177,7 +5116,7 @@ create_utility_panel( Widget main_widg )
 
     pixmap_right = XCreatePixmapFromBitmapData( dpy,
                    RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizRight_bits,
-                   GrizRight_width, GrizRight_height, fg, bg,
+                   GrizButton_width, GrizButton_height, fg, bg,
                    DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget(
                "next_state", xmPushButtonGadgetClass, util_state_ctl,
@@ -5191,7 +5130,7 @@ create_utility_panel( Widget main_widg )
 
     pixmap_rightstop = XCreatePixmapFromBitmapData( dpy,
                        RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizRightStop_bits,
-                       GrizRightStop_width, GrizRightStop_height, fg, bg,
+                       GrizButton_width, GrizButton_height, fg, bg,
                        DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget(
                "last_state", xmPushButtonGadgetClass, util_state_ctl,
@@ -5257,7 +5196,7 @@ create_utility_panel( Widget main_widg )
 
     pixmap_start = XCreatePixmapFromBitmapData( dpy,
                    RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizStart_bits,
-                   GrizStart_width, GrizStart_height, fg, bg,
+                   GrizButton_width, GrizButton_height, fg, bg,
                    DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget(
                "start_anim", xmPushButtonGadgetClass, util_state_ctl,
@@ -5272,7 +5211,7 @@ create_utility_panel( Widget main_widg )
 
     pixmap_stop = XCreatePixmapFromBitmapData( dpy,
                   RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizStop_bits,
-                  GrizStop_width, GrizStop_height, fg, bg,
+                  GrizButton_width, GrizButton_height, fg, bg,
                   DefaultDepth( dpy, DefaultScreen( dpy ) ) );
     widg = XtVaCreateManagedWidget(
                "stop_anim", xmPushButtonGadgetClass, util_state_ctl,

@@ -10476,7 +10476,7 @@ mat_name_sub(Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH], int *token_cn
 	Htable_entry *tempEnt;
 	char new_tokens[MAXTOKENS][TOKENLENGTH];
 	int new_token_cnt = 0;
-	//do we at least have a command and 1 argument
+    //do we at least have a command and 1 argument
 	if(*token_cnt > 1){
 		char token[TOKENLENGTH];
 		sprintf(token, "%s",tokens[0]);

@@ -1961,8 +1961,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                     {
                         /* mark this labels array as invalid because it is not in ascending order */
                         analy->int_labels->valid[i] = 0;
-                        popup_dialog(WARNING_POPUP, "ERROR: Integration points not written in the labels array in ascending \ 
- order for some element sets. Aborting\n");
+                        popup_dialog(WARNING_POPUP, "ERROR: Integration points not written in the labels array in ascending order for some element sets. Aborting\n");
                         parse_command("quit", analy);
                     }
                 }    
