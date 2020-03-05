@@ -3252,14 +3252,12 @@ update_static_map(Famid fam_id,State_descriptor* p_sd) {
       if ( status != 0 )
       {
          fclose(fp);
-         free(fname);
          return SEEK_FAILED;
       }
       nitems = fam->read_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
       if ( nitems != QTY_DIR_HEADER_FIELDS )
       {
          fclose( fp );
-         free(fname);
          return BAD_LOAD_READ;
       }
       header[QTY_STATES_IDX]++;
@@ -3275,7 +3273,6 @@ update_static_map(Famid fam_id,State_descriptor* p_sd) {
       fclose(fp);
       if (num_written != QTY_DIR_HEADER_FIELDS)
       {
-         free(fname);
          return SHORT_WRITE;
       }
       mc_wrt_scalar(fam_id,M_INT,"state_count",(void*)&header[QTY_STATES_IDX]);

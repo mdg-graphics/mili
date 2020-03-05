@@ -1242,11 +1242,11 @@ my_realloc( void *ptr, size_t size, size_t add, char *descr )
 
    new_size = size + add;
 
-   new = realloc( ptr, new_size );
+   ptr = realloc( ptr, new_size );
 
-   if ( new != NULL && add > 0 )
+   if ( ptr != NULL && add > 0 )
    {
-      memset( (char *) new + size, (int) '\0', add );
+      memset( (char *) ptr + size, (int) '\0', add );
    }
    else
    {
@@ -1255,14 +1255,14 @@ my_realloc( void *ptr, size_t size, size_t add, char *descr )
          fprintf( stderr, "Mili - realloc failed for \"%s\".\n", descr );
       }
    }
-
+   
 #ifdef DEBUG_MEM
    _mem_total += add;
 
    fprintf( stderr, "Reallocating memory for %s: %d bytes, total %d K.\n",
             descr, add, _mem_total / 1024 );
 #endif
-   return new;
+   return ptr;
 }
 
 
