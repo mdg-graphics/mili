@@ -1,4 +1,4 @@
-# $Id: Makefile.Library-Debug,v 1.32 2011/05/26 21:45:08 durrenberger1 Exp $
+# $Id: Makefile.Library-Debug,v 1.33 2019/04/03 16:22:26 jdurren Exp $
 #
 #################################################################
 #								#
@@ -279,7 +279,7 @@ LOBJS = eprtf.o
 TOBJS = taurus_db.o taurus_mesh_u.o taurus_srec.o taurus_svars.o
 
 ifeq ($(SILO_ENABLE),True)
-MILI_UTIL_OBJS  = md.o tipart.o MiliReader.o MiliGeomGen.o SiloLib_TestDriver.o mc_silo_TestDriver.o
+MILI_UTIL_OBJS  = md.o tipart.o MiliReader.o MiliGeomGen.o SiloLib_TestDriver.o makemili_driver.o mc_silo_TestDriver.o
 MILI_UTIL_DEBUG	= md tipart MiliReader MiliGeomGen SiloLib_TestDriver mc_silo_TestDriver
 else
 MILI_UTIL_OBJS  = md.o tipart.o MiliReader.o MiliGeomGen.o

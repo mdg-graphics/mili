@@ -237,7 +237,8 @@ writeVariable_json(char* var_elem, Variable *variable,JSON_Object *root_object)
    //fprintf(stderr, "%d %d\n\n", variable->subrec_count,((int)log10( variable->subrec_count+1))+1);
    if(!subrec_string  && subrecord_count >0)
    {
-      subrec_string = NEW_N(char ,subrecord_count*(((int)log10( variable->subrec_count+1))+4),"subrecs in writeVariable_json" );
+      int sub_size = subrecord_count*(((int)log10( variable->subrec_count+1))+4);
+      subrec_string = NEW_N(char ,sub_size,"subrecs in writeVariable_json" );
    }   
    if(variable->subrec_count > 0)
    {
@@ -382,7 +383,8 @@ process_state_variables(Famid database_id,Hash_table *classTable )
        {
          if(!subrec_string)
          {
-           subrec_string = NEW_N(char ,subrecord_count*(((int)log10( subrecord_count+1))+4),
+           int sub_size = subrecord_count*(((int)log10( subrecord_count+1))+4);
+           subrec_string = NEW_N(char ,sub_size,
                                  "subrec_string in process_state_variables" );
          }
          Subrecord sr;
@@ -1516,6 +1518,7 @@ write_mili_metadata(Famid database_id, int global)
     if(subrec_string)
     {
        free (subrec_string);
+       subrec_string = NULL;
     }
     htable_delete(classTable,NULL,0);
     for(i=0;i<elementSetCount;i++)

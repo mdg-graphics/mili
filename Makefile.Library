@@ -156,6 +156,7 @@ MILIHOME = @MILI_HOME@
 
 # Mili Objects
 MILI_C_OBJS = \
+    makemili.o \
     dep.o \
     direc.o \
     eprtf.o \
@@ -165,6 +166,7 @@ MILI_C_OBJS = \
     mili.o \
     param.o \
     partition.o \
+    parson.o \
     read_db.o \
     svar.o \
     srec.o \
@@ -189,7 +191,7 @@ endif
 MILI_SILO_TEST_OBJS = silotest.o
 MILI_SILO_UTIL      = silotest
 
-UOBJS = utils/md.o utils/tipart.o utils/MiliReader.o utils/ti_strings.o
+UOBJS = utils/md.o utils/tipart.o utils/MiliReader.o utils/ti_strings.o utils/makemili_driver.o
 TOBJS = $(addprefix $(OBJS_PATH),   taurus_db.o taurus_mesh_u.o taurus_srec.o taurus_svars.o) 
 LOBJS = $(addprefix $(OBJS_PATH),   eprtf.o) 
 OBJS = $(addprefix $(OBJS_PATH), $(MILI_C_OBJS) $(MILI_f_OBJS) $(MILI_F_OBJS))
@@ -257,7 +259,7 @@ utilsopt:		libmili.a libeprtf.a libtaurus.a
 utilsopt:		src/buildinfo.h
 utilsopt:		$(UOBJS)
 utilsopt:		MILI_UTILS_PATH = bin_utils_opt
-utilsopt:		md tipart MiliReader ti_strings
+utilsopt:		md tipart MiliReader ti_strings makemili_driver
 
 utilsdebug:		CC_FLAGS  = @CC_FLAGS_DEBUG@
 utilsdebug:		FC_FLAGS  = @FC_FLAGS_DEBUG@
@@ -267,7 +269,7 @@ utilsdebug:		libmili.a libeprtf.a libtaurus.a
 utilsdebug:		src/buildinfo.h
 utilsdebug:		$(UOBJS)
 utilsdebug:		MILI_UTILS_PATH = bin_utils_debug
-utilsdebug:		md tipart MiliReader ti_strings
+utilsdebug:		md tipart MiliReader ti_strings makemili_driver
 
 
 mili_build: libmili.a libtaurus.a libeprtf.a
@@ -289,6 +291,9 @@ tests:
 			$(MAKE) tests;
 
 # Build Mili Utility Programs
+makemili_driver:  
+		$(CC) -o $(MILI_UTILS_PATH)/$@ $(CC_FLAGS) $(CPPFLAGS) utils/makemili_driver.o -L$(LIB_PATH) -lmili 
+
 md:  
 		$(CC) -o $(MILI_UTILS_PATH)/$@ $(CC_FLAGS) $(CPPFLAGS) utils/md.o -L$(LIB_PATH) -lmili 
 
