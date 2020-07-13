@@ -48,8 +48,9 @@
 #ifdef _MSC_VER
 #include <windows.h>   //this will give us tchar.h
 #include <stdio.h>
-#endif
+#else
 #include <dirent.h>
+#endif
 #include <string.h>
 #include <ctype.h>
 #include "mili_internal.h"
