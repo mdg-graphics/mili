@@ -192,130 +192,6 @@ mc_determine_naming( char *p_name , State_variable *p_sv)
    return NULL;
 }
 
-/************************************************************
- * TAG( find_proc_count )
- *
- * This function is to get the number of processor for family 
- * that is being opened.  This was mainly added for backward 
- * compatibility for plot files that do not contain the parameter
- * nproc which Mili checks for now as part of the startup process.
- *
- */
-int
-find_proc_count(Famid fam_id)
-{
-    DIR *dirp;
-    struct dirent   *entry;
-    int start_check;
-    int found_A = 0;
-    Mili_family *family;
-    int rval;
-    int ptr,
-        cptr,
-        count = 0;
-    int multifiles_found = 0;
-    int single_file = 0;
-    int numbers=0;
-    
-    rval = validate_fam_id( fam_id );
-    
-    if ( rval != OK )
-    {
-        return rval;
-    }
-    
-    family = fam_list[fam_id];
-	
-    //Just make sure if the database does have the nproc
-    //then we do not need to go through everything else.
-    rval = mc_read_scalar( fam_id, "nproc", &count );
-    if(rval == OK)
-    {
-        return count;
-    }
-    
-    if((dirp = opendir(family->path)) == NULL) {
-        
-        return -1;
-    }
-    
-    cptr = strlen(family->file_root);
-    
-    do{
-        if((entry = readdir(dirp)) != NULL) 
-        {
-            if ((strcmp(entry->d_name, ".")== 0) ||
-                (strcmp(entry->d_name, "..") == 0)) {
-                    continue;
-            }
-            
-            ptr = strlen(entry->d_name);
-        
-            if ((strncmp(family->file_root,entry->d_name,strlen(family->file_root)) ==0))
-            {
-                
-                if(!(entry->d_name[ptr-1]== 'A'))
-                {
-                    continue;
-                }
-                
-                //We need to check on a few different scenarios
-                
-                //Let's see if this is just a single file.
-                if(ptr == cptr+1)
-                {
-                    count++;
-                    found_A=1;
-                    single_file = 1;
-                    continue;
-                }
-                
-                // If it was not a single file then check that the next 
-                // letter is a digit
-                if(!(entry->d_name[cptr]>='0' && entry->d_name[cptr]<='9'))
-                {
-                    continue;
-                }
-                
-                //Check for how many processor files.           
-		        for(start_check = strlen(family->file_root); start_check< strlen(entry->d_name) && !found_A; start_check++)
-                {
-			        if(entry->d_name[start_check] == 'A' && start_check == strlen(entry->d_name)-1 )
-                    {
-				        
-                        found_A=1;
-			        }
-			
-			        if(entry->d_name[start_check]>='0' && entry->d_name[start_check]<='9')
-                    {
-                        numbers++;
-			        }
-		        }
-		        if(found_A && numbers>0)
-                {
-      	            count++;
-                    multifiles_found=1;
-                    found_A = 0;
-		        }
-            }
-            numbers =0;
-        }
-        
-        
-        
-    
-    }while(entry != NULL);
-    
-    if(multifiles_found && single_file)
-    {
-        count--;
-    }else if(single_file && count>1)
-    {
-        //This should not happen
-        count =1;
-    }
-    return count;
-}
 
 /*****************************************************************
  * TAG( get_mili_version ) PRIVATE
@@ -1668,6 +1544,231 @@ delete_buffer_queue( Buffer_queue *p_bq )
    free( p_bq );
 }
 
+/************************************************************
+ * TAG( find_proc_count )
+ *
+ * This function is to get the number of processor for family 
+ * that is being opened.  This was mainly added for backward 
+ * compatibility for plot files that do not contain the parameter
+ * nproc which Mili checks for now as part of the startup process.
+ *
+ */
+int
+find_proc_count(Famid fam_id)
+{
+    size_t rlen,
+           flen;
+    int count = 0,
+        found_A = 0,
+        rval,
+        multifiles_found = 0,
+        single_file = 0,
+        start_check,
+        numbers=0;
+    
+    Mili_family *family;
+    rval = validate_fam_id( fam_id );
+    
+    if ( rval != OK )
+    {
+        return rval;
+    }
+    
+    family = fam_list[fam_id];
+	
+    //Just make sure if the database does have the nproc
+    //then we do not need to go through everything else.
+    rval = mc_read_scalar( fam_id, "nproc", &count );
+    if(rval == OK)
+    {
+        return count;
+    }
+    
+    rlen = strlen(family->file_root);
+    
+#ifndef _MSC_VER
+    
+    DIR *dirp;
+    struct dirent   *entry;
+    
+    if((dirp = opendir(family->path)) == NULL) {
+        
+        return -1;
+    }
+    
+    do{
+        if((entry = readdir(dirp)) != NULL) 
+        {
+            if ((strcmp(entry->d_name, ".")== 0) ||
+                (strcmp(entry->d_name, "..") == 0)) {
+                    continue;
+            }
+            
+            flen = strlen(entry->d_name);
+        
+            if ((strncmp(family->file_root,entry->d_name,rlen) ==0))
+            {
+                
+                if(!(entry->d_name[flen-1]== 'A'))
+                {
+                    continue;
+                }
+                
+                //We need to check on a few different scenarios
+                
+                //Let's see if this is just a single file.
+                if(flen == rlen+1)
+                {
+                    count++;
+                    found_A=1;
+                    single_file = 1;
+                    continue;
+                }
+                
+                // If it was not a single file then check that the next 
+                // letter is a digit
+                if(!(entry->d_name[rlen]>='0' && entry->d_name[rlen]<='9'))
+                {
+                    continue;
+                }
+                
+                //Check for how many processor files.           
+		        for(start_check = strlen(family->file_root); start_check< strlen(entry->d_name) && 
+                                                             !found_A; start_check++)
+                {
+			        if(entry->d_name[start_check] == 'A' && start_check == strlen(entry->d_name)-1 )
+                    {
+				        
+                        found_A=1;
+			        }
+			
+			        if(entry->d_name[start_check]>='0' && entry->d_name[start_check]<='9')
+                    {
+                        numbers++;
+			        }
+		        }
+		        if(found_A && numbers>0)
+                {
+      	            count++;
+                    multifiles_found=1;
+                    found_A = 0;
+		        }
+            }
+            numbers =0;
+        }
+        
+        
+        
+    
+    }while(entry != NULL);
+    
+   
+    
+#else
+    //   WIN32_FIND_DATA fd; 
+    WIN32_FIND_DATAA fd; 
+    HANDLE dirHandle;
+    //   TCHAR szDir[MAX_PATH+1]; 
+    char szDir[MAX_PATH+1];  
+    int index;
+    Return_value rval = OK;
+    char TrailStr[3];
+    
+    // Load var szDir
+    TrailStr[0]='\\';
+    TrailStr[1]='*';
+    TrailStr[2]='\0';
+    strcpy(szDir,family->path);        //Begin string szDir with the path
+    strcat(szDir,TrailStr);	  //Add "\*" to the end
+
+//Searches a directory for the first file matching szDir (Ex: szDir=.\*)
+    dirHandle = FindFirstFileA(szDir, &fd); 
+   
+    if ( dirHandle == INVALID_HANDLE_VALUE )
+    {
+        printf("\nfind_proc_count : FindFirstFile status (%d)\n", GetLastError());  
+        printf("              szDir=%s \n",szDir);  
+        return 0;
+    }
+    
+    do
+    {
+        if(strncmp(fd.cFileName, root, rlen) == 0)
+        {
+             if ((strcmp(fd.cFileName, ".")== 0) ||
+                (strcmp(fd.cFileName, "..") == 0)) {
+                    continue;
+            }
+            
+            flen = strlen(fd.cFileName);
+        
+            if ((strncmp(family->file_root,fd.cFileName,rlen) ==0))
+            {
+                
+                if(!(fd.cFileName[flen-1]== 'A'))
+                {
+                    continue;
+                }
+                
+                //We need to check on a few different scenarios
+                
+                //Let's see if this is just a single file.
+                if(flen == rlen+1)
+                {
+                    count++;
+                    found_A=1;
+                    single_file = 1;
+                    continue;
+                }
+                
+                // If it was not a single file then check that the next 
+                // letter is a digit
+                if(!(fd.cFileName[rlen]>='0' && fd.cFileName[rlen]<='9'))
+                {
+                    continue;
+                }
+                
+                //Check for how many processor files.           
+		        for(start_check = rlen; start_check< strlen(fd.cFileName) && 
+                                                             !found_A; start_check++)
+                {
+			        if(fd.cFileName[start_check] == 'A' && start_check == strlen(fd.cFileName)-1 )
+                    {
+				        
+                        found_A=1;
+			        }
+			
+			        if(fd.cFileName[start_check]>='0' && fd.cFileName[start_check]<='9')
+                    {
+                        numbers++;
+			        }
+		        }
+		        if(found_A && numbers>0)
+                {
+      	            count++;
+                    multifiles_found=1;
+                    found_A = 0;
+		        }
+            }
+            numbers =0;
+            
+        }
+    }
+    while (FindNextFileA(dirHandle, &fd));   //Continues a file search from a previous call to the FindFirstFile function
+
+#endif
+    
+    if(multifiles_found && single_file)
+    {
+        count--;
+    }else if(single_file && count>1)
+    {
+        //This should not happen
+        count =1;
+    }
+    
+    return count;
+}
 
 /*****************************************************************
  * TAG( mili_scandir ) PRIVATE
