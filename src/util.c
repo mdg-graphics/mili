@@ -1671,7 +1671,6 @@ find_proc_count(Famid fam_id)
     //   TCHAR szDir[MAX_PATH+1]; 
     char szDir[MAX_PATH+1];  
     int index;
-    Return_value rval = OK;
     char TrailStr[3];
     
     // Load var szDir
@@ -1693,7 +1692,7 @@ find_proc_count(Famid fam_id)
     
     do
     {
-        if(strncmp(fd.cFileName, root, rlen) == 0)
+        if(strncmp(fd.cFileName, family->root, rlen) == 0)
         {
              if ((strcmp(fd.cFileName, ".")== 0) ||
                 (strcmp(fd.cFileName, "..") == 0)) {
