@@ -237,21 +237,21 @@ endif
 
 
 # Build Optimized Mili
-opt:		CC_FLAGS  = @CC_FLAGS_OPT@
+opt:		CC_FLAGS  = @CFLAGS@ @CC_FLAGS_OPT@
 opt:		FC_FLAGS  = @FC_FLAGS_OPT@
 opt:    LIB_PATH  = lib_opt/
 opt:    OBJS_PATH = objs_opt/
 opt:		mili_build
 opt:		src/buildinfo.h
 
-debug:		CC_FLAGS  = @CC_FLAGS_DEBUG@
+debug:		CC_FLAGS  = @CFLAGS@ @CC_FLAGS_DEBUG@
 debug:		FC_FLAGS  = @FC_FLAGS_DEBUG@
 debug:    LIB_PATH  = lib_debug/
 debug:    OBJS_PATH = objs_debug/
 debug:		mili_build
 debug:		src/buildinfo.h
 
-utilsopt:		CC_FLAGS  = @CC_FLAGS_OPT@
+utilsopt:		CC_FLAGS  = @CFLAGS@ @CC_FLAGS_OPT@
 utilsopt:		FC_FLAGS  = @FC_FLAGS_OPT@
 utilsopt:   LIB_PATH  = lib_opt
 utilsopt:   OBJS_PATH = objs_opt/
@@ -261,7 +261,7 @@ utilsopt:		$(UOBJS)
 utilsopt:		MILI_UTILS_PATH = bin_utils_opt
 utilsopt:		md tipart MiliReader ti_strings makemili_driver
 
-utilsdebug:		CC_FLAGS  = @CC_FLAGS_DEBUG@
+utilsdebug:		CC_FLAGS  = @CFLAGS@ @CC_FLAGS_DEBUG@
 utilsdebug:		FC_FLAGS  = @FC_FLAGS_DEBUG@
 utilsdebug:   LIB_PATH  = lib_debug
 utilsdebug:   OBJS_PATH = objs_debug/
