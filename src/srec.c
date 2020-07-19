@@ -3170,14 +3170,12 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
       if ( status != 0 )
       {
          fclose(fp);
-         free(fname);
          return SEEK_FAILED;
       }
       nitems = fam->read_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
       if ( nitems != QTY_DIR_HEADER_FIELDS )
       {
          fclose( fp );
-         free(fname);
          return BAD_LOAD_READ;
       }
       state_count = header[QTY_STATES_IDX];
@@ -3187,7 +3185,6 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
       if ( status != 0 )
       {
          fclose(fp);
-         free(fname);
          return SEEK_FAILED;
       }
       fam->state_map = NEW_N(State_descriptor,state_count,"State map descriptors");
