@@ -12985,151 +12985,6 @@ draw_foreground( Analysis *analy )
         glColor3fv( v_win->text_color );
     }
 
-
-    /* Global coordinate system. */
-    if ( analy->show_coord )
-    {
-        leng = 35*vp_to_world[0];
-        sub_leng = leng / 10.0;
-
-        /* Rotate the coord system properly, then translate it down
-         * to the lower right corner of the view window.
-         */
-        look_rot_mat( v_win->look_from, v_win->look_at, v_win->look_up, &mat );
-        mat_mul( &tmat, &v_win->rot_mat, &mat );
-        mat_translate( &mat, cx - 60*vp_to_world[0],
-                       -cy + 60*vp_to_world[0], 0.0 );
-        mat_mul( &tmat, &tmat, &mat );
-
-        /* Draw the axes. */
-        VEC_SET( pt, 0.0, 0.0, 0.0 );
-        point_transform( pto, pt, &tmat );
-        VEC_SET( pt, leng, 0.0, 0.0 );
-        point_transform( pti, pt, &tmat );
-        VEC_SET( pt, 0.0, leng, 0.0 );
-        point_transform( ptj, pt, &tmat );
-        VEC_SET( pt, 0.0, 0.0, leng );
-        point_transform( ptk, pt, &tmat );
-
-        glColor3fv( v_win->foregrnd_color );
-
-        glBegin( GL_LINES );
-        glVertex3fv( pto );
-        glVertex3fv( pti );
-        glVertex3fv( pto );
-        glVertex3fv( ptj );
-        if ( analy->dimension == 3 )
-        {
-            glVertex3fv( pto );
-            glVertex3fv( ptk );
-        }
-        glEnd();
-
-        if ( show_dirvec )
-        {
-            VEC_SET( pt, analy->dir_vec[0] * leng * 0.75,
-                     analy->dir_vec[1] * leng * 0.75,
-                     ( dim == 3 ) ? analy->dir_vec[2] * leng * 0.75
-                     : 0.0 );
-            point_transform( ptv, pt, &tmat );
-
-            glColor3fv( material_colors[15] ); /* Red */
-            glLineWidth( 2.25 );
-
-            glBegin( GL_LINES );
-            glVertex3fv( pto );
-            glVertex3fv( ptv );
-            glEnd();
-
-            glLineWidth( 1.25 );
-        }
-
-        /* Label the axes. */
-        VEC_SET( pt, leng + sub_leng, sub_leng, sub_leng );
-        point_transform( pti, pt, &tmat );
-        VEC_SET( pt, sub_leng, leng + sub_leng, sub_leng );
-        point_transform( ptj, pt, &tmat );
-        if ( analy->dimension == 3 )
-        {
-            VEC_SET( pt, sub_leng, sub_leng, leng + sub_leng );
-            point_transform( ptk, pt, &tmat );
-        }
-
-        antialias_lines( FALSE, 0 );
-        glLineWidth( 1.0 );
-
-        glColor3fv( v_win->text_color );
-
-        draw_3d_text( pti, "X", FALSE );
-        draw_3d_text( ptj, "Y", FALSE );
-        if ( analy->dimension == 3 )
-            draw_3d_text( ptk, "Z", FALSE );
-
-        antialias_lines( TRUE, TRUE );
-        glLineWidth( 1.25 );
-
-        /* Show tensor transformation coordinate system if on. */
-        if ( analy->do_tensor_transform
-                && analy->tensor_transform_matrix != NULL )
-        {
-            ttmat = analy->tensor_transform_matrix;
-
-            /* Draw the axis lines. */
-            VEC_SET( pt, 0.0, 0.0, 0.0 );
-            point_transform( pto, pt, &tmat );
-            VEC_SET( pt, ttmat[0][0] * leng, ttmat[1][0] * leng,
-                     ttmat[2][0] * leng );
-            point_transform( pti, pt, &tmat );
-            VEC_SET( pt, ttmat[0][1] * leng, ttmat[1][1] * leng,
-                     ttmat[2][1] * leng );
-            point_transform( ptj, pt, &tmat );
-            VEC_SET( pt, ttmat[0][2] * leng, ttmat[1][2] * leng,
-                     ttmat[2][2] * leng );
-            point_transform( ptk, pt, &tmat );
-            /**/
-            /* Hard-code brown/red for now. */
-            glColor3f( 0.6, 0.2, 0.0 );
-
-            glBegin( GL_LINES );
-            glVertex3fv( pto );
-            glVertex3fv( pti );
-            glVertex3fv( pto );
-            glVertex3fv( ptj );
-            if ( dim == 3 )
-            {
-                glVertex3fv( pto );
-                glVertex3fv( ptk );
-            }
-            glEnd();
-
-            /* Draw the axis labels. */
-            VEC_SET( pt, ttmat[0][0] * leng + sub_leng,
-                     ttmat[1][0] * leng - sub_leng,
-                     ttmat[2][0] * leng - sub_leng );
-            point_transform( pti, pt, &tmat );
-            VEC_SET( pt, ttmat[0][1] * leng - sub_leng,
-                     ttmat[1][1] * leng + sub_leng,
-                     ttmat[2][1] * leng - sub_leng );
-            point_transform( ptj, pt, &tmat );
-            VEC_SET( pt, ttmat[0][2] * leng - sub_leng,
-                     ttmat[1][2] * leng - sub_leng,
-                     ttmat[2][2] * leng + sub_leng );
-            point_transform( ptk, pt, &tmat );
-
-            antialias_lines( FALSE, 0 );
-            glLineWidth( 1.0 );
-
-            draw_3d_text( pti, "x", FALSE );
-            draw_3d_text( ptj, "y", FALSE );
-            if ( dim == 3 )
-                draw_3d_text( ptk, "z", FALSE );
-
-            antialias_lines( TRUE, TRUE );
-            glLineWidth( 1.25 );
-            glColor3fv( v_win->text_color );
-        }
-    }
-
     /* Result value min/max. */
     if ( analy->show_minmax  &&  analy->cur_result != NULL && found_data )
     {
@@ -13293,6 +13148,150 @@ draw_foreground( Analysis *analy )
 
             sprintf( str, "Info [%d]: %s", i+1, analy->infoMsg[i] );
             hcharstr( str );
+        }
+    }
+
+    /* Global coordinate system. */
+    if ( analy->show_coord )
+    {
+        leng = 35*vp_to_world[0];
+        sub_leng = leng / 10.0;
+
+        /* Rotate the coord system properly, then translate it down
+         * to the lower right corner of the view window.
+         */
+        look_rot_mat( v_win->look_from, v_win->look_at, v_win->look_up, &mat );
+        mat_mul( &tmat, &v_win->rot_mat, &mat );
+        mat_translate( &mat, cx - 60*vp_to_world[0],
+                       -cy + 60*vp_to_world[0], 0.0 );
+        mat_mul( &tmat, &tmat, &mat );
+
+        /* Draw the axes. */
+        VEC_SET( pt, 0.0, 0.0, 0.0 );
+        point_transform( pto, pt, &tmat );
+        VEC_SET( pt, leng, 0.0, 0.0 );
+        point_transform( pti, pt, &tmat );
+        VEC_SET( pt, 0.0, leng, 0.0 );
+        point_transform( ptj, pt, &tmat );
+        VEC_SET( pt, 0.0, 0.0, leng );
+        point_transform( ptk, pt, &tmat );
+
+        glColor3fv( v_win->foregrnd_color );
+
+        glBegin( GL_LINES );
+        glVertex3fv( pto );
+        glVertex3fv( pti );
+        glVertex3fv( pto );
+        glVertex3fv( ptj );
+        if ( analy->dimension == 3 )
+        {
+            glVertex3fv( pto );
+            glVertex3fv( ptk );
+        }
+        glEnd();
+
+        if ( show_dirvec )
+        {
+            VEC_SET( pt, analy->dir_vec[0] * leng * 0.75,
+                     analy->dir_vec[1] * leng * 0.75,
+                     ( dim == 3 ) ? analy->dir_vec[2] * leng * 0.75
+                     : 0.0 );
+            point_transform( ptv, pt, &tmat );
+
+            glColor3fv( material_colors[15] ); /* Red */
+            glLineWidth( 2.25 );
+
+            glBegin( GL_LINES );
+            glVertex3fv( pto );
+            glVertex3fv( ptv );
+            glEnd();
+
+            glLineWidth( 1.25 );
+        }
+
+        /* Label the axes. */
+        VEC_SET( pt, leng + sub_leng, sub_leng, sub_leng );
+        point_transform( pti, pt, &tmat );
+        VEC_SET( pt, sub_leng, leng + sub_leng, sub_leng );
+        point_transform( ptj, pt, &tmat );
+        if ( analy->dimension == 3 )
+        {
+            VEC_SET( pt, sub_leng, sub_leng, leng + sub_leng );
+            point_transform( ptk, pt, &tmat );
+        }
+
+        antialias_lines( FALSE, 0 );
+        glLineWidth( 1.0 );
+
+        glColor3fv( v_win->text_color );
+
+        draw_3d_text( pti, "X", FALSE );
+        draw_3d_text( ptj, "Y", FALSE );
+        if ( analy->dimension == 3 )
+            draw_3d_text( ptk, "Z", FALSE );
+
+        antialias_lines( TRUE, TRUE );
+        glLineWidth( 1.25 );
+
+        /* Show tensor transformation coordinate system if on. */
+        if ( analy->do_tensor_transform
+                && analy->tensor_transform_matrix != NULL )
+        {
+            ttmat = analy->tensor_transform_matrix;
+
+            /* Draw the axis lines. */
+            VEC_SET( pt, 0.0, 0.0, 0.0 );
+            point_transform( pto, pt, &tmat );
+            VEC_SET( pt, ttmat[0][0] * leng, ttmat[1][0] * leng,
+                     ttmat[2][0] * leng );
+            point_transform( pti, pt, &tmat );
+            VEC_SET( pt, ttmat[0][1] * leng, ttmat[1][1] * leng,
+                     ttmat[2][1] * leng );
+            point_transform( ptj, pt, &tmat );
+            VEC_SET( pt, ttmat[0][2] * leng, ttmat[1][2] * leng,
+                     ttmat[2][2] * leng );
+            point_transform( ptk, pt, &tmat );
+            /**/
+            /* Hard-code brown/red for now. */
+            glColor3f( 0.6, 0.2, 0.0 );
+
+            glBegin( GL_LINES );
+            glVertex3fv( pto );
+            glVertex3fv( pti );
+            glVertex3fv( pto );
+            glVertex3fv( ptj );
+            if ( dim == 3 )
+            {
+                glVertex3fv( pto );
+                glVertex3fv( ptk );
+            }
+            glEnd();
+
+            /* Draw the axis labels. */
+            VEC_SET( pt, ttmat[0][0] * leng + sub_leng,
+                     ttmat[1][0] * leng - sub_leng,
+                     ttmat[2][0] * leng - sub_leng );
+            point_transform( pti, pt, &tmat );
+            VEC_SET( pt, ttmat[0][1] * leng - sub_leng,
+                     ttmat[1][1] * leng + sub_leng,
+                     ttmat[2][1] * leng - sub_leng );
+            point_transform( ptj, pt, &tmat );
+            VEC_SET( pt, ttmat[0][2] * leng - sub_leng,
+                     ttmat[1][2] * leng - sub_leng,
+                     ttmat[2][2] * leng + sub_leng );
+            point_transform( ptk, pt, &tmat );
+
+            antialias_lines( FALSE, 0 );
+            glLineWidth( 1.0 );
+
+            draw_3d_text( pti, "x", FALSE );
+            draw_3d_text( ptj, "y", FALSE );
+            if ( dim == 3 )
+                draw_3d_text( ptk, "z", FALSE );
+
+            antialias_lines( TRUE, TRUE );
+            glLineWidth( 1.25 );
+            glColor3fv( v_win->text_color );
         }
     }
 
