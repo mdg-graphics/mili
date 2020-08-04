@@ -243,8 +243,9 @@ extern void mat_scale( Transf_mat *, float, float, float );
 extern void mat_mirror_plane( Transf_mat *, float *, float * );
 extern void mat_mul( Transf_mat *, Transf_mat *, Transf_mat * );
 extern void mat_to_angles( Transf_mat *, float * );
-extern void point_transform( float *, float *, Transf_mat * );
-extern void mat_to_array( Transf_mat *, float [16] );
+extern void point_transform( float *, float *, const Transf_mat * );
+extern void mat_to_array( const Transf_mat *, float [16] );
+extern void array_to_mat( float[16], Transf_mat * );
 extern void plane_three_pts( float [4], float [3], float [3], float [3] );
 extern void line_two_pts( float [3], float [2], float [2] );
 

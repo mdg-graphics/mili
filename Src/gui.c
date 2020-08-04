@@ -1167,6 +1167,8 @@ gui_start( int argc, char **argv , Analysis *analy )
 
     /* Create an OpenGL rendering context. */
     render_ctx = glXCreateContext( dpy, vi, None, GL_TRUE );
+    glutInit(&argc,argv);
+    mat_init();
 
     if ( render_ctx == NULL )
         popup_fatal( "Could not create rendering context.\n" );

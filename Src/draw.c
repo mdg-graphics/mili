@@ -152,6 +152,7 @@
 #include "draw.h"
 #include "image.h"
 #include "mdg.h"
+#include "matrix_ops.h"
 
 #ifdef xSERIAL_BATCHx
 #include <GL/gl_mangle.h>
@@ -3857,7 +3858,7 @@ draw_mesh_view( Analysis *analy )
         glEnable( GL_DEPTH_TEST );
     }
 
-    glPushMatrix();
+    push_matrix();
 
     /*
      * Set up all the viewing transforms.  Transformations are
@@ -3867,17 +3868,19 @@ draw_mesh_view( Analysis *analy )
     look_rot_mat( v_win->look_from, v_win->look_at,
                   v_win->look_up, &look_rot );
     mat_to_array( &look_rot, arr );
-    glMultMatrixf( arr );
-    glTranslatef( -v_win->look_from[0], -v_win->look_from[1],
-                  -v_win->look_from[2] );
-    glTranslatef( v_win->trans[0], v_win->trans[1], v_win->trans[2] );
+    mode_matrix_multiply( arr );
+
+    translate( -v_win->look_from[0], -v_win->look_from[1], -v_win->look_from[2] );
+    translatev( v_win->trans );
+
     mat_to_array( &v_win->rot_mat, arr );
-    glMultMatrixf( arr );
+    mode_matrix_multiply( arr );
+
+
     scal = v_win->bbox_scale;
-    glScalef( scal*v_win->scale[0], scal*v_win->scale[1],
-              scal*v_win->scale[2] );
-    glTranslatef( v_win->bbox_trans[0], v_win->bbox_trans[1],
-                  v_win->bbox_trans[2] );
+    scale(  scal*v_win->scale[0], scal*v_win->scale[1], scal*v_win->scale[2] );
+
+    translatev( v_win->bbox_trans );
 
     /* Draw the grid. */
     if ( analy->dimension == 3 )
@@ -3885,7 +3888,7 @@ draw_mesh_view( Analysis *analy )
     else
         draw_grid_2d( analy );
 
-    glPopMatrix();
+    pop_matrix();
 
     /* Draw all the foreground stuff. */
 
@@ -4134,12 +4137,14 @@ draw_grid( Analysis *analy )
         draw_tets( show_node_result, show_mat_result, show_mesh_result,
                    mo_classes[i], analy );
 
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset( -1, -1 );
+
     /* Quad element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_QUAD].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_quads_3d( show_node_result, show_mat_result, show_mesh_result,
-                       mo_classes[i], analy );
+        draw_quads_3d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i], analy );
 
     /* Tri element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_TRI].qty;
@@ -4147,6 +4152,8 @@ draw_grid( Analysis *analy )
     for ( i = 0; i < qty_classes; i++ )
         draw_tris_3d( show_node_result, show_mat_result, show_mesh_result,
                       mo_classes[i], analy );
+
+    glPolygonOffset( 0.0, 0.0 );
 
     /* Pyramid element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_PYRAMID].qty;
@@ -4217,8 +4224,8 @@ draw_grid( Analysis *analy )
     //{
         /*analy->show_particle_class = FALSE; */
     //    analy->show_particle_class = TRUE;
-        
-    //} 
+
+    //}
 
     /*  Set glMaterial to draw from the correct color property data base */
     if ( analy->show_particle_class )
@@ -4227,7 +4234,7 @@ draw_grid( Analysis *analy )
         for(i=0; i < qty_classes; i++)
         {
             draw_particles_3d( mo_classes[i], analy);
-        } 
+        }
     }
 
     /*
@@ -8062,6 +8069,12 @@ particle_error( GLenum err_code )
              (char *) err_string );
 }
 
+// TODO
+static void
+init_particles_3d( )
+{
+
+}
 
 /************************************************************
  * TAG( draw_particles_3d )
@@ -8071,7 +8084,8 @@ particle_error( GLenum err_code )
 static void
 draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 {
-    GVec3D *coords3;
+/*
+  GVec3D *coords3;
     float *el_state_mm, *part_res;
     float col[4];
     int i;
@@ -8094,14 +8108,13 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
     colorflag = analy->cur_result != NULL;
 
-    /*coords3 = analy->state_p->particles.particles3d;*/
     coords3 = analy->state_p->nodes.particles3d;
 
     if(analy->cur_result != NULL)
     {
         show_result = result_has_class(analy->cur_result, p_particle_class, analy);
     }
-  
+
     get_min_max(analy, FALSE, &rmin, &rmax);
 
     display_list = glGenLists( 1 );
@@ -8122,7 +8135,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
     gluQuadricNormals( sphere, (GLenum) GLU_SMOOTH );
     gluQuadricTexture(sphere, (GLboolean) GLU_TRUE );
     glNewList( display_list, GL_COMPILE );
-    /*gluSphere( sphere, particle_radius, 16, 8 ); */
+    //gluSphere( sphere, particle_radius, 16, 8 );
     gluSphere( sphere, particle_radius, 32, 16 );
     glEndList();
 
@@ -8137,7 +8150,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
         {
             continue;
         }
- 
+
         matl = p_particle_class->objects.elems->mat[i];
 
         if(v_win->mesh_materials.current_index != matl)
@@ -8145,28 +8158,23 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
             change_current_color_property(&v_win->mesh_materials, matl);
         }
 
-        /*color_lookup( col, part_res[i], el_state_mm[0], el_state_mm[1],
-                      analy->zero_result, index, analy->logscale,
-                      analy->material_greyscale ); */
-
         color_lookup( col, part_res[i], rmin, rmax,
                       analy->zero_result, matl, analy->logscale,
                       analy->material_greyscale );
 
         glColor3fv( col );
 
-        glPushMatrix();
+        push_matrix( );
         node = p_particle_class->objects.elems->nodes[i];
-        x = p_node_class->objects.nodes3d[node][0]; 
-        y = p_node_class->objects.nodes3d[node][1]; 
+        x = p_node_class->objects.nodes3d[node][0];
+        y = p_node_class->objects.nodes3d[node][1];
         z = p_node_class->objects.nodes3d[node][2];
-  
-        /*glTranslatef( coords3[i][0], coords3[i][1], coords3[i][2] ); */
-        glTranslatef( x, y, z );
+
+        translate( x, y, z );
 
         glCallList( display_list );
 
-        glPopMatrix();
+        pop_matrix( );
     }
 
     glDisable( GL_COLOR_MATERIAL );
@@ -8177,6 +8185,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
     gluDeleteQuadric( sphere );
 
     glDeleteLists( display_list, 1 );
+    */
 }
 
 
@@ -8188,6 +8197,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 static void
 draw_particles_2d( MO_class_data *p_particle_class, Analysis *analy )
 {
+  /*
     GVec2D *coords2;
     float *el_state_mm, *part_res;
     float col[4];
@@ -8240,12 +8250,12 @@ draw_particles_2d( MO_class_data *p_particle_class, Analysis *analy )
                       analy->material_greyscale );
         glColor3fv( col );
 
-        glPushMatrix();
-        glTranslatef( coords2[i][0], coords2[i][1], 0.0 );
+        push_matrix( );
+        translate( coords2[i][0], coords2[i][1], 0.0 );
 
         glCallList( display_list );
 
-        glPopMatrix();
+        pop_matrix( );
     }
 
     glDisable( GL_COLOR_MATERIAL );
@@ -8256,6 +8266,7 @@ draw_particles_2d( MO_class_data *p_particle_class, Analysis *analy )
     gluDeleteQuadric( circle );
 
     glDeleteLists( display_list, 1 );
+  */
 }
 
 
@@ -11226,10 +11237,10 @@ draw_sphere_GL( float ctr[3], float radius, int res_factor)
     num_slices*=res_factor;
     num_stacks*=res_factor;
 
-    glPushMatrix();
-    glTranslatef( ctr[0], ctr[1], ctr[2] );
+    push_matrix( );
+    translatev( ctr );
     gluSphere(sphereObj, radius, num_slices, num_stacks);
-    glPopMatrix();
+    pop_matrix( );
     glEnd();
 }
 
@@ -12116,54 +12127,41 @@ draw_line( int cnt, float *pts, int matl, Mesh_data *p_mesh, Analysis *analy,
 static void
 draw_3d_text( float pt[3], char *text, Bool_type center_text )
 {
-    Transf_mat mat;
-    float arr[16], tpt[3], spt[3];
-    float zpos, cx, cy, text_height;
-    int i, j;
+  //Transf_mat mat;
+  //float arr[16];
+    float spt[3];
+    float tpt[3];
+    float zpos, cx, cy;
 
-    /* Run the point through the model transform matrix. */
+    // Run the point through the model transform matrix.
+    point_transform( tpt, pt, get_mode_matrix( GL_MODELVIEW ) );
+/*
     glGetFloatv( GL_MODELVIEW_MATRIX, arr );
+    int i, j;
     for ( i = 0; i < 4; i++ )
         for ( j = 0; j < 4; j++ )
             mat.mat[i][j] = arr[i*4 + j];
     point_transform( tpt, pt, &mat );
-
-    /* Get drawing window and position. */
+*/
+    // Get drawing window and position.
     get_foreground_window( &zpos, &cx, &cy );
 
-    /* Project the point to the drawing window. */
-    if ( v_win->orthographic )
+    // Project the point to the drawing window.
+    if ( ! v_win->orthographic )
     {
-        spt[0] = tpt[0];
-        spt[1] = tpt[1];
-        spt[2] = zpos;
+      spt[0] = tpt[0] * zpos / tpt[2];
+      spt[1] = tpt[1] * zpos / tpt[2];
+      spt[2] = zpos;
     }
     else
     {
-        spt[0] = tpt[0] * zpos / tpt[2];
-        spt[1] = tpt[1] * zpos / tpt[2];
-        spt[2] = zpos;
+      spt[0] = tpt[0];
+      spt[1] = tpt[1];
+      spt[2] = zpos;
     }
 
-    /* Get the text size. */
-    text_height = 14.0 * 2.0*cy / v_win->vp_height;
-
-    /* Clear the model view matrix and draw the text. */
-    glPushMatrix();
-    glLoadIdentity();
-
-    hmove( spt[0], spt[1], spt[2] );
-    htextsize( text_height, text_height );
-    if ( center_text )
-        hcentertext( TRUE );
-    antialias_lines( TRUE, TRUE );
-    glLineWidth( 1.25 );
-    hcharstr( text );
-    glLineWidth( 1.0 );
-    antialias_lines( FALSE, 0 );
-
-    /* Restore the model view matrix. */
-    glPopMatrix();
+    glRasterPos2f( spt[0], spt[1] );
+    glutBitmapString( GLUT_BITMAP_HELVETICA_12, text );
 }
 
 
@@ -12292,8 +12290,8 @@ draw_foreground( Analysis *analy )
     vp_to_world[1] = 2.0*cy / v_win->vp_height;
 
     /* Translate everything to the drawing plane. */
-    glPushMatrix();
-    glTranslatef( 0.0, 0.0, zpos );
+    push_matrix( );
+    translate( 0.0, 0.0, zpos );
 
     /* For the textual information. */
     text_height = 14.0 * vp_to_world[1];
@@ -13228,10 +13226,11 @@ draw_foreground( Analysis *analy )
         draw_3d_text( pti, "X", FALSE );
         draw_3d_text( ptj, "Y", FALSE );
         if ( analy->dimension == 3 )
-            draw_3d_text( ptk, "Z", FALSE );
+          draw_3d_text( ptk, "Z", FALSE );
 
         antialias_lines( TRUE, TRUE );
         glLineWidth( 1.25 );
+
 
         /* Show tensor transformation coordinate system if on. */
         if ( analy->do_tensor_transform
@@ -13314,7 +13313,7 @@ draw_foreground( Analysis *analy )
         glEnd();
     }
 
-    glPopMatrix();
+    pop_matrix( );
 
     /* End of foreground overwriting. */
     glDepthFunc( GL_LEQUAL );
@@ -13340,7 +13339,7 @@ quick_draw_mesh_view( Analysis *analy )
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
              GL_STENCIL_BUFFER_BIT );
 
-    glPushMatrix();
+    push_matrix();
 
     /*
      * Set up all the viewing transforms.  Transformations are
@@ -13349,17 +13348,14 @@ quick_draw_mesh_view( Analysis *analy )
      */
     look_rot_mat( v_win->look_from, v_win->look_at, v_win->look_up, &look_rot );
     mat_to_array( &look_rot, arr );
-    glMultMatrixf( arr );
-    glTranslatef( -v_win->look_from[0], -v_win->look_from[1],
-                  -v_win->look_from[2] );
-    glTranslatef( v_win->trans[0], v_win->trans[1], v_win->trans[2] );
+    mode_matrix_multiply( arr );
+    translate( -v_win->look_from[0], -v_win->look_from[1], -v_win->look_from[2] );
+    translate( v_win->trans[0], v_win->trans[1], v_win->trans[2] );
     mat_to_array( &v_win->rot_mat, arr );
-    glMultMatrixf( arr );
+    mode_matrix_multiply( arr );
     scal = v_win->bbox_scale;
-    glScalef( scal*v_win->scale[0], scal*v_win->scale[1],
-              scal*v_win->scale[2] );
-    glTranslatef( v_win->bbox_trans[0], v_win->bbox_trans[1],
-                  v_win->bbox_trans[2] );
+    scale( scal*v_win->scale[0], scal*v_win->scale[1],scal*v_win->scale[2] );
+    translatev( v_win->bbox_trans );
 
     /* Draw the grid edges. */
     if ( MESH_P( analy )->edge_list != NULL
@@ -13374,7 +13370,7 @@ quick_draw_mesh_view( Analysis *analy )
     else
         draw_bbox( analy->bbox );
 
-    glPopMatrix();
+    pop_matrix( );
 
     /* Draw the foreground. */
     if ( analy->show_bbox || analy->show_coord || analy->show_time ||
@@ -16357,10 +16353,10 @@ draw_free_nodes( Analysis *analy )
                 {
                     /* gluSphere( sphere, node_base_radius*rfac, analy->free_nodes_sphere_res_factor*2, analy->free_nodes_sphere_res_factor ); */
 
-                    glPushMatrix();
-                    glTranslatef( verts[0], verts[1], verts[2] );
-                    glCallList( display_list );
-                    glPopMatrix();
+                  push_matrix( );
+                  translatev( verts );
+                  glCallList( display_list );
+                  pop_matrix( );
                 }
 
                 /*
