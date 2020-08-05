@@ -342,6 +342,7 @@ AC_DEFUN([CONFIGURE_X11],
 	GLfound=""
    GLUfound=""
    GLwfound=""
+   glutfound=""
 	
    libsfound=""
 
@@ -355,11 +356,12 @@ AC_DEFUN([CONFIGURE_X11],
 	AC_SEARCH_LIBS([glXChooseVisual],[GL]) 
 	AC_SEARCH_LIBS([gluNewQuadric],[GLU]) 
 	AC_SEARCH_LIBS([glwDrawingAreaClassRec],[GLw]) 
+    AC_SEARCH_LIBS([glutInit],[glut])
 	#AC_MSG_ERROR([$LIBS])
 	#AC_MSG_ERROR([$X_CFLAGS $no_x $x_includes $x_libraries $X_LIBS $LIBS $X_PRE_LIBS])
 
         allfound="false"
-	required_files="libX11.a libXm.a libXt.a libGL.a libGLU.a libGLw.a"
+	required_files="libX11.a libXm.a libXt.a libGL.a libGLU.a libGLw.a libglut.a"
 
 	for path in $paths; do
 		pathset="false"
@@ -396,6 +398,9 @@ AC_DEFUN([CONFIGURE_X11],
 					fi	
 	     				if test "$GLwfound" = "" -a "$file" = "libGLw.a" ;then
 					   GLwfound="$path/lib64/$file "	
+					fi
+                        if test "$glutfound" = "" -a "$file" = "libglut.a" ;then
+					   glutfound="$path/lib64/$file "	
 					fi
 				],
 				[
