@@ -12132,6 +12132,7 @@ draw_3d_text( float pt[3], char *text, Bool_type center_text )
     float spt[3];
     float tpt[3];
     float zpos, cx, cy;
+    float text_height;
 
     // Run the point through the model transform matrix.
     point_transform( tpt, pt, get_mode_matrix( GL_MODELVIEW ) );
@@ -12153,8 +12154,29 @@ draw_3d_text( float pt[3], char *text, Bool_type center_text )
       spt[2] = zpos;
     }
 
-    glRasterPos2f( spt[0], spt[1] );
-    glutBitmapString( GLUT_BITMAP_HELVETICA_12, text );
+    /* Get the text size. */
+    text_height = 14.0 * 2.0*cy / v_win->vp_height;
+
+    /* Clear the model view matrix and draw the text. */
+    push_matrix();
+    load_identity();
+
+    hmove( spt[0], spt[1], spt[2] );
+    htextsize( text_height, text_height );
+    if ( center_text )
+        hcentertext( TRUE );
+    antialias_lines( TRUE, TRUE );
+    glLineWidth( 1.25 );
+    hcharstr( text );
+    glLineWidth( 1.0 );
+    antialias_lines( FALSE, 0 );
+
+    /* Restore the model view matrix. */
+    pop_matrix( );
+
+// quicker bitmap-rendering with libglut
+//    glRasterPos2f( spt[0], spt[1] );
+//    glutBitmapString( GLUT_BITMAP_HELVETICA_12, text );
 }
 
 
