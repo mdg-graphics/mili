@@ -173,4 +173,16 @@ void mode_matrix_multiply( float mat[16] )
   mat_mul(&glmv->tmat, &mmat, &glmv->tmat);
 }
 
+void ortho( float min_x, float max_x, float min_y, float max_y, float min_z, float max_z )
+{
+  glOrtho( min_x, max_x, min_y, max_y, min_z, max_z );
+  // todo duplicate matrix ops
+}
+
+void frustum( float min_x, float max_x, float min_y, float max_y, float min_z, float max_z )
+{
+  glFrustum( min_x, max_x, min_y, max_y, min_z, max_z );
+  // todo duplicate matrix ops
+}
+
 #endif

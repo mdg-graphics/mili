@@ -2181,8 +2181,8 @@ init_mesh_window( Analysis *analy )
     set_mesh_view();
 
     /* Initialize the GL model view matrix stack. */
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
+    matrix_mode( GL_MODELVIEW );
+    load_identity( );
 
     /* Define material properties for each material. */
     /* If particle class present, add an extra material. */
@@ -2191,74 +2191,76 @@ init_mesh_window( Analysis *analy )
     mtl_qty = ( rval == OK ) ? analy->max_mesh_mat_qty + 1
               : analy->max_mesh_mat_qty;
 
-    if(env.ti_enable){
-		int* defaultsList;
-		defaultsList = (int*) malloc(mtl_qty*sizeof(int));
+    if(env.ti_enable)
+    {
+      int* defaultsList;
+      defaultsList = (int*) malloc(mtl_qty*sizeof(int));
 
-		//test code
-		int  num_entries = 0;
-		num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "*", "NULL", "NULL", NULL );
-		char **wildcard_list = NULL;
-		wildcard_list=(char**) malloc( num_entries*sizeof(char *));
-		num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "SetRGB", "NULL", "NULL", wildcard_list );
-		int testi = 0;
-		for(testi = 0; testi < num_entries; testi++){
-			char* teststr = wildcard_list[testi];
-			//printf("RGB: %c",wildcard_list[testi]);
-			int num_items_read = 0;
-			float* testset = NULL;
-			testset = (float*)malloc(3*sizeof(float));
-			int status = 0;
-			status = mc_ti_read_array(analy->db_ident, teststr, (void*)& testset, &num_items_read );
-			int testo = 0;
-			for(testo = 0; testo < 3; testo++){
-				float val1 = testset[testo];
-			}
-		}
-		//test code - works I think
+      //test code
+      int  num_entries = 0;
+      num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "*", "NULL", "NULL", NULL );
+      char **wildcard_list = NULL;
+      wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+      num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "SetRGB", "NULL", "NULL", wildcard_list );
+      int testi = 0;
+      for(testi = 0; testi < num_entries; testi++){
+        char* teststr = wildcard_list[testi];
+        //printf("RGB: %c",wildcard_list[testi]);
+        int num_items_read = 0;
+        float* testset = NULL;
+        testset = (float*)malloc(3*sizeof(float));
+        int status = 0;
+        status = mc_ti_read_array(analy->db_ident, teststr, (void*)& testset, &num_items_read );
+        int testo = 0;
+        for(testo = 0; testo < 3; testo++){
+          float val1 = testset[testo];
+        }
+      }
+      //test code - works I think
 
-		//create defaultslist and init
-		int* defaultslist = (int*) malloc (mtl_qty * sizeof(int));
-		int dummy = 0;
-		for(dummy = 0; dummy < mtl_qty;dummy++){
-			defaultsList[dummy] = 0;
-		}
-		for(testi = 0; testi < num_entries; testi++){
-			char temp[10];
-			char* fullname = wildcard_list[testi];
-			int pos = 0;
-			temp[0] = '\0';
-			int status = 0;
-			while(fullname[pos] != '\0'){
-				pos++;
-			}
-			strcpy(temp, &fullname[7]);
-			int current = atoi(temp);
-			defaultsList[current] = 1;
-		}
+      //create defaultslist and init
+      int* defaultslist = (int*) malloc (mtl_qty * sizeof(int));
+      int dummy = 0;
+      for(dummy = 0; dummy < mtl_qty;dummy++){
+        defaultsList[dummy] = 0;
+      }
+      for(testi = 0; testi < num_entries; testi++){
+        char temp[10];
+        char* fullname = wildcard_list[testi];
+        int pos = 0;
+        temp[0] = '\0';
+        int status = 0;
+        while(fullname[pos] != '\0'){
+          pos++;
+        }
+        strcpy(temp, &fullname[7]);
+        int current = atoi(temp);
+        defaultsList[current] = 1;
+      }
 
-		create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
-		define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
-		for(dummy = 0; dummy < mtl_qty;dummy++){
-			if(defaultsList[dummy] == 1){
-				GLfloat defaultColor[1][3] = {{0.0,0.0,0.0}};
-				char teststr[20];
-				teststr[0] = '\0';
-				int num_items_read = 0;
-				int status = 0;
-				sprintf(teststr,"SetRGB_%d",dummy);
-				GLfloat* test = (GLfloat*)malloc(3*sizeof(GLfloat));
-				status = mc_ti_read_array(analy->db_ident, teststr, (void*) &test, &num_items_read );
-				defaultColor[0][0] = test[0];
-				defaultColor[0][1] = test[1];
-				defaultColor[0][2] = test[2];
-				define_one_color_property(&v_win->mesh_materials,(dummy-1),0,defaultColor,1);
-			}
-		}
-	}
-    else{
-    	create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
-    	define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
+      create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
+      define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
+      for(dummy = 0; dummy < mtl_qty;dummy++){
+        if(defaultsList[dummy] == 1){
+          GLfloat defaultColor[1][3] = {{0.0,0.0,0.0}};
+          char teststr[20];
+          teststr[0] = '\0';
+          int num_items_read = 0;
+          int status = 0;
+          sprintf(teststr,"SetRGB_%d",dummy);
+          GLfloat* test = (GLfloat*)malloc(3*sizeof(GLfloat));
+          status = mc_ti_read_array(analy->db_ident, teststr, (void*) &test, &num_items_read );
+          defaultColor[0][0] = test[0];
+          defaultColor[0][1] = test[1];
+          defaultColor[0][2] = test[2];
+          define_one_color_property(&v_win->mesh_materials,(dummy-1),0,defaultColor,1);
+        }
+      }
+    }
+    else
+    {
+      create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
+      define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
     }
 
     if ( (qty = MESH_P( analy )->classes_by_sclass[G_SURFACE].qty) > 0 )
@@ -2669,18 +2671,18 @@ set_mesh_view( void )
         yp = cp / aspect;
     }
 
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
+    matrix_mode( GL_PROJECTION );
+    load_identity( );
 
     /*
      * We could special case 2D data, but choose not to for now.
      */
     if ( v_win->orthographic )
-        glOrtho( -xp, xp, -yp, yp, v_win->near, v_win->far );
+        ortho( -xp, xp, -yp, yp, v_win->near, v_win->far );
     else
-        glFrustum( -xp, xp, -yp, yp, v_win->near, v_win->far );
+        frustum( -xp, xp, -yp, yp, v_win->near, v_win->far );
 
-    glMatrixMode( GL_MODELVIEW );
+    matrix_mode( GL_MODELVIEW );
 }
 
 
@@ -9147,9 +9149,9 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
 
         if ( pn_hilite )
             glColor3fv( particle_select_col ); /* change to 'hilite_col' in a future release when
-						 * we add a setcol command to modify particle hilite
-						 * color.
-						 */
+                                                 * we add a setcol command to modify particle hilite
+                                                 * color.
+                                                 */
         else
             glColor3fv( hilite_col );
 
@@ -12127,22 +12129,13 @@ draw_line( int cnt, float *pts, int matl, Mesh_data *p_mesh, Analysis *analy,
 static void
 draw_3d_text( float pt[3], char *text, Bool_type center_text )
 {
-  //Transf_mat mat;
-  //float arr[16];
     float spt[3];
     float tpt[3];
     float zpos, cx, cy;
 
     // Run the point through the model transform matrix.
     point_transform( tpt, pt, get_mode_matrix( GL_MODELVIEW ) );
-/*
-    glGetFloatv( GL_MODELVIEW_MATRIX, arr );
-    int i, j;
-    for ( i = 0; i < 4; i++ )
-        for ( j = 0; j < 4; j++ )
-            mat.mat[i][j] = arr[i*4 + j];
-    point_transform( tpt, pt, &mat );
-*/
+
     // Get drawing window and position.
     get_foreground_window( &zpos, &cx, &cy );
 
@@ -16198,7 +16191,7 @@ draw_free_nodes( Analysis *analy )
 
     glEnable( GL_COLOR_MATERIAL );
 
-    if ( fastSpheres)
+    if ( fastSpheres )
     {
         display_list = glGenLists( 1 );
         sphere       = gluNewQuadric();
