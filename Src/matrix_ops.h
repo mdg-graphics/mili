@@ -87,12 +87,10 @@ void translate( float x, float y, float z )
 {
   glTranslatef( x, y, z );
   Matrix_stack * glmv = gl_mats[mode_to_idx( gl_mat_mode )];
-  Transf_mat t;
-  mat_copy(&t, &ident_matrix);
-  t.mat[3][0] = x;
-  t.mat[3][1] = y;
-  t.mat[3][2] = z;
-  mat_mul( &(glmv->tmat), &(glmv->tmat), &t );
+  float (* cm)[4][4] = &(glmv->tmat.mat);
+  (*cm)[3][0] += (*cm)[0][0] * x + (*cm)[1][0] * y + (*cm)[2][0] * z;
+  (*cm)[3][1] += (*cm)[0][1] * x + (*cm)[1][1] * y + (*cm)[2][1] * z;
+  (*cm)[3][2] += (*cm)[0][2] * x + (*cm)[1][2] * y + (*cm)[2][2] * z;
 }
 
 inline void translatev( float xyz[3] )
@@ -109,9 +107,9 @@ void scale( float x, float y, float z )
   memcpy(&wmv[0][0],&cm[0][0],sizeof(float)*16);
   float scl[4] = { x, y, z, 1.0 };
   int ii, jj;
-  for( ii = 0; ii < 4; ++ii )
+  for( ii = 0; ii < 3; ++ii )
   {
-    for( jj = 0; jj < 4; ++jj )
+    for( jj = 0; jj < 3; ++jj )
     {
       (*cm)[jj][ii] = wmv[jj][ii] * scl[ii];
     }

@@ -12173,10 +12173,6 @@ draw_3d_text( float pt[3], char *text, Bool_type center_text )
 
     /* Restore the model view matrix. */
     pop_matrix( );
-
-// quicker bitmap-rendering with libglut
-//    glRasterPos2f( spt[0], spt[1] );
-//    glutBitmapString( GLUT_BITMAP_HELVETICA_12, text );
 }
 
 
