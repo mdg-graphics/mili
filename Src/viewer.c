@@ -302,9 +302,9 @@ main( int argc, char *argv[] )
             exit( 1 );
 
         check_for_free_nodes( analy );
-
-        if ( analy->particle_nodes_found )
-            analy->particle_nodes_enabled = TRUE;
+        
+        analy->particle_nodes_enabled = FALSE;
+        
     }
 
 #ifdef TIME_OPEN_ANALYSIS
@@ -2761,8 +2761,8 @@ load_analysis( char *fname, Analysis *analy, Bool_type reload )
     model_history_log_clear( analy );
 
     check_for_free_nodes( analy );
-    if ( analy->particle_nodes_found )
-        analy->particle_nodes_enabled = TRUE;
+    
+    analy->particle_nodes_enabled = FALSE;
 
 #ifdef SERIAL_BATCH
 #else
