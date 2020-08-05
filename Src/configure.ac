@@ -383,6 +383,14 @@ case "$TARGET_DNS_DOMAIN" in
             AC_MSG_ERROR([No Glw Library available])
          ]
       
+      )
+      AC_SEARCH_LIBS([glutInit],[glut],
+         [
+         ],
+         [
+            AC_MSG_ERROR([No glut Library available])
+         ]
+      
       ) 
       
       
