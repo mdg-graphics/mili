@@ -3803,7 +3803,7 @@ face_normals( Analysis *analy )
 {
     Hex_geom *bricks;
     Nodal *nodes;
-    float **node_norm;
+    float *node_norm[3];
     int *face_el;
     int *face_fc;
     int fcnt;
@@ -3827,7 +3827,10 @@ face_normals( Analysis *analy )
     fcnt = analy->face_cnt;
     face_el = analy->face_el;
     face_fc = analy->face_fc;
-    node_norm = analy->node_norm;
+    for(i=0;i<3;i++)
+    {
+        node_norm[i] = analy->node_norm[i];
+    }
     nodes = analy->state_p->nodes;
     bricks = analy->geom_p->bricks;
 
@@ -3934,6 +3937,10 @@ face_normals( Analysis *analy )
             }
         }
     }
+    for(i=0;i<3;i++)
+    {
+        node_norm[i] = NULL;
+    }
 }
 #endif
 
@@ -3946,7 +3953,7 @@ face_normals( Analysis *analy )
 static void
 tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
 {
-    float **node_norm;
+    float *node_norm[3];
     int *face_el;
     int *face_fc;
     int face_qty;
@@ -3970,7 +3977,10 @@ tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
 
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_TET].list;
     class_qty = p_mesh->classes_by_sclass[G_TET].qty;
-    node_norm = analy->node_norm;
+    for (i = 0; i<3 ;i++)
+    {
+        node_norm[i] = analy->node_norm[i];
+    }
 
     /*
      * Compute an average normal for each face.
@@ -4105,6 +4115,10 @@ tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
             }
         }
     }
+    for(i=0;i<3;i++)
+    {
+        node_norm[i] = NULL;
+    }
 }
 
 
@@ -4116,7 +4130,7 @@ tet_face_normals( Mesh_data *p_mesh, Analysis *analy )
 static void
 hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
 {
-    float **node_norm;
+    float *node_norm[3];
     int *face_el;
     int *face_fc;
     int face_qty;
@@ -4141,7 +4155,10 @@ hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
 
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_HEX].list;
     class_qty = p_mesh->classes_by_sclass[G_HEX].qty;
-    node_norm = analy->node_norm;
+    for (i=0;i<3;i++)
+    {
+        node_norm[i] = analy->node_norm[i];
+    }
 
     /*
      * Compute an average normal for each face.
@@ -4275,6 +4292,10 @@ hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
             }
         }
     }
+    for(i=0;i<3;i++)
+    {
+        node_norm[i]=NULL;
+    }
 }
 
 
@@ -4286,7 +4307,7 @@ hex_face_normals( Mesh_data *p_mesh, Analysis *analy )
 static void
 pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
 {
-    float **node_norm;
+    float *node_norm[3];
     int *face_el;
     int *face_fc;
     int face_qty;
@@ -4311,8 +4332,11 @@ pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
 
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_PYRAMID].list;
     class_qty = p_mesh->classes_by_sclass[G_PYRAMID].qty;
-    node_norm = analy->node_norm;
-
+    
+    for (i = 0; i<3 ;i++)
+    {
+        node_norm[i] = analy->node_norm[i];
+    }
     /*
      * Compute an average normal for each face.
      */
@@ -4445,6 +4469,11 @@ pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
             }
         }
     }
+    class_qty = p_mesh->classes_by_sclass[G_TET].qty;
+    for (i = 0; i<3 ;i++)
+    {
+        node_norm[i] = NULL;
+    }
 }
 
 /************************************************************
@@ -4455,7 +4484,7 @@ pyramid_face_normals( Mesh_data *p_mesh, Analysis *analy )
 static void
 tri_normals( Mesh_data *p_mesh, Analysis *analy )
 {
-    float **node_norm;
+    float *node_norm[3];
     float dot, f_norm[3], n_norm[3];
     int num_nd;
     int i, j, k, l, nd;
@@ -4468,8 +4497,11 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
 
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_TRI].list;
     class_qty = p_mesh->classes_by_sclass[G_TRI].qty;
-    node_norm = analy->node_norm;
-
+    
+    for (i = 0; i<3 ;i++)
+    {
+        node_norm[i] = analy->node_norm[i];
+    }
     /*
      * Compute an average polygon normal for each tri element.
      */
@@ -4589,6 +4621,11 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
             }
         }
     }
+    class_qty = p_mesh->classes_by_sclass[G_TET].qty;
+    for (i = 0; i<3 ;i++)
+    {
+        node_norm[i] = NULL;
+    }
 }
 
 
@@ -4600,7 +4637,7 @@ tri_normals( Mesh_data *p_mesh, Analysis *analy )
 static void
 quad_normals( Mesh_data *p_mesh, Analysis *analy )
 {
-    float **node_norm;
+    float *node_norm[3];
     float dot, f_norm[3], n_norm[3];
     int num_nd;
     int i, j, k, l, nd;
@@ -4613,8 +4650,12 @@ quad_normals( Mesh_data *p_mesh, Analysis *analy )
 
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
     class_qty = p_mesh->classes_by_sclass[G_QUAD].qty;
-    node_norm = analy->node_norm;
-
+    
+    
+    for (i = 0; i<3 ;i++)
+    {
+        node_norm[i] = analy->node_norm[i];
+    }
     /*
      * Compute an average polygon normal for each quad element.
      */
@@ -4733,7 +4774,12 @@ quad_normals( Mesh_data *p_mesh, Analysis *analy )
                 }
             }
         }
+    }class_qty = p_mesh->classes_by_sclass[G_TET].qty;
+    for (i = 0; i<3 ;i++)
+    {
+        node_norm[i] = NULL;
     }
+    
 }
 
 
@@ -4745,7 +4791,7 @@ quad_normals( Mesh_data *p_mesh, Analysis *analy )
 static void
 surface_normals( Mesh_data *p_mesh, Analysis *analy )
 {
-    float **node_norm;
+    float *node_norm[3];
     float dot, f_norm[3], n_norm[3];
     int num_nd;
     int i, j, k, l, nd;
@@ -4759,8 +4805,11 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
 
     pp_mocd = (MO_class_data **) p_mesh->classes_by_sclass[G_SURFACE].list;
     class_qty = p_mesh->classes_by_sclass[G_SURFACE].qty;
-    node_norm = analy->node_norm;
-
+    
+    for (i = 0; i<3 ;i++)
+    {
+        node_norm[i] = analy->node_norm[i];
+    }
     /*
      * Compute an average polygon normal for each surface facet.
      */
@@ -4875,6 +4924,10 @@ surface_normals( Mesh_data *p_mesh, Analysis *analy )
                 }
             }
         }
+    }
+    for (i = 0; i<3 ;i++)
+    {
+        node_norm[i] = NULL;
     }
 }
 
