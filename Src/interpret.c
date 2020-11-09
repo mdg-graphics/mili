@@ -5672,7 +5672,9 @@ parse_single_command( char *buf, Analysis *analy )
 					//if we didnt find a result pointer
 					if(res_ptr == NULL){
 						//and our second argument does not match the current result
-						if(strcmp(original_tokens[1], analy->cur_result->name)){
+						if(!analy->cur_result && 
+                           !analy->cur_result->name &&
+                           strcmp(original_tokens[1], analy->cur_result->name)){
 							error_flag = TRUE;
 						}
 					}
