@@ -854,11 +854,6 @@ compute_node_velocity( Analysis *analy, float *resultArr,
             {
                 resultArr[i] = 0.0;
             }
-            /*
-            popup_dialog( INFO_POPUP,
-                          "Can't calculate velocity for first state" );
-            return;
-            */
         }
         else
         {
