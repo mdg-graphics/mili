@@ -850,150 +850,154 @@ compute_node_velocity( Analysis *analy, float *resultArr,
          */
         if ( analy->cur_state == 0 )
         {
-            popup_dialog( INFO_POPUP,
-                          "Can't calculate velocity for first state" );
-            return;
-        }
-
-        obj_qty = MESH_P( analy )->node_geom->qty;
-
-        analy->db_get_state( analy, analy->cur_state - 1, NULL, &state_prev,
-                             NULL );
-        delta_t = analy->state_p->time - state_prev->time;
-
-        if ( dim == 2 )
-        {
-            pos2d_0 = state_prev->nodes.nodes2d;
-            pos2d_1 = analy->state_p->nodes.nodes2d;
-
-            if (MESH_P( analy )->double_precision_nodpos)
+            for ( i = 0; i < obj_qty; i++ )
             {
-                p_sro = analy->srec_tree + analy->state_p->srec_id;
-
-                tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
-                                     "Tmp DP node cache for calc node velocity" );
-
-                load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
-                             analy->cur_state + 1, FALSE,
-                             (void *) tmp_nodesDp );
-
-                tmp_nodesDp_lastState = NEW_N( double, num_nodes*analy->dimension,
-                                               "TmpLS DP node cache for calc node velocity" );
-
-                tmp_state = analy->cur_state;
-                if ( tmp_state == 0 )
-                    tmp_state = 1;
-
-                load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
-                             tmp_state, FALSE,
-                             (void *) tmp_nodesDp_lastState );
-
-                pos2dDp_0 = (GVec2D2P *) tmp_nodesDp_lastState;
-                pos2dDp_1 = (GVec2D2P *) tmp_nodesDp;
-            }
-
-            if ( p_result->name[3] != 'm' ) /* velmag vs. velx, vely, or velz */
-            {
-                coord = (int) (p_result->name[3] - 'x');
-
-                for ( i = 0; i < obj_qty; i++ )
-                {
-                    if (MESH_P( analy )->double_precision_nodpos && pos2dDp_0)
-                        resultArr[i] = (pos2dDp_1[i][coord] - pos2dDp_0[i][coord])
-                                       / delta_t;
-                    else
-                        resultArr[i] = (pos2d_1[i][coord] - pos2d_0[i][coord])
-                                       / delta_t;
-                }
-            }
-            else
-            {
-                for ( i = 0; i < obj_qty; i++ )
-                {
-                    if (MESH_P( analy )->double_precision_nodpos && pos2dDp_0)
-                    {
-                        tmp[0] = pos2dDp_1[i][0] - pos2dDp_0[i][0];
-                        tmp[1] = pos2dDp_1[i][1] - pos2dDp_0[i][1];
-                    }
-                    else
-                    {
-                        tmp[0] = pos2d_1[i][0] - pos2d_0[i][0];
-                        tmp[1] = pos2d_1[i][1] - pos2d_0[i][1];
-                    }
-
-                    resultArr[i] = VEC_LENGTH_2D( tmp ) / delta_t;
-                }
+                resultArr[i] = 0.0;
             }
         }
         else
         {
-            if (MESH_P( analy )->double_precision_nodpos)
+            obj_qty = MESH_P( analy )->node_geom->qty;
+
+            analy->db_get_state( analy, analy->cur_state - 1, NULL, &state_prev,
+                                 NULL );
+            delta_t = analy->state_p->time - state_prev->time;
+
+            if ( dim == 2 )
             {
-                p_sro = analy->srec_tree + analy->state_p->srec_id;
+                pos2d_0 = state_prev->nodes.nodes2d;
+                pos2d_1 = analy->state_p->nodes.nodes2d;
 
-                tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
-                                     "Tmp DP node cache for calc node velocity" );
-
-                load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
-                             analy->cur_state, FALSE,
-                             (void *) tmp_nodesDp );
-
-                tmp_nodesDp_lastState = NEW_N( double, num_nodes*analy->dimension,
-                                               "TmpLS DP node cache for calc node velocity" );
-
-                tmp_state = analy->cur_state;
-                if ( tmp_state == 0 )
-                    tmp_state = 1;
-
-                load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
-                             tmp_state -1, FALSE,
-                             (void *) tmp_nodesDp_lastState );
-
-                pos3dDp_0 = (GVec3D2P *) tmp_nodesDp_lastState;
-                pos3dDp_1 = (GVec3D2P *) tmp_nodesDp;
-            }
-
-            pos3d_0 = state_prev->nodes.nodes3d;
-            pos3d_1 = analy->state_p->nodes.nodes3d;
-
-            if ( p_result->name[3] != 'm' ) /* velmag vs. velx, vely, or velz */
-            {
-                coord = (int) (p_result->name[3] - 'x');
-
-                for ( i = 0; i < obj_qty; i++ )
+                if (MESH_P( analy )->double_precision_nodpos)
                 {
-                    if (MESH_P( analy )->double_precision_nodpos && pos3dDp_0)
-                        resultArr[i] = (pos3dDp_1[i][coord] - pos3dDp_0[i][coord])
-                                       / delta_t;
-                    else
-                        resultArr[i] = (pos3d_1[i][coord] - pos3d_0[i][coord])
-                                       / delta_t;
+                    p_sro = analy->srec_tree + analy->state_p->srec_id;
+
+                    tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
+                                         "Tmp DP node cache for calc node velocity" );
+
+                    load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                                 analy->cur_state + 1, FALSE,
+                                 (void *) tmp_nodesDp );
+
+                    tmp_nodesDp_lastState = NEW_N( double, num_nodes*analy->dimension,
+                                                   "TmpLS DP node cache for calc node velocity" );
+
+                    tmp_state = analy->cur_state;
+                    if ( tmp_state == 0 )
+                        tmp_state = 1;
+
+                    load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                                 tmp_state, FALSE,
+                                 (void *) tmp_nodesDp_lastState );
+
+                    pos2dDp_0 = (GVec2D2P *) tmp_nodesDp_lastState;
+                    pos2dDp_1 = (GVec2D2P *) tmp_nodesDp;
+                }
+
+                if ( p_result->name[3] != 'm' ) /* velmag vs. velx, vely, or velz */
+                {
+                    coord = (int) (p_result->name[3] - 'x');
+
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        if (MESH_P( analy )->double_precision_nodpos && pos2dDp_0)
+                            resultArr[i] = (pos2dDp_1[i][coord] - pos2dDp_0[i][coord])
+                                           / delta_t;
+                        else
+                            resultArr[i] = (pos2d_1[i][coord] - pos2d_0[i][coord])
+                                           / delta_t;
+                    }
+                }
+                else
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        if (MESH_P( analy )->double_precision_nodpos && pos2dDp_0)
+                        {
+                            tmp[0] = pos2dDp_1[i][0] - pos2dDp_0[i][0];
+                            tmp[1] = pos2dDp_1[i][1] - pos2dDp_0[i][1];
+                        }
+                        else
+                        {
+                            tmp[0] = pos2d_1[i][0] - pos2d_0[i][0];
+                            tmp[1] = pos2d_1[i][1] - pos2d_0[i][1];
+                        }
+
+                        resultArr[i] = VEC_LENGTH_2D( tmp ) / delta_t;
+                    }
                 }
             }
             else
             {
-                for ( i = 0; i < obj_qty; i++ )
+                if (MESH_P( analy )->double_precision_nodpos)
                 {
+                    p_sro = analy->srec_tree + analy->state_p->srec_id;
 
-                    if (MESH_P( analy )->double_precision_nodpos && pos3dDp_0)
-                    {
-                        tmp[0] = pos3dDp_1[i][0] - pos3dDp_0[i][0];
-                        tmp[1] = pos3dDp_1[i][1] - pos3dDp_0[i][1];
-                        tmp[2] = pos3dDp_1[i][2] - pos3dDp_0[i][2];
-                    }
-                    else
-                    {
-                        tmp[0] = pos3d_1[i][0] - pos3d_0[i][0];
-                        tmp[1] = pos3d_1[i][1] - pos3d_0[i][1];
-                        tmp[2] = pos3d_1[i][2] - pos3d_0[i][2];
-                    }
+                    tmp_nodesDp = NEW_N( double, num_nodes*analy->dimension,
+                                         "Tmp DP node cache for calc node velocity" );
 
-                    resultArr[i] = VEC_LENGTH( tmp ) / delta_t;
+                    load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                                 analy->cur_state, FALSE,
+                                 (void *) tmp_nodesDp );
+
+                    tmp_nodesDp_lastState = NEW_N( double, num_nodes*analy->dimension,
+                                                   "TmpLS DP node cache for calc node velocity" );
+
+                    tmp_state = analy->cur_state;
+                    if ( tmp_state == 0 )
+                        tmp_state = 1;
+
+                    load_nodpos( analy, p_sro, MESH_P( analy ), analy->dimension,
+                                 tmp_state -1, FALSE,
+                                 (void *) tmp_nodesDp_lastState );
+
+                    pos3dDp_0 = (GVec3D2P *) tmp_nodesDp_lastState;
+                    pos3dDp_1 = (GVec3D2P *) tmp_nodesDp;
+                }
+
+                pos3d_0 = state_prev->nodes.nodes3d;
+                pos3d_1 = analy->state_p->nodes.nodes3d;
+
+                if ( p_result->name[3] != 'm' ) /* velmag vs. velx, vely, or velz */
+                {
+                    coord = (int) (p_result->name[3] - 'x');
+
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+                        if (MESH_P( analy )->double_precision_nodpos && pos3dDp_0)
+                            resultArr[i] = (pos3dDp_1[i][coord] - pos3dDp_0[i][coord])
+                                           / delta_t;
+                        else
+                            resultArr[i] = (pos3d_1[i][coord] - pos3d_0[i][coord])
+                                           / delta_t;
+                    }
+                }
+                else
+                {
+                    for ( i = 0; i < obj_qty; i++ )
+                    {
+
+                        if (MESH_P( analy )->double_precision_nodpos && pos3dDp_0)
+                        {
+                            tmp[0] = pos3dDp_1[i][0] - pos3dDp_0[i][0];
+                            tmp[1] = pos3dDp_1[i][1] - pos3dDp_0[i][1];
+                            tmp[2] = pos3dDp_1[i][2] - pos3dDp_0[i][2];
+                        }
+                        else
+                        {
+                            tmp[0] = pos3d_1[i][0] - pos3d_0[i][0];
+                            tmp[1] = pos3d_1[i][1] - pos3d_0[i][1];
+                            tmp[2] = pos3d_1[i][2] - pos3d_0[i][2];
+                        }
+
+                        resultArr[i] = VEC_LENGTH( tmp ) / delta_t;
+                    }
                 }
             }
         }
 
-        fr_state2( state_prev, analy );
+        if ( analy->cur_state != 0 )
+            fr_state2( state_prev, analy );
     }
 
     if (tmp_nodesDp)
