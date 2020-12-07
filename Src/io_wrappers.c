@@ -2651,7 +2651,28 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
 
     /* Read node position array if it exists, re-ordering if necessary. */
     if ( analy->stateDB )
-        load_nodpos( analy, p_sro, p_md, dims, st, TRUE, p_st->nodes.nodes );
+    {
+        rval = load_nodpos( analy, p_sro, p_md, dims, st, TRUE, p_st->nodes.nodes );
+        /* If unable to get first state, then no state files exist */
+        if ( rval == 124 /*|| rval == NON_STATE_FILE*/)
+        {
+            st_qty = 0;
+            /* Pass back the current quantity of states in the db. */
+            if ( state_qty != NULL )
+                *state_qty = st_qty;
+
+            p_st = mk_state2( analy, NULL, dims, 0, st_qty, NULL );
+
+            /* No states, so use node positions from geometry definition. */
+            p_st->nodes = analy->mesh_table->node_geom->objects;
+
+            p_st->position_constant = TRUE;
+
+            *pp_new_st = p_st;
+
+            return OK;
+        }
+    }
 
     /* Read sand flags if they exist, re-ordering if necessary. */
     /* Also check for string results with will be displayed as messages in GUI */
@@ -2951,6 +2972,11 @@ load_nodpos( Analysis *analy, State_rec_obj *p_sro, Mesh_data *p_md,
             rval = mc_read_results( analy->db_ident, db_state,
                                     p_sro->node_pos_subrec, 1, &primal,
                                     node_buf );
+            if ( rval == 124 /*|| rval == NON_STATE_FILE*/)
+            {
+                return 124;
+                //return NON_STATE_FILE
+            }
             if ( rval != 0 )
             {
                 mc_print_error( "load_nodpos() call mc_read_results()"
@@ -2972,6 +2998,15 @@ load_nodpos( Analysis *analy, State_rec_obj *p_sro, Mesh_data *p_md,
             rval = mc_read_results( analy->db_ident, db_state,
                                     p_sro->node_pos_subrec, 1, &primal,
                                     (void *) input_buf );
+
+            if ( rval == 124 /*|| rval == NON_STATE_FILE*/)
+            {
+                if ( ibuf != NULL )
+                    free( ibuf );
+
+                return 124;
+                //return NON_STATE_FILE
+            }
             if ( rval != 0 )
             {
                 mc_print_error( "load_nodpos() call mc_read_results()"
@@ -3002,6 +3037,15 @@ load_nodpos( Analysis *analy, State_rec_obj *p_sro, Mesh_data *p_md,
 
         rval = mc_read_results( analy->db_ident, db_state,
                                 p_sro->node_pos_subrec, 1, &primal, input_buf );
+
+        if ( rval == 124 /*|| rval == NON_STATE_FILE*/)
+        {
+            if ( ibuf != NULL )
+                free( ibuf );
+
+            return 124;
+            //return NON_STATE_FILE
+        }
         if ( rval != 0 )
         {
             mc_print_error( "load_nodpos() call mc_read_results()"
