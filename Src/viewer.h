@@ -1022,6 +1022,7 @@ typedef struct _Analysis
     float  *cur_ref_state_data;
     double *cur_ref_state_dataDp;
 
+    int state_count;
     int cur_mesh_id;
     Mesh_data *mesh_table;
     int mesh_qty;
