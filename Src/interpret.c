@@ -253,6 +253,8 @@ extern Bool_type history_inputCB_cmd;
 char newtokens[MAXTOKENS][TOKENLENGTH];
 int  new_token_cnt;
 
+int previous_show_command = 0;
+
 #define BUFSIZE 2000
 #define LASTCMD 200
 
@@ -1559,6 +1561,16 @@ parse_single_command( char *buf, Analysis *analy )
 		}
 		else if ( strcmp( tokens[0], "show" ) == 0 )
 		{
+            if ( analy->state_count == 0 )
+            {
+                // There are no states, so can't run show command
+                if ( previous_show_command == 0)
+                {
+                    popup_dialog(INFO_POPUP, "Ignoring requests to show as there are no states");
+                    previous_show_command = 1;
+                }
+                return;
+            }
 
 			analy->th_plotting   = FALSE;
 			if (  strncmp( tokens[1], "mat", 3 ) == 0 )
