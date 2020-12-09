@@ -5363,6 +5363,19 @@ parse_single_command( char *buf, Analysis *analy )
 			int start = -1;
 			MO_class_data * p_class;
 			int elem_class[14];
+
+            /* If there are no states ignore request to plot */
+            if ( analy->state_count == 0 )
+            {
+                // There are no states, so can't run plot command
+                if ( previous_show_command == 0)
+                {
+                    popup_dialog(INFO_POPUP, "Ignoring requests to show as there are no states");
+                    previous_show_command = 1;
+                }
+                return;
+            }
+
 			for(i = 0; i < 14; i++)
 			{
 				elem_class[i] = 0;
@@ -5708,6 +5721,19 @@ parse_single_command( char *buf, Analysis *analy )
 		}
 		else if ( strcmp( tokens[0], "oplot" ) == 0 )
 		{
+            
+            /* If there are no states ignore request to plot */
+            if ( analy->state_count == 0 )
+            {
+                // There are no states, so can't run oplot command
+                if ( previous_show_command == 0)
+                {
+                    popup_dialog(INFO_POPUP, "Ignoring requests to show as there are no states");
+                    previous_show_command = 1;
+                }
+                return;
+            }
+
 			create_oper_plot_objects( token_cnt, tokens, analy,
 									  &analy->current_plots );
 			redraw = BINDING_PLOT_VISUAL;
