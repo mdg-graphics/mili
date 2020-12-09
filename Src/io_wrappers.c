@@ -2654,7 +2654,7 @@ mili_db_get_state( Analysis *analy, int state_no, State2 *p_st,
     {
         rval = load_nodpos( analy, p_sro, p_md, dims, st, TRUE, p_st->nodes.nodes );
         /* If unable to get first state, then no state files exist */
-        if ( rval == 124 /*|| rval == NON_STATE_FILE*/)
+        if ( rval == OPEN_FAILED /*|| rval == NON_STATE_FILE*/)
         {
             st_qty = 0;
             /* Pass back the current quantity of states in the db. */
@@ -2972,10 +2972,10 @@ load_nodpos( Analysis *analy, State_rec_obj *p_sro, Mesh_data *p_md,
             rval = mc_read_results( analy->db_ident, db_state,
                                     p_sro->node_pos_subrec, 1, &primal,
                                     node_buf );
-            if ( rval == 124 /*|| rval == NON_STATE_FILE*/)
+            if ( rval == OPEN_FAILED /*|| rval == NON_STATE_FILE*/)
             {
-                return 124;
-                //return NON_STATE_FILE
+                return OPEN_FAILED;
+                //return NON_STATE_FILE;
             }
             if ( rval != 0 )
             {
@@ -2999,13 +2999,13 @@ load_nodpos( Analysis *analy, State_rec_obj *p_sro, Mesh_data *p_md,
                                     p_sro->node_pos_subrec, 1, &primal,
                                     (void *) input_buf );
 
-            if ( rval == 124 /*|| rval == NON_STATE_FILE*/)
+            if ( rval == OPEN_FAILED /*|| rval == NON_STATE_FILE*/)
             {
                 if ( ibuf != NULL )
                     free( ibuf );
 
-                return 124;
-                //return NON_STATE_FILE
+                return OPEN_FAILED;
+                //return NON_STATE_FILE;
             }
             if ( rval != 0 )
             {
@@ -3038,13 +3038,13 @@ load_nodpos( Analysis *analy, State_rec_obj *p_sro, Mesh_data *p_md,
         rval = mc_read_results( analy->db_ident, db_state,
                                 p_sro->node_pos_subrec, 1, &primal, input_buf );
 
-        if ( rval == 124 /*|| rval == NON_STATE_FILE*/)
+        if ( rval == OPEN_FAILED/*|| rval == NON_STATE_FILE*/)
         {
-            if ( ibuf != NULL )
+           if ( ibuf != NULL )
                 free( ibuf );
 
-            return 124;
-            //return NON_STATE_FILE
+            return OPEN_FAILED;
+            //return NON_STATE_FILE;
         }
         if ( rval != 0 )
         {
