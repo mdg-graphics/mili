@@ -1676,8 +1676,24 @@ parse_single_command( char *buf, Analysis *analy )
 				}
 				else
 				{
-					sprintf( pdfreader_cmd, "acroread %s/griz_manual.pdf &", griz_home );
-					status = system( pdfreader_cmd );
+                    status = system( "which evince" );
+                    if ( status == 0 )
+                    {
+                        sprintf( pdfreader_cmd, "evince %s/griz_manual.pdf &", griz_home);
+                        status = system( pdfreader_cmd );
+                    }
+                    else
+                    {
+                        sprintf( pdfreader_cmd, "acroread %s/griz_manual.pdf &", griz_home );
+                        status = system( pdfreader_cmd );
+                        if ( status != 0 )
+                        {
+                            // Could not open Griz release notes with either
+                            // xpdf, evince, or acroread
+                            popup_dialog( INFO_POPUP,
+                                          "Unable to open Griz manual" );
+                        }
+                    }
 				}
 	#endif
 			}
@@ -1692,7 +1708,7 @@ parse_single_command( char *buf, Analysis *analy )
 				status = system( pdfreader_cmd );
 	#else
 				status = system( "which xpdf" );
-				\
+				 
 				if ( status == 0 )
 				{
 					sprintf( pdfreader_cmd, "xpdf %s/griz_relnotes.pdf &", griz_home );
@@ -1700,8 +1716,24 @@ parse_single_command( char *buf, Analysis *analy )
 				}
 				else
 				{
-					sprintf( pdfreader_cmd, "acroread %s/griz_relnotes.pdf &", griz_home );
-					status = system( pdfreader_cmd );
+                    status = system( "which evince" );
+                    if ( status == 0 )
+                    {
+                        sprintf( pdfreader_cmd, "evince %s/griz_relnotes.pdf &", griz_home);
+                        status = system( pdfreader_cmd );
+                    }
+                    else
+                    {
+                        sprintf( pdfreader_cmd, "acroread %s/griz_relnotes.pdf &", griz_home );
+                        status = system( pdfreader_cmd );
+                        if ( status != 0 )
+                        {
+                            // Could not open Griz release notes with either
+                            // xpdf, evince, or acroread
+                            popup_dialog( INFO_POPUP,
+                                          "Unable to open Griz release notes" );
+                        }
+                    }
 				}
 	#endif
 			}
