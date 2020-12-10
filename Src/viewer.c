@@ -948,6 +948,9 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     manage_timer( 0, 1 );
     putc( (int) '\n', stdout );
 #endif
+    
+    /* set state count in analysis struct */
+    analy->state_count = num_states;
 
     if ( num_states > 0 )
     {
