@@ -6473,9 +6473,117 @@ draw_plots( Analysis *analy )
                 {
                     end_curve = FALSE;
                     if ( analy->mm_result_set[0] && ord_data[j]<analy->result_mm[0] )
+                    {
+                        /*
+                         * If rmin is set and the current pos is below rmin.
+                         * Check if previous point was above rmin. If true
+                         * plot line down to rmin
+                         */
+                        if ( j > start_state )
+                        {
+                            // If previous point was above rmin, need to plot line down to rmin
+                            if ( ord_data[j-1] > analy->result_mm[0] )
+                            {
+                                //Find x coordinate where line intersects with y=rmin 
+                                float adjacent = fabs(ord_data[j-1] - ord_data[j]);
+                                float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+
+                                //tan(angle) = opposite / adjacent
+                                float angle = atan( opposite / adjacent );
+
+                                float new_height = ord_data[j-1] - analy->result_mm[0];
+                                float x_distance = new_height * tan(angle);
+
+                                pos[0] =  win_x_min + win_x_span * ((ab_data[j-1]+x_distance) - ax_x_min)
+                                         / ax_x_span;
+                                pos[1] =  win_y_min + win_y_span * (analy->result_mm[0] - ax_y_min)
+                                             / ax_y_span;
+
+                                glVertex3fv( pos );
+                            }
+                        }
                         end_curve = TRUE;
+                    }
+                    else if ( analy->mm_result_set[0] && j > start_state && ord_data[j-1] < analy->result_mm[0] )
+                    {
+                        /*
+                         * If rmin is set and the previous point was below rmin,
+                         * then plot from rmin to current point
+                         *
+                         */
+                        //Find x coordinate where line intersects with y=rmin 
+                        float adjacent = fabs(ord_data[j-1] - ord_data[j]);
+                        float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+
+                        //tan(angle) = opposite / adjacent
+                        float angle = atan( opposite / adjacent );
+
+                        float new_height = ord_data[j] - analy->result_mm[0];
+                        float x_distance = new_height * tan(angle);
+
+                        pos[0] =  win_x_min + win_x_span * ((ab_data[j]-x_distance) - ax_x_min)
+                                 / ax_x_span;
+                        pos[1] =  win_y_min + win_y_span * (analy->result_mm[0] - ax_y_min)
+                                     / ax_y_span;
+
+                        glVertex3fv( pos );
+
+                    }
                     if ( analy->mm_result_set[1] && ord_data[j]>analy->result_mm[1] )
+                    {
+                        /*
+                         * If rmax is set and the current pos is above rmax.
+                         * Check if previous point was below rmax. If true
+                         * plot line up to rmax
+                         */
+                        if ( j > start_state )
+                        {
+                            if ( ord_data[j-1] < analy->result_mm[1] )
+                            {
+                                //Find x coordinate where line intersects with y=rmax
+                                float adjacent = fabs(ord_data[j-1] - ord_data[j]);
+                                float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+
+                                //tan(angle) = opposite / adjacent
+                                float angle = atan( opposite / adjacent );
+                                
+                                float new_height = ord_data[j] - analy->result_mm[1];
+                                float x_distance = new_height * tan(angle);
+
+                                pos[0] =  win_x_min + win_x_span * ((ab_data[j]-x_distance) - ax_x_min)
+                                         / ax_x_span;
+                                pos[1] =  win_y_min + win_y_span * (analy->result_mm[1] - ax_y_min)
+                                             / ax_y_span;
+
+                                glVertex3fv( pos );
+                                
+                            }
+                        }
                         end_curve = TRUE;
+                    }
+                    else if ( analy->mm_result_set[1] && j > start_state && ord_data[j-1] > analy->result_mm[1] )
+                    {
+                        /*
+                         * If rmax is set and the previous point was above rmax,
+                         * then plot from rmax down to current point
+                         */
+                        //Find x coordinate where line intersects with y=rmax
+                        float adjacent = fabs(ord_data[j-1] - ord_data[j]);
+                        float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+
+                        //tan(angle) = opposite / adjacent
+                        float angle = atan( opposite / adjacent );
+
+                        float new_height = ord_data[j-1] - analy->result_mm[1];
+                        float x_distance = new_height * tan(angle);
+
+                        pos[0] =  win_x_min + win_x_span * ((ab_data[j-1]+x_distance) - ax_x_min)
+                                 / ax_x_span;
+                        pos[1] =  win_y_min + win_y_span * (analy->result_mm[1] - ax_y_min)
+                                     / ax_y_span;
+
+                        glVertex3fv( pos );
+                    }
                     if ( analy->mm_time_set[0] && ab_data[j]<=analy->time_mm[0] )
                         end_curve = TRUE;
                     if ( analy->mm_time_set[1] && ab_data[j]>=analy->time_mm[1] )
