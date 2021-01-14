@@ -1147,7 +1147,7 @@ tell_coordinates( char class[], int id, Analysis *analy )
     p_mo_class = (MO_class_data *) p_hte->data;
     label_index = get_class_label_index(p_mo_class,id);
     
-    if ( label_index < 1 || label_index > p_mo_class->qty )
+    if ( label_index < 0 || label_index > p_mo_class->qty )
     {
         popup_dialog( INFO_POPUP, "Invalid %s number: %d\n", class, id );
         return;
