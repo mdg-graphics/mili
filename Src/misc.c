@@ -2458,6 +2458,7 @@ extern void
 output_image( Analysis *analy )
 {
     extern int jpeg_quality;
+    extern int png_compression_level;
     char filename[128];
     char *suffix;
 
@@ -2498,7 +2499,7 @@ output_image( Analysis *analy )
 #endif
 #ifdef PNG_SUPPORT
     case IMAGE_FORMAT_PNG:
-        write_PNG_file( filename, FALSE );
+        write_PNG_file( filename, FALSE, png_compression_level );
         break;
 #endif
     }
