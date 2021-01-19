@@ -572,7 +572,7 @@ mili_db_get_geom( int dbid, Mesh_data **p_mtable, int *p_mesh_qty )
                 p_mocd->superclass = elem_sclasses[j];
                 p_mocd->elem_class_index = elem_class_count++;
                 p_mocd->qty = obj_qty;
-               
+
                 p_ed = NEW( Elem_data, "Element conn struct" );
 
                 p_mocd->objects.elems = p_ed;

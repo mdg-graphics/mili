@@ -152,6 +152,7 @@
 #include "draw.h"
 #include "image.h"
 #include "mdg.h"
+#include "matrix_ops.h"
 
 #ifdef xSERIAL_BATCHx
 #include <GL/gl_mangle.h>
@@ -2180,8 +2181,8 @@ init_mesh_window( Analysis *analy )
     set_mesh_view();
 
     /* Initialize the GL model view matrix stack. */
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
+    matrix_mode( GL_MODELVIEW );
+    load_identity( );
 
     /* Define material properties for each material. */
     /* If particle class present, add an extra material. */
@@ -2190,74 +2191,76 @@ init_mesh_window( Analysis *analy )
     mtl_qty = ( rval == OK ) ? analy->max_mesh_mat_qty + 1
               : analy->max_mesh_mat_qty;
 
-    if(env.ti_enable){
-		int* defaultsList;
-		defaultsList = (int*) malloc(mtl_qty*sizeof(int));
+    if(env.ti_enable)
+    {
+      int* defaultsList;
+      defaultsList = (int*) malloc(mtl_qty*sizeof(int));
 
-		//test code
-		int  num_entries = 0;
-		num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "*", "NULL", "NULL", NULL );
-		char **wildcard_list = NULL;
-		wildcard_list=(char**) malloc( num_entries*sizeof(char *));
-		num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "SetRGB", "NULL", "NULL", wildcard_list );
-		int testi = 0;
-		for(testi = 0; testi < num_entries; testi++){
-			char* teststr = wildcard_list[testi];
-			//printf("RGB: %c",wildcard_list[testi]);
-			int num_items_read = 0;
-			float* testset = NULL;
-			testset = (float*)malloc(3*sizeof(float));
-			int status = 0;
-			status = mc_ti_read_array(analy->db_ident, teststr, (void*)& testset, &num_items_read );
-			int testo = 0;
-			for(testo = 0; testo < 3; testo++){
-				float val1 = testset[testo];
-			}
-		}
-		//test code - works I think
+      //test code
+      int  num_entries = 0;
+      num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "*", "NULL", "NULL", NULL );
+      char **wildcard_list = NULL;
+      wildcard_list=(char**) malloc( num_entries*sizeof(char *));
+      num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE, "SetRGB", "NULL", "NULL", wildcard_list );
+      int testi = 0;
+      for(testi = 0; testi < num_entries; testi++){
+        char* teststr = wildcard_list[testi];
+        //printf("RGB: %c",wildcard_list[testi]);
+        int num_items_read = 0;
+        float* testset = NULL;
+        testset = (float*)malloc(3*sizeof(float));
+        int status = 0;
+        status = mc_ti_read_array(analy->db_ident, teststr, (void*)& testset, &num_items_read );
+        int testo = 0;
+        for(testo = 0; testo < 3; testo++){
+          float val1 = testset[testo];
+        }
+      }
+      //test code - works I think
 
-		//create defaultslist and init
-		int* defaultslist = (int*) malloc (mtl_qty * sizeof(int));
-		int dummy = 0;
-		for(dummy = 0; dummy < mtl_qty;dummy++){
-			defaultsList[dummy] = 0;
-		}
-		for(testi = 0; testi < num_entries; testi++){
-			char temp[10];
-			char* fullname = wildcard_list[testi];
-			int pos = 0;
-			temp[0] = '\0';
-			int status = 0;
-			while(fullname[pos] != '\0'){
-				pos++;
-			}
-			strcpy(temp, &fullname[7]);
-			int current = atoi(temp);
-			defaultsList[current] = 1;
-		}
+      //create defaultslist and init
+      int* defaultslist = (int*) malloc (mtl_qty * sizeof(int));
+      int dummy = 0;
+      for(dummy = 0; dummy < mtl_qty;dummy++){
+        defaultsList[dummy] = 0;
+      }
+      for(testi = 0; testi < num_entries; testi++){
+        char temp[10];
+        char* fullname = wildcard_list[testi];
+        int pos = 0;
+        temp[0] = '\0';
+        int status = 0;
+        while(fullname[pos] != '\0'){
+          pos++;
+        }
+        strcpy(temp, &fullname[7]);
+        int current = atoi(temp);
+        defaultsList[current] = 1;
+      }
 
-		create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
-		define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
-		for(dummy = 0; dummy < mtl_qty;dummy++){
-			if(defaultsList[dummy] == 1){
-				GLfloat defaultColor[1][3] = {{0.0,0.0,0.0}};
-				char teststr[20];
-				teststr[0] = '\0';
-				int num_items_read = 0;
-				int status = 0;
-				sprintf(teststr,"SetRGB_%d",dummy);
-				GLfloat* test = (GLfloat*)malloc(3*sizeof(GLfloat));
-				status = mc_ti_read_array(analy->db_ident, teststr, (void*) &test, &num_items_read );
-				defaultColor[0][0] = test[0];
-				defaultColor[0][1] = test[1];
-				defaultColor[0][2] = test[2];
-				define_one_color_property(&v_win->mesh_materials,(dummy-1),0,defaultColor,1);
-			}
-		}
-	}
-    else{
-    	create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
-    	define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
+      create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
+      define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
+      for(dummy = 0; dummy < mtl_qty;dummy++){
+        if(defaultsList[dummy] == 1){
+          GLfloat defaultColor[1][3] = {{0.0,0.0,0.0}};
+          char teststr[20];
+          teststr[0] = '\0';
+          int num_items_read = 0;
+          int status = 0;
+          sprintf(teststr,"SetRGB_%d",dummy);
+          GLfloat* test = (GLfloat*)malloc(3*sizeof(GLfloat));
+          status = mc_ti_read_array(analy->db_ident, teststr, (void*) &test, &num_items_read );
+          defaultColor[0][0] = test[0];
+          defaultColor[0][1] = test[1];
+          defaultColor[0][2] = test[2];
+          define_one_color_property(&v_win->mesh_materials,(dummy-1),0,defaultColor,1);
+        }
+      }
+    }
+    else
+    {
+      create_color_prop_arrays( &v_win->mesh_materials, mtl_qty);
+      define_color_properties( &v_win->mesh_materials, NULL, mtl_qty, material_colors, MATERIAL_COLOR_CNT);
     }
 
     if ( (qty = MESH_P( analy )->classes_by_sclass[G_SURFACE].qty) > 0 )
@@ -2668,18 +2671,18 @@ set_mesh_view( void )
         yp = cp / aspect;
     }
 
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
+    matrix_mode( GL_PROJECTION );
+    load_identity( );
 
     /*
      * We could special case 2D data, but choose not to for now.
      */
     if ( v_win->orthographic )
-        glOrtho( -xp, xp, -yp, yp, v_win->near, v_win->far );
+        ortho( -xp, xp, -yp, yp, v_win->near, v_win->far );
     else
-        glFrustum( -xp, xp, -yp, yp, v_win->near, v_win->far );
+        frustum( -xp, xp, -yp, yp, v_win->near, v_win->far );
 
-    glMatrixMode( GL_MODELVIEW );
+    matrix_mode( GL_MODELVIEW );
 }
 
 
@@ -3857,7 +3860,7 @@ draw_mesh_view( Analysis *analy )
         glEnable( GL_DEPTH_TEST );
     }
 
-    glPushMatrix();
+    push_matrix();
 
     /*
      * Set up all the viewing transforms.  Transformations are
@@ -3867,17 +3870,19 @@ draw_mesh_view( Analysis *analy )
     look_rot_mat( v_win->look_from, v_win->look_at,
                   v_win->look_up, &look_rot );
     mat_to_array( &look_rot, arr );
-    glMultMatrixf( arr );
-    glTranslatef( -v_win->look_from[0], -v_win->look_from[1],
-                  -v_win->look_from[2] );
-    glTranslatef( v_win->trans[0], v_win->trans[1], v_win->trans[2] );
+    mode_matrix_multiply( arr );
+
+    translate( -v_win->look_from[0], -v_win->look_from[1], -v_win->look_from[2] );
+    translatev( v_win->trans );
+
     mat_to_array( &v_win->rot_mat, arr );
-    glMultMatrixf( arr );
+    mode_matrix_multiply( arr );
+
+
     scal = v_win->bbox_scale;
-    glScalef( scal*v_win->scale[0], scal*v_win->scale[1],
-              scal*v_win->scale[2] );
-    glTranslatef( v_win->bbox_trans[0], v_win->bbox_trans[1],
-                  v_win->bbox_trans[2] );
+    scale(  scal*v_win->scale[0], scal*v_win->scale[1], scal*v_win->scale[2] );
+
+    translatev( v_win->bbox_trans );
 
     /* Draw the grid. */
     if ( analy->dimension == 3 )
@@ -3885,7 +3890,7 @@ draw_mesh_view( Analysis *analy )
     else
         draw_grid_2d( analy );
 
-    glPopMatrix();
+    pop_matrix();
 
     /* Draw all the foreground stuff. */
 
@@ -4134,12 +4139,14 @@ draw_grid( Analysis *analy )
         draw_tets( show_node_result, show_mat_result, show_mesh_result,
                    mo_classes[i], analy );
 
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset( -1, -1 );
+
     /* Quad element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_QUAD].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_quads_3d( show_node_result, show_mat_result, show_mesh_result,
-                       mo_classes[i], analy );
+        draw_quads_3d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i], analy );
 
     /* Tri element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_TRI].qty;
@@ -4147,6 +4154,8 @@ draw_grid( Analysis *analy )
     for ( i = 0; i < qty_classes; i++ )
         draw_tris_3d( show_node_result, show_mat_result, show_mesh_result,
                       mo_classes[i], analy );
+
+    glPolygonOffset( 0.0, 0.0 );
 
     /* Pyramid element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_PYRAMID].qty;
@@ -4217,8 +4226,8 @@ draw_grid( Analysis *analy )
     //{
         /*analy->show_particle_class = FALSE; */
     //    analy->show_particle_class = TRUE;
-        
-    //} 
+
+    //}
 
     /*  Set glMaterial to draw from the correct color property data base */
     if ( analy->show_particle_class )
@@ -4227,7 +4236,7 @@ draw_grid( Analysis *analy )
         for(i=0; i < qty_classes; i++)
         {
             draw_particles_3d( mo_classes[i], analy);
-        } 
+        }
     }
 
     /*
@@ -8062,6 +8071,12 @@ particle_error( GLenum err_code )
              (char *) err_string );
 }
 
+// TODO
+static void
+init_particles_3d( )
+{
+
+}
 
 /************************************************************
  * TAG( draw_particles_3d )
@@ -8071,7 +8086,8 @@ particle_error( GLenum err_code )
 static void
 draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 {
-    GVec3D *coords3;
+/*
+  GVec3D *coords3;
     float *el_state_mm, *part_res;
     float col[4];
     int i;
@@ -8094,14 +8110,13 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
     colorflag = analy->cur_result != NULL;
 
-    /*coords3 = analy->state_p->particles.particles3d;*/
     coords3 = analy->state_p->nodes.particles3d;
 
     if(analy->cur_result != NULL)
     {
         show_result = result_has_class(analy->cur_result, p_particle_class, analy);
     }
-  
+
     get_min_max(analy, FALSE, &rmin, &rmax);
 
     display_list = glGenLists( 1 );
@@ -8122,7 +8137,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
     gluQuadricNormals( sphere, (GLenum) GLU_SMOOTH );
     gluQuadricTexture(sphere, (GLboolean) GLU_TRUE );
     glNewList( display_list, GL_COMPILE );
-    /*gluSphere( sphere, particle_radius, 16, 8 ); */
+    //gluSphere( sphere, particle_radius, 16, 8 );
     gluSphere( sphere, particle_radius, 32, 16 );
     glEndList();
 
@@ -8137,7 +8152,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
         {
             continue;
         }
- 
+
         matl = p_particle_class->objects.elems->mat[i];
 
         if(v_win->mesh_materials.current_index != matl)
@@ -8145,28 +8160,23 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
             change_current_color_property(&v_win->mesh_materials, matl);
         }
 
-        /*color_lookup( col, part_res[i], el_state_mm[0], el_state_mm[1],
-                      analy->zero_result, index, analy->logscale,
-                      analy->material_greyscale ); */
-
         color_lookup( col, part_res[i], rmin, rmax,
                       analy->zero_result, matl, analy->logscale,
                       analy->material_greyscale );
 
         glColor3fv( col );
 
-        glPushMatrix();
+        push_matrix( );
         node = p_particle_class->objects.elems->nodes[i];
-        x = p_node_class->objects.nodes3d[node][0]; 
-        y = p_node_class->objects.nodes3d[node][1]; 
+        x = p_node_class->objects.nodes3d[node][0];
+        y = p_node_class->objects.nodes3d[node][1];
         z = p_node_class->objects.nodes3d[node][2];
-  
-        /*glTranslatef( coords3[i][0], coords3[i][1], coords3[i][2] ); */
-        glTranslatef( x, y, z );
+
+        translate( x, y, z );
 
         glCallList( display_list );
 
-        glPopMatrix();
+        pop_matrix( );
     }
 
     glDisable( GL_COLOR_MATERIAL );
@@ -8177,6 +8187,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
     gluDeleteQuadric( sphere );
 
     glDeleteLists( display_list, 1 );
+    */
 }
 
 
@@ -8188,6 +8199,7 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 static void
 draw_particles_2d( MO_class_data *p_particle_class, Analysis *analy )
 {
+  /*
     GVec2D *coords2;
     float *el_state_mm, *part_res;
     float col[4];
@@ -8240,12 +8252,12 @@ draw_particles_2d( MO_class_data *p_particle_class, Analysis *analy )
                       analy->material_greyscale );
         glColor3fv( col );
 
-        glPushMatrix();
-        glTranslatef( coords2[i][0], coords2[i][1], 0.0 );
+        push_matrix( );
+        translate( coords2[i][0], coords2[i][1], 0.0 );
 
         glCallList( display_list );
 
-        glPopMatrix();
+        pop_matrix( );
     }
 
     glDisable( GL_COLOR_MATERIAL );
@@ -8256,6 +8268,7 @@ draw_particles_2d( MO_class_data *p_particle_class, Analysis *analy )
     gluDeleteQuadric( circle );
 
     glDeleteLists( display_list, 1 );
+  */
 }
 
 
@@ -9136,9 +9149,9 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
 
         if ( pn_hilite )
             glColor3fv( particle_select_col ); /* change to 'hilite_col' in a future release when
-						 * we add a setcol command to modify particle hilite
-						 * color.
-						 */
+                                                 * we add a setcol command to modify particle hilite
+                                                 * color.
+                                                 */
         else
             glColor3fv( hilite_col );
 
@@ -11226,10 +11239,10 @@ draw_sphere_GL( float ctr[3], float radius, int res_factor)
     num_slices*=res_factor;
     num_stacks*=res_factor;
 
-    glPushMatrix();
-    glTranslatef( ctr[0], ctr[1], ctr[2] );
+    push_matrix( );
+    translatev( ctr );
     gluSphere(sphereObj, radius, num_slices, num_stacks);
-    glPopMatrix();
+    pop_matrix( );
     glEnd();
 }
 
@@ -12116,41 +12129,37 @@ draw_line( int cnt, float *pts, int matl, Mesh_data *p_mesh, Analysis *analy,
 static void
 draw_3d_text( float pt[3], char *text, Bool_type center_text )
 {
-    Transf_mat mat;
-    float arr[16], tpt[3], spt[3];
-    float zpos, cx, cy, text_height;
-    int i, j;
+    float spt[3];
+    float tpt[3];
+    float zpos, cx, cy;
+    float text_height;
 
-    /* Run the point through the model transform matrix. */
-    glGetFloatv( GL_MODELVIEW_MATRIX, arr );
-    for ( i = 0; i < 4; i++ )
-        for ( j = 0; j < 4; j++ )
-            mat.mat[i][j] = arr[i*4 + j];
-    point_transform( tpt, pt, &mat );
+    // Run the point through the model transform matrix.
+    point_transform( tpt, pt, get_mode_matrix( GL_MODELVIEW ) );
 
-    /* Get drawing window and position. */
+    // Get drawing window and position.
     get_foreground_window( &zpos, &cx, &cy );
 
-    /* Project the point to the drawing window. */
-    if ( v_win->orthographic )
+    // Project the point to the drawing window.
+    if ( ! v_win->orthographic )
     {
-        spt[0] = tpt[0];
-        spt[1] = tpt[1];
-        spt[2] = zpos;
+      spt[0] = tpt[0] * zpos / tpt[2];
+      spt[1] = tpt[1] * zpos / tpt[2];
+      spt[2] = zpos;
     }
     else
     {
-        spt[0] = tpt[0] * zpos / tpt[2];
-        spt[1] = tpt[1] * zpos / tpt[2];
-        spt[2] = zpos;
+      spt[0] = tpt[0];
+      spt[1] = tpt[1];
+      spt[2] = zpos;
     }
 
     /* Get the text size. */
     text_height = 14.0 * 2.0*cy / v_win->vp_height;
 
     /* Clear the model view matrix and draw the text. */
-    glPushMatrix();
-    glLoadIdentity();
+    push_matrix();
+    load_identity();
 
     hmove( spt[0], spt[1], spt[2] );
     htextsize( text_height, text_height );
@@ -12163,7 +12172,7 @@ draw_3d_text( float pt[3], char *text, Bool_type center_text )
     antialias_lines( FALSE, 0 );
 
     /* Restore the model view matrix. */
-    glPopMatrix();
+    pop_matrix( );
 }
 
 
@@ -12292,8 +12301,8 @@ draw_foreground( Analysis *analy )
     vp_to_world[1] = 2.0*cy / v_win->vp_height;
 
     /* Translate everything to the drawing plane. */
-    glPushMatrix();
-    glTranslatef( 0.0, 0.0, zpos );
+    push_matrix( );
+    translate( 0.0, 0.0, zpos );
 
     /* For the textual information. */
     text_height = 14.0 * vp_to_world[1];
@@ -12985,151 +12994,6 @@ draw_foreground( Analysis *analy )
         glColor3fv( v_win->text_color );
     }
 
-
-    /* Global coordinate system. */
-    if ( analy->show_coord )
-    {
-        leng = 35*vp_to_world[0];
-        sub_leng = leng / 10.0;
-
-        /* Rotate the coord system properly, then translate it down
-         * to the lower right corner of the view window.
-         */
-        look_rot_mat( v_win->look_from, v_win->look_at, v_win->look_up, &mat );
-        mat_mul( &tmat, &v_win->rot_mat, &mat );
-        mat_translate( &mat, cx - 60*vp_to_world[0],
-                       -cy + 60*vp_to_world[0], 0.0 );
-        mat_mul( &tmat, &tmat, &mat );
-
-        /* Draw the axes. */
-        VEC_SET( pt, 0.0, 0.0, 0.0 );
-        point_transform( pto, pt, &tmat );
-        VEC_SET( pt, leng, 0.0, 0.0 );
-        point_transform( pti, pt, &tmat );
-        VEC_SET( pt, 0.0, leng, 0.0 );
-        point_transform( ptj, pt, &tmat );
-        VEC_SET( pt, 0.0, 0.0, leng );
-        point_transform( ptk, pt, &tmat );
-
-        glColor3fv( v_win->foregrnd_color );
-
-        glBegin( GL_LINES );
-        glVertex3fv( pto );
-        glVertex3fv( pti );
-        glVertex3fv( pto );
-        glVertex3fv( ptj );
-        if ( analy->dimension == 3 )
-        {
-            glVertex3fv( pto );
-            glVertex3fv( ptk );
-        }
-        glEnd();
-
-        if ( show_dirvec )
-        {
-            VEC_SET( pt, analy->dir_vec[0] * leng * 0.75,
-                     analy->dir_vec[1] * leng * 0.75,
-                     ( dim == 3 ) ? analy->dir_vec[2] * leng * 0.75
-                     : 0.0 );
-            point_transform( ptv, pt, &tmat );
-
-            glColor3fv( material_colors[15] ); /* Red */
-            glLineWidth( 2.25 );
-
-            glBegin( GL_LINES );
-            glVertex3fv( pto );
-            glVertex3fv( ptv );
-            glEnd();
-
-            glLineWidth( 1.25 );
-        }
-
-        /* Label the axes. */
-        VEC_SET( pt, leng + sub_leng, sub_leng, sub_leng );
-        point_transform( pti, pt, &tmat );
-        VEC_SET( pt, sub_leng, leng + sub_leng, sub_leng );
-        point_transform( ptj, pt, &tmat );
-        if ( analy->dimension == 3 )
-        {
-            VEC_SET( pt, sub_leng, sub_leng, leng + sub_leng );
-            point_transform( ptk, pt, &tmat );
-        }
-
-        antialias_lines( FALSE, 0 );
-        glLineWidth( 1.0 );
-
-        glColor3fv( v_win->text_color );
-
-        draw_3d_text( pti, "X", FALSE );
-        draw_3d_text( ptj, "Y", FALSE );
-        if ( analy->dimension == 3 )
-            draw_3d_text( ptk, "Z", FALSE );
-
-        antialias_lines( TRUE, TRUE );
-        glLineWidth( 1.25 );
-
-        /* Show tensor transformation coordinate system if on. */
-        if ( analy->do_tensor_transform
-                && analy->tensor_transform_matrix != NULL )
-        {
-            ttmat = analy->tensor_transform_matrix;
-
-            /* Draw the axis lines. */
-            VEC_SET( pt, 0.0, 0.0, 0.0 );
-            point_transform( pto, pt, &tmat );
-            VEC_SET( pt, ttmat[0][0] * leng, ttmat[1][0] * leng,
-                     ttmat[2][0] * leng );
-            point_transform( pti, pt, &tmat );
-            VEC_SET( pt, ttmat[0][1] * leng, ttmat[1][1] * leng,
-                     ttmat[2][1] * leng );
-            point_transform( ptj, pt, &tmat );
-            VEC_SET( pt, ttmat[0][2] * leng, ttmat[1][2] * leng,
-                     ttmat[2][2] * leng );
-            point_transform( ptk, pt, &tmat );
-            /**/
-            /* Hard-code brown/red for now. */
-            glColor3f( 0.6, 0.2, 0.0 );
-
-            glBegin( GL_LINES );
-            glVertex3fv( pto );
-            glVertex3fv( pti );
-            glVertex3fv( pto );
-            glVertex3fv( ptj );
-            if ( dim == 3 )
-            {
-                glVertex3fv( pto );
-                glVertex3fv( ptk );
-            }
-            glEnd();
-
-            /* Draw the axis labels. */
-            VEC_SET( pt, ttmat[0][0] * leng + sub_leng,
-                     ttmat[1][0] * leng - sub_leng,
-                     ttmat[2][0] * leng - sub_leng );
-            point_transform( pti, pt, &tmat );
-            VEC_SET( pt, ttmat[0][1] * leng - sub_leng,
-                     ttmat[1][1] * leng + sub_leng,
-                     ttmat[2][1] * leng - sub_leng );
-            point_transform( ptj, pt, &tmat );
-            VEC_SET( pt, ttmat[0][2] * leng - sub_leng,
-                     ttmat[1][2] * leng - sub_leng,
-                     ttmat[2][2] * leng + sub_leng );
-            point_transform( ptk, pt, &tmat );
-
-            antialias_lines( FALSE, 0 );
-            glLineWidth( 1.0 );
-
-            draw_3d_text( pti, "x", FALSE );
-            draw_3d_text( ptj, "y", FALSE );
-            if ( dim == 3 )
-                draw_3d_text( ptk, "z", FALSE );
-
-            antialias_lines( TRUE, TRUE );
-            glLineWidth( 1.25 );
-            glColor3fv( v_win->text_color );
-        }
-    }
-
     /* Result value min/max. */
     if ( analy->show_minmax  &&  analy->cur_result != NULL && found_data )
     {
@@ -13296,6 +13160,151 @@ draw_foreground( Analysis *analy )
         }
     }
 
+    /* Global coordinate system. */
+    if ( analy->show_coord )
+    {
+        leng = 35*vp_to_world[0];
+        sub_leng = leng / 10.0;
+
+        /* Rotate the coord system properly, then translate it down
+         * to the lower right corner of the view window.
+         */
+        look_rot_mat( v_win->look_from, v_win->look_at, v_win->look_up, &mat );
+        mat_mul( &tmat, &v_win->rot_mat, &mat );
+        mat_translate( &mat, cx - 60*vp_to_world[0],
+                       -cy + 60*vp_to_world[0], 0.0 );
+        mat_mul( &tmat, &tmat, &mat );
+
+        /* Draw the axes. */
+        VEC_SET( pt, 0.0, 0.0, 0.0 );
+        point_transform( pto, pt, &tmat );
+        VEC_SET( pt, leng, 0.0, 0.0 );
+        point_transform( pti, pt, &tmat );
+        VEC_SET( pt, 0.0, leng, 0.0 );
+        point_transform( ptj, pt, &tmat );
+        VEC_SET( pt, 0.0, 0.0, leng );
+        point_transform( ptk, pt, &tmat );
+
+        glColor3fv( v_win->foregrnd_color );
+
+        glBegin( GL_LINES );
+        glVertex3fv( pto );
+        glVertex3fv( pti );
+        glVertex3fv( pto );
+        glVertex3fv( ptj );
+        if ( analy->dimension == 3 )
+        {
+            glVertex3fv( pto );
+            glVertex3fv( ptk );
+        }
+        glEnd();
+
+        if ( show_dirvec )
+        {
+            VEC_SET( pt, analy->dir_vec[0] * leng * 0.75,
+                     analy->dir_vec[1] * leng * 0.75,
+                     ( dim == 3 ) ? analy->dir_vec[2] * leng * 0.75
+                     : 0.0 );
+            point_transform( ptv, pt, &tmat );
+
+            glColor3fv( material_colors[15] ); /* Red */
+            glLineWidth( 2.25 );
+
+            glBegin( GL_LINES );
+            glVertex3fv( pto );
+            glVertex3fv( ptv );
+            glEnd();
+
+            glLineWidth( 1.25 );
+        }
+
+        /* Label the axes. */
+        VEC_SET( pt, leng + sub_leng, sub_leng, sub_leng );
+        point_transform( pti, pt, &tmat );
+        VEC_SET( pt, sub_leng, leng + sub_leng, sub_leng );
+        point_transform( ptj, pt, &tmat );
+        if ( analy->dimension == 3 )
+        {
+            VEC_SET( pt, sub_leng, sub_leng, leng + sub_leng );
+            point_transform( ptk, pt, &tmat );
+        }
+
+        antialias_lines( FALSE, 0 );
+        glLineWidth( 1.0 );
+
+        glColor3fv( v_win->text_color );
+
+        draw_3d_text( pti, "X", FALSE );
+        draw_3d_text( ptj, "Y", FALSE );
+        if ( analy->dimension == 3 )
+          draw_3d_text( ptk, "Z", FALSE );
+
+        antialias_lines( TRUE, TRUE );
+        glLineWidth( 1.25 );
+
+
+        /* Show tensor transformation coordinate system if on. */
+        if ( analy->do_tensor_transform
+                && analy->tensor_transform_matrix != NULL )
+        {
+            ttmat = analy->tensor_transform_matrix;
+
+            /* Draw the axis lines. */
+            VEC_SET( pt, 0.0, 0.0, 0.0 );
+            point_transform( pto, pt, &tmat );
+            VEC_SET( pt, ttmat[0][0] * leng, ttmat[1][0] * leng,
+                     ttmat[2][0] * leng );
+            point_transform( pti, pt, &tmat );
+            VEC_SET( pt, ttmat[0][1] * leng, ttmat[1][1] * leng,
+                     ttmat[2][1] * leng );
+            point_transform( ptj, pt, &tmat );
+            VEC_SET( pt, ttmat[0][2] * leng, ttmat[1][2] * leng,
+                     ttmat[2][2] * leng );
+            point_transform( ptk, pt, &tmat );
+            /**/
+            /* Hard-code brown/red for now. */
+            glColor3f( 0.6, 0.2, 0.0 );
+
+            glBegin( GL_LINES );
+            glVertex3fv( pto );
+            glVertex3fv( pti );
+            glVertex3fv( pto );
+            glVertex3fv( ptj );
+            if ( dim == 3 )
+            {
+                glVertex3fv( pto );
+                glVertex3fv( ptk );
+            }
+            glEnd();
+
+            /* Draw the axis labels. */
+            VEC_SET( pt, ttmat[0][0] * leng + sub_leng,
+                     ttmat[1][0] * leng - sub_leng,
+                     ttmat[2][0] * leng - sub_leng );
+            point_transform( pti, pt, &tmat );
+            VEC_SET( pt, ttmat[0][1] * leng - sub_leng,
+                     ttmat[1][1] * leng + sub_leng,
+                     ttmat[2][1] * leng - sub_leng );
+            point_transform( ptj, pt, &tmat );
+            VEC_SET( pt, ttmat[0][2] * leng - sub_leng,
+                     ttmat[1][2] * leng - sub_leng,
+                     ttmat[2][2] * leng + sub_leng );
+            point_transform( ptk, pt, &tmat );
+
+            antialias_lines( FALSE, 0 );
+            glLineWidth( 1.0 );
+
+            draw_3d_text( pti, "x", FALSE );
+            draw_3d_text( ptj, "y", FALSE );
+            if ( dim == 3 )
+                draw_3d_text( ptk, "z", FALSE );
+
+            antialias_lines( TRUE, TRUE );
+            glLineWidth( 1.25 );
+            glColor3fv( v_win->text_color );
+        }
+    }
+
     antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
 
@@ -13315,7 +13324,7 @@ draw_foreground( Analysis *analy )
         glEnd();
     }
 
-    glPopMatrix();
+    pop_matrix( );
 
     /* End of foreground overwriting. */
     glDepthFunc( GL_LEQUAL );
@@ -13341,7 +13350,7 @@ quick_draw_mesh_view( Analysis *analy )
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
              GL_STENCIL_BUFFER_BIT );
 
-    glPushMatrix();
+    push_matrix();
 
     /*
      * Set up all the viewing transforms.  Transformations are
@@ -13350,17 +13359,14 @@ quick_draw_mesh_view( Analysis *analy )
      */
     look_rot_mat( v_win->look_from, v_win->look_at, v_win->look_up, &look_rot );
     mat_to_array( &look_rot, arr );
-    glMultMatrixf( arr );
-    glTranslatef( -v_win->look_from[0], -v_win->look_from[1],
-                  -v_win->look_from[2] );
-    glTranslatef( v_win->trans[0], v_win->trans[1], v_win->trans[2] );
+    mode_matrix_multiply( arr );
+    translate( -v_win->look_from[0], -v_win->look_from[1], -v_win->look_from[2] );
+    translate( v_win->trans[0], v_win->trans[1], v_win->trans[2] );
     mat_to_array( &v_win->rot_mat, arr );
-    glMultMatrixf( arr );
+    mode_matrix_multiply( arr );
     scal = v_win->bbox_scale;
-    glScalef( scal*v_win->scale[0], scal*v_win->scale[1],
-              scal*v_win->scale[2] );
-    glTranslatef( v_win->bbox_trans[0], v_win->bbox_trans[1],
-                  v_win->bbox_trans[2] );
+    scale( scal*v_win->scale[0], scal*v_win->scale[1],scal*v_win->scale[2] );
+    translatev( v_win->bbox_trans );
 
     /* Draw the grid edges. */
     if ( MESH_P( analy )->edge_list != NULL
@@ -13375,7 +13381,7 @@ quick_draw_mesh_view( Analysis *analy )
     else
         draw_bbox( analy->bbox );
 
-    glPopMatrix();
+    pop_matrix( );
 
     /* Draw the foreground. */
     if ( analy->show_bbox || analy->show_coord || analy->show_time ||
@@ -16203,7 +16209,7 @@ draw_free_nodes( Analysis *analy )
 
     glEnable( GL_COLOR_MATERIAL );
 
-    if ( fastSpheres)
+    if ( fastSpheres )
     {
         display_list = glGenLists( 1 );
         sphere       = gluNewQuadric();
@@ -16358,10 +16364,10 @@ draw_free_nodes( Analysis *analy )
                 {
                     /* gluSphere( sphere, node_base_radius*rfac, analy->free_nodes_sphere_res_factor*2, analy->free_nodes_sphere_res_factor ); */
 
-                    glPushMatrix();
-                    glTranslatef( verts[0], verts[1], verts[2] );
-                    glCallList( display_list );
-                    glPopMatrix();
+                  push_matrix( );
+                  translatev( verts );
+                  glCallList( display_list );
+                  pop_matrix( );
                 }
 
                 /*
