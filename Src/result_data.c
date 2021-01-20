@@ -1562,6 +1562,7 @@ particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_clas
             mm_val[0]   = val_part[part_id];
             el_id[0] = part_id ;
             classes[0]  = p_part_class->long_name;
+            sclasses[0] = p_part_class->superclass;
         }
 
         if ( val_part[part_id] > mm_val[1] )
@@ -1569,7 +1570,7 @@ particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_clas
             mm_val[1]   = val_part[part_id];
             el_id[1]    = part_id + 1;
             classes[1]  = p_part_class->long_name;
-            sclasses[0] = p_part_class->superclass;
+            sclasses[1] = p_part_class->superclass;
         }
 
         analy->result_active = TRUE; /* We have some valid result data */
