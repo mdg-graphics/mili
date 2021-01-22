@@ -459,24 +459,13 @@ mat_copy( Transf_mat *a, Transf_mat *b )
  * Copy matrix into a 1D array in row-major order.
  */
 void
-mat_to_array( const Transf_mat *mat, float array[16] )
+mat_to_array( Transf_mat *mat, float array[16] )
 {
     int i, j;
 
     for ( i = 0; i < 4; i++ )
         for ( j = 0; j < 4; j++ )
             array[i*4 + j] = mat->mat[i][j];
-}
-
-/*****************************************************************
- * TAG( array_to_mat )
- *
- * Copy a row-major array into a matrix
- */
-void
-array_to_mat(  float array[16], Transf_mat * mat )
-{
-  memcpy(&mat->mat[0][0], &array[0], sizeof(float)*16);
 }
 
 
@@ -965,16 +954,11 @@ mat_mul( Transf_mat *res, Transf_mat *a, Transf_mat *b )
         tmp.mat[i][2] = a->mat[i][0] * b->mat[0][2]
                         + a->mat[i][1] * b->mat[1][2]
                         + a->mat[i][2] * b->mat[2][2];
-        tmp.mat[i][3] = a->mat[i][0] * b->mat[0][3]
-                        + a->mat[i][1] * b->mat[1][3]
-                        + a->mat[i][2] * b->mat[2][3];
     }
 
     tmp.mat[3][0] += b->mat[3][0];
     tmp.mat[3][1] += b->mat[3][1];
     tmp.mat[3][2] += b->mat[3][2];
-    
-    tmp.mat[3][3] = 1.0;
 
     mat_copy(res, &tmp);
 }
@@ -992,7 +976,7 @@ mat_mul( Transf_mat *res, Transf_mat *a, Transf_mat *b )
  *               [j  k  l  1]
  */
 void
-point_transform( float *res, float *vec, const Transf_mat * mat)
+point_transform( float *res, float *vec, Transf_mat *mat)
 {
     res[0] = (double) mat->mat[0][0] * vec[0]
              + (double) mat->mat[1][0] * vec[1]
