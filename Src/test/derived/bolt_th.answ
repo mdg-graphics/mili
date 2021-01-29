@@ -3,11 +3,11 @@
 #---------------------------------------------------------------------
 # Griz Version Info:
 #
-#	Griz4-V13_01
-# 	Built: 	Fri Jul 10 07:26:06 2015 on Linux #1 SMP Fri Mar 20 13:20:55 PDT 2015 2.6.32-504.12.2.2chaos.ch5.3.x86_64 x86_64 by oliver4
+#	Griz4-V20_01
+# 	Built: 	Fri Jan 29 12:02:26 2021 on Linux #1 SMP Mon Jan 18 17:04:41 PST 2021 3.10.0-1160.11.1.2chaos.ch6.x86_64 x86_64 by rhathaw
 # 	Configure: ./configure linux gnu
-# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/usr/apps/mdg/archive/milidir/bigfile/include -I/../include -I../.. 
-# 		Mili Library Version (Griz Linked): 	V14_01
+# 	Compile Options: icc -g -DSERIAL_BATCH -I/usr/apps/mdg/include -I/../include -I../.. 
+# 		Mili Library Version (Griz Linked): 	V20_01
 #		Mili Database-Library Version: 		
 #		Mili Database-Host: 			
 #		Mili Database-Arch: 			
@@ -16,73 +16,73 @@
 #---------------------------------------------------------------------
 # Database path/name: bolt
 # Description:                                                 
-# Output date: 07/13/15
+# Output date: 01/29/21
 #
 
 #
-# Curve 1 - Nodal 1369
+# Curve 1 - Nodal 1
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Node Position[Y Position]
-# Nodal - 1369: Node Position[Y Position]
-  0.00000000e+00  1.75913835e+00
-  1.00000001e-01  1.75913846e+00
-  2.00000003e-01  1.75913858e+00
-  3.00000012e-01  1.75913870e+00
-  4.00000006e-01  1.75913882e+00
+# Nodal - 1: Node Position[Y Position]
+  0.00000000e+00  2.89499998e-01
+  1.00000001e-01  2.89500296e-01
+  2.00000003e-01  2.89500564e-01
+  3.00000012e-01  2.89500862e-01
+  4.00000006e-01  2.89501131e-01
 
 #
-# Curve 2 - Nodal 1027
+# Curve 2 - Nodal 2
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Node Position[Y Position]
-# Nodal - 1027: Node Position[Y Position]
-  0.00000000e+00  5.70509911e-01
-  1.00000001e-01  5.70510089e-01
-  2.00000003e-01  5.70510268e-01
-  3.00000012e-01  5.70510507e-01
-  4.00000006e-01  5.70510685e-01
+# Nodal - 2: Node Position[Y Position]
+  0.00000000e+00  2.89499998e-01
+  1.00000001e-01  2.89500266e-01
+  2.00000003e-01  2.89500535e-01
+  3.00000012e-01  2.89500773e-01
+  4.00000006e-01  2.89501041e-01
 
 #
-# Curve 3 - Nodal 778
+# Curve 3 - Nodal 3
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Node Position[Y Position]
-# Nodal - 778: Node Position[Y Position]
-  0.00000000e+00  6.04976892e-01
-  1.00000001e-01  6.04977131e-01
-  2.00000003e-01  6.04977369e-01
-  3.00000012e-01  6.04977548e-01
-  4.00000006e-01  6.04977787e-01
+# Nodal - 3: Node Position[Y Position]
+  0.00000000e+00  2.89499998e-01
+  1.00000001e-01  2.89500237e-01
+  2.00000003e-01  2.89500475e-01
+  3.00000012e-01  2.89500713e-01
+  4.00000006e-01  2.89500952e-01
 
 #
-# Curve 4 - Nodal 777
+# Curve 4 - Nodal 4
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Node Position[Y Position]
-# Nodal - 777: Node Position[Y Position]
-  0.00000000e+00  6.04976892e-01
-  1.00000001e-01  6.04977131e-01
-  2.00000003e-01  6.04977369e-01
-  3.00000012e-01  6.04977608e-01
-  4.00000006e-01  6.04977787e-01
+# Nodal - 4: Node Position[Y Position]
+  0.00000000e+00  2.89499998e-01
+  1.00000001e-01  2.89500207e-01
+  2.00000003e-01  2.89500415e-01
+  3.00000012e-01  2.89500624e-01
+  4.00000006e-01  2.89500833e-01
 
 #
-# Curve 5 - Nodal 741
+# Curve 5 - Nodal 334
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Node Position[Y Position]
-# Nodal - 741: Node Position[Y Position]
-  0.00000000e+00  8.27857196e-01
-  1.00000001e-01  8.27857435e-01
-  2.00000003e-01  8.27857673e-01
-  3.00000012e-01  8.27857912e-01
-  4.00000006e-01  8.27858150e-01
+# Nodal - 334: Node Position[Y Position]
+  0.00000000e+00  7.32175827e-01
+  1.00000001e-01  7.32176065e-01
+  2.00000003e-01  7.32176363e-01
+  3.00000012e-01  7.32176602e-01
+  4.00000006e-01  7.32176900e-01
 
 #
 # Curve 6 - Nodal 703
@@ -98,144 +98,144 @@
   4.00000006e-01  2.50715107e-01
 
 #
-# Curve 7 - Nodal 334
+# Curve 7 - Nodal 741
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Node Position[Y Position]
-# Nodal - 334: Node Position[Y Position]
-  0.00000000e+00  7.32175827e-01
-  1.00000001e-01  7.32176065e-01
-  2.00000003e-01  7.32176363e-01
-  3.00000012e-01  7.32176602e-01
-  4.00000006e-01  7.32176900e-01
+# Nodal - 741: Node Position[Y Position]
+  0.00000000e+00  8.27857196e-01
+  1.00000001e-01  8.27857435e-01
+  2.00000003e-01  8.27857673e-01
+  3.00000012e-01  8.27857912e-01
+  4.00000006e-01  8.27858150e-01
 
 #
-# Curve 8 - Nodal 4
+# Curve 8 - Nodal 777
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Node Position[Y Position]
-# Nodal - 4: Node Position[Y Position]
-  0.00000000e+00  2.89499998e-01
-  1.00000001e-01  2.89500207e-01
-  2.00000003e-01  2.89500415e-01
-  3.00000012e-01  2.89500624e-01
-  4.00000006e-01  2.89500833e-01
+# Nodal - 777: Node Position[Y Position]
+  0.00000000e+00  6.04976892e-01
+  1.00000001e-01  6.04977131e-01
+  2.00000003e-01  6.04977369e-01
+  3.00000012e-01  6.04977608e-01
+  4.00000006e-01  6.04977787e-01
 
 #
-# Curve 9 - Nodal 3
+# Curve 9 - Nodal 778
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Node Position[Y Position]
-# Nodal - 3: Node Position[Y Position]
-  0.00000000e+00  2.89499998e-01
-  1.00000001e-01  2.89500237e-01
-  2.00000003e-01  2.89500475e-01
-  3.00000012e-01  2.89500713e-01
-  4.00000006e-01  2.89500952e-01
+# Nodal - 778: Node Position[Y Position]
+  0.00000000e+00  6.04976892e-01
+  1.00000001e-01  6.04977131e-01
+  2.00000003e-01  6.04977369e-01
+  3.00000012e-01  6.04977548e-01
+  4.00000006e-01  6.04977787e-01
 
 #
-# Curve 10 - Nodal 2
+# Curve 10 - Nodal 1027
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Node Position[Y Position]
-# Nodal - 2: Node Position[Y Position]
-  0.00000000e+00  2.89499998e-01
-  1.00000001e-01  2.89500266e-01
-  2.00000003e-01  2.89500535e-01
-  3.00000012e-01  2.89500773e-01
-  4.00000006e-01  2.89501041e-01
+# Nodal - 1027: Node Position[Y Position]
+  0.00000000e+00  5.70509911e-01
+  1.00000001e-01  5.70510089e-01
+  2.00000003e-01  5.70510268e-01
+  3.00000012e-01  5.70510507e-01
+  4.00000006e-01  5.70510685e-01
 
 #
-# Curve 11 - Nodal 1
+# Curve 11 - Nodal 1369
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Node Position[Y Position]
-# Nodal - 1: Node Position[Y Position]
-  0.00000000e+00  2.89499998e-01
-  1.00000001e-01  2.89500296e-01
-  2.00000003e-01  2.89500564e-01
-  3.00000012e-01  2.89500862e-01
-  4.00000006e-01  2.89501131e-01
+# Nodal - 1369: Node Position[Y Position]
+  0.00000000e+00  1.75913835e+00
+  1.00000001e-01  1.75913846e+00
+  2.00000003e-01  1.75913858e+00
+  3.00000012e-01  1.75913870e+00
+  4.00000006e-01  1.75913882e+00
 
 #
-# Curve 1 - Nodal 1369
+# Curve 1 - Nodal 1
 # Time reference surface: middle
 # Time reference frame: global
 # Time reference state: 0
 # Y Displacement reference state: 0
 
 #           Time  Y Displacement
-# Nodal - 1369: Y Displacement
+# Nodal - 1: Y Displacement
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  1.19209290e-07
-  2.00000003e-01  2.38418579e-07
-  3.00000012e-01  3.57627869e-07
-  4.00000006e-01  4.76837158e-07
+  1.00000001e-01  2.98023224e-07
+  2.00000003e-01  5.66244125e-07
+  3.00000012e-01  8.64267349e-07
+  4.00000006e-01  1.13248825e-06
 
 #
-# Curve 2 - Nodal 1027
+# Curve 2 - Nodal 2
 # Time reference surface: middle
 # Time reference frame: global
 # Time reference state: 0
 # Y Displacement reference state: 0
 
 #           Time  Y Displacement
-# Nodal - 1027: Y Displacement
+# Nodal - 2: Y Displacement
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  1.78813934e-07
-  2.00000003e-01  3.57627869e-07
-  3.00000012e-01  5.96046448e-07
-  4.00000006e-01  7.74860382e-07
+  1.00000001e-01  2.68220901e-07
+  2.00000003e-01  5.36441803e-07
+  3.00000012e-01  7.74860382e-07
+  4.00000006e-01  1.04308128e-06
 
 #
-# Curve 3 - Nodal 778
+# Curve 3 - Nodal 3
 # Time reference surface: middle
 # Time reference frame: global
 # Time reference state: 0
 # Y Displacement reference state: 0
 
 #           Time  Y Displacement
-# Nodal - 778: Y Displacement
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.38418579e-07
-  2.00000003e-01  4.76837158e-07
-  3.00000012e-01  6.55651093e-07
-  4.00000006e-01  8.94069672e-07
-
-#
-# Curve 4 - Nodal 777
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Y Displacement reference state: 0
-
-#           Time  Y Displacement
-# Nodal - 777: Y Displacement
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.38418579e-07
-  2.00000003e-01  4.76837158e-07
-  3.00000012e-01  7.15255737e-07
-  4.00000006e-01  8.94069672e-07
-
-#
-# Curve 5 - Nodal 741
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Y Displacement reference state: 0
-
-#           Time  Y Displacement
-# Nodal - 741: Y Displacement
+# Nodal - 3: Y Displacement
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  2.38418579e-07
   2.00000003e-01  4.76837158e-07
   3.00000012e-01  7.15255737e-07
   4.00000006e-01  9.53674316e-07
+
+#
+# Curve 4 - Nodal 4
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Y Displacement reference state: 0
+
+#           Time  Y Displacement
+# Nodal - 4: Y Displacement
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  2.08616257e-07
+  2.00000003e-01  4.17232513e-07
+  3.00000012e-01  6.25848770e-07
+  4.00000006e-01  8.34465027e-07
+
+#
+# Curve 5 - Nodal 334
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Y Displacement reference state: 0
+
+#           Time  Y Displacement
+# Nodal - 334: Y Displacement
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  2.38418579e-07
+  2.00000003e-01  5.36441803e-07
+  3.00000012e-01  7.74860382e-07
+  4.00000006e-01  1.07288361e-06
 
 #
 # Curve 6 - Nodal 703
@@ -253,44 +253,14 @@
   4.00000006e-01  8.04662704e-07
 
 #
-# Curve 7 - Nodal 334
+# Curve 7 - Nodal 741
 # Time reference surface: middle
 # Time reference frame: global
 # Time reference state: 0
 # Y Displacement reference state: 0
 
 #           Time  Y Displacement
-# Nodal - 334: Y Displacement
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.38418579e-07
-  2.00000003e-01  5.36441803e-07
-  3.00000012e-01  7.74860382e-07
-  4.00000006e-01  1.07288361e-06
-
-#
-# Curve 8 - Nodal 4
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Y Displacement reference state: 0
-
-#           Time  Y Displacement
-# Nodal - 4: Y Displacement
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.08616257e-07
-  2.00000003e-01  4.17232513e-07
-  3.00000012e-01  6.25848770e-07
-  4.00000006e-01  8.34465027e-07
-
-#
-# Curve 9 - Nodal 3
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Y Displacement reference state: 0
-
-#           Time  Y Displacement
-# Nodal - 3: Y Displacement
+# Nodal - 741: Y Displacement
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  2.38418579e-07
   2.00000003e-01  4.76837158e-07
@@ -298,99 +268,129 @@
   4.00000006e-01  9.53674316e-07
 
 #
-# Curve 10 - Nodal 2
+# Curve 8 - Nodal 777
 # Time reference surface: middle
 # Time reference frame: global
 # Time reference state: 0
 # Y Displacement reference state: 0
 
 #           Time  Y Displacement
-# Nodal - 2: Y Displacement
+# Nodal - 777: Y Displacement
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.68220901e-07
-  2.00000003e-01  5.36441803e-07
-  3.00000012e-01  7.74860382e-07
-  4.00000006e-01  1.04308128e-06
+  1.00000001e-01  2.38418579e-07
+  2.00000003e-01  4.76837158e-07
+  3.00000012e-01  7.15255737e-07
+  4.00000006e-01  8.94069672e-07
 
 #
-# Curve 11 - Nodal 1
+# Curve 9 - Nodal 778
 # Time reference surface: middle
 # Time reference frame: global
 # Time reference state: 0
 # Y Displacement reference state: 0
 
 #           Time  Y Displacement
-# Nodal - 1: Y Displacement
+# Nodal - 778: Y Displacement
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.98023224e-07
-  2.00000003e-01  5.66244125e-07
-  3.00000012e-01  8.64267349e-07
-  4.00000006e-01  1.13248825e-06
+  1.00000001e-01  2.38418579e-07
+  2.00000003e-01  4.76837158e-07
+  3.00000012e-01  6.55651093e-07
+  4.00000006e-01  8.94069672e-07
 
 #
-# Curve 1 - Nodal 1369
+# Curve 10 - Nodal 1027
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Y Displacement reference state: 0
+
+#           Time  Y Displacement
+# Nodal - 1027: Y Displacement
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  1.78813934e-07
+  2.00000003e-01  3.57627869e-07
+  3.00000012e-01  5.96046448e-07
+  4.00000006e-01  7.74860382e-07
+
+#
+# Curve 11 - Nodal 1369
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Y Displacement reference state: 0
+
+#           Time  Y Displacement
+# Nodal - 1369: Y Displacement
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  1.19209290e-07
+  2.00000003e-01  2.38418579e-07
+  3.00000012e-01  3.57627869e-07
+  4.00000006e-01  4.76837158e-07
+
+#
+# Curve 1 - Nodal 1
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Z Acceleration
-# Nodal - 1369: Z Acceleration
+# Nodal - 1: Z Acceleration
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.25169739e-04
-  2.00000003e-01  -9.23871848e-05
-  3.00000012e-01  -3.57627832e-05
-  4.00000006e-01  -1.57952332e-03
+  1.00000001e-01  -1.34110436e-04
+  2.00000003e-01  -1.02817998e-04
+  3.00000012e-01  -3.72528993e-05
+  4.00000006e-01  -1.79708027e-03
 
 #
-# Curve 2 - Nodal 1027
+# Curve 2 - Nodal 2
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Z Acceleration
-# Nodal - 1027: Z Acceleration
+# Nodal - 2: Z Acceleration
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -1.34110436e-04
+  2.00000003e-01  -1.03563056e-04
+  3.00000012e-01  -3.72528993e-05
+  4.00000006e-01  -1.79410004e-03
+
+#
+# Curve 3 - Nodal 3
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Z Acceleration
+# Nodal - 3: Z Acceleration
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -1.34110436e-04
+  2.00000003e-01  -1.03563056e-04
+  3.00000012e-01  -3.72528993e-05
+  4.00000006e-01  -1.79260992e-03
+
+#
+# Curve 4 - Nodal 4
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Z Acceleration
+# Nodal - 4: Z Acceleration
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -1.34855494e-04
-  2.00000003e-01  -1.02072940e-04
-  3.00000012e-01  -3.87430155e-05
-  4.00000006e-01  -1.84178376e-03
-
-#
-# Curve 3 - Nodal 778
-# Time reference surface: middle
-# Time reference frame: global
-
-#           Time  Z Acceleration
-# Nodal - 778: Z Acceleration
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.34855494e-04
-  2.00000003e-01  -1.01327882e-04
+  2.00000003e-01  -1.02445469e-04
   3.00000012e-01  -3.79979574e-05
-  4.00000006e-01  -1.83880352e-03
+  4.00000006e-01  -1.79037475e-03
 
 #
-# Curve 4 - Nodal 777
+# Curve 5 - Nodal 334
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Z Acceleration
-# Nodal - 777: Z Acceleration
+# Nodal - 334: Z Acceleration
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.33365378e-04
-  2.00000003e-01  -1.02072940e-04
+  1.00000001e-01  -1.32992849e-04
+  2.00000003e-01  -1.00210294e-04
   3.00000012e-01  -3.79979574e-05
-  4.00000006e-01  -1.84029364e-03
-
-#
-# Curve 5 - Nodal 741
-# Time reference surface: middle
-# Time reference frame: global
-
-#           Time  Z Acceleration
-# Nodal - 741: Z Acceleration
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.32620320e-04
-  2.00000003e-01  -9.98377654e-05
-  3.00000012e-01  -3.87430155e-05
-  4.00000006e-01  -1.83880352e-03
+  4.00000006e-01  -1.84401893e-03
 
 #
 # Curve 6 - Nodal 703
@@ -406,134 +406,134 @@
   4.00000006e-01  -1.79260992e-03
 
 #
-# Curve 7 - Nodal 334
+# Curve 7 - Nodal 741
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Z Acceleration
-# Nodal - 334: Z Acceleration
+# Nodal - 741: Z Acceleration
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.32992849e-04
-  2.00000003e-01  -1.00210294e-04
-  3.00000012e-01  -3.79979574e-05
-  4.00000006e-01  -1.84401893e-03
+  1.00000001e-01  -1.32620320e-04
+  2.00000003e-01  -9.98377654e-05
+  3.00000012e-01  -3.87430155e-05
+  4.00000006e-01  -1.83880352e-03
 
 #
-# Curve 8 - Nodal 4
+# Curve 8 - Nodal 777
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Z Acceleration
-# Nodal - 4: Z Acceleration
+# Nodal - 777: Z Acceleration
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -1.33365378e-04
+  2.00000003e-01  -1.02072940e-04
+  3.00000012e-01  -3.79979574e-05
+  4.00000006e-01  -1.84029364e-03
+
+#
+# Curve 9 - Nodal 778
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Z Acceleration
+# Nodal - 778: Z Acceleration
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -1.34855494e-04
-  2.00000003e-01  -1.02445469e-04
+  2.00000003e-01  -1.01327882e-04
   3.00000012e-01  -3.79979574e-05
-  4.00000006e-01  -1.79037475e-03
+  4.00000006e-01  -1.83880352e-03
 
 #
-# Curve 9 - Nodal 3
+# Curve 10 - Nodal 1027
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Z Acceleration
-# Nodal - 3: Z Acceleration
+# Nodal - 1027: Z Acceleration
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.34110436e-04
-  2.00000003e-01  -1.03563056e-04
-  3.00000012e-01  -3.72528993e-05
-  4.00000006e-01  -1.79260992e-03
+  1.00000001e-01  -1.34855494e-04
+  2.00000003e-01  -1.02072940e-04
+  3.00000012e-01  -3.87430155e-05
+  4.00000006e-01  -1.84178376e-03
 
 #
-# Curve 10 - Nodal 2
+# Curve 11 - Nodal 1369
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Z Acceleration
-# Nodal - 2: Z Acceleration
+# Nodal - 1369: Z Acceleration
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.34110436e-04
-  2.00000003e-01  -1.03563056e-04
-  3.00000012e-01  -3.72528993e-05
-  4.00000006e-01  -1.79410004e-03
+  1.00000001e-01  -1.25169739e-04
+  2.00000003e-01  -9.23871848e-05
+  3.00000012e-01  -3.57627832e-05
+  4.00000006e-01  -1.57952332e-03
 
 #
-# Curve 11 - Nodal 1
-# Time reference surface: middle
-# Time reference frame: global
-
-#           Time  Z Acceleration
-# Nodal - 1: Z Acceleration
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.34110436e-04
-  2.00000003e-01  -1.02817998e-04
-  3.00000012e-01  -3.72528993e-05
-  4.00000006e-01  -1.79708027e-03
-
-#
-# Curve 1 - Nodal 1369
+# Curve 1 - Nodal 1
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Acceleration Magnitude
-# Nodal - 1369: Acceleration Magnitude
-  0.00000000e+00  9.00098181e-04
-  1.00000001e-01  2.38418561e-05
+# Nodal - 1: Acceleration Magnitude
+  0.00000000e+00  6.48579095e-04
+  1.00000001e-01  6.25848697e-05
+  2.00000003e-01  4.76837085e-05
+  3.00000012e-01  1.78813916e-05
+  4.00000006e-01  4.43264465e+01
+
+#
+# Curve 2 - Nodal 2
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Acceleration Magnitude
+# Nodal - 2: Acceleration Magnitude
+  0.00000000e+00  7.63991324e-04
+  1.00000001e-01  5.06639444e-05
+  2.00000003e-01  3.27825510e-05
+  3.00000012e-01  1.78813916e-05
+  4.00000006e-01  4.04813499e+01
+
+#
+# Curve 3 - Nodal 3
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Acceleration Magnitude
+# Nodal - 3: Acceleration Magnitude
+  0.00000000e+00  8.94312281e-04
+  1.00000001e-01  3.27825510e-05
+  2.00000003e-01  2.98023187e-05
+  3.00000012e-01  5.96046402e-06
+  4.00000006e-01  3.66362495e+01
+
+#
+# Curve 4 - Nodal 4
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Acceleration Magnitude
+# Nodal - 4: Acceleration Magnitude
+  0.00000000e+00  1.03656156e-03
+  1.00000001e-01  2.08616239e-05
   2.00000003e-01  1.19209271e-05
-  3.00000012e-01  1.19209280e-05
-  4.00000006e-01  2.01163757e+02
+  3.00000012e-01  2.98023201e-06
+  4.00000006e-01  3.27911301e+01
 
 #
-# Curve 2 - Nodal 1027
+# Curve 5 - Nodal 334
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Acceleration Magnitude
-# Nodal - 1027: Acceleration Magnitude
-  0.00000000e+00  1.04781881e-03
-  1.00000001e-01  1.78813916e-05
-  2.00000003e-01  1.78813898e-05
+# Nodal - 334: Acceleration Magnitude
+  0.00000000e+00  1.15770067e-03
+  1.00000001e-01  1.19209280e-05
+  2.00000003e-01  0.00000000e+00
   3.00000012e-01  5.96046402e-06
-  4.00000006e-01  6.85820312e+01
-
-#
-# Curve 3 - Nodal 778
-# Time reference surface: middle
-# Time reference frame: global
-
-#           Time  Acceleration Magnitude
-# Nodal - 778: Acceleration Magnitude
-  0.00000000e+00  1.09255267e-03
-  1.00000001e-01  1.78813916e-05
-  2.00000003e-01  5.96046357e-06
-  3.00000012e-01  5.96046402e-06
-  4.00000006e-01  6.81837082e+01
-
-#
-# Curve 4 - Nodal 777
-# Time reference surface: middle
-# Time reference frame: global
-
-#           Time  Acceleration Magnitude
-# Nodal - 777: Acceleration Magnitude
-  0.00000000e+00  1.03294803e-03
-  1.00000001e-01  2.38418561e-05
-  2.00000003e-01  1.19209271e-05
-  3.00000012e-01  5.96046402e-06
-  4.00000006e-01  7.20287628e+01
-
-#
-# Curve 5 - Nodal 741
-# Time reference surface: middle
-# Time reference frame: global
-
-#           Time  Acceleration Magnitude
-# Nodal - 741: Acceleration Magnitude
-  0.00000000e+00  1.02996849e-03
-  1.00000001e-01  2.38418561e-05
-  2.00000003e-01  1.78813898e-05
-  3.00000012e-01  0.00000000e+00
-  4.00000006e-01  9.81618042e+01
+  4.00000006e-01  7.70585556e+01
 
 #
 # Curve 6 - Nodal 703
@@ -549,198 +549,72 @@
   4.00000006e-01  3.27576675e+01
 
 #
-# Curve 7 - Nodal 334
+# Curve 7 - Nodal 741
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Acceleration Magnitude
-# Nodal - 334: Acceleration Magnitude
-  0.00000000e+00  1.15770067e-03
-  1.00000001e-01  1.19209280e-05
-  2.00000003e-01  0.00000000e+00
-  3.00000012e-01  5.96046402e-06
-  4.00000006e-01  7.70585556e+01
+# Nodal - 741: Acceleration Magnitude
+  0.00000000e+00  1.02996849e-03
+  1.00000001e-01  2.38418561e-05
+  2.00000003e-01  1.78813898e-05
+  3.00000012e-01  0.00000000e+00
+  4.00000006e-01  9.81618042e+01
 
 #
-# Curve 8 - Nodal 4
+# Curve 8 - Nodal 777
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Acceleration Magnitude
-# Nodal - 4: Acceleration Magnitude
-  0.00000000e+00  1.03656156e-03
-  1.00000001e-01  2.08616239e-05
+# Nodal - 777: Acceleration Magnitude
+  0.00000000e+00  1.03294803e-03
+  1.00000001e-01  2.38418561e-05
   2.00000003e-01  1.19209271e-05
-  3.00000012e-01  2.98023201e-06
-  4.00000006e-01  3.27911301e+01
-
-#
-# Curve 9 - Nodal 3
-# Time reference surface: middle
-# Time reference frame: global
-
-#           Time  Acceleration Magnitude
-# Nodal - 3: Acceleration Magnitude
-  0.00000000e+00  8.94312281e-04
-  1.00000001e-01  3.27825510e-05
-  2.00000003e-01  2.98023187e-05
   3.00000012e-01  5.96046402e-06
-  4.00000006e-01  3.66362495e+01
+  4.00000006e-01  7.20287628e+01
 
 #
-# Curve 10 - Nodal 2
+# Curve 9 - Nodal 778
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Acceleration Magnitude
-# Nodal - 2: Acceleration Magnitude
-  0.00000000e+00  7.63991324e-04
-  1.00000001e-01  5.06639444e-05
-  2.00000003e-01  3.27825510e-05
-  3.00000012e-01  1.78813916e-05
-  4.00000006e-01  4.04813499e+01
+# Nodal - 778: Acceleration Magnitude
+  0.00000000e+00  1.09255267e-03
+  1.00000001e-01  1.78813916e-05
+  2.00000003e-01  5.96046357e-06
+  3.00000012e-01  5.96046402e-06
+  4.00000006e-01  6.81837082e+01
 
 #
-# Curve 11 - Nodal 1
+# Curve 10 - Nodal 1027
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Acceleration Magnitude
-# Nodal - 1: Acceleration Magnitude
-  0.00000000e+00  6.48579095e-04
-  1.00000001e-01  6.25848697e-05
-  2.00000003e-01  4.76837085e-05
-  3.00000012e-01  1.78813916e-05
-  4.00000006e-01  4.43264465e+01
+# Nodal - 1027: Acceleration Magnitude
+  0.00000000e+00  1.04781881e-03
+  1.00000001e-01  1.78813916e-05
+  2.00000003e-01  1.78813898e-05
+  3.00000012e-01  5.96046402e-06
+  4.00000006e-01  6.85820312e+01
 
 #
-# Curve 1 - Bricks 11845
+# Curve 11 - Nodal 1369
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
 
-#           Time        X Stress
-# Bricks - 11845: X Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.61955688e-06
-  2.00000003e-01  5.21778520e-06
-  3.00000012e-01  7.80041773e-06
-  4.00000006e-01  1.03737102e-05
-
-#
-# Curve 2 - Bricks 11844
-# Time reference surface: middle
-# Time reference frame: global
-# X Stress reference frame: global
-
-#           Time        X Stress
-# Bricks - 11844: X Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -6.75234423e-06
-  2.00000003e-01  -1.35544133e-05
-  3.00000012e-01  -2.03923846e-05
-  4.00000006e-01  -2.72503385e-05
+#           Time  Acceleration Magnitude
+# Nodal - 1369: Acceleration Magnitude
+  0.00000000e+00  9.00098181e-04
+  1.00000001e-01  2.38418561e-05
+  2.00000003e-01  1.19209271e-05
+  3.00000012e-01  1.19209280e-05
+  4.00000006e-01  2.01163757e+02
 
 #
-# Curve 3 - Bricks 11843
-# Time reference surface: middle
-# Time reference frame: global
-# X Stress reference frame: global
-
-#           Time        X Stress
-# Bricks - 11843: X Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -4.74343324e-06
-  2.00000003e-01  -9.52959454e-06
-  3.00000012e-01  -1.43465977e-05
-  4.00000006e-01  -1.91810250e-05
-
-#
-# Curve 4 - Bricks 11842
-# Time reference surface: middle
-# Time reference frame: global
-# X Stress reference frame: global
-
-#           Time        X Stress
-# Bricks - 11842: X Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -3.69991471e-06
-  2.00000003e-01  -7.43954297e-06
-  3.00000012e-01  -1.12078405e-05
-  4.00000006e-01  -1.49924572e-05
-
-#
-# Curve 5 - Bricks 11656
-# Time reference surface: middle
-# Time reference frame: global
-# X Stress reference frame: global
-
-#           Time        X Stress
-# Bricks - 11656: X Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  3.91479080e-06
-  2.00000003e-01  7.80808023e-06
-  3.00000012e-01  1.16860219e-05
-  4.00000006e-01  1.55545440e-05
-
-#
-# Curve 6 - Bricks 10333
-# Time reference surface: middle
-# Time reference frame: global
-# X Stress reference frame: global
-
-#           Time        X Stress
-# Bricks - 10333: X Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -5.70498241e-06
-  2.00000003e-01  -1.14445847e-05
-  3.00000012e-01  -1.72110576e-05
-  4.00000006e-01  -2.29927027e-05
-
-#
-# Curve 7 - Bricks 10824
-# Time reference surface: middle
-# Time reference frame: global
-# X Stress reference frame: global
-
-#           Time        X Stress
-# Bricks - 10824: X Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -2.02801607e-06
-  2.00000003e-01  -4.08549340e-06
-  3.00000012e-01  -6.16533180e-06
-  4.00000006e-01  -8.25821462e-06
-
-#
-# Curve 8 - Bricks 51912
-# Time reference surface: middle
-# Time reference frame: global
-# X Stress reference frame: global
-
-#           Time        X Stress
-# Bricks - 51912: X Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -8.30086755e-09
-  2.00000003e-01  -1.86904465e-08
-  3.00000012e-01  -3.19462217e-08
-  4.00000006e-01  -4.49592932e-08
-
-#
-# Curve 9 - Bricks 14134
-# Time reference surface: middle
-# Time reference frame: global
-# X Stress reference frame: global
-
-#           Time        X Stress
-# Bricks - 14134: X Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.40144595e-06
-  2.00000003e-01  4.78420861e-06
-  3.00000012e-01  7.15186434e-06
-  4.00000006e-01  9.50971298e-06
-
-#
-# Curve 10 - Bricks 1
+# Curve 1 - Bricks 1
 # Time reference surface: middle
 # Time reference frame: global
 # X Stress reference frame: global
@@ -754,133 +628,133 @@
   4.00000006e-01  6.26917335e-06
 
 #
-# Curve 1 - Bricks 11845
+# Curve 2 - Bricks 14134
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# X Stress reference frame: global
 
-#           Time        Z Stress
-# Bricks - 11845: Z Stress
+#           Time        X Stress
+# Bricks - 14134: X Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.63699472e-08
-  2.00000003e-01  -3.27293037e-08
-  3.00000012e-01  -4.90788565e-08
-  4.00000006e-01  -6.54204158e-08
+  1.00000001e-01  2.40144595e-06
+  2.00000003e-01  4.78420861e-06
+  3.00000012e-01  7.15186434e-06
+  4.00000006e-01  9.50971298e-06
 
 #
-# Curve 2 - Bricks 11844
+# Curve 3 - Bricks 51912
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# X Stress reference frame: global
 
-#           Time        Z Stress
-# Bricks - 11844: Z Stress
+#           Time        X Stress
+# Bricks - 51912: X Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -2.38841335e-06
-  2.00000003e-01  -4.78323000e-06
-  3.00000012e-01  -7.18269166e-06
-  4.00000006e-01  -9.58434248e-06
+  1.00000001e-01  -8.30086755e-09
+  2.00000003e-01  -1.86904465e-08
+  3.00000012e-01  -3.19462217e-08
+  4.00000006e-01  -4.49592932e-08
 
 #
-# Curve 3 - Bricks 11843
+# Curve 4 - Bricks 10824
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# X Stress reference frame: global
 
-#           Time        Z Stress
-# Bricks - 11843: Z Stress
+#           Time        X Stress
+# Bricks - 10824: X Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.48879957e-07
-  2.00000003e-01  4.98102224e-07
-  3.00000012e-01  7.47586398e-07
-  4.00000006e-01  9.97161578e-07
+  1.00000001e-01  -2.02801607e-06
+  2.00000003e-01  -4.08549340e-06
+  3.00000012e-01  -6.16533180e-06
+  4.00000006e-01  -8.25821462e-06
 
 #
-# Curve 4 - Bricks 11842
+# Curve 5 - Bricks 10333
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# X Stress reference frame: global
 
-#           Time        Z Stress
-# Bricks - 11842: Z Stress
+#           Time        X Stress
+# Bricks - 10333: X Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.11461482e-07
-  2.00000003e-01  -2.23194661e-07
-  3.00000012e-01  -3.35119381e-07
-  4.00000006e-01  -4.47130617e-07
+  1.00000001e-01  -5.70498241e-06
+  2.00000003e-01  -1.14445847e-05
+  3.00000012e-01  -1.72110576e-05
+  4.00000006e-01  -2.29927027e-05
 
 #
-# Curve 5 - Bricks 11656
+# Curve 6 - Bricks 11656
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# X Stress reference frame: global
 
-#           Time        Z Stress
-# Bricks - 11656: Z Stress
+#           Time        X Stress
+# Bricks - 11656: X Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.52816160e-08
-  2.00000003e-01  -3.05729451e-08
-  3.00000012e-01  -4.58737262e-08
-  4.00000006e-01  -6.11844015e-08
+  1.00000001e-01  3.91479080e-06
+  2.00000003e-01  7.80808023e-06
+  3.00000012e-01  1.16860219e-05
+  4.00000006e-01  1.55545440e-05
 
 #
-# Curve 6 - Bricks 10333
+# Curve 7 - Bricks 11842
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# X Stress reference frame: global
 
-#           Time        Z Stress
-# Bricks - 10333: Z Stress
+#           Time        X Stress
+# Bricks - 11842: X Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -2.18356462e-07
-  2.00000003e-01  -4.36725429e-07
-  3.00000012e-01  -6.55106476e-07
-  4.00000006e-01  -8.73499516e-07
+  1.00000001e-01  -3.69991471e-06
+  2.00000003e-01  -7.43954297e-06
+  3.00000012e-01  -1.12078405e-05
+  4.00000006e-01  -1.49924572e-05
 
 #
-# Curve 7 - Bricks 10824
+# Curve 8 - Bricks 11843
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# X Stress reference frame: global
 
-#           Time        Z Stress
-# Bricks - 10824: Z Stress
+#           Time        X Stress
+# Bricks - 11843: X Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.58069355e-07
-  2.00000003e-01  -3.16132883e-07
-  3.00000012e-01  -4.74190131e-07
-  4.00000006e-01  -6.32241210e-07
+  1.00000001e-01  -4.74343324e-06
+  2.00000003e-01  -9.52959454e-06
+  3.00000012e-01  -1.43465977e-05
+  4.00000006e-01  -1.91810250e-05
 
 #
-# Curve 8 - Bricks 51912
+# Curve 9 - Bricks 11844
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# X Stress reference frame: global
 
-#           Time        Z Stress
-# Bricks - 51912: Z Stress
+#           Time        X Stress
+# Bricks - 11844: X Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -8.58323912e-10
-  2.00000003e-01  -6.70699496e-09
-  3.00000012e-01  -1.51844226e-08
-  4.00000006e-01  -2.44737901e-08
+  1.00000001e-01  -6.75234423e-06
+  2.00000003e-01  -1.35544133e-05
+  3.00000012e-01  -2.03923846e-05
+  4.00000006e-01  -2.72503385e-05
 
 #
-# Curve 9 - Bricks 14134
+# Curve 10 - Bricks 11845
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# X Stress reference frame: global
 
-#           Time        Z Stress
-# Bricks - 14134: Z Stress
+#           Time        X Stress
+# Bricks - 11845: X Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.50896639e-07
-  2.00000003e-01  -3.01975064e-07
-  3.00000012e-01  -4.53209594e-07
-  4.00000006e-01  -6.04496165e-07
+  1.00000001e-01  2.61955688e-06
+  2.00000003e-01  5.21778520e-06
+  3.00000012e-01  7.80041773e-06
+  4.00000006e-01  1.03737102e-05
 
 #
-# Curve 10 - Bricks 1
+# Curve 1 - Bricks 1
 # Time reference surface: middle
 # Time reference frame: global
 # Z Stress reference frame: global
@@ -894,133 +768,133 @@
   4.00000006e-01  2.48759431e-08
 
 #
-# Curve 1 - Bricks 11845
+# Curve 2 - Bricks 14134
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Z Stress reference frame: global
 
-#           Time       XY Stress
-# Bricks - 11845: XY Stress
+#           Time        Z Stress
+# Bricks - 14134: Z Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -5.02486941e-08
-  2.00000003e-01  -1.00498795e-07
-  3.00000012e-01  -1.50764222e-07
-  4.00000006e-01  -2.01017770e-07
+  1.00000001e-01  -1.50896639e-07
+  2.00000003e-01  -3.01975064e-07
+  3.00000012e-01  -4.53209594e-07
+  4.00000006e-01  -6.04496165e-07
 
 #
-# Curve 2 - Bricks 11844
+# Curve 3 - Bricks 51912
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Z Stress reference frame: global
 
-#           Time       XY Stress
-# Bricks - 11844: XY Stress
+#           Time        Z Stress
+# Bricks - 51912: Z Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.09670827e-06
-  2.00000003e-01  -2.18637115e-06
-  3.00000012e-01  -3.27146472e-06
-  4.00000006e-01  -4.35396169e-06
+  1.00000001e-01  -8.58323912e-10
+  2.00000003e-01  -6.70699496e-09
+  3.00000012e-01  -1.51844226e-08
+  4.00000006e-01  -2.44737901e-08
 
 #
-# Curve 3 - Bricks 11843
+# Curve 4 - Bricks 10824
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Z Stress reference frame: global
 
-#           Time       XY Stress
-# Bricks - 11843: XY Stress
+#           Time        Z Stress
+# Bricks - 10824: Z Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.04885635e-06
-  2.00000003e-01  -2.09362474e-06
-  3.00000012e-01  -3.13588566e-06
-  4.00000006e-01  -4.17659521e-06
+  1.00000001e-01  -1.58069355e-07
+  2.00000003e-01  -3.16132883e-07
+  3.00000012e-01  -4.74190131e-07
+  4.00000006e-01  -6.32241210e-07
 
 #
-# Curve 4 - Bricks 11842
+# Curve 5 - Bricks 10333
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Z Stress reference frame: global
 
-#           Time       XY Stress
-# Bricks - 11842: XY Stress
+#           Time        Z Stress
+# Bricks - 10333: Z Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.01529463e-06
-  2.00000003e-01  -2.02732895e-06
-  3.00000012e-01  -3.03740694e-06
-  4.00000006e-01  -4.04621278e-06
+  1.00000001e-01  -2.18356462e-07
+  2.00000003e-01  -4.36725429e-07
+  3.00000012e-01  -6.55106476e-07
+  4.00000006e-01  -8.73499516e-07
 
 #
-# Curve 5 - Bricks 11656
+# Curve 6 - Bricks 11656
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Z Stress reference frame: global
 
-#           Time       XY Stress
-# Bricks - 11656: XY Stress
+#           Time        Z Stress
+# Bricks - 11656: Z Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -3.18251647e-09
-  2.00000003e-01  -6.36349284e-09
-  3.00000012e-01  -9.54425250e-09
-  4.00000006e-01  -1.27237749e-08
+  1.00000001e-01  -1.52816160e-08
+  2.00000003e-01  -3.05729451e-08
+  3.00000012e-01  -4.58737262e-08
+  4.00000006e-01  -6.11844015e-08
 
 #
-# Curve 6 - Bricks 10333
+# Curve 7 - Bricks 11842
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Z Stress reference frame: global
 
-#           Time       XY Stress
-# Bricks - 10333: XY Stress
+#           Time        Z Stress
+# Bricks - 11842: Z Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  3.75313292e-09
-  2.00000003e-01  7.50934870e-09
-  3.00000012e-01  1.12671579e-08
-  4.00000006e-01  1.50265986e-08
+  1.00000001e-01  -1.11461482e-07
+  2.00000003e-01  -2.23194661e-07
+  3.00000012e-01  -3.35119381e-07
+  4.00000006e-01  -4.47130617e-07
 
 #
-# Curve 7 - Bricks 10824
+# Curve 8 - Bricks 11843
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Z Stress reference frame: global
 
-#           Time       XY Stress
-# Bricks - 10824: XY Stress
+#           Time        Z Stress
+# Bricks - 11843: Z Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  1.01084439e-07
-  2.00000003e-01  2.02333638e-07
-  3.00000012e-01  3.03636170e-07
-  4.00000006e-01  4.05033376e-07
+  1.00000001e-01  2.48879957e-07
+  2.00000003e-01  4.98102224e-07
+  3.00000012e-01  7.47586398e-07
+  4.00000006e-01  9.97161578e-07
 
 #
-# Curve 8 - Bricks 51912
+# Curve 9 - Bricks 11844
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Z Stress reference frame: global
 
-#           Time       XY Stress
-# Bricks - 51912: XY Stress
+#           Time        Z Stress
+# Bricks - 11844: Z Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -3.45327300e-09
-  2.00000003e-01  -6.61944410e-09
-  3.00000012e-01  -8.62915694e-09
-  4.00000006e-01  -1.02162145e-08
+  1.00000001e-01  -2.38841335e-06
+  2.00000003e-01  -4.78323000e-06
+  3.00000012e-01  -7.18269166e-06
+  4.00000006e-01  -9.58434248e-06
 
 #
-# Curve 9 - Bricks 14134
+# Curve 10 - Bricks 11845
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Z Stress reference frame: global
 
-#           Time       XY Stress
-# Bricks - 14134: XY Stress
+#           Time        Z Stress
+# Bricks - 11845: Z Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  1.12530176e-06
-  2.00000003e-01  2.25056942e-06
-  3.00000012e-01  3.37517486e-06
-  4.00000006e-01  4.49994241e-06
+  1.00000001e-01  -1.63699472e-08
+  2.00000003e-01  -3.27293037e-08
+  3.00000012e-01  -4.90788565e-08
+  4.00000006e-01  -6.54204158e-08
 
 #
-# Curve 10 - Bricks 1
+# Curve 1 - Bricks 1
 # Time reference surface: middle
 # Time reference frame: global
 # XY Stress reference frame: global
@@ -1034,273 +908,133 @@
   4.00000006e-01  -1.13751916e-07
 
 #
-# Curve 1 - Bricks 11845
+# Curve 2 - Bricks 14134
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# XY Stress reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11845: ZX Stress
+#           Time       XY Stress
+# Bricks - 14134: XY Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -7.58288365e-09
-  2.00000003e-01  -1.51830069e-08
-  3.00000012e-01  -2.27961721e-08
-  4.00000006e-01  -3.04165546e-08
+  1.00000001e-01  1.12530176e-06
+  2.00000003e-01  2.25056942e-06
+  3.00000012e-01  3.37517486e-06
+  4.00000006e-01  4.49994241e-06
 
 #
-# Curve 2 - Bricks 11844
+# Curve 3 - Bricks 51912
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# XY Stress reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11844: ZX Stress
+#           Time       XY Stress
+# Bricks - 51912: XY Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -2.04868797e-06
-  2.00000003e-01  -4.10436678e-06
-  3.00000012e-01  -6.16509760e-06
-  4.00000006e-01  -8.22832408e-06
+  1.00000001e-01  -3.45327300e-09
+  2.00000003e-01  -6.61944410e-09
+  3.00000012e-01  -8.62915694e-09
+  4.00000006e-01  -1.02162145e-08
 
 #
-# Curve 3 - Bricks 11843
+# Curve 4 - Bricks 10824
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# XY Stress reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11843: ZX Stress
+#           Time       XY Stress
+# Bricks - 10824: XY Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -5.45188243e-07
-  2.00000003e-01  -1.09170082e-06
-  3.00000012e-01  -1.63916252e-06
-  4.00000006e-01  -2.18706032e-06
+  1.00000001e-01  1.01084439e-07
+  2.00000003e-01  2.02333638e-07
+  3.00000012e-01  3.03636170e-07
+  4.00000006e-01  4.05033376e-07
 
 #
-# Curve 4 - Bricks 11842
+# Curve 5 - Bricks 10333
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# XY Stress reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11842: ZX Stress
+#           Time       XY Stress
+# Bricks - 10333: XY Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -4.69462577e-07
-  2.00000003e-01  -9.39733582e-07
-  3.00000012e-01  -1.41059354e-06
-  4.00000006e-01  -1.88168485e-06
+  1.00000001e-01  3.75313292e-09
+  2.00000003e-01  7.50934870e-09
+  3.00000012e-01  1.12671579e-08
+  4.00000006e-01  1.50265986e-08
 
 #
-# Curve 5 - Bricks 11656
+# Curve 6 - Bricks 11656
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# XY Stress reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11656: ZX Stress
+#           Time       XY Stress
+# Bricks - 11656: XY Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -9.62770130e-09
-  2.00000003e-01  -1.92834158e-08
-  3.00000012e-01  -2.89612778e-08
-  4.00000006e-01  -3.86527503e-08
+  1.00000001e-01  -3.18251647e-09
+  2.00000003e-01  -6.36349284e-09
+  3.00000012e-01  -9.54425250e-09
+  4.00000006e-01  -1.27237749e-08
 
 #
-# Curve 6 - Bricks 10333
+# Curve 7 - Bricks 11842
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# XY Stress reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 10333: ZX Stress
+#           Time       XY Stress
+# Bricks - 11842: XY Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -9.62103819e-09
-  2.00000003e-01  -1.92566585e-08
-  3.00000012e-01  -2.89009154e-08
-  4.00000006e-01  -3.85452523e-08
+  1.00000001e-01  -1.01529463e-06
+  2.00000003e-01  -2.02732895e-06
+  3.00000012e-01  -3.03740694e-06
+  4.00000006e-01  -4.04621278e-06
 
 #
-# Curve 7 - Bricks 10824
+# Curve 8 - Bricks 11843
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# XY Stress reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 10824: ZX Stress
+#           Time       XY Stress
+# Bricks - 11843: XY Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -4.42732585e-07
-  2.00000003e-01  -8.86264729e-07
-  3.00000012e-01  -1.33037895e-06
-  4.00000006e-01  -1.77475943e-06
+  1.00000001e-01  -1.04885635e-06
+  2.00000003e-01  -2.09362474e-06
+  3.00000012e-01  -3.13588566e-06
+  4.00000006e-01  -4.17659521e-06
 
 #
-# Curve 8 - Bricks 51912
+# Curve 9 - Bricks 11844
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# XY Stress reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 51912: ZX Stress
+#           Time       XY Stress
+# Bricks - 11844: XY Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  6.82700785e-09
-  2.00000003e-01  1.45222705e-08
-  3.00000012e-01  2.03462491e-08
-  4.00000006e-01  2.54108876e-08
+  1.00000001e-01  -1.09670827e-06
+  2.00000003e-01  -2.18637115e-06
+  3.00000012e-01  -3.27146472e-06
+  4.00000006e-01  -4.35396169e-06
 
 #
-# Curve 9 - Bricks 14134
+# Curve 10 - Bricks 11845
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# XY Stress reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 14134: ZX Stress
+#           Time       XY Stress
+# Bricks - 11845: XY Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  7.83393830e-08
-  2.00000003e-01  1.57281292e-07
-  3.00000012e-01  2.36606112e-07
-  4.00000006e-01  3.16159571e-07
+  1.00000001e-01  -5.02486941e-08
+  2.00000003e-01  -1.00498795e-07
+  3.00000012e-01  -1.50764222e-07
+  4.00000006e-01  -2.01017770e-07
 
 #
-# Curve 10 - Bricks 1
-# Time reference surface: middle
-# Time reference frame: global
-# ZX Stress reference frame: global
-
-#           Time       ZX Stress
-# Bricks - 1: ZX Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  3.55258767e-10
-  2.00000003e-01  7.02787106e-10
-  3.00000012e-01  1.05357056e-09
-  4.00000006e-01  1.39149037e-09
-
-#
-# Curve 1 - Bricks 11845
-# Time reference surface: middle
-# Time reference frame: global
-# ZX Stress reference frame: global
-
-#           Time       ZX Stress
-# Bricks - 11845: ZX Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -7.58288365e-09
-  2.00000003e-01  -1.51830069e-08
-  3.00000012e-01  -2.27961721e-08
-  4.00000006e-01  -3.04165546e-08
-
-#
-# Curve 2 - Bricks 11844
-# Time reference surface: middle
-# Time reference frame: global
-# ZX Stress reference frame: global
-
-#           Time       ZX Stress
-# Bricks - 11844: ZX Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -2.04868797e-06
-  2.00000003e-01  -4.10436678e-06
-  3.00000012e-01  -6.16509760e-06
-  4.00000006e-01  -8.22832408e-06
-
-#
-# Curve 3 - Bricks 11843
-# Time reference surface: middle
-# Time reference frame: global
-# ZX Stress reference frame: global
-
-#           Time       ZX Stress
-# Bricks - 11843: ZX Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -5.45188243e-07
-  2.00000003e-01  -1.09170082e-06
-  3.00000012e-01  -1.63916252e-06
-  4.00000006e-01  -2.18706032e-06
-
-#
-# Curve 4 - Bricks 11842
-# Time reference surface: middle
-# Time reference frame: global
-# ZX Stress reference frame: global
-
-#           Time       ZX Stress
-# Bricks - 11842: ZX Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -4.69462577e-07
-  2.00000003e-01  -9.39733582e-07
-  3.00000012e-01  -1.41059354e-06
-  4.00000006e-01  -1.88168485e-06
-
-#
-# Curve 5 - Bricks 11656
-# Time reference surface: middle
-# Time reference frame: global
-# ZX Stress reference frame: global
-
-#           Time       ZX Stress
-# Bricks - 11656: ZX Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -9.62770130e-09
-  2.00000003e-01  -1.92834158e-08
-  3.00000012e-01  -2.89612778e-08
-  4.00000006e-01  -3.86527503e-08
-
-#
-# Curve 6 - Bricks 10333
-# Time reference surface: middle
-# Time reference frame: global
-# ZX Stress reference frame: global
-
-#           Time       ZX Stress
-# Bricks - 10333: ZX Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -9.62103819e-09
-  2.00000003e-01  -1.92566585e-08
-  3.00000012e-01  -2.89009154e-08
-  4.00000006e-01  -3.85452523e-08
-
-#
-# Curve 7 - Bricks 10824
-# Time reference surface: middle
-# Time reference frame: global
-# ZX Stress reference frame: global
-
-#           Time       ZX Stress
-# Bricks - 10824: ZX Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -4.42732585e-07
-  2.00000003e-01  -8.86264729e-07
-  3.00000012e-01  -1.33037895e-06
-  4.00000006e-01  -1.77475943e-06
-
-#
-# Curve 8 - Bricks 51912
-# Time reference surface: middle
-# Time reference frame: global
-# ZX Stress reference frame: global
-
-#           Time       ZX Stress
-# Bricks - 51912: ZX Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  6.82700785e-09
-  2.00000003e-01  1.45222705e-08
-  3.00000012e-01  2.03462491e-08
-  4.00000006e-01  2.54108876e-08
-
-#
-# Curve 9 - Bricks 14134
-# Time reference surface: middle
-# Time reference frame: global
-# ZX Stress reference frame: global
-
-#           Time       ZX Stress
-# Bricks - 14134: ZX Stress
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  7.83393830e-08
-  2.00000003e-01  1.57281292e-07
-  3.00000012e-01  2.36606112e-07
-  4.00000006e-01  3.16159571e-07
-
-#
-# Curve 10 - Bricks 1
+# Curve 1 - Bricks 1
 # Time reference surface: middle
 # Time reference frame: global
 # ZX Stress reference frame: global
@@ -1314,151 +1048,273 @@
   4.00000006e-01  1.39149037e-09
 
 #
-# Curve 1 - Bricks 11845
-# Time strain variety: infinitesimal
+# Curve 2 - Bricks 14134
 # Time reference surface: middle
 # Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
+# ZX Stress reference frame: global
 
-#           Time  XY Engr Strain
-# Bricks - 11845: XY Engr Strain
-  0.00000000e+00  -5.55111512e-17
-  1.00000001e-01  -1.49541833e-07
-  2.00000003e-01  2.03097823e-08
-  3.00000012e-01  7.52194662e-09
-  4.00000006e-01  -4.77811795e-07
-
-#
-# Curve 2 - Bricks 11844
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 11844: XY Engr Strain
+#           Time       ZX Stress
+# Bricks - 14134: ZX Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -2.33001492e-06
-  2.00000003e-01  -3.35054142e-06
-  3.00000012e-01  -4.73191767e-06
-  4.00000006e-01  -5.85111275e-06
+  1.00000001e-01  7.83393830e-08
+  2.00000003e-01  1.57281292e-07
+  3.00000012e-01  2.36606112e-07
+  4.00000006e-01  3.16159571e-07
 
 #
-# Curve 3 - Bricks 11843
-# Time strain variety: infinitesimal
+# Curve 3 - Bricks 51912
 # Time reference surface: middle
 # Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
+# ZX Stress reference frame: global
 
-#           Time  XY Engr Strain
-# Bricks - 11843: XY Engr Strain
-  0.00000000e+00  2.22044605e-15
-  1.00000001e-01  -1.62608728e-06
-  2.00000003e-01  -2.96299845e-06
-  3.00000012e-01  -4.49408935e-06
-  4.00000006e-01  -5.49432798e-06
-
-#
-# Curve 4 - Bricks 11842
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 11842: XY Engr Strain
-  0.00000000e+00  -4.44089210e-16
-  1.00000001e-01  -1.08277334e-06
-  2.00000003e-01  -2.68893359e-06
-  3.00000012e-01  -3.72324598e-06
-  4.00000006e-01  -5.19648302e-06
-
-#
-# Curve 5 - Bricks 11656
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 11656: XY Engr Strain
-  0.00000000e+00  -1.11022302e-16
-  1.00000001e-01  -4.92462533e-08
-  2.00000003e-01  -5.92362568e-08
-  3.00000012e-01  -2.99700105e-08
-  4.00000006e-01  -7.92162638e-08
-
-#
-# Curve 6 - Bricks 10333
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 10333: XY Engr Strain
-  0.00000000e+00  -1.11022302e-16
-  1.00000001e-01  -5.36079057e-08
-  2.00000003e-01  -2.88440152e-08
-  3.00000012e-01  -4.08012335e-09
-  4.00000006e-01  -3.81302563e-08
-
-#
-# Curve 7 - Bricks 10824
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 10824: XY Engr Strain
+#           Time       ZX Stress
+# Bricks - 51912: ZX Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.94731052e-07
-  2.00000003e-01  5.55804661e-07
-  3.00000012e-01  4.80302845e-07
-  4.00000006e-01  8.20213813e-07
+  1.00000001e-01  6.82700785e-09
+  2.00000003e-01  1.45222705e-08
+  3.00000012e-01  2.03462491e-08
+  4.00000006e-01  2.54108876e-08
 
 #
-# Curve 8 - Bricks 51912
-# Time strain variety: infinitesimal
+# Curve 4 - Bricks 10824
 # Time reference surface: middle
 # Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
+# ZX Stress reference frame: global
 
-#           Time  XY Engr Strain
-# Bricks - 51912: XY Engr Strain
+#           Time       ZX Stress
+# Bricks - 10824: ZX Stress
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -9.51666209e-07
-  2.00000003e-01  -1.02383092e-06
-  3.00000012e-01  -8.90377635e-07
-  4.00000006e-01  -1.00160094e-06
+  1.00000001e-01  -4.42732585e-07
+  2.00000003e-01  -8.86264729e-07
+  3.00000012e-01  -1.33037895e-06
+  4.00000006e-01  -1.77475943e-06
 
 #
-# Curve 9 - Bricks 14134
-# Time strain variety: infinitesimal
+# Curve 5 - Bricks 10333
 # Time reference surface: middle
 # Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
+# ZX Stress reference frame: global
 
-#           Time  XY Engr Strain
-# Bricks - 14134: XY Engr Strain
-  0.00000000e+00  2.22044605e-15
-  1.00000001e-01  9.76933848e-07
-  2.00000003e-01  2.52848145e-06
-  3.00000012e-01  4.45358910e-06
-  4.00000006e-01  5.37397273e-06
+#           Time       ZX Stress
+# Bricks - 10333: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -9.62103819e-09
+  2.00000003e-01  -1.92566585e-08
+  3.00000012e-01  -2.89009154e-08
+  4.00000006e-01  -3.85452523e-08
 
 #
-# Curve 10 - Bricks 1
+# Curve 6 - Bricks 11656
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 11656: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -9.62770130e-09
+  2.00000003e-01  -1.92834158e-08
+  3.00000012e-01  -2.89612778e-08
+  4.00000006e-01  -3.86527503e-08
+
+#
+# Curve 7 - Bricks 11842
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 11842: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -4.69462577e-07
+  2.00000003e-01  -9.39733582e-07
+  3.00000012e-01  -1.41059354e-06
+  4.00000006e-01  -1.88168485e-06
+
+#
+# Curve 8 - Bricks 11843
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 11843: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -5.45188243e-07
+  2.00000003e-01  -1.09170082e-06
+  3.00000012e-01  -1.63916252e-06
+  4.00000006e-01  -2.18706032e-06
+
+#
+# Curve 9 - Bricks 11844
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 11844: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -2.04868797e-06
+  2.00000003e-01  -4.10436678e-06
+  3.00000012e-01  -6.16509760e-06
+  4.00000006e-01  -8.22832408e-06
+
+#
+# Curve 10 - Bricks 11845
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 11845: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -7.58288365e-09
+  2.00000003e-01  -1.51830069e-08
+  3.00000012e-01  -2.27961721e-08
+  4.00000006e-01  -3.04165546e-08
+
+#
+# Curve 1 - Bricks 1
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 1: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  3.55258767e-10
+  2.00000003e-01  7.02787106e-10
+  3.00000012e-01  1.05357056e-09
+  4.00000006e-01  1.39149037e-09
+
+#
+# Curve 2 - Bricks 14134
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 14134: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  7.83393830e-08
+  2.00000003e-01  1.57281292e-07
+  3.00000012e-01  2.36606112e-07
+  4.00000006e-01  3.16159571e-07
+
+#
+# Curve 3 - Bricks 51912
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 51912: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  6.82700785e-09
+  2.00000003e-01  1.45222705e-08
+  3.00000012e-01  2.03462491e-08
+  4.00000006e-01  2.54108876e-08
+
+#
+# Curve 4 - Bricks 10824
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 10824: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -4.42732585e-07
+  2.00000003e-01  -8.86264729e-07
+  3.00000012e-01  -1.33037895e-06
+  4.00000006e-01  -1.77475943e-06
+
+#
+# Curve 5 - Bricks 10333
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 10333: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -9.62103819e-09
+  2.00000003e-01  -1.92566585e-08
+  3.00000012e-01  -2.89009154e-08
+  4.00000006e-01  -3.85452523e-08
+
+#
+# Curve 6 - Bricks 11656
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 11656: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -9.62770130e-09
+  2.00000003e-01  -1.92834158e-08
+  3.00000012e-01  -2.89612778e-08
+  4.00000006e-01  -3.86527503e-08
+
+#
+# Curve 7 - Bricks 11842
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 11842: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -4.69462577e-07
+  2.00000003e-01  -9.39733582e-07
+  3.00000012e-01  -1.41059354e-06
+  4.00000006e-01  -1.88168485e-06
+
+#
+# Curve 8 - Bricks 11843
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 11843: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -5.45188243e-07
+  2.00000003e-01  -1.09170082e-06
+  3.00000012e-01  -1.63916252e-06
+  4.00000006e-01  -2.18706032e-06
+
+#
+# Curve 9 - Bricks 11844
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 11844: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -2.04868797e-06
+  2.00000003e-01  -4.10436678e-06
+  3.00000012e-01  -6.16509760e-06
+  4.00000006e-01  -8.22832408e-06
+
+#
+# Curve 10 - Bricks 11845
+# Time reference surface: middle
+# Time reference frame: global
+# ZX Stress reference frame: global
+
+#           Time       ZX Stress
+# Bricks - 11845: ZX Stress
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -7.58288365e-09
+  2.00000003e-01  -1.51830069e-08
+  3.00000012e-01  -2.27961721e-08
+  4.00000006e-01  -3.04165546e-08
+
+#
+# Curve 1 - Bricks 1
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1474,7 +1330,7 @@
   4.00000006e-01  -6.88065654e-07
 
 #
-# Curve 1 - Bricks 11845
+# Curve 2 - Bricks 14134
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1482,15 +1338,111 @@
 # XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
-# Bricks - 11845: XY Engr Strain
-  0.00000000e+00  -5.55111512e-17
-  1.00000001e-01  -1.49541833e-07
-  2.00000003e-01  2.03097823e-08
-  3.00000012e-01  7.52194662e-09
-  4.00000006e-01  -4.77811795e-07
+# Bricks - 14134: XY Engr Strain
+  0.00000000e+00  1.77635684e-15
+  1.00000001e-01  9.76933848e-07
+  2.00000003e-01  2.52848145e-06
+  3.00000012e-01  4.45358910e-06
+  4.00000006e-01  5.37397273e-06
 
 #
-# Curve 2 - Bricks 11844
+# Curve 3 - Bricks 51912
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# Bricks - 51912: XY Engr Strain
+  0.00000000e+00  -4.44089210e-16
+  1.00000001e-01  -9.51666209e-07
+  2.00000003e-01  -1.02383092e-06
+  3.00000012e-01  -8.90377635e-07
+  4.00000006e-01  -1.00160094e-06
+
+#
+# Curve 4 - Bricks 10824
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# Bricks - 10824: XY Engr Strain
+  0.00000000e+00  4.44089210e-16
+  1.00000001e-01  2.94731052e-07
+  2.00000003e-01  5.55804661e-07
+  3.00000012e-01  4.80302845e-07
+  4.00000006e-01  8.20213813e-07
+
+#
+# Curve 5 - Bricks 10333
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# Bricks - 10333: XY Engr Strain
+  0.00000000e+00  -8.32667268e-17
+  1.00000001e-01  -5.36079057e-08
+  2.00000003e-01  -2.88440152e-08
+  3.00000012e-01  -4.08012335e-09
+  4.00000006e-01  -3.81302563e-08
+
+#
+# Curve 6 - Bricks 11656
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# Bricks - 11656: XY Engr Strain
+  0.00000000e+00  -8.32667268e-17
+  1.00000001e-01  -4.92462533e-08
+  2.00000003e-01  -5.92362568e-08
+  3.00000012e-01  -2.99700105e-08
+  4.00000006e-01  -7.92162638e-08
+
+#
+# Curve 7 - Bricks 11842
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# Bricks - 11842: XY Engr Strain
+  0.00000000e+00  -2.22044605e-16
+  1.00000001e-01  -1.08277334e-06
+  2.00000003e-01  -2.68893359e-06
+  3.00000012e-01  -3.72324598e-06
+  4.00000006e-01  -5.19648302e-06
+
+#
+# Curve 8 - Bricks 11843
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# Bricks - 11843: XY Engr Strain
+  0.00000000e+00  3.10862447e-15
+  1.00000001e-01  -1.62608728e-06
+  2.00000003e-01  -2.96299845e-06
+  3.00000012e-01  -4.49408935e-06
+  4.00000006e-01  -5.49432798e-06
+
+#
+# Curve 9 - Bricks 11844
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1506,7 +1458,7 @@
   4.00000006e-01  -5.85111275e-06
 
 #
-# Curve 3 - Bricks 11843
+# Curve 10 - Bricks 11845
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1514,111 +1466,15 @@
 # XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
-# Bricks - 11843: XY Engr Strain
-  0.00000000e+00  2.22044605e-15
-  1.00000001e-01  -1.62608728e-06
-  2.00000003e-01  -2.96299845e-06
-  3.00000012e-01  -4.49408935e-06
-  4.00000006e-01  -5.49432798e-06
+# Bricks - 11845: XY Engr Strain
+  0.00000000e+00  -5.55111512e-17
+  1.00000001e-01  -1.49541833e-07
+  2.00000003e-01  2.03097823e-08
+  3.00000012e-01  7.52194662e-09
+  4.00000006e-01  -4.77811795e-07
 
 #
-# Curve 4 - Bricks 11842
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 11842: XY Engr Strain
-  0.00000000e+00  -4.44089210e-16
-  1.00000001e-01  -1.08277334e-06
-  2.00000003e-01  -2.68893359e-06
-  3.00000012e-01  -3.72324598e-06
-  4.00000006e-01  -5.19648302e-06
-
-#
-# Curve 5 - Bricks 11656
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 11656: XY Engr Strain
-  0.00000000e+00  -1.11022302e-16
-  1.00000001e-01  -4.92462533e-08
-  2.00000003e-01  -5.92362568e-08
-  3.00000012e-01  -2.99700105e-08
-  4.00000006e-01  -7.92162638e-08
-
-#
-# Curve 6 - Bricks 10333
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 10333: XY Engr Strain
-  0.00000000e+00  -1.11022302e-16
-  1.00000001e-01  -5.36079057e-08
-  2.00000003e-01  -2.88440152e-08
-  3.00000012e-01  -4.08012335e-09
-  4.00000006e-01  -3.81302563e-08
-
-#
-# Curve 7 - Bricks 10824
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 10824: XY Engr Strain
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.94731052e-07
-  2.00000003e-01  5.55804661e-07
-  3.00000012e-01  4.80302845e-07
-  4.00000006e-01  8.20213813e-07
-
-#
-# Curve 8 - Bricks 51912
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 51912: XY Engr Strain
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -9.51666209e-07
-  2.00000003e-01  -1.02383092e-06
-  3.00000012e-01  -8.90377635e-07
-  4.00000006e-01  -1.00160094e-06
-
-#
-# Curve 9 - Bricks 14134
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 14134: XY Engr Strain
-  0.00000000e+00  2.22044605e-15
-  1.00000001e-01  9.76933848e-07
-  2.00000003e-01  2.52848145e-06
-  3.00000012e-01  4.45358910e-06
-  4.00000006e-01  5.37397273e-06
-
-#
-# Curve 10 - Bricks 1
+# Curve 1 - Bricks 1
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1634,133 +1490,151 @@
   4.00000006e-01  -6.88065654e-07
 
 #
-# Curve 1 - Bricks 11845
+# Curve 2 - Bricks 14134
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
-# Prin Dev Stress 1 reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Prin Dev Stress 1
-# Bricks - 11845: Prin Dev Stress 1
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  1.15009709e-06
-  2.00000003e-01  2.27763780e-06
-  3.00000012e-01  3.38641166e-06
-  4.00000006e-01  4.48649598e-06
+#           Time  XY Engr Strain
+# Bricks - 14134: XY Engr Strain
+  0.00000000e+00  1.77635684e-15
+  1.00000001e-01  9.76933848e-07
+  2.00000003e-01  2.52848145e-06
+  3.00000012e-01  4.45358910e-06
+  4.00000006e-01  5.37397273e-06
 
 #
-# Curve 2 - Bricks 11844
+# Curve 3 - Bricks 51912
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
-# Prin Dev Stress 1 reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Prin Dev Stress 1
-# Bricks - 11844: Prin Dev Stress 1
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.56900285e-06
-  2.00000003e-01  5.14181738e-06
-  3.00000012e-01  7.71503528e-06
-  4.00000006e-01  1.02906006e-05
+#           Time  XY Engr Strain
+# Bricks - 51912: XY Engr Strain
+  0.00000000e+00  -4.44089210e-16
+  1.00000001e-01  -9.51666209e-07
+  2.00000003e-01  -1.02383092e-06
+  3.00000012e-01  -8.90377635e-07
+  4.00000006e-01  -1.00160094e-06
 
 #
-# Curve 3 - Bricks 11843
+# Curve 4 - Bricks 10824
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
-# Prin Dev Stress 1 reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Prin Dev Stress 1
-# Bricks - 11843: Prin Dev Stress 1
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.37255608e-06
-  2.00000003e-01  4.75149045e-06
-  3.00000012e-01  7.13268719e-06
-  4.00000006e-01  9.51730362e-06
+#           Time  XY Engr Strain
+# Bricks - 10824: XY Engr Strain
+  0.00000000e+00  4.44089210e-16
+  1.00000001e-01  2.94731052e-07
+  2.00000003e-01  5.55804661e-07
+  3.00000012e-01  4.80302845e-07
+  4.00000006e-01  8.20213813e-07
 
 #
-# Curve 4 - Bricks 11842
+# Curve 5 - Bricks 10333
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
-# Prin Dev Stress 1 reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Prin Dev Stress 1
-# Bricks - 11842: Prin Dev Stress 1
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  1.66407074e-06
-  2.00000003e-01  3.33302501e-06
-  3.00000012e-01  5.00321266e-06
-  4.00000006e-01  6.67626273e-06
+#           Time  XY Engr Strain
+# Bricks - 10333: XY Engr Strain
+  0.00000000e+00  -8.32667268e-17
+  1.00000001e-01  -5.36079057e-08
+  2.00000003e-01  -2.88440152e-08
+  3.00000012e-01  -4.08012335e-09
+  4.00000006e-01  -3.81302563e-08
 
 #
-# Curve 5 - Bricks 11656
+# Curve 6 - Bricks 11656
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
-# Prin Dev Stress 1 reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Prin Dev Stress 1
-# Bricks - 11656: Prin Dev Stress 1
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  1.36549500e-06
-  2.00000003e-01  2.70951818e-06
-  3.00000012e-01  4.03582226e-06
-  4.00000006e-01  5.35372510e-06
+#           Time  XY Engr Strain
+# Bricks - 11656: XY Engr Strain
+  0.00000000e+00  -8.32667268e-17
+  1.00000001e-01  -4.92462533e-08
+  2.00000003e-01  -5.92362568e-08
+  3.00000012e-01  -2.99700105e-08
+  4.00000006e-01  -7.92162638e-08
 
 #
-# Curve 6 - Bricks 10333
+# Curve 7 - Bricks 11842
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
-# Prin Dev Stress 1 reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Prin Dev Stress 1
-# Bricks - 10333: Prin Dev Stress 1
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  3.75839181e-06
-  2.00000003e-01  7.51354401e-06
-  3.00000012e-01  1.12635526e-05
-  4.00000006e-01  1.50144097e-05
+#           Time  XY Engr Strain
+# Bricks - 11842: XY Engr Strain
+  0.00000000e+00  -2.22044605e-16
+  1.00000001e-01  -1.08277334e-06
+  2.00000003e-01  -2.68893359e-06
+  3.00000012e-01  -3.72324598e-06
+  4.00000006e-01  -5.19648302e-06
 
 #
-# Curve 7 - Bricks 10824
+# Curve 8 - Bricks 11843
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
-# Prin Dev Stress 1 reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Prin Dev Stress 1
-# Bricks - 10824: Prin Dev Stress 1
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  1.45772970e-06
-  2.00000003e-01  2.91161678e-06
-  3.00000012e-01  4.36001164e-06
-  4.00000006e-01  5.80862616e-06
+#           Time  XY Engr Strain
+# Bricks - 11843: XY Engr Strain
+  0.00000000e+00  3.10862447e-15
+  1.00000001e-01  -1.62608728e-06
+  2.00000003e-01  -2.96299845e-06
+  3.00000012e-01  -4.49408935e-06
+  4.00000006e-01  -5.49432798e-06
 
 #
-# Curve 8 - Bricks 51912
+# Curve 9 - Bricks 11844
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
-# Prin Dev Stress 1 reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Prin Dev Stress 1
-# Bricks - 51912: Prin Dev Stress 1
+#           Time  XY Engr Strain
+# Bricks - 11844: XY Engr Strain
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  1.42046943e-08
-  2.00000003e-01  2.51979788e-08
-  3.00000012e-01  3.18315081e-08
-  4.00000006e-01  3.68702828e-08
+  1.00000001e-01  -2.33001492e-06
+  2.00000003e-01  -3.35054142e-06
+  3.00000012e-01  -4.73191767e-06
+  4.00000006e-01  -5.85111275e-06
 
 #
-# Curve 9 - Bricks 14134
+# Curve 10 - Bricks 11845
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
-# Prin Dev Stress 1 reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Prin Dev Stress 1
-# Bricks - 14134: Prin Dev Stress 1
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.08444135e-06
-  2.00000003e-01  4.15060094e-06
-  3.00000012e-01  6.20034189e-06
-  4.00000006e-01  8.24284325e-06
+#           Time  XY Engr Strain
+# Bricks - 11845: XY Engr Strain
+  0.00000000e+00  -5.55111512e-17
+  1.00000001e-01  -1.49541833e-07
+  2.00000003e-01  2.03097823e-08
+  3.00000012e-01  7.52194662e-09
+  4.00000006e-01  -4.77811795e-07
 
 #
-# Curve 10 - Bricks 1
+# Curve 1 - Bricks 1
 # Time reference surface: middle
 # Time reference frame: global
 # Prin Dev Stress 1 reference frame: global
@@ -1774,151 +1648,133 @@
   4.00000006e-01  3.90620653e-06
 
 #
-# Curve 1 - Bricks 11845
-# Time strain variety: infinitesimal
+# Curve 2 - Bricks 14134
 # Time reference surface: middle
 # Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
+# Prin Dev Stress 1 reference frame: global
 
-#           Time  XY Engr Strain
-# Bricks - 11845: XY Engr Strain
-  0.00000000e+00  -5.55111512e-17
-  1.00000001e-01  -1.49541833e-07
-  2.00000003e-01  2.03097823e-08
-  3.00000012e-01  7.52194662e-09
-  4.00000006e-01  -4.77811795e-07
-
-#
-# Curve 2 - Bricks 11844
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 11844: XY Engr Strain
+#           Time  Prin Dev Stress 1
+# Bricks - 14134: Prin Dev Stress 1
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -2.33001492e-06
-  2.00000003e-01  -3.35054142e-06
-  3.00000012e-01  -4.73191767e-06
-  4.00000006e-01  -5.85111275e-06
+  1.00000001e-01  2.08444135e-06
+  2.00000003e-01  4.15060094e-06
+  3.00000012e-01  6.20034189e-06
+  4.00000006e-01  8.24284325e-06
 
 #
-# Curve 3 - Bricks 11843
-# Time strain variety: infinitesimal
+# Curve 3 - Bricks 51912
 # Time reference surface: middle
 # Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
+# Prin Dev Stress 1 reference frame: global
 
-#           Time  XY Engr Strain
-# Bricks - 11843: XY Engr Strain
-  0.00000000e+00  2.22044605e-15
-  1.00000001e-01  -1.62608728e-06
-  2.00000003e-01  -2.96299845e-06
-  3.00000012e-01  -4.49408935e-06
-  4.00000006e-01  -5.49432798e-06
-
-#
-# Curve 4 - Bricks 11842
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 11842: XY Engr Strain
-  0.00000000e+00  -4.44089210e-16
-  1.00000001e-01  -1.08277334e-06
-  2.00000003e-01  -2.68893359e-06
-  3.00000012e-01  -3.72324598e-06
-  4.00000006e-01  -5.19648302e-06
-
-#
-# Curve 5 - Bricks 11656
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 11656: XY Engr Strain
-  0.00000000e+00  -1.11022302e-16
-  1.00000001e-01  -4.92462533e-08
-  2.00000003e-01  -5.92362568e-08
-  3.00000012e-01  -2.99700105e-08
-  4.00000006e-01  -7.92162638e-08
-
-#
-# Curve 6 - Bricks 10333
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 10333: XY Engr Strain
-  0.00000000e+00  -1.11022302e-16
-  1.00000001e-01  -5.36079057e-08
-  2.00000003e-01  -2.88440152e-08
-  3.00000012e-01  -4.08012335e-09
-  4.00000006e-01  -3.81302563e-08
-
-#
-# Curve 7 - Bricks 10824
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# Bricks - 10824: XY Engr Strain
+#           Time  Prin Dev Stress 1
+# Bricks - 51912: Prin Dev Stress 1
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  2.94731052e-07
-  2.00000003e-01  5.55804661e-07
-  3.00000012e-01  4.80302845e-07
-  4.00000006e-01  8.20213813e-07
+  1.00000001e-01  1.42046943e-08
+  2.00000003e-01  2.51979788e-08
+  3.00000012e-01  3.18315081e-08
+  4.00000006e-01  3.68702828e-08
 
 #
-# Curve 8 - Bricks 51912
-# Time strain variety: infinitesimal
+# Curve 4 - Bricks 10824
 # Time reference surface: middle
 # Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
+# Prin Dev Stress 1 reference frame: global
 
-#           Time  XY Engr Strain
-# Bricks - 51912: XY Engr Strain
+#           Time  Prin Dev Stress 1
+# Bricks - 10824: Prin Dev Stress 1
   0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -9.51666209e-07
-  2.00000003e-01  -1.02383092e-06
-  3.00000012e-01  -8.90377635e-07
-  4.00000006e-01  -1.00160094e-06
+  1.00000001e-01  1.45772970e-06
+  2.00000003e-01  2.91161678e-06
+  3.00000012e-01  4.36001164e-06
+  4.00000006e-01  5.80862616e-06
 
 #
-# Curve 9 - Bricks 14134
-# Time strain variety: infinitesimal
+# Curve 5 - Bricks 10333
 # Time reference surface: middle
 # Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
+# Prin Dev Stress 1 reference frame: global
 
-#           Time  XY Engr Strain
-# Bricks - 14134: XY Engr Strain
-  0.00000000e+00  2.22044605e-15
-  1.00000001e-01  9.76933848e-07
-  2.00000003e-01  2.52848145e-06
-  3.00000012e-01  4.45358910e-06
-  4.00000006e-01  5.37397273e-06
+#           Time  Prin Dev Stress 1
+# Bricks - 10333: Prin Dev Stress 1
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  3.75839181e-06
+  2.00000003e-01  7.51354401e-06
+  3.00000012e-01  1.12635526e-05
+  4.00000006e-01  1.50144097e-05
 
 #
-# Curve 10 - Bricks 1
+# Curve 6 - Bricks 11656
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Stress 1 reference frame: global
+
+#           Time  Prin Dev Stress 1
+# Bricks - 11656: Prin Dev Stress 1
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  1.36549500e-06
+  2.00000003e-01  2.70951818e-06
+  3.00000012e-01  4.03582226e-06
+  4.00000006e-01  5.35372510e-06
+
+#
+# Curve 7 - Bricks 11842
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Stress 1 reference frame: global
+
+#           Time  Prin Dev Stress 1
+# Bricks - 11842: Prin Dev Stress 1
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  1.66407074e-06
+  2.00000003e-01  3.33302501e-06
+  3.00000012e-01  5.00321266e-06
+  4.00000006e-01  6.67626273e-06
+
+#
+# Curve 8 - Bricks 11843
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Stress 1 reference frame: global
+
+#           Time  Prin Dev Stress 1
+# Bricks - 11843: Prin Dev Stress 1
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  2.37255608e-06
+  2.00000003e-01  4.75149045e-06
+  3.00000012e-01  7.13268719e-06
+  4.00000006e-01  9.51730362e-06
+
+#
+# Curve 9 - Bricks 11844
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Stress 1 reference frame: global
+
+#           Time  Prin Dev Stress 1
+# Bricks - 11844: Prin Dev Stress 1
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  2.56900285e-06
+  2.00000003e-01  5.14181738e-06
+  3.00000012e-01  7.71503528e-06
+  4.00000006e-01  1.02906006e-05
+
+#
+# Curve 10 - Bricks 11845
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Stress 1 reference frame: global
+
+#           Time  Prin Dev Stress 1
+# Bricks - 11845: Prin Dev Stress 1
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  1.15009709e-06
+  2.00000003e-01  2.27763780e-06
+  3.00000012e-01  3.38641166e-06
+  4.00000006e-01  4.48649598e-06
+
+#
+# Curve 1 - Bricks 1
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1934,69 +1790,213 @@
   4.00000006e-01  -6.88065654e-07
 
 #
-# Curve 1 - NikeSlide 12
+# Curve 2 - Bricks 14134
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Slide Surface Force
-# NikeSlide - 12: Slide Surface Force
-  0.00000000e+00  1.50202450e-17
-  1.00000001e-01  2.01430083e-07
-  2.00000003e-01  4.01075397e-07
-  3.00000012e-01  5.99215923e-07
-  4.00000006e-01  7.95431731e-07
+#           Time  XY Engr Strain
+# Bricks - 14134: XY Engr Strain
+  0.00000000e+00  1.77635684e-15
+  1.00000001e-01  9.76933848e-07
+  2.00000003e-01  2.52848145e-06
+  3.00000012e-01  4.45358910e-06
+  4.00000006e-01  5.37397273e-06
 
 #
-# Curve 2 - NikeSlide 11
+# Curve 3 - Bricks 51912
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Slide Surface Force
-# NikeSlide - 11: Slide Surface Force
-  0.00000000e+00  4.60759817e-17
-  1.00000001e-01  1.26044341e-07
-  2.00000003e-01  2.40129850e-07
-  3.00000012e-01  3.41638639e-07
-  4.00000006e-01  4.42845618e-07
+#           Time  XY Engr Strain
+# Bricks - 51912: XY Engr Strain
+  0.00000000e+00  -4.44089210e-16
+  1.00000001e-01  -9.51666209e-07
+  2.00000003e-01  -1.02383092e-06
+  3.00000012e-01  -8.90377635e-07
+  4.00000006e-01  -1.00160094e-06
 
 #
-# Curve 3 - NikeSlide 10
+# Curve 4 - Bricks 10824
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Slide Surface Force
-# NikeSlide - 10: Slide Surface Force
-  0.00000000e+00  2.04346053e-17
-  1.00000001e-01  9.62507656e-08
-  2.00000003e-01  1.99667525e-07
-  3.00000012e-01  3.10142497e-07
-  4.00000006e-01  4.22087680e-07
+#           Time  XY Engr Strain
+# Bricks - 10824: XY Engr Strain
+  0.00000000e+00  4.44089210e-16
+  1.00000001e-01  2.94731052e-07
+  2.00000003e-01  5.55804661e-07
+  3.00000012e-01  4.80302845e-07
+  4.00000006e-01  8.20213813e-07
 
 #
-# Curve 4 - NikeSlide 9
+# Curve 5 - Bricks 10333
+# Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#           Time  Slide Surface Force
-# NikeSlide - 9: Slide Surface Force
-  0.00000000e+00  -1.50202450e-17
-  1.00000001e-01  -2.01430083e-07
-  2.00000003e-01  -4.01075397e-07
-  3.00000012e-01  -5.99215923e-07
-  4.00000006e-01  -7.95431731e-07
+#           Time  XY Engr Strain
+# Bricks - 10333: XY Engr Strain
+  0.00000000e+00  -8.32667268e-17
+  1.00000001e-01  -5.36079057e-08
+  2.00000003e-01  -2.88440152e-08
+  3.00000012e-01  -4.08012335e-09
+  4.00000006e-01  -3.81302563e-08
 
 #
-# Curve 5 - NikeSlide 8
+# Curve 6 - Bricks 11656
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# Bricks - 11656: XY Engr Strain
+  0.00000000e+00  -8.32667268e-17
+  1.00000001e-01  -4.92462533e-08
+  2.00000003e-01  -5.92362568e-08
+  3.00000012e-01  -2.99700105e-08
+  4.00000006e-01  -7.92162638e-08
+
+#
+# Curve 7 - Bricks 11842
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# Bricks - 11842: XY Engr Strain
+  0.00000000e+00  -2.22044605e-16
+  1.00000001e-01  -1.08277334e-06
+  2.00000003e-01  -2.68893359e-06
+  3.00000012e-01  -3.72324598e-06
+  4.00000006e-01  -5.19648302e-06
+
+#
+# Curve 8 - Bricks 11843
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# Bricks - 11843: XY Engr Strain
+  0.00000000e+00  3.10862447e-15
+  1.00000001e-01  -1.62608728e-06
+  2.00000003e-01  -2.96299845e-06
+  3.00000012e-01  -4.49408935e-06
+  4.00000006e-01  -5.49432798e-06
+
+#
+# Curve 9 - Bricks 11844
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# Bricks - 11844: XY Engr Strain
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -2.33001492e-06
+  2.00000003e-01  -3.35054142e-06
+  3.00000012e-01  -4.73191767e-06
+  4.00000006e-01  -5.85111275e-06
+
+#
+# Curve 10 - Bricks 11845
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# Bricks - 11845: XY Engr Strain
+  0.00000000e+00  -5.55111512e-17
+  1.00000001e-01  -1.49541833e-07
+  2.00000003e-01  2.03097823e-08
+  3.00000012e-01  7.52194662e-09
+  4.00000006e-01  -4.77811795e-07
+
+#
+# Curve 1 - NikeSlide 2
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Slide Surface Force
-# NikeSlide - 8: Slide Surface Force
-  0.00000000e+00  -4.60759817e-17
-  1.00000001e-01  -1.26044341e-07
-  2.00000003e-01  -2.40129850e-07
-  3.00000012e-01  -3.41638639e-07
-  4.00000006e-01  -4.42845618e-07
+# NikeSlide - 2: Slide Surface Force
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  5.59894353e-08
+  2.00000003e-01  1.10056277e-07
+  3.00000012e-01  1.60345522e-07
+  4.00000006e-01  2.06510023e-07
+
+#
+# Curve 2 - NikeSlide 3
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Slide Surface Force
+# NikeSlide - 3: Slide Surface Force
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  1.98465642e-07
+  2.00000003e-01  3.96938049e-07
+  3.00000012e-01  5.95434358e-07
+  4.00000006e-01  7.93893150e-07
+
+#
+# Curve 3 - NikeSlide 4
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Slide Surface Force
+# NikeSlide - 4: Slide Surface Force
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -1.56106073e-09
+  2.00000003e-01  -1.64004472e-08
+  3.00000012e-01  -3.74274087e-08
+  4.00000006e-01  -6.62928130e-08
+
+#
+# Curve 4 - NikeSlide 5
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Slide Surface Force
+# NikeSlide - 5: Slide Surface Force
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -5.59894353e-08
+  2.00000003e-01  -1.10056277e-07
+  3.00000012e-01  -1.60345522e-07
+  4.00000006e-01  -2.06510023e-07
+
+#
+# Curve 5 - NikeSlide 6
+# Time reference surface: middle
+# Time reference frame: global
+
+#           Time  Slide Surface Force
+# NikeSlide - 6: Slide Surface Force
+  0.00000000e+00  0.00000000e+00
+  1.00000001e-01  -1.98465642e-07
+  2.00000003e-01  -3.96938049e-07
+  3.00000012e-01  -5.95434358e-07
+  4.00000006e-01  -7.93893150e-07
 
 #
 # Curve 6 - NikeSlide 7
@@ -2012,79 +2012,66 @@
   4.00000006e-01  -4.22087680e-07
 
 #
-# Curve 7 - NikeSlide 6
+# Curve 7 - NikeSlide 8
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Slide Surface Force
-# NikeSlide - 6: Slide Surface Force
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.98465642e-07
-  2.00000003e-01  -3.96938049e-07
-  3.00000012e-01  -5.95434358e-07
-  4.00000006e-01  -7.93893150e-07
+# NikeSlide - 8: Slide Surface Force
+  0.00000000e+00  -4.60759817e-17
+  1.00000001e-01  -1.26044341e-07
+  2.00000003e-01  -2.40129850e-07
+  3.00000012e-01  -3.41638639e-07
+  4.00000006e-01  -4.42845618e-07
 
 #
-# Curve 8 - NikeSlide 5
+# Curve 8 - NikeSlide 9
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Slide Surface Force
-# NikeSlide - 5: Slide Surface Force
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -5.59894353e-08
-  2.00000003e-01  -1.10056277e-07
-  3.00000012e-01  -1.60345522e-07
-  4.00000006e-01  -2.06510023e-07
+# NikeSlide - 9: Slide Surface Force
+  0.00000000e+00  -1.50202450e-17
+  1.00000001e-01  -2.01430083e-07
+  2.00000003e-01  -4.01075397e-07
+  3.00000012e-01  -5.99215923e-07
+  4.00000006e-01  -7.95431731e-07
 
 #
-# Curve 9 - NikeSlide 4
+# Curve 9 - NikeSlide 10
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Slide Surface Force
-# NikeSlide - 4: Slide Surface Force
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  -1.56106073e-09
-  2.00000003e-01  -1.64004472e-08
-  3.00000012e-01  -3.74274087e-08
-  4.00000006e-01  -6.62928130e-08
+# NikeSlide - 10: Slide Surface Force
+  0.00000000e+00  2.04346053e-17
+  1.00000001e-01  9.62507656e-08
+  2.00000003e-01  1.99667525e-07
+  3.00000012e-01  3.10142497e-07
+  4.00000006e-01  4.22087680e-07
 
 #
-# Curve 10 - NikeSlide 3
+# Curve 10 - NikeSlide 11
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Slide Surface Force
-# NikeSlide - 3: Slide Surface Force
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  1.98465642e-07
-  2.00000003e-01  3.96938049e-07
-  3.00000012e-01  5.95434358e-07
-  4.00000006e-01  7.93893150e-07
+# NikeSlide - 11: Slide Surface Force
+  0.00000000e+00  4.60759817e-17
+  1.00000001e-01  1.26044341e-07
+  2.00000003e-01  2.40129850e-07
+  3.00000012e-01  3.41638639e-07
+  4.00000006e-01  4.42845618e-07
 
 #
-# Curve 11 - NikeSlide 2
+# Curve 11 - NikeSlide 12
 # Time reference surface: middle
 # Time reference frame: global
 
 #           Time  Slide Surface Force
-# NikeSlide - 2: Slide Surface Force
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  5.59894353e-08
-  2.00000003e-01  1.10056277e-07
-  3.00000012e-01  1.60345522e-07
-  4.00000006e-01  2.06510023e-07
-
-#
-# Curve 12 - NikeSlide 1
-# Time reference surface: middle
-# Time reference frame: global
-
-#           Time  Slide Surface Force
-# NikeSlide - 1: Slide Surface Force
-  0.00000000e+00  0.00000000e+00
-  1.00000001e-01  1.56106073e-09
-  2.00000003e-01  1.64004472e-08
-  3.00000012e-01  3.74274087e-08
-  4.00000006e-01  6.62928130e-08
+# NikeSlide - 12: Slide Surface Force
+  0.00000000e+00  1.50202450e-17
+  1.00000001e-01  2.01430083e-07
+  2.00000003e-01  4.01075397e-07
+  3.00000012e-01  5.99215923e-07
+  4.00000006e-01  7.95431731e-07
