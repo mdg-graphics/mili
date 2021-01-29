@@ -8925,7 +8925,6 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
     case G_PARTICLE:
 
         /* Highlight a particle */
-        //particle_hilite = TRUE;
         if ( analy->cur_result != NULL )
         {
             val = analy->perform_unit_conversion
@@ -8940,7 +8939,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
 
         pn_hilite = TRUE;
         vert_cnt = 1;
-        get_node_vert_2d_3d( hilite_num, p_mo_class, analy, verts[0] );
+        get_particle_verts( hilite_num, p_mo_class, analy, verts );
 
         for ( i = 0; i < dim; i++ )
         leng[i] = analy->bbox[1][i] - analy->bbox[0][i];
