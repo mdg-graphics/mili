@@ -3,11 +3,11 @@
 #---------------------------------------------------------------------
 # Griz Version Info:
 #
-#	Griz4-V13_01
-# 	Built: 	Fri Jul 10 07:26:06 2015 on Linux #1 SMP Fri Mar 20 13:20:55 PDT 2015 2.6.32-504.12.2.2chaos.ch5.3.x86_64 x86_64 by oliver4
+#	Griz4-V20_01
+# 	Built: 	Fri Jan 29 12:02:26 2021 on Linux #1 SMP Mon Jan 18 17:04:41 PST 2021 3.10.0-1160.11.1.2chaos.ch6.x86_64 x86_64 by rhathaw
 # 	Configure: ./configure linux gnu
-# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/usr/apps/mdg/archive/milidir/bigfile/include -I/../include -I../.. 
-# 		Mili Library Version (Griz Linked): 	V14_01
+# 	Compile Options: icc -g -DSERIAL_BATCH -I/usr/apps/mdg/include -I/../include -I../.. 
+# 		Mili Library Version (Griz Linked): 	V20_01
 #		Mili Database-Library Version: 		V13_01
 #		Mili Database-Host: 			rzzeus286
 #		Mili Database-Arch: 			Linux + 2.6.32-220.23.1.1chaos.ch5.x86_64rzzeus286
@@ -16,258 +16,11 @@
 #---------------------------------------------------------------------
 # Database path/name: tplate1.plt
 # Description: Thick Plate Pressure Loaded
-# Output date: 07/13/15
+# Output date: 01/29/21
 #
 
 #
-# Curve 1 - Node 74
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 74: Node Position[Z Position]
-  0.0000000000e+00  2.5000000000e-01
-  5.0000000000e+03  2.4947340786e-01
-  1.0000000000e+04  2.4797713757e-01
-  1.5000000000e+04  2.4601052701e-01
-  2.0000000000e+04  2.4385607243e-01
-  2.5000000000e+04  2.4173486233e-01
-  3.0000000000e+04  2.3974610865e-01
-  3.5000000000e+04  2.3793132603e-01
-  4.0000000000e+04  2.3630332947e-01
-  4.5000000000e+04  2.3486417532e-01
-  5.0000000000e+04  2.3360720277e-01
-
-#
-# Curve 2 - Node 237
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 237: Node Position[Z Position]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 3 - Node 236
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 236: Node Position[Z Position]
-  0.0000000000e+00  2.5000000000e-01
-  5.0000000000e+03  2.5000000000e-01
-  1.0000000000e+04  2.5000000000e-01
-  1.5000000000e+04  2.5000000000e-01
-  2.0000000000e+04  2.5000000000e-01
-  2.5000000000e+04  2.5000000000e-01
-  3.0000000000e+04  2.5000000000e-01
-  3.5000000000e+04  2.5000000000e-01
-  4.0000000000e+04  2.5000000000e-01
-  4.5000000000e+04  2.5000000000e-01
-  5.0000000000e+04  2.5000000000e-01
-
-#
-# Curve 4 - Node 235
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 235: Node Position[Z Position]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 5 - Node 234
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 234: Node Position[Z Position]
-  0.0000000000e+00  2.5000000000e-01
-  5.0000000000e+03  2.5000000000e-01
-  1.0000000000e+04  2.5000000000e-01
-  1.5000000000e+04  2.5000000000e-01
-  2.0000000000e+04  2.5000000000e-01
-  2.5000000000e+04  2.5000000000e-01
-  3.0000000000e+04  2.5000000000e-01
-  3.5000000000e+04  2.5000000000e-01
-  4.0000000000e+04  2.5000000000e-01
-  4.5000000000e+04  2.5000000000e-01
-  5.0000000000e+04  2.5000000000e-01
-
-#
-# Curve 6 - Node 233
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 233: Node Position[Z Position]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 7 - Node 232
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 232: Node Position[Z Position]
-  0.0000000000e+00  2.5000000000e-01
-  5.0000000000e+03  2.5000000000e-01
-  1.0000000000e+04  2.5000000000e-01
-  1.5000000000e+04  2.5000000000e-01
-  2.0000000000e+04  2.5000000000e-01
-  2.5000000000e+04  2.5000000000e-01
-  3.0000000000e+04  2.5000000000e-01
-  3.5000000000e+04  2.5000000000e-01
-  4.0000000000e+04  2.5000000000e-01
-  4.5000000000e+04  2.5000000000e-01
-  5.0000000000e+04  2.5000000000e-01
-
-#
-# Curve 8 - Node 231
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 231: Node Position[Z Position]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 9 - Node 230
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 230: Node Position[Z Position]
-  0.0000000000e+00  2.5000000000e-01
-  5.0000000000e+03  2.5000000000e-01
-  1.0000000000e+04  2.5000000000e-01
-  1.5000000000e+04  2.5000000000e-01
-  2.0000000000e+04  2.5000000000e-01
-  2.5000000000e+04  2.5000000000e-01
-  3.0000000000e+04  2.5000000000e-01
-  3.5000000000e+04  2.5000000000e-01
-  4.0000000000e+04  2.5000000000e-01
-  4.5000000000e+04  2.5000000000e-01
-  5.0000000000e+04  2.5000000000e-01
-
-#
-# Curve 10 - Node 222
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 222: Node Position[Z Position]
-  0.0000000000e+00  2.5000000000e-01
-  5.0000000000e+03  2.5000000000e-01
-  1.0000000000e+04  2.5000000000e-01
-  1.5000000000e+04  2.5000000000e-01
-  2.0000000000e+04  2.5000000000e-01
-  2.5000000000e+04  2.5000000000e-01
-  3.0000000000e+04  2.5000000000e-01
-  3.5000000000e+04  2.5000000000e-01
-  4.0000000000e+04  2.5000000000e-01
-  4.5000000000e+04  2.5000000000e-01
-  5.0000000000e+04  2.5000000000e-01
-
-#
-# Curve 11 - Node 72
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 72: Node Position[Z Position]
-  0.0000000000e+00  2.5000000000e-01
-  5.0000000000e+03  2.4948349595e-01
-  1.0000000000e+04  2.4798586965e-01
-  1.5000000000e+04  2.4589692056e-01
-  2.0000000000e+04  2.4357433617e-01
-  2.5000000000e+04  2.4129450321e-01
-  3.0000000000e+04  2.3917354643e-01
-  3.5000000000e+04  2.3724243045e-01
-  4.0000000000e+04  2.3550695181e-01
-  4.5000000000e+04  2.3396986723e-01
-  5.0000000000e+04  2.3262716830e-01
-
-#
-# Curve 12 - Node 241
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 241: Node Position[Z Position]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 13 - Node 22
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Position[Z Position]
-# Node - 22: Node Position[Z Position]
-  0.0000000000e+00  2.5000000000e-01
-  5.0000000000e+03  2.5000000000e-01
-  1.0000000000e+04  2.5000000000e-01
-  1.5000000000e+04  2.5000000000e-01
-  2.0000000000e+04  2.5000000000e-01
-  2.5000000000e+04  2.5000000000e-01
-  3.0000000000e+04  2.5000000000e-01
-  3.5000000000e+04  2.5000000000e-01
-  4.0000000000e+04  2.5000000000e-01
-  4.5000000000e+04  2.5000000000e-01
-  5.0000000000e+04  2.5000000000e-01
-
-#
-# Curve 14 - Node 1
+# Curve 1 - Node 1
 # Time reference surface: middle
 # Time reference frame: global
 
@@ -286,50 +39,31 @@
   5.0000000000e+04  -2.0125508308e-02
 
 #
-# Curve 1 - Node 74
+# Curve 2 - Node 22
 # Time reference surface: middle
 # Time reference frame: global
 
-#             Time  Node Velocity[Z Velocity]
-# Node - 74: Node Velocity[Z Velocity]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  -2.2032070035e-07
-  1.0000000000e+04  -3.5655401120e-07
-  1.5000000000e+04  -4.2188929683e-07
-  2.0000000000e+04  -4.3221464807e-07
-  2.5000000000e+04  -4.1321362687e-07
-  3.0000000000e+04  -3.8102226085e-07
-  3.5000000000e+04  -3.4451488773e-07
-  4.0000000000e+04  -3.0662539530e-07
-  4.5000000000e+04  -2.6926213081e-07
-  5.0000000000e+04  -2.3399394422e-07
+#             Time  Node Position[Z Position]
+# Node - 22: Node Position[Z Position]
+  0.0000000000e+00  2.5000000000e-01
+  5.0000000000e+03  2.5000000000e-01
+  1.0000000000e+04  2.5000000000e-01
+  1.5000000000e+04  2.5000000000e-01
+  2.0000000000e+04  2.5000000000e-01
+  2.5000000000e+04  2.5000000000e-01
+  3.0000000000e+04  2.5000000000e-01
+  3.5000000000e+04  2.5000000000e-01
+  4.0000000000e+04  2.5000000000e-01
+  4.5000000000e+04  2.5000000000e-01
+  5.0000000000e+04  2.5000000000e-01
 
 #
-# Curve 2 - Node 237
+# Curve 3 - Node 241
 # Time reference surface: middle
 # Time reference frame: global
 
-#             Time  Node Velocity[Z Velocity]
-# Node - 237: Node Velocity[Z Velocity]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 3 - Node 236
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Velocity[Z Velocity]
-# Node - 236: Node Velocity[Z Velocity]
+#             Time  Node Position[Z Position]
+# Node - 241: Node Position[Z Position]
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
   1.0000000000e+04  0.0000000000e+00
@@ -343,12 +77,69 @@
   5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 4 - Node 235
+# Curve 4 - Node 72
 # Time reference surface: middle
 # Time reference frame: global
 
-#             Time  Node Velocity[Z Velocity]
-# Node - 235: Node Velocity[Z Velocity]
+#             Time  Node Position[Z Position]
+# Node - 72: Node Position[Z Position]
+  0.0000000000e+00  2.5000000000e-01
+  5.0000000000e+03  2.4948349595e-01
+  1.0000000000e+04  2.4798586965e-01
+  1.5000000000e+04  2.4589692056e-01
+  2.0000000000e+04  2.4357433617e-01
+  2.5000000000e+04  2.4129450321e-01
+  3.0000000000e+04  2.3917354643e-01
+  3.5000000000e+04  2.3724243045e-01
+  4.0000000000e+04  2.3550695181e-01
+  4.5000000000e+04  2.3396986723e-01
+  5.0000000000e+04  2.3262716830e-01
+
+#
+# Curve 5 - Node 222
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Position[Z Position]
+# Node - 222: Node Position[Z Position]
+  0.0000000000e+00  2.5000000000e-01
+  5.0000000000e+03  2.5000000000e-01
+  1.0000000000e+04  2.5000000000e-01
+  1.5000000000e+04  2.5000000000e-01
+  2.0000000000e+04  2.5000000000e-01
+  2.5000000000e+04  2.5000000000e-01
+  3.0000000000e+04  2.5000000000e-01
+  3.5000000000e+04  2.5000000000e-01
+  4.0000000000e+04  2.5000000000e-01
+  4.5000000000e+04  2.5000000000e-01
+  5.0000000000e+04  2.5000000000e-01
+
+#
+# Curve 6 - Node 230
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Position[Z Position]
+# Node - 230: Node Position[Z Position]
+  0.0000000000e+00  2.5000000000e-01
+  5.0000000000e+03  2.5000000000e-01
+  1.0000000000e+04  2.5000000000e-01
+  1.5000000000e+04  2.5000000000e-01
+  2.0000000000e+04  2.5000000000e-01
+  2.5000000000e+04  2.5000000000e-01
+  3.0000000000e+04  2.5000000000e-01
+  3.5000000000e+04  2.5000000000e-01
+  4.0000000000e+04  2.5000000000e-01
+  4.5000000000e+04  2.5000000000e-01
+  5.0000000000e+04  2.5000000000e-01
+
+#
+# Curve 7 - Node 231
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Position[Z Position]
+# Node - 231: Node Position[Z Position]
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
   1.0000000000e+04  0.0000000000e+00
@@ -362,12 +153,31 @@
   5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 5 - Node 234
+# Curve 8 - Node 232
 # Time reference surface: middle
 # Time reference frame: global
 
-#             Time  Node Velocity[Z Velocity]
-# Node - 234: Node Velocity[Z Velocity]
+#             Time  Node Position[Z Position]
+# Node - 232: Node Position[Z Position]
+  0.0000000000e+00  2.5000000000e-01
+  5.0000000000e+03  2.5000000000e-01
+  1.0000000000e+04  2.5000000000e-01
+  1.5000000000e+04  2.5000000000e-01
+  2.0000000000e+04  2.5000000000e-01
+  2.5000000000e+04  2.5000000000e-01
+  3.0000000000e+04  2.5000000000e-01
+  3.5000000000e+04  2.5000000000e-01
+  4.0000000000e+04  2.5000000000e-01
+  4.5000000000e+04  2.5000000000e-01
+  5.0000000000e+04  2.5000000000e-01
+
+#
+# Curve 9 - Node 233
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Position[Z Position]
+# Node - 233: Node Position[Z Position]
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
   1.0000000000e+04  0.0000000000e+00
@@ -381,12 +191,31 @@
   5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 6 - Node 233
+# Curve 10 - Node 234
 # Time reference surface: middle
 # Time reference frame: global
 
-#             Time  Node Velocity[Z Velocity]
-# Node - 233: Node Velocity[Z Velocity]
+#             Time  Node Position[Z Position]
+# Node - 234: Node Position[Z Position]
+  0.0000000000e+00  2.5000000000e-01
+  5.0000000000e+03  2.5000000000e-01
+  1.0000000000e+04  2.5000000000e-01
+  1.5000000000e+04  2.5000000000e-01
+  2.0000000000e+04  2.5000000000e-01
+  2.5000000000e+04  2.5000000000e-01
+  3.0000000000e+04  2.5000000000e-01
+  3.5000000000e+04  2.5000000000e-01
+  4.0000000000e+04  2.5000000000e-01
+  4.5000000000e+04  2.5000000000e-01
+  5.0000000000e+04  2.5000000000e-01
+
+#
+# Curve 11 - Node 235
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Position[Z Position]
+# Node - 235: Node Position[Z Position]
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
   1.0000000000e+04  0.0000000000e+00
@@ -400,12 +229,31 @@
   5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 7 - Node 232
+# Curve 12 - Node 236
 # Time reference surface: middle
 # Time reference frame: global
 
-#             Time  Node Velocity[Z Velocity]
-# Node - 232: Node Velocity[Z Velocity]
+#             Time  Node Position[Z Position]
+# Node - 236: Node Position[Z Position]
+  0.0000000000e+00  2.5000000000e-01
+  5.0000000000e+03  2.5000000000e-01
+  1.0000000000e+04  2.5000000000e-01
+  1.5000000000e+04  2.5000000000e-01
+  2.0000000000e+04  2.5000000000e-01
+  2.5000000000e+04  2.5000000000e-01
+  3.0000000000e+04  2.5000000000e-01
+  3.5000000000e+04  2.5000000000e-01
+  4.0000000000e+04  2.5000000000e-01
+  4.5000000000e+04  2.5000000000e-01
+  5.0000000000e+04  2.5000000000e-01
+
+#
+# Curve 13 - Node 237
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Position[Z Position]
+# Node - 237: Node Position[Z Position]
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
   1.0000000000e+04  0.0000000000e+00
@@ -419,121 +267,26 @@
   5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 8 - Node 231
+# Curve 14 - Node 74
 # Time reference surface: middle
 # Time reference frame: global
 
-#             Time  Node Velocity[Z Velocity]
-# Node - 231: Node Velocity[Z Velocity]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
+#             Time  Node Position[Z Position]
+# Node - 74: Node Position[Z Position]
+  0.0000000000e+00  2.5000000000e-01
+  5.0000000000e+03  2.4947340786e-01
+  1.0000000000e+04  2.4797713757e-01
+  1.5000000000e+04  2.4601052701e-01
+  2.0000000000e+04  2.4385607243e-01
+  2.5000000000e+04  2.4173486233e-01
+  3.0000000000e+04  2.3974610865e-01
+  3.5000000000e+04  2.3793132603e-01
+  4.0000000000e+04  2.3630332947e-01
+  4.5000000000e+04  2.3486417532e-01
+  5.0000000000e+04  2.3360720277e-01
 
 #
-# Curve 9 - Node 230
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Velocity[Z Velocity]
-# Node - 230: Node Velocity[Z Velocity]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 10 - Node 222
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Velocity[Z Velocity]
-# Node - 222: Node Velocity[Z Velocity]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 11 - Node 72
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Velocity[Z Velocity]
-# Node - 72: Node Velocity[Z Velocity]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  -2.1277469386e-07
-  1.0000000000e+04  -3.7052188873e-07
-  1.5000000000e+04  -4.5321243647e-07
-  2.0000000000e+04  -4.6631100759e-07
-  2.5000000000e+04  -4.4207800443e-07
-  3.0000000000e+04  -4.0550281710e-07
-  3.5000000000e+04  -3.6680663129e-07
-  4.0000000000e+04  -3.2727490407e-07
-  4.5000000000e+04  -2.8768332072e-07
-  5.0000000000e+04  -2.4986266567e-07
-
-#
-# Curve 12 - Node 241
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Velocity[Z Velocity]
-# Node - 241: Node Velocity[Z Velocity]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 13 - Node 22
-# Time reference surface: middle
-# Time reference frame: global
-
-#             Time  Node Velocity[Z Velocity]
-# Node - 22: Node Velocity[Z Velocity]
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 14 - Node 1
+# Curve 1 - Node 1
 # Time reference surface: middle
 # Time reference frame: global
 
@@ -552,29 +305,254 @@
   5.0000000000e+04  -2.9514947641e-07
 
 #
-# Curve 1 - ThickShells 100
-# Time strain variety: infinitesimal
+# Curve 2 - Node 22
 # Time reference surface: middle
 # Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
 
-#             Time    XY Engr Strain
-# ThickShells - 100: XY Engr Strain
+#             Time  Node Velocity[Z Velocity]
+# Node - 22: Node Velocity[Z Velocity]
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  -8.8817841970e-16
-  1.5000000000e+04  -8.8817841970e-16
-  2.0000000000e+04  -1.7763568394e-15
-  2.5000000000e+04  -1.7763568394e-15
-  3.0000000000e+04  7.6294003293e-07
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
   3.5000000000e+04  0.0000000000e+00
   4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  3.8147001646e-07
-  5.0000000000e+04  3.8147001646e-07
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 2 - ThickShells 91
+# Curve 3 - Node 241
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 241: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 4 - Node 72
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 72: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  -2.1277469386e-07
+  1.0000000000e+04  -3.7052188873e-07
+  1.5000000000e+04  -4.5321243647e-07
+  2.0000000000e+04  -4.6631100759e-07
+  2.5000000000e+04  -4.4207800443e-07
+  3.0000000000e+04  -4.0550281710e-07
+  3.5000000000e+04  -3.6680663129e-07
+  4.0000000000e+04  -3.2727490407e-07
+  4.5000000000e+04  -2.8768332072e-07
+  5.0000000000e+04  -2.4986266567e-07
+
+#
+# Curve 5 - Node 222
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 222: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 6 - Node 230
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 230: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 7 - Node 231
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 231: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 8 - Node 232
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 232: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 9 - Node 233
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 233: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 10 - Node 234
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 234: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 11 - Node 235
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 235: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 12 - Node 236
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 236: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 13 - Node 237
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 237: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 14 - Node 74
+# Time reference surface: middle
+# Time reference frame: global
+
+#             Time  Node Velocity[Z Velocity]
+# Node - 74: Node Velocity[Z Velocity]
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  -2.2032070035e-07
+  1.0000000000e+04  -3.5655401120e-07
+  1.5000000000e+04  -4.2188929683e-07
+  2.0000000000e+04  -4.3221464807e-07
+  2.5000000000e+04  -4.1321362687e-07
+  3.0000000000e+04  -3.8102226085e-07
+  3.5000000000e+04  -3.4451488773e-07
+  4.0000000000e+04  -3.0662539530e-07
+  4.5000000000e+04  -2.6926213081e-07
+  5.0000000000e+04  -2.3399394422e-07
+
+#
+# Curve 1 - ThickShells 1
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -582,40 +560,62 @@
 # XY Engr Strain reference frame: global
 
 #             Time    XY Engr Strain
-# ThickShells - 91: XY Engr Strain
+# ThickShells - 1: XY Engr Strain
   0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  4.7683716531e-08
+  4.0000000000e+04  -5.5511151231e-17
+  4.5000000000e+04  4.7683716531e-08
+  5.0000000000e+04  4.7683716531e-08
+
+#
+# Curve 2 - ThickShells 6
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#             Time    XY Engr Strain
+# ThickShells - 6: XY Engr Strain
+  0.0000000000e+00  2.2204460493e-16
+  5.0000000000e+03  2.2204460493e-16
+  1.0000000000e+04  -4.4408920985e-16
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  2.7755575616e-17
+  2.5000000000e+04  -4.4408920985e-16
+  3.0000000000e+04  9.5367433062e-08
+  3.5000000000e+04  -2.2204460493e-16
+  4.0000000000e+04  9.5367433062e-08
+  4.5000000000e+04  9.5367433062e-08
+  5.0000000000e+04  -9.5367433062e-08
+
+#
+# Curve 3 - ThickShells 10
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#             Time    XY Engr Strain
+# ThickShells - 10: XY Engr Strain
+  0.0000000000e+00  4.4408920985e-16
   5.0000000000e+03  1.9073486612e-07
   1.0000000000e+04  0.0000000000e+00
   1.5000000000e+04  -1.9073486612e-07
-  2.0000000000e+04  0.0000000000e+00
+  2.0000000000e+04  5.5511151231e-17
   2.5000000000e+04  2.3841876029e-08
-  3.0000000000e+04  0.0000000000e+00
+  3.0000000000e+04  -3.8857805862e-16
   3.5000000000e+04  1.9073486612e-07
   4.0000000000e+04  1.9073486612e-07
-  4.5000000000e+04  3.3306690739e-16
+  4.5000000000e+04  8.3266726847e-16
   5.0000000000e+04  1.6689298832e-07
-
-#
-# Curve 3 - ThickShells 56
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#             Time    XY Engr Strain
-# ThickShells - 56: XY Engr Strain
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  2.2204460493e-16
-  1.5000000000e+04  2.2204460493e-16
-  2.0000000000e+04  -2.2204460493e-16
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  2.2204460493e-16
-  3.5000000000e+04  1.9073475244e-07
-  4.0000000000e+04  -3.6415315208e-14
-  4.5000000000e+04  1.9073475244e-07
-  5.0000000000e+04  -3.8146953329e-07
 
 #
 # Curve 4 - ThickShells 51
@@ -634,13 +634,13 @@
   2.0000000000e+04  0.0000000000e+00
   2.5000000000e+04  0.0000000000e+00
   3.0000000000e+04  9.5367447273e-08
-  3.5000000000e+04  -2.2204460493e-16
+  3.5000000000e+04  -1.9428902931e-16
   4.0000000000e+04  9.5367447273e-08
   4.5000000000e+04  9.5367447273e-08
   5.0000000000e+04  -9.5367411745e-08
 
 #
-# Curve 5 - ThickShells 10
+# Curve 5 - ThickShells 56
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -648,21 +648,43 @@
 # XY Engr Strain reference frame: global
 
 #             Time    XY Engr Strain
-# ThickShells - 10: XY Engr Strain
+# ThickShells - 56: XY Engr Strain
+  0.0000000000e+00  2.2204460493e-16
+  5.0000000000e+03  4.4408920985e-16
+  1.0000000000e+04  2.2204460493e-16
+  1.5000000000e+04  2.2204460493e-16
+  2.0000000000e+04  -2.2204460493e-16
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  2.2204460493e-16
+  3.5000000000e+04  1.9073475244e-07
+  4.0000000000e+04  -3.6859404418e-14
+  4.5000000000e+04  1.9073475244e-07
+  5.0000000000e+04  -3.8146953329e-07
+
+#
+# Curve 6 - ThickShells 91
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#             Time    XY Engr Strain
+# ThickShells - 91: XY Engr Strain
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  1.9073486612e-07
   1.0000000000e+04  0.0000000000e+00
   1.5000000000e+04  -1.9073486612e-07
-  2.0000000000e+04  0.0000000000e+00
+  2.0000000000e+04  5.5511151231e-17
   2.5000000000e+04  2.3841876029e-08
-  3.0000000000e+04  0.0000000000e+00
+  3.0000000000e+04  5.5511151231e-17
   3.5000000000e+04  1.9073486612e-07
   4.0000000000e+04  1.9073486612e-07
-  4.5000000000e+04  3.3306690739e-16
+  4.5000000000e+04  3.8857805862e-16
   5.0000000000e+04  1.6689298832e-07
 
 #
-# Curve 6 - ThickShells 6
+# Curve 7 - ThickShells 100
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -670,49 +692,27 @@
 # XY Engr Strain reference frame: global
 
 #             Time    XY Engr Strain
-# ThickShells - 6: XY Engr Strain
+# ThickShells - 100: XY Engr Strain
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  5.5511151231e-17
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  9.5367433062e-08
+  1.0000000000e+04  -1.3322676296e-15
+  1.5000000000e+04  -1.3322676296e-15
+  2.0000000000e+04  -1.7763568394e-15
+  2.5000000000e+04  -1.7763568394e-15
+  3.0000000000e+04  7.6294003293e-07
   3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  9.5367433062e-08
-  4.5000000000e+04  9.5367433062e-08
-  5.0000000000e+04  -9.5367433062e-08
+  4.0000000000e+04  -4.4408920985e-16
+  4.5000000000e+04  3.8147001646e-07
+  5.0000000000e+04  3.8147001646e-07
 
 #
-# Curve 7 - ThickShells 1
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#             Time    XY Engr Strain
-# ThickShells - 1: XY Engr Strain
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  4.7683716531e-08
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  4.7683716531e-08
-  5.0000000000e+04  4.7683716531e-08
-
-#
-# Curve 1 - ThickShells 100
+# Curve 1 - ThickShells 1
 # Time reference surface: middle
 # Time reference frame: global
 # Relative Volume reference frame: global
 
 #             Time   Relative Volume
-# ThickShells - 100: Relative Volume
+# ThickShells - 1: Relative Volume
   0.0000000000e+00  1.0000000000e+00
   5.0000000000e+03  1.0000000000e+00
   1.0000000000e+04  1.0000000000e+00
@@ -722,17 +722,37 @@
   3.0000000000e+04  1.0000000000e+00
   3.5000000000e+04  1.0000000000e+00
   4.0000000000e+04  1.0000000000e+00
-  4.5000000000e+04  1.0000003576e+00
-  5.0000000000e+04  1.0000003576e+00
+  4.5000000000e+04  1.0000000000e+00
+  5.0000000000e+04  1.0000000000e+00
 
 #
-# Curve 2 - ThickShells 91
+# Curve 2 - ThickShells 6
 # Time reference surface: middle
 # Time reference frame: global
 # Relative Volume reference frame: global
 
 #             Time   Relative Volume
-# ThickShells - 91: Relative Volume
+# ThickShells - 6: Relative Volume
+  0.0000000000e+00  1.0000000000e+00
+  5.0000000000e+03  1.0000000000e+00
+  1.0000000000e+04  1.0000000000e+00
+  1.5000000000e+04  1.0000000000e+00
+  2.0000000000e+04  1.0000000000e+00
+  2.5000000000e+04  1.0000000000e+00
+  3.0000000000e+04  9.9999994040e-01
+  3.5000000000e+04  1.0000000000e+00
+  4.0000000000e+04  1.0000000000e+00
+  4.5000000000e+04  1.0000000000e+00
+  5.0000000000e+04  1.0000000000e+00
+
+#
+# Curve 3 - ThickShells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Relative Volume reference frame: global
+
+#             Time   Relative Volume
+# ThickShells - 10: Relative Volume
   0.0000000000e+00  1.0000000000e+00
   5.0000000000e+03  9.9999982119e-01
   1.0000000000e+04  1.0000000000e+00
@@ -744,26 +764,6 @@
   4.0000000000e+04  9.9999994040e-01
   4.5000000000e+04  1.0000001192e+00
   5.0000000000e+04  9.9999994040e-01
-
-#
-# Curve 3 - ThickShells 56
-# Time reference surface: middle
-# Time reference frame: global
-# Relative Volume reference frame: global
-
-#             Time   Relative Volume
-# ThickShells - 56: Relative Volume
-  0.0000000000e+00  1.0000000000e+00
-  5.0000000000e+03  1.0000000000e+00
-  1.0000000000e+04  1.0000000000e+00
-  1.5000000000e+04  1.0000000000e+00
-  2.0000000000e+04  1.0000000000e+00
-  2.5000000000e+04  1.0000000000e+00
-  3.0000000000e+04  1.0000000000e+00
-  3.5000000000e+04  1.0000002384e+00
-  4.0000000000e+04  1.0000004768e+00
-  4.5000000000e+04  1.0000002384e+00
-  5.0000000000e+04  1.0000001192e+00
 
 #
 # Curve 4 - ThickShells 51
@@ -786,13 +786,33 @@
   5.0000000000e+04  1.0000000000e+00
 
 #
-# Curve 5 - ThickShells 10
+# Curve 5 - ThickShells 56
 # Time reference surface: middle
 # Time reference frame: global
 # Relative Volume reference frame: global
 
 #             Time   Relative Volume
-# ThickShells - 10: Relative Volume
+# ThickShells - 56: Relative Volume
+  0.0000000000e+00  1.0000000000e+00
+  5.0000000000e+03  1.0000000000e+00
+  1.0000000000e+04  1.0000000000e+00
+  1.5000000000e+04  1.0000000000e+00
+  2.0000000000e+04  1.0000000000e+00
+  2.5000000000e+04  1.0000000000e+00
+  3.0000000000e+04  1.0000000000e+00
+  3.5000000000e+04  1.0000002384e+00
+  4.0000000000e+04  1.0000004768e+00
+  4.5000000000e+04  1.0000002384e+00
+  5.0000000000e+04  1.0000001192e+00
+
+#
+# Curve 6 - ThickShells 91
+# Time reference surface: middle
+# Time reference frame: global
+# Relative Volume reference frame: global
+
+#             Time   Relative Volume
+# ThickShells - 91: Relative Volume
   0.0000000000e+00  1.0000000000e+00
   5.0000000000e+03  9.9999982119e-01
   1.0000000000e+04  1.0000000000e+00
@@ -806,33 +826,13 @@
   5.0000000000e+04  9.9999994040e-01
 
 #
-# Curve 6 - ThickShells 6
+# Curve 7 - ThickShells 100
 # Time reference surface: middle
 # Time reference frame: global
 # Relative Volume reference frame: global
 
 #             Time   Relative Volume
-# ThickShells - 6: Relative Volume
-  0.0000000000e+00  1.0000000000e+00
-  5.0000000000e+03  1.0000000000e+00
-  1.0000000000e+04  1.0000000000e+00
-  1.5000000000e+04  1.0000000000e+00
-  2.0000000000e+04  1.0000000000e+00
-  2.5000000000e+04  1.0000000000e+00
-  3.0000000000e+04  9.9999994040e-01
-  3.5000000000e+04  1.0000000000e+00
-  4.0000000000e+04  1.0000000000e+00
-  4.5000000000e+04  1.0000000000e+00
-  5.0000000000e+04  1.0000000000e+00
-
-#
-# Curve 7 - ThickShells 1
-# Time reference surface: middle
-# Time reference frame: global
-# Relative Volume reference frame: global
-
-#             Time   Relative Volume
-# ThickShells - 1: Relative Volume
+# ThickShells - 100: Relative Volume
   0.0000000000e+00  1.0000000000e+00
   5.0000000000e+03  1.0000000000e+00
   1.0000000000e+04  1.0000000000e+00
@@ -842,37 +842,57 @@
   3.0000000000e+04  1.0000000000e+00
   3.5000000000e+04  1.0000000000e+00
   4.0000000000e+04  1.0000000000e+00
-  4.5000000000e+04  1.0000000000e+00
-  5.0000000000e+04  1.0000000000e+00
+  4.5000000000e+04  1.0000003576e+00
+  5.0000000000e+04  1.0000003576e+00
 
 #
-# Curve 1 - ThickShells 100
+# Curve 1 - ThickShells 1
 # Time reference surface: middle
 # Time reference frame: global
 # Pressure reference frame: global
 
 #             Time          Pressure
-# ThickShells - 100: Pressure
+# ThickShells - 1: Pressure
   0.0000000000e+00  -0.0000000000e+00
-  5.0000000000e+03  4.5477071544e-13
-  1.0000000000e+04  -8.6030705129e-12
-  1.5000000000e+04  -3.6528904901e-11
-  2.0000000000e+04  -8.1176516897e-11
-  2.5000000000e+04  -1.3983374181e-10
-  3.0000000000e+04  -2.1051770049e-10
-  3.5000000000e+04  -2.8814636788e-10
-  4.0000000000e+04  -3.6723854513e-10
-  4.5000000000e+04  -4.4424075529e-10
-  5.0000000000e+04  -5.1731585682e-10
+  5.0000000000e+03  -7.2061996127e-12
+  1.0000000000e+04  -1.2322787235e-10
+  1.5000000000e+04  -7.7920603303e-10
+  2.0000000000e+04  -2.6959015020e-09
+  2.5000000000e+04  -5.7109161844e-09
+  3.0000000000e+04  -9.2797289852e-09
+  3.5000000000e+04  -1.3196633120e-08
+  4.0000000000e+04  -1.7376263983e-08
+  4.5000000000e+04  -2.1632322600e-08
+  5.0000000000e+04  -2.5737998399e-08
 
 #
-# Curve 2 - ThickShells 91
+# Curve 2 - ThickShells 6
 # Time reference surface: middle
 # Time reference frame: global
 # Pressure reference frame: global
 
 #             Time          Pressure
-# ThickShells - 91: Pressure
+# ThickShells - 6: Pressure
+  0.0000000000e+00  -0.0000000000e+00
+  5.0000000000e+03  -2.0670385976e-12
+  1.0000000000e+04  -5.0645005550e-11
+  1.5000000000e+04  -3.7936090380e-10
+  2.0000000000e+04  -1.0381445703e-09
+  2.5000000000e+04  -1.9584833755e-09
+  3.0000000000e+04  -3.0576599030e-09
+  3.5000000000e+04  -4.2670222911e-09
+  4.0000000000e+04  -5.5251008213e-09
+  4.5000000000e+04  -6.7744618804e-09
+  5.0000000000e+04  -7.9691737653e-09
+
+#
+# Curve 3 - ThickShells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference frame: global
+
+#             Time          Pressure
+# ThickShells - 10: Pressure
   0.0000000000e+00  -0.0000000000e+00
   5.0000000000e+03  1.5375008558e-11
   1.0000000000e+04  2.4131646681e-10
@@ -884,26 +904,6 @@
   4.0000000000e+04  1.4905998214e-08
   4.5000000000e+04  1.8304065819e-08
   5.0000000000e+04  2.1558753005e-08
-
-#
-# Curve 3 - ThickShells 56
-# Time reference surface: middle
-# Time reference frame: global
-# Pressure reference frame: global
-
-#             Time          Pressure
-# ThickShells - 56: Pressure
-  0.0000000000e+00  -0.0000000000e+00
-  5.0000000000e+03  -2.1788612581e-11
-  1.0000000000e+04  -1.7232694438e-10
-  1.5000000000e+04  -2.4233282048e-10
-  2.0000000000e+04  -1.0524875416e-10
-  2.5000000000e+04  1.4247057700e-10
-  3.0000000000e+04  3.9993561241e-10
-  3.5000000000e+04  6.7665889558e-10
-  4.0000000000e+04  1.0014458152e-09
-  4.5000000000e+04  1.3587625469e-09
-  5.0000000000e+04  1.7110983741e-09
 
 #
 # Curve 4 - ThickShells 51
@@ -926,13 +926,33 @@
   5.0000000000e+04  -7.9691737653e-09
 
 #
-# Curve 5 - ThickShells 10
+# Curve 5 - ThickShells 56
 # Time reference surface: middle
 # Time reference frame: global
 # Pressure reference frame: global
 
 #             Time          Pressure
-# ThickShells - 10: Pressure
+# ThickShells - 56: Pressure
+  0.0000000000e+00  -0.0000000000e+00
+  5.0000000000e+03  -2.1788612581e-11
+  1.0000000000e+04  -1.7232694438e-10
+  1.5000000000e+04  -2.4233282048e-10
+  2.0000000000e+04  -1.0524875416e-10
+  2.5000000000e+04  1.4247057700e-10
+  3.0000000000e+04  3.9993561241e-10
+  3.5000000000e+04  6.7665889558e-10
+  4.0000000000e+04  1.0014458152e-09
+  4.5000000000e+04  1.3587625469e-09
+  5.0000000000e+04  1.7110983741e-09
+
+#
+# Curve 6 - ThickShells 91
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference frame: global
+
+#             Time          Pressure
+# ThickShells - 91: Pressure
   0.0000000000e+00  -0.0000000000e+00
   5.0000000000e+03  1.5375008558e-11
   1.0000000000e+04  2.4131646681e-10
@@ -946,104 +966,84 @@
   5.0000000000e+04  2.1558753005e-08
 
 #
-# Curve 6 - ThickShells 6
+# Curve 7 - ThickShells 100
 # Time reference surface: middle
 # Time reference frame: global
 # Pressure reference frame: global
 
 #             Time          Pressure
-# ThickShells - 6: Pressure
+# ThickShells - 100: Pressure
   0.0000000000e+00  -0.0000000000e+00
-  5.0000000000e+03  -2.0670385976e-12
-  1.0000000000e+04  -5.0645005550e-11
-  1.5000000000e+04  -3.7936090380e-10
-  2.0000000000e+04  -1.0381445703e-09
-  2.5000000000e+04  -1.9584833755e-09
-  3.0000000000e+04  -3.0576599030e-09
-  3.5000000000e+04  -4.2670222911e-09
-  4.0000000000e+04  -5.5251008213e-09
-  4.5000000000e+04  -6.7744618804e-09
-  5.0000000000e+04  -7.9691737653e-09
+  5.0000000000e+03  4.5477071544e-13
+  1.0000000000e+04  -8.6030705129e-12
+  1.5000000000e+04  -3.6528904901e-11
+  2.0000000000e+04  -8.1176516897e-11
+  2.5000000000e+04  -1.3983374181e-10
+  3.0000000000e+04  -2.1051770049e-10
+  3.5000000000e+04  -2.8814636788e-10
+  4.0000000000e+04  -3.6723854513e-10
+  4.5000000000e+04  -4.4424075529e-10
+  5.0000000000e+04  -5.1731585682e-10
 
 #
-# Curve 7 - ThickShells 1
-# Time reference surface: middle
-# Time reference frame: global
-# Pressure reference frame: global
-
-#             Time          Pressure
-# ThickShells - 1: Pressure
-  0.0000000000e+00  -0.0000000000e+00
-  5.0000000000e+03  -7.2061996127e-12
-  1.0000000000e+04  -1.2322787235e-10
-  1.5000000000e+04  -7.7920603303e-10
-  2.0000000000e+04  -2.6959015020e-09
-  2.5000000000e+04  -5.7109161844e-09
-  3.0000000000e+04  -9.2797289852e-09
-  3.5000000000e+04  -1.3196633120e-08
-  4.0000000000e+04  -1.7376263983e-08
-  4.5000000000e+04  -2.1632322600e-08
-  5.0000000000e+04  -2.5737998399e-08
-
-#
-# Curve 1 - ThickShells 100
+# Curve 1 - ThickShells 1
 # Time reference surface: middle
 # Time reference frame: global
 # Prin Dev Stress 2 reference frame: global
 
 #             Time  Prin Dev Stress 2
-# ThickShells - 100: Prin Dev Stress 2
+# ThickShells - 1: Prin Dev Stress 2
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  1.8130968948e-11
-  1.5000000000e+04  7.4276765294e-11
-  2.0000000000e+04  1.6401105474e-10
-  2.5000000000e+04  2.8194793722e-10
-  3.0000000000e+04  4.2389539101e-10
-  3.5000000000e+04  5.7954963051e-10
-  4.0000000000e+04  7.3799028000e-10
-  4.5000000000e+04  8.9219920341e-10
-  5.0000000000e+04  1.0385218241e-09
+  5.0000000000e+03  3.1443962017e-12
+  1.0000000000e+04  5.4978396835e-11
+  1.5000000000e+04  3.7704764311e-10
+  2.0000000000e+04  1.3151686407e-09
+  2.5000000000e+04  2.7868032326e-09
+  3.0000000000e+04  4.5279144878e-09
+  3.5000000000e+04  6.4387730703e-09
+  4.0000000000e+04  8.4773406073e-09
+  4.5000000000e+04  1.0552653862e-08
+  5.0000000000e+04  1.2554408180e-08
 
 #
-# Curve 2 - ThickShells 91
+# Curve 2 - ThickShells 6
 # Time reference surface: middle
 # Time reference frame: global
 # Prin Dev Stress 2 reference frame: global
 
 #             Time  Prin Dev Stress 2
-# ThickShells - 91: Prin Dev Stress 2
+# ThickShells - 6: Prin Dev Stress 2
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  -3.0122009054e-11
-  1.0000000000e+04  -4.7666454117e-10
-  1.5000000000e+04  -2.1552686302e-09
-  2.0000000000e+04  -3.0101963144e-09
-  2.5000000000e+04  -1.4940677584e-09
-  3.0000000000e+04  4.6742171245e-10
-  3.5000000000e+04  2.7766546840e-09
-  4.0000000000e+04  5.3776854081e-09
-  4.5000000000e+04  8.1018649567e-09
-  5.0000000000e+04  1.0776915360e-08
+  5.0000000000e+03  9.7940136903e-12
+  1.0000000000e+04  9.6730588817e-11
+  1.5000000000e+04  1.0187149041e-10
+  2.0000000000e+04  1.4580213425e-10
+  2.5000000000e+04  -4.9988213568e-10
+  3.0000000000e+04  -1.2298376761e-09
+  3.5000000000e+04  -2.0479435925e-09
+  4.0000000000e+04  -2.9879201335e-09
+  4.5000000000e+04  -4.0018890424e-09
+  5.0000000000e+04  -5.0023087894e-09
 
 #
-# Curve 3 - ThickShells 56
+# Curve 3 - ThickShells 10
 # Time reference surface: middle
 # Time reference frame: global
 # Prin Dev Stress 2 reference frame: global
 
 #             Time  Prin Dev Stress 2
-# ThickShells - 56: Prin Dev Stress 2
+# ThickShells - 10: Prin Dev Stress 2
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  -1.1253396218e-12
-  1.0000000000e+04  -7.0299724375e-11
-  1.5000000000e+04  -7.2297395848e-10
-  2.0000000000e+04  -2.4486770389e-09
-  2.5000000000e+04  -5.0576844934e-09
-  3.0000000000e+04  -6.2424665437e-09
-  3.5000000000e+04  -6.5369576419e-09
-  4.0000000000e+04  -6.6343930349e-09
-  4.5000000000e+04  -6.5893601686e-09
-  5.0000000000e+04  -6.4769620778e-09
+  5.0000000000e+03  -3.0122019462e-11
+  1.0000000000e+04  -4.7666420810e-10
+  1.5000000000e+04  -2.1552613028e-09
+  2.0000000000e+04  -3.0101832138e-09
+  2.5000000000e+04  -1.4940604309e-09
+  3.0000000000e+04  4.6742637538e-10
+  3.5000000000e+04  2.7766582367e-09
+  4.0000000000e+04  5.3776898490e-09
+  4.5000000000e+04  8.1018702858e-09
+  5.0000000000e+04  1.0776921577e-08
 
 #
 # Curve 4 - ThickShells 51
@@ -1066,124 +1066,124 @@
   5.0000000000e+04  -5.0023643006e-09
 
 #
-# Curve 5 - ThickShells 10
+# Curve 5 - ThickShells 56
 # Time reference surface: middle
 # Time reference frame: global
 # Prin Dev Stress 2 reference frame: global
 
 #             Time  Prin Dev Stress 2
-# ThickShells - 10: Prin Dev Stress 2
+# ThickShells - 56: Prin Dev Stress 2
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  -3.0122019462e-11
-  1.0000000000e+04  -4.7666420810e-10
-  1.5000000000e+04  -2.1552613028e-09
-  2.0000000000e+04  -3.0101832138e-09
-  2.5000000000e+04  -1.4940604309e-09
-  3.0000000000e+04  4.6742637538e-10
-  3.5000000000e+04  2.7766582367e-09
-  4.0000000000e+04  5.3776898490e-09
-  4.5000000000e+04  8.1018702858e-09
-  5.0000000000e+04  1.0776921577e-08
+  5.0000000000e+03  -1.1253396218e-12
+  1.0000000000e+04  -7.0299724375e-11
+  1.5000000000e+04  -7.2297395848e-10
+  2.0000000000e+04  -2.4486770389e-09
+  2.5000000000e+04  -5.0576844934e-09
+  3.0000000000e+04  -6.2424665437e-09
+  3.5000000000e+04  -6.5369576419e-09
+  4.0000000000e+04  -6.6343930349e-09
+  4.5000000000e+04  -6.5893601686e-09
+  5.0000000000e+04  -6.4769620778e-09
 
 #
-# Curve 6 - ThickShells 6
+# Curve 6 - ThickShells 91
 # Time reference surface: middle
 # Time reference frame: global
 # Prin Dev Stress 2 reference frame: global
 
 #             Time  Prin Dev Stress 2
-# ThickShells - 6: Prin Dev Stress 2
+# ThickShells - 91: Prin Dev Stress 2
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  9.7940136903e-12
-  1.0000000000e+04  9.6730588817e-11
-  1.5000000000e+04  1.0187149041e-10
-  2.0000000000e+04  1.4580213425e-10
-  2.5000000000e+04  -4.9988213568e-10
-  3.0000000000e+04  -1.2298376761e-09
-  3.5000000000e+04  -2.0479435925e-09
-  4.0000000000e+04  -2.9879201335e-09
-  4.5000000000e+04  -4.0018890424e-09
-  5.0000000000e+04  -5.0023087894e-09
+  5.0000000000e+03  -3.0122009054e-11
+  1.0000000000e+04  -4.7666454117e-10
+  1.5000000000e+04  -2.1552686302e-09
+  2.0000000000e+04  -3.0101963144e-09
+  2.5000000000e+04  -1.4940677584e-09
+  3.0000000000e+04  4.6742171245e-10
+  3.5000000000e+04  2.7766546840e-09
+  4.0000000000e+04  5.3776854081e-09
+  4.5000000000e+04  8.1018649567e-09
+  5.0000000000e+04  1.0776915360e-08
 
 #
-# Curve 7 - ThickShells 1
+# Curve 7 - ThickShells 100
 # Time reference surface: middle
 # Time reference frame: global
 # Prin Dev Stress 2 reference frame: global
 
 #             Time  Prin Dev Stress 2
-# ThickShells - 1: Prin Dev Stress 2
+# ThickShells - 100: Prin Dev Stress 2
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  3.1443962017e-12
-  1.0000000000e+04  5.4978396835e-11
-  1.5000000000e+04  3.7704764311e-10
-  2.0000000000e+04  1.3151686407e-09
-  2.5000000000e+04  2.7868032326e-09
-  3.0000000000e+04  4.5279144878e-09
-  3.5000000000e+04  6.4387730703e-09
-  4.0000000000e+04  8.4773406073e-09
-  4.5000000000e+04  1.0552653862e-08
-  5.0000000000e+04  1.2554408180e-08
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  1.8130968948e-11
+  1.5000000000e+04  7.4276765294e-11
+  2.0000000000e+04  1.6401105474e-10
+  2.5000000000e+04  2.8194793722e-10
+  3.0000000000e+04  4.2389539101e-10
+  3.5000000000e+04  5.7954963051e-10
+  4.0000000000e+04  7.3799028000e-10
+  4.5000000000e+04  8.9219920341e-10
+  5.0000000000e+04  1.0385218241e-09
 
 #
-# Curve 1 - ThickShells 100
+# Curve 1 - ThickShells 1
 # Time reference surface: middle
 # Time reference frame: global
 # Z Stress reference frame: global
 
 #             Time          Z Stress
-# ThickShells - 100: Z Stress
+# ThickShells - 1: Z Stress
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  -1.0711434994e-13
-  1.0000000000e+04  -5.2470956182e-13
-  1.5000000000e+04  -1.1210333876e-12
-  2.0000000000e+04  -1.7851896177e-12
-  2.5000000000e+04  -2.6482865380e-12
-  3.0000000000e+04  -3.7230457432e-12
-  3.5000000000e+04  -4.9018627699e-12
-  4.0000000000e+04  -6.0661805440e-12
-  4.5000000000e+04  -7.1691381130e-12
-  5.0000000000e+04  -8.2055560263e-12
+  5.0000000000e+03  -1.0984966476e-16
+  1.0000000000e+04  2.7775540182e-15
+  1.5000000000e+04  -3.5438761605e-15
+  2.0000000000e+04  -5.0364252936e-15
+  2.5000000000e+04  1.8529838867e-15
+  3.0000000000e+04  8.4686667469e-15
+  3.5000000000e+04  1.5223738408e-14
+  4.0000000000e+04  2.4302866035e-14
+  4.5000000000e+04  3.5594259067e-14
+  5.0000000000e+04  4.7011880337e-14
 
 #
-# Curve 2 - ThickShells 91
+# Curve 2 - ThickShells 6
 # Time reference surface: middle
 # Time reference frame: global
 # Z Stress reference frame: global
 
 #             Time          Z Stress
-# ThickShells - 91: Z Stress
+# ThickShells - 6: Z Stress
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  2.1807960982e-13
-  1.0000000000e+04  8.6910724928e-13
+  5.0000000000e+03  -2.5704889792e-15
+  1.0000000000e+04  -6.5418245094e-14
+  1.5000000000e+04  -7.8024744868e-14
+  2.0000000000e+04  2.2636104417e-13
+  2.5000000000e+04  7.6846401421e-13
+  3.0000000000e+04  1.4172752598e-12
+  3.5000000000e+04  2.1333757243e-12
+  4.0000000000e+04  2.9287774463e-12
+  4.5000000000e+04  3.7643521113e-12
+  5.0000000000e+04  4.5806865245e-12
+
+#
+# Curve 3 - ThickShells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Z Stress reference frame: global
+
+#             Time          Z Stress
+# ThickShells - 10: Z Stress
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  2.1807963692e-13
+  1.0000000000e+04  8.6910730349e-13
   1.5000000000e+04  1.9957314881e-12
   2.0000000000e+04  3.2593229331e-12
   2.5000000000e+04  4.9085076281e-12
   3.0000000000e+04  6.9144178230e-12
-  3.5000000000e+04  9.1069825292e-12
-  4.0000000000e+04  1.1271288590e-11
-  4.5000000000e+04  1.3323991216e-11
+  3.5000000000e+04  9.1069816618e-12
+  4.0000000000e+04  1.1271287723e-11
+  4.5000000000e+04  1.3323990349e-11
   5.0000000000e+04  1.5251157975e-11
-
-#
-# Curve 3 - ThickShells 56
-# Time reference surface: middle
-# Time reference frame: global
-# Z Stress reference frame: global
-
-#             Time          Z Stress
-# ThickShells - 56: Z Stress
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  -1.8898645059e-14
-  1.0000000000e+04  -2.5464271533e-13
-  1.5000000000e+04  -9.0808149845e-13
-  2.0000000000e+04  -1.9829992683e-12
-  2.5000000000e+04  -3.4668745739e-12
-  3.0000000000e+04  -5.2548308586e-12
-  3.5000000000e+04  -7.2249528409e-12
-  4.0000000000e+04  -9.2507087060e-12
-  4.5000000000e+04  -1.1243559035e-11
-  5.0000000000e+04  -1.3144756117e-11
 
 #
 # Curve 4 - ThickShells 51
@@ -1206,67 +1206,67 @@
   5.0000000000e+04  4.5806821877e-12
 
 #
-# Curve 5 - ThickShells 10
+# Curve 5 - ThickShells 56
 # Time reference surface: middle
 # Time reference frame: global
 # Z Stress reference frame: global
 
 #             Time          Z Stress
-# ThickShells - 10: Z Stress
+# ThickShells - 56: Z Stress
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  2.1807963692e-13
-  1.0000000000e+04  8.6910730349e-13
+  5.0000000000e+03  -1.8898645059e-14
+  1.0000000000e+04  -2.5464271533e-13
+  1.5000000000e+04  -9.0808149845e-13
+  2.0000000000e+04  -1.9829992683e-12
+  2.5000000000e+04  -3.4668745739e-12
+  3.0000000000e+04  -5.2548308586e-12
+  3.5000000000e+04  -7.2249528409e-12
+  4.0000000000e+04  -9.2507087060e-12
+  4.5000000000e+04  -1.1243559035e-11
+  5.0000000000e+04  -1.3144756117e-11
+
+#
+# Curve 6 - ThickShells 91
+# Time reference surface: middle
+# Time reference frame: global
+# Z Stress reference frame: global
+
+#             Time          Z Stress
+# ThickShells - 91: Z Stress
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  2.1807960982e-13
+  1.0000000000e+04  8.6910724928e-13
   1.5000000000e+04  1.9957314881e-12
   2.0000000000e+04  3.2593229331e-12
   2.5000000000e+04  4.9085076281e-12
   3.0000000000e+04  6.9144178230e-12
-  3.5000000000e+04  9.1069816618e-12
-  4.0000000000e+04  1.1271287723e-11
-  4.5000000000e+04  1.3323990349e-11
+  3.5000000000e+04  9.1069825292e-12
+  4.0000000000e+04  1.1271288590e-11
+  4.5000000000e+04  1.3323991216e-11
   5.0000000000e+04  1.5251157975e-11
 
 #
-# Curve 6 - ThickShells 6
+# Curve 7 - ThickShells 100
 # Time reference surface: middle
 # Time reference frame: global
 # Z Stress reference frame: global
 
 #             Time          Z Stress
-# ThickShells - 6: Z Stress
+# ThickShells - 100: Z Stress
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  -2.5704889792e-15
-  1.0000000000e+04  -6.5418245094e-14
-  1.5000000000e+04  -7.8024744868e-14
-  2.0000000000e+04  2.2636104417e-13
-  2.5000000000e+04  7.6846401421e-13
-  3.0000000000e+04  1.4172752598e-12
-  3.5000000000e+04  2.1333757243e-12
-  4.0000000000e+04  2.9287774463e-12
-  4.5000000000e+04  3.7643521113e-12
-  5.0000000000e+04  4.5806865245e-12
+  5.0000000000e+03  -1.0711434994e-13
+  1.0000000000e+04  -5.2470956182e-13
+  1.5000000000e+04  -1.1210333876e-12
+  2.0000000000e+04  -1.7851896177e-12
+  2.5000000000e+04  -2.6482865380e-12
+  3.0000000000e+04  -3.7230457432e-12
+  3.5000000000e+04  -4.9018627699e-12
+  4.0000000000e+04  -6.0661805440e-12
+  4.5000000000e+04  -7.1691381130e-12
+  5.0000000000e+04  -8.2055560263e-12
 
 #
-# Curve 7 - ThickShells 1
-# Time reference surface: middle
-# Time reference frame: global
-# Z Stress reference frame: global
-
-#             Time          Z Stress
-# ThickShells - 1: Z Stress
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  -1.0984966476e-16
-  1.0000000000e+04  2.7775540182e-15
-  1.5000000000e+04  -3.5438761605e-15
-  2.0000000000e+04  -5.0364252936e-15
-  2.5000000000e+04  1.8529838867e-15
-  3.0000000000e+04  8.4686667469e-15
-  3.5000000000e+04  1.5223738408e-14
-  4.0000000000e+04  2.4302866035e-14
-  4.5000000000e+04  3.5594259067e-14
-  5.0000000000e+04  4.7011880337e-14
-
-#
-# Curve 1 - ThickShells 100
+# Curve 1 - ThickShells 1
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1274,43 +1274,21 @@
 # Max Tensor Shear Strain reference frame: global
 
 #             Time  Max Tensor Shear Strain
-# ThickShells - 100: Max Tensor Shear Strain
+# ThickShells - 1: Max Tensor Shear Strain
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  1.0032727914e-05
+  5.0000000000e+03  0.0000000000e+00
   1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  9.9316148408e-06
-  2.0000000000e+04  3.6348274080e-06
-  2.5000000000e+04  4.7958974392e-06
-  3.0000000000e+04  2.8057838790e-06
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  3.2896925859e-06
-  4.5000000000e+04  2.4815722099e-06
-  5.0000000000e+04  3.0067767511e-06
-
-#
-# Curve 2 - ThickShells 91
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# Max Tensor Shear Strain strain variety: infinitesimal
-# Max Tensor Shear Strain reference frame: global
-
-#             Time  Max Tensor Shear Strain
-# ThickShells - 91: Max Tensor Shear Strain
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  8.2550068328e-06
-  1.0000000000e+04  8.1792113633e-06
   1.5000000000e+04  0.0000000000e+00
   2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  3.2950786135e-06
-  3.0000000000e+04  2.4006189960e-06
-  3.5000000000e+04  5.0910348364e-06
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
   4.0000000000e+04  0.0000000000e+00
   4.5000000000e+04  0.0000000000e+00
   5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 3 - ThickShells 56
+# Curve 2 - ThickShells 6
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1318,15 +1296,37 @@
 # Max Tensor Shear Strain reference frame: global
 
 #             Time  Max Tensor Shear Strain
-# ThickShells - 56: Max Tensor Shear Strain
+# ThickShells - 6: Max Tensor Shear Strain
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  7.7090135164e-06
-  1.5000000000e+04  3.3459109545e-06
-  2.0000000000e+04  2.6988132049e-06
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  2.6436368898e-06
+  1.0000000000e+04  2.3744587452e-06
+  1.5000000000e+04  2.7295918699e-06
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  2.1420930807e-06
+  3.0000000000e+04  0.0000000000e+00
   3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 3 - ThickShells 10
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain strain variety: infinitesimal
+# Max Tensor Shear Strain reference frame: global
+
+#             Time  Max Tensor Shear Strain
+# ThickShells - 10: Max Tensor Shear Strain
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  8.2550068328e-06
+  1.0000000000e+04  8.1792113633e-06
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  3.2950749755e-06
+  3.0000000000e+04  2.4006189960e-06
+  3.5000000000e+04  5.0910348364e-06
   4.0000000000e+04  0.0000000000e+00
   4.5000000000e+04  0.0000000000e+00
   5.0000000000e+04  0.0000000000e+00
@@ -1354,7 +1354,7 @@
   5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 5 - ThickShells 10
+# Curve 5 - ThickShells 56
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1362,13 +1362,35 @@
 # Max Tensor Shear Strain reference frame: global
 
 #             Time  Max Tensor Shear Strain
-# ThickShells - 10: Max Tensor Shear Strain
+# ThickShells - 56: Max Tensor Shear Strain
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  7.7090135164e-06
+  1.5000000000e+04  3.3459109545e-06
+  2.0000000000e+04  2.6988132049e-06
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  2.6436368898e-06
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 6 - ThickShells 91
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Max Tensor Shear Strain strain variety: infinitesimal
+# Max Tensor Shear Strain reference frame: global
+
+#             Time  Max Tensor Shear Strain
+# ThickShells - 91: Max Tensor Shear Strain
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  8.2550068328e-06
   1.0000000000e+04  8.1792113633e-06
   1.5000000000e+04  0.0000000000e+00
   2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  3.2950749755e-06
+  2.5000000000e+04  3.2950786135e-06
   3.0000000000e+04  2.4006189960e-06
   3.5000000000e+04  5.0910348364e-06
   4.0000000000e+04  0.0000000000e+00
@@ -1376,7 +1398,7 @@
   5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 6 - ThickShells 6
+# Curve 7 - ThickShells 100
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1384,29 +1406,29 @@
 # Max Tensor Shear Strain reference frame: global
 
 #             Time  Max Tensor Shear Strain
-# ThickShells - 6: Max Tensor Shear Strain
+# ThickShells - 100: Max Tensor Shear Strain
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  2.3744587452e-06
-  1.5000000000e+04  2.7295918699e-06
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  2.1420930807e-06
-  3.0000000000e+04  0.0000000000e+00
+  5.0000000000e+03  1.0032727914e-05
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  9.9316148408e-06
+  2.0000000000e+04  3.6348274080e-06
+  2.5000000000e+04  4.7958974392e-06
+  3.0000000000e+04  2.8057841064e-06
   3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
+  4.0000000000e+04  3.2896925859e-06
+  4.5000000000e+04  2.4815722099e-06
+  5.0000000000e+04  3.0067767511e-06
 
 #
-# Curve 7 - ThickShells 1
+# Curve 1 - ThickShells 1
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
-# Max Tensor Shear Strain strain variety: infinitesimal
-# Max Tensor Shear Strain reference frame: global
+# Prin Dev Strain 3 strain variety: infinitesimal
+# Prin Dev Strain 3 reference frame: global
 
-#             Time  Max Tensor Shear Strain
-# ThickShells - 1: Max Tensor Shear Strain
+#             Time  Prin Dev Strain 3
+# ThickShells - 1: Prin Dev Strain 3
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
   1.0000000000e+04  0.0000000000e+00
@@ -1420,7 +1442,7 @@
   5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 1 - ThickShells 100
+# Curve 2 - ThickShells 6
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1428,21 +1450,21 @@
 # Prin Dev Strain 3 reference frame: global
 
 #             Time  Prin Dev Strain 3
-# ThickShells - 100: Prin Dev Strain 3
+# ThickShells - 6: Prin Dev Strain 3
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  -5.0171615840e-06
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  -4.9665495681e-06
-  2.0000000000e+04  -1.8166812197e-06
-  2.5000000000e+04  -2.3990207865e-06
-  3.0000000000e+04  -1.2124140767e-06
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  -1.1862398424e-06
+  1.5000000000e+04  -1.3657660247e-06
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  -1.0751599575e-06
+  3.0000000000e+04  0.0000000000e+00
   3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  -1.6452828504e-06
-  4.5000000000e+04  -1.1781585272e-06
-  5.0000000000e+04  -1.4413039935e-06
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 2 - ThickShells 91
+# Curve 3 - ThickShells 10
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1450,37 +1472,15 @@
 # Prin Dev Strain 3 reference frame: global
 
 #             Time  Prin Dev Strain 3
-# ThickShells - 91: Prin Dev Strain 3
+# ThickShells - 10: Prin Dev Strain 3
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  -4.1595712901e-06
   1.0000000000e+04  -4.0897703002e-06
   1.5000000000e+04  0.0000000000e+00
   2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  -1.6478953739e-06
+  2.5000000000e+04  -1.6479128817e-06
   3.0000000000e+04  -1.2168404737e-06
-  3.5000000000e+04  -2.5882882255e-06
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 3 - ThickShells 56
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# Prin Dev Strain 3 strain variety: infinitesimal
-# Prin Dev Strain 3 reference frame: global
-
-#             Time  Prin Dev Strain 3
-# ThickShells - 56: Prin Dev Strain 3
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  -3.8519069676e-06
-  1.5000000000e+04  -1.6721405700e-06
-  2.0000000000e+04  -1.3504155731e-06
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  -1.3302003481e-06
-  3.5000000000e+04  0.0000000000e+00
+  3.5000000000e+04  -2.5882884529e-06
   4.0000000000e+04  0.0000000000e+00
   4.5000000000e+04  0.0000000000e+00
   5.0000000000e+04  0.0000000000e+00
@@ -1508,7 +1508,7 @@
   5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 5 - ThickShells 10
+# Curve 5 - ThickShells 56
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1516,21 +1516,43 @@
 # Prin Dev Strain 3 reference frame: global
 
 #             Time  Prin Dev Strain 3
-# ThickShells - 10: Prin Dev Strain 3
+# ThickShells - 56: Prin Dev Strain 3
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  -3.8519069676e-06
+  1.5000000000e+04  -1.6721405700e-06
+  2.0000000000e+04  -1.3504155731e-06
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  -1.3302003481e-06
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 6 - ThickShells 91
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# Prin Dev Strain 3 strain variety: infinitesimal
+# Prin Dev Strain 3 reference frame: global
+
+#             Time  Prin Dev Strain 3
+# ThickShells - 91: Prin Dev Strain 3
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  -4.1595712901e-06
   1.0000000000e+04  -4.0897703002e-06
   1.5000000000e+04  0.0000000000e+00
   2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  -1.6479128817e-06
+  2.5000000000e+04  -1.6478953739e-06
   3.0000000000e+04  -1.2168404737e-06
-  3.5000000000e+04  -2.5882882255e-06
+  3.5000000000e+04  -2.5882884529e-06
   4.0000000000e+04  0.0000000000e+00
   4.5000000000e+04  0.0000000000e+00
   5.0000000000e+04  0.0000000000e+00
 
 #
-# Curve 6 - ThickShells 6
+# Curve 7 - ThickShells 100
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1538,29 +1560,29 @@
 # Prin Dev Strain 3 reference frame: global
 
 #             Time  Prin Dev Strain 3
-# ThickShells - 6: Prin Dev Strain 3
+# ThickShells - 100: Prin Dev Strain 3
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  -1.1862398424e-06
-  1.5000000000e+04  -1.3657660247e-06
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  -1.0751599575e-06
-  3.0000000000e+04  0.0000000000e+00
+  5.0000000000e+03  -5.0171615840e-06
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  -4.9665495681e-06
+  2.0000000000e+04  -1.8166812197e-06
+  2.5000000000e+04  -2.3990207865e-06
+  3.0000000000e+04  -1.2124140767e-06
   3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
+  4.0000000000e+04  -1.6452828504e-06
+  4.5000000000e+04  -1.1781585272e-06
+  5.0000000000e+04  -1.4413039935e-06
 
 #
-# Curve 7 - ThickShells 1
+# Curve 1 - ThickShells 1
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
-# Prin Dev Strain 3 strain variety: infinitesimal
-# Prin Dev Strain 3 reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
 
-#             Time  Prin Dev Strain 3
-# ThickShells - 1: Prin Dev Strain 3
+#             Time    XY Engr Strain
+# ThickShells - 1: XY Engr Strain
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
   1.0000000000e+04  0.0000000000e+00
@@ -1568,13 +1590,13 @@
   2.0000000000e+04  0.0000000000e+00
   2.5000000000e+04  0.0000000000e+00
   3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  4.7683716531e-08
+  4.0000000000e+04  -5.5511151231e-17
+  4.5000000000e+04  4.7683716531e-08
+  5.0000000000e+04  4.7683716531e-08
 
 #
-# Curve 1 - ThickShells 100
+# Curve 2 - ThickShells 6
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1582,21 +1604,21 @@
 # XY Engr Strain reference frame: global
 
 #             Time    XY Engr Strain
-# ThickShells - 100: XY Engr Strain
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  -8.8817841970e-16
-  1.5000000000e+04  -8.8817841970e-16
-  2.0000000000e+04  -1.7763568394e-15
-  2.5000000000e+04  -1.7763568394e-15
-  3.0000000000e+04  7.6294003293e-07
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  3.8147001646e-07
-  5.0000000000e+04  3.8147001646e-07
+# ThickShells - 6: XY Engr Strain
+  0.0000000000e+00  2.2204460493e-16
+  5.0000000000e+03  2.2204460493e-16
+  1.0000000000e+04  -4.4408920985e-16
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  2.7755575616e-17
+  2.5000000000e+04  -4.4408920985e-16
+  3.0000000000e+04  9.5367433062e-08
+  3.5000000000e+04  -2.2204460493e-16
+  4.0000000000e+04  9.5367433062e-08
+  4.5000000000e+04  9.5367433062e-08
+  5.0000000000e+04  -9.5367433062e-08
 
 #
-# Curve 2 - ThickShells 91
+# Curve 3 - ThickShells 10
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1604,40 +1626,18 @@
 # XY Engr Strain reference frame: global
 
 #             Time    XY Engr Strain
-# ThickShells - 91: XY Engr Strain
-  0.0000000000e+00  0.0000000000e+00
+# ThickShells - 10: XY Engr Strain
+  0.0000000000e+00  4.4408920985e-16
   5.0000000000e+03  1.9073486612e-07
   1.0000000000e+04  0.0000000000e+00
   1.5000000000e+04  -1.9073486612e-07
-  2.0000000000e+04  0.0000000000e+00
+  2.0000000000e+04  5.5511151231e-17
   2.5000000000e+04  2.3841876029e-08
-  3.0000000000e+04  0.0000000000e+00
+  3.0000000000e+04  -3.8857805862e-16
   3.5000000000e+04  1.9073486612e-07
   4.0000000000e+04  1.9073486612e-07
-  4.5000000000e+04  3.3306690739e-16
+  4.5000000000e+04  8.3266726847e-16
   5.0000000000e+04  1.6689298832e-07
-
-#
-# Curve 3 - ThickShells 56
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#             Time    XY Engr Strain
-# ThickShells - 56: XY Engr Strain
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  2.2204460493e-16
-  1.5000000000e+04  2.2204460493e-16
-  2.0000000000e+04  -2.2204460493e-16
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  2.2204460493e-16
-  3.5000000000e+04  1.9073475244e-07
-  4.0000000000e+04  -3.6415315208e-14
-  4.5000000000e+04  1.9073475244e-07
-  5.0000000000e+04  -3.8146953329e-07
 
 #
 # Curve 4 - ThickShells 51
@@ -1656,13 +1656,13 @@
   2.0000000000e+04  0.0000000000e+00
   2.5000000000e+04  0.0000000000e+00
   3.0000000000e+04  9.5367447273e-08
-  3.5000000000e+04  -2.2204460493e-16
+  3.5000000000e+04  -1.9428902931e-16
   4.0000000000e+04  9.5367447273e-08
   4.5000000000e+04  9.5367447273e-08
   5.0000000000e+04  -9.5367411745e-08
 
 #
-# Curve 5 - ThickShells 10
+# Curve 5 - ThickShells 56
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1670,21 +1670,43 @@
 # XY Engr Strain reference frame: global
 
 #             Time    XY Engr Strain
-# ThickShells - 10: XY Engr Strain
+# ThickShells - 56: XY Engr Strain
+  0.0000000000e+00  2.2204460493e-16
+  5.0000000000e+03  4.4408920985e-16
+  1.0000000000e+04  2.2204460493e-16
+  1.5000000000e+04  2.2204460493e-16
+  2.0000000000e+04  -2.2204460493e-16
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  2.2204460493e-16
+  3.5000000000e+04  1.9073475244e-07
+  4.0000000000e+04  -3.6859404418e-14
+  4.5000000000e+04  1.9073475244e-07
+  5.0000000000e+04  -3.8146953329e-07
+
+#
+# Curve 6 - ThickShells 91
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#             Time    XY Engr Strain
+# ThickShells - 91: XY Engr Strain
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  1.9073486612e-07
   1.0000000000e+04  0.0000000000e+00
   1.5000000000e+04  -1.9073486612e-07
-  2.0000000000e+04  0.0000000000e+00
+  2.0000000000e+04  5.5511151231e-17
   2.5000000000e+04  2.3841876029e-08
-  3.0000000000e+04  0.0000000000e+00
+  3.0000000000e+04  5.5511151231e-17
   3.5000000000e+04  1.9073486612e-07
   4.0000000000e+04  1.9073486612e-07
-  4.5000000000e+04  3.3306690739e-16
+  4.5000000000e+04  3.8857805862e-16
   5.0000000000e+04  1.6689298832e-07
 
 #
-# Curve 6 - ThickShells 6
+# Curve 7 - ThickShells 100
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1692,21 +1714,21 @@
 # XY Engr Strain reference frame: global
 
 #             Time    XY Engr Strain
-# ThickShells - 6: XY Engr Strain
+# ThickShells - 100: XY Engr Strain
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  5.5511151231e-17
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  9.5367433062e-08
+  1.0000000000e+04  -1.3322676296e-15
+  1.5000000000e+04  -1.3322676296e-15
+  2.0000000000e+04  -1.7763568394e-15
+  2.5000000000e+04  -1.7763568394e-15
+  3.0000000000e+04  7.6294003293e-07
   3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  9.5367433062e-08
-  4.5000000000e+04  9.5367433062e-08
-  5.0000000000e+04  -9.5367433062e-08
+  4.0000000000e+04  -4.4408920985e-16
+  4.5000000000e+04  3.8147001646e-07
+  5.0000000000e+04  3.8147001646e-07
 
 #
-# Curve 7 - ThickShells 1
+# Curve 1 - ThickShells 1
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1723,12 +1745,12 @@
   2.5000000000e+04  0.0000000000e+00
   3.0000000000e+04  0.0000000000e+00
   3.5000000000e+04  4.7683716531e-08
-  4.0000000000e+04  0.0000000000e+00
+  4.0000000000e+04  -5.5511151231e-17
   4.5000000000e+04  4.7683716531e-08
   5.0000000000e+04  4.7683716531e-08
 
 #
-# Curve 1 - ThickShells 100
+# Curve 2 - ThickShells 6
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1736,21 +1758,21 @@
 # XY Engr Strain reference frame: global
 
 #             Time    XY Engr Strain
-# ThickShells - 100: XY Engr Strain
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  -8.8817841970e-16
-  1.5000000000e+04  -8.8817841970e-16
-  2.0000000000e+04  -1.7763568394e-15
-  2.5000000000e+04  -1.7763568394e-15
-  3.0000000000e+04  7.6294003293e-07
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  3.8147001646e-07
-  5.0000000000e+04  3.8147001646e-07
+# ThickShells - 6: XY Engr Strain
+  0.0000000000e+00  2.2204460493e-16
+  5.0000000000e+03  2.2204460493e-16
+  1.0000000000e+04  -4.4408920985e-16
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  2.7755575616e-17
+  2.5000000000e+04  -4.4408920985e-16
+  3.0000000000e+04  9.5367433062e-08
+  3.5000000000e+04  -2.2204460493e-16
+  4.0000000000e+04  9.5367433062e-08
+  4.5000000000e+04  9.5367433062e-08
+  5.0000000000e+04  -9.5367433062e-08
 
 #
-# Curve 2 - ThickShells 91
+# Curve 3 - ThickShells 10
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1758,40 +1780,18 @@
 # XY Engr Strain reference frame: global
 
 #             Time    XY Engr Strain
-# ThickShells - 91: XY Engr Strain
-  0.0000000000e+00  0.0000000000e+00
+# ThickShells - 10: XY Engr Strain
+  0.0000000000e+00  4.4408920985e-16
   5.0000000000e+03  1.9073486612e-07
   1.0000000000e+04  0.0000000000e+00
   1.5000000000e+04  -1.9073486612e-07
-  2.0000000000e+04  0.0000000000e+00
+  2.0000000000e+04  5.5511151231e-17
   2.5000000000e+04  2.3841876029e-08
-  3.0000000000e+04  0.0000000000e+00
+  3.0000000000e+04  -3.8857805862e-16
   3.5000000000e+04  1.9073486612e-07
   4.0000000000e+04  1.9073486612e-07
-  4.5000000000e+04  3.3306690739e-16
+  4.5000000000e+04  8.3266726847e-16
   5.0000000000e+04  1.6689298832e-07
-
-#
-# Curve 3 - ThickShells 56
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#             Time    XY Engr Strain
-# ThickShells - 56: XY Engr Strain
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  2.2204460493e-16
-  1.5000000000e+04  2.2204460493e-16
-  2.0000000000e+04  -2.2204460493e-16
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  2.2204460493e-16
-  3.5000000000e+04  1.9073475244e-07
-  4.0000000000e+04  -3.6415315208e-14
-  4.5000000000e+04  1.9073475244e-07
-  5.0000000000e+04  -3.8146953329e-07
 
 #
 # Curve 4 - ThickShells 51
@@ -1810,13 +1810,13 @@
   2.0000000000e+04  0.0000000000e+00
   2.5000000000e+04  0.0000000000e+00
   3.0000000000e+04  9.5367447273e-08
-  3.5000000000e+04  -2.2204460493e-16
+  3.5000000000e+04  -1.9428902931e-16
   4.0000000000e+04  9.5367447273e-08
   4.5000000000e+04  9.5367447273e-08
   5.0000000000e+04  -9.5367411745e-08
 
 #
-# Curve 5 - ThickShells 10
+# Curve 5 - ThickShells 56
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1824,21 +1824,43 @@
 # XY Engr Strain reference frame: global
 
 #             Time    XY Engr Strain
-# ThickShells - 10: XY Engr Strain
+# ThickShells - 56: XY Engr Strain
+  0.0000000000e+00  2.2204460493e-16
+  5.0000000000e+03  4.4408920985e-16
+  1.0000000000e+04  2.2204460493e-16
+  1.5000000000e+04  2.2204460493e-16
+  2.0000000000e+04  -2.2204460493e-16
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  2.2204460493e-16
+  3.5000000000e+04  1.9073475244e-07
+  4.0000000000e+04  -3.6859404418e-14
+  4.5000000000e+04  1.9073475244e-07
+  5.0000000000e+04  -3.8146953329e-07
+
+#
+# Curve 6 - ThickShells 91
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#             Time    XY Engr Strain
+# ThickShells - 91: XY Engr Strain
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  1.9073486612e-07
   1.0000000000e+04  0.0000000000e+00
   1.5000000000e+04  -1.9073486612e-07
-  2.0000000000e+04  0.0000000000e+00
+  2.0000000000e+04  5.5511151231e-17
   2.5000000000e+04  2.3841876029e-08
-  3.0000000000e+04  0.0000000000e+00
+  3.0000000000e+04  5.5511151231e-17
   3.5000000000e+04  1.9073486612e-07
   4.0000000000e+04  1.9073486612e-07
-  4.5000000000e+04  3.3306690739e-16
+  4.5000000000e+04  3.8857805862e-16
   5.0000000000e+04  1.6689298832e-07
 
 #
-# Curve 6 - ThickShells 6
+# Curve 7 - ThickShells 100
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -1846,295 +1868,42 @@
 # XY Engr Strain reference frame: global
 
 #             Time    XY Engr Strain
-# ThickShells - 6: XY Engr Strain
+# ThickShells - 100: XY Engr Strain
   0.0000000000e+00  0.0000000000e+00
   5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  5.5511151231e-17
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  9.5367433062e-08
+  1.0000000000e+04  -1.3322676296e-15
+  1.5000000000e+04  -1.3322676296e-15
+  2.0000000000e+04  -1.7763568394e-15
+  2.5000000000e+04  -1.7763568394e-15
+  3.0000000000e+04  7.6294003293e-07
   3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  9.5367433062e-08
-  4.5000000000e+04  9.5367433062e-08
-  5.0000000000e+04  -9.5367433062e-08
+  4.0000000000e+04  -4.4408920985e-16
+  4.5000000000e+04  3.8147001646e-07
+  5.0000000000e+04  3.8147001646e-07
 
 #
-# Curve 7 - ThickShells 1
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#             Time    XY Engr Strain
-# ThickShells - 1: XY Engr Strain
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  4.7683716531e-08
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  4.7683716531e-08
-  5.0000000000e+04  4.7683716531e-08
-
-#
-# Curve 1 - Node 74
+# Curve 1 - Node 1
 # Time reference surface: middle
 # Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
 #             Time  Displacement Magnitude
-# Node - 74: Displacement Magnitude
+# Node - 1: Displacement Magnitude
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  5.2659213543e-04
-  1.0000000000e+04  2.0228624344e-03
-  1.5000000000e+04  3.9894767106e-03
-  2.0000000000e+04  6.1439396814e-03
-  2.5000000000e+04  8.2651590928e-03
-  3.0000000000e+04  1.0253920220e-02
-  3.5000000000e+04  1.2068706565e-02
-  4.0000000000e+04  1.3696711510e-02
-  4.5000000000e+04  1.5135872178e-02
-  5.0000000000e+04  1.6392847523e-02
+  5.0000000000e+03  4.9083400518e-04
+  1.0000000000e+04  1.9317587139e-03
+  1.5000000000e+04  4.3690078892e-03
+  2.0000000000e+04  7.1828686632e-03
+  2.5000000000e+04  9.9241435528e-03
+  3.0000000000e+04  1.2420962565e-02
+  3.5000000000e+04  1.4680449851e-02
+  4.0000000000e+04  1.6721120104e-02
+  4.5000000000e+04  1.8537877128e-02
+  5.0000000000e+04  2.0125508308e-02
 
 #
-# Curve 2 - Node 237
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Displacement Magnitude reference state: 0
-
-#             Time  Displacement Magnitude
-# Node - 237: Displacement Magnitude
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  3.8146972656e-06
-  1.0000000000e+04  7.6293945312e-06
-  1.5000000000e+04  1.1444091797e-05
-  2.0000000000e+04  1.5258789062e-05
-  2.5000000000e+04  1.5258789062e-05
-  3.0000000000e+04  1.9073486328e-05
-  3.5000000000e+04  2.2888183594e-05
-  4.0000000000e+04  2.2888183594e-05
-  4.5000000000e+04  2.6702880859e-05
-  5.0000000000e+04  2.6702880859e-05
-
-#
-# Curve 3 - Node 236
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Displacement Magnitude reference state: 0
-
-#             Time  Displacement Magnitude
-# Node - 236: Displacement Magnitude
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  3.8146972656e-06
-  1.0000000000e+04  1.1444091797e-05
-  1.5000000000e+04  1.5258789062e-05
-  2.0000000000e+04  1.9073486328e-05
-  2.5000000000e+04  2.2888183594e-05
-  3.0000000000e+04  3.0517578125e-05
-  3.5000000000e+04  3.4332275391e-05
-  4.0000000000e+04  3.8337231672e-05
-  4.5000000000e+04  4.2134706746e-05
-  5.0000000000e+04  4.2134706746e-05
-
-#
-# Curve 4 - Node 235
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Displacement Magnitude reference state: 0
-
-#             Time  Displacement Magnitude
-# Node - 235: Displacement Magnitude
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  3.8146972656e-06
-  1.0000000000e+04  1.1444091797e-05
-  1.5000000000e+04  1.5258789062e-05
-  2.0000000000e+04  1.9073486328e-05
-  2.5000000000e+04  2.2888183594e-05
-  3.0000000000e+04  2.6702880859e-05
-  3.5000000000e+04  3.0517578125e-05
-  4.0000000000e+04  3.4332275391e-05
-  4.5000000000e+04  3.8146972656e-05
-  5.0000000000e+04  3.8146972656e-05
-
-#
-# Curve 5 - Node 234
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Displacement Magnitude reference state: 0
-
-#             Time  Displacement Magnitude
-# Node - 234: Displacement Magnitude
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  3.8146972656e-06
-  1.0000000000e+04  1.1444091797e-05
-  1.5000000000e+04  1.9073486328e-05
-  2.0000000000e+04  2.2888183594e-05
-  2.5000000000e+04  3.0517578125e-05
-  3.0000000000e+04  3.8146972656e-05
-  3.5000000000e+04  4.2004994611e-05
-  4.0000000000e+04  4.9627731642e-05
-  4.5000000000e+04  5.3439809562e-05
-  5.0000000000e+04  5.7252240367e-05
-
-#
-# Curve 6 - Node 233
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Displacement Magnitude reference state: 0
-
-#             Time  Displacement Magnitude
-# Node - 233: Displacement Magnitude
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  3.8146972656e-06
-  1.0000000000e+04  1.1444091797e-05
-  1.5000000000e+04  1.9073486328e-05
-  2.0000000000e+04  2.2888183594e-05
-  2.5000000000e+04  3.0517578125e-05
-  3.0000000000e+04  3.4332275391e-05
-  3.5000000000e+04  4.1961669922e-05
-  4.0000000000e+04  4.5776367188e-05
-  4.5000000000e+04  4.9627731642e-05
-  5.0000000000e+04  5.3439809562e-05
-
-#
-# Curve 7 - Node 232
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Displacement Magnitude reference state: 0
-
-#             Time  Displacement Magnitude
-# Node - 232: Displacement Magnitude
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  3.8146972656e-06
-  1.0000000000e+04  1.1444091797e-05
-  1.5000000000e+04  1.9073486328e-05
-  2.0000000000e+04  2.6702880859e-05
-  2.5000000000e+04  3.4332275391e-05
-  3.0000000000e+04  4.2004994611e-05
-  3.5000000000e+04  4.9627731642e-05
-  4.0000000000e+04  5.7252240367e-05
-  4.5000000000e+04  6.1064951296e-05
-  5.0000000000e+04  6.4877895056e-05
-
-#
-# Curve 8 - Node 231
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Displacement Magnitude reference state: 0
-
-#             Time  Displacement Magnitude
-# Node - 231: Displacement Magnitude
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  3.8146972656e-06
-  1.0000000000e+04  1.1444091797e-05
-  1.5000000000e+04  1.9073486328e-05
-  2.0000000000e+04  2.6702880859e-05
-  2.5000000000e+04  3.4332275391e-05
-  3.0000000000e+04  4.1961669922e-05
-  3.5000000000e+04  4.5776367188e-05
-  4.0000000000e+04  5.3405761719e-05
-  4.5000000000e+04  5.7220458984e-05
-  5.0000000000e+04  6.1035156250e-05
-
-#
-# Curve 9 - Node 230
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Displacement Magnitude reference state: 0
-
-#             Time  Displacement Magnitude
-# Node - 230: Displacement Magnitude
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  3.8146972656e-06
-  1.0000000000e+04  1.5258789062e-05
-  1.5000000000e+04  2.2888183594e-05
-  2.0000000000e+04  3.0517578125e-05
-  2.5000000000e+04  3.8146972656e-05
-  3.0000000000e+04  4.9591064453e-05
-  3.5000000000e+04  5.7220458984e-05
-  4.0000000000e+04  6.4877895056e-05
-  4.5000000000e+04  6.8691035267e-05
-  5.0000000000e+04  7.6317781350e-05
-
-#
-# Curve 10 - Node 222
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Displacement Magnitude reference state: 0
-
-#             Time  Displacement Magnitude
-# Node - 222: Displacement Magnitude
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  7.6293945312e-06
-  1.0000000000e+04  1.5258789062e-05
-  1.5000000000e+04  2.6702880859e-05
-  2.0000000000e+04  3.4332275391e-05
-  2.5000000000e+04  4.5776367188e-05
-  3.0000000000e+04  5.7220458984e-05
-  3.5000000000e+04  6.4849853516e-05
-  4.0000000000e+04  7.6293945312e-05
-  4.5000000000e+04  8.3923339844e-05
-  5.0000000000e+04  9.1552734375e-05
-
-#
-# Curve 11 - Node 72
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Displacement Magnitude reference state: 0
-
-#             Time  Displacement Magnitude
-# Node - 72: Displacement Magnitude
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  5.1650404930e-04
-  1.0000000000e+04  2.0141303539e-03
-  1.5000000000e+04  4.1030817665e-03
-  2.0000000000e+04  6.4256736077e-03
-  2.5000000000e+04  8.7055126205e-03
-  3.0000000000e+04  1.0826474987e-02
-  3.5000000000e+04  1.2757595628e-02
-  4.0000000000e+04  1.4493078925e-02
-  4.5000000000e+04  1.6030168161e-02
-  5.0000000000e+04  1.7372870818e-02
-
-#
-# Curve 12 - Node 241
-# Time reference surface: middle
-# Time reference frame: global
-# Time reference state: 0
-# Displacement Magnitude reference state: 0
-
-#             Time  Displacement Magnitude
-# Node - 241: Displacement Magnitude
-  0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  0.0000000000e+00
-  1.0000000000e+04  0.0000000000e+00
-  1.5000000000e+04  0.0000000000e+00
-  2.0000000000e+04  0.0000000000e+00
-  2.5000000000e+04  0.0000000000e+00
-  3.0000000000e+04  0.0000000000e+00
-  3.5000000000e+04  0.0000000000e+00
-  4.0000000000e+04  0.0000000000e+00
-  4.5000000000e+04  0.0000000000e+00
-  5.0000000000e+04  0.0000000000e+00
-
-#
-# Curve 13 - Node 22
+# Curve 2 - Node 22
 # Time reference surface: middle
 # Time reference frame: global
 # Time reference state: 0
@@ -2155,22 +1924,253 @@
   5.0000000000e+04  9.1552734375e-05
 
 #
-# Curve 14 - Node 1
+# Curve 3 - Node 241
 # Time reference surface: middle
 # Time reference frame: global
 # Time reference state: 0
 # Displacement Magnitude reference state: 0
 
 #             Time  Displacement Magnitude
-# Node - 1: Displacement Magnitude
+# Node - 241: Displacement Magnitude
   0.0000000000e+00  0.0000000000e+00
-  5.0000000000e+03  4.9083400518e-04
-  1.0000000000e+04  1.9317587139e-03
-  1.5000000000e+04  4.3690078892e-03
-  2.0000000000e+04  7.1828686632e-03
-  2.5000000000e+04  9.9241435528e-03
-  3.0000000000e+04  1.2420962565e-02
-  3.5000000000e+04  1.4680449851e-02
-  4.0000000000e+04  1.6721120104e-02
-  4.5000000000e+04  1.8537877128e-02
-  5.0000000000e+04  2.0125508308e-02
+  5.0000000000e+03  0.0000000000e+00
+  1.0000000000e+04  0.0000000000e+00
+  1.5000000000e+04  0.0000000000e+00
+  2.0000000000e+04  0.0000000000e+00
+  2.5000000000e+04  0.0000000000e+00
+  3.0000000000e+04  0.0000000000e+00
+  3.5000000000e+04  0.0000000000e+00
+  4.0000000000e+04  0.0000000000e+00
+  4.5000000000e+04  0.0000000000e+00
+  5.0000000000e+04  0.0000000000e+00
+
+#
+# Curve 4 - Node 72
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#             Time  Displacement Magnitude
+# Node - 72: Displacement Magnitude
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  5.1650404930e-04
+  1.0000000000e+04  2.0141303539e-03
+  1.5000000000e+04  4.1030817665e-03
+  2.0000000000e+04  6.4256736077e-03
+  2.5000000000e+04  8.7055126205e-03
+  3.0000000000e+04  1.0826474987e-02
+  3.5000000000e+04  1.2757595628e-02
+  4.0000000000e+04  1.4493078925e-02
+  4.5000000000e+04  1.6030168161e-02
+  5.0000000000e+04  1.7372870818e-02
+
+#
+# Curve 5 - Node 222
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#             Time  Displacement Magnitude
+# Node - 222: Displacement Magnitude
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  7.6293945312e-06
+  1.0000000000e+04  1.5258789062e-05
+  1.5000000000e+04  2.6702880859e-05
+  2.0000000000e+04  3.4332275391e-05
+  2.5000000000e+04  4.5776367188e-05
+  3.0000000000e+04  5.7220458984e-05
+  3.5000000000e+04  6.4849853516e-05
+  4.0000000000e+04  7.6293945312e-05
+  4.5000000000e+04  8.3923339844e-05
+  5.0000000000e+04  9.1552734375e-05
+
+#
+# Curve 6 - Node 230
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#             Time  Displacement Magnitude
+# Node - 230: Displacement Magnitude
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  3.8146972656e-06
+  1.0000000000e+04  1.5258789062e-05
+  1.5000000000e+04  2.2888183594e-05
+  2.0000000000e+04  3.0517578125e-05
+  2.5000000000e+04  3.8146972656e-05
+  3.0000000000e+04  4.9591064453e-05
+  3.5000000000e+04  5.7220458984e-05
+  4.0000000000e+04  6.4877895056e-05
+  4.5000000000e+04  6.8691035267e-05
+  5.0000000000e+04  7.6317781350e-05
+
+#
+# Curve 7 - Node 231
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#             Time  Displacement Magnitude
+# Node - 231: Displacement Magnitude
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  3.8146972656e-06
+  1.0000000000e+04  1.1444091797e-05
+  1.5000000000e+04  1.9073486328e-05
+  2.0000000000e+04  2.6702880859e-05
+  2.5000000000e+04  3.4332275391e-05
+  3.0000000000e+04  4.1961669922e-05
+  3.5000000000e+04  4.5776367188e-05
+  4.0000000000e+04  5.3405761719e-05
+  4.5000000000e+04  5.7220458984e-05
+  5.0000000000e+04  6.1035156250e-05
+
+#
+# Curve 8 - Node 232
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#             Time  Displacement Magnitude
+# Node - 232: Displacement Magnitude
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  3.8146972656e-06
+  1.0000000000e+04  1.1444091797e-05
+  1.5000000000e+04  1.9073486328e-05
+  2.0000000000e+04  2.6702880859e-05
+  2.5000000000e+04  3.4332275391e-05
+  3.0000000000e+04  4.2004994611e-05
+  3.5000000000e+04  4.9627731642e-05
+  4.0000000000e+04  5.7252240367e-05
+  4.5000000000e+04  6.1064951296e-05
+  5.0000000000e+04  6.4877895056e-05
+
+#
+# Curve 9 - Node 233
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#             Time  Displacement Magnitude
+# Node - 233: Displacement Magnitude
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  3.8146972656e-06
+  1.0000000000e+04  1.1444091797e-05
+  1.5000000000e+04  1.9073486328e-05
+  2.0000000000e+04  2.2888183594e-05
+  2.5000000000e+04  3.0517578125e-05
+  3.0000000000e+04  3.4332275391e-05
+  3.5000000000e+04  4.1961669922e-05
+  4.0000000000e+04  4.5776367188e-05
+  4.5000000000e+04  4.9627731642e-05
+  5.0000000000e+04  5.3439809562e-05
+
+#
+# Curve 10 - Node 234
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#             Time  Displacement Magnitude
+# Node - 234: Displacement Magnitude
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  3.8146972656e-06
+  1.0000000000e+04  1.1444091797e-05
+  1.5000000000e+04  1.9073486328e-05
+  2.0000000000e+04  2.2888183594e-05
+  2.5000000000e+04  3.0517578125e-05
+  3.0000000000e+04  3.8146972656e-05
+  3.5000000000e+04  4.2004994611e-05
+  4.0000000000e+04  4.9627731642e-05
+  4.5000000000e+04  5.3439809562e-05
+  5.0000000000e+04  5.7252240367e-05
+
+#
+# Curve 11 - Node 235
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#             Time  Displacement Magnitude
+# Node - 235: Displacement Magnitude
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  3.8146972656e-06
+  1.0000000000e+04  1.1444091797e-05
+  1.5000000000e+04  1.5258789062e-05
+  2.0000000000e+04  1.9073486328e-05
+  2.5000000000e+04  2.2888183594e-05
+  3.0000000000e+04  2.6702880859e-05
+  3.5000000000e+04  3.0517578125e-05
+  4.0000000000e+04  3.4332275391e-05
+  4.5000000000e+04  3.8146972656e-05
+  5.0000000000e+04  3.8146972656e-05
+
+#
+# Curve 12 - Node 236
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#             Time  Displacement Magnitude
+# Node - 236: Displacement Magnitude
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  3.8146972656e-06
+  1.0000000000e+04  1.1444091797e-05
+  1.5000000000e+04  1.5258789062e-05
+  2.0000000000e+04  1.9073486328e-05
+  2.5000000000e+04  2.2888183594e-05
+  3.0000000000e+04  3.0517578125e-05
+  3.5000000000e+04  3.4332275391e-05
+  4.0000000000e+04  3.8337231672e-05
+  4.5000000000e+04  4.2134706746e-05
+  5.0000000000e+04  4.2134706746e-05
+
+#
+# Curve 13 - Node 237
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#             Time  Displacement Magnitude
+# Node - 237: Displacement Magnitude
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  3.8146972656e-06
+  1.0000000000e+04  7.6293945312e-06
+  1.5000000000e+04  1.1444091797e-05
+  2.0000000000e+04  1.5258789062e-05
+  2.5000000000e+04  1.5258789062e-05
+  3.0000000000e+04  1.9073486328e-05
+  3.5000000000e+04  2.2888183594e-05
+  4.0000000000e+04  2.2888183594e-05
+  4.5000000000e+04  2.6702880859e-05
+  5.0000000000e+04  2.6702880859e-05
+
+#
+# Curve 14 - Node 74
+# Time reference surface: middle
+# Time reference frame: global
+# Time reference state: 0
+# Displacement Magnitude reference state: 0
+
+#             Time  Displacement Magnitude
+# Node - 74: Displacement Magnitude
+  0.0000000000e+00  0.0000000000e+00
+  5.0000000000e+03  5.2659213543e-04
+  1.0000000000e+04  2.0228624344e-03
+  1.5000000000e+04  3.9894767106e-03
+  2.0000000000e+04  6.1439396814e-03
+  2.5000000000e+04  8.2651590928e-03
+  3.0000000000e+04  1.0253920220e-02
+  3.5000000000e+04  1.2068706565e-02
+  4.0000000000e+04  1.3696711510e-02
+  4.5000000000e+04  1.5135872178e-02
+  5.0000000000e+04  1.6392847523e-02
