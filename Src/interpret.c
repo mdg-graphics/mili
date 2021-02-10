@@ -7911,13 +7911,10 @@ parse_single_command( char *buf, Analysis *analy )
 		}
 		else if( strcmp( tokens[0], "outpnga" ) == 0 )
 		{
-			popup_dialog( WARNING_POPUP, " Alpha channel output not supported " );
+			pushpop_window( PUSHPOP_ABOVE );
 			if ( token_cnt > 1 )
-				/*
-				 *  Change the FALSE to TRUE when problem with Alpha Channel in PNG
-				 * files is fixed
-				 */
-				write_PNG_file( tokens[1], FALSE, png_compression_level );
+                // TRUE is set for alpha channel
+				write_PNG_file( tokens[1], TRUE, png_compression_level );
 			else
 				popup_dialog( USAGE_POPUP, "outpnga <filename>" );
 		}
