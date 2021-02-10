@@ -2517,6 +2517,11 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                  * process the range.
                  */
                 range_stop = atoi( tokens[i] ) ;
+                /*
+                 * We have already processed range_start, so start this range
+                 * at label_index+1
+                 */
+                range_start = label_index+1;
                 add_mo_nodes( &so_list, p_class, range_start,
                               range_stop );
                 o_ident = NON_IDENT;
@@ -2555,7 +2560,6 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
             if ( p_class != NULL && o_ident != NON_IDENT )
             {
                 parsing_range = TRUE;
-                range_start = label_index +1;
             }
             break;
 
@@ -2571,8 +2575,22 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                      * of the range here.
                      */
                     range_stop = atoi( nstr );
-                    add_mo_nodes( &so_list, p_class, o_ident ,
-                                  range_stop );
+                    /* 
+                     * Use label_index+1 because we have already processed
+                     * the range_start in a previous token and we do not want
+                     * process it a second time.
+                     */
+                    if ( o_ident != NON_IDENT )
+                        add_mo_nodes( &so_list, p_class, label_index+1,
+                                      range_stop );
+                    else
+                        /*
+                         * This condition is here to handle case when just
+                         * -range_stop is entered so that Griz doesn't crash
+                         */
+                        add_mo_nodes( &so_list, p_class, o_ident,
+                                      range_stop );
+
                     o_ident = NON_IDENT;
                 }
                 else if ( p_class != NULL )
