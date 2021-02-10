@@ -17012,7 +17012,7 @@ write_JPEG_file( char *filename, Bool_type alpha_flag, int quality )
  */
 
 int
-write_PNG_file( char *filename, Bool_type alpha )
+write_PNG_file( char *filename, Bool_type alpha, int compression_level )
 {
     FILE          *png_file;
     png_structp   png_ptr = NULL;
@@ -17071,7 +17071,7 @@ write_PNG_file( char *filename, Bool_type alpha )
 
 
     /* set the zlib compression level */
-    png_set_compression_level(png_ptr, Z_DEFAULT_COMPRESSION);
+    png_set_compression_level(png_ptr, compression_level);
     png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
 
     bit_depth = 8;

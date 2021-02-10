@@ -311,6 +311,14 @@ typedef struct _Surface_property_obj
 int jpeg_quality = 75;
 #endif
 
+#ifdef PNG_SUPPORT
+/*****************************************************************
+ * TAG( PNG global variable initialization )
+ *
+ */
+int png_compression_level = -1; // Z_DEFAULT_COMPRESSION from zlib
+#endif
+
 char *griz_home=NULL;
 
 static char last_command[LASTCMD] = "\n";
@@ -7897,7 +7905,7 @@ parse_single_command( char *buf, Analysis *analy )
 		{
 			pushpop_window( PUSHPOP_ABOVE );
 			if ( token_cnt > 1 )
-				write_PNG_file( tokens[1], FALSE );
+				write_PNG_file( tokens[1], FALSE, png_compression_level );
 			else
 				popup_dialog( USAGE_POPUP, "outpng <filename>" );
 		}
@@ -7905,10 +7913,30 @@ parse_single_command( char *buf, Analysis *analy )
 		{
 			pushpop_window( PUSHPOP_ABOVE );
 			if ( token_cnt > 1 )
-				write_PNG_file( tokens[1], TRUE );
+                // TRUE is set for alpha channel
+				write_PNG_file( tokens[1], TRUE, png_compression_level );
 			else
 				popup_dialog( USAGE_POPUP, "outpnga <filename>" );
 		}
+        else if ( strcmp ( tokens[0], "pngcomp" ) == 0 )
+        {
+            if ( token_cnt > 1 )
+            {
+                int compression_level = strtod( tokens[1], (char**)NULL );
+                if ( compression_level < 0 || compression_level > 9 || compression_level != floor(compression_level) )
+                {
+                    // If requested compressiont level not in valid range, don't change
+                    wrt_text("\n\n%s\n", "Invalid PNG compression level selected. Valid compression levels are 0-9");
+                }
+                else
+                {
+                    png_compression_level = compression_level;
+                    wrt_text("\n\n%s %d\n", "PNG compression level set to", png_compression_level);
+                }
+            }
+            else
+                popup_dialog( USAGE_POPUP, "pngcomp <compression level>\nAvailable compression levels: 0-9" );
+        }
 	#endif
 	#ifdef JPEG_SUPPORT
 		else if ( strcmp( tokens[0], "outjpeg" ) == 0 ||
