@@ -2546,7 +2546,7 @@ build_object_list( int token_qty, char tokens[][TOKENLENGTH],
                     if(p_so->ident == M_INVALID_LABEL)
                     {
                         free(p_so);
-                        continue;
+                        break;
                     }
                  
                 }
