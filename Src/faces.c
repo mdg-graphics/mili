@@ -5568,7 +5568,7 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
         return 0;
     }
 
-    if ( !find_only && near_num >= 0 )
+    if ( near_num >= 0 )
     {
         /* Translate index into a label number */
         node_near_num = near_num;
@@ -5596,19 +5596,21 @@ select_item( MO_class_data *p_mo_class, int posx, int posy, Bool_type find_only,
 
     if ( near_num<=0 )
         return near_num;
-
-    /* Hilite or select the picked element or node. */
-
-    if ( analy->mouse_mode == MOUSE_HILITE )
+    
+    if ( !find_only )
     {
-        sprintf( comstr, "hilite %s %d", p_mo_class->short_name, near_num );
-    }
-    else if ( analy->mouse_mode == MOUSE_SELECT )
-    {
-        sprintf( comstr, "select %s %d", p_mo_class->short_name, near_num );
-    }
+        /* Hilite or select the picked element or node. */
+        if ( analy->mouse_mode == MOUSE_HILITE )
+        {
+            sprintf( comstr, "hilite %s %d", p_mo_class->short_name, near_num );
+        }
+        else if ( analy->mouse_mode == MOUSE_SELECT )
+        {
+            sprintf( comstr, "select %s %d", p_mo_class->short_name, near_num );
+        }
 
-    parse_command( comstr, env.curr_analy );
+        parse_command( comstr, env.curr_analy );
+    }
 
     return near_num;
 }

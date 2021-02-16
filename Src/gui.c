@@ -7315,14 +7315,6 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     parse_command( str, analy );
 
                     ident--;
-
-                    if ( IS_ELEMENT_SCLASS( p_class->superclass ) )
-                        select_mtl_mgr_mtl(
-                            p_class->objects.elems->mat[ident] );
-                    else
-                        popup_dialog( INFO_POPUP,
-                                      "To select a material, please\n%s",
-                                      "pick an element of the material." );
                 }
         }
         else
