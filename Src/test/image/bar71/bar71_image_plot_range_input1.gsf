@@ -1,0 +1,4 @@
+# Tests griz plotting ranges of elements when range is oddly formatted
+state 20
+plot sx brick 2 -8
+outjpeg bar71_image_plot_range_input1.answ.jpg

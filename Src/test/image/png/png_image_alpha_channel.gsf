@@ -1,0 +1,7 @@
+
+# Name: png_image_alpha_channel
+# Tests outputting a png with alpha channel "outpnga"
+
+state 20
+
+outpnga png_image_alpha_channel.answ.png

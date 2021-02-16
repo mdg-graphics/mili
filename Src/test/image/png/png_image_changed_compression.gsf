@@ -1,0 +1,7 @@
+
+# Name: png_image_changed_compression
+# Tests "pngcomp" and "outpng" command
+
+state 20
+pngcomp 4
+outpng png_image_changed_compression.answ.png

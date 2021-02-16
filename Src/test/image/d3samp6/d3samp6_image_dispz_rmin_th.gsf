@@ -1,0 +1,9 @@
+
+# Tests plotting dispz when rmin is set
+
+state 20
+select node 10 11 12
+rmin -0.06
+show dispz
+plot
+outjpeg d3samp6_image_dispz_rmin_th.answ.jpg
