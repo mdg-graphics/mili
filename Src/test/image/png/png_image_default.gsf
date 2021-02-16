@@ -1,0 +1,6 @@
+
+# Name: png_image_default
+# Tests default "outpng" command
+
+state 20
+outpng png_image_default.answ.png

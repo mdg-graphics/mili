@@ -1,0 +1,9 @@
+
+# Tests plotting dispz when rmax is set
+
+state 20
+select node 10 11 12
+rmax -0.08
+show dispz
+plot
+outjpeg d3samp6_image_dispz_rmax_th.answ.jpg
