@@ -187,9 +187,7 @@ case $system in
       elif [ -f /usr/share/lmod/lmod/init/bash ]; then
          . /usr/share/lmod/lmod/init/bash
          export MODULEPATH="/usr/tce/modulefiles/Compiler:/usr/tce/modulefiles/Core:$MODULEPATH"
-      fi
-      # This gets rid of the Gl error message on startup
-      module load nvidia ;;
+      fi ;;
    chaos_5*)
       if test batch = "yes"
       then
