@@ -15836,7 +15836,8 @@ draw_free_nodes( Analysis *analy )
                      *p_node_class=NULL,
                       *p_mo_class=NULL,
                        *p_ml_class=NULL,
-                        **mo_classes;
+                        **p_ml_classes=NULL,
+                         **mo_classes;
 
     Mesh_data     *p_mesh;
 
@@ -15945,6 +15946,7 @@ draw_free_nodes( Analysis *analy )
     free_nodes_elem_list = NEW_N( int,   num_nodes, "free_nodes_elem_list" );
     part_nodes_list      = NEW_N( int,   num_nodes, "part_nodes_list" );
     part_nodes_result    = NEW_N( Bool_type, num_nodes, "part_nodes_result" );
+    p_ml_classes         = NEW_N( MO_class_data*, num_nodes, "p_ml_classes");
 
     if ( analy->free_nodes_list==NULL && analy->free_nodes_vals==NULL )
     {
@@ -15959,9 +15961,8 @@ draw_free_nodes( Analysis *analy )
         free_nodes_list[i]      = 0;
         free_nodes_elem_list[i] = 0;
         part_nodes_list[i]      = -1;
-        part_nodes_result[i]    = TRUE;   /* Set to FALSE if current result is not
-                        * valid for this node.
-                        */
+        part_nodes_result[i]    = TRUE;   /* Set to FALSE if current result is not valid for this node. */
+        p_ml_classes[i]         = NULL;
         analy->free_nodes_list[i] = FALSE;
         analy->free_nodes_vals[i] = 0.0;
     }
@@ -16167,17 +16168,19 @@ draw_free_nodes( Analysis *analy )
                         }
 
                     if (particle_node_found)
+                    {
+                        part_nodes_found = TRUE;
                         for ( l = 0;
                                 l < conn_qty;
                                 l++ )
                         {
                             nd = connects[k * node_qty + l];
-
-                            part_nodes_found         = TRUE;
                             part_nodes_list[nd]      = mat_num;
                             free_nodes_elem_list[nd] = k;
                             part_nodes_result[nd]    = show_result;
-                        } /* End For on l */
+                            p_ml_classes[nd] = p_ml_class;
+                        }
+                    }
                 }
             }
         }
@@ -16319,10 +16322,10 @@ draw_free_nodes( Analysis *analy )
 
         if (data_array!=NULL && colorflag)
         {
-            if ( p_ml_class )
+            if ( p_ml_classes[node_index] )
             {
                 int j;
-                val = get_ml_result( analy, p_ml_class, elem_id, &result_defined );
+                val = get_ml_result( analy, p_ml_classes[node_index], elem_id, &result_defined );
                 for(i = 0; i < MESH(analy).qty_class_selections; i++)
                 {
                     if(!strcmp(p_ml_class->short_name, MESH(analy).by_class_select[i].p_class->short_name))
@@ -16542,6 +16545,7 @@ draw_free_nodes( Analysis *analy )
         glDeleteLists( display_list, 1 );
     }
 
+    free(p_ml_classes);
     free(free_nodes_list);
     free(free_nodes_elem_list);
     free(free_nodes_mass);
