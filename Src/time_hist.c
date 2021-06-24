@@ -6490,6 +6490,18 @@ draw_plots( Analysis *analy )
                 for ( j = start_state; j < limit_state; j++ )
                 {
                     end_curve = FALSE;
+
+                    if ( analy->mm_time_set[0] && ab_data[j] < analy->time_mm[0] )
+                        end_curve = TRUE;
+                    if ( analy->mm_time_set[1] && ab_data[j] > analy->time_mm[1] )
+                        end_curve = TRUE;
+                    if ( end_curve)
+                    {
+                        glEnd();
+                        glBegin( GL_LINE_STRIP );
+                        continue;
+                    }
+
                     if ( analy->mm_result_set[0] && ord_data[j]<analy->result_mm[0] )
                     {
                         /*
@@ -6500,22 +6512,29 @@ draw_plots( Analysis *analy )
                         if ( j > start_state )
                         {
                             // If previous point was above rmin, need to plot line down to rmin
-                            if ( ord_data[j-1] > analy->result_mm[0] )
+                            if ( ord_data[j-1] > analy->result_mm[0] && !(analy->mm_time_set[0] && ab_data[j-1] < analy->time_mm[0]) )
                             {
+                                //convert current point and previous point to screent coordinates
+                                float prev_x, prev_y, curr_x, curr_y, rmin_val_y;
+
+                                prev_x = win_x_min + win_x_span * (ab_data[j-1] - ax_x_min) / ax_x_span;
+                                prev_y = win_y_min + win_y_span * (ord_data[j-1] - ax_y_min) / ax_y_span;
+                                curr_x = win_x_min + win_x_span * (ab_data[j] - ax_x_min) / ax_x_span;
+                                curr_y = win_y_min + win_y_span * (ord_data[j] - ax_y_min) / ax_y_span;
+                                rmin_val_y = win_y_min + win_y_span * (analy->result_mm[0] - ax_y_min) / ax_y_span;
+
                                 //Find x coordinate where line intersects with y=rmin 
-                                float adjacent = fabs(ord_data[j-1] - ord_data[j]);
-                                float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+                                float adjacent = fabs(prev_y - curr_y);
+                                float opposite  = fabs(prev_x - curr_x);
 
                                 //tan(angle) = opposite / adjacent
                                 float angle = atan( opposite / adjacent );
 
-                                float new_height = ord_data[j-1] - analy->result_mm[0];
-                                float x_distance = new_height * tan(angle);
+                                float new_height = prev_y - rmin_val_y;
+                                float x_shift = new_height * tan(angle);
 
-                                pos[0] =  win_x_min + win_x_span * ((ab_data[j-1]+x_distance) - ax_x_min)
-                                         / ax_x_span;
-                                pos[1] =  win_y_min + win_y_span * (analy->result_mm[0] - ax_y_min)
-                                             / ax_y_span;
+                                pos[0] = prev_x + x_shift;
+                                pos[1] = rmin_val_y;
 
                                 glVertex3fv( pos );
                             }
@@ -6528,25 +6547,36 @@ draw_plots( Analysis *analy )
                          * If rmin is set and the previous point was below rmin,
                          * then plot from rmin to current point
                          *
+                         * Also make sure previous state was not below tmin
                          */
-                        //Find x coordinate where line intersects with y=rmin 
-                        float adjacent = fabs(ord_data[j-1] - ord_data[j]);
-                        float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+                        if ( !(analy->mm_time_set[0] && ab_data[j-1] < analy->time_mm[0]) )
+                        {
+                            //convert current point and previous point to screent coordinates
+                            float prev_x, prev_y, curr_x, curr_y, rmin_val_y;
 
-                        //tan(angle) = opposite / adjacent
-                        float angle = atan( opposite / adjacent );
+                            prev_x = win_x_min + win_x_span * (ab_data[j-1] - ax_x_min) / ax_x_span;
+                            prev_y = win_y_min + win_y_span * (ord_data[j-1] - ax_y_min) / ax_y_span;
+                            curr_x = win_x_min + win_x_span * (ab_data[j] - ax_x_min) / ax_x_span;
+                            curr_y = win_y_min + win_y_span * (ord_data[j] - ax_y_min) / ax_y_span;
+                            rmin_val_y = win_y_min + win_y_span * (analy->result_mm[0] - ax_y_min) / ax_y_span;
 
-                        float new_height = ord_data[j] - analy->result_mm[0];
-                        float x_distance = new_height * tan(angle);
+                            //Find x coordinate where line intersects with y=rmin 
+                            float adjacent = fabs(prev_y - curr_y);
+                            float opposite  = fabs(prev_x - curr_x);
 
-                        pos[0] =  win_x_min + win_x_span * ((ab_data[j]-x_distance) - ax_x_min)
-                                 / ax_x_span;
-                        pos[1] =  win_y_min + win_y_span * (analy->result_mm[0] - ax_y_min)
-                                     / ax_y_span;
+                            //tan(angle) = opposite / adjacent
+                            float angle = atan( opposite / adjacent );
 
-                        glVertex3fv( pos );
+                            float new_height = curr_y - rmin_val_y;
+                            float x_shift = new_height * tan(angle);
 
+                            pos[0] = curr_x - x_shift;
+                            pos[1] = rmin_val_y;
+
+                            glVertex3fv( pos );
+                        }
                     }
+
                     if ( analy->mm_result_set[1] && ord_data[j]>analy->result_mm[1] )
                     {
                         /*
@@ -6556,22 +6586,29 @@ draw_plots( Analysis *analy )
                          */
                         if ( j > start_state )
                         {
-                            if ( ord_data[j-1] < analy->result_mm[1] )
+                            if ( ord_data[j-1] < analy->result_mm[1] && !(analy->mm_time_set[0] && ab_data[j-1] < analy->time_mm[0]) )
                             {
-                                //Find x coordinate where line intersects with y=rmax
-                                float adjacent = fabs(ord_data[j-1] - ord_data[j]);
-                                float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+                                //convert current point and previous point to screent coordinates
+                                float prev_x, prev_y, curr_x, curr_y, rmax_val_y;
+
+                                prev_x = win_x_min + win_x_span * (ab_data[j-1] - ax_x_min) / ax_x_span;
+                                prev_y = win_y_min + win_y_span * (ord_data[j-1] - ax_y_min) / ax_y_span;
+                                curr_x = win_x_min + win_x_span * (ab_data[j] - ax_x_min) / ax_x_span;
+                                curr_y = win_y_min + win_y_span * (ord_data[j] - ax_y_min) / ax_y_span;
+                                rmax_val_y = win_y_min + win_y_span * (analy->result_mm[1] - ax_y_min) / ax_y_span;
+
+                                //Find x coordinate where line intersects with y=rmin 
+                                float adjacent = fabs(prev_y - curr_y);
+                                float opposite  = fabs(prev_x - curr_x);
 
                                 //tan(angle) = opposite / adjacent
                                 float angle = atan( opposite / adjacent );
                                 
-                                float new_height = ord_data[j] - analy->result_mm[1];
-                                float x_distance = new_height * tan(angle);
+                                float new_height = curr_y - rmax_val_y;
+                                float x_shift = new_height * tan(angle);
 
-                                pos[0] =  win_x_min + win_x_span * ((ab_data[j]-x_distance) - ax_x_min)
-                                         / ax_x_span;
-                                pos[1] =  win_y_min + win_y_span * (analy->result_mm[1] - ax_y_min)
-                                             / ax_y_span;
+                                pos[0] = curr_x - x_shift;
+                                pos[1] = rmax_val_y;
 
                                 glVertex3fv( pos );
                                 
@@ -6584,28 +6621,37 @@ draw_plots( Analysis *analy )
                         /*
                          * If rmax is set and the previous point was above rmax,
                          * then plot from rmax down to current point
+                         *
+                         * Also check that previous point is not below tmin
                          */
-                        //Find x coordinate where line intersects with y=rmax
-                        float adjacent = fabs(ord_data[j-1] - ord_data[j]);
-                        float opposite  = fabs(ab_data[j-1] - ab_data[j]);
+                        if ( !(analy->mm_time_set[0] && ab_data[j-1] < analy->time_mm[0]) )
+                        {
+                            //convert current point and previous point to screent coordinates
+                            float prev_x, prev_y, curr_x, curr_y, rmax_val_y;
 
-                        //tan(angle) = opposite / adjacent
-                        float angle = atan( opposite / adjacent );
+                            prev_x = win_x_min + win_x_span * (ab_data[j-1] - ax_x_min) / ax_x_span;
+                            prev_y = win_y_min + win_y_span * (ord_data[j-1] - ax_y_min) / ax_y_span;
+                            curr_x = win_x_min + win_x_span * (ab_data[j] - ax_x_min) / ax_x_span;
+                            curr_y = win_y_min + win_y_span * (ord_data[j] - ax_y_min) / ax_y_span;
+                            rmax_val_y = win_y_min + win_y_span * (analy->result_mm[1] - ax_y_min) / ax_y_span;
 
-                        float new_height = ord_data[j-1] - analy->result_mm[1];
-                        float x_distance = new_height * tan(angle);
+                            //Find x coordinate where line intersects with y=rmin 
+                            float adjacent = fabs(prev_y - curr_y);
+                            float opposite  = fabs(prev_x - curr_x);
 
-                        pos[0] =  win_x_min + win_x_span * ((ab_data[j-1]+x_distance) - ax_x_min)
-                                 / ax_x_span;
-                        pos[1] =  win_y_min + win_y_span * (analy->result_mm[1] - ax_y_min)
-                                     / ax_y_span;
+                            //tan(angle) = opposite / adjacent
+                            float angle = atan( opposite / adjacent );
+                            
+                            float new_height = prev_y - rmax_val_y;
+                            float x_shift = new_height * tan(angle);
 
-                        glVertex3fv( pos );
+                            pos[0] = prev_x + x_shift;
+                            pos[1] = rmax_val_y;
+
+                            glVertex3fv( pos );
+                        }
                     }
-                    if ( analy->mm_time_set[0] && ab_data[j]<=analy->time_mm[0] )
-                        end_curve = TRUE;
-                    if ( analy->mm_time_set[1] && ab_data[j]>=analy->time_mm[1] )
-                        end_curve = TRUE;
+
                     if ( end_curve)
                     {
                         glEnd();
@@ -6622,6 +6668,7 @@ draw_plots( Analysis *analy )
                     glVertex3fv( pos );
                 }
             else
+            {
                 for ( j = start_state; j < limit_state; j++ )
                 {
                     if ( analy->mm_result_set[0] && ord_data[j]<analy->result_mm[0] )
@@ -6641,7 +6688,7 @@ draw_plots( Analysis *analy )
                              / ax_y_span;
                     glVertex3fv( pos );
                 }
-
+            }
             glEnd();
 
             /* Loop over block again to draw glyphs. */
