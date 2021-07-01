@@ -17652,7 +17652,7 @@ is_particle_class( Analysis *analy, int superclass, char *class_name )
                 !strcmp( short_name_upper, "PARTICLE_ELEM" )  ||
                 !strcmp( short_name_upper, "ML" )             ||
                 !strncmp( short_name_upper, "SPH", 3 )        ||
-                (!strncmp( short_name_upper, "DBC", 3 ) && superclass != G_QUAD ))
+                (!strncmp( short_name_upper, "DBC", 3 ) && superclass != G_QUAD && superclass != G_BEAM ))
             return ( TRUE );
         return ( FALSE );
     }
