@@ -1568,7 +1568,7 @@ particle_to_nodal( float *val_part, float *val_nodal, MO_class_data *p_part_clas
         if ( val_part[part_id] > mm_val[1] )
         {
             mm_val[1]   = val_part[part_id];
-            el_id[1]    = part_id + 1;
+            el_id[1]    = part_id;
             classes[1]  = p_part_class->long_name;
             sclasses[1] = p_part_class->superclass;
         }
