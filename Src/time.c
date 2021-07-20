@@ -472,7 +472,16 @@ parse_animate_command( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH],
         anim_info.interpolate = FALSE;
         anim_info.cur_state = min_state;
         anim_info.last_state = max_state;
-        anim_info.delay = 0;
+
+        if(env.direct_rendering) {
+            /* When using direct rendering, add 80 milisecond delay between animation steps
+             * so that each state in rendered.
+             */
+            anim_info.delay = 80 * 1000;
+        }
+        else {
+            anim_info.delay = 0;
+        }
     }
     else if ( token_cnt == 2 || token_cnt == 4 )
     {

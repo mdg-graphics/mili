@@ -13598,7 +13598,12 @@ screen_to_memory( Bool_type save_alpha, int xsize, int ysize,
         return;
     }
 
-    glReadBuffer( GL_FRONT );
+    if(env.direct_rendering) {
+        glReadBuffer( GL_BACK );
+    }
+    else {
+        glReadBuffer( GL_FRONT );
+    }
 
     if ( save_alpha )
         glReadPixels( 0, 0, xsize, ysize, GL_RGBA, GL_UNSIGNED_BYTE, ipdat );
