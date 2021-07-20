@@ -1168,6 +1168,10 @@ gui_start( int argc, char **argv , Analysis *analy )
     /* Create an OpenGL rendering context. */
     render_ctx = glXCreateContext( dpy, vi, None, GL_TRUE );
 
+    /* Check if direct or indirect rendering context */
+    Bool_type isDirectRendering = glXIsDirect(dpy, render_ctx);
+    env.direct_rendering = isDirectRendering;
+
     if ( render_ctx == NULL )
         popup_fatal( "Could not create rendering context.\n" );
 

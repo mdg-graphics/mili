@@ -1818,6 +1818,12 @@ typedef struct
     Bool_type single_buffer;
     Bool_type foreground;
 
+    /* True if glx context uses direct render, false if indirect rendering
+     * This is basically checking if we are running on VNC, VNC uses direct rendering
+     * while Xwin32 uses indirect rendering.
+     */
+    Bool_type direct_rendering; 
+
     /*
      * Added January 5, 2005: IRC - Variable used for selecting a beta
      * version of the code to run.
