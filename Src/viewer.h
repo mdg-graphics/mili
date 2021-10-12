@@ -1184,6 +1184,8 @@ typedef struct _Analysis
     float beam_zbias;
 
     Bool_type z_buffer_lines;
+    float z_poly_offset;
+    float z_poly_last;
 
     Bool_type show_edges, show_edges_vec, hide_edges_by_mat;
     float edge_width;
