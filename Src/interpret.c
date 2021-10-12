@@ -2170,6 +2170,48 @@ parse_single_command( char *buf, Analysis *analy )
 					analy->reflect = setval;
 				else if ( strcmp( tokens[i], "cull" ) == 0 )
 					analy->manual_backface_cull = setval;
+				else if ( strcmp( tokens[i], "defz") == 0 )
+				{
+					if ( setval )
+					{
+						analy->z_poly_last = analy->z_poly_offset;
+						analy->z_poly_offset = 0.0;
+					}
+					else
+					{
+						val = analy->z_poly_offset;
+						analy->z_poly_offset = analy->z_poly_last;
+						analy->z_poly_last = val;
+					}
+				}
+				else if ( strcmp( tokens[i], "polyz") == 0 )
+				{
+					if ( setval )
+					{
+						analy->z_poly_last = analy->z_poly_offset;
+						analy->z_poly_offset = -1.0;
+					}
+					else 
+					{
+						val = analy->z_poly_offset;
+						analy->z_poly_offset = analy->z_poly_last;
+						analy->z_poly_last = val;
+					}
+				}
+				else if ( strcmp( tokens[i], "volz") == 0 )
+				{
+					if ( setval )
+					{
+						analy->z_poly_last = analy->z_poly_offset;
+						analy->z_poly_offset = 1.0;
+					}
+					else 
+					{
+						val = analy->z_poly_offset;
+						analy->z_poly_offset = analy->z_poly_last;
+						analy->z_poly_last = val;
+					}
+				}
 				else if ( strcmp( tokens[i], "refsrf" ) == 0 )
 					analy->show_ref_polys = setval;
 				else if ( strcmp( tokens[i], "refres" ) == 0 )

@@ -4134,19 +4134,29 @@ draw_grid( Analysis *analy )
         draw_tets( show_node_result, show_mat_result, show_mesh_result,
                    mo_classes[i], analy );
 
+    glEnable( GL_POLYGON_OFFSET_FILL );
+
     /* Quad element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_QUAD].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
     for ( i = 0; i < qty_classes; i++ )
+    {
+        glPolygonOffset( analy->z_poly_offset * ( i + 1 ), analy->z_poly_offset * ( i + 1 ) );
         draw_quads_3d( show_node_result, show_mat_result, show_mesh_result,
                        mo_classes[i], analy );
+        glPolygonOffset( 0.0, 0.0 );
+    }
 
     /* Tri element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_TRI].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRI].list;
     for ( i = 0; i < qty_classes; i++ )
+    {
+        glPolygonOffset( analy->z_poly_offset * ( i + 1 ), analy->z_poly_offset * ( i + 1 ) );
         draw_tris_3d( show_node_result, show_mat_result, show_mesh_result,
                       mo_classes[i], analy );
+        glPolygonOffset( 0.0, 0.0 );
+    }
 
     /* Pyramid element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_PYRAMID].qty;
@@ -4185,14 +4195,17 @@ draw_grid( Analysis *analy )
                                        v_win->surfaces.current_index );
     }
 
-
     /* Surface element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_SURFACE].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_SURFACE].list;
     for ( i = 0; i < qty_classes; i++ )
+    {
+        glPolygonOffset( analy->z_poly_offset * ( i + 1 ), analy->z_poly_offset * ( i + 1 ) );
         draw_surfaces_3d( v_win->current_color_property,
                           show_node_result, show_surf_result, show_mesh_result,
                           mo_classes[ i ], analy );
+        glPolygonOffset( 0.0, 0.0 );
+    }
 
     /*
      * Draw point cloud.  Colors are assigned from mesh materials.

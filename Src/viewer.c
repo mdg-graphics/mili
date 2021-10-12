@@ -1029,6 +1029,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->edge_zbias = DFLT_ZBIAS;
     analy->edge_width = 1.0;
     analy->z_buffer_lines = TRUE;
+    analy->z_poly_offset = 0.0;
+    analy->z_poly_last = 0.0;
     analy->hist_line_cnt = 0;
 
     analy->mesh_table->num_particle_classes = 0;
