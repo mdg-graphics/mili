@@ -40,8 +40,7 @@ enum json_value_type {
     JSONNumber  = 3,
     JSONObject  = 4,
     JSONArray   = 5,
-    JSONBoolean = 6,
-    JSONINTNUMBER = 7
+    JSONBoolean = 6
 };
 typedef int JSON_Value_Type;
 

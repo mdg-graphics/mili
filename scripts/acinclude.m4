@@ -1,4 +1,4 @@
-# $Id: acinclude.m4,v 1.54 2011/05/26 21:45:17 durrenberger1 Exp $
+# $Id: acinclude.m4,v 1.56 2021/08/12 20:07:14 jdurren Exp $
 #	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #	+                                                               +
 #	+                       Copyright (c) 2010                      +
@@ -414,6 +414,7 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
     # Set up links for test case files
     cd ../utils
     ln -sf ../../utils/*.c .     > /dev/null 2>&1
+    ln -sf ../../utils/*.h .     > /dev/null 2>&1
     
     cd ..
     cd include

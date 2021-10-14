@@ -140,7 +140,7 @@ HDF_LIB_DIR = @HDF_LIB_DIR@
 # rules to automatically generate dependency makefiles
 .SUFFIXES :
 utils/%.o: utils/%.c
-	$(PURIFY_CMD) $(CC) -Iinclude $(CC_FLAGS) -o $@ $(CPPFLAGS) -c $<
+	$(PURIFY_CMD) $(CC) -Isrc $(CC_FLAGS) -o $@ $(CPPFLAGS) -c $<
   
 $(OBJS_PATH)%.o: src/%.c
 	$(PURIFY_CMD) $(CC) $(CC_FLAGS) -o $(OBJS_PATH)$@ $(CPPFLAGS) -c $<
@@ -192,6 +192,17 @@ MILI_SILO_TEST_OBJS = silotest.o
 MILI_SILO_UTIL      = silotest
 
 UOBJS = utils/md.o utils/tipart.o utils/MiliReader.o utils/ti_strings.o utils/makemili_driver.o
+
+XMOBJS = \
+	utils/combine_db.o \
+	utils/driver.o \
+	utils/init_io.o \
+	utils/io_funcs.o \
+	utils/misc.o \
+	utils/versioninfo.o \
+	utils/process_ti.o
+
+
 TOBJS = $(addprefix $(OBJS_PATH),   taurus_db.o taurus_mesh_u.o taurus_srec.o taurus_svars.o) 
 LOBJS = $(addprefix $(OBJS_PATH),   eprtf.o) 
 OBJS = $(addprefix $(OBJS_PATH), $(MILI_C_OBJS) $(MILI_f_OBJS) $(MILI_F_OBJS))
@@ -237,42 +248,40 @@ endif
 
 
 # Build Optimized Mili
-opt:		CC_FLAGS  = @CFLAGS@ @CC_FLAGS_OPT@
+opt:		CC_FLAGS  = @CC_FLAGS_OPT@
 opt:		FC_FLAGS  = @FC_FLAGS_OPT@
-opt:    LIB_PATH  = lib_opt/
-opt:    OBJS_PATH = objs_opt/
+opt:        LIB_PATH  = lib_opt/
+opt:        OBJS_PATH = objs_opt/
 opt:		mili_build
-opt:		src/buildinfo.h
 
-debug:		CC_FLAGS  = @CFLAGS@ @CC_FLAGS_DEBUG@
+debug:		CC_FLAGS  = @CC_FLAGS_DEBUG@
 debug:		FC_FLAGS  = @FC_FLAGS_DEBUG@
-debug:    LIB_PATH  = lib_debug/
-debug:    OBJS_PATH = objs_debug/
+debug:      LIB_PATH  = lib_debug/
+debug:      OBJS_PATH = objs_debug/
 debug:		mili_build
-debug:		src/buildinfo.h
 
-utilsopt:		CC_FLAGS  = @CFLAGS@ @CC_FLAGS_OPT@
-utilsopt:		FC_FLAGS  = @FC_FLAGS_OPT@
+utilsopt:	CC_FLAGS  = @CC_FLAGS_OPT@
+utilsopt:	FC_FLAGS  = @FC_FLAGS_OPT@
 utilsopt:   LIB_PATH  = lib_opt
 utilsopt:   OBJS_PATH = objs_opt/
-utilsopt:		libmili.a libeprtf.a libtaurus.a
-utilsopt:		src/buildinfo.h
-utilsopt:		$(UOBJS)
-utilsopt:		MILI_UTILS_PATH = bin_utils_opt
-utilsopt:		md tipart MiliReader ti_strings makemili_driver
+utilsopt:	mili_build 
+utilsopt:	$(UOBJS)
+utilsopt:	$(XMOBJS)
+utilsopt:	MILI_UTILS_PATH = bin_utils_opt
+utilsopt:   md tipart MiliReader ti_strings makemili_driver xmilics
 
-utilsdebug:		CC_FLAGS  = @CFLAGS@ @CC_FLAGS_DEBUG@
-utilsdebug:		FC_FLAGS  = @FC_FLAGS_DEBUG@
-utilsdebug:   LIB_PATH  = lib_debug
-utilsdebug:   OBJS_PATH = objs_debug/
-utilsdebug:		libmili.a libeprtf.a libtaurus.a
-utilsdebug:		src/buildinfo.h
-utilsdebug:		$(UOBJS)
-utilsdebug:		MILI_UTILS_PATH = bin_utils_debug
-utilsdebug:		md tipart MiliReader ti_strings makemili_driver
+utilsdebug:	CC_FLAGS  = @CC_FLAGS_DEBUG@
+utilsdebug:	FC_FLAGS  = @FC_FLAGS_DEBUG@
+utilsdebug: LIB_PATH  = lib_debug
+utilsdebug: OBJS_PATH = objs_debug/
+utilsopt:	mili_build 
+utilsdebug:	$(UOBJS)
+utilsdebug:	$(XMOBJS)
+utilsdebug:	MILI_UTILS_PATH = bin_utils_debug
+utilsdebug:	md tipart MiliReader ti_strings makemili_driver xmilics
 
 
-mili_build: libmili.a libtaurus.a libeprtf.a
+mili_build: src/buildinfo.h libmili.a libtaurus.a libeprtf.a
   
 libmili.a: $(OBJS)
 		$(AR) $(ARFLAGS) $@ $(OBJS)
@@ -291,6 +300,12 @@ tests:
 			$(MAKE) tests;
 
 # Build Mili Utility Programs
+xmilics: 
+		$(CC) -o $(MILI_UTILS_PATH)/$@ $(CC_FLAGS) $(CPPFLAGS) \
+		utils/combine_db.o utils/driver.o utils/init_io.o \
+		utils/io_funcs.o utils/misc.o utils/versioninfo.o \
+		utils/process_ti.o -L$(LIB_PATH) -lmili -ltaurus
+        
 makemili_driver:  
 		$(CC) -o $(MILI_UTILS_PATH)/$@ $(CC_FLAGS) $(CPPFLAGS) utils/makemili_driver.o -L$(LIB_PATH) -lmili 
 
@@ -311,8 +326,6 @@ $(MILI_SILO_UTIL): $(MILI_SILO_OBJS) libmili.a
 	  	   $(CC) -g -o $@ $(CC_FLAGS) $(CPPFLAGS) -L$(LIB_PATH) -lmili $(SILO_LIB_DIR) $(SILO_LIB) 
 		   mv $@ ../bin_utils
 
-src/versioninfo.o:  src/buildinfo.h
-                                                                               
 src/buildinfo.h:    src/buildinfo
 		$(RM) src/t.h
 		./src/buildinfo > src/t.h

@@ -338,10 +338,10 @@ load_directories( Mili_family *fam )
    int header[QTY_DIR_HEADER_FIELDS];
    int nnames;
    size_t nitems, nbytes;
-	LONGLONG offset;
+   long offset;
    File_dir *p_fd;
    Dir_entry *p_de;
-	TempDir_entry *temp_p_de;
+   TempDir_entry *temp_p_de;
    int fd;
    Return_value rval;
    Bool_type active;
@@ -351,7 +351,7 @@ load_directories( Mili_family *fam )
    Dir_entry_type etype;
    char *p_name;
    int status;
-	int size = sizeof(Dir_entry);
+   int size = sizeof(Dir_entry);
    active = fam->active_family;
    offset = 0;
 
@@ -428,7 +428,7 @@ load_directories( Mili_family *fam )
       }else if(fam->char_header[DIR_VERSION_IDX]>=2){
          offset = -(QTY_DIR_HEADER_FIELDS) * EXT_SIZE( fam, M_INT );
       }
-      status = fseek( p_f, (long)offset, SEEK_END );
+      status = fseek( p_f, offset, SEEK_END );
       if ( status != 0 )
       {
          fclose(p_f);
@@ -483,7 +483,7 @@ load_directories( Mili_family *fam )
 			offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT8 ) +
                    qty_states * 20; /*20 is the size af a statemap*/
 		}
-      status = fseek( p_f, (long)offset, SEEK_END );
+      status = fseek( p_f, offset, SEEK_END );
 		if(fam->char_header[DIR_VERSION_IDX]>=3){
       	nitems = fam->read_funcs[M_INT8]( p_f, p_de, QTY_ENTRY_FIELDS*qty_ent );
 		}else{
@@ -543,7 +543,7 @@ load_directories( Mili_family *fam )
       if ( nitems > 0 )
       {
          offset -= nitems;
-         status = fseek( p_f, (long)offset, SEEK_END );
+         status = fseek( p_f, offset, SEEK_END );
 
          /* Names go in an IO Store. */
          pioms = ios_create_empty();

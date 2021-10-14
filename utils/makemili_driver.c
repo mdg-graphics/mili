@@ -126,8 +126,8 @@ int
 processSingleFile(char* file_name)
 {
     Famid famid;
-    int status = OK;
-    int rval = OK;
+    int status;
+    
     status = mc_open( file_name, directory,"Ar",&famid);
     
     if(status != OK)
@@ -139,14 +139,10 @@ processSingleFile(char* file_name)
     mc_activate_visit_file(famid, 1);
     
     status = mc_write_mili_metadata(famid);
-    if(status != OK)
-    {
-        rval = status;
-    }
     
     status = mc_close(famid);
     
-    return rval;
+    return status;
     
 }
 /*

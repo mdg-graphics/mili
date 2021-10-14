@@ -68,6 +68,7 @@ c    mc_restart_at_state
 c    mc_restart_at_file
 c    mc_wrt_stream
 c    mc_wrt_subrec
+c    mc_rewrite_subrec
 c    mc_read_results
 c    mc_get_svar_size
 c    mc_get_svar_mo_ids_on_class
@@ -126,6 +127,7 @@ c     mf_restart_at_file        Prepare to overwrite at an existing file
 c     mf_wrt_stream             Write state data as a word stream
 c     mf_wrt_stream_char        Write state data as a char stream
 c     mf_wrt_subrec             Write one or more lumps of a state subrecord
+c     mf_rewrite_subrec         
 c     mf_wrt_subrec_string      Write one lumps of a state subrecord of char type
 c     mf_read_results           Read state var result arrays from a subrecord
 c     mf_get_svar_size          Returns amount and type of data for svar
@@ -205,6 +207,7 @@ c  FORTRAN/C calling convention stuff...  More in wrap_c.c.
 #define mc_restart_at_file mc_restart_at_file_
 #define mc_wrt_stream mc_wrt_stream_
 #define mc_wrt_subrec mc_wrt_subrec_
+#define mc_rewrite_subrec mc_rewrite_subrec_
 #define mc_read_results mc_read_results_
 #define mc_get_svar_size mc_get_svar_size_
 #define mc_get_svar_mo_ids_on_class mc_get_svar_mo_ids_on_class_
@@ -1940,6 +1943,39 @@ c.....SUPERSEDED
       
       return
       end
+
+      
+      subroutine mf_rewrite_subrec( fam_id, name, start, stop, data,
+     +                          st_index, rval )
+      
+      implicit none
+      
+      integer fam_id
+      character*(*) name
+      integer start
+      integer stop
+      real data(*)
+      integer st_index
+      integer rval
+      
+      include "mili_fparam.h"
+      
+      external mc_rewrite_subrec, EFF_LEN
+      integer mc_rewrite_subrec, EFF_LEN
+      
+      character*(m_max_name_len + 1) param_name
+      integer slen
+
+      slen = EFF_LEN( name, m_max_name_len  ) + 1
+      param_name = name
+      param_name(slen:slen) = CHAR(0)
+      
+      rval = mc_rewrite_subrec( fam_id, param_name, start, stop, data,
+     +     st_index, rval )
+      
+      return
+      end
+      
       
       subroutine mf_wrt_subrec_char( fam_id, name, start, stop, string,
      +                               rval )

@@ -667,7 +667,7 @@ mc_def_class_idents( Famid fam_id, int mesh_id, char *short_name, int start,
 
 
 /*****************************************************************
- * TAG( mc_def_nodes ) PUBLIC
+ * TAG( mc_def_node ) PUBLIC
  *
  * Define coordinates for a continuously-numbered sequence of nodes.
  * Logic assumes the sequence is ascending.
@@ -828,7 +828,7 @@ mc_def_node_labels( Famid fam_id, int mesh_id, char *short_name,
    {
       return status;
    }
-   status = ti_make_label_description( mesh_id,(int) -1,superclass_name, 
+   status = ti_make_label_description( mesh_id,1,superclass_name, 
                                        short_name,  label_descriptor);
    /*status = mc_ti_def_class( fam_id, mesh_id, state, (int) -1,
                              superclass_name, TRUE, TRUE,
@@ -1616,7 +1616,7 @@ mc_def_seq_global_ids( Famid fam_id, int mesh_id, char *short_name,
    return mc_def_global_ids( fam_id, mesh_id, short_name,
                              qty, element_ids, global_ids );
    
-   
+   free(element_ids);
 }
 /*****************************************************************
  * TAG( mc_def_conn_seq_labels_global_ids ) PUBLIC
@@ -1753,7 +1753,8 @@ mc_def_conn_labels( Famid fam_id, int mesh_id, char *short_name,
    }
    else
    {
-      str_dup (&(fam->label_class_list[fam->num_label_classes].mclass),short_name);
+      str_dup (&(fam->label_class_list[fam->num_label_classes].mclass),
+               short_name);
       fam->label_class_list[fam->num_label_classes].last_matid = 0;
       class_index = fam->num_label_classes;
       fam->num_label_classes++;
@@ -2795,7 +2796,7 @@ mc_get_node_label_info(Famid fam_id, int mesh_id, char *short_name,
          	                   short_name, short_name);		
    }else
 	{
-		status = ti_make_label_description( mesh_id, (int) -1, superclass_name, 
+		status = ti_make_label_description( mesh_id, 1, superclass_name, 
                                        short_name,  label_descriptor);		
 	}
 	if (status != OK) {
@@ -2934,7 +2935,7 @@ mc_load_node_labels( Famid fam_id, int mesh_id, char *short_name,
    {
       return status;
    }
-   status = ti_make_label_description( mesh_id, (int) -1, superclass_name, 
+   status = ti_make_label_description( mesh_id, 1, superclass_name, 
                                        short_name,  label_descriptor);
    /*
    status = mc_ti_def_class( fam_id, mesh_id, state, 0,

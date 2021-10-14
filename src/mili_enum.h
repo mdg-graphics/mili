@@ -278,8 +278,8 @@ typedef enum
 
    /* Return values 1-100 reserved for Fortran-API detected errors. */
    /* These values must also be explicitly assigned in mili_fparam.h! */
-   TOO_MANY_SCALARS = 1,
-   TOO_MANY_LIST_FIELDS = 2,
+   TOO_MANY_SCALARS = 2,
+   TOO_MANY_LIST_FIELDS = 3,
 
    /* Values above 100 for internal C-code returned values. */
 

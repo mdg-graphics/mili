@@ -3141,7 +3141,7 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
 {
    Return_value rval= OK;
    State_file_descriptor **p_fmap;
-   LONGLONG offset;
+   long offset;
    int status,nitems,state_count; 
    int header[QTY_DIR_HEADER_FIELDS];
    int cur_state;
@@ -3156,7 +3156,7 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
    
    strcpy(fname,fam->aFile);
    
-   p_fmap = &fam->file_map;
+   //p_fmap = &fam->file_map;
    if(fam->access_mode == 'r')
    {
       fp = fopen(fname,"rb");
@@ -3166,25 +3166,28 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
    }
    if(fp) {
       offset = -(QTY_DIR_HEADER_FIELDS) * EXT_SIZE( fam, M_INT );
-      status = fseek( fp, (long)offset, SEEK_END );
+      status = fseek( fp, offset, SEEK_END );
       if ( status != 0 )
       {
          fclose(fp);
+         free(fname);
          return SEEK_FAILED;
       }
       nitems = fam->read_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
       if ( nitems != QTY_DIR_HEADER_FIELDS )
       {
          fclose( fp );
+         free(fname);
          return BAD_LOAD_READ;
       }
       state_count = header[QTY_STATES_IDX];
       fam->state_qty = state_count;
       offset -= state_count * 20;
-      status = fseek( fp, (long)offset, SEEK_END );
+      status = fseek( fp, offset, SEEK_END );
       if ( status != 0 )
       {
          fclose(fp);
+         free(fname);
          return SEEK_FAILED;
       }
       fam->state_map = NEW_N(State_descriptor,state_count,"State map descriptors");
@@ -3201,10 +3204,11 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
          if(file >file_count){
             file_count=file;
             fam->st_file_count = file+1;
-            (*p_fmap) = RENEWC_N( State_file_descriptor, *p_fmap,
+            fam->file_map = RENEWC_N( State_file_descriptor, fam->file_map,
                                   file, 1, "New file map entry" );
+            fam->file_map[file].state_qty =0;
          }
-         (*p_fmap)[file].state_qty++;
+         fam->file_map[file].state_qty++;
       }
       fclose(fp); 
    }
@@ -3249,12 +3253,14 @@ update_static_map(Famid fam_id,State_descriptor* p_sd) {
       if ( status != 0 )
       {
          fclose(fp);
+         free(fname);
          return SEEK_FAILED;
       }
       nitems = fam->read_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
       if ( nitems != QTY_DIR_HEADER_FIELDS )
       {
          fclose( fp );
+         free(fname);
          return BAD_LOAD_READ;
       }
       header[QTY_STATES_IDX]++;
@@ -3270,6 +3276,7 @@ update_static_map(Famid fam_id,State_descriptor* p_sd) {
       fclose(fp);
       if (num_written != QTY_DIR_HEADER_FIELDS)
       {
+         free(fname);
          return SHORT_WRITE;
       }
       mc_wrt_scalar(fam_id,M_INT,"state_count",(void*)&header[QTY_STATES_IDX]);
@@ -3358,7 +3365,10 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
    {
       return rval;
    }
-
+   if(fam->st_file_count ==0)
+   {
+      fam->st_file_count = 1;
+   }
    /*
     * Do this after prep_for_new_data(), since prep_for_new_data() advances
     * the current state offset (file pointer) according to the format of the
@@ -3401,8 +3411,21 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
       }
    }
    
-   fam->state_map = RENEW_N( State_descriptor, fam->state_map, state_qty, 1,
+   fam->state_qty++;
+   
+   if(fam->file_st_qty == 0)
+   {
+      fam->file_map = RENEWC_N( State_file_descriptor, fam->file_map,0,1,"Creating file_map");
+   }
+   
+   if(fam->state_map == NULL)
+   {
+      fam->state_map = NEW_N( State_descriptor, fam->state_qty ,"Recreating state descriptor");
+   }else
+   {
+      fam->state_map = RENEW_N( State_descriptor, fam->state_map, state_qty, 1,
                              "Addl state descr" );
+   }
    if (fam->state_map == NULL)
    {
       return ALLOC_FAILED;
@@ -3412,7 +3435,6 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
    p_sd->offset = fam->cur_st_offset;
    p_sd->time = time;
    p_sd->srec_format = srec_id;
-   fam->state_qty++;
    fam->written_st_qty++;
    fam->file_st_qty++;
    fam->file_map[fam->st_file_count - 1].state_qty = fam->file_st_qty;
@@ -3487,144 +3509,18 @@ mc_restart_at_state( Famid fam_id, int file_name_index, int file_state_index )
    Mili_family *fam;
    Return_value rval = OK;
    int i;
-   int state_index, file_index;
+   int state_index = file_state_index -1, 
+       file_index;
    State_descriptor *smap;
 
-   if(file_name_index < 0)
-   {
-      file_name_index = find_file_index(fam_id, &file_state_index);
-      return mc_restart_at_state(fam_id, file_name_index, file_state_index);
-   }
-
    fam = fam_list[fam_id];
-
-   CHECK_WRITE_ACCESS( fam )
-
-   /* Sanity check - no states in family. */
-   if ( fam->st_file_count == 0 )
+   
+   if(file_state_index > fam->state_qty)
    {
-      if ( file_state_index == 0 )
-      {
-         fam->st_file_index_offset = file_name_index;
-         return OK;
-      }
-      else
-      {
-         return INVALID_FILE_STATE_INDEX;
-      }
+       return INVALID_FILE_NAME_INDEX;;
    }
-
-   /* Can't restart with a name that creates a gap in the name sequence. */
-   if ( file_name_index > fam->st_file_index_offset + fam->st_file_count )
-   {
-      return INVALID_FILE_NAME_INDEX;
-   }
-
-   /* Suffix must be greater than or equal to zero. */
-   file_index = file_name_index - fam->st_file_index_offset;
-   if ( file_index < 0 )
-   {
-      return INVALID_FILE_NAME_INDEX;
-   }
-
-   if ( file_state_index < 0  )
-   {
-      return INVALID_FILE_STATE_INDEX;
-   }
-
-   /*
-    * Special cases - requested state is one past the end of existing
-    * states, i.e., an append.  We want to isolate these first to avoid
-    * a bounds error by referencing the state map or file map with an index
-    * that's too large.
-    *
-    * These possibilities can be manifested as a request which increments
-    * one file beyond the last existing file (case 1, and leaves the last
-    * existing file with whatever quantity of states it had) or as a state
-    * request that adds a new state within the last existing file (case 2).
-    */
-
-   /* Case 1 */
-   if ( file_index == fam->st_file_count )
-   {
-      if ( file_state_index == 0 )
-      {
-         /*
-          * Ensure no file is open to cause new file to be
-          * created on subsequent state write.
-          */
-         if ( fam->cur_st_file != NULL )
-         {
-            rval = state_file_close( fam );
-         }
-         
-         fam->state_closed= TRUE;
-
-         return rval;
-      }
-      else
-      {
-         return INVALID_FILE_STATE_INDEX;
-      }
-   }
-
-   /* Map file state index into a family state index. */
-   state_index = file_state_index;
-   for ( i = 0; i < file_index; i++ )
-   {
-      state_index += fam->file_map[i].state_qty;
-   }
-
-   smap = fam->state_map;
-
-   /* Can't permit a gap in state sequence. */
-   if ( state_index > fam->state_qty )
-   {
-      return INVALID_FILE_STATE_INDEX;
-   }
-
-   /* Case 2 */
-   if ( state_index == fam->state_qty )
-   {
-      if ( fam->file_map[file_index].state_qty == fam->states_per_file )
-      {
-         return INVALID_FILE_STATE_INDEX; /* Request would exceed limit */
-      }
-
-      rval = state_file_open( fam, file_index, fam->access_mode );
-      if (rval != OK)
-      {
-         return rval;
-      }
-
-      /* Set offset to end of last existing record header write. */
-      fam->cur_st_offset = smap[state_index - 1].offset
-                           + EXT_SIZE( fam, M_INT )
-                           + EXT_SIZE( fam, M_FLOAT );
-
-      
-   }else {
-
-      /* Remove existing state records and files at and after "state_index". */
-      rval = truncate_family( fam, state_index );
-
-      /*
-       * Leave the (new) last file open if new end doesn't fall on a file
-       * boundary so that subsequent state writes will fill up the "partial"
-       * file to its full complement.
-       */
-      if ( fam->state_map[state_index].offset > 0 )
-      {
-
-         rval = state_file_open( fam, smap[state_index].file, fam->access_mode );
-
-         /* Set offset to end of previous record header write. */
-         fam->cur_st_offset = smap[state_index].offset
-                              - fam->srecs[smap[state_index].srec_format]->size;
-      }
-   }
-   fam->state_closed= TRUE;
-   return rval;
+   
+   return truncate_family(fam, file_state_index);
 }
 
 
@@ -3693,6 +3589,82 @@ mc_restart_at_file( Famid fam_id, int file_name_index )
 
 
 /*****************************************************************
+ * TAG( mc_rewrite_subrec ) PUBLIC
+ *
+ * Rewrite a subrecord at a given timestep. This timestep must
+ * have already been written. This function calls mc_wrt_subrec.
+ */
+Return_value
+mc_rewrite_subrec( Famid fid, char *subrec_name, int start, int stop, void *data, int st_index )
+{
+   State_descriptor *sd;
+   LONGLONG saved_st_offset;
+   LONGLONG saved_st_file_size;
+   LONGLONG replace_st_offset;
+   Return_value rval = OK;
+   int status;
+
+   Htable_entry *subrec_entry;
+   Sub_srec *psubrec;
+   int found;
+   Buffer_queue *bq;
+ 
+
+   if ( INVALID_FAM_ID( fid ) )
+   {
+      return BAD_FAMILY;
+   }
+
+   if ( st_index > fam_list[fid]->state_qty || st_index < 0 )
+   {
+      return INVALID_STATE;
+   }
+   
+   /* Save current state offset and current state file size */
+   saved_st_offset = fam_list[fid]->cur_st_offset;
+   saved_st_file_size = fam_list[fid]->cur_st_file_size;
+
+   /* Get offset of this timestep from State_descriptor */
+   sd = fam_list[fid]->state_map;
+   replace_st_offset = sd[st_index-1].offset;
+
+   /* Add 8 bytes for data at beginning of state files */
+   replace_st_offset += ( EXT_SIZE( fam_list[fid], M_INT ) + EXT_SIZE( fam_list[fid], M_FLOAT ) );
+
+   /* Set offset to state to change */
+   fam_list[fid]->cur_st_offset = replace_st_offset;
+
+   
+   /* Rewrite the subrecord */
+   status = mc_wrt_subrec( fid, subrec_name, start, stop, data );
+   if ( status != 0 )
+   {
+     rval = status;
+   }
+   
+   /* Set subrec ibuffer buffer_count to 0 to prevent buffer read */
+   rval = htable_search( fam_list[fid]->subrec_table, subrec_name,
+			 FIND_ENTRY, &subrec_entry );
+   if(subrec_entry == NULL)
+     {
+       //An error at this point since this should have been caught already in mc_wrt_subrec()
+       return INVALID_SUBREC_INDEX;
+     }
+   psubrec = (Sub_srec*) subrec_entry->data;
+ 
+   bq = psubrec->ibuffer;
+ 
+   bq->buffer_count = 0;
+
+   /* Reset current state offset and current state file size */
+   fam_list[fid]->cur_st_offset = saved_st_offset;
+   fam_list[fid]->cur_st_file_size = saved_st_file_size;
+
+   return rval;
+}
+
+
+/*****************************************************************
  * TAG( truncate_family ) LOCAL
  *
  * Prune from a family all states and files including and following
@@ -3703,105 +3675,47 @@ truncate_family( Mili_family *p_fam, int st_index )
 {
    State_descriptor *state_map;
    char fname[M_MAX_NAME_LEN];
-   Return_value rval;
-   int status;
+   Return_value status;
    int file_qty, state_qty, remain_states;
-   int cur_st_index, cur_file;
+   int cur_file;
    int i;
    LONGLONG offset;
+   int header[QTY_DIR_HEADER_FIELDS];
    
    offset = 0;
    state_map = p_fam->state_map;
    state_qty = p_fam->state_qty;
+   file_qty = p_fam->st_file_count;
 
-   /* Make sure any file that will be affected is closed. */
-   if ( p_fam->cur_st_index >= state_map[st_index].file )
+   if(st_index>p_fam->state_qty)
    {
-      rval = state_file_close( p_fam );
-      if (rval != OK)
-      {
-         return rval;
-      }
+       return INVALID_FILE_NAME_INDEX;
    }
-
-   /*
-    * Lock the lock file (after closing files as the file close could
-    * under certain circumstances try to establish a lock).
-    */
-   rval = get_name_lock( p_fam, STATE_DATA );
-   if ( rval != OK )
+   //Walk backwards to unlink unneeded files
+   for( i = p_fam->st_file_count-1; i > state_map[st_index-1].file; i--)
    {
-      return rval;
+       make_fnam( STATE_DATA, p_fam, ST_FILE_SUFFIX( p_fam, i-1 ),fname );
+       status = unlink( fname );
+       if ( status != 0 )
+       {
+          return  FAMILY_TRUNCATION_FAILED;
+       }
    }
-
-   /* Get quantity of state files remaining after truncation. */
-   file_qty = state_map[st_index].file;
-   if ( state_map[st_index].offset > 0 )
-   {
-      /* Calculate qty of states that will remain in this file. */
-      remain_states = 0;
-      for ( i = st_index - 1; i >= 0 && state_map[i].file == file_qty;
-            i-- )
-      {
-         remain_states++;
-      }
-
-      /* Since states remain in file, the final qty is the index plus one. */
-      file_qty++;
-   }
-
-   cur_st_index = st_index;
-   while ( cur_st_index < state_qty && rval == OK )
-   {
-      cur_file = state_map[cur_st_index].file;
-      make_fnam( STATE_DATA, p_fam, ST_FILE_SUFFIX( p_fam, cur_file ),
-                 fname );
-
-      /* If offset of indexed state is non-zero, need to truncate its file. */
-      if ( state_map[cur_st_index].offset > 0 )
-      {
+   
+   make_fnam( STATE_DATA, p_fam, ST_FILE_SUFFIX( p_fam, st_index-1 ),fname );
 #if defined(_WIN32) || defined(WIN32)
-         status = 0;
+   status = 0;
 #else
-         status = truncate( fname, state_map[cur_st_index].offset );
+   status = truncate( fname, state_map[st_index-1].offset );
 #endif
-         if ( status != 0 )
-         {
-            rval = FAMILY_TRUNCATION_FAILED;
-            break;
-         }
-      }
-      else
-      {
-         /*
-          * Current state is at beginning of file so delete file.
-          * Note - if any process has the file open, the file will not
-          * be deleted until all such references are removed.  This
-          * could cause problems if (for example) Griz is reading a db
-          * that an analysis code is restarting on.
-          */
-         status = unlink( fname );
-         if ( status != 0 )
-         {
-            rval = FAMILY_TRUNCATION_FAILED;
-            break;
-         }
-      }
-
-      cur_st_index++;
-
-      /*
-       * Any other states in this file are gone, so advance cur_st_index past
-       * them all.
-       */
-      for ( ;
-            cur_st_index < state_qty
-            && state_map[cur_st_index].file == cur_file;
-            cur_st_index++ );
+   if ( status != 0 )
+   {
+      status = FAMILY_TRUNCATION_FAILED;
    }
+  
    /* Clean up the A file to remove the states from the state maps contained there*/
    if(p_fam->char_header[DIR_VERSION_IDX]>1) {
-      int header[QTY_DIR_HEADER_FIELDS];
+      
       int num_written,
           nitems,
           state_count;
@@ -3814,11 +3728,11 @@ truncate_family( Mili_family *p_fam, int st_index )
       if(fp)
       {
          offset = -(QTY_DIR_HEADER_FIELDS) * EXT_SIZE( p_fam, M_INT );
-         status = fseek( fp, (long)offset, SEEK_END );
+         status = fseek( fp, offset, SEEK_END );
          nitems = p_fam->read_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
          state_count = header[QTY_STATES_IDX];
-         offset = -((QTY_DIR_HEADER_FIELDS) * EXT_SIZE( p_fam, M_INT )+((state_count-st_index) *20));
-         status = fseek( fp, (long)offset, SEEK_END );
+         offset = offset-((state_count - st_index+1) *20);
+         status = fseek( fp, offset, SEEK_END );
          offset = ftell(fp);
          fclose(fp);
          
@@ -3827,7 +3741,7 @@ truncate_family( Mili_family *p_fam, int st_index )
 #endif
          fp = fopen(fnameA, "r+b");
          fseek( fp, 0, SEEK_END );
-         header[QTY_STATES_IDX] = st_index;
+         header[QTY_STATES_IDX] = st_index-1;
          num_written = p_fam->write_funcs[M_INT]( fp, header,
                                                 (size_t) QTY_DIR_HEADER_FIELDS );
          fclose(fp);
@@ -3836,9 +3750,9 @@ truncate_family( Mili_family *p_fam, int st_index )
    }
    
    /* Clean up. */
-   if ( rval == OK )
+   if ( status == OK )
    {
-      if ( st_index == 0 )
+      if ( st_index <= 1 )
       {
          memset( (void *) fname, (int) 0, 64 );
 
@@ -3857,9 +3771,8 @@ truncate_family( Mili_family *p_fam, int st_index )
       }
       else
       {
-         cur_st_index = st_index - 1;
          make_fnam( STATE_DATA, p_fam,
-                    ST_FILE_SUFFIX( p_fam, state_map[cur_st_index].file ),
+                    ST_FILE_SUFFIX( p_fam, state_map[st_index-1].file ),
                     fname );
 
          /* IRC: Jan 7, 2009 - File locking no longer used */
@@ -3870,9 +3783,9 @@ truncate_family( Mili_family *p_fam, int st_index )
                                      p_fam->state_qty,
                                      st_index,
                                      "Shrunken state map on restart" );
-         if (st_index > 0 && p_fam->state_map == NULL)
+         if (st_index > 1 && p_fam->state_map == NULL)
          {
-            rval = ALLOC_FAILED;
+            status = ALLOC_FAILED;
          }
 
          if ( file_qty != p_fam->st_file_count )
@@ -3884,7 +3797,7 @@ truncate_family( Mili_family *p_fam, int st_index )
          }
          if (p_fam->file_map == NULL)
          {
-            rval = ALLOC_FAILED;
+            status = ALLOC_FAILED;
          }
          else
          {
@@ -3892,12 +3805,12 @@ truncate_family( Mili_family *p_fam, int st_index )
             p_fam->st_file_count = file_qty;
             p_fam->state_qty = st_index;
             p_fam->cur_st_file_size = 0; /* Will be updated if a file opened. */
-            p_fam->file_st_qty = 0;      /*   "   "    "     " "   "     "    */
+            p_fam->file_st_qty = 0;      
          }
       }
    }
 
-   return rval;
+   return status;
 }
 
 
@@ -4073,9 +3986,7 @@ build_state_map( Mili_family *fam, Bool_type initial_build )
       /* Count offset through mapped states in known last file. */
       offset = 0;
       for ( p_sd = fam->state_map + fam->state_qty - 1;
-
             ( (LONGLONG) p_sd >= (LONGLONG) fam->state_map ) && p_sd->file == index;
-
             p_sd-- )
       {
          offset += fam->srecs[p_sd->srec_format]->size + hdr_size;
@@ -4292,7 +4203,7 @@ dump_state_rec_data( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
    indent3 = bi + bi - hi;
 
    /* Seek and read the element connectivity data header. */
-   status = fseek( p_f, (long)offset, SEEK_SET );
+   status = fseek( p_f, offset, SEEK_SET );
    if ( status != 0 )
    {
       return SEEK_FAILED;

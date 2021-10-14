@@ -58,8 +58,6 @@ static char *agg_names[AGG_TYPE_CNT] =
 };
 
 static Return_value create_svar( Mili_family *fam, char *name, Svar **ppsv );
-static Return_value input_svars( Mili_family *fam, int file_index,
-                                 LONGLONG file_offset );
 static Return_value find_delete_svar( Mili_family *fam, char *name );
 static Return_value get_svar_info(Famid fam_id, char *class_name,
                                   char *var_name, int *num_blocks, int *size,
@@ -189,6 +187,7 @@ mc_def_svars( Famid fam_id, int qty, char *names, int name_stride,
    fam = fam_list[fam_id];
    p_name = names;
    p_title = titles;
+   
    for ( i = 0; i < qty; i++, p_name += name_stride, p_title += title_stride )
    {
       if ( valid_svar_data( SCALAR, p_name, types[i], 0, NULL, 0, NULL ) )
@@ -950,7 +949,10 @@ find_delete_svar( Mili_family *fam, char *name )
 Return_value
 commit_svars( Mili_family *fam )
 {
-   size_t int_qty, char_qty, round_qty, outbytes;
+   size_t int_qty, 
+          char_qty, 
+          round_qty, 
+          outbytes;
    int num_written;
    Return_value rval;
 
@@ -976,6 +978,7 @@ commit_svars( Mili_family *fam )
       /* Get amount of character data for output. Round up if necessary. */
       char_qty = ios_get_fresh( fam->svar_c_ios );
       round_qty = ROUND_UP_INT( char_qty, 4 );
+      
       if ( round_qty != char_qty )
       {
          if (ios_alloc( round_qty - char_qty, fam->svar_c_ios ) == NULL)
@@ -1149,63 +1152,6 @@ delete_svar_with_ios( Svar *psv, IO_mem_store *pcioms, IO_mem_store *piioms )
    return OK;
 }
 
-
-/*****************************************************************
- * TAG( load_svars ) PRIVATE
- *
- * Load state variable definitions from a Mili database.
- */
-Return_value
-load_svars( Mili_family *fam )
-{
-   File_dir *p_fd;
-   int i, j;
-   LONGLONG *entry;
-   Return_value rval;
-
-   /*
-    * Search the family directory for STATE_VAR_DICT entries and
-    * load the contents of each into the state variable hash table.
-    */
-   for ( i = 0; i < fam->file_count; i++ )
-   {
-      p_fd = fam->directory + i;
-      for ( j = 0; j < p_fd->qty_entries; j++ )
-      {
-         entry = p_fd->dir_entries[j];
-
-         if ( entry[TYPE_IDX] == STATE_VAR_DICT )
-         {
-            /* Svar dictionary data found. */
-            rval = input_svars( fam, i, entry[OFFSET_IDX] );
-            if (rval != OK)
-            {
-               return rval;
-            }
-         }
-      }
-   }
-
-   /*
-    * If this process has write access, allocate space for an svar entry
-    * header now that all extant svar entries have been read in.  This
-    * is to prepare for any subsequent new svar definitions.
-    */
-   if ( fam->svar_table != NULL &&
-         ( fam->access_mode == 'w' || fam->access_mode == 'a' ) )
-   {
-      fam->svar_hdr = (int *)ios_alloc( (size_t) QTY_SVAR_HEADER_FIELDS,
-                                        fam->svar_i_ios );
-      if (fam->svar_hdr == NULL)
-      {
-         return IOS_ALLOC_FAILED;
-      }
-   }
-
-   return OK;
-}
-
-
 /*****************************************************************
  * TAG( input_svars ) LOCAL
  *
@@ -1252,7 +1198,9 @@ input_svars( Mili_family *fam, int file_index, LONGLONG file_offset )
    {
       return status;
    }
+   
    status = non_state_file_seek( fam, file_offset );
+   
    if (status != OK)
    {
       return status;
@@ -1422,6 +1370,62 @@ input_svars( Mili_family *fam, int file_index, LONGLONG file_offset )
    }
    return OK;
 }
+
+/*****************************************************************
+ * TAG( load_svars ) PRIVATE
+ *
+ * Load state variable definitions from a Mili database.
+ */
+Return_value
+load_svars( Mili_family *fam )
+{
+   File_dir *p_fd;
+   int i, j;
+   LONGLONG *entry;
+   Return_value rval;
+
+   /*
+    * Search the family directory for STATE_VAR_DICT entries and
+    * load the contents of each into the state variable hash table.
+    */
+   for ( i = 0; i < fam->file_count; i++ )
+   {
+      p_fd = fam->directory + i;
+      for ( j = 0; j < p_fd->qty_entries; j++ )
+      {
+         entry = p_fd->dir_entries[j];
+
+         if ( entry[TYPE_IDX] == STATE_VAR_DICT )
+         {
+            /* Svar dictionary data found. */
+            rval = input_svars( fam, i, entry[OFFSET_IDX] );
+            if (rval != OK)
+            {
+               return rval;
+            }
+         }
+      }
+   }
+
+   /*
+    * If this process has write access, allocate space for an svar entry
+    * header now that all extant svar entries have been read in.  This
+    * is to prepare for any subsequent new svar definitions.
+    */
+   if ( fam->svar_table != NULL &&
+         ( fam->access_mode == 'w' || fam->access_mode == 'a' ) )
+   {
+      fam->svar_hdr = (int *)ios_alloc( (size_t) QTY_SVAR_HEADER_FIELDS,
+                                        fam->svar_i_ios );
+      if (fam->svar_hdr == NULL)
+      {
+         return IOS_ALLOC_FAILED;
+      }
+   }
+
+   return OK;
+}
+
 
 
 /*****************************************************************

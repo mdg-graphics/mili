@@ -1,5 +1,4 @@
-# $Id: Makefile.Tests,v 1.12 2016/09/30 15:28:58 durrenberger1 Exp $
-# 
+# $Id: Makefile.Tests,v 1.15 2021/09/17 23:07:16 jdurren Exp $
 
 srcdir= @srcdir@
 abs_srcdir= @abs_srcdir@
@@ -61,7 +60,7 @@ CDEMOS = \
         mode_test \
         titest \
 	     MiliDiff \
-        vec_array 
+        value_change 
  
 FDEMOS = \
         GenFaceDB \
