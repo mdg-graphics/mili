@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+  <Plugin name="Mili" type="database" label="Mili" version="1.0" dbtype="MTMD">
+    <CXXFLAGS>
+      -I/g/g21/jdurren/projects/Paradyn_13_1/clean/Mili/MILI-chaos_5_x86_64-RZCEREAL/include -g
+    </CXXFLAGS>
+    <LDFLAGS>
+    </LDFLAGS>
+    <LIBS>
+       -L/g/g21/jdurren/projects/Paradyn_13_1/clean/Mili/MILI-chaos_5_x86_64-RZCEREAL/lib -lmili -leprtf
+    </LIBS>
+    <FilePatterns>
+      *.mili
+      *.m
+    </FilePatterns>
+    <Attribute name="" purpose="" persistent="false" exportAPI="" exportInclude="">
+    </Attribute>
+  </Plugin>

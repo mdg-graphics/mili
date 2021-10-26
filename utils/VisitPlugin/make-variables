@@ -1,0 +1,184 @@
+##							-*- makefile -*-
+## Variables
+##
+TOPDIR=/tmp/brugger/yana/visitbuild/visit2.0.0/src
+SHELL=/bin/sh
+CC=gcc
+CXX=g++
+CFLAGS=-D_LARGEFILE64_SOURCE -I/usr/local/tools/mvapich-gnu/include -fPIC 
+CXXFLAGS=-D_LARGEFILE64_SOURCE -Wno-deprecated -I/usr/local/tools/mvapich-gnu/include -fPIC -g
+CPPFLAGS=-I. -I$(TOPDIR)/include  -I$(TOPDIR)/include/cognomen
+CXXFLAGSORIG=-D_LARGEFILE64_SOURCE -Wno-deprecated -I/usr/local/tools/mvapich-gnu/include -fPIC -g
+CPPFLAGSORIG=  -I$(TOPDIR)/include/cognomen
+PY_CXXFLAGS=-I$(TOPDIR)/include/python
+QT_CXXFLAGS=-I$(TOPDIR)/include/qt  
+CMAKE=/usr/gapps/visit/cmake/2.4.5/linux-x86_64_gcc-4.1.2/bin/cmake
+MESA_INCLUDE=-I$(TOPDIR)/include/mesa
+ICET_CXXFLAGS=
+JAVAC=
+JAR=
+JAVAFLAGS=
+JAVACLASS=
+JAVAPLUGINFLAGS=
+F77=g77
+F77FLAGS=-g -g
+LIBS=-lz -lm -ldl 
+LDFLAGS=-L$(TOPDIR)/lib 
+EXE_LDFLAGS= -Wl,--rpath,\$$ORIGIN/../lib
+PLUGIN_LDFLAGS= -Wl,--rpath,\$$ORIGIN/../../lib
+LDFLAGSORIG=-L$(TOPDIR)/lib 
+PY_LDFLAGS=
+QT_LDFLAGS=
+QT_LIBS=-lqt
+QUI_LIBS=-lqui
+MESA_LIBS=-lOSMesa -lMesaGL
+ICET_ENG_MAIN_OBJ=
+ICET_LIBS=
+GL_LIBS=-lGL
+GLEW_LIBS= -lGLEW
+GLEW_INCLUDE=-I$(TOPDIR)/include/glew
+SLIVR_LIBS=-lslivrV -lslivrG -lnrrd -lair -lbiff -lhest
+SLIVR_INCLUDE=-I$(TOPDIR)/include/teem -I$(TOPDIR)/include/slivr
+SLIVR_GUI_IMPL=QvisCMap2Display.C QvisCMap2Widget.C
+SLIVR_GUI_HDR=QvisCMap2Display.h QvisCMap2Widget.h
+PY_LIB=-lpython2.5
+PYTHON=/usr/gapps/visit/python/2.5/linux-x86_64_gcc-4.1.2/bin/python
+VTK_LIBS=-lvtkCommon -lvtkDICOMParser -lvtkFiltering -lvtkGraphics -lvtkHybrid -lvtkIO -lvtkImaging -lvtkRendering -lvtkzlib -lvtkexpat -lvtkjpeg -lvtkpng -lvtktiff -lvtkftgl -lvtkfreetype -lvtksys -lvtkMPEG2Encode 
+MPI_LIBS=-L/usr/local/tools/mvapich-gnu/lib/shared -L/usr/local/tools/mvapich-gnu/lib -Wl,-rpath=/usr/local/tools/mvapich-gnu/lib/shared -lmpich
+SHLIB_MPI_LIBS=
+GUILIB=$(GDSO)
+MDSERVERLIB=$(MDSO)
+SCRIPTINGLIB=$(SDSO)
+VIEWERLIB=$(VDSO)
+ENGINELIBSER=$(ESERDSO)
+ENGINELIBPAR=$(EPARDSO)
+ENGINEWRAPSER=libvisitenginev1_ser.so
+ENGINEWRAPPAR=libvisitenginev1_par.so
+BUILD_FORTRAN=$(BUILD_FORTRAN)
+X_LIBS=-lX11 -lXt 
+AR=ar
+RANLIB=ranlib
+INSTALL=$(TOPDIR)/exe/install-sh -c -m 755
+INSTALL_DATA=$(TOPDIR)/exe/install-sh -c -m 644
+RM=rm -f
+
+ZLIB_LIB=-lz
+
+PTHREAD_CXXFLAGS=
+PTHREAD_LIB=-lpthread
+
+VISIT_VTK_CPPFLAGS= -I$(TOPDIR)/include/vtk -I$(TOPDIR)/include/vtk/Common -I$(TOPDIR)/include/vtk/Filtering -I$(TOPDIR)/include/vtk/Graphics -I$(TOPDIR)/include/vtk/Hybrid -I$(TOPDIR)/include/vtk/IO -I$(TOPDIR)/include/vtk/Imaging -I$(TOPDIR)/include/vtk/Rendering -I$(TOPDIR)/include/vtk/Utilities -I$(TOPDIR)/include/visit
+VISIT_VTK_LDFLAGS=
+
+SILO_INCLUDE=-I/usr/gapps/visit/silo/4.7/linux-x86_64_gcc-4.1.2/include
+SILO_LIB=-lsiloh5 -lhdf5 -lsz
+
+EXODUS_FLAGS= -I/usr/gapps/visit/exodus/4.46/linux-x86_64_gcc-4.1.2/inc
+EXODUS_LIBS=-L/usr/gapps/visit/exodus/4.46/linux-x86_64_gcc-4.1.2/lib -lexoIIv2c -lnetcdf
+
+HDF4_FLAGS=-I/usr/gapps/visit/hdf4/4.2.1/linux-x86_64_gcc-4.1.2/include 
+HDF4_LIBS=-L/usr/gapps/visit/hdf4/4.2.1/linux-x86_64_gcc-4.1.2/lib -lmfhdf -ldf -ljpeg -L/usr/gapps/visit/szip/2.1/linux-x86_64_gcc-4.1.2/lib -lsz -lz
+
+HDF5_INCLUDE=-I/usr/gapps/visit/hdf5/1.8.1/linux-x86_64_gcc-4.1.2/include
+HDF5_LIB=-lhdf5 -lsz
+
+PDB_FLAGS=-I/usr/gapps/visit/silo/4.7/linux-x86_64_gcc-4.1.2/include
+PDB_LIBS=-lsiloh5 -lhdf5 -lsz
+
+#MILI_FLAGS=-I/usr/gapps/visit/mili/1.10.0/linux-x86_64_gcc-4.1.2 
+#MILI_LIBS=-L/usr/gapps/visit/mili/1.10.0/linux-x86_64_gcc-4.1.2 -lmili 
+
+MILI_FLAGS=-I/g/g14/icorey/MDG/MiliCo/mili/MILI-chaos_4_x86_64-YANA/include
+MILI_LIBS=-L/g/g14/icorey/MDG/MiliCo/mili/MILI-chaos_4_x86_64-YANA/lib_debug -lmili
+
+BOXLIB2D_INCLUDE=-I/usr/gapps/visit/boxlib/linux-x86_64_gcc-4.1.2/include/2D 
+BOXLIB2D_LIBS=-L/usr/gapps/visit/boxlib/linux-x86_64_gcc-4.1.2/lib -lbox2D
+BOXLIB3D_INCLUDE=-I/usr/gapps/visit/boxlib/linux-x86_64_gcc-4.1.2/include/3D 
+BOXLIB3D_LIBS=-L/usr/gapps/visit/boxlib/linux-x86_64_gcc-4.1.2/lib -lbox3D
+
+H5PART_INCLUDE=-I/usr/gapps/visit/h5part/1.4.0/linux-x86_64_gcc-4.1.2/include 
+H5PART_LIB=-L/usr/gapps/visit/h5part/1.4.0/linux-x86_64_gcc-4.1.2/lib -lH5Part
+
+FASTBIT_INCLUDE=
+FASTBIT_LIB=
+
+VISUS_INCLUDE=
+VISUS_LIB=
+
+NETCDF_INCLUDE=-I/usr/gapps/visit/netcdf/3.6.0/linux-x86_64_gcc-4.1.2/include 
+NETCDF_LIB=/usr/gapps/visit/netcdf/3.6.0/linux-x86_64_gcc-4.1.2/lib/libnetcdf.a 
+NETCDF_CXX_LIB=/usr/gapps/visit/netcdf/3.6.0/linux-x86_64_gcc-4.1.2/lib/libnetcdf_c++.a 
+
+CGNS_INCLUDE=-I/usr/gapps/visit/cgns/2.4/linux-x86_64_gcc-4.1.2/include 
+CGNS_LIB=/usr/gapps/visit/cgns/2.4/linux-x86_64_gcc-4.1.2/lib/libcgns.a 
+
+GDAL_INCLUDE=-I/usr/gapps/visit/gdal/1.3.2/linux-x86_64_gcc-4.1.2/include 
+GDAL_LIB=/usr/gapps/visit/gdal/1.3.2/linux-x86_64_gcc-4.1.2/lib/libgdal.a 
+GDAL_LIBS=/usr/gapps/visit/gdal/1.3.2/linux-x86_64_gcc-4.1.2/lib/libgdal.a 
+
+CFITSIO_INCLUDE=-I/usr/gapps/visit/cfitsio/3006/linux-x86_64_gcc-4.1.2/include 
+CFITSIO_LIB=/usr/gapps/visit/cfitsio/3006/linux-x86_64_gcc-4.1.2/lib/libcfitsio.a 
+
+## For multiple implementations of ITAPS interfaces (up to 5)
+ITAPS_C0_INCLUDE=
+ITAPS_C0_LIB=
+ITAPS_C1_INCLUDE=
+ITAPS_C1_LIB=
+ITAPS_C2_INCLUDE=
+ITAPS_C2_LIB=
+ITAPS_C3_INCLUDE=
+ITAPS_C3_LIB=
+ITAPS_C4_INCLUDE=
+ITAPS_C4_LIB=
+
+## For the single ITAPS implementation case
+ITAPS_C_INCLUDE=
+ITAPS_C_LIB=
+
+CCMIO_INCLUDE=-I/usr/gapps/visit/ccmio/2.6.1/linux-x86_64_gcc-4.1.2/include 
+CCMIO_LIBS=-L/usr/gapps/visit/ccmio/2.6.1/linux-x86_64_gcc-4.1.2/lib -lccmio -ladf 
+CCMIO_LIBDIR=/usr/gapps/visit/ccmio/2.6.1/linux-x86_64_gcc-4.1.2/lib
+
+## Library
+LIBSTATIC=$(TOPDIR)/archives/$(LIB).a
+LIBSHARED=$(TOPDIR)/lib/$(LIB).so
+LIBSHAREDTEMP=$(LIB).so
+
+LIBSTATICSER=$(TOPDIR)/archives/$(LIB)_ser.a
+LIBSHAREDSER=$(TOPDIR)/lib/$(LIB)_ser.so
+LIBSHAREDTEMPSER=$(LIB)_ser.so
+
+LIBSTATICPAR=$(TOPDIR)/archives/$(LIB)_par.a
+LIBSHAREDPAR=$(TOPDIR)/lib/$(LIB)_par.so
+LIBSHAREDTEMPPAR=$(LIB)_par.so
+
+##
+## OpenGL and Mesa objects
+##
+OPENGL_OBJ=$(OPENGL_SRC:.C=_ogl.o)
+MESA_OBJ=$(MESA_SRC:.C=_mesa.o)
+SEROPENGL_OBJ=$(OPENGL_OBJ)
+SERMESA_OBJ=$(MESA_OBJ)
+PAROPENGL_OBJ=$(OPENGL_SRC:.C=_par_ogl.o)
+PARMESA_OBJ=$(MESA_SRC:.C=_par_mesa.o)
+
+##
+## Temporary installation directories
+##
+tmplib=$(TOPDIR)/archives
+tmpbin=$(TOPDIR)/exe
+tmpinc=$(TOPDIR)/include
+libdir=$(TOPDIR)/lib
+plotplugindir=$(TOPDIR)/plugins/plots
+operatorplugindir=$(TOPDIR)/plugins/operators
+
+
+##
+## Permanent installation directories
+##
+prefix=/usr/gapps/visit
+exec_prefix=${prefix}
+bindir=${exec_prefix}/bin
+libdir=$(TOPDIR)/lib
+includedir=${prefix}/include
+

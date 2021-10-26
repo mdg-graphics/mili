@@ -1,0 +1,193 @@
+# $Id: Makefile.Library-Install,v 1.1 2007/01/23 00:31:53 corey3 Exp $
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+#                                                               #
+#                      Copyright (c) 2004                       #
+#         The Regents of the University of California           #
+#                     All Rights Reserved                       #
+#                                                               #
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+#
+# The Regents of the University of California.
+# All rights reserved.
+# 
+# This work was produced at the University of California, 
+# Lawrence Livermore National Laboratory (UC LLNL) under 
+# contract no. W-7405-ENG-48 between the U.S. Department of 
+# Energy (DOE) and The Regents of the University of California
+# (University) for   the operation of UC LLNL. Copyright is 
+# reserved to the University for purposes of controlled dis-
+# semination, commercialization through formal licensing, or 
+# other disposition under terms of Contract 48; DOE policies, 
+# regulations and orders; and U.S. statutes.
+# 
+# DISCLAIMER OF LIABILITY
+# 
+# This document was prepared as an account of work sponsored 
+# by an agency of the United States Government.  Neither the 
+# United States Government nor the University of California 
+# nor any of their employees, makes any warranty, express
+# or implied, including the warranties of merchantability
+# and fitness for a particular purpose, or assumes any legal
+# liability or responsibility for the accuracy, completeness,
+# or usefulness of any information, apparatus, product, or 
+# process disclosed, or represents that its use would not 
+# infringe privately-owned rights.
+# 
+# DISCLAIMER OF ENDORSEMENT
+# 
+# Reference herein to any specific commercial products,
+# process, or service by trade name, trademark, manufacturer,
+# or otherwise, does not necessarily constitute or imply its
+# endorsement, recommendation, or favoring by the United States
+# Government or the University of California.  The views and 
+# opinions of authors expressed herein do not necessarily state
+# or reflect those of the United States Government or the 
+# University of California, and shall not be used for advertising
+# or product endorsement purposes.
+#
+#################################################################
+#								#
+#	           Mili Installation Makefile		        #
+#								#
+#################################################################
+#
+#################################################################
+#  Revision History                                             #
+#  ----------------                                             #
+#  20-Feb-2006  IRC  CREATED.Broke out installation targets in- # 
+#  separate file.						#
+#								#
+#################################################################
+#
+# Makefile - This is the makefile for Mili Libraries
+#
+# Mili_1.10.00 update:  Elsie Pierce
+#               Lawrence Livermore National Laboratory
+
+# Note: Updated Makefile for Mili sources. Made more general
+#       so that it can be used for any platform. This Makefile
+#       is called from a driver Makefile (Makefile.Driver).
+#
+# Copyright (c) 1992, Regents of the University of California
+# Copyright (c) 1996, Regents of the University of California
+# Copyright (c) 2004, Regents of the University of California
+# Copyright (c) 2007, Regents of the University of California
+#
+srcdir= @srcdir@
+abs_srcdir= @abs_srcdir@
+top_srcdir= @top_srcdir@
+abs_top_srcdir= @abs_top_srcdir@
+builddir= @builddir@
+abs_builddir= @abs_builddir@
+top_builddir= @top_builddir@
+abs_top_builddir= @abs_top_builddir@
+VPATH = @srcdir@
+
+MILI_VERSION = @MILI_VERSION@
+
+OS_NAME    = @OS_NAME@
+SHELL      = @SHELL@
+SHELL_ARGS = @SHELL_ARGS@
+#
+
+CC = @MY_CC@ 
+FC = @MY_FC@
+
+CONFIG_STRING=@CONFIG_OPTIONS@
+
+INCLUDE_PATHS = @CC_INCLUDE_PATHS_MILI@
+DEFINES       = @CC_DEFINES_MILI@
+# CPPFLAGS      = @CC_DEFINES_MILI@ @CC_INCLUDE_PATHS_MILI@ -I$(top_builddir) -I$(SILO_INC_DIR) -I$(HDF_INC_DIR)
+CPPFLAGS      = @CC_DEFINES_MILI@ @CC_INCLUDE_PATHS_MILI@ -I$(top_builddir)
+CC_FLAGS_DEBUG= @CC_FLAGS_DEBUG@
+CC_DEPEND     = @CC_DEPEND@ 
+FC_FLAGS_DEBUG= @FC_FLAGS_DEBUG@
+
+# For UV add the following to the Load Line
+# -blpdata
+# LDFLAGS_EXTRA = -blpdata
+
+MILIINC       = @MILI_INCLUDE_PATHS@
+MILILIBPATH   = @MILI_LIBRARY_PATHS@
+MILILIB       = @MILI_LIBRARY@
+MILI_LIB	= @MILI_LIB@
+TAURUS_LIB	= @TAURUS_LIB@
+EPRTF_LIB	= @EPRTF_LIB@
+MILI_LIB_DEBUG	= @MILI_LIB_DEBUG@
+TAURUS_LIB_DEBUG	= @TAURUS_LIB_DEBUG@
+EPRTF_LIB_DEBUG		= @EPRTF_LIB_DEBUG@
+
+ROOT_DIR      = @ROOT_DIR@
+
+INSTALL_HOME  = @INSTALL_HOME@
+PLATFORM_DIRS = @PLATFORM_DIRS@
+
+#
+# Silo Variables 
+#
+SILO_VERSION = @SILO_VERSION@
+SILO_HOME    = @SILO_HOME@
+SILO_LIB     = @SILO_LIB@
+SILO_INC_DIR = @SILO_INC_DIR@
+SILO_LIB_DIR = @SILO_LIB_DIR@
+
+#
+# HDF Variables 
+#
+HDF_VERSION = @HDF_VERSION@
+HDF_HOME    = @HDF_HOME@
+HDF_LIB     = @HDF_LIB@
+HDF_INC_DIR = @HDF_INC_DIR@
+HDF_LIB_DIR = @HDF_LIB_DIR@
+
+
+
+
+##################
+# INSTALL TARGETS
+# All of the targets below are used for installing the code in public
+##################
+
+install: install-initversion install-startmsg install-updatefont install-chmod install-setversion
+
+install-initversion:
+	@ for dir in $(PLATFORM_DIRS); do \
+		echo " "; \
+		cd $(INSTALL_HOME)/$$dir/archive/milidir; \
+	if test -d $(MILI_VERSION); \
+	           then \
+		   echo "[$$dir] \t\t Mili directory exists for version $(MILI_VERSION)"; \
+		   else \
+		   echo "[$$dir] \t\t Creating Mili directory for version $(MILI_VERSION)"; \
+	           mkdir $(MILI_VERSION); \
+	           cd $(MILI_VERSION); \
+                   mkdir Include Lib; \
+	        fi; \
+	done
+
+install-setversion:
+	@ for dir in $(PLATFORM_DIRS); do \
+		echo " "; \
+		echo "[$$dir] \t\t Setting new Mili Version to : $(MILI_VERSION)"; \
+		cd $(INSTALL_HOME)/$$dir/archive/milidir/; \
+		ln -sf $(MILI_VERSION) miliversion; \
+		ls -l  $(MILI_VERSION) miliversion; \
+	done
+
+install-chmod:
+	@ for dir in $(PLATFORM_DIRS); do \
+		echo " "; \
+		echo "[$$dir] \t\t Setting Mili permissions"; \
+		cd $(INSTALL_HOME)/$$dir/archive/milidir; \
+		if test -d $(MILI_VERSION); \
+	           then \
+	           chmod 770 $(MILI_VERSION); \
+		   chmod -R 750 $(MILI_VERSION); \
+		   chgrp -R mdgdev $(MILI_VERSION); \
+	           else \
+	           echo "[$$dir] \t\t Mili version $(MILI_VERSION) is missing"; \
+	        fi; \
+	done
+
+uninstall:
+

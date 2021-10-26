@@ -1,0 +1,37 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mili", "mili.vcproj", "{6DDB8B76-7B41-42E6-B791-B4A21B76CABA}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "taurus", "taurus.vcproj", "{8E9879F6-4680-41F0-A8F9-BB25726AA881}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MiliReader", "MiliReader\MiliReader.vcproj", "{D7B4EAC6-5EA6-4D08-9DB0-554D94183A43}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Static Debug = Static Debug
+		Static Release = Static Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{6DDB8B76-7B41-42E6-B791-B4A21B76CABA}.Static Debug.ActiveCfg = Static Debug|Win32
+		{6DDB8B76-7B41-42E6-B791-B4A21B76CABA}.Static Debug.Build.0 = Static Debug|Win32
+		{6DDB8B76-7B41-42E6-B791-B4A21B76CABA}.Static Release.ActiveCfg = Static Release|Win32
+		{6DDB8B76-7B41-42E6-B791-B4A21B76CABA}.Static Release.Build.0 = Static Release|Win32
+		{8E9879F6-4680-41F0-A8F9-BB25726AA881}.Static Debug.ActiveCfg = Static Debug|Win32
+		{8E9879F6-4680-41F0-A8F9-BB25726AA881}.Static Debug.Build.0 = Static Debug|Win32
+		{8E9879F6-4680-41F0-A8F9-BB25726AA881}.Static Release.ActiveCfg = Static Release|Win32
+		{8E9879F6-4680-41F0-A8F9-BB25726AA881}.Static Release.Build.0 = Static Release|Win32
+		{D7B4EAC6-5EA6-4D08-9DB0-554D94183A43}.Static Debug.ActiveCfg = Static Debug|Win32
+		{D7B4EAC6-5EA6-4D08-9DB0-554D94183A43}.Static Debug.Build.0 = Static Debug|Win32
+		{D7B4EAC6-5EA6-4D08-9DB0-554D94183A43}.Static Release.ActiveCfg = Static Release|Win32
+		{D7B4EAC6-5EA6-4D08-9DB0-554D94183A43}.Static Release.Build.0 = Static Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

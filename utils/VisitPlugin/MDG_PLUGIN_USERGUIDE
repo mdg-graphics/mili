@@ -1,0 +1,73 @@
+Using the new version of Makemili and the new Visit Plugin.
+
+   A new version of Makemili called mdgmakemili (Version 11.0) 
+   has been installed at: 
+
+      /usr/apps/mdg/bin/mdgmakemili 
+
+   USAGE: mdgmakemili [optional -c] <filename>
+
+   This new version of Makemili provides the following features:
+
+   (1) A path variable that points to the location of the *.mili file. With the path 
+       specified, Visit no longer requires that the *.mili file be in the same directory
+       as the data files. The path variable is called "PATH:". Fields are specified by 
+       keyword, ie. "PATH:"
+
+   (2) Variable long names are now included in the file in the last column of the 
+       variable definitions.
+
+   (3) Comment lines can be added the file. A comment line begins
+       with the "*" character.
+
+   (4) If a *.mili file already exists, then the current file is updated with a new
+       timestep count. An option is also provided to create a new *.mili file from   
+       scratch even if one already exists:
+	
+       /usr/apps/mdg/bin/mdgmakemili -c filename
+
+   (5) Levels can be added to variable names so that they will be grouped in the 
+       VisIt GUI:
+  
+        1       1       1       level1/lcfunc           load_curve_function
+        2       0       3       level1/level2/nodpos    Node_Position
+
+
+   If you are using the new version of Makemili it is required that Visit version 2.3.0
+   or later be used and you point to the updated plugin by setting the VisIt environment 
+   variable called VISITPLUGINDIR as follows:
+   
+   	Alpha Plugin:      setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/alpha/plugins
+  	Production Plugin: setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/production/plugins
+
+
+   *******************************************
+   December 20, 2011 - New Directory Structure
+   *******************************************
+   A new structure has been defined for the Mili Plugin that aligns better with Visit versions:
+
+   Visit Version 2.3
+   	Alpha Plugin:      setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.3/alpha/plugins
+  	Production Plugin: setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.3/production/plugins
+
+   Visit Version 2.4
+   	Alpha Plugin:      setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.4/alpha/plugins
+  	Production Plugin: setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.4/production/plugins
+
+   Visit Version 2.4.1
+   	Alpha Plugin:      setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.4.1/alpha/plugins
+  	Production Plugin: setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.4.1/production/plugins
+
+   Visit Version 2.4.2
+   	Alpha Plugin:      setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.4.2/alpha/plugins
+  	Production Plugin: setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.4.2/production/plugins
+
+   Visit Version 2.5.2
+   	Alpha Plugin:      setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.5.2/alpha/plugins
+  	Production Plugin: setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.5.2/production/plugins
+    	Test Plugin:       setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.5.2/test/plugins
+
+   Visit Version 2.6.2
+   	Alpha Plugin:      setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.6.2/alpha/plugins
+  	Production Plugin: setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.6.2/production/plugins
+    	Test Plugin:       setenv VISITPLUGINDIR /usr/apps/mdg/archive/visitdir/PlugIn/2.6.2/test/plugins

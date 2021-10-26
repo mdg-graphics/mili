@@ -1,0 +1,399 @@
+# $Id: Makefile.Library-Opt,v 1.30 2011/05/26 21:45:08 durrenberger1 Exp $
+
+#
+#################################################################
+#								#
+#	           Mili Opt Makefile		                #
+#								#
+#################################################################
+#
+#################################################################
+#  Revision History                                             #
+#  ----------------                                             #
+#  20-Feb-2006  EMP  CREATED                                    # 
+#
+#  05-Oct-06 IRC: Added a paths for SILO and HDF for future     #
+#                 development                                   #
+#								#
+#  23-Apr-07 IRC: Added SiloLib files to build.                 #
+#                                                               #
+#  01-May-07 IRC: Add place holder for MiliSilo library.        #
+#                                                               #
+#  20-Jul-07 IRC: Adding functions to support MiliSilo.	        #
+#								#
+#  02-Oct-07 IRC: Updated                                       #
+#                 Add support for KlockWorks build -		#
+#                 Re: Bill Oliver.				#
+#		  SCR # 429					#
+#
+#  27-May-10 IRC: Updated                                       #
+#                 Make changes to support 64-bit compile for    #
+#                 Dawndev and Dawn.                             #
+#		  SCR # ???					#
+#################################################################
+#
+# Makefile - This is the makefile for Mili Libraries 
+#
+# Mili_1.10.00 update:  Elsie Pierce
+#               Lawrence Livermore National Laboratory
+
+# Note: Updated Makefile for Mili sources. Made more general
+#       so that it can be used for any platform. This Makefile
+#       is called from a driver Makefile (Makefile.Driver).
+#
+srcdir= @srcdir@
+abs_srcdir= @abs_srcdir@
+top_srcdir= @top_srcdir@
+abs_top_srcdir= @abs_top_srcdir@
+builddir= @builddir@
+abs_builddir= @abs_builddir@
+top_builddir= @top_builddir@
+abs_top_builddir= @abs_top_builddir@
+VPATH = @srcdir@
+
+MILI_VERSION = @MILI_VERSION@
+
+OS_NAME    = @OS_NAME@
+SHELL      = @SHELL@
+SHELL_ARGS = @SHELL_ARGS@
+#
+
+CC = @CC@ 
+FC = @F77@
+
+fortran ?= true
+
+CONFIG_STRING=@CONFIG_OPTIONS@
+
+INCLUDE_PATHS = @CC_INCLUDE_PATHS_MILI@
+DEFINES       = @CC_DEFINES_MILI@
+# CPPFLAGS      = @CC_DEFINES_MILI@ @CC_INCLUDE_PATHS_MILI@ -I$(top_builddir) -I$(SILO_INC_DIR) -I$(HDF_INC_DIR)
+CPPFLAGS      = @SILO_INC_DIR@ @CC_DEFINES_MILI@ @CC_DEFINES_SILO@  @CC_DEFINES_SHARED@ @CC_INCLUDE_PATHS_MILI@ -DHAVE_EPRINT
+CC_FLAGS_OPT  = @CC_FLAGS_OPT@
+CC_DEPEND     = @CC_DEPEND@ 
+
+FC_FLAGS_OPT  = @FC_FLAGS_OPT@
+FPPFLAGS      = @CC_INCLUDE_PATHS_MILI@ -I$(top_builddir)
+
+# For UV add the following to the Load Line
+# -blpdata
+# LDFLAGS_EXTRA = -blpdata
+
+MILIINC         = @MILI_INCLUDE_PATHS@
+MILILIBPATH     = @MILI_LIBRARY_PATHS@
+MILILIB         = @MILI_LIBRARY@
+MILI_LIB	= @MILI_LIB@
+TAURUS_LIB	= @TAURUS_LIB@
+EPRTF_LIB	= @EPRTF_LIB@
+MILI_LIB_OPT		= @MILI_LIB_OPT@
+TAURUS_LIB_OPT		= @TAURUS_LIB_OPT@
+EPRTF_LIB_OPT		= @EPRTF_LIB_OPT@
+
+ROOT_DIR      = @ROOT_DIR@
+
+INSTALL_HOME  = @INSTALL_HOME@
+PLATFORM_DIRS = @PLATFORM_DIRS@
+
+SILO_ENABLE       = @SILO_ENABLE@
+SILO_OPT_ENABLE = @SILO_OPT_ENABLE@
+HDF_ENABLE        = @HDF_ENABLE@
+SL_ENABLE         = @SL_ENABLE@
+
+#
+# KlocWorks Build Option - Added 10/02/2007: IRC
+#
+ifeq (@KW_ENABLE@,True)
+KW_CMD=kwwrap -o @KW_HOME@griz.trace
+CC=$(KW_CMD) gcc
+endif
+
+#
+# Silo Variables 
+#
+ifeq ($(SILO_ENABLE),True)
+SILO_VERSION = @SILO_VERSION@
+SILO_HOME    = @SILO_HOME@
+SILO_LIB     = @SILO_LIB@
+SILO_LIB_LD	        = @SILO_LIB_LD@
+SILO_INC_DIR = @SILO_INC_DIR@
+SILO_LIB_DIR = @SILO_LIB_DIR@
+
+SILO_LIB_OPT		= @SILO_LIB_OPT@
+MILISILOAPI_LIB		= @MILISILOAPI_LIB@
+MILISILOAPI_LIB_LD	= @MILISILOAPI_LIB_LD@
+MILISILOAPI_LIB_OPT	= @MILISILOAPI_LIB@
+endif
+
+ifeq ($(SL_ENABLE),True)
+SL_LIB		        = @SL_LIB@
+SL_LIB_LD	        = @SL_LIB_LD@
+SL_LIB_OPT		= @SL_LIB_OPT@
+endif 
+
+#
+# HDF Variables 
+#
+ifeq ($(HDF_ENABLE),True)
+HDF_VERSION = @HDF_VERSION@
+HDF_HOME    = @HDF_HOME@
+HDF_LIB     = @HDF_LIB@
+HDF_INC_DIR = @HDF_INC_DIR@
+HDF_LIB_DIR = @HDF_LIB_DIR@
+endif
+
+
+# Suffix rule to create the object files.
+# rules to automatically generate dependency makefiles
+.SUFFIXES :
+
+%.o: %.c
+	$(PURIFY_CMD) $(CC) -g $(CC_FLAGS_OPT) $(CPPFLAGS) -c $<
+
+%.o: %.f
+	$(PURIFY_CMD) $(FC) $(FC_FLAGS_OPT) $(FPPFLAGS) -c $<
+
+%.o: %.F
+	$(PURIFY_CMD) $(FC) $(FC_FLAGS_OPT) $(FPPFLAGS) -c $<
+
+ifneq ($(OS_NAME),Linux)
+%.d: %.c
+	@echo ... Generating dependencies for $< ...
+	@$(SHELL) -ec '$(CC) -c $(CC_DEPEND) $(CC_FLAGS_OPT) $(CPPFLAGS) $< \
+                        | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@
+%.d: %.f
+	@echo ... Generating dependencies for $< ...
+	@$(SHELL) -ec '$(CC) -c $(FC_DEPEND) $(FC_FLAGS_OPT) $(FPPFLAGS) $< \
+                        | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@
+%.d: %.F
+	@echo ... Generating dependencies for $< ...
+	@$(SHELL) -ec '$(CC) -c $(FC_DEPEND) $(FC_FLAGS_OPT) $(FPPFLAGS) $< \
+                        | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@
+endif
+
+MILI_OPT   = @MILI@_opt
+
+# Set to location of MILI source.
+MILIHOME = @MILI_HOME@
+
+# Mili Objects
+MILI_C_OBJS = \
+    mili.o direc.o param.o util.o dep.o svar.o \
+    srec.o mesh_u.o mr_funcs.o wrap_c.o io_mem.o eprtf.o sarray.o \
+    gahl.o util.o sarray.o partition.o ti.o tidirc.o write_db.o OBJ.o
+                                                                                
+ifeq ($(SILO_ENABLE),True)
+MILI_C_SILO_OBJS = \
+	SiloLib_Close_Restart_File.o \
+ 	SiloLib_Create_External_Facelist.o \
+	SiloLib_GetVarInfo.o \
+	SiloLib_Init.o \
+	SiloLib_Open_Restart_File.o \
+	SiloLib_Write_DefVar.o \
+	SiloLib_Write_Material.o \
+	SiloLib_Write_MeshVar.o \
+	SiloLib_Write_Multimat.o \
+	SiloLib_Write_Multimesh.o \
+	SiloLib_Write_MultiVar.o \
+	SiloLib_Write_Particle_Mesh.o \
+	SiloLib_Write_Particle_Var_Scalar.o \
+	SiloLib_Write_Particle_Var_Vec.o \
+	SiloLib_Read_TextFile.o \
+	SiloLib_Read_Var.o \
+	SiloLib_Write_Quad_Mesh.o \
+	SiloLib_Write_TextFile.o \
+	SiloLib_Write_UCD_Mesh.o \
+	SiloLib_Write_Var.o \
+	SiloLib_ReadTGMesh.o \
+	SiloLib_TestDriver.o \
+	SiloLib_dir.o \
+	SiloLib_errors.o \
+	SiloLib_MRgroups.o
+
+MILIAPI_C_SILO_OBJS = \
+	mc_silo_file_mgr.o \
+	mc_silo_class.o \
+	mc_silo_mesh.o \
+	mc_silo_param.o \
+	mc_silo_state.o \
+	mc_silo_subrec.o \
+	mc_silo_TestDriver.o \
+	mc_silo_ti.o
+endif
+
+
+# 
+# New StressLink Objects
+ifeq ($(SL_ENABLE),True) 
+SL_OBJS = \
+	overlinkdata.o \
+	readoverlink.o \
+	readstresslink.o \
+	socitume.o \
+	stresslinkdata.o \
+	writeoverlink.o \
+	writestresslink.o
+endif
+
+ifeq ($(fortran),true)
+MILI_f_OBJS = \
+    f_util.o
+                                                                                
+MILI_F_OBJS = \
+    wrap_f.o
+endif
+
+OBJS = $(MILI_C_OBJS) \
+       $(MILI_f_OBJS) \
+       $(MILI_F_OBJS)
+
+SOBJS = $(MILI_C_SILO_OBJS)
+SOBJSAPI = $(MILIAPI_C_SILO_OBJS)
+SOBJS_CC = $(addprefix SiloLib/, $(SOBJS))
+SOBJSAPI_CC = $(addprefix MiliSilo/, $(MILIAPI_C_SILO_OBJS))
+
+LOBJS = eprtf.o
+
+TOBJS = taurus_db.o taurus_mesh_u.o taurus_srec.o taurus_svars.o
+
+ifeq ($(SILO_ENABLE),True)
+MILI_UTIL_OBJS  = md.o tipart.o MiliReader.o MiliGeomGen.o SiloLib_TestDriver.o mc_silo_TestDriver.o
+MILI_UTIL_OPT	= md tipart MiliReader MiliGeomGen SiloLib_TestDriver mc_silo_TestDriver
+else
+MILI_UTIL_OBJS  = md.o tipart.o MiliReader.o MiliGeomGen.o
+MILI_UTIL_OPT	= md tipart MiliReader MiliGeomGen
+endif
+
+ifeq ($(SL_ENABLE),True)
+SL_UTIL_OBJS  = Passit.o MiliToSilo.o MiliReader.o
+SL_UTIL_DEBUG = Passit MiliToSilo MiliReader
+endif
+
+# Build Mili Utility Programs
+
+ifeq ($(SILO_ENABLE),True)
+$(MILI_UTIL_OPT): $(MILI_UTIL_OBJS)
+		    $(CC) -o $@ $(CC_FLAGS_LD_OPT) $(CPPFLAGS) $@.o -L../$(LIBOPT_PATH) -lmili -l$(MILISILOAPI_LIB_LD) -l$(SILO_LIB_LD) -L$(SILO_HOME)/lib -lsilo -lm
+		    mv $@ ../bin_utils_opt
+else
+$(MILI_UTIL_OPT): $(MILI_UTIL_OBJS)
+		    $(CC) -o $@ $(CC_FLAGS_LD_OPT) $(CPPFLAGS) $@.o -L../$(LIBOPT_PATH) -lmili
+		    mv $@ ../bin_utils_opt
+endif
+
+
+OBJS_OPT    = $(addprefix $(ROOT_DIR)/objs_opt/,   $(OBJS)) 
+TOBJS_OPT   = $(addprefix $(ROOT_DIR)/objs_opt/,   $(TOBJS)) 
+LOBJS_OPT   = $(addprefix $(ROOT_DIR)/objs_opt/,   $(LOBJS)) 
+SOBJS_OPT = $(addprefix $(ROOT_DIR)/objs_opt/, $(SOBJS)) 
+SAPIOBJS_OPT = $(addprefix $(ROOT_DIR)/objs_opt/, $(SAPIOBJS)) 
+SLOBJS_DEBUG = $(addprefix $(ROOT_DIR)/objs_debug/, $(SLOBJS)) 
+
+# Finally, targets...
+all: opt utils
+
+# Build Optimized Mili
+CC_FLAGS  = $(CC_FLAGS_OPT)
+FC_FLAGS  = $(FC_FLAGS_OPT)
+OBJS_PATH = $(ROOT_DIR)/objs_opt
+
+LIB_PATH       = @LIB_PATH@
+LIBDEBUG_PATH  = @LIBDEBUG_PATH@
+LIBOPT_PATH    = @LIBOPT_PATH@
+
+
+opt:            $(MILI_LIB_OPT) \
+		$(TAURUS_LIB_OPT) \
+		$(EPRTF_LIB_OPT) \
+		$(SILO_LIB_OPT) \
+		$(MILISILOAPI_LIB_OPT) \
+		$(SL_LIB_OPT) \
+		buildinfo.h
+
+utils:		$(MILI_UTIL_OPT)
+
+
+# The objects for the debug and opt versions of Mili are stored
+# off in seperate directories after compilation. They are moved
+# back into the src directory before we do another build.
+
+# Build Opt Mili
+$(MILI_LIB_OPT): update_objects $(OBJS)
+		$(AR) $(ARFLAGS) $@ $(OBJS)
+		cp $@ ../$(LIB_PATH)/$(MILI_LIB)
+		mv $@ ../$(LIBOPT_PATH)/$(MILI_LIB)
+
+$(TAURUS_LIB_OPT): update_objects $(TOBJS)
+		$(AR) $(ARFLAGS) $@ $(TOBJS)
+		cp $@ ../$(LIB_PATH)/$(TARUS_LIB)
+		mv $@ ../$(LIBOPT_PATH)/$(TAURUS_LIB)
+
+$(EPRTF_LIB_OPT): update_objects $(LOBJS)
+		$(AR) $(ARFLAGS) $@ $(LOBJS)
+		cp $@ ../$(LIB_PATH)/$(EPRTF_LIB)
+		mv $@ ../$(LIBOPT_PATH)/$(EPRTF_LIB)
+		cp $(ROOT_DIR)/src/*.o $(OBJS_PATH) 
+
+$(SILO_LIB_OPT): update_objects $(SOBJS_CC)
+		$(AR) $(ARFLAGS) $@ $(SOBJS)
+		cp $@ ../$(LIB_PATH)/$(SILO_LIB)
+		mv $@ ../$(LIBOPT_PATH)/$(SILO_LIB)
+		cp $(ROOT_DIR)/src/*.o $(OBJS_PATH) 
+
+$(MILISILOAPI_LIB_OPT): update_objects $(SOBJSAPI_CC)
+		$(AR) $(ARFLAGS) $@ $(SOBJSAPI)
+		cp $@ ../$(LIB_PATH)/$(MILISILOSILOAPI_LIB)
+		mv $@ ../$(LIBOPT_PATH)/$(MILISILOSILOAPI_LIB)
+		cp $(ROOT_DIR)/src/*.o $(OBJS_PATH) 
+
+$(SL_LIB_OPT): update_objects $(SLOBJS_CC)
+		$(AR) $(ARFLAGS) $@ $(SLOBJS)
+		cp $@ ../$(LIB_PATH)/$(SL_LIB)
+		mv $@ ../$(LIBOPT_PATH)/$(SL_LIB)
+		cp $(ROOT_DIR)/src/*.o $(OBJS_PATH) 
+
+
+ifeq ($(SL_ENABLE),True)
+$(SL_UTIL_DEBUG): $(SL_UTIL_OBJS)
+		  $(CC) -o $@ $(CC_FLAGS_LD_DEBUG) $(CPPFLAGS) $@.o -L../lib_debug -lmili -lsl -l$(SILO_LIB_LD) -L$(SILO_HOME)/lib -lsiloh5 -L$(HDF_HOME)/lib -lhdf5  -L$(SZIP_LIB_DIR) -lz -lm
+		  mv $@ ../bin_utils_debug
+endif
+
+# Move objects for appropriate code back into src
+# directory where build take place. 
+update_objects:
+	-mv $(OBJS_PATH)/*.o $(ROOT_DIR)/src
+                                                                               
+buildinfo.h:    buildinfo
+		$(RM) t.h
+		./buildinfo > t.h
+		mv t.h $@
+                                                                               
+buildinfo.o:    buildinfo.c
+		$(CC) $(CC_FLAGS_OPT) $(CPPFLAGS) -I../include \
+		 -DMILI_VERSION="\"$(MILI_VERSION)\"" \
+		 -DCOMPILE_CMD="\"$(CC) $(CC_FLAGS_OPT) $(CPPFLAGS) \"" \
+		 -DLINK_CMD="\"$(CC) $(CC_FLAGS_OPT) $(LDFLAGS_EXTRA) $(LIBS)\"" \
+		 -DMAKE_CMD="\"$(MAKECMDGOALS)\"" \
+		 -c buildinfo.c
+                                                                               
+buildinfo:      buildinfo.o
+		$(CC) $(CC_FLAGS_LD_OPT) $? -o $@ $(LDFLAGS_EXTRA)
+
+clean:
+	rm -f *.o *.so so_locations; \
+	rm -f buildinfo buildinfo.h; \
+	rm $(ROOT_DIR)/objs_opt/* $(ROOT_DIR)/objs_opt/*; \
+	rm -f $(ROOT_DIR)/$(LIBOPT_PATH)/* $(ROOT_DIR)/$(LIBOPT_PATH)/*
+
+clobber: clean
+	rm -f *.o *.so so_locations; \
+	rm -f buildinfo buildinfo.h; \
+	rm $(ROOT_DIR)/$(LIBOPT_PATH)/* $(ROOT_DIR)/$(LIBOPT_PATH)/*; \
+	rm $(ROOT_DIR)/objs_opt/* $(ROOT_DIR)/objs_opt/*;
+
+distclean:
+
+ifneq ($(OS_NAME),Linux)
+include $(OBJS:.o=.d)
+endif
+

@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mili", "mili.vcproj", "{9FCEF9B2-0FB7-41EF-9B69-2D12E111D0F1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "taurus", "taurus.vcproj", "{450B037E-D54F-49D6-A4A0-C5ED3D1C3652}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MiliReader", "MiliReader\MiliReader.vcproj", "{63E0E326-7EAA-4712-A4FD-6DD259573057}"
+	ProjectSection(ProjectDependencies) = postProject
+		{450B037E-D54F-49D6-A4A0-C5ED3D1C3652} = {450B037E-D54F-49D6-A4A0-C5ED3D1C3652}
+		{9FCEF9B2-0FB7-41EF-9B69-2D12E111D0F1} = {9FCEF9B2-0FB7-41EF-9B69-2D12E111D0F1}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Static Debug|Win32 = Static Debug|Win32
+		Static Release|Win32 = Static Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9FCEF9B2-0FB7-41EF-9B69-2D12E111D0F1}.Static Debug|Win32.ActiveCfg = Static Debug|Win32
+		{9FCEF9B2-0FB7-41EF-9B69-2D12E111D0F1}.Static Debug|Win32.Build.0 = Static Debug|Win32
+		{9FCEF9B2-0FB7-41EF-9B69-2D12E111D0F1}.Static Release|Win32.ActiveCfg = Static Release|Win32
+		{9FCEF9B2-0FB7-41EF-9B69-2D12E111D0F1}.Static Release|Win32.Build.0 = Static Release|Win32
+		{450B037E-D54F-49D6-A4A0-C5ED3D1C3652}.Static Debug|Win32.ActiveCfg = Static Debug|Win32
+		{450B037E-D54F-49D6-A4A0-C5ED3D1C3652}.Static Debug|Win32.Build.0 = Static Debug|Win32
+		{450B037E-D54F-49D6-A4A0-C5ED3D1C3652}.Static Release|Win32.ActiveCfg = Static Release|Win32
+		{450B037E-D54F-49D6-A4A0-C5ED3D1C3652}.Static Release|Win32.Build.0 = Static Release|Win32
+		{63E0E326-7EAA-4712-A4FD-6DD259573057}.Static Debug|Win32.ActiveCfg = Static Debug|Win32
+		{63E0E326-7EAA-4712-A4FD-6DD259573057}.Static Debug|Win32.Build.0 = Static Debug|Win32
+		{63E0E326-7EAA-4712-A4FD-6DD259573057}.Static Release|Win32.ActiveCfg = Static Release|Win32
+		{63E0E326-7EAA-4712-A4FD-6DD259573057}.Static Release|Win32.Build.0 = Static Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
