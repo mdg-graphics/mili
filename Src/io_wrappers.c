@@ -1203,7 +1203,7 @@ gen_material_data( MO_class_data *p_mat_class, Mesh_data *p_mesh )
     int mtl;
     int first, datum;
     int elem_qty, qty_classes, qty, qty_mats, elem_sum;
-    int *mats, *offsets, *mat_elem_lists, *elem_list, *mat_elem_qtys;
+    int *mats, *offsets, *cur_offsets, *mat_elem_lists, *elem_list, *mat_elem_qtys;
     MO_class_data **mo_classes, **mat_mo_classes;
     Int_2tuple *p_i2t;
 
@@ -1266,6 +1266,11 @@ gen_material_data( MO_class_data *p_mat_class, Mesh_data *p_mesh )
     for ( i = 1; i < qty_mats; i++ )
         offsets[i] = offsets[i - 1] + mat_elem_qtys[i - 1];
 
+    /* Allocate/init array to store offsets for each material */
+    cur_offsets = NEW_N( int, qty_mats, "Current offsets array" );
+    for ( i = 0; i < qty_mats; i++ )
+        cur_offsets[i] = 0;
+
     /* Pass through all elements again to sort into material lists. */
     for ( i = G_TRUSS; i < G_MAT; i++ )
     {
@@ -1279,20 +1284,25 @@ gen_material_data( MO_class_data *p_mat_class, Mesh_data *p_mesh )
             elem_qty = mo_classes[j]->qty;
             mats = mo_classes[j]->objects.elems->mat;
             int mat_offset = -1;
-            int cur_offset = 0;
+
+            // Reset current offsets for new element class
+            for ( k = 0; k < qty_mats; k++ )
+                cur_offsets[k] = 0;
+
             /* Record the element id at the current offset for its material. */
-            for ( k = 0; k < elem_qty; k++, cur_offset++ )
+            for ( k = 0; k < elem_qty; k++ )
             {
                if(mat_offset != offsets[mats[k]])
                {
                   mat_offset = offsets[mats[k]];
-                  cur_offset = 0;
                }
-               mat_elem_lists[ mat_offset+cur_offset] = k;
-               
+               mat_elem_lists[ mat_offset+cur_offsets[mats[k]] ] = k;
+               cur_offsets[mats[k]] += 1;
             }
         }
     }
+
+    free( cur_offsets );
 
     /* Re-init the offsets. */
     /*offsets[0] = 0;
