@@ -1156,6 +1156,7 @@ minmax_search_by_mat_sand_elem( Analysis *analy, int min_state, int qty_states,
     int first, last, idx;
     int srec_id;
     MO_class_data *p_mat_class;
+    MO_class_data *p_mo_class;
     Material_data *p_md;
     float *p_sand_flags;
     static Bool_type warn_once = TRUE;
@@ -1199,6 +1200,8 @@ minmax_search_by_mat_sand_elem( Analysis *analy, int min_state, int qty_states,
             p_md = p_mat_class->objects.materials + req_mats[j];
             p_sand_flags = analy->state_p->elem_class_sand[
                                p_md->elem_class->elem_class_index];
+            /* Get MO class object */
+            p_mo_class = p_md->elem_class;
 
             idx = j * qty_states + i;
             qty_blocks = data_src_qty_blocks[j];
@@ -1208,7 +1211,7 @@ minmax_search_by_mat_sand_elem( Analysis *analy, int min_state, int qty_states,
             /* Init min's/max's for current state. */
             first = obj_blocks[0][0];
             maxval = minval = data[first];
-            max_id = min_id = first + 1;
+            max_id = min_id = p_mo_class->labels[p_mo_class->labels_index[first]].label_num;
 
             /* Loop over blocks... */
             for ( k = 0; k < qty_blocks; k++ )
@@ -1230,13 +1233,13 @@ minmax_search_by_mat_sand_elem( Analysis *analy, int min_state, int qty_states,
                         if ( val > maxval )
                         {
                             maxval = val;
-                            max_id = l + 1;
+                            max_id = p_mo_class->labels[p_mo_class->labels_index[l]].label_num;
                         }
 
                         if ( val < minval )
                         {
                             minval = val;
-                            min_id = l + 1;
+                            min_id = p_mo_class->labels[p_mo_class->labels_index[l]].label_num;
                         }
                     }
                 }
@@ -1249,13 +1252,13 @@ minmax_search_by_mat_sand_elem( Analysis *analy, int min_state, int qty_states,
                         if ( val > maxval )
                         {
                             maxval = val;
-                            max_id = l + 1;
+                            max_id = p_mo_class->labels[p_mo_class->labels_index[l]].label_num;
                         }
 
                         if ( val < minval )
                         {
                             minval = val;
-                            min_id = l + 1;
+                            min_id = p_mo_class->labels[p_mo_class->labels_index[l]].label_num;
                         }
                     }
                 }
