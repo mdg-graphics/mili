@@ -3679,7 +3679,7 @@ truncate_family( Mili_family *p_fam, int st_index )
    int file_qty, state_qty, remain_states;
    int cur_file;
    int i;
-   LONGLONG offset;
+   long offset;
    int header[QTY_DIR_HEADER_FIELDS];
    
    offset = 0;
