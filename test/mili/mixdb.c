@@ -316,17 +316,17 @@ main( int argc, char *argv[] )
    /*
     * Create the Mili database.
     */
-    stat = mc_open( fname, "data", "AwPd", &fid );
+    stat = mc_open( fname, ".", "AwPd", &fid );
     if ( stat != 0 )
     {
-        mc_print_error( "mc_open", stat );
+        mc_print_error( "mc_open()", stat );
         exit( -1 );
     }
     
     
     mc_limit_filesize( fid, 10000000 );
     mc_limit_states( fid, 10000 );
-
+    mc_activate_visit_file(fid,1);
     
     /*
      * Create a mesh.
@@ -542,8 +542,8 @@ main( int argc, char *argv[] )
         exit( -1 );
     }
 
-    for ( i = 0, time = 0.0; 
-	  i < MAX_STATES; 
+    for ( i = 1, time = 0.0; 
+	  i <= MAX_STATES; 
 	  time += 0.1, i++ )
     {
         stat = mc_new_state( fid, sid, time, &file_suffix, &state_index );
@@ -792,8 +792,8 @@ main( int argc, char *argv[] )
     }
 
     /* Write a few state records */
-    for ( i = 0, time = 0.0; 
-	  i < MAX_STATES; 
+    for ( i = 1, time = 0.0; 
+	  i <= MAX_STATES; 
 	  time += 0.1, i++ )
     {
         stat = mc_new_state( thid, sid, time, &file_suffix, &state_index );
@@ -851,7 +851,7 @@ main( int argc, char *argv[] )
     }
 
     /* Restart Test */
-    stat = mc_open( fname, "data", "AaPdEn", &fid );
+    stat = mc_open( fname, ".", "AaPdEn", &fid );
     if ( stat != 0 )
     {
         mc_print_error( "mc_open", stat );

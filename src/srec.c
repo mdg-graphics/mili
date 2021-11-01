@@ -3702,7 +3702,7 @@ truncate_family( Mili_family *p_fam, int st_index )
        }
    }
    
-   make_fnam( STATE_DATA, p_fam, ST_FILE_SUFFIX( p_fam, st_index-1 ),fname );
+   make_fnam( STATE_DATA, p_fam, state_map[st_index-1].file ,fname );
 #if defined(_WIN32) || defined(WIN32)
    status = 0;
 #else
