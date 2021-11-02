@@ -2733,16 +2733,17 @@ mc_get_node_label_info(Famid fam_id, int mesh_id, char *short_name,
                        int *num_blocks, int *num_labels)
 {
    Mili_family *fam;
+   char *temp, temp_string[10];
    int i;
    int num_items_read;
    int state = 0;
    Return_value status;
-	int v1_file = 0;
+   int v1_file = 0;
 
    char label_name[64];
-	char label_descriptor[96];
+   char label_descriptor[96];
    
-	int superclass;
+   int superclass;
    char superclass_name[M_MAX_NAME_LEN];
 
    /* Label Blocking data */
@@ -2810,9 +2811,19 @@ mc_get_node_label_info(Famid fam_id, int mesh_id, char *short_name,
    }else
 	{
 		strcpy( label_name, "Node Labels" );
-   	strcat( label_name,label_descriptor);
+   	    strcat( label_name,label_descriptor);
 		status = mc_ti_read_array( fam_id, label_name,
                               (void **) &labels_ptr, &num_items_read );
+        if(status != OK)
+        {
+            temp = rindex(label_name, '-');
+            i = strlen(temp);
+            strcpy(temp_string, temp);
+            temp[1] = '\0';
+            strcat(label_name, temp_string);
+            status = mc_ti_read_array( fam_id, label_name,
+                              (void **) &labels_ptr, &num_items_read );
+        }
 	}
 	if (status != OK) {
       return status;
