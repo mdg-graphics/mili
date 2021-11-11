@@ -209,6 +209,7 @@ float st_rec[] =
 };
 
 static int create_mesh( int fid, int *mid );
+void writeStates( int fid, int sid, int stop_state, float start_time, float time_increment);
 
 
 main( int argc, char *argv[] )
@@ -542,105 +543,7 @@ main( int argc, char *argv[] )
         exit( -1 );
     }
 
-    for ( i = 1, time = 0.0; 
-	  i <= MAX_STATES; 
-	  time += 0.1, i++ )
-    {
-        stat = mc_new_state( fid, sid, time, &file_suffix, &state_index );
-        if ( stat != 0 )
-        {
-            mc_close( fid );
-            mc_print_error( "mc_new_state", stat );
-            exit( -1 );
-        }
-
-        stat = mc_wrt_stream( fid, M_FLOAT, 105, st_rec );
-        if ( stat != 0 )
-        {
-            mc_close( fid );
-            mc_print_error( "mc_wrt_stream", stat );
-            exit( -1 );
-        }
-
-        num_bytes = mc_calc_bytecount( M_FLOAT, 1 ) ;	
-        num_bytes = mc_calc_bytecount( M_FLOAT, 105 ) ;	
-        num_bytes = mc_calc_bytecount( M_INT, 1 ) ;	
-        num_bytes = mc_calc_bytecount( M_FLOAT8, 1 ) ;	
-
-        /* Truss data */
-        stat = mc_wrt_stream( fid, M_FLOAT, 8, st_rec + 105 );
-        if ( stat != 0 )
-        {
-            mc_close( fid );
-            mc_print_error( "mc_wrt_stream", stat );
-            exit( -1 );
-        }
-
-        /* Tet data */
-	stat = mc_wrt_stream( fid, M_FLOAT, 20, st_rec + 113 );
-        if ( stat != 0 )
-        {
-            mc_close( fid );
-            mc_print_error( "mc_wrt_stream", stat );
-            exit( -1 );
-        }
-   stat = mc_wrt_stream( fid, M_FLOAT, 128, st_rec + 133 );
-        if ( stat != 0 )
-        {
-            mc_close( fid );
-            mc_print_error( "mc_wrt_stream", stat );
-            exit( -1 );
-        }
-
-	/* Update State Data so not constant over all time steps */
-	for ( j=0;
-	      j<105;
-	      j+=3 ) 
-   {
-	      st_rec[j] += .01;
-	}
-   
-	for ( j=105;
-	      j<113;
-	      j++ ) 
-   {
-	      st_rec[j] += 10000;
-	}
-   
-	for ( j=113;
-	      j<133;
-	      j++ ) 
-   {
-	      st_rec[j] += 10;
-	}
- 
-   for ( j=133, k=133;
-	      j<149;
-	      j++, k+=8 ) 
-   {
-	      st_rec[k] += .1;
-         
-	}
-   
-   for ( j=134,k=134;
-	      j<261;
-	      j=k+1, k++ ) 
-   {
-	      st_rec[k++] += .01;
-         
-         st_rec[k++] += .01;
-        
-         st_rec[k++] += .01;
-         
-         st_rec[k++] += .01;
-         
-         st_rec[k++] += .01;
-         
-         st_rec[k++] += .01;
-         
-         st_rec[k++] += .02;         
-	}
-    }
+    writeStates( fid, sid, MAX_STATES, 0.0, 0.1);
 
     stat = mc_close( fid );
     stat = mc_open( fname, ".", "ArPdEn", &fid );
@@ -864,7 +767,8 @@ main( int argc, char *argv[] )
         mc_print_error( "mc_restart_at_state", stat );
         exit( -1 );
     }
-
+    
+    writeStates(fid, sid,  10, 0.7, 0.1);
     stat = mc_close( fid );
     if ( stat != 0 )
     {
@@ -875,6 +779,115 @@ main( int argc, char *argv[] )
     exit( 0 );
 }
 
+void writeStates( int fid, int sid, int stop_state, float start_time, float time_increment)
+{  
+    float time = start_time;
+    int i, j, k;
+    int state_index; 
+    int num_bytes; 
+    int file_suffix; 
+    int stat; 
+    
+    for ( i = 1, time = start_time; 
+	  i <= stop_state; 
+	  time += time_increment, i++ )
+    {
+        stat = mc_new_state( fid, sid, time, &file_suffix, &state_index );
+        if ( stat != 0 )
+        {
+            mc_close( fid );
+            mc_print_error( "mc_new_state", stat );
+            exit( -1 );
+        }
+
+        stat = mc_wrt_stream( fid, M_FLOAT, 105, st_rec );
+        if ( stat != 0 )
+        {
+            mc_close( fid );
+            mc_print_error( "mc_wrt_stream", stat );
+            exit( -1 );
+        }
+
+        num_bytes = mc_calc_bytecount( M_FLOAT, 1 ) ;	
+        num_bytes = mc_calc_bytecount( M_FLOAT, 105 ) ;	
+        num_bytes = mc_calc_bytecount( M_INT, 1 ) ;	
+        num_bytes = mc_calc_bytecount( M_FLOAT8, 1 ) ;	
+
+        /* Truss data */
+        stat = mc_wrt_stream( fid, M_FLOAT, 8, st_rec + 105 );
+        if ( stat != 0 )
+        {
+            mc_close( fid );
+            mc_print_error( "mc_wrt_stream", stat );
+            exit( -1 );
+        }
+
+        /* Tet data */
+	stat = mc_wrt_stream( fid, M_FLOAT, 20, st_rec + 113 );
+        if ( stat != 0 )
+        {
+            mc_close( fid );
+            mc_print_error( "mc_wrt_stream", stat );
+            exit( -1 );
+        }
+   stat = mc_wrt_stream( fid, M_FLOAT, 128, st_rec + 133 );
+        if ( stat != 0 )
+        {
+            mc_close( fid );
+            mc_print_error( "mc_wrt_stream", stat );
+            exit( -1 );
+        }
+
+	/* Update State Data so not constant over all time steps */
+	for ( j=0;
+	      j<105;
+	      j+=3 ) 
+   {
+	      st_rec[j] += .01;
+	}
+   
+	for ( j=105;
+	      j<113;
+	      j++ ) 
+   {
+	      st_rec[j] += 10000;
+	}
+   
+	for ( j=113;
+	      j<133;
+	      j++ ) 
+   {
+	      st_rec[j] += 10;
+	}
+ 
+   for ( j=133, k=133;
+	      j<149;
+	      j++, k+=8 ) 
+   {
+	      st_rec[k] += .1;
+         
+	}
+   
+   for ( j=134,k=134;
+	      j<261;
+	      j=k+1, k++ ) 
+   {
+	      st_rec[k++] += .01;
+         
+         st_rec[k++] += .01;
+        
+         st_rec[k++] += .01;
+         
+         st_rec[k++] += .01;
+         
+         st_rec[k++] += .01;
+         
+         st_rec[k++] += .01;
+         
+         st_rec[k++] += .02;         
+	}
+    }
+}
 /*****************************************************************
  * TAG( create_mesh )
  *

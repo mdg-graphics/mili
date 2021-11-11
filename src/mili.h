@@ -58,7 +58,7 @@
 #define MILI_H
 /*The following is for bookkeeping only*/
 #ifndef MILI_VERSION
-#define MILI_REVISION_DATE ="09/30/2016:09:00";
+#define MILI_REVISION_DATE ="011/11/2021:09:00";
 #endif
 
 #include <ctype.h>
@@ -70,7 +70,7 @@ typedef int Famid;
 #include "mili_enum.h"
 
 #ifndef MILI_VERSION
-#define MILI_VERSION "V21_01"
+#define MILI_VERSION "V21_02"
 #endif
 
 #if defined(_WIN32) || defined(WIN32)

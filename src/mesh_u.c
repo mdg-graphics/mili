@@ -4301,15 +4301,7 @@ init_meshes( Mili_family *fam )
                cumalative1 =(double)(1000*(stop1 - start1))/CLOCKS_PER_SEC;
                printf("Read of non-state files() ELEM_CONNS add_geom() timing is: %f ms\n",cumalative1);
 #endif
-#if TIMER
-               start1 = clock();
-#endif
                free( elem_blks );
-#if TIMER
-               stop1 = clock();
-               cumalative1 =(double)(1000*(stop1 - start1))/CLOCKS_PER_SEC;
-               printf("Read of non-state files() ELEM_CONNS free( elem_blks ) timing is: %f ms\n",cumalative1);
-#endif
 #if TIMER
                stop2 = clock();
                cumalative2 =(double)(1000*(stop2 - start2))/CLOCKS_PER_SEC;

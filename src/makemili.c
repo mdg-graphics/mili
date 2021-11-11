@@ -117,7 +117,7 @@ writeVariable_json(char* var_elem, Variable *variable,JSON_Object *root_object)
 {
    char variable_string[1024];
    char components[512];
-   char subrecs[256];
+   char *subrecs;
    char number[10];
    char *numbers = NULL;
    int i;
@@ -127,7 +127,8 @@ writeVariable_json(char* var_elem, Variable *variable,JSON_Object *root_object)
    variable_string[0] = '\0';
    components[0] = '\0';
    number[0] = '\0';
-   subrecs[0] = '\0';
+   subrecs = calloc(sizeof(char), 10*variable->subrec_count);
+   
    
    sv=variable->state_var;
    if(var_elem == NULL || sv == NULL)
@@ -250,7 +251,7 @@ writeVariable_json(char* var_elem, Variable *variable,JSON_Object *root_object)
    strcat(subrecs, "]");
    json_object_dotset_value(root_object,variable_string,
                             json_parse_string(subrecs));
-     
+   free(subrecs);  
 }
 /**
  *  This function goes adds the variables to the hashtable for additional processing later.
@@ -1911,7 +1912,8 @@ mc_write_global_metadata(Famid database_id)
     JSON_Object *incoming_object;
     int status;  // Used for the removing of the .mili file
     database_name[0] = '\0';
-    base_name_without_path['\0'];
+    base_name_without_path[0] = '\0';
+    base_name[0] ='\0';
     Mili_family* fam;  //This is the Mili database plot file.
   
     if(database_id >= fam_qty || database_id <0)
@@ -1964,9 +1966,9 @@ mc_write_global_metadata(Famid database_id)
     user_data = json_parse_file(db_with_path);
     
     file_id = get_processor_id(fam->root,&num_length);
-    
-    strncpy(base_name, fam->root, strlen(fam->root)-num_length);
-    
+    int copy_amount = strlen(fam->root)-num_length;
+    strncpy(base_name, fam->root, copy_amount);
+    base_name[copy_amount] = '\0';
     files_processed[file_id] = 1;
     char * start_pos = rindex(base_name,'/')+1;
     sprintf(domain_path, "%s%d", domain_base,file_id);
