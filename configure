@@ -5194,8 +5194,8 @@ $as_echo "$as_me: WARNING: \"****  Error creating directory:  $PATH_NAME\"" >&2;
     # Set up links for test case files
     cd ../src_test
     ln -sf ../../Makefile.Tests Makefile.in
-    ln -sf ../../test/*.c .     > /dev/null 2>&1
-    ln -sf ../../test/*.f .     > /dev/null 2>&1
+    ln -sf ../../test/mili/*.c .     > /dev/null 2>&1
+    ln -sf ../../test/mili/*.f .     > /dev/null 2>&1
 
 
     # Set up links for test case files
