@@ -3628,6 +3628,7 @@ mc_restart_at_state( Famid fam_id, int file_name_index, int file_state_index )
    }else {
 
       /* Remove existing state records and files at and after "state_index". */
+      if(state_index>0)state_index--;
       rval = truncate_family( fam, state_index );
 
       /*
@@ -3635,7 +3636,7 @@ mc_restart_at_state( Famid fam_id, int file_name_index, int file_state_index )
        * boundary so that subsequent state writes will fill up the "partial"
        * file to its full complement.
        */
-      if ( fam->state_map[state_index].offset > 0 )
+      if ( fam->state_map && fam->state_map[state_index].offset > 0 )
       {
 
          rval = state_file_open( fam, smap[state_index].file, fam->access_mode );
