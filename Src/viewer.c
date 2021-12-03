@@ -302,9 +302,6 @@ main( int argc, char *argv[] )
             exit( 1 );
 
         check_for_free_nodes( analy );
-        
-        analy->particle_nodes_enabled = FALSE;
-        
     }
 
 #ifdef TIME_OPEN_ANALYSIS
@@ -785,6 +782,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     int brick_qty=0, shell_qty=0, truss_qty=0, beam_qty=0;
     int particle_qty=0, tet_qty = 0;
+    Bool_type particles_on;
 
     char temp_fname[MAXPATHLENGTH];
     int dir_pos=-1;
@@ -1054,6 +1052,13 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     set_contour_vals( 6, analy );
 
     VEC_SET( analy->displace_scale, 1.0, 1.0, 1.0 );
+
+    /* Check for "particles_on" Mili parameter and set particle_nodes_enabled_flag */
+    stat = mc_read_scalar(analy->db_ident, "particles_on", &particles_on); 
+    // If "particles_on" paramter does not exist, default to off.
+    if(stat != OK)
+        particles_on = 0;
+    analy->particle_nodes_enabled = particles_on;
 
     /* Load in TI TOC if TI data is found */
     if(db_type == TAURUS)
@@ -2767,8 +2772,6 @@ load_analysis( char *fname, Analysis *analy, Bool_type reload )
 
     check_for_free_nodes( analy );
     
-    analy->particle_nodes_enabled = FALSE;
-
 #ifdef SERIAL_BATCH
 #else
     regenerate_result_menus();
