@@ -59,8 +59,9 @@ CDEMOS = \
         mixdb \
         mode_test \
         titest \
-	     MiliDiff \
-        value_change 
+	    MiliDiff \
+        value_change \
+        restart 
  
 FDEMOS = \
         GenFaceDB \
