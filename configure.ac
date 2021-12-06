@@ -36,7 +36,7 @@
 
 m4_define(MILI_NAME_M4, Mili)
 m4_define(MILI_VERSION_M4, V21_02)
-m4_define(MILI_DATE_M4, 11/11/2021)
+m4_define(MILI_DATE_M4, 12/6/2021)
 m4_define(MILI_TIME_M4, 09:00:00)
 m4_define(MILI_DATETIME_M4, [MILI_DATE_M4 MILI_TIME_M4])
 m4_define(MILI_BUGS_M4,durrenberger1@llnl.gov)
