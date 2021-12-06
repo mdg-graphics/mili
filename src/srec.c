@@ -3413,11 +3413,6 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
    
    fam->state_qty++;
    
-   if(fam->file_st_qty == 0)
-   {
-      fam->file_map = RENEWC_N( State_file_descriptor, fam->file_map,0,1,"Creating file_map");
-   }
-   
    if(fam->state_map == NULL)
    {
       fam->state_map = NEW_N( State_descriptor, fam->state_qty ,"Recreating state descriptor");
@@ -3635,6 +3630,7 @@ mc_restart_at_state( Famid fam_id, int file_name_index, int file_state_index )
        * Leave the (new) last file open if new end doesn't fall on a file
        * boundary so that subsequent state writes will fill up the "partial"
        * file to its full complement.
+       * Added check for NULL state_map
        */
       if ( fam->state_map && fam->state_map[state_index].offset > 0 )
       {

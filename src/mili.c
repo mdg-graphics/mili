@@ -3031,6 +3031,13 @@ prep_for_new_data( Mili_family *fam, int ftype )
          }
          if ( open_next )
          {
+            fam->file_map = RENEWC_N( State_file_descriptor, fam->file_map,
+                                      fam->st_file_count, 1,
+                                      "New file map entry" );
+            if (fam->file_map == NULL)
+            {
+               return ALLOC_FAILED;
+            }
             /* Open a new file. */
             rval = state_file_open( fam, fam->st_file_count,
                                     fam->access_mode );
@@ -3041,13 +3048,7 @@ prep_for_new_data( Mili_family *fam, int ftype )
             fam->file_st_qty = 0;
             fam->cur_st_offset = 0;
             fam->st_file_count++;
-            fam->file_map = RENEWC_N( State_file_descriptor, fam->file_map,
-                                      fam->st_file_count, 1,
-                                      "New file map entry" );
-            if (fam->file_map == NULL)
-            {
-               return ALLOC_FAILED;
-            }
+            
          }
          else
          {
