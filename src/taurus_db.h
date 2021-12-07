@@ -70,7 +70,7 @@
  */
 #define K_EPSILON_MASK 0x1
 #define A2_MASK 0x2
-
+void fix_title( char * );
 static char *global_primal_shorts[] =
 {
    "ke", "pe", "te", "rigx", "rigy", "rigz", NULL

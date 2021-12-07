@@ -39,6 +39,12 @@
 #define MILI_ENUM_H
 
 
+enum subrec_layout
+{
+RESULT_ORDERED,
+OBJECT_ORDERED
+};
+
 /*****************************************************************
  * TAG( Control_function_type )
  *
@@ -278,8 +284,8 @@ typedef enum
 
    /* Return values 1-100 reserved for Fortran-API detected errors. */
    /* These values must also be explicitly assigned in mili_fparam.h! */
-   TOO_MANY_SCALARS = 2,
-   TOO_MANY_LIST_FIELDS = 3,
+   TOO_MANY_SCALARS = 1,
+   TOO_MANY_LIST_FIELDS = 2,
 
    /* Values above 100 for internal C-code returned values. */
 
@@ -389,10 +395,11 @@ typedef enum
    INVALID_SVAR_AGG_TYPE,
    CONN_LABEL_ID_MISMATCH,
    ZERO_SIZE_ERROR,  // 220
-	TOO_MANY_LABELS,
+   TOO_MANY_LABELS,
    SVAR_VEC_ARRAY_ORG_MISMATCH,
    INVALID_VISIT_JSON_FILE,
-   NO_A_FILE_FOR_STATEMAP
+   NO_A_FILE_FOR_STATEMAP,
+   DIR_ZERO_COUNT //225
 } Return_value;
 
 

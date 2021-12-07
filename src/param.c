@@ -64,7 +64,7 @@
 
 #define ACELL_SPACE 3
 
-static Return_value dump_param_array( size_t (*read_funcs[])(), FILE *p_f,
+static Return_value dump_param_array( LONGLONG (*read_funcs[])(), FILE *p_f,
                                       Dir_entry dir_ent, char *dir_string,
                                       Dump_control *p_dc,
                                       int head_indent, int body_indent );
@@ -73,6 +73,7 @@ static Return_value read_param_array_len( Mili_family *fam, Param_ref *p_pr,
       int *param_array_type, int *param_array_len );
 
 
+extern
 char *dtype_names[QTY_PD_ENTRY_TYPES + 1] =
 {
    NULL,
@@ -155,7 +156,7 @@ read_scalar( Mili_family *fam, Param_ref *p_pr, void *p_value )
    int file, entry_idx;
    LONGLONG offset;
    Return_value rval;
-   size_t nitems;
+   LONGLONG nitems;
    LONGLONG *entry;
    LONGLONG numtype;
 
@@ -239,14 +240,14 @@ Return_value
 write_scalar( Mili_family *fam, int type, char *name, void *data,
               Dir_entry_type etype )
 {
-   size_t outbytes;
+   LONGLONG outbytes;
    Return_value rval;
    Param_ref *ppr;
    int fidx;
    Htable_entry *phte;
    LONGLONG *entry;
    int prev_index;
-   size_t write_ct;
+   LONGLONG write_ct;
 
    /* See if entry already exists. */
    rval = htable_search( fam->param_table, name, ENTER_MERGE, &phte );
@@ -284,6 +285,10 @@ write_scalar( Mili_family *fam, int type, char *name, void *data,
             {
                rval = SHORT_WRITE;
             }
+            if(strncmp(name,"nproc", strlen("nproc"))==0)
+            {
+               fam->num_procs = *(int*)data;
+            }
 
             fam->next_free_byte += outbytes;
          }
@@ -314,12 +319,15 @@ write_scalar( Mili_family *fam, int type, char *name, void *data,
             return rval;
          }
 
-         write_ct = (fam->write_funcs[type])( fam->cur_file, data, (size_t) 1 );
+         write_ct = (fam->write_funcs[type])( fam->cur_file, data, (LONGLONG) 1 );
          if (write_ct != 1)
          {
             rval = SHORT_WRITE;
          }
-
+         if(strncmp(name,"nproc", strlen("nproc"))==0)
+         {
+             fam->num_procs = *(int*)data;
+         }
          /*
           * This was a re-write.  If the destination file wasn't already
           * open, close it to ensure changes are flushed to disk.
@@ -343,7 +351,7 @@ write_scalar( Mili_family *fam, int type, char *name, void *data,
          rval = NUM_TYPE_MISMATCH;
       }
    }
-
+   
    return rval;
 }
 
@@ -461,7 +469,7 @@ mili_read_string( Mili_family *fam, Param_ref *p_pr, char *p_value )
    int file, entry_idx;
    LONGLONG offset;
    Return_value rval;
-   size_t nitems, length;
+   LONGLONG nitems, length;
    LONGLONG *entry;
 
    /* Get directory entry. */
@@ -477,7 +485,7 @@ mili_read_string( Mili_family *fam, Param_ref *p_pr, char *p_value )
    }
 
    offset = entry[OFFSET_IDX];
-   length = (size_t)entry[LENGTH_IDX];
+   length = (LONGLONG)entry[LENGTH_IDX];
 
    rval = non_state_file_open( fam, file, fam->access_mode );
    if ( rval != OK )
@@ -545,7 +553,7 @@ mc_wrt_string( Famid fam_id, char *name, char *value )
 Return_value
 write_string( Mili_family *fam, char *name, char *value, Dir_entry_type etype )
 {
-   size_t c_qty, s_len;
+   LONGLONG c_qty, s_len;
    char *c_buf;
    char *pdest, *psrc;
    Return_value rval;
@@ -634,7 +642,7 @@ write_string( Mili_family *fam, char *name, char *value, Dir_entry_type etype )
       ppr = (Param_ref *) phte->data;
       entry = fam->directory[ppr->file_index].dir_entries[ppr->entry_index];
 
-      if ( (size_t) entry[LENGTH_IDX] >= s_len )
+      if ( (LONGLONG) entry[LENGTH_IDX] >= s_len )
       {
          /* Save id of any extant open file for use below. */
          prev_index = fam->cur_index;
@@ -791,7 +799,7 @@ read_param_array( Mili_family *fam, Param_ref *p_pr, void **p_data )
    int cell_qty;
    int i;
    LONGLONG offset;
-   size_t nitems, length;
+   LONGLONG nitems, length;
    int num_type;
    LONGLONG *dir_ent;
    int *idata;
@@ -808,7 +816,7 @@ read_param_array( Mili_family *fam, Param_ref *p_pr, void **p_data )
 
    /* Get file offset and length of data. */
    offset   = dir_ent[OFFSET_IDX];
-   length   = (size_t)dir_ent[LENGTH_IDX];
+   length   = (LONGLONG)dir_ent[LENGTH_IDX];
    num_type = dir_ent[MODIFIER1_IDX];
 
    rval = non_state_file_open( fam, file, fam->access_mode );
@@ -841,8 +849,8 @@ read_param_array( Mili_family *fam, Param_ref *p_pr, void **p_data )
    }
 
    nitems = (fam->read_funcs[M_INT])( fam->cur_file, p_pr->dims,
-                                      (size_t) p_pr->rank );
-   if ( nitems != (size_t)p_pr-> rank )
+                                      (LONGLONG) p_pr->rank );
+   if ( nitems != (LONGLONG)p_pr-> rank )
    {
       free( p_pr->dims );
       return SHORT_READ;
@@ -866,7 +874,7 @@ read_param_array( Mili_family *fam, Param_ref *p_pr, void **p_data )
          }
          p_data[0] = (void *)idata;
          nitems = (fam->read_funcs[M_INT])( fam->cur_file, idata,
-                                            (size_t) cell_qty );
+                                            (LONGLONG) cell_qty );
          length/=4;
          break;
 
@@ -879,7 +887,7 @@ read_param_array( Mili_family *fam, Param_ref *p_pr, void **p_data )
          }
          p_data[0] = (void *)lidata;
          nitems = (fam->read_funcs[M_INT8])( fam->cur_file, lidata,
-                                             (size_t) cell_qty );
+                                             (LONGLONG) cell_qty );
          length/=8;
          break;
 
@@ -893,7 +901,7 @@ read_param_array( Mili_family *fam, Param_ref *p_pr, void **p_data )
          }
          p_data[0] = (void *)fdata;
          nitems = (fam->read_funcs[M_FLOAT])( fam->cur_file, fdata,
-                                              (size_t) cell_qty );
+                                              (LONGLONG) cell_qty );
          length=(length/4)-2;
          break;
 
@@ -906,7 +914,7 @@ read_param_array( Mili_family *fam, Param_ref *p_pr, void **p_data )
          }
          p_data[0] = (void *)ddata;
          nitems = (fam->read_funcs[M_FLOAT8])( fam->cur_file, ddata,
-                                               (size_t) cell_qty );
+                                               (LONGLONG) cell_qty );
          length/=8;
          break;
 
@@ -927,7 +935,7 @@ read_param_array_len( Mili_family *fam, Param_ref *p_pr, int *param_array_type, 
    int file, entry_idx;
    int i;
    LONGLONG offset;
-   size_t nitems, length;
+   LONGLONG nitems;
    int num_type;
    LONGLONG *dir_ent;
    Return_value rval;
@@ -940,7 +948,6 @@ read_param_array_len( Mili_family *fam, Param_ref *p_pr, int *param_array_type, 
 
    /* Get file offset and length of data. */
    offset   = dir_ent[OFFSET_IDX];
-   length   = (size_t)dir_ent[LENGTH_IDX];
    num_type = dir_ent[MODIFIER1_IDX];
    *param_array_type = num_type;
    rval = non_state_file_open( fam, file, fam->access_mode );
@@ -972,8 +979,8 @@ read_param_array_len( Mili_family *fam, Param_ref *p_pr, int *param_array_type, 
    }
 
    nitems = (fam->read_funcs[M_INT])( fam->cur_file, p_pr->dims,
-                                      (size_t) p_pr->rank );
-   if ( nitems != (size_t)p_pr-> rank )
+                                      (LONGLONG) p_pr->rank );
+   if ( nitems != (LONGLONG)p_pr-> rank )
    {
       free( p_pr->dims );
       return SHORT_READ;
@@ -1044,11 +1051,11 @@ write_array( Mili_family *fam, int type, char *name, int order,
    int i;
    int atoms;
    int *i_buf;
-   size_t outbytes;
+   LONGLONG outbytes;
    Return_value rval;
    Param_ref *ppr;
    int fidx;
-   size_t write_ct;
+   LONGLONG write_ct;
 
    /* Ensure file is open and positioned. */
    if ( (rval = prep_for_new_data( fam, NON_STATE_DATA )) != OK )
@@ -1092,7 +1099,7 @@ write_array( Mili_family *fam, int type, char *name, int order,
       free(i_buf);
       return SHORT_WRITE;
    }
-   write_ct = (fam->write_funcs[type])( fam->cur_file, data, (size_t) atoms );
+   write_ct = (fam->write_funcs[type])( fam->cur_file, data, (LONGLONG) atoms );
    if (write_ct != atoms)
    {
       free(i_buf);
@@ -1132,7 +1139,7 @@ mc_get_app_parameter_count(Famid fam_id)
 {
 	Htable_entry *entry;
    Param_ref *pref;
-	int i,j;
+	int i;
 	int count = 0;
 	int num_copied = 0;
 	int status;
@@ -1156,7 +1163,11 @@ mc_get_app_parameter_count(Famid fam_id)
 		}
 		status = htable_search( fam->param_table, list[i], 
                               FIND_ENTRY, &entry );
-		pref = (Param_ref*) entry->data;
+		if(status != OK)
+        {
+           continue;
+        }
+        pref = (Param_ref*) entry->data;
 		dir_index = pref->entry_index;
 		p_fd= fam->directory + pref->file_index;
 		if(p_fd->dir_entries[dir_index][TYPE_IDX] == APPLICATION_PARAM ||
@@ -1180,7 +1191,7 @@ void mc_get_app_parameter_names(Famid fam_id, char **names, int in_size)
 {
 	Htable_entry *entry;
    Param_ref *pref;
-	int i,j;
+	int i;
 	int count = 0;
 	int num_copied = 0;
 	File_dir *p_fd;
@@ -1205,7 +1216,11 @@ void mc_get_app_parameter_names(Famid fam_id, char **names, int in_size)
 		
 		status = htable_search( fam->param_table, list[i], 
                               FIND_ENTRY, &entry );
-		pref = (Param_ref*) entry->data;
+		if(status != OK)
+        {
+           continue; 
+        }
+        pref = (Param_ref*) entry->data;
 		dir_index = pref->entry_index;
 		p_fd= fam->directory + pref->file_index;
 		if(p_fd->dir_entries[dir_index][TYPE_IDX] == APPLICATION_PARAM ||
@@ -1233,7 +1248,7 @@ dump_param( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
    LONGLONG offset;
    int outlen;
    int status;
-   size_t nitems, length;
+   LONGLONG nitems, length;
    int num_type;
    int i;
    char *cbuf;
@@ -1243,7 +1258,7 @@ dump_param( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
    LONGLONG long_int_param;
    float float_param;
    double double_param;
-   size_t (*rfunc)();
+   LONGLONG (*rfunc)();
    int hi, bi;
    Return_value rval;
 
@@ -1273,12 +1288,12 @@ dump_param( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
    switch( num_type )
    {
       case M_STRING:
-         cbuf = NEW_N( char, (size_t)dir_ent[LENGTH_IDX], "Dump char input buf" );
+         cbuf = NEW_N( char, (LONGLONG)dir_ent[LENGTH_IDX], "Dump char input buf" );
          if (dir_ent[LENGTH_IDX] > 0 && cbuf == NULL)
          {
             return ALLOC_FAILED;
          }
-         length = (size_t)dir_ent[LENGTH_IDX];
+         length = (LONGLONG)dir_ent[LENGTH_IDX];
          nitems = rfunc( p_f, cbuf, length );
          if ( nitems != length )
          {
@@ -1341,7 +1356,7 @@ dump_param( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
 
       case M_INT:
       case M_INT4:
-         nitems = rfunc( p_f, &int_param, (size_t) 1 );
+         nitems = rfunc( p_f, &int_param, (LONGLONG) 1 );
          if ( nitems != 1 )
          {
             if ( cbuf != NULL )
@@ -1366,7 +1381,7 @@ dump_param( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
          break;
 
       case M_INT8:
-         nitems = rfunc( p_f, &long_int_param, (size_t) 1 );
+         nitems = rfunc( p_f, &long_int_param, (LONGLONG) 1 );
          if ( nitems != 1 )
          {
             if ( cbuf != NULL )
@@ -1393,7 +1408,7 @@ dump_param( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
 
       case M_FLOAT:
       case M_FLOAT4:
-         nitems = rfunc( p_f, &float_param, (size_t) 1 );
+         nitems = rfunc( p_f, &float_param, (LONGLONG) 1 );
          if ( nitems != 1 )
          {
             if ( cbuf != NULL )
@@ -1420,7 +1435,7 @@ dump_param( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
          break;
 
       case M_FLOAT8:
-         nitems = rfunc( p_f, &double_param, (size_t) 1 );
+         nitems = rfunc( p_f, &double_param, (LONGLONG) 1 );
          if ( nitems != 1 )
          {
             if ( cbuf != NULL )
@@ -1460,7 +1475,7 @@ dump_param( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
  * Dump param array entry from file to stdout.
  */
 static Return_value
-dump_param_array( size_t (*read_funcs[])(), FILE *p_f, Dir_entry dir_ent,
+dump_param_array( LONGLONG (*read_funcs[])(), FILE *p_f, Dir_entry dir_ent,
                   char *dir_string, Dump_control *p_dc,
                   int head_indent, int body_indent )
 {
@@ -1472,8 +1487,8 @@ dump_param_array( size_t (*read_funcs[])(), FILE *p_f, Dir_entry dir_ent,
    LONGLONG *lidata;
    float *fdata;
    double *ddata;
-   size_t nitems;
-   size_t (*rd_i_func)();
+   LONGLONG nitems;
+   LONGLONG (*rd_i_func)();
    char *param_name;
    int num_type;
    char handle[64];
@@ -1508,8 +1523,8 @@ dump_param_array( size_t (*read_funcs[])(), FILE *p_f, Dir_entry dir_ent,
       return ALLOC_FAILED;
    }
 
-   nitems = rd_i_func( p_f, dims, (size_t) rank );
-   if ( nitems != (size_t) rank )
+   nitems = rd_i_func( p_f, dims, (LONGLONG) rank );
+   if ( nitems != (LONGLONG) rank )
    {
       free( dims );
       return SHORT_READ;
@@ -1542,7 +1557,7 @@ dump_param_array( size_t (*read_funcs[])(), FILE *p_f, Dir_entry dir_ent,
          {
             return ALLOC_FAILED;
          }
-         nitems = (read_funcs[M_INT])( p_f, idata, (size_t) cell_qty );
+         nitems = (read_funcs[M_INT])( p_f, idata, (LONGLONG) cell_qty );
          if (nitems != cell_qty)
          {
             free(idata);
@@ -1601,7 +1616,7 @@ dump_param_array( size_t (*read_funcs[])(), FILE *p_f, Dir_entry dir_ent,
          {
             return ALLOC_FAILED;
          }
-         nitems = (read_funcs[M_INT8])( p_f, lidata, (size_t) cell_qty );
+         nitems = (read_funcs[M_INT8])( p_f, lidata, (LONGLONG) cell_qty );
          if (nitems != cell_qty)
          {
             free(lidata);
@@ -1661,7 +1676,7 @@ dump_param_array( size_t (*read_funcs[])(), FILE *p_f, Dir_entry dir_ent,
          {
             return ALLOC_FAILED;
          }
-         nitems = (read_funcs[M_FLOAT])( p_f, fdata, (size_t) cell_qty );
+         nitems = (read_funcs[M_FLOAT])( p_f, fdata, (LONGLONG) cell_qty );
          if (nitems != cell_qty)
          {
             free(fdata);
@@ -1719,7 +1734,7 @@ dump_param_array( size_t (*read_funcs[])(), FILE *p_f, Dir_entry dir_ent,
          {
             return ALLOC_FAILED;
          }
-         nitems = (read_funcs[M_FLOAT8])( p_f, ddata, (size_t) cell_qty );
+         nitems = (read_funcs[M_FLOAT8])( p_f, ddata, (LONGLONG) cell_qty );
          if (nitems != cell_qty)
          {
             free(ddata);

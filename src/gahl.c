@@ -57,9 +57,68 @@
 #endif
 
 
-/* Private functions */
-static int  add_shift_hash( char *key, int table_size );
-static void remove_text_pattern ( char *string, char *pattern );
+/* Private helper functions */
+
+/*****************************************************************
+ * TAG( add_shift_hash ) LOCAL
+ *
+ * Transform a character key into a hash table index by summation
+ * over the characters' ASCII values but with each character left-
+ * shifted one bit more than the preceding character.  Mod the
+ * sum with the table size.
+ */
+static int
+add_shift_hash( char *key, int table_size )
+{
+   char *pc;
+   int sidx;
+   register int sum;
+
+   sum = (int) *key;
+   sidx = 1;
+   for ( pc = key + 1; *pc; pc++ )
+   {
+      sum += ((int) *pc ) << sidx;
+      sidx = (sidx + 1) % 8;
+   }
+
+   return ( sum % table_size );
+}
+
+/*****************************************************************
+ * TAG( remove_text_patten ) LOCAL
+ *
+ * Replaces a text pattern in a strings with spaces.
+ */
+static void
+remove_text_pattern ( char *string, char *pattern )
+{
+   char *pattern_ptr;
+   Bool_type pattern_found = TRUE;
+   int i;
+   int len;
+
+   len = strlen( pattern );
+
+   while ( pattern_found )
+   {
+      pattern_ptr = strstr( string, pattern );
+      if ( pattern_ptr )
+      {
+         for (i=0; i<len; i++)
+         {
+            pattern_ptr[i] = ' ';
+         }
+      }
+      else
+      {
+         pattern_found = FALSE;
+      }
+   }
+}
+
+/* END Private helper functions */
+
 
 /*****************************************************************
  * TAG( htable_create )
@@ -133,6 +192,7 @@ htable_search( Hash_table *table, char *key, Hash_action op,
    switch ( op )
    {
       case ENTER_UNIQUE:
+         
          if ( phte == NULL )
          {
             phte = NEW( Htable_entry, "Hash table entry" );
@@ -517,33 +577,6 @@ htable_delete( Hash_table *table, void (*user_func)(void *), int free_data )
 
 
 /*****************************************************************
- * TAG( add_shift_hash ) LOCAL
- *
- * Transform a character key into a hash table index by summation
- * over the characters' ASCII values but with each character left-
- * shifted one bit more than the preceding character.  Mod the
- * sum with the table size.
- */
-static int
-add_shift_hash( char *key, int table_size )
-{
-   char *pc;
-   int sidx;
-   register int sum;
-
-   sum = (int) *key;
-   sidx = 1;
-   for ( pc = key + 1; *pc; pc++ )
-   {
-      sum += ((int) *pc ) << sidx;
-      sidx = (sidx + 1) % 8;
-   }
-
-   return ( sum % table_size );
-}
-
-
-/*****************************************************************
  * TAG( htable_add_entry_data )
  *
  * Add the supplied data to the entry associated with key.
@@ -890,12 +923,14 @@ htable_search_wildcard( Hash_table *table, int list_len,
 *  begining match ( something*)= 2
 *  end match (*something)      = 3
 *  middle match (*something*)  = 4
+*  inner match  (some*thing)   = 5
 */
 static int
 getMatchType(char* input)
 {
    int end_target;
    int i;  // counter
+   int found=0; //used when searching for inner "*"
    
    //Check to make sure input is valid
    if(!input 
@@ -907,9 +942,24 @@ getMatchType(char* input)
    
    end_target = strlen(input)-1;
    
-   if(input[0] != '*'  && input[end_target] != '*')
+   if(input[0] != '*' && input[end_target] != '*')
    {
-      return 1;
+      // Check if "*" appears in middle of string
+      for(i = 1; i < end_target; i++)
+      {
+         if(input[i] == '*')
+         {
+            //if already 1 inner *, return -1
+            if(found)
+               return -1;
+            found = 1;
+         }
+      }
+        
+      if(found)
+         return 5;
+      else
+         return 1;
    }
    else if(input[0] == '*'  && input[end_target] == '*')
    {
@@ -925,6 +975,37 @@ getMatchType(char* input)
    }
 } 
 
+
+/*****************************************************************
+ * TAG( str_begins_with )
+ *
+ * This function will check the beginning of str for substr
+ */
+Bool_type
+str_begins_with(char* str, char* substr){
+   Bool_type result = FALSE;
+   if(strncmp(str,substr,strlen(substr)) == 0){
+      result = TRUE;
+   }
+   return result;
+}
+
+
+/*****************************************************************
+ * TAG( str_ends_with )
+ *
+ * This function will check the beginning of str for substr
+ */
+Bool_type
+str_ends_with(char* str, char* substr){
+   Bool_type result = FALSE;
+   if(strcmp(str + strlen(str) - strlen(substr),substr) == 0){
+      result = TRUE;      
+   }
+   return result;
+}
+
+
 static int
 match(char* target, char* key, int match_type)
 {
@@ -932,8 +1013,10 @@ match(char* target, char* key, int match_type)
    // begining match ( something*)= 2
    // end match (*something)      = 3
    // middle match (*something*)  = 4
+   // inner match  (some*thing)   = 5
    int target_length;
    int index_to_move;
+   int i;
    char temp[128];
    char temp2[128];
    temp[0] = '\0';
@@ -989,6 +1072,31 @@ match(char* target, char* key, int match_type)
             return 0;
          }
          break;
+      case 5:
+         // Find index of * in key
+         for (i = 0; i < strlen(key); i++ )
+         {
+            if(key[i] == '*')
+            {
+                index_to_move = i;
+            }
+         }
+         //copy key from 0 up to i into temp
+         //copy key from i+1 to end into temp2
+         strncpy(temp,key,index_to_move);
+         strncpy(temp2,key+index_to_move+1, strlen(key)-index_to_move-1);
+         temp[index_to_move] = '\0';
+         temp2[strlen(key)-index_to_move-1] = '\0';
+
+         if(str_begins_with(target,temp) && str_ends_with(target,temp2))
+         {
+            return 1;
+         }
+         else
+         {
+            return 0;
+         }
+         break;
       default:
          return 0;
    } 
@@ -1017,8 +1125,7 @@ htable_key_search( Hash_table *table, int list_len,
    int return_list_count = list_len;
    int tsize;
 
-   Bool_type dup_match=FALSE, 
-             key1_match = TRUE;
+   Bool_type key1_match = TRUE;
              
    int key1_match_type;
        
@@ -1047,6 +1154,7 @@ htable_key_search( Hash_table *table, int list_len,
             // begining match ( something*)= 2
             // end match (*something)      = 3
             // middle match (*something*)  = 4
+            // inner match (some*thing)    = 5
             
             key1_match = FALSE;
 
@@ -1092,34 +1200,3 @@ htable_key_search( Hash_table *table, int list_len,
 }
 
 
-/*****************************************************************
- * TAG( remove_text_patten ) LOCAL
- *
- * Replaces a text pattern in a strings with spaces.
- */
-static void
-remove_text_pattern ( char *string, char *pattern )
-{
-   char *pattern_ptr;
-   Bool_type pattern_found = TRUE;
-   int i;
-   int len;
-
-   len = strlen( pattern );
-
-   while ( pattern_found )
-   {
-      pattern_ptr = strstr( string, pattern );
-      if ( pattern_ptr )
-      {
-         for (i=0; i<len; i++)
-         {
-            pattern_ptr[i] = ' ';
-         }
-      }
-      else
-      {
-         pattern_found = FALSE;
-      }
-   }
-}

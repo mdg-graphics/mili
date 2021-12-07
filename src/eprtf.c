@@ -96,16 +96,20 @@ static char destbuf[CMAX];
 static char *p_cur;
 static int cur_len;
 static va_list val;
-
+#ifdef HAVE_EPRINT
 static char *t_pattern = "%([0-9]+|[*])t";
+static regex_t all_re;
+static char *all_pattern =
+   "%[0 -+#]*([0-9]*|[*])([.]([0-9]*|[*]))?[hlL]?[dioxXucsfeEgGpn%]";
+
+#endif
 static regex_t t_re;
 static regmatch_t t_match[1];
 
-static char *all_pattern =
-   "%[0 -+#]*([0-9]*|[*])([.]([0-9]*|[*]))?[hlL]?[dioxXucsfeEgGpn%]";
-static regex_t all_re;
-static regmatch_t all_match[1];
 
+#ifdef NOOPTERON
+static regmatch_t all_match[1];
+#endif
 
 
 /*****************************************************************
@@ -155,7 +159,7 @@ translate_segment( char *fmt )
    }
 }
 
-
+#ifdef NOOPTERON
 /*****************************************************************
  * TAG( advance_va_list )
  *
@@ -174,7 +178,7 @@ advance_va_list( char *fmt )
    char *string_arg;
 
    p_src = fmt;
-   while ( regexec( &all_re, p_src, (size_t) 1, all_match, 0 ) == 0 )
+   while ( regexec( &all_re, p_src, (LONGLONG) 1, all_match, 0 ) == 0 )
    {
       p_argtype = p_src + all_match[0].rm_eo - 1;
 
@@ -226,8 +230,10 @@ advance_va_list( char *fmt )
 
    return;
 }
+#endif
 
 
+#ifdef HAVE_EPRINT
 /*****************************************************************
  * TAG( translate_string ) LOCAL
  *
@@ -245,7 +251,7 @@ translate_string( char *fmt )
 
    /* Search for a tab format in the input format string. */
    p_src = p_last = fmt;
-   while ( regexec( &t_re, p_src, (size_t) 1, t_match, 0 ) == 0 )
+   while ( regexec( &t_re, p_src, (LONGLONG) 1, t_match, 0 ) == 0 )
    {
       /* Locate the first character ("%") of the tab format. */
       p_tabfmt = p_src + t_match[0].rm_so;
@@ -318,6 +324,8 @@ translate_string( char *fmt )
    return cur_len;
 }
 
+#endif
+
 
 /*****************************************************************
  * TAG( eprintf )
@@ -370,7 +378,7 @@ eprintf( int *num_written, char *format_spec, ... )
       return EPRINTF_FAILED;
    }
 
-   *num_written = (int) fwrite( destbuf, 1, (size_t) status, stdout );
+   *num_written = (int) fwrite( destbuf, 1, (LONGLONG) status, stdout );
    if (*num_written != status)
    {
       return EPRINTF_FAILED;
@@ -434,7 +442,7 @@ efprintf( FILE *p_f, char *format_spec, ... )
       return EFPRINTF_FAILED;
    }
 
-   if (fwrite( destbuf, 1, (size_t) status, p_f ) != (size_t) status)
+   if (fwrite( destbuf, 1, (LONGLONG) status, p_f ) != (LONGLONG) status)
    {
       return EFPRINTF_FAILED;
    }

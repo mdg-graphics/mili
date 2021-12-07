@@ -342,14 +342,17 @@ mc_def_subrec( Famid fam_id, int srec_id, char *subrec_name, int org,
    {
       return NO_MESH;
    }
+   
    if ( srec_id < 0 || srec_id >= fam->qty_srecs )
    {
       return INVALID_SREC_INDEX;
    }
+   
    if ( fam->srecs[srec_id]->status != OBJ_OPEN )
    {
       return CANNOT_MODIFY_OBJ;
    }
+   
    if ( qty_svars == 0 )
    {
       return NO_SVARS;
@@ -498,6 +501,7 @@ mc_def_subrec( Famid fam_id, int srec_id, char *subrec_name, int org,
    p_mocd = (Mesh_object_class_data *) class_entry->data;
    stype = p_mocd->superclass;
    str_dup( &psubrec->mclass, mclass );
+   
    if (psubrec->mclass == NULL)
    {
       return ALLOC_FAILED;
@@ -1228,7 +1232,7 @@ mc_get_subrec_def( Famid fam_id, int srec_id, int subrec_id,
 Return_value
 commit_srecs( Mili_family *fam )
 {
-   size_t i_qty, c_qty;
+   LONGLONG i_qty, c_qty;
    int i, j, k, ii;
    Srec *psrec;
    Sub_srec *psubrec;
@@ -1237,10 +1241,10 @@ commit_srecs( Mili_family *fam )
    int *i_data, *pi;
    char *c_data, *pc;
    int *bound, *pblk;
-   size_t outbytes;
+   LONGLONG outbytes;
    char *psrc;
    Return_value rval;
-   int write_ct;
+   LONGLONG write_ct;
 
    /* Only output fresh formats. */
    if ( fam->qty_srecs - 1 <= fam->commit_max )
@@ -1467,7 +1471,6 @@ add_srec( Mili_family *fam, int index, Dir_entry dir_ent )
 {
    int i, subrec_qty, i_qty, c_qty;
    int *i_data, *subrec_i_data;
-   int mesh_id;
    int p_srec_id;
    int superclass;
    int qty_surface_flags;
@@ -1534,7 +1537,6 @@ add_srec( Mili_family *fam, int index, Dir_entry dir_ent )
    }
 
    /* Create uninitialized state record format descriptor. */
-   mesh_id = srec_hdr[SREC_PARENT_MESH_ID_IDX];
    rval = make_srec( fam, srec_hdr[SREC_PARENT_MESH_ID_IDX], &p_srec_id );
    if (rval != OK)
    {
@@ -2283,9 +2285,12 @@ get_ro_svars( Mili_family *fam, int state, Sub_srec *p_subrec, int qty,
 {
    State_descriptor *p_sd;
    LONGLONG offset;
-   size_t read_cnt, new_read_atoms, read_atoms, length;
+   LONGLONG read_cnt, 
+            new_read_atoms, 
+            read_atoms, 
+            length;
    int file_num;
-   off_t buf_pos;
+   LONGLONG buf_pos;
    int i, j;
    int idx;
    int data_type;
@@ -2373,7 +2378,7 @@ get_ro_svars( Mili_family *fam, int state, Sub_srec *p_subrec, int qty,
       }
 
       /* Read data. */
-      read_atoms = (size_t) p_subrec->lump_atoms[idx];
+      read_atoms = (LONGLONG) p_subrec->lump_atoms[idx];
       if(  fam->db_type == TAURUS_DB_TYPE )
       {
          length = read_atoms;
@@ -2394,7 +2399,7 @@ get_ro_svars( Mili_family *fam, int state, Sub_srec *p_subrec, int qty,
             }
             else
             {
-               new_read_atoms = (size_t)( fam->cur_st_file_size - offset )
+               new_read_atoms = (LONGLONG)( fam->cur_st_file_size - offset )
                                 / EXT_SIZE( fam, data_type );
                read_cnt = fam->state_read_funcs[data_type]( fam->cur_st_file,
                           p_obuf+buf_pos, new_read_atoms );
@@ -2424,7 +2429,7 @@ get_ro_svars( Mili_family *fam, int state, Sub_srec *p_subrec, int qty,
       {
          read_cnt = fam->state_read_funcs[data_type]( fam->cur_st_file,
                     p_obuf, read_atoms );
-         if ( read_cnt != (size_t) read_atoms )
+         if ( read_cnt != (LONGLONG) read_atoms )
          {
             rval = SHORT_READ;
          }
@@ -2508,10 +2513,12 @@ get_oo_svars( Mili_family *fam, int state, Sub_srec *p_subrec, int qty,
    int ibuf_len;
    LONGLONG offset;
    void (*dist_func)();
-   size_t read_cnt, read_atoms;
+   LONGLONG read_cnt, 
+            read_atoms;
    int file_num;
-   size_t length, new_read_atoms;
-   off_t buf_pos;
+   LONGLONG length, 
+          new_read_atoms;
+   LONGLONG buf_pos;
    int obj_vec_size, obj_vec_offset;
    int srec_id, superclass;
    int id, qty_facets;
@@ -2667,7 +2674,7 @@ get_oo_svars( Mili_family *fam, int state, Sub_srec *p_subrec, int qty,
                read_cnt = fam->state_read_funcs[data_type]( fam->cur_st_file,
                           (char *) ibuf+buf_pos,
                           length );
-               if ( read_cnt < (size_t) length )
+               if ( read_cnt < (LONGLONG) length )
                {
                   if ( p_bq->buffer_count == 0 )
                   {
@@ -2679,7 +2686,7 @@ get_oo_svars( Mili_family *fam, int state, Sub_srec *p_subrec, int qty,
             }
             else
             {
-               new_read_atoms = (size_t)( fam->cur_st_file_size - offset )
+               new_read_atoms = (LONGLONG)( fam->cur_st_file_size - offset )
                                 / EXT_SIZE( fam, data_type );
                read_cnt = fam->state_read_funcs[data_type]( fam->cur_st_file,
                           (char *) ibuf+buf_pos,
@@ -2997,10 +3004,10 @@ distribute_vector_8( void *p_input, int cell_qty, int cell_size,
  * properly, since no disk seeking is performed.
  */
 Return_value
-mc_wrt_stream( Famid fam_id, int type, int qty, void *data )
+mc_wrt_stream( Famid fam_id, int type, LONGLONG qty, void *data )
 {
-   size_t write_ct;
-   int byte_ct;
+   LONGLONG write_ct;
+   LONGLONG byte_ct;
 
    write_ct = (fam_list[fam_id]->state_write_funcs[type])( fam_list[fam_id]->cur_st_file,
               data, qty );
@@ -3043,7 +3050,7 @@ mc_wrt_subrec( Famid fam_id, char *subrec_name, int start, int stop,
    int start_i, stop_i;
    int type;
    Return_value rval;
-   size_t write_ct;
+   LONGLONG write_ct;
    int byte_ct;
 
    fam = fam_list[fam_id];
@@ -3115,8 +3122,8 @@ mc_wrt_subrec( Famid fam_id, char *subrec_name, int start, int stop,
       return rval;
    }
 
-   write_ct = (fam->state_write_funcs[type])( fam->cur_st_file, data,
-              (size_t) qty );
+   write_ct = (fam->state_write_funcs[type])( fam->cur_st_file, 
+               data, qty );
    if (write_ct != qty)
    {
       return SHORT_WRITE;
@@ -3156,7 +3163,7 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
    
    strcpy(fname,fam->aFile);
    
-   //p_fmap = &fam->file_map;
+   p_fmap = &fam->file_map;
    if(fam->access_mode == 'r')
    {
       fp = fopen(fname,"rb");
@@ -3169,15 +3176,13 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
       status = fseek( fp, offset, SEEK_END );
       if ( status != 0 )
       {
-         fclose(fp);
-         free(fname);
+         fclose(fp);;
          return SEEK_FAILED;
       }
       nitems = fam->read_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
       if ( nitems != QTY_DIR_HEADER_FIELDS )
       {
          fclose( fp );
-         free(fname);
          return BAD_LOAD_READ;
       }
       state_count = header[QTY_STATES_IDX];
@@ -3187,7 +3192,6 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
       if ( status != 0 )
       {
          fclose(fp);
-         free(fname);
          return SEEK_FAILED;
       }
       fam->state_map = NEW_N(State_descriptor,state_count,"State map descriptors");
@@ -3204,11 +3208,10 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
          if(file >file_count){
             file_count=file;
             fam->st_file_count = file+1;
-            fam->file_map = RENEWC_N( State_file_descriptor, fam->file_map,
+            (*p_fmap) = RENEWC_N( State_file_descriptor, *p_fmap,
                                   file, 1, "New file map entry" );
-            fam->file_map[file].state_qty =0;
          }
-         fam->file_map[file].state_qty++;
+         (*p_fmap)[file].state_qty++;
       }
       fclose(fp); 
    }
@@ -3232,10 +3235,9 @@ update_static_map(Famid fam_id,State_descriptor* p_sd) {
    Then flush the non-state file.
    */
    Mili_family *fam = fam_list[fam_id];
-   int offset = 0,
-       status,
+   long offset = 0;
+   int status,
        nitems,
-       i,
        num_written;
    int header[QTY_DIR_HEADER_FIELDS];
    Return_value rval = OK; 
@@ -3253,14 +3255,12 @@ update_static_map(Famid fam_id,State_descriptor* p_sd) {
       if ( status != 0 )
       {
          fclose(fp);
-         free(fname);
          return SEEK_FAILED;
       }
       nitems = fam->read_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
       if ( nitems != QTY_DIR_HEADER_FIELDS )
       {
          fclose( fp );
-         free(fname);
          return BAD_LOAD_READ;
       }
       header[QTY_STATES_IDX]++;
@@ -3271,15 +3271,15 @@ update_static_map(Famid fam_id,State_descriptor* p_sd) {
       fam->write_funcs[M_INT8](fp,&(p_sd->offset),1);
       fam->write_funcs[M_FLOAT](fp,&(p_sd->time),1);
       fam->write_funcs[M_INT](fp,&(p_sd->srec_format),1);
-      num_written = fam->write_funcs[M_INT]( fp, header,
-                                             (size_t) QTY_DIR_HEADER_FIELDS );
+      num_written = 
+            fam->write_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
       fclose(fp);
       if (num_written != QTY_DIR_HEADER_FIELDS)
       {
-         free(fname);
          return SHORT_WRITE;
       }
-      mc_wrt_scalar(fam_id,M_INT,"state_count",(void*)&header[QTY_STATES_IDX]);
+      mc_wrt_scalar(fam_id,M_INT,"state_count",
+                    (void*)&header[QTY_STATES_IDX]);
    }else
    {
        rval = NO_A_FILE_FOR_STATEMAP;
@@ -3299,6 +3299,7 @@ mc_end_state( Famid fam_id, int srec_id)
    int state_qty;
    State_descriptor *p_sd;
    Return_value rval = OK;
+   
    if ( INVALID_FAM_ID( fam_id ) )
    {
       return BAD_FAMILY;
@@ -3339,8 +3340,7 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
    Return_value rval;
    int state_qty;
    State_descriptor *p_sd;
-   Srec *p_srec;
-   size_t write_ct;
+   long write_ct;
 
    if ( INVALID_FAM_ID( fam_id ) )
    {
@@ -3354,21 +3354,13 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
       return INVALID_SREC_INDEX;
    }
 
-   p_srec = fam->srecs[srec_id];
-   //if ( p_srec->status != OBJ_CLOSED && p_srec->status != OBJ_SAVED )
-   //{
-   //   return INVALID_SREC_INDEX;
-   //}
-
+   
    rval = prep_for_new_data( fam, STATE_DATA );
    if ( rval != OK )
    {
       return rval;
    }
-   if(fam->st_file_count ==0)
-   {
-      fam->st_file_count = 1;
-   }
+
    /*
     * Do this after prep_for_new_data(), since prep_for_new_data() advances
     * the current state offset (file pointer) according to the format of the
@@ -3402,7 +3394,7 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
       /* If we failed to close the previous state do so now. */
       if(!(fam->state_closed) && state_qty >0)
       {
-         p_sd = fam->state_map + (state_qty-1);
+         p_sd = fam->state_map + state_qty;
          rval = update_static_map(fam_id,p_sd);
          if(rval)
          {
@@ -3411,16 +3403,8 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
       }
    }
    
-   fam->state_qty++;
-   
-   if(fam->state_map == NULL)
-   {
-      fam->state_map = NEW_N( State_descriptor, fam->state_qty ,"Recreating state descriptor");
-   }else
-   {
-      fam->state_map = RENEW_N( State_descriptor, fam->state_map, state_qty, 1,
+   fam->state_map = RENEW_N( State_descriptor, fam->state_map, state_qty, 1,
                              "Addl state descr" );
-   }
    if (fam->state_map == NULL)
    {
       return ALLOC_FAILED;
@@ -3430,6 +3414,7 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
    p_sd->offset = fam->cur_st_offset;
    p_sd->time = time;
    p_sd->srec_format = srec_id;
+   fam->state_qty++;
    fam->written_st_qty++;
    fam->file_st_qty++;
    fam->file_map[fam->st_file_count - 1].state_qty = fam->file_st_qty;
@@ -3460,14 +3445,12 @@ static int find_file_index(Famid fam_id, int *global_state_index)
    int global_index = *global_state_index;
 
    int file_index = 0,
-       file_count,
        current_count,
        i,j;
 
    Mili_family *fam;
    fam = fam_list[fam_id];
 
-   file_count = fam->file_count;
    /* Sanity check - no states in family. */
    if ( fam->st_file_count != 0 )
    {
@@ -3623,16 +3606,14 @@ mc_restart_at_state( Famid fam_id, int file_name_index, int file_state_index )
    }else {
 
       /* Remove existing state records and files at and after "state_index". */
-      if(state_index>0)state_index--;
       rval = truncate_family( fam, state_index );
 
       /*
        * Leave the (new) last file open if new end doesn't fall on a file
        * boundary so that subsequent state writes will fill up the "partial"
        * file to its full complement.
-       * Added check for NULL state_map
        */
-      if ( fam->state_map && fam->state_map[state_index].offset > 0 )
+      if ( fam->state_map[state_index].offset > 0 )
       {
 
          rval = state_file_open( fam, smap[state_index].file, fam->access_mode );
@@ -3698,9 +3679,7 @@ mc_restart_at_file( Famid fam_id, int file_name_index )
 
    /* Get the index of the first state in the indexed file. */
    p_sfd = fam->file_map;
-   
    state_index = 0;
-   
    for ( i = 0; i < file_index && i < fam->st_file_count; i++ )
    {
       state_index += p_sfd[i].state_qty;
@@ -3708,82 +3687,6 @@ mc_restart_at_file( Famid fam_id, int file_name_index )
 
    /* Remove existing state records and files at and after "state_index". */
    rval = truncate_family ( fam, state_index );
-
-   return rval;
-}
-
-
-/*****************************************************************
- * TAG( mc_rewrite_subrec ) PUBLIC
- *
- * Rewrite a subrecord at a given timestep. This timestep must
- * have already been written. This function calls mc_wrt_subrec.
- */
-Return_value
-mc_rewrite_subrec( Famid fid, char *subrec_name, int start, int stop, void *data, int st_index )
-{
-   State_descriptor *sd;
-   LONGLONG saved_st_offset;
-   LONGLONG saved_st_file_size;
-   LONGLONG replace_st_offset;
-   Return_value rval = OK;
-   int status;
-
-   Htable_entry *subrec_entry;
-   Sub_srec *psubrec;
-   int found;
-   Buffer_queue *bq;
- 
-
-   if ( INVALID_FAM_ID( fid ) )
-   {
-      return BAD_FAMILY;
-   }
-
-   if ( st_index > fam_list[fid]->state_qty || st_index < 0 )
-   {
-      return INVALID_STATE;
-   }
-   
-   /* Save current state offset and current state file size */
-   saved_st_offset = fam_list[fid]->cur_st_offset;
-   saved_st_file_size = fam_list[fid]->cur_st_file_size;
-
-   /* Get offset of this timestep from State_descriptor */
-   sd = fam_list[fid]->state_map;
-   replace_st_offset = sd[st_index-1].offset;
-
-   /* Add 8 bytes for data at beginning of state files */
-   replace_st_offset += ( EXT_SIZE( fam_list[fid], M_INT ) + EXT_SIZE( fam_list[fid], M_FLOAT ) );
-
-   /* Set offset to state to change */
-   fam_list[fid]->cur_st_offset = replace_st_offset;
-
-   
-   /* Rewrite the subrecord */
-   status = mc_wrt_subrec( fid, subrec_name, start, stop, data );
-   if ( status != 0 )
-   {
-     rval = status;
-   }
-   
-   /* Set subrec ibuffer buffer_count to 0 to prevent buffer read */
-   rval = htable_search( fam_list[fid]->subrec_table, subrec_name,
-			 FIND_ENTRY, &subrec_entry );
-   if(subrec_entry == NULL)
-     {
-       //An error at this point since this should have been caught already in mc_wrt_subrec()
-       return INVALID_SUBREC_INDEX;
-     }
-   psubrec = (Sub_srec*) subrec_entry->data;
- 
-   bq = psubrec->ibuffer;
- 
-   bq->buffer_count = 0;
-
-   /* Reset current state offset and current state file size */
-   fam_list[fid]->cur_st_offset = saved_st_offset;
-   fam_list[fid]->cur_st_file_size = saved_st_file_size;
 
    return rval;
 }
@@ -3805,7 +3708,7 @@ truncate_family( Mili_family *p_fam, int st_index )
    int file_qty, state_qty, remain_states;
    int cur_st_index, cur_file;
    int i;
-   LONGLONG offset;
+   long offset;
    
    offset = 0;
    state_map = p_fam->state_map;
@@ -3899,35 +3802,45 @@ truncate_family( Mili_family *p_fam, int st_index )
    /* Clean up the A file to remove the states from the state maps contained there*/
    if(p_fam->char_header[DIR_VERSION_IDX]>1) {
       int header[QTY_DIR_HEADER_FIELDS];
-      int num_written,
-          nitems,
-          state_count;
+      int count;
       FILE *fp = NULL;
-      char fnameA[256]; 
-      fnameA[0] ='\0';
-      strcat(fnameA,p_fam->root);
-      strcat(fnameA,"A");
-      fp = fopen(fnameA,"r+b");
+      fp = fopen(p_fam->aFile,"r+b");
+      
       if(fp)
       {
          offset = -(QTY_DIR_HEADER_FIELDS) * EXT_SIZE( p_fam, M_INT );
-         status = fseek( fp, (long)offset, SEEK_END );
-         nitems = p_fam->read_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
-         state_count = header[QTY_STATES_IDX];
-         offset = -((QTY_DIR_HEADER_FIELDS) * EXT_SIZE( p_fam, M_INT )+((state_count-st_index) *20));
-         status = fseek( fp, (long)offset, SEEK_END );
-         offset = ftell(fp);
+         if ( status != 0 )
+         {
+            fclose(fp);
+            return SEEK_FAILED;
+         }
+         
+         status = fseek( fp, offset, SEEK_END );
+         offset = ftell(fp) - ((state_qty - st_index +1)*20) ;
+         //Just using an existing int to catch the return count
+         count = p_fam->read_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
+         if ( count != QTY_DIR_HEADER_FIELDS )
+         {
+            fclose( fp );
+            return BAD_LOAD_READ;
+         }
+         
          fclose(fp);
          
 #if !(defined(_WIN32) || defined(WIN32))
-         truncate(fnameA,offset);
+         truncate(p_fam->aFile,offset);
 #endif
-         fp = fopen(fnameA, "r+b");
+         fp = fopen(p_fam->aFile, "r+b");
          fseek( fp, 0, SEEK_END );
          header[QTY_STATES_IDX] = st_index;
-         num_written = p_fam->write_funcs[M_INT]( fp, header,
-                                                (size_t) QTY_DIR_HEADER_FIELDS );
+         count = p_fam->write_funcs[M_INT]( fp, header, QTY_DIR_HEADER_FIELDS );
+         if ( count != QTY_DIR_HEADER_FIELDS )
+         {
+             fclose(fp);
+             return SHORT_WRITE;
+         }
          fclose(fp);
+         
       }
       
    }
@@ -4124,8 +4037,8 @@ build_state_map( Mili_family *fam, Bool_type initial_build )
    State_descriptor **p_smap;
    int index;
    LONGLONG offset;
-   size_t (*readi)();
-   size_t (*readf)();
+   LONGLONG (*readi)();
+   LONGLONG (*readf)();
    float st_time;
    int srec_id;
    int state_qty;
@@ -4170,7 +4083,9 @@ build_state_map( Mili_family *fam, Bool_type initial_build )
       /* Count offset through mapped states in known last file. */
       offset = 0;
       for ( p_sd = fam->state_map + fam->state_qty - 1;
+
             ( (LONGLONG) p_sd >= (LONGLONG) fam->state_map ) && p_sd->file == index;
+
             p_sd-- )
       {
          offset += fam->srecs[p_sd->srec_format]->size + hdr_size;
@@ -4361,7 +4276,6 @@ dump_state_rec_data( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
    int srec_hdr[QTY_SREC_HEADER_FIELDS];
    int *i_data, *subrec_i_data;
    int *p_i;
-   int mesh_id;
    int qty_surface_flags;
    char *c_data, *subrec_c_data, *cbound;
    char *p_snam, *p_cnam, *p_vnam;
@@ -4399,7 +4313,6 @@ dump_state_rec_data( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
       return SHORT_READ;
    }
 
-   mesh_id = srec_hdr[SREC_PARENT_MESH_ID_IDX];
    subrec_qty = srec_hdr[SREC_QTY_SUBRECS_IDX];
    p_srec_id = fam->cur_srec_id;
 
@@ -4674,6 +4587,10 @@ mc_get_subrec_cnt( Famid fam_id, int staterec_id, char *svar_name, int *cnt )
     status = mc_query_family( fam_id, QTY_SUBRECS, (void *) &i, NULL, 
 			      &subrec_qty );
 
+    if(status != OK)
+    {
+       return status;
+    }
     for ( j=0;j< subrec_qty; j++ ) 
     {
       /* Get sub-record binding */
@@ -4710,7 +4627,10 @@ mc_get_subrec_ids( Famid fam_id, int staterec_id, char *svar_name,
     /* Get subrecord count for this state record. */
     status = mc_query_family( fam_id, QTY_SUBRECS, (void *) &i, NULL, 
 			      &subrec_qty );
-
+    if(status != OK)
+    {
+       return status;
+    }
     p_sids = (int *) malloc( sizeof(int)*subrec_qty);
 
     /* Load the Subrecord definitions into an array of Subrecords */

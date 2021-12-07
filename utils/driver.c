@@ -211,7 +211,7 @@ main( int argc, char *argv[] )
    double total_time = 0.0;
    start_time = clock();
    static struct timeb wc1, wc2;
-#endif 
+#endif
    Mili_analysis **in_db, **temp_db;
    Mili_analysis **tmp_db;
    Mili_analysis **out_db;
@@ -751,12 +751,12 @@ main( int argc, char *argv[] )
    total_time += cumalative;
    fprintf(stderr,"Time finding max states is: %f\n",cumalative);
 #endif
-            for( i = env.start_state-1; i < env.stop_state; i++ ) {
+            for( i = env.start_state; i <= env.stop_state; i++ ) {
 
                for( proc = env.start_proc; proc < env.stop_proc; proc++ ) {
                   if ( in_db[proc] ) {
                      read_state_data( i, in_db[proc] );
-#if TIMER
+#if 0
    stop_time = clock();
    cumalative =((double)(stop_time - start_time))/CLOCKS_PER_SEC;
    total_time += cumalative;
@@ -764,7 +764,7 @@ main( int argc, char *argv[] )
    start_time = clock();
 #endif
                      merge_state_data( proc, &labels, in_db[proc], out_db[0] );
-#if TIMER
+#if 0
    stop_time = clock();
    cumalative =((double)(stop_time - start_time))/CLOCKS_PER_SEC;
    total_time += cumalative;
@@ -774,7 +774,7 @@ main( int argc, char *argv[] )
                   }
                }
                fprintf(stderr, " State %6d: Time = %1.6e\n",
-                       (i + 1), out_db[0]->state_times[i] );
+                       i , out_db[0]->state_times[i-1] );
                write_state_data( i, out_db[0] );
 #if TIMER
    stop_time = clock();
@@ -806,7 +806,7 @@ main( int argc, char *argv[] )
 		             }
 	             }
              }   
-             for( i = current_state-1; i < run_to_state ; i++ ) {
+             for( i = current_state; i < run_to_state ; i++ ) {
 	            for( proc = env.start_proc; proc < env.stop_proc; proc++ ) {
                   if ( in_db[proc] ) {
                      read_state_data( i, in_db[proc] );
@@ -814,7 +814,7 @@ main( int argc, char *argv[] )
                   }
                }
                fprintf(stderr, " State %6d: Time = %1.6e\n",
-                       (i+1 ), out_db[0]->state_times[i] );
+                       i, out_db[0]->state_times[i-1] );
                write_state_data( i, out_db[0] );
                current_state++;
              }
@@ -839,13 +839,13 @@ main( int argc, char *argv[] )
                        }
                     }
                     fprintf(stderr, " State %6d: Time = %1.6e\n",
-                           (i+1 ), out_db[0]->state_times[i] );
+                            i, out_db[0]->state_times[i-1] );
                     write_state_data( i, out_db[0] );
                  }
               }
            }
          }
-         
+         // Time to clean up 
          close_dbase( out_db[0] ,1);
          free( out_db[0] );
          for( proc = env.start_proc; proc < env.stop_proc; proc++ ) {

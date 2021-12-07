@@ -92,8 +92,8 @@ valid_dir_entry_data( Dir_entry_type etype, int string_qty, char **strings )
  */
 Return_value
 add_dir_entry( Mili_family *fam, Dir_entry_type etype, int modifier1,
-               int modifier2, int string_qty, char **strings, off_t offset,
-               off_t length )
+               int modifier2, int string_qty, char **strings, LONGLONG offset,
+               LONGLONG length )
 {
    LONGLONG *entry;
    File_dir *p_fd;
@@ -185,10 +185,10 @@ add_dir_entry( Mili_family *fam, Dir_entry_type etype, int modifier1,
 Return_value
 commit_dir( Mili_family *fam )
 {
-   size_t words;
+   LONGLONG words;
    int dir_header[QTY_DIR_HEADER_FIELDS];
    File_dir *p_fd;
-   size_t char_qty, round_qty;
+   LONGLONG char_qty, round_qty;
    void *pmem;
    int num_written;
    Return_value rval;
@@ -250,14 +250,14 @@ commit_dir( Mili_family *fam )
       }
       if(fam->char_header[DIR_VERSION_IDX]==1){
          num_written = fam->write_funcs[M_INT]( fam->cur_file, dir_header,
-                                               (size_t) QTY_DIR_HEADER_FIELDS-1 );
+                                               (LONGLONG) QTY_DIR_HEADER_FIELDS-1 );
          if (num_written != QTY_DIR_HEADER_FIELDS-1)
          {
             return SHORT_WRITE;
          }
       }else {
          num_written = fam->write_funcs[M_INT]( fam->cur_file, dir_header,
-                                               (size_t) QTY_DIR_HEADER_FIELDS );
+                                               (LONGLONG) QTY_DIR_HEADER_FIELDS );
          if (num_written != QTY_DIR_HEADER_FIELDS)
          {
             return SHORT_WRITE;
@@ -337,11 +337,11 @@ load_directories( Mili_family *fam )
    char fname[M_MAX_NAME_LEN];
    int header[QTY_DIR_HEADER_FIELDS];
    int nnames;
-   size_t nitems, nbytes;
+   LONGLONG nitems, nbytes;
    long offset;
    File_dir *p_fd;
    Dir_entry *p_de;
-   TempDir_entry *temp_p_de;
+	TempDir_entry *temp_p_de;
    int fd;
    Return_value rval;
    Bool_type active;
@@ -351,7 +351,6 @@ load_directories( Mili_family *fam )
    Dir_entry_type etype;
    char *p_name;
    int status;
-   int size = sizeof(Dir_entry);
    active = fam->active_family;
    offset = 0;
 
@@ -424,9 +423,9 @@ load_directories( Mili_family *fam )
 
       /* Seek to end of file and read directory "header". */
       if(fam->char_header[DIR_VERSION_IDX]==1){
-         offset = -(QTY_DIR_HEADER_FIELDS-1) * EXT_SIZE( fam, M_INT );
+         offset -= (QTY_DIR_HEADER_FIELDS-1) * EXT_SIZE( fam, M_INT );
       }else if(fam->char_header[DIR_VERSION_IDX]>=2){
-         offset = -(QTY_DIR_HEADER_FIELDS) * EXT_SIZE( fam, M_INT );
+         offset = -(QTY_DIR_HEADER_FIELDS * EXT_SIZE( fam, M_INT ));
       }
       status = fseek( p_f, offset, SEEK_END );
       if ( status != 0 )
@@ -452,6 +451,11 @@ load_directories( Mili_family *fam )
       }
       
       qty_ent = header[QTY_ENTRIES_IDX];
+      if(qty_ent < 1)
+      {
+          fclose( p_f );
+          return DIR_ZERO_COUNT;
+      }
       qty_states = header[QTY_STATES_IDX];
 
       /* Allocate storage for current non-state file's directory. */
@@ -479,27 +483,28 @@ load_directories( Mili_family *fam )
          offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT ) +
                    qty_states * 20; /*20 is the size af a statemap*/ 
       }else // Added version 3 to handle long size offsets
-		{
-			offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT8 ) +
+      {
+         offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT8 ) +
                    qty_states * 20; /*20 is the size af a statemap*/
-		}
-      status = fseek( p_f, offset, SEEK_END );
-		if(fam->char_header[DIR_VERSION_IDX]>=3){
-      	nitems = fam->read_funcs[M_INT8]( p_f, p_de, QTY_ENTRY_FIELDS*qty_ent );
-		}else{
-			temp_p_de= NEW_N( TempDir_entry, qty_ent, "Load dir entries" );
-			nitems = fam->read_funcs[M_INT]( p_f, temp_p_de, QTY_ENTRY_FIELDS*qty_ent );
-			for(i=0; i<qty_ent;i++)
+      }
+      status = fseek( p_f, (long)offset, SEEK_END );
+      if(fam->char_header[DIR_VERSION_IDX]>=3)
+      {
+         nitems = fam->read_funcs[M_INT8]( p_f, p_de, QTY_ENTRY_FIELDS*qty_ent );
+      }else{
+         temp_p_de= NEW_N( TempDir_entry, qty_ent, "Load dir entries" );
+         nitems = fam->read_funcs[M_INT]( p_f, temp_p_de, QTY_ENTRY_FIELDS*qty_ent );
+         for(i=0; i<qty_ent;i++)
+         {
+            for(j=0;j<QTY_ENTRY_FIELDS;j++)
 			{
-				for(j=0;j<QTY_ENTRY_FIELDS;j++)
-				{
-					p_de[i][j] = (LONGLONG)temp_p_de[i][j];
-				}
+				p_de[i][j] = (LONGLONG)temp_p_de[i][j];
 			}
+		 }
 			free(temp_p_de);
-		}
+	  }
 
-      if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS )
+      if ( nitems != (LONGLONG) qty_ent * QTY_ENTRY_FIELDS )
       {
          free( fam->directory );
          fam->directory = NULL;

@@ -106,12 +106,12 @@ taurus_def_svars( Mili_family *fam, int qty, char **names,
                return IOS_STR_DUP_FAILED;
 
             psv->agg_type = (Aggregate_type *)
-                            ios_alloc( (size_t) 1, fam->svar_i_ios );
+                            ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
             if ( psv->agg_type == NULL )
                return IOS_ALLOC_FAILED;
             *psv->agg_type = SCALAR;
 
-            psv->data_type = (int *) ios_alloc( (size_t) 1,
+            psv->data_type = (int *) ios_alloc( (LONGLONG) 1,
                                                 fam->svar_i_ios );
             if ( psv->data_type == NULL )
                return IOS_ALLOC_FAILED;
@@ -169,18 +169,18 @@ taurus_def_vec_svar(Mili_family *fam, int type, int size, char *name,
       if ( len == 0 )
          return IOS_STR_DUP_FAILED;
 
-      psv->agg_type = (Aggregate_type *) ios_alloc( (size_t) 1,
+      psv->agg_type = (Aggregate_type *) ios_alloc( (LONGLONG) 1,
                       fam->svar_i_ios );
       if ( psv->agg_type == NULL )
          return IOS_ALLOC_FAILED;
       *psv->agg_type = VECTOR;
 
-      psv->data_type = (int *) ios_alloc( (size_t) 1, fam->svar_i_ios );
+      psv->data_type = (int *) ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
       if ( psv->data_type == NULL )
          return IOS_ALLOC_FAILED;
       *psv->data_type = type;
 
-      psv->list_size = (int *) ios_alloc( (size_t) 1, fam->svar_i_ios );
+      psv->list_size = (int *) ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
       if ( psv->list_size == NULL )
          return IOS_ALLOC_FAILED;
       *psv->list_size = size;
@@ -235,12 +235,12 @@ taurus_def_vec_svar(Mili_family *fam, int type, int size, char *name,
                return IOS_STR_DUP_FAILED;
 
             psv2->agg_type = (Aggregate_type *)
-                             ios_alloc( (size_t) 1, fam->svar_i_ios );
+                             ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
             if ( psv2->agg_type == NULL )
                return IOS_ALLOC_FAILED;
             *psv2->agg_type = SCALAR;
 
-            psv2->data_type = (int *) ios_alloc( (size_t) 1,
+            psv2->data_type = (int *) ios_alloc( (LONGLONG) 1,
                                                  fam->svar_i_ios );
             if ( psv2->data_type == NULL )
                return IOS_ALLOC_FAILED;
@@ -310,7 +310,7 @@ taurus_create_svar( Mili_family *fam, char *name, Svar **ppsv )
        * the integer output buffer so the header will be first in a
        * subsequent output operation.
        */
-      fam->svar_hdr = (int *) ios_alloc( (size_t) QTY_SVAR_HEADER_FIELDS,
+      fam->svar_hdr = (int *) ios_alloc( (LONGLONG) QTY_SVAR_HEADER_FIELDS,
                                          fam->svar_i_ios );
       if (fam->svar_hdr == NULL)
       {
@@ -372,7 +372,7 @@ find_delete_svar( Mili_family *fam, char *name )
 Return_value
 taurus_commit_svars( Mili_family *fam )
 {
-   size_t int_qty, char_qty, round_qty;
+   LONGLONG int_qty, char_qty, round_qty;
    void *p_v;
    Return_value rval;
 
@@ -401,12 +401,12 @@ taurus_commit_svars( Mili_family *fam )
 
       /* Add directory entry. */
       rval = add_dir_entry( fam, STATE_VAR_DICT, DONT_CARE, DONT_CARE, 0,
-                            NULL, (size_t) DONT_CARE, (size_t) DONT_CARE );
+                            NULL, (LONGLONG) DONT_CARE, (LONGLONG) DONT_CARE );
       if ( rval != OK )
          return rval;
 
       /* Update for subsequent file operations. */
-      fam->svar_hdr = ios_alloc( (size_t) QTY_SVAR_HEADER_FIELDS,
+      fam->svar_hdr = ios_alloc( (LONGLONG) QTY_SVAR_HEADER_FIELDS,
                                  fam->svar_i_ios );
       if ( fam->svar_hdr == NULL )
          return IOS_ALLOC_FAILED;
