@@ -185,7 +185,7 @@ typedef struct _io_mem_store
 } IO_mem_store;
 
 typedef LONGLONG Dir_entry[QTY_ENTRY_FIELDS];
-typedef int  TempDir_entry[QTY_ENTRY_FIELDS];
+typedef unsigned int  TempDir_entry[QTY_ENTRY_FIELDS];
 
 
 typedef struct _file_dir
