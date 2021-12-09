@@ -101,6 +101,7 @@
 #define mc_restart_at_file_         MC_RESTART_AT_FILE
 #define mc_wrt_stream_              MC_WRT_STREAM
 #define mc_wrt_subrec_              MC_WRT_SUBREC
+#define mc_rewrite_subrec_          MC_REWRITE_SUBREC
 #define mc_read_results_            MC_READ_RESULTS
 #define mc_get_svar_size_           MC_GET_SVAR_SIZE
 #define mc_get_svar_mo_ids_on_class_ MC_GET_SVAR_MO_IDS_ON_CLASS
@@ -186,6 +187,7 @@
 #define mc_restart_at_file_         MC_RESTART_AT_FILE
 #define mc_wrt_stream_              MC_WRT_STREAM
 #define mc_wrt_subrec_              MC_WRT_SUBREC
+#define mc_rewrite_subrec_          MC_REWRITE_SUBREC
 #define mc_read_results_            MC_READ_RESULTS
 #define mc_get_svar_size_           MC_GET_SVAR_SIZE
 #define mc_get_svar_mo_ids_on_class_ MC_GET_SVAR_MO_IDS_ON_CLASS
@@ -278,6 +280,7 @@
 #define mc_restart_at_file_         MC_RESTART_AT_FILE
 #define mc_wrt_stream_              MC_WRT_STREAM
 #define mc_wrt_subrec_              MC_WRT_SUBREC
+#define mc_rewrite_subrec_          MC_REWRITE_SUBREC
 #define mc_read_results_            MC_READ_RESULTS
 #define mc_get_svar_size_           MC_GET_SVAR_SIZE
 #define mc_get_svar_mo_ids_on_class_ MC_GET_SVAR_MO_IDS_ON_CLASS
@@ -359,6 +362,7 @@
 #define mc_restart_at_file_         MC_RESTART_AT_FILE_
 #define mc_wrt_stream_              MC_WRT_STREAM_
 #define mc_wrt_subrec_              MC_WRT_SUBREC_
+#define mc_rewrite_subrec_          MC_REWRITE_SUBREC_
 #define mc_read_results_            MC_READ_RESULTS_
 #define mc_get_svar_size_           MC_GET_SVAR_SIZE_
 #define mc_get_svar_mo_ids_on_class_ MC_GET_SVAR_MO_IDS_ON_CLASS_
@@ -1112,6 +1116,16 @@ mc_wrt_subrec_( Famid *fam_id, CHAR_DESCR subrec_name, int *p_start,
    return mc_wrt_subrec( *fam_id, c_subrec_name, *p_start, *p_stop, data );
 }
 
+Return_value
+mc_rewrite_subrec_( Famid *fam_id, CHAR_DESCR subrec_name, int *p_start,
+		    int *p_stop, void *data, int *st_index )
+{
+   char *c_subrec_name;
+
+   c_subrec_name = CHAR_CONV_F2C( subrec_name );
+
+   return mc_rewrite_subrec( *fam_id, c_subrec_name, *p_start, *p_stop, data, *st_index );
+}
 
 Return_value
 mc_read_results_( Famid *fam_id, int *p_state, int *p_subrec_id, int *p_qty,

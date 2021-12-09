@@ -3403,8 +3403,17 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
       }
    }
    
-   fam->state_map = RENEW_N( State_descriptor, fam->state_map, state_qty, 1,
-                             "Addl state descr" );
+   fam->state_qty++;
+   
+   if(fam->state_map == NULL)
+   {
+      fam->state_map = NEW_N( State_descriptor, fam->state_qty ,"Recreating state descriptor");
+   }else
+   {
+      fam->state_map = RENEW_N( State_descriptor, fam->state_map, state_qty, 1,
+                                "Addl state descr" );
+   }
+   
    if (fam->state_map == NULL)
    {
       return ALLOC_FAILED;
@@ -3414,7 +3423,7 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
    p_sd->offset = fam->cur_st_offset;
    p_sd->time = time;
    p_sd->srec_format = srec_id;
-   fam->state_qty++;
+   
    fam->written_st_qty++;
    fam->file_st_qty++;
    fam->file_map[fam->st_file_count - 1].state_qty = fam->file_st_qty;
@@ -3586,7 +3595,7 @@ mc_restart_at_state( Famid fam_id, int file_name_index, int file_state_index )
    /* Case 2 */
    if ( state_index == fam->state_qty )
    {
-      if ( fam->file_map[file_index].state_qty == fam->states_per_file )
+      if ( fam->state_map && fam->file_map[file_index].state_qty == fam->states_per_file )
       {
          return INVALID_FILE_STATE_INDEX; /* Request would exceed limit */
       }
@@ -3612,8 +3621,9 @@ mc_restart_at_state( Famid fam_id, int file_name_index, int file_state_index )
        * Leave the (new) last file open if new end doesn't fall on a file
        * boundary so that subsequent state writes will fill up the "partial"
        * file to its full complement.
+       * Added check for NULL state_map
        */
-      if ( fam->state_map[state_index].offset > 0 )
+      if ( fam->state_map && fam->state_map[state_index].offset > 0 )
       {
 
          rval = state_file_open( fam, smap[state_index].file, fam->access_mode );
@@ -3690,6 +3700,82 @@ mc_restart_at_file( Famid fam_id, int file_name_index )
 
    return rval;
 }
+
+/*****************************************************************
+ * TAG( mc_rewrite_subrec ) PUBLIC
+ *
+ * Rewrite a subrecord at a given timestep. This timestep must
+ * have already been written. This function calls mc_wrt_subrec.
+ */
+Return_value
+mc_rewrite_subrec( Famid fid, char *subrec_name, int start, int stop, void *data, int st_index )
+{
+   State_descriptor *sd;
+   LONGLONG saved_st_offset;
+   LONGLONG saved_st_file_size;
+   LONGLONG replace_st_offset;
+   Return_value rval = OK;
+   int status;
+
+   Htable_entry *subrec_entry;
+   Sub_srec *psubrec;
+   int found;
+   Buffer_queue *bq;
+ 
+
+   if ( INVALID_FAM_ID( fid ) )
+   {
+      return BAD_FAMILY;
+   }
+
+   if ( st_index > fam_list[fid]->state_qty || st_index < 0 )
+   {
+      return INVALID_STATE;
+   }
+   
+   /* Save current state offset and current state file size */
+   saved_st_offset = fam_list[fid]->cur_st_offset;
+   saved_st_file_size = fam_list[fid]->cur_st_file_size;
+
+   /* Get offset of this timestep from State_descriptor */
+   sd = fam_list[fid]->state_map;
+   replace_st_offset = sd[st_index-1].offset;
+
+   /* Add 8 bytes for data at beginning of state files */
+   replace_st_offset += ( EXT_SIZE( fam_list[fid], M_INT ) + EXT_SIZE( fam_list[fid], M_FLOAT ) );
+
+   /* Set offset to state to change */
+   fam_list[fid]->cur_st_offset = replace_st_offset;
+
+   
+   /* Rewrite the subrecord */
+   status = mc_wrt_subrec( fid, subrec_name, start, stop, data );
+   if ( status != 0 )
+   {
+     rval = status;
+   }
+   
+   /* Set subrec ibuffer buffer_count to 0 to prevent buffer read */
+   rval = htable_search( fam_list[fid]->subrec_table, subrec_name,
+			 FIND_ENTRY, &subrec_entry );
+   if(subrec_entry == NULL)
+     {
+       //An error at this point since this should have been caught already in mc_wrt_subrec()
+       return INVALID_SUBREC_INDEX;
+     }
+   psubrec = (Sub_srec*) subrec_entry->data;
+ 
+   bq = psubrec->ibuffer;
+ 
+   bq->buffer_count = 0;
+
+   /* Reset current state offset and current state file size */
+   fam_list[fid]->cur_st_offset = saved_st_offset;
+   fam_list[fid]->cur_st_file_size = saved_st_file_size;
+
+   return rval;
+}
+
 
 
 /*****************************************************************
