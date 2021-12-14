@@ -484,42 +484,41 @@ load_directories( Mili_family *fam )
                    qty_states * 20; /*20 is the size af a statemap*/ 
       }else // Added version 3 to handle long size offsets
       {
-         offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT8 ) +
+          offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT8 ) +
                    qty_states * 20; /*20 is the size af a statemap*/
       }
-      status = fseek( p_f, (long)offset, SEEK_END );
-      if(fam->char_header[DIR_VERSION_IDX]>=3)
-      {
-         nitems = fam->read_funcs[M_INT8]( p_f, p_de, QTY_ENTRY_FIELDS*qty_ent );
-         if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS)
-         {
-            free( fam->directory );
-            fam->directory = NULL;
-            free( p_de );
-            fclose( p_f );
-            return BAD_LOAD_READ;
-         }
-      }else{
-         temp_p_de= NEW_N( TempDir_entry, qty_ent, "Load dir entries" );
-         nitems = fam->read_funcs[M_STRING]( p_f, temp_p_de, 4*QTY_ENTRY_FIELDS*qty_ent );
-         
-         if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS *4 )
-         {
-             free( fam->directory );
-             fam->directory = NULL;
-             free( p_de );
-             fclose( p_f );
-             return BAD_LOAD_READ;
-         }
-         for(i=0; i<qty_ent;i++)
-         {
-            for(j=0;j<QTY_ENTRY_FIELDS;j++)
+      status = fseek( p_f, offset, SEEK_END );
+		if(fam->char_header[DIR_VERSION_IDX]>=3){
+      	    nitems = fam->read_funcs[M_INT8]( p_f, p_de, QTY_ENTRY_FIELDS*qty_ent );
+		    if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS)
+            {
+              free( fam->directory );
+              fam->directory = NULL;
+              free( p_de );
+              fclose( p_f );
+              return BAD_LOAD_READ;
+            }
+        }else{
+			temp_p_de= NEW_N( TempDir_entry, qty_ent, "Load dir entries" );
+			nitems = fam->read_funcs[M_STRING]( p_f, temp_p_de, 4*QTY_ENTRY_FIELDS*qty_ent );
+			
+            if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS *4 )
+            {
+                free( fam->directory );
+                fam->directory = NULL;
+                free( p_de );
+                fclose( p_f );
+                return BAD_LOAD_READ;
+            }
+            for(i=0; i<qty_ent;i++)
 			{
 				p_de[i][j] = (LONGLONG)temp_p_de[i][j];
 			}
 		 }
 			free(temp_p_de);
-	  }
+		}
+
+      
 
       /* Calculate quantity of strings in directory. */
       qty_nam = 0;
