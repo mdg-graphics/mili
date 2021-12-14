@@ -61,7 +61,8 @@ CDEMOS = \
         titest \
 	    MiliDiff \
         value_change \
-        restart 
+        restart \
+		restart_zero
  
 FDEMOS = \
         GenFaceDB \

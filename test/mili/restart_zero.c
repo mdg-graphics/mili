@@ -1,18 +1,7 @@
-/* $Id: mixdb.c,v 1.1 2021/07/23 16:03:03 rhathaw Exp $ */
-
 /*
  * C test app for a diverse Mili database.
  * 
 
- ************************************************************************
- * Modifications:
- *  I. R. Corey - February 19, 2010: Added tests for file size and state
- *  limits.
- *  SCR #663
- *
- *  I. R. Corey - March 02, 2011: Added tests for TH write with no
- *  nodal positions in state records.
- ************************************************************************
  */
 
 #include <stdio.h>
@@ -202,7 +191,7 @@ main( int argc, char *argv[] )
     /* Added test for really long filenames */
     char fname[1000];
     //strcpy(fname, "rgrido.mod.plt_c");
-    strcpy(fname, "test_restart");
+    strcpy(fname, "test_restart_zero");
 
    /*
     * Create the Mili database.
@@ -459,7 +448,6 @@ main( int argc, char *argv[] )
         exit( -1 );
     }
 
-    writeStates(fid, sid,  10, 0.7, 0.1);
     
     stat = mc_close( fid );
     if ( stat != 0 )
@@ -468,31 +456,7 @@ main( int argc, char *argv[] )
         exit( -1 );
     }
     
-    /* Restart Test */
-    stat = mc_open( fname, ".", "AaPdEn", &fid );
-    if ( stat != 0 )
-    {
-        mc_print_error( "mc_open", stat );
-        exit( -1 );
-    }
-
-    stat = mc_restart_at_state( fid, 0, 10 );
     
-    if ( stat != 0 )
-    { 
-        mc_print_error( "mc_restart_at_state", stat );
-        exit( -1 );
-    }
-
-    writeStates(fid, sid,  50, 0.2, 0.1);
-    
-    stat = mc_close( fid );
-    if ( stat != 0 )
-    {
-        mc_print_error( "mc_close", stat );
-        exit( -1 );
-    }
-
     exit( 0 );
 }
 void writeStates( int fid, int sid, int stop_state, float start_time, float time_increment)
