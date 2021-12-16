@@ -407,8 +407,8 @@ AC_DEFUN([CONFIGURE_BUILDDIRS],
     # Set up links for test case files
     cd ../src_test
     ln -sf ../../Makefile.Tests Makefile.in
-    ln -sf ../../test/*.c .     > /dev/null 2>&1
-    ln -sf ../../test/*.f .     > /dev/null 2>&1
+    ln -sf ../../test/mili/*.c .     > /dev/null 2>&1
+    ln -sf ../../test/mili/*.f .     > /dev/null 2>&1
     
     
     # Set up links for test case files
