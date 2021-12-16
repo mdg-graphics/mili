@@ -433,8 +433,6 @@
 
 #include "mili_internal.h"
 
-int fortran_api = 0;
-
 Return_value
 mc_end_state_( Famid *fam_id , int *srec_id )
 {
@@ -1062,13 +1060,9 @@ mc_def_subrec_( Famid *fam_id, int *srec_id, CHAR_DESCR subrec_name,
    c_svar_names = CHAR_CONV_F2C( svar_names );
    c_subclass = CHAR_CONV_F2C( subclass );
 
-   fortran_api = 1;
-
    rval =  mc_def_subrec( *fam_id, *srec_id, c_subrec_name, *data_org,
                           *qty_svars, c_svar_names, *name_stride,
                           c_subclass, *format, *qty, mo_ids, flag );
-
-   fortran_api = 0;
 
    return rval;
 }
@@ -1122,7 +1116,6 @@ mc_wrt_subrec_( Famid *fam_id, CHAR_DESCR subrec_name, int *p_start,
    return mc_wrt_subrec( *fam_id, c_subrec_name, *p_start, *p_stop, data );
 }
 
-
 Return_value
 mc_rewrite_subrec_( Famid *fam_id, CHAR_DESCR subrec_name, int *p_start,
 		    int *p_stop, void *data, int *st_index )
@@ -1133,7 +1126,6 @@ mc_rewrite_subrec_( Famid *fam_id, CHAR_DESCR subrec_name, int *p_start,
 
    return mc_rewrite_subrec( *fam_id, c_subrec_name, *p_start, *p_stop, data, *st_index );
 }
-
 
 Return_value
 mc_read_results_( Famid *fam_id, int *p_state, int *p_subrec_id, int *p_qty,
@@ -1297,7 +1289,7 @@ mc_get_svar_size_(Famid *p_fam_id, CHAR_DESCR class_name, CHAR_DESCR var_name,
    c_class_name = CHAR_CONV_F2C(class_name);
    c_var_name   = CHAR_CONV_F2C(var_name);
 
-   rval = mc_get_svar_size(*p_fam_id, c_class_name, var_name,
+   rval = mc_get_svar_size(*p_fam_id, c_class_name, c_var_name,
                            p_num_blocks, p_size, p_type);
 
    return rval;

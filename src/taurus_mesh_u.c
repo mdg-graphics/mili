@@ -98,7 +98,7 @@ taurus_make_umesh(  Famid fam_id, char *mesh_name, int dim, int *p_mesh_id )
 {
    Mili_family *fam;
    int i;
-   size_t outbytes;
+   LONGLONG outbytes;
    int fidx;
    LONGLONG offset;
    char *mname;
@@ -242,7 +242,7 @@ taurus_def_class( Famid fam_id, int mesh_id, int superclass, char *short_name,
       names[0] = short_name;
       names[1] = long_name;
       rval = add_dir_entry( fam, CLASS_DEF, mesh_id, superclass, 2, names,
-                            (size_t) DONT_CARE, (size_t) DONT_CARE );
+                            (LONGLONG) DONT_CARE, (LONGLONG) DONT_CARE );
    }
 
    return rval;
@@ -262,7 +262,7 @@ Return_value
 taurus_def_class_idents( Famid fam_id, int mesh_id, char *short_name,
                          int start, int stop )
 {
-   size_t rec_size;
+   LONGLONG rec_size;
    Mesh_descriptor *mesh;
    Mili_family *fam;
    Return_value rval;
@@ -299,9 +299,9 @@ Return_value
 taurus_def_nodes( Famid fam_id, int mesh_id, char *short_name,
                   int start_node, int stop_node )
 {
-   size_t data_words;
+   LONGLONG data_words;
    Mesh_descriptor *mesh;
-   off_t offset, rec_size;
+   LONGLONG offset, rec_size;
    Mili_family *fam;
    Return_value rval;
    Hash_table *p_ht;
@@ -358,7 +358,7 @@ Return_value
 taurus_def_conn_seq( Mili_family *fam, int mesh_id, char *short_name,
                      int start_el, int stop_el )
 {
-   size_t rec_size, data_words;
+   LONGLONG rec_size, data_words;
    Mesh_descriptor *mesh;
    Return_value rval;
    Hash_table *p_ht;
@@ -411,7 +411,7 @@ Return_value
 taurus_def_conn_arb( Mili_family *fam, int mesh_id, char *short_name,
                      int el_qty, int *elem_ids )
 {
-   size_t rec_size, data_words;
+   LONGLONG rec_size, data_words;
    Mesh_descriptor *mesh;
    Return_value rval;
    int *p_int_blk, *p_iblk, *ibound;
@@ -758,8 +758,8 @@ taurus_load_conn_def( Mili_family *fam, int *file_idx, int superclass,
    int *p_src;
    int elem_qty, word_qty, conn_qty;
    int max_mat;
-   size_t read_cnt, int_qty;
-   size_t not_valid_qty;
+   LONGLONG read_cnt, int_qty;
+   LONGLONG not_valid_qty;
    int *conns, *conns_dest, *mats, *parts;
    int i, j;
    LONGLONG offset;
@@ -875,7 +875,7 @@ taurus_load_nodes_def( Mili_family *fam, int file_idx, Dir_entry dir_ent,
 {
    LONGLONG offset;
    float *dest;
-   size_t read_cnt, float_qty, byte_qty;
+   LONGLONG read_cnt, float_qty, byte_qty;
 
    /* Calculate destination in coords buffer for this node block. */
    dest = ((float *) coords) ;

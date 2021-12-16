@@ -92,8 +92,8 @@ valid_ti_dir_entry_data( Dir_entry_type etype, int string_qty, char **strings )
  */
 Return_value
 add_ti_dir_entry( Mili_family *fam, Dir_entry_type etype, int modifier1,
-                  int modifier2, int string_qty, char **strings, off_t offset,
-                  off_t length )
+                  int modifier2, int string_qty, char **strings, LONGLONG offset,
+                  LONGLONG length )
 {
    LONGLONG *entry;
    File_dir *p_fd;
@@ -185,10 +185,10 @@ add_ti_dir_entry( Mili_family *fam, Dir_entry_type etype, int modifier1,
 Return_value
 commit_ti_dir( Mili_family *fam )
 {
-   size_t words;
+   LONGLONG words;
    int dir_header[QTY_DIR_HEADER_FIELDS];
    File_dir *p_fd;
-   size_t char_qty, round_qty;
+   LONGLONG char_qty, round_qty;
    void *pmem;
    int num_written;
    Return_value rval;
@@ -246,7 +246,7 @@ commit_ti_dir( Mili_family *fam )
    }
    if(fam->char_header[DIR_VERSION_IDX]==1){
       num_written = fam->write_funcs[M_INT]( fam->ti_cur_file, dir_header,
-                                          (size_t) QTY_DIR_HEADER_FIELDS-1 );
+                                          (LONGLONG) QTY_DIR_HEADER_FIELDS-1 );
       if (num_written != QTY_DIR_HEADER_FIELDS-1)
       {
          return SHORT_WRITE;
@@ -255,7 +255,7 @@ commit_ti_dir( Mili_family *fam )
                              EXT_SIZE( fam, M_INT );
    }else {
       num_written = fam->write_funcs[M_INT]( fam->ti_cur_file, dir_header,
-                                          (size_t) QTY_DIR_HEADER_FIELDS );
+                                          (LONGLONG) QTY_DIR_HEADER_FIELDS );
       if (num_written != QTY_DIR_HEADER_FIELDS)
       {
          return SHORT_WRITE;
@@ -331,7 +331,7 @@ load_ti_directories( Mili_family *fam )
    char fname[M_MAX_NAME_LEN];
    int header[QTY_DIR_HEADER_FIELDS];
    int nnames;
-   size_t nitems, nbytes, offset;
+   LONGLONG nitems, nbytes, offset;
    File_dir *p_fd;
    Dir_entry *p_de;
 	TempDir_entry *temp_p_de;
@@ -490,7 +490,7 @@ load_ti_directories( Mili_family *fam )
 			}
 		}
 		free(temp_p_de);
-      if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS )
+      if ( nitems != (LONGLONG) qty_ent * QTY_ENTRY_FIELDS )
       {
          free( fam->ti_directory );
          fam->ti_directory = NULL;

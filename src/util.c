@@ -48,8 +48,9 @@
 #ifdef _MSC_VER
 #include <windows.h>   //this will give us tchar.h
 #include <stdio.h>
-#endif
+#else
 #include <dirent.h>
+#endif
 #include <string.h>
 #include <ctype.h>
 #include "mili_internal.h"
@@ -61,7 +62,7 @@
 #endif
 
 
-static size_t _mem_total = 0;
+static LONGLONG _mem_total = 0;
 
 /*****************************************************************
  * TAG( fam_list )
@@ -191,130 +192,6 @@ mc_determine_naming( char *p_name , State_variable *p_sv)
    return NULL;
 }
 
-/************************************************************
- * TAG( find_proc_count )
- *
- * This function is to get the number of processor for family 
- * that is being opened.  This was mainly added for backward 
- * compatibility for plot files that do not contain the parameter
- * nproc which Mili checks for now as part of the startup process.
- *
- */
-int
-find_proc_count(Famid fam_id)
-{
-    DIR *dirp;
-    struct dirent   *entry;
-    int start_check;
-    int found_A = 0;
-    Mili_family *family;
-    int rval;
-    int ptr,
-        cptr,
-        count = 0;
-    int multifiles_found = 0;
-    int single_file = 0;
-    int numbers=0;
-    
-    rval = validate_fam_id( fam_id );
-    
-    if ( rval != OK )
-    {
-        return rval;
-    }
-    
-    family = fam_list[fam_id];
-	
-    //Just make sure if the database does have the nproc
-    //then we do not need to go through everything else.
-    rval = mc_read_scalar( fam_id, "nproc", &count );
-    if(rval == OK)
-    {
-        return count;
-    }
-    
-    if((dirp = opendir(family->path)) == NULL) {
-        
-        return -1;
-    }
-    
-    cptr = strlen(family->file_root);
-    
-    do{
-        if((entry = readdir(dirp)) != NULL) 
-        {
-            if ((strcmp(entry->d_name, ".")== 0) ||
-                (strcmp(entry->d_name, "..") == 0)) {
-                    continue;
-            }
-            
-            ptr = strlen(entry->d_name);
-        
-            if ((strncmp(family->file_root,entry->d_name,strlen(family->file_root)) ==0))
-            {
-                
-                if(!(entry->d_name[ptr-1]== 'A'))
-                {
-                    continue;
-                }
-                
-                //We need to check on a few different scenarios
-                
-                //Let's see if this is just a single file.
-                if(ptr == cptr+1)
-                {
-                    count++;
-                    found_A=1;
-                    single_file = 1;
-                    continue;
-                }
-                
-                // If it was not a single file then check that the next 
-                // letter is a digit
-                if(!(entry->d_name[cptr]>='0' && entry->d_name[cptr]<='9'))
-                {
-                    continue;
-                }
-                
-                //Check for how many processor files.           
-		        for(start_check = strlen(family->file_root); start_check< strlen(entry->d_name) && !found_A; start_check++)
-                {
-			        if(entry->d_name[start_check] == 'A' && start_check == strlen(entry->d_name)-1 )
-                    {
-				        
-                        found_A=1;
-			        }
-			
-			        if(entry->d_name[start_check]>='0' && entry->d_name[start_check]<='9')
-                    {
-                        numbers++;
-			        }
-		        }
-		        if(found_A && numbers>0)
-                {
-      	            count++;
-                    multifiles_found=1;
-                    found_A = 0;
-		        }
-            }
-            numbers =0;
-        }
-        
-        
-        
-    
-    }while(entry != NULL);
-    
-    if(multifiles_found && single_file)
-    {
-        count--;
-    }else if(single_file && count>1)
-    {
-        //This should not happen
-        count =1;
-    }
-    return count;
-}
 
 /*****************************************************************
  * TAG( get_mili_version ) PRIVATE
@@ -905,7 +782,7 @@ parse_int_list( char *list_string, int *count, int **iarray )
 int
 str_dup( char **dest, char *src )
 {
-   size_t len;
+   LONGLONG len;
    char *pd, *ps;
 
    len = strlen( src );
@@ -1206,7 +1083,7 @@ mc_get_mesh_id( Famid fam_id, char *mesh_name, int *p_mesh_id )
  * Calloc instrumented to keep track of allocations.
  */
 char *
-my_calloc( int cnt, size_t size, char *descr )
+my_calloc( int cnt, long size, char *descr )
 {
    char *arr;
 
@@ -1235,18 +1112,17 @@ my_calloc( int cnt, size_t size, char *descr )
  * value is not assigned to argument passed into "ptr".
  */
 void *
-my_realloc( void *ptr, size_t size, size_t add, char *descr )
+my_realloc( void *ptr, long size, long add, char *descr )
 {
-   void *new;
-   size_t new_size;
+   long new_size;
 
    new_size = size + add;
 
-   new = realloc( ptr, new_size );
+   ptr = realloc( ptr, new_size );
 
-   if ( new != NULL && add > 0 )
+   if ( ptr != NULL && add > 0 )
    {
-      memset( (char *) new + size, (int) '\0', add );
+      memset( (char *) ptr + size, (int) '\0', add );
    }
    else
    {
@@ -1255,14 +1131,14 @@ my_realloc( void *ptr, size_t size, size_t add, char *descr )
          fprintf( stderr, "Mili - realloc failed for \"%s\".\n", descr );
       }
    }
-
+   
 #ifdef DEBUG_MEM
    _mem_total += add;
 
    fprintf( stderr, "Reallocating memory for %s: %d bytes, total %d K.\n",
             descr, add, _mem_total / 1024 );
 #endif
-   return new;
+   return ptr;
 }
 
 
@@ -1274,10 +1150,10 @@ my_realloc( void *ptr, size_t size, size_t add, char *descr )
  * value is not assigned to argument passed into "ptr".
  */
 void *
-mili_recalloc( void *ptr, size_t size, size_t add, char *descr )
+mili_recalloc( void *ptr, long size, long add, char *descr )
 {
    unsigned char *new;
-   size_t new_size;
+   long new_size;
 
    new_size = size + add;
 
@@ -1386,7 +1262,7 @@ mc_set_buffer_qty( Famid fam_id, int mesh_id, char *class_name, int buf_qty )
  * Allocate and initialize a Buffer_queue struct.
  */
 Buffer_queue *
-create_buffer_queue( int buf_qty, LONGLONG length )
+create_buffer_queue( int buf_qty, long length )
 {
    Buffer_queue *p_bq;
    Return_value rval;
@@ -1414,7 +1290,7 @@ create_buffer_queue( int buf_qty, LONGLONG length )
  * (Re-)Initialize a buffer queue.
  */
 Return_value
-init_buffer_queue( Buffer_queue *p_bq, int buf_qty, LONGLONG length )
+init_buffer_queue( Buffer_queue *p_bq, int buf_qty, long length )
 {
    unsigned char **p_tmp_dat, **p_swap_dat;
    int *p_tmp_st;
@@ -1451,7 +1327,7 @@ init_buffer_queue( Buffer_queue *p_bq, int buf_qty, LONGLONG length )
       {
          for ( i = 0; i < cnt; i++ )
          {
-            p_tmp_dat[i] = NEW_N( unsigned char, (size_t)length, "Input buffer" );
+            p_tmp_dat[i] = NEW_N( unsigned char, (LONGLONG)length, "Input buffer" );
 
             if ( length > 0 && p_tmp_dat[i] == NULL )
             {
@@ -1667,6 +1543,230 @@ delete_buffer_queue( Buffer_queue *p_bq )
    free( p_bq );
 }
 
+/************************************************************
+ * TAG( find_proc_count )
+ *
+ * This function is to get the number of processor for family 
+ * that is being opened.  This was mainly added for backward 
+ * compatibility for plot files that do not contain the parameter
+ * nproc which Mili checks for now as part of the startup process.
+ *
+ */
+int
+find_proc_count(Famid fam_id)
+{
+    LONGLONG rlen,
+           flen;
+    int count = 0,
+        found_A = 0,
+        rval,
+        multifiles_found = 0,
+        single_file = 0,
+        start_check,
+        numbers=0;
+    
+    Mili_family *family;
+    rval = validate_fam_id( fam_id );
+    
+    if ( rval != OK )
+    {
+        return rval;
+    }
+    
+    family = fam_list[fam_id];
+	
+    //Just make sure if the database does have the nproc
+    //then we do not need to go through everything else.
+    rval = mc_read_scalar( fam_id, "nproc", &count );
+    if(rval == OK)
+    {
+        return count;
+    }
+    
+    rlen = strlen(family->file_root);
+    
+#ifndef _MSC_VER
+    
+    DIR *dirp;
+    struct dirent   *entry;
+    
+    if((dirp = opendir(family->path)) == NULL) {
+        
+        return -1;
+    }
+    
+    do{
+        if((entry = readdir(dirp)) != NULL) 
+        {
+            if ((strcmp(entry->d_name, ".")== 0) ||
+                (strcmp(entry->d_name, "..") == 0)) {
+                    continue;
+            }
+            
+            flen = strlen(entry->d_name);
+        
+            if ((strncmp(family->file_root,entry->d_name,rlen) ==0))
+            {
+                
+                if(!(entry->d_name[flen-1]== 'A'))
+                {
+                    continue;
+                }
+                
+                //We need to check on a few different scenarios
+                
+                //Let's see if this is just a single file.
+                if(flen == rlen+1)
+                {
+                    count++;
+                    found_A=1;
+                    single_file = 1;
+                    continue;
+                }
+                
+                // If it was not a single file then check that the next 
+                // letter is a digit
+                if(!(entry->d_name[rlen]>='0' && entry->d_name[rlen]<='9'))
+                {
+                    continue;
+                }
+                
+                //Check for how many processor files.           
+		        for(start_check = strlen(family->file_root); start_check< strlen(entry->d_name) && 
+                                                             !found_A; start_check++)
+                {
+			        if(entry->d_name[start_check] == 'A' && start_check == strlen(entry->d_name)-1 )
+                    {
+				        
+                        found_A=1;
+			        }
+			
+			        if(entry->d_name[start_check]>='0' && entry->d_name[start_check]<='9')
+                    {
+                        numbers++;
+			        }
+		        }
+		        if(found_A && numbers>0)
+                {
+      	            count++;
+                    multifiles_found=1;
+                    found_A = 0;
+		        }
+            }
+            numbers =0;
+        }
+        
+        
+        
+    
+    }while(entry != NULL);
+    
+   
+    
+#else
+    //   WIN32_FIND_DATA fd; 
+    WIN32_FIND_DATAA fd; 
+    HANDLE dirHandle;
+    //   TCHAR szDir[MAX_PATH+1]; 
+    char szDir[MAX_PATH+1];  
+    int index;
+    char TrailStr[3];
+    
+    // Load var szDir
+    TrailStr[0]='\\';
+    TrailStr[1]='*';
+    TrailStr[2]='\0';
+    strcpy(szDir,family->path);        //Begin string szDir with the path
+    strcat(szDir,TrailStr);	  //Add "\*" to the end
+
+//Searches a directory for the first file matching szDir (Ex: szDir=.\*)
+    dirHandle = FindFirstFileA(szDir, &fd); 
+   
+    if ( dirHandle == INVALID_HANDLE_VALUE )
+    {
+        printf("\nfind_proc_count : FindFirstFile status (%d)\n", GetLastError());  
+        printf("              szDir=%s \n",szDir);  
+        return 0;
+    }
+    
+    do
+    {
+        if(strncmp(fd.cFileName, family->fam_root, rlen) == 0)
+        {
+             if ((strcmp(fd.cFileName, ".")== 0) ||
+                (strcmp(fd.cFileName, "..") == 0)) {
+                    continue;
+            }
+            
+            flen = strlen(fd.cFileName);
+        
+            if ((strncmp(family->file_root,fd.cFileName,rlen) ==0))
+            {
+                
+                if(!(fd.cFileName[flen-1]== 'A'))
+                {
+                    continue;
+                }
+                
+                //We need to check on a few different scenarios
+                
+                //Let's see if this is just a single file.
+                if(flen == rlen+1)
+                {
+                    count++;
+                    found_A=1;
+                    single_file = 1;
+                    continue;
+                }
+                
+                // If it was not a single file then check that the next 
+                // letter is a digit
+                if(!(fd.cFileName[rlen]>='0' && fd.cFileName[rlen]<='9'))
+                {
+                    continue;
+                }
+                
+                //Check for how many processor files.           
+		        for(start_check = rlen; start_check< strlen(fd.cFileName) && 
+                                                             !found_A; start_check++)
+                {
+			        if(fd.cFileName[start_check] == 'A' && start_check == strlen(fd.cFileName)-1 )
+                    {
+				        
+                        found_A=1;
+			        }
+			
+			        if(fd.cFileName[start_check]>='0' && fd.cFileName[start_check]<='9')
+                    {
+                        numbers++;
+			        }
+		        }
+		        if(found_A && numbers>0)
+                {
+      	            count++;
+                    multifiles_found=1;
+                    found_A = 0;
+		        }
+            }
+            numbers =0;
+            
+        }
+    }
+    while (FindNextFileA(dirHandle, &fd));   //Continues a file search from a previous call to the FindFirstFile function
+
+#endif
+    
+    if(multifiles_found && single_file)
+    {
+        count--;
+    }else if(single_file && count>1)
+    {
+        //This should not happen
+        count =1;
+    }
+    
+    return count;
+}
 
 /*****************************************************************
  * TAG( mili_scandir ) PRIVATE
@@ -1679,7 +1779,7 @@ mili_scandir( char *path, char *root, StringArray *p_sarr )
 #ifndef _MSC_VER
    DIR *p_dir;
    struct dirent *p_dent;
-   size_t rlen;
+   LONGLONG rlen;
    int index;
    Return_value rval;
 
@@ -1729,7 +1829,7 @@ mili_scandir( char *path, char *root, StringArray *p_sarr )
    HANDLE dirHandle;
 //   TCHAR szDir[MAX_PATH+1]; 
    char szDir[MAX_PATH+1];  
-   size_t rlen;
+   LONGLONG rlen;
    int index;
    Return_value rval;
    char TrailStr[3];
@@ -1862,7 +1962,7 @@ mc_countDomains( char *path, char *root, int *domCount )
  * into the destination array.
  */
 void
-swap_bytes( size_t qty, size_t field_size,
+swap_bytes( int qty, long field_size,
             void *p_source, void *p_destination )
 {
    int i;
@@ -1894,7 +1994,7 @@ swap_bytes( size_t qty, size_t field_size,
 void
 mc_print_error( char *preamble, int rval )
 {
-   size_t preamble_len;
+   LONGLONG preamble_len;
    char *pre;
    char *many_scalars = "Attempt to define too many scalar state variables.";
    char *no_spx_grp = "Mesh object group not found.";
@@ -2158,6 +2258,9 @@ mc_print_error( char *preamble, int rval )
          break;
       case (int)DIR_OPEN_FAILED:
          fprintf( stderr, "%sMili - Unable to open directory.\n", pre );
+         break;
+      case (int)DIR_ZERO_COUNT:
+         fprintf( stderr, "%sMili - Directory count is zero.\n", pre );
          break;
       case (int)NO_SVARS:
          fprintf( stderr, "%sMili - State variable qty is zero.\n", pre );

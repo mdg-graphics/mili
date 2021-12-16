@@ -79,6 +79,7 @@
 #include "gahl.h"
 #include "mili_enum.h"
 #include "sarray.h"
+#include "parson.h"
 
 #ifndef TRUE
 #define TRUE 1
@@ -104,13 +105,12 @@
 #define LOCK_FILE_SIZE (128)
 #define MAX_LOCK_TRIES (100)
 #define EXT_SIZE( f, t ) (f->external_size[t])
-#define DEFAULT_DATA_ORGANIZATION OBJECT_ORDERED
 #define DEFAULT_SUFFIX_WIDTH (2)
 #define DONT_CARE (0)
 #define DEFAULT_PARTITION_SCHEME STATE_COUNT
 #define DEFAULT_STATES_PER_FILE (10000000)
-#define DEFAULT_BYTES_PER_FILE (10000000)
-#define ABSOLUTE_MAX_FILE_SIZE (2000000000)
+#define DEFAULT_BYTES_PER_FILE (LONGLONG)(10000000)
+#define ABSOLUTE_MAX_FILE_SIZE (LONGLONG)(2000000000)
 #define FAM( fam_id ) ((Mili_family *) fam_id)
 #define ID_FAIL (-1)
 #define ROUND_UP_INT( n, r ) ( ((n)%(r)) ? (n) + ((r) - (n)%(r)) : (n) )
@@ -167,9 +167,9 @@ typedef struct _block_list
 typedef struct _io_mem_buffer
 {
    void *data;
-   size_t used;
-   size_t output;
-   size_t size;
+   LONGLONG used;
+   LONGLONG output;
+   LONGLONG size;
    Block_list *invalid;
 } IO_mem_buffer;
 
@@ -177,10 +177,10 @@ typedef struct _io_mem_store
 {
    IO_mem_buffer **data_buffers;
    int type;
-   size_t current_index;
-   size_t current_output_index;
-   size_t traverse_index;
-   size_t traverse_remain;
+   LONGLONG current_index;
+   LONGLONG current_output_index;
+   LONGLONG traverse_index;
+   LONGLONG traverse_remain;
    char *traverse_next;
 } IO_mem_store;
 
@@ -426,6 +426,8 @@ typedef struct _mili_family
    int num_procs;
    int post_modified;
    int visit_file_on;
+   JSON_Value *root_value;
+   JSON_Object *root_object;
    Database_type db_type;
    int lock_file_descriptor;
    int st_suffix_width;
@@ -487,14 +489,14 @@ typedef struct _mili_family
    Hash_table *subrec_table;
    /* I/O routines for this family */
    /* For access by datatype. */
-   size_t (*read_funcs[QTY_PD_ENTRY_TYPES + 1])(FILE *file, void *data,
-                                                size_t qty);
-   size_t (*state_read_funcs[QTY_PD_ENTRY_TYPES + 1])(FILE *file, void *data,
-                                                      size_t qty);
-   size_t (*write_funcs[QTY_PD_ENTRY_TYPES + 1])(FILE *file, void *data,
-                                                 size_t qty);
-   size_t (*state_write_funcs[QTY_PD_ENTRY_TYPES + 1])(FILE *file, void *data,
-                                                       size_t qty);
+   LONGLONG (*read_funcs[QTY_PD_ENTRY_TYPES + 1])(FILE *file, void *data,
+                                                LONGLONG qty);
+   LONGLONG (*state_read_funcs[QTY_PD_ENTRY_TYPES + 1])(FILE *file, void *data,
+                                                      LONGLONG qty);
+   LONGLONG (*write_funcs[QTY_PD_ENTRY_TYPES + 1])(FILE *file, void *data,
+                                                 LONGLONG qty);
+   LONGLONG (*state_write_funcs[QTY_PD_ENTRY_TYPES + 1])(FILE *file, void *data,
+                                                       LONGLONG qty);
    int external_size[QTY_PD_ENTRY_TYPES + 1];
    /**/
    int external_type[QTY_PD_ENTRY_TYPES + 1];
@@ -559,9 +561,8 @@ typedef struct _mili_family
  * Library-private file family management routines and data.
  */
 
-int host_index;
-int internal_sizes[QTY_PD_ENTRY_TYPES + 1];
-int mili_verbose;
+extern int internal_sizes[QTY_PD_ENTRY_TYPES + 1];
+extern int mili_verbose;
 Return_value validate_fam_id( Famid fam_id );
 Return_value parse_control_string( char *ctl_str, Mili_family *fam,
                                    Bool_type *p_create );
@@ -608,7 +609,7 @@ void mc_filelocking_enable( void ) ;
  */
 Return_value
 ti_make_label_description( int meshid, int mat_id, char *superclass, 
-                 char *short_name,  char *new_name);
+                           char *short_name,  char *new_name);
 
 Return_value ti_file_open(  Famid fam_id, int index, char mode );
 Return_value ti_file_close( Famid fam_id );
@@ -617,19 +618,18 @@ Return_value commit_ti_dir( Mili_family *fam );
 void delete_ti_dir( Mili_family *fam );
 Return_value add_ti_dir_entry( Mili_family *fam, Dir_entry_type etype,
                                int modifier1, int modifier2, int string_qty,
-                               char **strings, off_t offset, off_t length );
+                               char **strings, LONGLONG offset, LONGLONG length );
 Return_value load_ti_directories( Mili_family *fam );
 
 /* direc.c - directory management routines. */
 Return_value add_dir_entry( Mili_family *fam, Dir_entry_type etype,
                             int modifier1, int modifier2, int string_qty,
-                            char **strings, off_t offset, off_t length );
+                            char **strings, LONGLONG offset, LONGLONG length );
 Return_value commit_dir( Mili_family *fam );
 void delete_dir( Mili_family *fam );
 Return_value load_directories( Mili_family *fam );
 
 /* param.c - parameter management routines. */
-char *dtype_names[QTY_PD_ENTRY_TYPES + 1];
 Return_value read_scalar( Mili_family *fam, Param_ref *p_pr,  void *p_value );
 Return_value mili_read_string( Mili_family *fam, Param_ref *p_pr,
                                char *p_value );
@@ -648,8 +648,7 @@ Return_value dump_param( Mili_family *fam, FILE *p_f,
                          int head_indent, int body_indent );
 
 /* util.c - utility routines. */
-int
-find_proc_count(Famid fam_id);
+int find_proc_count(Famid fam_id);
 void tab( int qty );
 Return_value parse_int_list( char *list_string, int *count, int **iarray );
 int str_dup( char **dest, char *src );
@@ -657,17 +656,17 @@ int str_dup_f2c( char **dest, char *src, int ftn_len );
 void make_fnam( int ftype, Mili_family *fam, int fnum, char dest[] );
 Return_value get_file_index( int file_type, char *fam_root,
                              char *file_name, int *index );
-char *my_calloc( int cnt, size_t size, char *descr );
-void *my_realloc( void *ptr, size_t size, size_t add, char *descr );
-void *mili_recalloc( void *ptr, size_t size, size_t add, char *descr );
+char *my_calloc( int cnt, long size, char *descr );
+void *my_realloc( void *ptr, long size, long add, char *descr );
+void *mili_recalloc( void *ptr, long size, long add, char *descr );
 void *get_write_func( Mili_family *fam, int type );
 int is_numeric( char *ptest );
 int is_all_upper( char *ptest );
-Buffer_queue *create_buffer_queue( int buf_qty, LONGLONG length );
-Return_value init_buffer_queue( Buffer_queue *p_bq, int buf_qty, LONGLONG length );
+Buffer_queue *create_buffer_queue( int buf_qty, long length );
+Return_value init_buffer_queue( Buffer_queue *p_bq, int buf_qty, long length );
 void delete_buffer_queue( Buffer_queue *p_bq );
 Return_value mili_scandir( char *path, char *root, StringArray *p_sarr );
-void swap_bytes( size_t qty, size_t field_size,
+void swap_bytes( int qty, long field_size,
                  void *p_source, void *p_destination );
 void get_mili_version( char *mili_version_ptr );
 
@@ -745,18 +744,18 @@ Return_value reset_class_data( Mili_family *fam, int mesh_id,
 /* io_mem.c - I/O memory store management routines. */
 IO_mem_store *ios_create( int datatype );
 IO_mem_store *ios_create_empty();
-Return_value ios_input( Mili_family *fam, int datatype, size_t qty_units,
+Return_value ios_input( Mili_family *fam, int datatype, LONGLONG qty_units,
                         IO_mem_store *pioms, void **new_data );
-Return_value ti_ios_input( Mili_family *fam, int datatype, size_t qty_units,
+Return_value ti_ios_input( Mili_family *fam, int datatype, LONGLONG qty_units,
                            IO_mem_store *pioms, void **new_data );
 void ios_destroy( IO_mem_store *pioms );
-void *ios_alloc( size_t qty, IO_mem_store *pioms );
+void *ios_alloc( LONGLONG qty, IO_mem_store *pioms );
 Return_value ios_unalloc( void *pmem, int qty_units, IO_mem_store *pioms );
 int ios_str_dup( char **ppcopy, char *pstring, IO_mem_store *pioms );
 Return_value ios_output( Mili_family *fam, FILE *ofile, IO_mem_store *pioms,
                          int *num_items_written );
-size_t ios_get_fresh( IO_mem_store *pioms );
-Return_value ios_int_traverse( IO_mem_store *pioms, size_t size,
+LONGLONG ios_get_fresh( IO_mem_store *pioms );
+Return_value ios_int_traverse( IO_mem_store *pioms, LONGLONG size,
                                int **pp_data );
 Return_value ios_string_traverse( IO_mem_store *pioms, char **pp_data );
 Return_value ios_traverse_init( IO_mem_store *pioms, int last );
@@ -767,14 +766,12 @@ Return_value mc_get_class_info_by_index(Mili_family* in, int *mesh_id,
 /* read_db.c - routines for managing mesh object structs */
 void mili_delete_mo_class_data( void *p_data );
 
-/* wrap_c.c - C-half of FORTRAN-to-C wrappers. */
-int fortran_api;
 /* write_db.c */
 Return_value
 write_state_data( int state_num, Mili_analysis *out_db );
 /*read_db.c */
 Return_value
-read_state_data( int state_num, Mili_analysis *in_db );
+read_state_data( int state_num, Mili_analysis *in_db);
 
 char**
 get_count_elem_conn_classes_names( Mili_family *fam, int mesh_id, int* ret_count );

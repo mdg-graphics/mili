@@ -1,4 +1,4 @@
-/* $Id: misc.c,v 1.31 2021/09/13 17:16:04 jdurren Exp $ */
+/* $Id: misc.c,v 1.30 2021/05/06 02:42:16 jdurren Exp $ */
 /*
  * misc.c - Miscellaneous routines.
  *
@@ -40,6 +40,21 @@ int qty_connects[M_QTY_SUPERCLASS] = {
 };
 
 
+//compares if the float f1 is equal with f2 and returns 1 if true and 0 if false
+int is_equal(float f1, float f2)
+ {
+    float precision = 0.0000001;
+    if (((f1 - precision) < f2) && 
+        ((f1 + precision) > f2))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+ }
+
 /*****************************************************************
  *
  * TAG(set_timesteps ) PUBLIC
@@ -78,7 +93,10 @@ void set_timesteps(Mili_analysis *in_db, Mili_analysis *out_db ,int * start_stat
       start_state[0]=-1;
       stop_state[0] = -1;
    } else {
-      while(in_fam->state_map[j].time <=out_fam->state_map[out_fam->state_qty-1].time &&
+      float time = out_fam->state_map[out_fam->state_qty-1].time;
+      while((is_equal( in_fam->state_map[j].time,time ) ||
+           in_fam->state_map[j].time < out_fam->state_map[out_fam->state_qty-1].time )
+            &&
             j<in_fam->state_qty) {
          j++;
       }

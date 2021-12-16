@@ -724,7 +724,7 @@ taurus_build_state_map( Mili_family *fam, Bool_type initial_build,
    int index, end_geom_idx;
    int ndim, numnp, nel8, nel4, nel2;
    LONGLONG offset;
-   size_t (*readf)();
+   LONGLONG (*readf)();
    float st_time;
    int state_qty;
    State_descriptor *p_sd;
@@ -927,7 +927,7 @@ taurus_commit_srecs( Mili_family *fam )
    }
 
    rval = add_dir_entry( fam, STATE_REC_DATA, i_qty, c_qty, 0, NULL,
-                         (size_t) DONT_CARE, (size_t) DONT_CARE );
+                         (LONGLONG) DONT_CARE, (LONGLONG) DONT_CARE );
 
    return rval;
 }

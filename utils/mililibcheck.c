@@ -24,11 +24,11 @@
 #include <sys/types.h>
 
 #ifndef XMILICS_VERSION
-#define XMILICS_VERSION "11_01(08-23-2011)"
+#define XMILICS_VERSION "21_01(12-07-2021)"
 #endif
 
 #ifndef MILI_VERSION
-#define MILI_VERSION "V11_01_01"
+#define MILI_VERSION "V20_01_01"
 #endif
 
 void get_mili_version( void *p_info );
