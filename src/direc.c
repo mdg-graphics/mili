@@ -507,22 +507,26 @@ load_directories( Mili_family *fam )
           }
       }else
       {
-          temp_p_de= NEW_N( TempDir_entry, qty_ent, "Load dir entries" );
-          nitems = fam->read_funcs[M_STRING]( p_f, temp_p_de, 4*QTY_ENTRY_FIELDS*qty_ent );
+          int temp_p_de;//= NEW_N( TempDir_entry, qty_ent, "Load dir entries" );
+          //nitems = fam->read_funcs[M_STRING]( p_f, temp_p_de, 4*QTY_ENTRY_FIELDS*qty_ent );
 			
-          if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS *4 )
+          /*if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS *4 )
           {
               free( fam->directory );
               fam->directory = NULL;
               free( p_de );
               fclose( p_f );
               return BAD_LOAD_READ;
-          }
+          }*/
           for(i=0; i<qty_ent;i++)
           {
-              p_de[i][j] = (LONGLONG)temp_p_de[i][j];
+              for(j=0; j<QTY_ENTRY_FIELDS; j++)
+              {
+                  fam->read_funcs[M_INT]( p_f, &temp_p_de, 1 );
+                  p_de[i][j] = (LONGLONG)temp_p_de;
+              }
           }
-          free(temp_p_de);
+          //free(temp_p_de);
        }
        
 		

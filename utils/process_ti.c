@@ -720,13 +720,14 @@ build_cmap_from_labels( Mili_analysis **in_db, int nproc, TILabels *labels )
 {
    Label *working_label;
    for(working_label=labels->labels;working_label != NULL;working_label= working_label->next) {
-      if ((strcmp(working_label->sname, "node")) == 0) {
+      filter_count(working_label,nproc);
+/*      if ((strcmp(working_label->sname, "node")) == 0) {
           filter_count(working_label,nproc);
       }
       else {
           filter_count_simple(working_label);
       } 
-          
+*/          
    }
    return OK;
    
