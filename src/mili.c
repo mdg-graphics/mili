@@ -3045,8 +3045,11 @@ prep_for_new_data( Mili_family *fam, int ftype )
              * defined data, not state "header" (time and srec_id) written
              * by Mili.
              */
-            fam->cur_st_offset = fam->state_map[fam->file_st_qty-1].offset + fam->srecs[fam->cur_srec_id]->size;
-
+            fam->cur_st_offset = fam->state_map[fam->file_st_qty-1].offset;
+            fam->cur_st_offset += sizeof(int)+sizeof(float);
+            fam->cur_st_offset += fam->srecs[fam->cur_srec_id]->size;
+            
+            
             /* Position file pointer (for mc_wrt_st_stream()). */
             rval = seek_state_file( fam->cur_st_file, fam->cur_st_offset );
             if ( rval != OK )
