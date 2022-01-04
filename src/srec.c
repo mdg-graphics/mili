@@ -3405,7 +3405,7 @@ mc_new_state( Famid fam_id, int srec_id, float time, int *p_file_suffix,
       /* If we failed to close the previous state do so now. */
       if(!(fam->state_closed) && state_qty >0)
       {
-         p_sd = fam->state_map + state_qty;
+         p_sd = fam->state_map + state_qty -1;
          rval = update_static_map(fam_id,p_sd);
          if(rval)
          {
