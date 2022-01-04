@@ -23,7 +23,7 @@
 #define MAX_RNAME_LEN (64)
 #define MAX_SVARS (40)
 
-#define MAX_STATES    1
+#define MAX_STATES    2
 #define RESTART_STATE 0
 
 /*****************************************************************
@@ -476,7 +476,7 @@ main( int argc, char *argv[] )
         exit( -1 );
     }
 
-    stat = mc_restart_at_state( fid, 0, 10 );
+    stat = mc_restart_at_state( fid, 0, 9);
     
     if ( stat != 0 )
     { 

@@ -3502,19 +3502,14 @@ static int find_file_index(Famid fam_id, int *global_state_index)
  * Set db to receive data by overwriting at the specified state.
  */
 Return_value
-mc_restart_at_state( Famid fam_id, int file_name_index, int file_state_index )
+mc_restart_at_state( Famid fam_id, int file_name_index, int state_index )
 {
    Mili_family *fam;
    Return_value rval = OK;
-   int i;
-   int state_index, file_index;
-   State_descriptor *smap;
 
-   state_index = file_state_index -1;
-   
-   if(state_index <0)
+   if(state_index <=0)
    {
-      state_index = 0;
+      state_index = 1;
    }
    
    fam = fam_list[fam_id];
@@ -3526,8 +3521,10 @@ mc_restart_at_state( Famid fam_id, int file_name_index, int file_state_index )
    {
       return INVALID_FILE_STATE_INDEX;
    }
-   
-   truncate_family( fam, state_index);
+   if(state_index <fam->state_qty)
+   {
+       rval = truncate_family( fam, state_index -1);
+   }
    
    return rval;
 }

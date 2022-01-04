@@ -12,8 +12,8 @@
 #define MAX_RNAME_LEN (64)
 #define MAX_SVARS (40)
 
-#define MAX_STATES    1
-#define RESTART_STATE 0
+#define MAX_STATES    5
+#define RESTART_STATE 1
 
 /*****************************************************************
  * TAG( fam_list )
