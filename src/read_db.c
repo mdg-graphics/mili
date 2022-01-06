@@ -89,7 +89,6 @@ read_state_data( int state_num, Mili_analysis *in_db )
    int atom_size;
    int precision, iprec;
    size_t state_size;
-   int st;
    int subrec_qty, qty_svars;
    int i, j;
    int idx;
@@ -134,7 +133,7 @@ read_state_data( int state_num, Mili_analysis *in_db )
       return rval;
    }
 
-   st = state_num +1;
+   
 
    iprec = 1;
    offset = 0;
@@ -167,7 +166,7 @@ read_state_data( int state_num, Mili_analysis *in_db )
          p_c = (char *)(in_db->result  + offset);
          result_buf = (void *)p_c;
          /* Read the database. */
-         mc_read_results( fam_id, st, i, 1, primals, result_buf );
+         mc_read_results( fam_id, state_num, i, 1, primals, result_buf );
 
          if( p_subrec->organization == RESULT_ORDERED ) {
             offset +=  p_subrec->lump_atoms[j]*iprec;
