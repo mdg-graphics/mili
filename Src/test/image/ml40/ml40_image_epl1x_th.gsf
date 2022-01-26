@@ -14,6 +14,9 @@ alias s80 state 80
 jpegqual 100
 alias selml select ml 1 667 963 1010
 
+# Enable particles
+on particle
+
 # Set the view
 hinclude ml40_V1.gsf
 
