@@ -1,7 +1,8 @@
 This is a very brief readme on how to run the testing suite for Griz.
 
-A very simple run would consist of running the entire derived suite
 
+################################################################
+                    Checkout Scripts Directory
 
 Test.py lives in  Dyna3dx/Checkout/scripts/Test.py
 
@@ -12,22 +13,33 @@ To checkout locally do the following:
 cvs co -d scripts Dyna3dx/CheckOut/scripts
 
 
-scripts/Test.py -e griz_env -c path to the code" -s derived
+################################################################
+                    Running Tests
+
+Tests are run using the script Test.py. The argument "-e griz_env" must 
+be added to run the griz tests
+
+To find all the options just run: scripts/Test.py -h
+
+The tests results were baselined using the "bin_batch_opt" version of Griz.
+You should be using this version when running the tests otherwise some
+of the tests will fail
 
 
-To find all the options just run 
+To run the Griz Test Suite:
+	All Tests:
+		scripts/Test.py -e griz_env -c <path_to_code> -p1 -s all
 
-scripts/Test.py -h
+	Single Suite:
+		scripts/Test.py -e griz_env -c <path_to_code> -p1 -s <suite_name>
+		scripts/Test.py -e griz_env -c <path_to_code> -p1 -s derived
 
+	Single Test:
+		scripts/Test.py -e griz_env -c <path_to_code> -p1 -t <testname>
+		scripts/Test.py -e griz_env -c <path_to_code> -p1 -t bar71_image_press_rmin_th
 
-You must use the "-e griz_env" flag
-
-You can all the test by doing an "ls derived/*.answ"
-
-To run a single test such as accz 
- 
-scripts/Test.py -e griz_env -c "path to the griz batch executable (directory
-bin_batch_opt or bin_batch_debug" -t accz
+################################################################
+                    Adding a New Test Case
 
 Steps to add a test case to an existing suite:
 
