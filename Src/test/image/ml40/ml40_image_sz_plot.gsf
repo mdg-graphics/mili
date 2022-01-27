@@ -16,6 +16,9 @@ jpegqual 100
 alias selml select ml 1 15 667 963 1010
 anim
 
+# enable particles
+on particle
+
 # Set the view
 hinclude ml40_V2.gsf
 psize .75

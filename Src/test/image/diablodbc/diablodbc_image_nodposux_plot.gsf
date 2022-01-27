@@ -18,6 +18,9 @@ on thsinglecol
 fracsz 8
 jpegqual 100
 
+# enable particles
+on particle
+
 # Set viewing 
 off all; on cmap; on title; on time; on coord; on box; on minmax
 off path

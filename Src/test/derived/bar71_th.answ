@@ -3,11 +3,11 @@
 #---------------------------------------------------------------------
 # Griz Version Info:
 #
-#	Griz4-V20_01
-# 	Built: 	Fri Jan 29 12:02:26 2021 on Linux #1 SMP Mon Jan 18 17:04:41 PST 2021 3.10.0-1160.11.1.2chaos.ch6.x86_64 x86_64 by rhathaw
+#	Griz4-V21_01
+# 	Built: 	Tue Jan 25 16:30:30 2022 on Linux #1 SMP Tue Nov 30 12:04:27 PST 2021 3.10.0-1160.49.1.1chaos.ch6.x86_64 x86_64 by rhathaw
 # 	Configure: ./configure linux gnu
-# 	Compile Options: icc -g -DSERIAL_BATCH -I/usr/apps/mdg/include -I/../include -I../.. 
-# 		Mili Library Version (Griz Linked): 	V20_01
+# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/usr/apps/mdg/include -I/../include -I../.. 
+# 		Mili Library Version (Griz Linked): 	V19_02
 #		Mili Database-Library Version: 		V13_01
 #		Mili Database-Host: 			rzzeus286
 #		Mili Database-Arch: 			Linux + 2.6.32-220.23.1.1chaos.ch5.x86_64rzzeus286
@@ -16,7 +16,7 @@
 #---------------------------------------------------------------------
 # Database path/name: bar71.plt
 # Description:  bar impact problem (gm cm microsec) material model 71
-# Output date: 01/29/21
+# Output date: 01/26/22
 #
 
 #
@@ -3619,7 +3619,7 @@
 
 #           Time  XY Engr Strain
 # Bricks - 1: XY Engr Strain
-  0.00000000e+00  7.40214019e-17
+  0.00000000e+00  5.55111512e-17
   1.00000000e+00  8.44319700e-04
   2.00000000e+00  -1.04090397e-03
   3.00000000e+00  -1.93857166e-04
@@ -3711,7 +3711,7 @@
 
 #           Time  XY Engr Strain
 # Bricks - 9: XY Engr Strain
-  0.00000000e+00  -5.55111512e-17
+  0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.27525923e-02
   2.00000000e+00  -4.81948908e-03
   3.00000000e+00  1.60756540e-02

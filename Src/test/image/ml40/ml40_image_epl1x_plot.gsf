@@ -15,6 +15,9 @@ on thsinglecol
 jpegqual 100
 alias selml select ml 1 667 963 1010
 
+# Enable particles
+on particle
+
 # Set the view
 rdhis ml40_V1.gsf
 

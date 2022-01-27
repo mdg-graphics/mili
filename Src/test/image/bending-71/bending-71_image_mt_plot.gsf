@@ -28,7 +28,7 @@ tx -.1; ty -.15; zf 1.25
 # Object selection 
 select node all
 select mat 1
-disable 2 8
+disable 2
 
 # Images for variable mt vectors
 state 8
