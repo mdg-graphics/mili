@@ -1,0 +1,1769 @@
+
+
+# StateMap 1
+  file_number  0
+  file_offset  0
+  time  0.000000
+  state_map_id  0
+
+
+# StateMap 2
+  file_number  0
+  file_offset  668
+  time  1.000000
+  state_map_id  0
+
+
+# StateMap 3
+  file_number  0
+  file_offset  1336
+  time  2.000000
+  state_map_id  0
+
+
+# StateMap 4
+  file_number  0
+  file_offset  2004
+  time  3.000000
+  state_map_id  0
+
+
+# StateMap 5
+  file_number  0
+  file_offset  2672
+  time  4.000000
+  state_map_id  0
+
+
+# MiliParameters
+  title  Hex db test 2
+
+
+# StateVariableInfo ux
+  short_name  ux
+  long_name  X Position
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo uy
+  short_name  uy
+  long_name  Y Position
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo uz
+  short_name  uz
+  long_name  Z Position
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo nodpos
+  short_name  nodpos
+  long_name  Node Position
+  aggregate_type  1
+  data_type  2
+  list_size  3
+  order 0
+  dims 
+  svars ux,uy,uz
+
+
+# StateVariableInfo vx
+  short_name  vx
+  long_name  X Velocity
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo vy
+  short_name  vy
+  long_name  Y Velocity
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo vz
+  short_name  vz
+  long_name  Z Velocity
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo nodvel
+  short_name  nodvel
+  long_name  Node Velocity
+  aggregate_type  1
+  data_type  2
+  list_size  3
+  order 0
+  dims 
+  svars vx,vy,vz
+
+
+# StateVariableInfo ax
+  short_name  ax
+  long_name  X Acceleration
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo ay
+  short_name  ay
+  long_name  Y Acceleration
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo az
+  short_name  az
+  long_name  Z Acceleration
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo nodacc
+  short_name  nodacc
+  long_name  Node Acceleration
+  aggregate_type  1
+  data_type  2
+  list_size  3
+  order 0
+  dims 
+  svars ax,ay,az
+
+
+# StateVariableInfo sx
+  short_name  sx
+  long_name  Sigma-xx
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo sy
+  short_name  sy
+  long_name  Sigma-yy
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo sz
+  short_name  sz
+  long_name  Sigma-zz
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo sxy
+  short_name  sxy
+  long_name  Sigma-xy
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo syz
+  short_name  syz
+  long_name  Sigma-yz
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo szx
+  short_name  szx
+  long_name  Sigma-zx
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo stress
+  short_name  stress
+  long_name  Stress
+  aggregate_type  1
+  data_type  2
+  list_size  6
+  order 0
+  dims 
+  svars sx,sy,sz,sxy,syz,szx
+
+
+# StateVariableInfo eeff
+  short_name  eeff
+  long_name  Eff plastic strain
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# SubrecordDefinition Nodal
+  name  Nodal
+  class_name  node
+  organization  0
+  qty_svars  3
+  svar_names  nodpos,nodvel,nodacc
+  qty_blocks  1
+  mo_blocks  1,16
+  mo_qty  16
+  offset  0
+  size  576
+
+
+# SubrecordDefinition Bricks
+  name  Bricks
+  class_name  h
+  organization  1
+  qty_svars  2
+  svar_names  stress,eeff
+  qty_blocks  1
+  mo_blocks  1,3
+  mo_qty  3
+  offset  576
+  size  84
+
+
+# InitialNodalPosition node_1
+  node_label  1
+  X_position  0.000000
+  Y_position  0.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_2
+  node_label  2
+  X_position  1.000000
+  Y_position  0.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_3
+  node_label  3
+  X_position  3.000000
+  Y_position  0.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_4
+  node_label  4
+  X_position  6.000000
+  Y_position  0.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_5
+  node_label  5
+  X_position  0.000000
+  Y_position  1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_6
+  node_label  6
+  X_position  1.000000
+  Y_position  1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_7
+  node_label  7
+  X_position  3.000000
+  Y_position  1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_8
+  node_label  8
+  X_position  6.000000
+  Y_position  1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_9
+  node_label  9
+  X_position  0.000000
+  Y_position  0.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_10
+  node_label  10
+  X_position  1.000000
+  Y_position  0.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_11
+  node_label  11
+  X_position  3.000000
+  Y_position  0.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_12
+  node_label  12
+  X_position  6.000000
+  Y_position  0.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_13
+  node_label  13
+  X_position  0.000000
+  Y_position  1.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_14
+  node_label  14
+  X_position  1.000000
+  Y_position  1.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_15
+  node_label  15
+  X_position  3.000000
+  Y_position  1.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_16
+  node_label  16
+  X_position  6.000000
+  Y_position  1.000000
+  Z_position  1.000000
+
+
+# ElementClassNames
+   1  g
+   2  h
+   3  m
+   4  node
+
+
+# ElementLabels node
+      1
+      2
+      3
+      4
+      5
+      6
+      7
+      8
+      9
+     10
+     11
+     12
+     13
+     14
+     15
+     16
+
+
+# ElementLabels h
+      1
+      2
+      3
+
+
+# ElementLabels g
+      1
+
+
+# ElementLabels m
+      1
+
+
+# ElementConnectivity h
+     1  1,2,6,5,9,10,14,13
+     3  3,4,8,7,11,12,16,15
+     2  2,3,7,6,10,11,15,14
+
+
+# MaterialElements 1
+  h_1
+  h_2
+  h_3
+
+
+# StateVariableData node_1_ux
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_2_ux
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_3_ux
+  0.000000  3.000000
+  1.000000  3.000000
+  2.000000  3.000000
+  3.000000  3.000000
+  4.000000  3.000000
+
+
+# StateVariableData node_4_ux
+  0.000000  6.000000
+  1.000000  6.000000
+  2.000000  6.000000
+  3.000000  6.000000
+  4.000000  6.000000
+
+
+# StateVariableData node_5_ux
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_6_ux
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_7_ux
+  0.000000  3.000000
+  1.000000  3.000000
+  2.000000  3.000000
+  3.000000  3.000000
+  4.000000  3.000000
+
+
+# StateVariableData node_8_ux
+  0.000000  6.000000
+  1.000000  6.000000
+  2.000000  6.000000
+  3.000000  6.000000
+  4.000000  6.000000
+
+
+# StateVariableData node_9_ux
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_10_ux
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_11_ux
+  0.000000  3.000000
+  1.000000  3.000000
+  2.000000  3.000000
+  3.000000  3.000000
+  4.000000  3.000000
+
+
+# StateVariableData node_12_ux
+  0.000000  6.000000
+  1.000000  6.000000
+  2.000000  6.000000
+  3.000000  6.000000
+  4.000000  6.000000
+
+
+# StateVariableData node_13_ux
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_14_ux
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_15_ux
+  0.000000  3.000000
+  1.000000  3.000000
+  2.000000  3.000000
+  3.000000  3.000000
+  4.000000  3.000000
+
+
+# StateVariableData node_16_ux
+  0.000000  6.000000
+  1.000000  6.000000
+  2.000000  6.000000
+  3.000000  6.000000
+  4.000000  6.000000
+
+
+# StateVariableData node_1_uy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_2_uy
+  0.000000  0.000000
+  1.000000  -0.200000
+  2.000000  -0.400000
+  3.000000  -0.600000
+  4.000000  -0.800000
+
+
+# StateVariableData node_3_uy
+  0.000000  0.000000
+  1.000000  0.050000
+  2.000000  0.100000
+  3.000000  0.150000
+  4.000000  0.200000
+
+
+# StateVariableData node_4_uy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_5_uy
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_6_uy
+  0.000000  1.000000
+  1.000000  1.200000
+  2.000000  1.400000
+  3.000000  1.600000
+  4.000000  1.800000
+
+
+# StateVariableData node_7_uy
+  0.000000  1.000000
+  1.000000  0.950000
+  2.000000  0.900000
+  3.000000  0.850000
+  4.000000  0.800000
+
+
+# StateVariableData node_8_uy
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_9_uy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_10_uy
+  0.000000  0.000000
+  1.000000  -0.200000
+  2.000000  -0.400000
+  3.000000  -0.600000
+  4.000000  -0.800000
+
+
+# StateVariableData node_11_uy
+  0.000000  0.000000
+  1.000000  0.050000
+  2.000000  0.100000
+  3.000000  0.150000
+  4.000000  0.200000
+
+
+# StateVariableData node_12_uy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_13_uy
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_14_uy
+  0.000000  1.000000
+  1.000000  1.200000
+  2.000000  1.400000
+  3.000000  1.600000
+  4.000000  1.800000
+
+
+# StateVariableData node_15_uy
+  0.000000  1.000000
+  1.000000  0.950000
+  2.000000  0.900000
+  3.000000  0.850000
+  4.000000  0.800000
+
+
+# StateVariableData node_16_uy
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_1_uz
+  0.000000  0.000000
+  1.000000  0.200000
+  2.000000  0.400000
+  3.000000  0.600000
+  4.000000  0.800000
+
+
+# StateVariableData node_2_uz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_3_uz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_4_uz
+  0.000000  0.000000
+  1.000000  0.200000
+  2.000000  0.400000
+  3.000000  0.600000
+  4.000000  0.800000
+
+
+# StateVariableData node_5_uz
+  0.000000  0.000000
+  1.000000  0.200000
+  2.000000  0.400000
+  3.000000  0.600000
+  4.000000  0.800000
+
+
+# StateVariableData node_6_uz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_7_uz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_8_uz
+  0.000000  0.000000
+  1.000000  0.200000
+  2.000000  0.400000
+  3.000000  0.600000
+  4.000000  0.800000
+
+
+# StateVariableData node_9_uz
+  0.000000  1.000000
+  1.000000  1.200000
+  2.000000  1.400000
+  3.000000  1.600000
+  4.000000  1.800000
+
+
+# StateVariableData node_10_uz
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_11_uz
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_12_uz
+  0.000000  1.000000
+  1.000000  1.200000
+  2.000000  1.400000
+  3.000000  1.600000
+  4.000000  1.800000
+
+
+# StateVariableData node_13_uz
+  0.000000  1.000000
+  1.000000  1.200000
+  2.000000  1.400000
+  3.000000  1.600000
+  4.000000  1.800000
+
+
+# StateVariableData node_14_uz
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_15_uz
+  0.000000  1.000000
+  1.000000  1.000000
+  2.000000  1.000000
+  3.000000  1.000000
+  4.000000  1.000000
+
+
+# StateVariableData node_16_uz
+  0.000000  1.000000
+  1.000000  1.200000
+  2.000000  1.400000
+  3.000000  1.600000
+  4.000000  1.800000
+
+
+# StateVariableData node_1_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_2_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_3_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_4_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_5_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_6_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_7_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_8_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_9_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_10_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_11_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_12_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_13_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_14_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_15_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_16_vx
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_1_vy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_2_vy
+  0.000000  -0.200000
+  1.000000  -0.200000
+  2.000000  -0.200000
+  3.000000  -0.200000
+  4.000000  -0.200000
+
+
+# StateVariableData node_3_vy
+  0.000000  0.050000
+  1.000000  0.050000
+  2.000000  0.050000
+  3.000000  0.050000
+  4.000000  0.050000
+
+
+# StateVariableData node_4_vy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_5_vy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_6_vy
+  0.000000  0.200000
+  1.000000  0.200000
+  2.000000  0.200000
+  3.000000  0.200000
+  4.000000  0.200000
+
+
+# StateVariableData node_7_vy
+  0.000000  -0.050000
+  1.000000  -0.050000
+  2.000000  -0.050000
+  3.000000  -0.050000
+  4.000000  -0.050000
+
+
+# StateVariableData node_8_vy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_9_vy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_10_vy
+  0.000000  -0.200000
+  1.000000  -0.200000
+  2.000000  -0.200000
+  3.000000  -0.200000
+  4.000000  -0.200000
+
+
+# StateVariableData node_11_vy
+  0.000000  0.050000
+  1.000000  0.050000
+  2.000000  0.050000
+  3.000000  0.050000
+  4.000000  0.050000
+
+
+# StateVariableData node_12_vy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_13_vy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_14_vy
+  0.000000  0.200000
+  1.000000  0.200000
+  2.000000  0.200000
+  3.000000  0.200000
+  4.000000  0.200000
+
+
+# StateVariableData node_15_vy
+  0.000000  -0.050000
+  1.000000  -0.050000
+  2.000000  -0.050000
+  3.000000  -0.050000
+  4.000000  -0.050000
+
+
+# StateVariableData node_16_vy
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_1_vz
+  0.000000  0.200000
+  1.000000  0.200000
+  2.000000  0.200000
+  3.000000  0.200000
+  4.000000  0.200000
+
+
+# StateVariableData node_2_vz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_3_vz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_4_vz
+  0.000000  0.200000
+  1.000000  0.200000
+  2.000000  0.200000
+  3.000000  0.200000
+  4.000000  0.200000
+
+
+# StateVariableData node_5_vz
+  0.000000  0.200000
+  1.000000  0.200000
+  2.000000  0.200000
+  3.000000  0.200000
+  4.000000  0.200000
+
+
+# StateVariableData node_6_vz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_7_vz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_8_vz
+  0.000000  0.200000
+  1.000000  0.200000
+  2.000000  0.200000
+  3.000000  0.200000
+  4.000000  0.200000
+
+
+# StateVariableData node_9_vz
+  0.000000  0.200000
+  1.000000  0.200000
+  2.000000  0.200000
+  3.000000  0.200000
+  4.000000  0.200000
+
+
+# StateVariableData node_10_vz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_11_vz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_12_vz
+  0.000000  0.200000
+  1.000000  0.200000
+  2.000000  0.200000
+  3.000000  0.200000
+  4.000000  0.200000
+
+
+# StateVariableData node_13_vz
+  0.000000  0.200000
+  1.000000  0.200000
+  2.000000  0.200000
+  3.000000  0.200000
+  4.000000  0.200000
+
+
+# StateVariableData node_14_vz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_15_vz
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_16_vz
+  0.000000  0.200000
+  1.000000  0.200000
+  2.000000  0.200000
+  3.000000  0.200000
+  4.000000  0.200000
+
+
+# StateVariableData node_1_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_2_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_3_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_4_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_5_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_6_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_7_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_8_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_9_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_10_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_11_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_12_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_13_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_14_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_15_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_16_ax
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_1_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_2_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_3_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_4_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_5_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_6_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_7_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_8_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_9_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_10_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_11_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_12_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_13_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_14_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_15_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_16_ay
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_1_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_2_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_3_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_4_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_5_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_6_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_7_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_8_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_9_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_10_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_11_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_12_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_13_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_14_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_15_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData node_16_az
+  0.000000  0.000000
+  1.000000  0.000000
+  2.000000  0.000000
+  3.000000  0.000000
+  4.000000  0.000000
+
+
+# StateVariableData h_1_sx
+  0.000000  1.000000
+  1.000000  4.000000
+  2.000000  7.000000
+  3.000000  10.000000
+  4.000000  13.000000
+
+
+# StateVariableData h_3_sx
+  0.000000  3.000000
+  1.000000  6.000000
+  2.000000  9.000000
+  3.000000  12.000000
+  4.000000  15.000000
+
+
+# StateVariableData h_2_sx
+  0.000000  2.000000
+  1.000000  5.000000
+  2.000000  8.000000
+  3.000000  11.000000
+  4.000000  14.000000
+
+
+# StateVariableData h_1_sy
+  0.000000  1.000000
+  1.000000  4.000000
+  2.000000  7.000000
+  3.000000  10.000000
+  4.000000  13.000000
+
+
+# StateVariableData h_3_sy
+  0.000000  3.000000
+  1.000000  6.000000
+  2.000000  9.000000
+  3.000000  12.000000
+  4.000000  15.000000
+
+
+# StateVariableData h_2_sy
+  0.000000  2.000000
+  1.000000  5.000000
+  2.000000  8.000000
+  3.000000  11.000000
+  4.000000  14.000000
+
+
+# StateVariableData h_1_sz
+  0.000000  1.000000
+  1.000000  4.000000
+  2.000000  7.000000
+  3.000000  10.000000
+  4.000000  13.000000
+
+
+# StateVariableData h_3_sz
+  0.000000  3.000000
+  1.000000  6.000000
+  2.000000  9.000000
+  3.000000  12.000000
+  4.000000  15.000000
+
+
+# StateVariableData h_2_sz
+  0.000000  2.000000
+  1.000000  5.000000
+  2.000000  8.000000
+  3.000000  11.000000
+  4.000000  14.000000
+
+
+# StateVariableData h_1_sxy
+  0.000000  1.000000
+  1.000000  4.000000
+  2.000000  7.000000
+  3.000000  10.000000
+  4.000000  13.000000
+
+
+# StateVariableData h_3_sxy
+  0.000000  3.000000
+  1.000000  6.000000
+  2.000000  9.000000
+  3.000000  12.000000
+  4.000000  15.000000
+
+
+# StateVariableData h_2_sxy
+  0.000000  2.000000
+  1.000000  5.000000
+  2.000000  8.000000
+  3.000000  11.000000
+  4.000000  14.000000
+
+
+# StateVariableData h_1_syz
+  0.000000  1.000000
+  1.000000  4.000000
+  2.000000  7.000000
+  3.000000  10.000000
+  4.000000  13.000000
+
+
+# StateVariableData h_3_syz
+  0.000000  3.000000
+  1.000000  6.000000
+  2.000000  9.000000
+  3.000000  12.000000
+  4.000000  15.000000
+
+
+# StateVariableData h_2_syz
+  0.000000  2.000000
+  1.000000  5.000000
+  2.000000  8.000000
+  3.000000  11.000000
+  4.000000  14.000000
+
+
+# StateVariableData h_1_szx
+  0.000000  1.000000
+  1.000000  4.000000
+  2.000000  7.000000
+  3.000000  10.000000
+  4.000000  13.000000
+
+
+# StateVariableData h_3_szx
+  0.000000  3.000000
+  1.000000  6.000000
+  2.000000  9.000000
+  3.000000  12.000000
+  4.000000  15.000000
+
+
+# StateVariableData h_2_szx
+  0.000000  2.000000
+  1.000000  5.000000
+  2.000000  8.000000
+  3.000000  11.000000
+  4.000000  14.000000
+
+
+# StateVariableData h_1_eeff
+  0.000000  1.000000
+  1.000000  4.000000
+  2.000000  7.000000
+  3.000000  10.000000
+  4.000000  13.000000
+
+
+# StateVariableData h_3_eeff
+  0.000000  3.000000
+  1.000000  6.000000
+  2.000000  9.000000
+  3.000000  12.000000
+  4.000000  15.000000
+
+
+# StateVariableData h_2_eeff
+  0.000000  2.000000
+  1.000000  5.000000
+  2.000000  8.000000
+  3.000000  11.000000
+  4.000000  14.000000
