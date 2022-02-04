@@ -262,8 +262,29 @@ mc_def_svars( Famid fam_id, int qty, char *names, int name_stride,
 
    return OK;
 }
-
-
+Return_value
+validate_vector_decl(char *name,int size,char **field_names,Svar *existing_data)
+{
+   int index;
+   if(existing_data->agg_type[0] != VECTOR && existing_data->agg_type[0] != VEC_ARRAY)
+   {
+       return VARIABLE_AGG_TYPE_ERROR;
+   }
+   if(existing_data->list_size[0] != size)
+   {
+       return VECTOR_REDECLARATION_ERROR;
+   }else
+   {
+      for(index = 0; index < size; index++)
+      {
+         if(strcmp(field_names[index], existing_data->svars[index]->name))
+         {
+            return VECTOR_REDECLARATION_ERROR;
+         }
+      }
+   }
+   return OK;
+}
 /*****************************************************************
  * TAG( mc_def_vec_svar ) PUBLIC
  *
@@ -287,7 +308,11 @@ mc_def_vec_svar( Famid fam_id, int type, int size, char *name, char *title,
    {
       return INVALID_SVAR_DATA;
    }
-
+//   Work in progress
+   if(fam->svar_table != NULL && htable_search( fam->svar_table, name, FIND_ENTRY, &var_entry) == OK )
+   {
+      return validate_vector_decl(name,size,field_names,(Svar*)(var_entry->data));
+   }
    status = create_svar( fam, name, &psv );
    if ( status == OK )
    {
@@ -560,7 +585,10 @@ mc_def_vec_arr_svar( Famid fam_id, int rank, int dims[], char *name,
    {
       return INVALID_SVAR_DATA;
    }
-
+   if(fam->svar_table != NULL && htable_search( fam->svar_table, name, FIND_ENTRY, &var_entry) == OK )
+   {
+       return validate_vector_decl(name,size,field_names,(Svar*)(var_entry->data));
+   }
    status = create_svar( fam, name, &psv );
    if ( status == OK )
    {

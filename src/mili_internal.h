@@ -185,7 +185,7 @@ typedef struct _io_mem_store
 } IO_mem_store;
 
 typedef LONGLONG Dir_entry[QTY_ENTRY_FIELDS];
-typedef unsigned int  TempDir_entry[QTY_ENTRY_FIELDS];
+typedef int  TempDir_entry[QTY_ENTRY_FIELDS];
 
 
 typedef struct _file_dir
@@ -487,6 +487,7 @@ typedef struct _mili_family
    int *svar_hdr;
    /* Subrecord table */
    Hash_table *subrec_table;
+   Bool_type  subrec_start_check;
    /* I/O routines for this family */
    /* For access by datatype. */
    LONGLONG (*read_funcs[QTY_PD_ENTRY_TYPES + 1])(FILE *file, void *data,

@@ -1018,7 +1018,14 @@ Return_value
 mc_suffix_width(           /* Set suffix width for state-data filenames */
    Famid fam_id,          /* Mili family identifier */
    int suffix_width );    /* Min numeric suffix width for state-file names */
-
+Return_value 
+mc_set_subrec_check(
+   Famid fam_id, 
+   Bool_type check);
+Return_value
+mc_check_subrec_start(
+   Famid fam_id, 
+   int srec_id);
 void
 mc_print_error(            /* Print diagnostic message for error return */
    char *preamble,        /* Text to be prepended to ": <message>" */

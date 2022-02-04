@@ -136,6 +136,94 @@ static int svar_atom_qty( Svar *p_svar );
 
 
 /*****************************************************************
+ * TAG( set_subrec_check ) 
+ *
+ * Set the check for start of subrec check.
+ */
+
+Return_value
+mc_set_subrec_check(Famid fam_id, Bool_type check)
+{
+   Mili_family *fam;
+   
+   fam = fam_list[fam_id];
+   
+   fam->subrec_start_check = check;
+   
+   return OK;
+   
+}
+
+Return_value
+mc_check_subrec_start(Famid fam_id, int srec_id)
+{
+   /*typedef struct _srec
+{
+   int qty_subrecs;
+   Sub_srec **subrecs;
+   LONGLONG size;
+   Db_object_status status;
+} Srec;*/
+   Mili_family *fam;
+   Srec *psr;
+   LONGLONG offset;
+   int count, pos, middle, top; 
+   
+   fam = fam_list[fam_id];
+   if(!fam->subrec_start_check)
+   {
+      return OK;
+   }
+   
+   psr = fam->srecs[srec_id];
+   
+   if( fam->cur_st_file == NULL)
+   {
+      return STATE_NOT_INSTATIATED;
+   }
+   
+   offset = ftell(fam->cur_st_file) - fam->state_map[fam->state_qty-1].offset -8;
+   if(offset == psr->size)
+   {
+       return OK;
+   }
+   count = psr->qty_subrecs;
+   
+   if(psr->subrecs[0]->offset == offset || psr->subrecs[count-1]->offset == offset)
+   {
+      return OK;
+   }
+   top = count -1;
+   pos = 1;
+   middle = (top+pos)/2;
+   
+   do
+   {
+      if(psr->subrecs[middle]->offset == offset)
+      {
+         return OK;
+      }
+      
+      if(offset > psr->subrecs[middle]->offset  )
+      {
+         pos = middle+1;
+      }else
+      {
+         top = middle-1; 
+      }
+      if (top == pos)
+      {
+         if(psr->subrecs[top]->offset == offset)
+         {
+            return OK;
+         }
+      }
+      middle = (top + pos)/2;
+   }while(pos < top);
+   
+   return SUBRECORD_ALIGN_ERROR;
+}
+/*****************************************************************
  * TAG( make_srec ) LOCAL
  *
  * Create an uninitialized state record descriptor.
@@ -3507,11 +3595,6 @@ mc_restart_at_state( Famid fam_id, int file_name_index, int state_index )
    Mili_family *fam;
    Return_value rval = OK;
 
-   if(state_index <=0)
-   {
-      state_index = 1;
-   }
-   
    fam = fam_list[fam_id];
    
    CHECK_WRITE_ACCESS( fam )
@@ -3521,9 +3604,9 @@ mc_restart_at_state( Famid fam_id, int file_name_index, int state_index )
    {
       return INVALID_FILE_STATE_INDEX;
    }
-   if(state_index <fam->state_qty)
+   if(state_index < fam->state_qty)
    {
-       rval = truncate_family( fam, state_index -1);
+       rval = truncate_family( fam, state_index);
    }
    
    return rval;
@@ -3689,10 +3772,18 @@ truncate_family( Mili_family *p_fam, int st_index )
    int header[QTY_DIR_HEADER_FIELDS];
    int count;
    FILE *fp = NULL;
+   
+   if(p_fam->state_qty == st_index)
+   {
+      return OK;
+   }else if(p_fam->state_qty < st_index)
+   {
+      return INVALID_FILE_STATE_INDEX;
+   }
       
    offset = p_fam->state_map[st_index].offset;
    state_qty = p_fam->state_qty;
-
+ 
    /* Make sure any file that will be affected is closed. */
    if ( p_fam->cur_st_index >= p_fam->state_map[st_index].file )
    {
@@ -3706,7 +3797,7 @@ truncate_family( Mili_family *p_fam, int st_index )
    /* Get quantity of state files remaining after truncation. */
    file_qty = p_fam->state_map[st_index].file;
    
-   for(i = p_fam->st_file_count; i > file_qty+1; i--)
+   for(i = p_fam->st_file_count-1; i > file_qty; i--)
    {
       make_fnam( STATE_DATA, p_fam, ST_FILE_SUFFIX( p_fam, i ),
                  fname );
@@ -3717,7 +3808,7 @@ truncate_family( Mili_family *p_fam, int st_index )
          break;
       }
    }
-   p_fam->st_file_count = i;
+   p_fam->st_file_count = i+1;
    if(p_fam->state_map[st_index].file ==0 && st_index ==0)
    {
       make_fnam( STATE_DATA, p_fam, ST_FILE_SUFFIX( p_fam, 0 ),
@@ -3727,6 +3818,16 @@ truncate_family( Mili_family *p_fam, int st_index )
       {
          return FAMILY_TRUNCATION_FAILED;
       }
+   }else if( p_fam->state_map[st_index].offset == 0 )
+   {
+      make_fnam( STATE_DATA, p_fam, ST_FILE_SUFFIX( p_fam, 
+                 p_fam->state_map[st_index].file ), fname ); 
+      status = unlink( fname );
+      if ( status != 0 )
+      {
+         return FAMILY_TRUNCATION_FAILED;
+      }
+      p_fam->st_file_count -= 1;
    }else
    {
       make_fnam( STATE_DATA, p_fam, ST_FILE_SUFFIX( p_fam, 

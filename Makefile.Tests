@@ -62,7 +62,8 @@ CDEMOS = \
 	    MiliDiff \
         value_change \
         restart \
-		restart_zero
+		restart_zero \
+		diablo_restart
  
 FDEMOS = \
         GenFaceDB \

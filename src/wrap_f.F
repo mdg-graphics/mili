@@ -263,8 +263,44 @@ c ************************************************************************
 #define mc_def_conn_arb_labels_global_ids     mc_def_conn_arb_labels_global_ids_
 #define mc_def_conn_seq_labels_global_ids     mc_def_conn_seq_labels_global_ids_
 #define mc_def_global_ids                     mc_def_global_ids_
+#define mc_set_subrec_check                   mc_set_subrec_check_
+#define mc_check_subrec_start                 mc_check_subrec_start_
 #endif
 
+      subroutine mf_set_subrec_check( fam_id, flag, rval)
+      
+      implicit none
+      
+      integer fam_id
+      integer flag
+      integer rval 
+      external mc_set_subrec_check
+      integer  mc_set_subrec_check
+      integer out_flag
+      include "mili_fparam.h"
+      out_flag = flag
+      rval =  mc_set_subrec_check(fam_id, out_flag)
+      
+      return
+      end
+      
+      subroutine mf_check_subrec_start( fam_id, srec_id, rval )
+      
+      implicit none
+      
+      integer fam_id
+      integer srec_id
+      integer rval 
+      include "mili_fparam.h"
+      
+      external mc_check_subrec_start
+      integer mc_check_subrec_start
+      
+      rval = mc_check_subrec_start( fam_id, srec_id)
+      
+      return
+      end      
+      
       subroutine mf_end_state( fam_id, srec_id, rval )
       
       implicit none
