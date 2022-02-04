@@ -2020,7 +2020,8 @@ mc_print_error( char *preamble, int rval )
       "Append access precluded by directory version mismatch.";
    char *hdr_wrt_conflict =
       "Append access precluded by header version mismatch.";
-   char *zero_size = "Cannot pass a zero number for the size of object";   
+   char *zero_size = "Cannot pass a zero number for the size of object";  
+   char *subrec_issue = "Start of subrecord is mis-aligned."; 
 
    if ( preamble != NULL && *preamble != '\0' )
    {
@@ -2053,6 +2054,16 @@ mc_print_error( char *preamble, int rval )
          break;
       case ENTRY_NOT_FOUND:
          fprintf( stderr, "%sMili - Named entry not found.\n", pre );
+         break;
+      case (int)SUBRECORD_ALIGN_ERROR:
+         fprintf( stderr, "%sMili - %s\n", pre,  subrec_issue);
+         break;
+      case (int)VECTOR_REDECLARATION_ERROR:
+         fprintf( stderr, "%sMili - Redecleration of M_VECTOR structure.\n", pre );
+         break;
+      case (int)VARIABLE_AGG_TYPE_ERROR:
+         fprintf( stderr, "%sMili - A previously declared SCALAR or ARRAY\n",pre);
+         fprintf( stderr, "%s\n"," is being redefined as an vector or vector array.");
          break;
       case HASH_TABLE_OVERFLOW:
          fprintf( stderr, "%sMili - Hash table overflow.\n", pre );

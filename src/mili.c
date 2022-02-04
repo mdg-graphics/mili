@@ -292,6 +292,7 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    fam->cur_st_index    = -1;
    fam->cur_file        = NULL;
    fam->directory       = NULL;
+   fam->svar_table       = NULL;
 
    /* Initialize TI variables */
    fam->ti_cur_index          = -1;
@@ -318,6 +319,7 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    fam->state_closed = 0;
    fam->hide_states = FALSE;
    fam->state_dirty = 0;
+   fam->subrec_start_check = FALSE;
    fam->visit_file_on = 0;
    /* State data file pointer. */
    fam->cur_st_file = NULL;

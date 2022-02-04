@@ -99,6 +99,8 @@
 #define mc_new_state_               MC_NEW_STATE
 #define mc_restart_at_state_        MC_RESTART_AT_STATE
 #define mc_restart_at_file_         MC_RESTART_AT_FILE
+#define mc_set_subrec_check_        MC_SET_SUBREC_CHECK
+#define mc_check_subrec_start_      MC_CHECK_SUBREC_START
 #define mc_wrt_stream_              MC_WRT_STREAM
 #define mc_wrt_subrec_              MC_WRT_SUBREC
 #define mc_rewrite_subrec_          MC_REWRITE_SUBREC
@@ -188,6 +190,8 @@
 #define mc_wrt_stream_              MC_WRT_STREAM
 #define mc_wrt_subrec_              MC_WRT_SUBREC
 #define mc_rewrite_subrec_          MC_REWRITE_SUBREC
+#define mc_set_subrec_check_        MC_SET_SUBREC_CHECK
+#define mc_check_subrec_start_      MC_CHECK_SUBREC_START
 #define mc_read_results_            MC_READ_RESULTS
 #define mc_get_svar_size_           MC_GET_SVAR_SIZE
 #define mc_get_svar_mo_ids_on_class_ MC_GET_SVAR_MO_IDS_ON_CLASS
@@ -281,6 +285,8 @@
 #define mc_wrt_stream_              MC_WRT_STREAM
 #define mc_wrt_subrec_              MC_WRT_SUBREC
 #define mc_rewrite_subrec_          MC_REWRITE_SUBREC
+#define mc_set_subrec_check_        MC_SET_SUBREC_CHECK
+#define mc_check_subrec_start_      MC_CHECK_SUBREC_START
 #define mc_read_results_            MC_READ_RESULTS
 #define mc_get_svar_size_           MC_GET_SVAR_SIZE
 #define mc_get_svar_mo_ids_on_class_ MC_GET_SVAR_MO_IDS_ON_CLASS
@@ -354,6 +360,8 @@
 #define mc_def_vec_arr_svar_        MC_DEF_VEC_ARR_SVAR_
 #define mc_open_srec_               MC_OPEN_SREC_
 #define mc_def_subrec_              MC_DEF_SUBREC_
+#define mc_set_subrec_check_        MC_SET_SUBREC_CHECK
+#define mc_check_subrec_start_      MC_CHECK_SUBREC_START
 #define mc_def_surf_subrec_         MC_DEF_SURF_SUBREC_  /* JAL */
 #define mc_close_srec_              MC_CLOSE_SREC_
 #define mc_flush_                   MC_FLUSH_
@@ -433,6 +441,17 @@
 
 #include "mili_internal.h"
 
+Return_value
+mc_set_subrec_check_(Famid *fam_id, int *flag)
+{
+   return mc_set_subrec_check(*fam_id, *flag);
+}
+
+Return_value
+mc_check_subrec_start_(Famid *fam_id , int *srec_id )
+{
+    return mc_check_subrec_start(*fam_id , *srec_id );
+}
 Return_value
 mc_end_state_( Famid *fam_id , int *srec_id )
 {
