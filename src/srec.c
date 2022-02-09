@@ -3398,6 +3398,7 @@ mc_end_state( Famid fam_id, int srec_id)
    int state_qty;
    State_descriptor *p_sd;
    Return_value rval = OK;
+   LONGLONG position =0, target =0;
    
    if ( INVALID_FAM_ID( fam_id ) )
    {
@@ -3409,6 +3410,25 @@ mc_end_state( Famid fam_id, int srec_id)
    if ( srec_id < 0 || srec_id >= fam->qty_srecs )
    {
       return INVALID_SREC_INDEX;
+   }
+   if(fam->cur_st_file == NULL)
+   {
+      
+      rval = state_file_open( fam, fam->st_file_count-1,
+                               fam->access_mode );
+      if ( rval != OK )
+      {
+          return rval;
+      }
+      fseek( fam->cur_st_file, 0, SEEK_END );
+   }
+   position = ftell(fam->cur_st_file);
+   target = fam->state_map[fam->state_qty-1].offset + 
+            fam->srecs[0]->size + sizeof(int)*2;
+   
+   if(position != target)
+   {
+      return position <target ? INVALID_SR_OFFSET_UNDER:INVALID_SR_OFFSET_OVER;
    }
    /* Add a new entry in the state map. */
    state_qty = fam->state_qty;

@@ -66,7 +66,8 @@ CDEMOS = \
 		restart_past_last_state \
 		restart_statelimit_a \
 		restart_statelimit_b \
-		restart_statelimit_c
+		restart_statelimit_c \
+		state_write_check
  
 FDEMOS = \
         GenFaceDB \

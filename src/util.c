@@ -2058,6 +2058,12 @@ mc_print_error( char *preamble, int rval )
       case (int)SUBRECORD_ALIGN_ERROR:
          fprintf( stderr, "%sMili - %s\n", pre,  subrec_issue);
          break;
+      case INVALID_SR_OFFSET_UNDER:
+         fprintf( stderr, "%sMili - %s\n", pre, "Failed to write out complete state.");
+         break;
+      case INVALID_SR_OFFSET_OVER:
+         fprintf( stderr, "%sMili - %s\n", pre, "Wrote past the end of the state.");
+         break;
       case (int)VECTOR_REDECLARATION_ERROR:
          fprintf( stderr, "%sMili - Redecleration of M_VECTOR structure.\n", pre );
          break;
