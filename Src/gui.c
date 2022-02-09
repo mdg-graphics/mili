@@ -6998,6 +6998,49 @@ process_keyboard_input( XKeyEvent *p_xke )
 
 
 /*****************************************************************
+ * TAG( select_mat_mgr_button_by_elem_class_ident )
+ *
+ * Given an element class and element label, find the associated material
+ * and select the corresponding button in the Material manager.
+ */
+void select_mat_mgr_button_by_elem_class_ident(MO_class_data *p_class, int label){
+    if(is_elem_class(p_class->superclass)){
+        // Get material number to select
+        int mat_number;
+        int class_label_index = get_class_label_index(p_class, label);
+        int mat_id = p_class->objects.elems->mat[class_label_index];
+
+        Htable_entry *tempEnt;
+        htable_search(env.curr_analy->mat_labels,
+                        env.curr_analy->sorted_labels[mat_id],
+                        FIND_ENTRY, &tempEnt);
+
+        if(tempEnt != NULL){
+            mat_number = atoi((char*)tempEnt->data);
+
+            // Find Material_list_obj with matching material number
+            Material_list_obj *p_target = mtl_deselect_list;
+            while(p_target != NULL && p_target->mtl != mat_number){
+                p_target = p_target->next;
+            }
+
+            // If found
+            if(p_target != NULL){
+                // Remove from mtl_deselect_list, add to mtl_select_list
+                UNLINK(p_target, mtl_deselect_list);
+                INSERT(p_target, mtl_select_list);
+
+                // Update material buttons
+                WidgetList children;
+                XtVaGetValues(mtl_row_col, XmNchildren, &children, NULL);
+                XtVaSetValues(children[p_target->mtl-1], XmNset, True, NULL);
+            }
+        }
+    }
+}
+
+
+/*****************************************************************
  * TAG( input_CB )
  *
  * Callback for input events.
@@ -7007,34 +7050,31 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     XmString text= NULL;
     Widget hist_list;
-    static int posx, posy;
-    int orig_posx, orig_posy;
-    float angle, dx, dy, scale_fac, scale[3];
-    char str[50];
-    static int mode;
-    int ident;
-    Bool_type identify_only, yes_rx_ry;
     MO_class_data *p_class;
     Mesh_data *p_mesh;
     GLwDrawingAreaCallbackStruct *cb_data;
+    XWindowChanges xwc;
+    Analysis *analy;
+    static int mode;
+    static int posx, posy;
+    int orig_posx, orig_posy;
+    float angle, dx, dy, scale_fac;
+    float scale[3];
+    char str[50];
     float dist;
     double pixdx, pixdy;
-    Analysis *analy;
-
     int save_center_view;
-
-    XWindowChanges xwc;
+    Bool_type identify_only, yes_rx_ry;
     Bool_type popup_windows = FALSE;
+    Bool_type control_click, shift_click, control_shift_click;
 
     cb_data = (GLwDrawingAreaCallbackStruct *) call_data;
-
     analy = env.curr_analy;
     yes_rx_ry = !analy->limit_rotations;
-
     history_inputCB_cmd = TRUE;
 
-    /* IRC: September 6, 2008. This code allows operations in the render window if we are using
-     * the material manager color editor.
+    /* Allows operation in the render window if we are using the material manager
+     * color editor.
      */
     if (mtl_color_active)
     {
@@ -7045,18 +7085,27 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
         XtSetSensitive( color_editor, False );
     }
 
+    // Check for control and shift clicks
+    control_click = (cb_data->event->xbutton.state & ControlMask);
+    shift_click = (cb_data->event->xbutton.state & ShiftMask);
+    control_shift_click = shift_click && control_click;
 
+    /* Switch on event types
+     *
+     * Event types include: ButtonPress, ButtonRelease, MotionNotify
+     */
     switch( cb_data->event->type )
     {
     case ButtonPress:
 
         popup_windows = TRUE;
 
-        /* Rubberband Zoom */
-        if (cb_data->event->xbutton.state & ControlMask)
+        /* Rubberband Zoom - Using ctrl+click */
+        if (control_click && !control_shift_click)
         {
             switch ( cb_data->event->xbutton.button )
             {
+            // ctrl+button1 (left click) zooms in
             case Button1:
                 startX = cb_data->event->xbutton.x;
                 startY = cb_data->event->xbutton.y;
@@ -7075,23 +7124,22 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
                                NULL );
                 break;
 
+            // ctrl+button2 (scroll wheel click) 
+            // Centers the view on the closest node to click location
             case Button2:
                 mode = RB_STATIC;
 
                 /* Set the view */
-
                 rb_node_num = rb_node_hist[rb_hist_index];
 
                 posx  = cb_data->event->xbutton.x;
                 posy  = cb_data->event->xbutton.y;
 
                 p_mesh = MESH_P( env.curr_analy );
-                p_class =
-                    ((MO_class_data **) p_mesh->classes_by_sclass[G_NODE].list)[0];
+                p_class = ((MO_class_data **) p_mesh->classes_by_sclass[G_NODE].list)[0];
 
                 identify_only = -1;
-                rb_node_num = select_item( p_class, posx, posy, identify_only,
-                                           analy );
+                rb_node_num = select_item( p_class, posx, posy, identify_only, analy );
 
                 if (analy->rb_vcent_flag==FALSE)
                 {
@@ -7109,12 +7157,12 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 }
                 break;
 
+            // ctrl+button3 (right click) zooms in
             case Button3:
-
                 rb_hist_index--;
                 mode = RB_STATIC;
 
-                if (rb_hist_index<0)
+                if(rb_hist_index < 0)
                 {
                     rb_hist_index = 0;
                     break;
@@ -7128,7 +7176,6 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
                 /* Disable vcent first */
                 if ( analy->rb_vcent_flag )
-
                 {
                     analy->rb_vcent_flag = FALSE;
                     sprintf( str, "vcent n %d", rb_node_num);
@@ -7137,18 +7184,15 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 }
 
                 /* Perform the un-Zoom */
-
                 if ( scale[0] == scale[1] && scale[1] == scale[2] )
                     sprintf( str, "scale %f", scale[0] );
                 else
-                    sprintf( str, "scalax %f %f %f", scale[0],
-                             scale[1], scale[2] );
+                    sprintf( str, "scalax %f %f %f", scale[0], scale[1], scale[2] );
                 history_command( str );
 
                 set_mesh_scale( scale[0], scale[1], scale[2] );
 
                 /* Set the view */
-
                 rb_node_num = rb_node_hist[rb_hist_index];
 
                 sprintf( str, "vcent n %d", rb_node_num);
@@ -7174,10 +7218,8 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
         break;
 
     case ButtonRelease:
-
-        /* Rubberband Zoom */
-        if ( (cb_data->event->xbutton.state & ControlMask) &&
-                mode == RB_MOVE )
+        /* Rubberband Zoom - ctrl+click+move to select where to zoom in. */
+        if ( (control_click && !control_shift_click) && mode == RB_MOVE )
         {
             int       rb_x, rb_y, rb_size;
             int       win_center_x, win_center_y;
@@ -7283,17 +7325,18 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
             analy->update_display( analy );
             resize_in_progress = FALSE;
 
-        }
+        } /* End of Rubberband Zoom code */
 
-        /* End of Rubberband Zoom code */
-
-        /* IRC: April 25, 2007 - Added check to make sure  we really had a button press */
         if ( mode == MOUSE_STATIC && (cb_data->event->xbutton.button==Button1  ||
                                       cb_data->event->xbutton.button==Button2  ||
                                       cb_data->event->xbutton.button==Button3))
         {
-            identify_only = ( cb_data->event->xbutton.state & ShiftMask ) ;
+            // If shift+click then we are running "tellpos" on selected element.
+            // Don't need to select element on screen only identify the element
+            // that was clicked.
+            identify_only = ( shift_click || control_shift_click ) ;
 
+            // Get mesh object class based on which button is clicked.
             switch ( cb_data->event->xbutton.button )
             {
             case Button1:
@@ -7307,19 +7350,24 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 break;
             }
 
-            ident = select_item( p_class, posx, posy, identify_only,
-                                 analy );
+            // Get element that was clicked
+            // If identify_only is False, element will be selected on screen
+            // If identify_only is True, just get back element identifier
+            int ident = select_item( p_class, posx, posy, identify_only, analy );
 
-            if ( identify_only && ident > 0 )
-                if ( cb_data->event->xbutton.state & ShiftMask )
-                {
-                    sprintf( str, "tellpos %s %d", p_class->short_name,
-                             ident );
+            // If we get back a valid identifier
+            if( ident > 0){
+                if(shift_click && !control_shift_click){
+                    // Run tellpos command
+                    sprintf( str, "tellpos %s %d", p_class->short_name, ident );
                     text = XmStringCreateSimple( str );
                     parse_command( str, analy );
-
-                    ident--;
                 }
+                else if (control_shift_click){
+                    // Select material button of clicked element in material manager
+                    select_mat_mgr_button_by_elem_class_ident(p_class, ident);
+                }
+            }
         }
         else
         {
@@ -7330,11 +7378,10 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
         popup_windows = TRUE;
         break;
 
+    // Click+Move
     case MotionNotify:
         orig_posx = posx;
         orig_posy = posy;
-
-        /* Rubberband Zoom */
 
         if ( Button1Mask && mode == RB_MOVE)
         {
@@ -7359,8 +7406,6 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
             break;
         }
-
-        /* Rubberband Zoom */
 
         /* Cursor motion must exceed threshold to be a real move. */
         if ( mode == MOUSE_STATIC )
@@ -7448,6 +7493,7 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
         break;
     }
+
     if( text != NULL )
     {
         hist_list=XmCommandGetChild(command_widg, XmDIALOG_HISTORY_LIST);
@@ -7962,7 +8008,6 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
         mtl_select_list = p_mtl;
 
         /* Toggle the (now) selected toggles on, deselected off. */
-        p_mtl = mtl_select_list;
         for ( i = qty_mtls - 1; i >= 0; i-- )
         {
             XtVaGetValues( children[i], XmNset, &set, NULL );
@@ -7971,14 +8016,6 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
             else
             {
                 XtVaSetValues( children[i], XmNset, True, NULL );
-//                if ( p_mtl != NULL )
-//                {
-//                    p_mtl->mtl = i;
-//                    p_mtl = p_mtl->next;
-//                }
-//                else
-//                    popup_dialog( WARNING_POPUP,
-//                                  "Material selection list does not match set state." );
             }
         }
     }
@@ -8226,7 +8263,6 @@ static void
 mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 {
     int mtl;
-    //Material_list_obj *p_mtl_next;
     Material_list_obj *p_mtl = (Material_list_obj *)client_data;
     XmToggleButtonCallbackStruct *cb_data;
 
