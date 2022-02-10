@@ -938,11 +938,11 @@ int wait_for_restart(Mili_analysis ** anal, int current_state){
    do{         
       Mili_family *fam = fam_list[anal[0]->db_ident];
       state = fam->state_qty;
-      if(state == current_state-1){
-      }
-      else if(state > current_state ){
+
+      if(state > current_state ){
          break;      
-      }else if(end_of_run()){
+      }
+      else if(end_of_run()){
          status=2;
          break;
       }
