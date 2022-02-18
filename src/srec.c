@@ -3603,7 +3603,19 @@ static int find_file_index(Famid fam_id, int *global_state_index)
 
 }
 
-
+int 
+find_state_index(Mili_family *fam, int file_index, int local_index)
+{
+    int index =0;
+    State_descriptor *state_map = fam->state_map;
+    
+    while(state_map[index].file < file_index)
+    {
+        index++;
+    }
+    
+    return index + local_index;
+}
 /*****************************************************************
  * TAG( mc_restart_at_state ) PUBLIC
  *
@@ -3618,6 +3630,11 @@ mc_restart_at_state( Famid fam_id, int file_name_index, int state_index )
    fam = fam_list[fam_id];
    
    CHECK_WRITE_ACCESS( fam )
+   
+   if(file_name_index > 0)
+   {
+       state_index = find_state_index(fam, file_name_index, state_index);
+   }
    
    /* Can't permit a gap in state sequence. */
    if ( state_index > fam->state_qty )
@@ -3828,8 +3845,10 @@ truncate_family( Mili_family *p_fam, int st_index )
          break;
       }
    }
+   
    p_fam->st_file_count = i+1;
-   if(p_fam->state_map[st_index].file ==0 && st_index ==0)
+   
+   if(p_fam->state_map[st_index].file == 0 && st_index == 0)
    {
       make_fnam( STATE_DATA, p_fam, ST_FILE_SUFFIX( p_fam, 0 ),
                  fname ); 
