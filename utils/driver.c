@@ -823,14 +823,14 @@ main( int argc, char *argv[] )
              }
            }while(!end_of_run());
            
-           if(!run_to_state == env.stop_state){            
+           if(run_to_state != env.stop_state){
               run_to_state = get_next_state(in_db);
               if(run_to_state >= current_state){
                  env.current_state_max = run_to_state;
                  if(env.stop_state >0 && env.stop_state < run_to_state) {
                     run_to_state =  env.stop_state;
                  } 
-                 for( i = current_state-1; i < run_to_state ; i++ ) {
+                 for( i = current_state; i < run_to_state ; i++ ) {
                  
                     for( proc = env.start_proc; proc < env.stop_proc; proc++ ) {
                        if ( in_db[proc] ) {
@@ -841,6 +841,7 @@ main( int argc, char *argv[] )
                     fprintf(stderr, " State %6d: Time = %1.6e\n",
                             i, out_db[0]->state_times[i-1] );
                     write_state_data( i, out_db[0] );
+                    current_state++;
                  }
               }
            }
@@ -938,11 +939,11 @@ int wait_for_restart(Mili_analysis ** anal, int current_state){
    do{         
       Mili_family *fam = fam_list[anal[0]->db_ident];
       state = fam->state_qty;
-      if(state == current_state-1){
-      }
-      else if(state > current_state ){
+
+      if(state > current_state ){
          break;      
-      }else if(end_of_run()){
+      }
+      else if(end_of_run()){
          status=2;
          break;
       }
