@@ -12,8 +12,20 @@ requited:  gmake
 Once the Griz tarfile has been extracted, execute the following steps in this order:
 
 
-(1) cd to the directory GrizDist
-    change the date in file misc.h to todays date
+(1) In directory griz/Src, edit configure.ac and change the following:
+    If we are changing the version change appropriatly
+    m4_define(GRIZ_VERSION_M4, V21_01)
+    m4_define(GRIZ_MAJOR_M4, 20)
+    m4_define(GRIZ_MINOR_M4, 1)
+    m4_define(GRIZ_BUG_M4, 1)
+    
+    Alway change the date:
+    m4_define(GRIZ_DATE_M4, mm/dd/yyyy)
+    You can change the time if you want but we usually do not.
+    m4_define(GRIZ_TIME_M4, 07:00:00)
+    
+    Save file.
+    Run: autoconf -f
 
 (2) Enter the command: 
 
@@ -31,37 +43,41 @@ Once the Griz tarfile has been extracted, execute the following steps in this or
 
 (4) Enter the command: gmake clean; gmake opt; gmake batch_opt;
 
-(5) The Griz execution script called "griz4s" can be found in the directory
-    /bin_opt. DO NOT COPY THIS SCRIPT FILE INTO THE MDG SPACE.
+(5) The Griz execution script called "griz" can be found in the directory
+    /bin_opt. IGNORE THE SCRIPT!!! DO NOT COPY THIS SCRIPT FILE INTO THE MDG SPACE.
 
-(6) To run/test Griz, enter the command:  ./bin_opt/griz4s -i input_file
+(6) To run/test Griz, enter the command:  ./bin_opt/griz -i <input_file>
 
 
 ** Livermore Specific **
 
 (7) To install an executable on the LC machines do the following:
-    a). Perform steps 1-5 above
-    d). give mdgadmin bin_opt/griz4s.linux-gnu_opt bin_batch_opt/griz4s.linux-gnu_opt_batch
-    e). xsu mdgadmin
-    e.1) If adding a new version create the directory.
-    e.2) cd /collab/usr/apps/mdg/archive/grizdir
-    e.3) cp -p -r [Last Version Directory Name (i.e. V16_01)] [New version name]
-    e.4) rm grizalpha
-    e.5) ln -sf [New directory name] grizalpha
-    f). cd /collab/usr/apps/mdg/archive/grizdir/[grizalpha|grizbeta|grizversion]/bin
-    g). cp griz4s.linux-gnu_opt griz4s.linux-gnu_opt-MM.DD.YYYY
-    h). cp griz4s.linux-gnu_opt_batch griz4s.linux-gnu_opt_batch-MM.DD.YYYY
-    i). take -f username
-    j). Most Important - logout as mdgadmin and run a test using the new installed version
+    a) Perform steps 1-5 above
+    b) give mdgadmin bin_opt/griz.linux-gnu_opt bin_batch_opt/griz.linux-gnu_opt_batch
+    c) xsu mdgadmin
+    d.1) If adding a new version create the directory.
+    d.2) cd /collab/usr/apps/mdg/archive/grizdir
+    d.3) cp -p -r [Last Version Directory Name (i.e. V16_01)] [New version name]
+    d.4) rm grizalpha
+    d.5) ln -sf [New directory name] grizalpha
+    e) cd /collab/usr/apps/mdg/archive/grizdir/[grizalpha|grizbeta|grizversion]/bin
+    f) cp griz.linux-gnu_opt griz.linux-gnu_opt-MM.DD.YYYY
+    g) cp griz.linux-gnu_opt_batch griz.linux-gnu_opt_batch-MM.DD.YYYY
+    h) take -f <your username>
+    i) Most Important - logout as mdgadmin and run a test using the new installed 
+        alpha version griz -alpha -i <filename>
     
     
 (8) to install without killing running jobs
-	a - e.2
-	e.3-a) mv griz4s.linux-gnu_opt_batch griz4s.linux-gnu_opt_batch-MM.DD.YYY
-	e.3-b) mv griz4s.linux-gnu_opt griz4s.linux-gnu_opt-MM.DD.YYY
-	f) take username
-	g) chmod g+rx griz4s.linux-gnu_opt
-	h) chmod g+rx griz4s.linux-gnu_opt_batch
-	i) Most Important - logout as mdgadmin and run a test using the new installed version
-	
-
+    a) Perform steps 1-5 above
+    b) give mdgadmin bin_opt/griz.linux-gnu_opt bin_batch_opt/griz.linux-gnu_opt_batch
+    c) xsu mdgadmin
+    e) cd /collab/usr/apps/mdg/archive/grizdir/[grizalpha|grizbeta|grizversion]/bin
+    f) mv griz.linux-gnu_opt_batch griz.linux-gnu_opt_batch-MM.DD.YYYY
+    f) mv griz.linux-gnu_opt griz.linux-gnu_opt-MM.DD.YYYY
+        MM.DD.YYYY should be date of version being moved.
+    g) take <your username>
+    h) chmod g+rx griz.linux-gnu_opt
+    i) chmod g+rx griz.linux-gnu_opt_batch
+    j) Most Important - logout as mdgadmin and run a test using the new installed version
+        alpha version griz -alpha -i <filename>

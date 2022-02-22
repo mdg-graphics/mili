@@ -2646,7 +2646,7 @@ CONFIG_CMD="configure $@"
 $as_echo "#define PACKAGE_NAME \"Griz4\"" >>confdefs.h
 
 
-$as_echo "#define PACKAGE_DATE \"10/15/2021\"" >>confdefs.h
+$as_echo "#define PACKAGE_DATE \"2/22/2022\"" >>confdefs.h
 
 
 $as_echo "#define PACKAGE_TIME \"07:00:00\"" >>confdefs.h
@@ -2661,7 +2661,7 @@ $as_echo "#define GRIZ_MINOR \"1\"" >>confdefs.h
 $as_echo "#define GRIZ_BUG \"1\"" >>confdefs.h
 
 
-$as_echo "#define PACKAGE_DATETIME \"10/15/2021 07:00:00\"" >>confdefs.h
+$as_echo "#define PACKAGE_DATETIME \"2/22/2022 07:00:00\"" >>confdefs.h
 
 
 $as_echo "#define PACKAGE_BUGREPORT_ALT \"\"" >>confdefs.h
