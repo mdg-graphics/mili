@@ -332,7 +332,7 @@ load_directories( Mili_family *fam )
 {
    int fcnt;
    int fnum;
-   int qty_ent, qty_states, qty_nam;
+   int qty_ent=0, qty_states=0, qty_nam=0;
    FILE *p_f;
    char fname[M_MAX_NAME_LEN];
    int header[QTY_DIR_HEADER_FIELDS];
@@ -420,7 +420,7 @@ load_directories( Mili_family *fam )
           ( !active || fcnt <= fnum ) )
    {
       fam->cur_file = p_f;
-
+      offset = 0;
       /* Seek to end of file and read directory "header". */
       if(fam->char_header[DIR_VERSION_IDX]==1)
       {
@@ -452,6 +452,8 @@ load_directories( Mili_family *fam )
             fclose( p_f );
             return BAD_LOAD_READ;
          }
+         qty_states = header[QTY_STATES_IDX];
+         
       }
       
       qty_ent = header[QTY_ENTRIES_IDX];
@@ -460,7 +462,7 @@ load_directories( Mili_family *fam )
           fclose( p_f );
           return DIR_ZERO_COUNT;
       }
-      qty_states = header[QTY_STATES_IDX];
+      
 
       /* Allocate storage for current non-state file's directory. */
       fam->directory = RENEW_N( File_dir, fam->directory, fcnt, 1,
@@ -470,8 +472,10 @@ load_directories( Mili_family *fam )
          fclose( p_f );
          return ALLOC_FAILED;
       }
+      
       p_fd = fam->directory + fcnt;
       p_de = NEW_N( Dir_entry, qty_ent, "Load dir entries" );
+      
       if (qty_ent > 0 && p_de == NULL)
       {
          free( fam->directory );
