@@ -600,16 +600,18 @@ int
 taurus_get_states_per_file( Mili_family *fam, int ctl[], int *file_sz )
 {
    struct stat statbuf;
-   int num_files, geom_sz, state_sz,  num_states;
-   int sum, sumsav, max_st;
-   int ndim, numnp, icode, nglbv, it, iu, iv, ia, ixd, xnd, nvqty;
-   int nel8, nv3d, nel2, nv1d;
-   int nel4, nv2d, activ;
-   int nv3dact, nv2dact, nv1dact;
+   int num_files=0, geom_sz=0, state_sz=0,  num_states=0;
+   int sum=0, sumsav=0, max_st=0;
+   int ndim=0, numnp=0, icode=0, 
+       nglbv=0, it=0, iu=0, iv=0, 
+       ia=0, ixd=0, xnd=0, nvqty=0;
+   int nel8=0, nv3d=0, nel2=0, nv1d=0;
+   int nel4=0, nv2d=0, activ=0;
+   int nv3dact=0, nv2dact=0, nv1dact=0;
    char fname[128];
-   int i;
+   int i=0;
 
-
+   
    /*
     * Loop to get the number of files.  Then get the length of each
     * file.
@@ -706,6 +708,7 @@ taurus_get_states_per_file( Mili_family *fam, int ctl[], int *file_sz )
 
    fam->st_file_count = num_files;
    fam->states_per_file = num_states;
+   fam->state_qty = max_st;
 
    return state_sz;
 
@@ -730,7 +733,7 @@ taurus_build_state_map( Mili_family *fam, Bool_type initial_build,
    State_descriptor *p_sd;
    int *file_sz;
    int state_size;
-   LONGLONG remainder;
+   long remainder;
 
    ndim    = ctl[ 0];
    numnp   = ctl[ 1];
