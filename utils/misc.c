@@ -1,4 +1,4 @@
-/* $Id: misc.c,v 1.30 2021/05/06 02:42:16 jdurren Exp $ */
+/* $Id: misc.c,v 1.25 2012/11/15 20:38:28 durrenberger1 Exp $ */
 /*
  * misc.c - Miscellaneous routines.
  *
@@ -39,21 +39,20 @@ int qty_connects[M_QTY_SUPERCLASS] = {
    0, 1, 2, 3, 3, 4, 4, 5, 6, 8, 0, 0
 };
 
-
 //compares if the float f1 is equal with f2 and returns 1 if true and 0 if false
 int is_equal(float f1, float f2)
- {
-    float precision = 0.0000001;
-    if (((f1 - precision) < f2) && 
-        ((f1 + precision) > f2))
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
- }
+{
+     float precision = 0.0000001;
+     if (((f1 - precision) < f2) && 
+         ((f1 + precision) > f2))
+     {
+         return 1;
+     }
+     else
+     {
+         return 0;
+     }
+}
 
 /*****************************************************************
  *
@@ -65,6 +64,7 @@ void set_timesteps(Mili_analysis *in_db, Mili_analysis *out_db ,int * start_stat
 {
    int j=0;
    double last_out_state;
+   float time;
 
    Mili_family *in_fam, *out_fam;
    Famid in_dbid, out_dbid;
@@ -93,11 +93,10 @@ void set_timesteps(Mili_analysis *in_db, Mili_analysis *out_db ,int * start_stat
       start_state[0]=-1;
       stop_state[0] = -1;
    } else {
-      float time = out_fam->state_map[out_fam->state_qty-1].time;
+      time = out_fam->state_map[out_fam->state_qty-1].time;
       while((is_equal( in_fam->state_map[j].time,time ) ||
-           in_fam->state_map[j].time < out_fam->state_map[out_fam->state_qty-1].time )
-            &&
-            j<in_fam->state_qty) {
+             in_fam->state_map[j].time <=out_fam->state_map[out_fam->state_qty-1].time 
+             && j<in_fam->state_qty)) {
          j++;
       }
       j++;

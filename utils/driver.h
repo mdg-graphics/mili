@@ -142,14 +142,13 @@ typedef struct _Labels
   Bool_type isNodal;
   int datatype;
   long *num_per_processors;
-  long *offset_per_processor;
+  LONGLONG *offset_per_processor;
   int highest_count;
   short combiner_created;
   int task;
   long size;
   int *labels,
-      *map,
-      filtered_size;
+      *map;
 } Label ;
 
 struct sorter{

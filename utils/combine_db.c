@@ -594,7 +594,7 @@ mc_copy_geometry(Mili_analysis **in_db, Mili_analysis *out_db,TILabels *labels) 
        position,
        num_procs = labels->num_procs;
    LONGLONG current_offset,
-            node_offset;
+         node_offset;
    Label *iter,*nodeLabel= NULL;
    float *temp_coords=NULL;
    int *temp_conns=NULL,
@@ -1474,7 +1474,7 @@ mc_combine_srecs(Mili_analysis **in_db,Mili_analysis *out_db,TILabels *in_labels
                                     break;
                                  }
                                  index_out += out_psubrec->mo_id_blks[cur_out_moid_block*2+1] -out_psubrec->mo_id_blks[cur_out_moid_block*2]+1;
-                                 
+                                 /*
                                  for(  out_moid= out_psubrec->mo_id_blks[cur_out_moid_block*2];
                                        out_moid <= out_psubrec->mo_id_blks[cur_out_moid_block*2+1]; 
                                        out_moid++){
@@ -1717,7 +1717,6 @@ merge_state_data(int proc,
    Mesh_object_class_data *p_mocd;
    Svar *out_svar, *in_svar;
    size_t state_size;
-   
    LONGLONG out_offset,
             in_offset;
    int state_qty,
@@ -1755,13 +1754,12 @@ merge_state_data(int proc,
        cur_out_moid_block=0,
        match_moid,
        temp_array_size=0;
-       out_dbid = out_db->db_ident;
-       out_fam = fam_list[out_dbid];
-       srec_table = out_fam->subrec_table;
+   out_dbid = out_db->db_ident;
+   out_fam = fam_list[out_dbid];
+   srec_table = out_fam->subrec_table;
    if( srec_table == NULL ) {
        return ( NOT_OK );
    }
-   
    in_dbid = in_db->db_ident;
    in_fam = fam_list[in_dbid];
    
@@ -1818,16 +1816,6 @@ merge_state_data(int proc,
       in_psubrec = p_sr->subrecs[i];
       class_name = in_psubrec->mclass;
       subrec_name = in_psubrec->name;
-      
-      
-      
-      
-      /*
-      Can have a block of code for if node
-      */
-      
-      
-      
       for(contribute_subrec = 0; contribute_subrec < out_psr->qty_subrecs; contribute_subrec++){
          if(strcmp(subrec_name, out_psr->subrecs[contribute_subrec]->name) ==0 &&
             strcmp(class_name, out_psr->subrecs[contribute_subrec]->mclass) ==0) {
@@ -1932,170 +1920,12 @@ merge_state_data(int proc,
 
             
             if( out_psubrec->organization == RESULT_ORDERED) {
-	       out_offset = out_psubrec->offset/ EXT_SIZE( out_fam, M_FLOAT );
                for( j = 0; j < qty_svars; j++ ) {
-                  
+                  out_offset = out_psubrec->offset/ EXT_SIZE( out_fam, M_FLOAT );
                   in_svar = in_psubrec->svars[j];
-                  out_svar = out_psubrec->svars[j];
-                  num_type = *out_svar->data_type;
-                  atom_size = EXT_SIZE( in_fam, num_type );
-                  agg_type = *out_svar->agg_type;
-                     
-                  switch( num_type) {
-                     case M_INT:
-                     case M_INT4:
-                     case M_FLOAT:
-                     case M_FLOAT4:
-                        iprec = 1;
-                        break;
-                     case M_INT8:
-                     case M_FLOAT8:
-                        iprec = 2;
-                        break;
-                  }
-
-                  
-                  inp_c = (char *)(in_db->result  + in_offset);
-
-                  outp_c = (char *)(out_db->result  + out_offset);
-
-                  in_buf = (char *)inp_c;
-                  out_buf = (char *)outp_c;
-                  
-
-               
-                  switch( agg_type ) {
-                     case SCALAR:
-		        if (strcmp(class_name, "node") == 0) {
-			   for( k = 0; k < mo_qty; k++ ) {
-                              if( ( stype == M_UNIT ) ||
-                                    ( stype == M_MAT  ) ||
-                                    ( stype == M_MESH ) ||
-                                    ( map   == NULL   )    ) {
-                                 index_out = k*atom_size;
-                              } else {
-                                 index_out = (map[k])*atom_size;
-                              }
-			      memcpy(out_buf + index_out, in_buf + k *atom_size, atom_size);
-                           }	   
-			} else {
-		           memcpy(out_buf, in_buf, atom_size * mo_qty);
-			}
-                        in_offset += in_psubrec->mo_qty*iprec;
-                        out_offset += out_psubrec->mo_qty*iprec;
-                        break;
-                     case ARRAY:
-                        step = 1;
-                        for( k = 0; k < *out_svar->order; k++ ) {
-                           step *=  out_svar->dims[k];
-                        }
-			if (strcmp(class_name, "node") == 0) {
-			   for( k = 0; k < mo_qty; k++ ) {
-                              if( ( stype == M_UNIT ) ||
-                                    ( stype == M_MAT  ) ||
-                                    ( stype == M_MESH ) ||
-                                    ( map   == NULL   )    ) {
-                                 index_out = k;
-                              } else {
-                                 index_out = step*(map[k]);
-                              }
-			   jj = index_out*atom_size;
-			   memcpy(out_buf + jj, in_buf, atom_size*step);
-                           in_buf += step*atom_size;
-                           }
-			} else {
-			   memcpy(out_buf, in_buf, atom_size*step*mo_qty);
-			}
-                        in_offset  += step*in_psubrec->mo_qty*iprec;
-                        out_offset += step*out_psubrec->mo_qty*iprec;
-                        break;
-                     case VECTOR:
-		        if (strcmp(class_name, "node") == 0) {
-                           for( k = 0; k < mo_qty; k++ ) {
-                              if( ( stype == M_UNIT ) ||
-                                    ( stype == M_MAT  ) ||
-                                    ( stype == M_MESH ) ||
-                                    ( map   == NULL   )    ) {
-                                 index_out = k;
-                              } else {
-                                 index_out = (map[k]);
-                              }
-			      
-			      jj = (index_out*(*out_svar->list_size))*atom_size;
-			      ll = (k*(*in_svar->list_size))*atom_size;
-			      memcpy(out_buf + jj, in_buf + ll, atom_size*(*out_svar->list_size));
-                           }
-			} else {
-			   memcpy(out_buf, in_buf, atom_size*(*out_svar->list_size)*mo_qty);
-			}
-                        in_offset += in_psubrec->mo_qty*(*in_svar->list_size)*iprec;
-                        out_offset += out_psubrec->mo_qty*(*out_svar->list_size)*iprec;
-                        break;
-                     case VEC_ARRAY:
-		        if (strcmp(class_name, "node") == 0) {
-			   for( k = 0; k < mo_qty; k++ ) {
-                              if( ( stype == M_UNIT ) ||
-                                    ( stype == M_MAT  ) ||
-                                    ( stype == M_MESH ) ||
-                                    ( map   == NULL   )    ) {
-                                  index_out = k;
-                              } else {
-                                 index_out = map[k] ;
-                              }
-			   
-			      jj = (index_out*(*out_svar->list_size))*atom_size;
-			      ll = (k*(*in_svar->list_size))*atom_size;
-			   
-			      memcpy(out_buf + jj, in_buf + ll, atom_size*(*out_svar->list_size));
-                           }
-			} else {
-			   memcpy(out_buf, in_buf, atom_size*(*out_svar->list_size)*mo_qty);
-			}
-			
-                        
-                        in_offset += in_psubrec->mo_qty*(*in_svar->list_size)*iprec;
-                        out_offset += out_psubrec->mo_qty*(*out_svar->list_size)*iprec;
-
-                        break;
-                     default:
-                        break;
-                  }
-               }
-            } else {
-               /* OBJECT ORIENTED */
-	       
-	       if (strcmp(class_name, "node") != 0) {
-	          
-		  out_offset = out_psubrec->offset/ EXT_SIZE( out_fam, M_FLOAT );
-	       
-	          inp_c = (char *)(in_db->result  + in_offset) + in_round;
-                  outp_c = (char *)(out_db->result  + out_offset) + out_round;
-
-                  in_buf = (void *)inp_c;
-                  out_buf = (void *)outp_c;
-		  
-		  int length_copy = (*in_psubrec->lump_sizes) * mo_qty;
-		  int start_index = 0;
-		  
-		  if( ( stype != M_UNIT ) &&
-                      ( stype != M_MAT  ) &&
-                      ( stype != M_MESH ) &&
-                      ( map   != NULL   )    ) {
-                     start_index = map[0] * (*in_psubrec->lump_sizes);
-                  }
-		  
-	          memcpy(out_buf + start_index, in_buf, length_copy);
-		  		  
-		  
-	       } else {
-	       
-	          int object_offset = 0;
-	          for( j = 0; j < qty_svars; j++ ) {
-                  
-                     out_offset = out_psubrec->offset/ EXT_SIZE( out_fam, M_FLOAT );
-                     in_svar = in_psubrec->svars[j];
-                     
-                     out_svar = out_psubrec->svars[j];
+                  for(k = 0; k<qty_out_svars; k++)
+                  {
+                     out_svar = out_psubrec->svars[k];
                      num_type = *out_svar->data_type;
                      atom_size = EXT_SIZE( in_fam, num_type );
                      agg_type = *out_svar->agg_type;
@@ -2113,102 +1943,317 @@ merge_state_data(int proc,
                            break;
                      }
 
-                     inp_c = (char *)(in_db->result  + in_offset) + in_round;
-
-                     outp_c = (char *)(out_db->result  + out_offset) + out_round;
-
-                     in_buf = (void *)inp_c;
-                     out_buf = (void *)outp_c;
+                     if(strcmp(in_svar->name,out_svar->name)==0){
+                        break;
+                     }
                      
                      switch( agg_type ) {
                         case SCALAR:
-                           for( k = 0; k < mo_qty; k++ ) {
+                           out_offset += out_psubrec->mo_qty*iprec;
+                           break;
+                        case ARRAY:
+                           step = 1;
+                           for( ii = 0; ii < *out_svar->order; ii++ ) {
+                              step *=  out_svar->dims[ii];
+                           }
+                           out_offset += step*out_psubrec->mo_qty*iprec;
+                           break;
+                        case VECTOR:
+                           out_offset += out_psubrec->mo_qty*(*out_svar->list_size)*iprec;
+                           break;
+                        case VEC_ARRAY:
+                           
+                           out_offset += out_psubrec->mo_qty*(*out_svar->list_size)*iprec;
+                           
+                           break;
+                     }
+                  }
+                  if(k==qty_out_svars)
+                  {
+                     continue; 
+                  }
+                  
+                  inp_c = (char *)(in_db->result  + in_offset);
+
+                  outp_c = (char *)(out_db->result  + out_offset);
+
+                  in_buf = (char *)inp_c;
+                  out_buf = (char *)outp_c;
+                  
+
+               
+                  switch( agg_type ) {
+                     case SCALAR:
+                        for( k = 0; k < mo_qty; k++ ) {
+                           if( ( stype == M_UNIT ) ||
+                                 ( stype == M_MAT  ) ||
+                                 ( stype == M_MESH ) ||
+                                 ( map   == NULL   )    ) {
+                              index_out = k*atom_size;
+                           } else {
+                              index_out = (map[k])*atom_size;
+                           }
+
+                           for( kk = 0; kk < atom_size; kk++ )
+                              *(out_buf + index_out + kk ) =
+                                 *(in_buf + k*atom_size + kk );
+                        }
+                        in_offset += in_psubrec->mo_qty*iprec;
+                        out_offset += out_psubrec->mo_qty*iprec;
+                        break;
+                     case ARRAY:
+                        step = 1;
+                        for( k = 0; k < *out_svar->order; k++ ) {
+                           step *=  out_svar->dims[k];
+                        }
+                        for( k = 0; k < mo_qty; k++ ) {
+                           if( ( stype == M_UNIT ) ||
+                                 ( stype == M_MAT  ) ||
+                                 ( stype == M_MESH ) ||
+                                 ( map   == NULL   )    ) {
+                              index_out = k;
+                           } else {
+                              index_out = step*(map[k]);
+                           }
+
+                           for( ii = 0; ii < step; ii++ ) {
+                              jj = (index_out + ii)*atom_size;
+                              for( kk = 0; kk < atom_size; kk++ ) {
+                                 *(out_buf + jj + kk ) = *(in_buf +ii*atom_size + kk );
+                              }
+                           }
+                           in_buf += step*atom_size;
+                        }
+                        in_offset  += step*in_psubrec->mo_qty*iprec;
+                        out_offset += step*out_psubrec->mo_qty*iprec;
+                        break;
+                     case VECTOR:
+                        for( k = 0; k < mo_qty; k++ ) {
+                           if( ( stype == M_UNIT ) ||
+                                 ( stype == M_MAT  ) ||
+                                 ( stype == M_MESH ) ||
+                                 ( map   == NULL   )    ) {
+                              index_out = k;
+                           } else {
+                              index_out = (map[k]);
+                           }
+
+                           for( ii = 0; ii < *out_svar->list_size; ii++ ) {
+                              jj = (index_out*(*out_svar->list_size) + ii)*atom_size;
+                              ll = (k*(*in_svar->list_size) + ii)*atom_size;
+                              for( kk = 0; kk < atom_size; kk++ ) {
+                                 *(out_buf + jj + kk ) = *(in_buf + ll + kk );
+                              }
+                           }
+                        }
+
+                        in_offset += in_psubrec->mo_qty*(*in_svar->list_size)*iprec;
+                        out_offset += out_psubrec->mo_qty*(*out_svar->list_size)*iprec;
+                        break;
+                     case VEC_ARRAY:
+                        for( k = 0; k < mo_qty; k++ ) {
+                           if( ( stype == M_UNIT ) ||
+                                 ( stype == M_MAT  ) ||
+                                 ( stype == M_MESH ) ||
+                                 ( map   == NULL   )    ) {
+                              index_out = k;
+                           } else {
+                              index_out = map[k] ;
+                           }
+
+                           for( ii = 0; ii < *out_svar->list_size; ii++ ) {
+                              jj = ( index_out*(*out_svar->list_size) + ii)*atom_size;
+                              ll = ( k*(*in_svar->list_size) +ii)*atom_size;
+                              for( kk = 0; kk < atom_size; kk++ ) {
+                                 *(out_buf + jj +  kk ) = *(in_buf + ll +kk );
+                              }
+                           }
+                        }
+                        in_offset += in_psubrec->mo_qty*(*in_svar->list_size)*iprec;
+                        out_offset += out_psubrec->mo_qty*(*out_svar->list_size)*iprec;
+                        break;
+                     default:
+                        break;
+                  }
+               }
+            } else {
+               /* OBJECT ORIENTED */
+
+               for( j = 0; j < qty_svars; j++ ) {
+                  
+                  out_offset = out_psubrec->offset/ EXT_SIZE( out_fam, M_FLOAT );
+                  int object_offset = 0;
+                  in_svar = in_psubrec->svars[j];
+                  for(k = 0; k<qty_out_svars; k++) {
+                     out_svar = out_psubrec->svars[k];
+                     num_type = *out_svar->data_type;
+                     atom_size = EXT_SIZE( in_fam, num_type );
+                     agg_type = *out_svar->agg_type;
+                     
+                     switch( num_type) {
+                        case M_INT:
+                        case M_INT4:
+                        case M_FLOAT:
+                        case M_FLOAT4:
+                           iprec = 1;
+                           break;
+                        case M_INT8:
+                        case M_FLOAT8:
+                           iprec = 2;
+                           break;
+                     }
+                        
+                     if(strcmp(in_svar->name,out_svar->name)==0){
+                        break;
+                     }
+                        
+                     switch( agg_type ) {
+                        case SCALAR:
+                           object_offset += iprec;
+                           break;
+                        case ARRAY:
+                           step = 1;
+                           for( ii = 0; ii < *out_svar->order; ii++ ) {
+                              step *=  out_svar->dims[ii];
+                           }
+                           object_offset += step*out_psubrec->mo_qty*iprec;
+                           break;
+                        case VECTOR:
+                           object_offset += (*out_svar->list_size)*iprec;
+                           break;
+                        case VEC_ARRAY:
+                           for( iorder = 0; iorder < *(out_svar->order); iorder++ ) {
+                              object_offset += (out_svar->dims[iorder])*
+                                              *(out_svar->list_size)*out_psubrec->mo_qty*iprec;
+                           }
+                           break;
+                     }
+                  }
+                  if(k==qty_out_svars)
+                  {
+                     continue; 
+                  }
+
+                  inp_c = (char *)(in_db->result  + in_offset) + in_round;
+
+                  outp_c = (char *)(out_db->result  + out_offset) + out_round;
+
+                  in_buf = (void *)inp_c;
+                  out_buf = (void *)outp_c;
+                     
+                  switch( agg_type ) {
+                     case SCALAR:
+                        for( k = 0; k < mo_qty; k++ ) {
+                           if( ( stype == M_UNIT ) ||
+                                 ( stype == M_MAT  ) ||
+                                 ( stype == M_MESH ) ||
+                                 ( map   == NULL   )    ) {
+                              index_out = ((*out_psubrec->lump_sizes/atom_size)*k)+object_offset ;
+                           } else {
+                              index_out = ((*out_psubrec->lump_atoms)*(map[k] )) +object_offset;
+                           }
+
+                           jj = index_out  * atom_size;
+                           for( kk = 0; kk <  atom_size; kk++ ) {
+                              *(out_buf + jj + kk ) = *(in_buf +k*atom_size + kk );
+                           }
+                        }
+                        in_offset += in_psubrec->mo_qty*iprec;
+                        break;
+                     case ARRAY:
+                        step = 1;
+                        for( k = 0; k < *out_svar->order; k++ ) {
+                           step *=  out_svar->dims[k];
+                        }
+                        for( k = 0; k < mo_qty; k++ ) {
+                           if( ( stype == M_UNIT ) ||
+                                 ( stype == M_MAT  ) ||
+                                 ( stype == M_MESH ) ||
+                                 ( map   == NULL   )    ) {
+                                 index_out = k*mo_qty;
+                           } /* IRC - February 28, 20009
+                              * This may need to be
+                              * modified to multiply by
+                              * list size - need to create
+                              * a test problem.
+                              */
+                           else {
+                              index_out = step*(map[k]);
+                           }
+
+                           for( ii = 0; ii < step; ii++ ) {
+                              jj = (index_out + ii)*atom_size;
+                              for( kk = 0; kk < atom_size; kk++ ) {
+                                 *(out_buf + jj + kk ) = *(in_buf +ii*atom_size + kk );
+                              }
+                           }
+                           in_buf += step*atom_size;
+                        }
+                        in_offset  += step*in_psubrec->mo_qty*iprec;
+                        out_offset += step*out_psubrec->mo_qty*iprec;
+                        break;
+                     case VECTOR:
+                        index_out=0;
+                        for( k = 0; k < mo_qty; k++ ) {
+                           if( ( stype == M_UNIT ) ||
+                                 ( stype == M_MAT  ) ||
+                                 ( stype == M_MESH ) ||
+                                 ( map   == NULL   )    ) {
+                              index_out = k*(*out_svar->list_size)*iprec;
+                           } /* IRC: February 28, 2009
+                              * Added multiply by list
+                              * size.
+                              */
+                           else {
+                              index_out = (*out_psubrec->lump_atoms)*(map[k])+object_offset;
+                           }
+
+                           for( ii = 0; ii < *out_svar->list_size; ii++ ) {
+                              jj = (index_out + ii)*atom_size;
+                              for(kk =  0; kk <  atom_size; kk++ ) {
+                                 *(out_buf + jj + kk ) = *(in_buf + ii*atom_size + kk );
+                              }
+                           }
+                           in_buf += (*in_svar->list_size * atom_size);
+                        }
+                        out_offset += (*out_svar->list_size)*iprec;
+                        in_offset += (*in_svar->list_size)*in_psubrec->mo_qty*iprec;
+                        break;
+
+                     case VEC_ARRAY:
+                        for( iorder = 0; iorder < *in_svar->order; iorder++ ) {
+                           for ( k = 0; k < mo_qty; k++ ) {
                               if( ( stype == M_UNIT ) ||
                                     ( stype == M_MAT  ) ||
                                     ( stype == M_MESH ) ||
                                     ( map   == NULL   )    ) {
-                                 index_out = ((*out_psubrec->lump_sizes/atom_size)*k)+object_offset ;
-                              } else {
-                                 index_out = ((*out_psubrec->lump_atoms)*(map[k] )) +object_offset;
+                                 index_out = k*out_svar->dims[iorder]*(*out_svar->list_size);
                               }
+                              /* IRC: February 28, 2009
+                               * Added multiply by list
+                               * size and dims.
+                               */
+                              else
+                                 index_out = (out_svar->dims[iorder])*
+                                             (*out_svar->list_size)*(map[k] );
 
-                              jj = index_out  * atom_size;
-			   
-			      memcpy(out_buf + jj, in_buf + k *atom_size, atom_size);
-
-                           }
-                           in_offset += in_psubrec->mo_qty*iprec;
-			   object_offset += out_psubrec->mo_qty*iprec;
-                           break;
-                        case ARRAY:
-                           step = 1;
-                           for( k = 0; k < *out_svar->order; k++ ) {
-                              step *=  out_svar->dims[k];
-                           }
-                           for( k = 0; k < mo_qty; k++ ) {
-                              index_out = step*(map[k]);
-			   
-			      jj = index_out*atom_size;
-			      
-			      memcpy(out_buf + jj, in_buf, atom_size*step);
-
-                              in_buf += step*atom_size;
-                           }
-                           in_offset  += step*in_psubrec->mo_qty*iprec;
-                           object_offset += step*out_psubrec->mo_qty*iprec;
-                           break;
-                        case VECTOR:
-                           index_out=0;
-                           for( k = 0; k < mo_qty; k++ ) {
-                               if( ( stype == M_UNIT ) ||
-                                    ( stype == M_MAT  ) ||
-                                    ( stype == M_MESH ) ||
-                                    ( map   == NULL   )    ) {
-                                 index_out = k*(*out_svar->list_size)*iprec;
-                              } /* IRC: February 28, 2009
-                              * Added multiply by list
-                              * size.
-                              */
-                              else {
-                                 index_out = (*out_psubrec->lump_atoms)*(map[k])+object_offset;
-                              }
-			   
-			      jj = index_out * atom_size;
-			      memcpy(out_buf + jj, in_buf, atom_size*(*out_svar->list_size));
-			   
-                              in_buf += (*in_svar->list_size * atom_size);
-                           }
-                           object_offset += (*out_svar->list_size)*out_psubrec->mo_qty*iprec;
-                           in_offset += (*in_svar->list_size)*in_psubrec->mo_qty*iprec;
-                           break;
-                        case VEC_ARRAY:
-                           for( iorder = 0; iorder < *in_svar->order; iorder++ ) {
-                              for ( k = 0; k < mo_qty; k++ ) {
-			        if( ( stype == M_UNIT ) ||
-                                       ( stype == M_MAT  ) ||
-                                       ( stype == M_MESH ) ||
-                                       ( map   == NULL   )    ) {
-                                    index_out = k*out_svar->dims[iorder]*(*out_svar->list_size);
+                              for( ii = 0; ii < (in_svar->dims[iorder])*(*in_svar->list_size); ii++ ) {
+                                 jj = (index_out + ii)*atom_size;
+                                 for( kk = 0; kk < atom_size; kk++ ) {
+                                    *(out_buf +jj + kk ) = *(in_buf + ii*atom_size + kk );
                                  }
-                                 else
-                                    index_out = (out_svar->dims[iorder])*
-                                                (*out_svar->list_size)*(map[k] );
-			      
-			         jj = index_out * atom_size;
-			         memcpy(out_buf + jj, in_buf, atom_size*(in_svar->dims[iorder])*(*in_svar->list_size));
-
-                                 in_buf += in_psubrec->lump_atoms[iorder]*atom_size;
                               }
-                              object_offset += (out_svar->dims[iorder])*
-                                            (*out_svar->list_size)*out_psubrec->mo_qty*iprec;
-                              in_offset  += (in_svar->dims[iorder])*
-                                            (*in_svar->list_size)*in_psubrec->mo_qty*iprec;
+                              in_buf += in_psubrec->lump_atoms[iorder]*atom_size;
                            }
-                           break;
-                        default:
-                           break;
-                     } 
-		  }
+                           out_offset += (out_svar->dims[iorder])*
+                                         (*out_svar->list_size)*out_psubrec->mo_qty*iprec;
+                           in_offset  += (in_svar->dims[iorder])*
+                                         (*in_svar->list_size)*in_psubrec->mo_qty*iprec;
+                        }
+                        break;
+                     default:
+                        break;
+                  }
                }
             }
                
