@@ -82,7 +82,7 @@ load_ti_labels( Mili_analysis **in_db, int nproc, TILabels *labels )
    /* TI variables */
    char **wildcard_list;
    int   wildcard_count = 0;
-   int   datatype,datalength;
+   int   datatype, datalength;
    Bool_type labels_found=FALSE;
 
    int  *temp_int=NULL,
@@ -635,7 +635,6 @@ filter_count(Label *label,int proc_count) {
          }
       }
    }
-   
    now = 0;
    
    size = label->size;
@@ -644,7 +643,7 @@ filter_count(Label *label,int proc_count) {
    
    label->labels[0]= (-1);
    size = 0;
-   while(heap_size){     
+   while(heap_size){
       
       if(arr[1].label_id != label->labels[label_index]) {
          if((label_index == 0 && label->labels[label_index] != -1) || label_index != 0) {
@@ -666,7 +665,8 @@ filter_count(Label *label,int proc_count) {
          {
             child++;
          }
-
+         /* To check if the last element fits or not it suffices to check if the last element
+            is less than the minimum element among both the children*/
          if(arr[last_element_index].label_id > arr[child].label_id)
          {
             temp_sorter.label_id= arr[last_element_index].label_id;
@@ -683,32 +683,18 @@ filter_count(Label *label,int proc_count) {
             
             last_element_index = child;            
          }
-         else 
+         else /* It fits there */
          {
             break;
          }
        }
    }
-   
    label->size=label_index+1;
    if(arr != NULL) {
       free(arr);
    }
 
 }
-
-
-void
-filter_count_simple(Label *label) {
-   int i;
-     
-   label->map = (int*) calloc(label->size,sizeof(int));
-   
-   for(i = 0; i < label->size; i++) {
-       label->map[i] = i;
-   }
-}
-
 
 /****************************************************************
  *  Function:: Constructs the partition map from nodal and
@@ -720,14 +706,8 @@ build_cmap_from_labels( Mili_analysis **in_db, int nproc, TILabels *labels )
 {
    Label *working_label;
    for(working_label=labels->labels;working_label != NULL;working_label= working_label->next) {
-      filter_count(working_label,nproc);
-/*      if ((strcmp(working_label->sname, "node")) == 0) {
-          filter_count(working_label,nproc);
-      }
-      else {
-          filter_count_simple(working_label);
-      } 
-*/          
+      filter_count(working_label,nproc);  
+          
    }
    return OK;
    
