@@ -3,20 +3,20 @@
 #---------------------------------------------------------------------
 # Griz Version Info:
 #
-#	Griz4-V20_01
-# 	Built: 	Fri Jan 29 12:02:26 2021 on Linux #1 SMP Mon Jan 18 17:04:41 PST 2021 3.10.0-1160.11.1.2chaos.ch6.x86_64 x86_64 by rhathaw
+#	Griz4-V21_01
+# 	Built: 	Thu Mar 31 10:57:17 2022 on Linux #1 SMP Wed Feb 23 10:11:21 PST 2022 3.10.0-1160.59.1.1chaos.ch6.x86_64 x86_64 by rhathaw
 # 	Configure: ./configure linux gnu
-# 	Compile Options: icc -g -DSERIAL_BATCH -I/usr/apps/mdg/include -I/../include -I../.. 
-# 		Mili Library Version (Griz Linked): 	V20_01
-#		Mili Database-Library Version: 		V13_01
-#		Mili Database-Host: 			rzzeus286
-#		Mili Database-Arch: 			Linux + 2.6.32-220.23.1.1chaos.ch5.x86_64rzzeus286
-#		Mili Database-Timestamp: 		Wed Jan  2 12:19:52 2013
+# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/g/g16/rhathaw/all_codes/mili/MILI-toss_3_x86_64_ib-RZGENIE/include -I/../include -I../.. 
+# 		Mili Library Version (Griz Linked): 	V21_02
+#		Mili Database-Library Version: 		V21_02
+#		Mili Database-Host: 			rzgenie24
+#		Mili Database-Arch: 			Linux + 3.10.0-1160.59.1.1chaos.ch6.x86_64rzgenie24
+#		Mili Database-Timestamp: 		Thu Mar 31 12:04:51 2022
 #
 #---------------------------------------------------------------------
 # Database path/name: discrete.plt
 # Description: Discrete Element Test Problem
-# Output date: 01/29/21
+# Output date: 03/31/22
 #
 
 #
@@ -789,9 +789,9 @@
 
 #           Time       Force - z
 # Discrete - 20: Force - z
-  0.00000000e+00  1.28197510e-16
-  9.99999978e-03  7.56476223e-01
-  1.99999996e-02  7.69265771e-01
+  0.00000000e+00  0.00000000e+00
+  9.99999978e-03  7.56510913e-01
+  1.99999996e-02  7.69263148e-01
   2.99999993e-02  7.82095790e-01
   3.99999991e-02  7.94925809e-01
   5.00000007e-02  8.07755768e-01
@@ -2315,9 +2315,9 @@
 
 #           Time  Force Magnitude
 # Discrete - 20: Force Magnitude
-  0.00000000e+00  2.22044605e-16
-  9.99999978e-03  1.31025529e+00
-  1.99999996e-02  1.33240736e+00
+  0.00000000e+00  0.00000000e+00
+  9.99999978e-03  1.31031537e+00
+  1.99999996e-02  1.33240283e+00
   2.99999993e-02  1.35462964e+00
   3.99999991e-02  1.37685180e+00
   5.00000007e-02  1.39907408e+00
