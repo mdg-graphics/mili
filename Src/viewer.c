@@ -1048,6 +1048,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     analy->p_histfile    = NULL;
 
     analy->vol_averaging = TRUE;
+    analy->contours = NULL;
 
     set_contour_vals( 6, analy );
 

@@ -4,10 +4,10 @@
 # Griz Version Info:
 #
 #	Griz4-V21_01
-# 	Built: 	Tue Jan 25 16:30:30 2022 on Linux #1 SMP Tue Nov 30 12:04:27 PST 2021 3.10.0-1160.49.1.1chaos.ch6.x86_64 x86_64 by rhathaw
+# 	Built: 	Thu Mar 31 10:57:17 2022 on Linux #1 SMP Wed Feb 23 10:11:21 PST 2022 3.10.0-1160.59.1.1chaos.ch6.x86_64 x86_64 by rhathaw
 # 	Configure: ./configure linux gnu
-# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/usr/apps/mdg/include -I/../include -I../.. 
-# 		Mili Library Version (Griz Linked): 	V19_02
+# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/g/g16/rhathaw/all_codes/mili/MILI-toss_3_x86_64_ib-RZGENIE/include -I/../include -I../.. 
+# 		Mili Library Version (Griz Linked): 	V21_02
 #		Mili Database-Library Version: 		V11_01_01
 #		Mili Database-Host: 			rzmerl2
 #		Mili Database-Arch: 			Linux + 2.6.32-220.13.1.2chaos.ch5.x86_64rzmerl2
@@ -16,7 +16,7 @@
 #---------------------------------------------------------------------
 # Database path/name: thickshells_c
 # Description: Material Model 1 - Basic Test
-# Output date: 01/26/22
+# Output date: 03/31/22
 #
 
 #

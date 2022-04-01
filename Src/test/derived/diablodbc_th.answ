@@ -3,11 +3,11 @@
 #---------------------------------------------------------------------
 # Griz Version Info:
 #
-#	Griz4-V20_01
-# 	Built: 	Fri Jan 29 12:02:26 2021 on Linux #1 SMP Mon Jan 18 17:04:41 PST 2021 3.10.0-1160.11.1.2chaos.ch6.x86_64 x86_64 by rhathaw
+#	Griz4-V21_01
+# 	Built: 	Thu Mar 31 10:57:17 2022 on Linux #1 SMP Wed Feb 23 10:11:21 PST 2022 3.10.0-1160.59.1.1chaos.ch6.x86_64 x86_64 by rhathaw
 # 	Configure: ./configure linux gnu
-# 	Compile Options: icc -g -DSERIAL_BATCH -I/usr/apps/mdg/include -I/../include -I../.. 
-# 		Mili Library Version (Griz Linked): 	V20_01
+# 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/g/g16/rhathaw/all_codes/mili/MILI-toss_3_x86_64_ib-RZGENIE/include -I/../include -I../.. 
+# 		Mili Library Version (Griz Linked): 	V21_02
 #		Mili Database-Library Version: 		V12_01_00
 #		Mili Database-Host: 			rzmerl1
 #		Mili Database-Arch: 			Linux + 2.6.32-220.23.1.1chaos.ch5.x86_64rzmerl1
@@ -16,7 +16,7 @@
 #---------------------------------------------------------------------
 # Database path/name: dblplt000
 # Description: Sample input for plane strain cantilever beam ala DLEARN
-# Output date: 01/29/21
+# Output date: 03/31/22
 #
 
 #
