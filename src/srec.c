@@ -3226,6 +3226,7 @@ mc_wrt_subrec( Famid fam_id, char *subrec_name, int start, int stop,
 
    return OK;
 }
+
 /*****************************************************************
  * TAG( load_static_map ) PRIVATE
  *
@@ -3316,6 +3317,17 @@ load_static_maps( Mili_family *fam, Bool_type initial_build )
    
    
    return rval;
+}
+
+/*****************************************************************
+ * TAG( mc_reload_states ) PUBLIC
+ *
+ * External access for codes to call and reload the database times
+ */
+Return_value
+mc_reload_states( Famid famid)
+{
+    return load_static_maps(fam_list[famid],0);
 }
 
 /*****************************************************************
