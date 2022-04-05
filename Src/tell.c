@@ -384,7 +384,7 @@ tell_results( Analysis *analy )
             for ( k = 0; k < subrec_qty; k++ )
             {
                 p_cand = sr_array[k].candidate;
-                superclass = p_cand->superclass;
+                superclass = sr_array[k].superclass;
                 idx = sr_array[k].index;
 
                 /* Init the StringArray if first insertion. */

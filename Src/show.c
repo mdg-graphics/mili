@@ -91,8 +91,7 @@ parse_show_command( char *token, Analysis *analy )
     int *map;
     char ipt[125];
     char c_ptr = '\0';
-    es_Result_candidate *p_es_rc;
-    Hash_table * p_es_components_ht;
+    Result_candidate *p_es_rc;
     Hash_table * p_sv_ht;
     Htable_entry *p_hte;
     Htable_entry *p_hte2;
@@ -103,16 +102,11 @@ parse_show_command( char *token, Analysis *analy )
     char *class_names[2000];
     int  super_classes[2000];
 
-    p_es_components_ht = analy->es_components_table;
     p_sv_ht = analy->st_var_table;
 
     status = mili_get_class_names(analy, &qty_classes, class_names, super_classes);
 
     analy->showmat = FALSE;
-    if(analy->int_labels != NULL)
-    {
-        analy->int_labels->use_combined = FALSE;
-    }
 
     /* Cache the current global min/max. */
     if ( !analy->ei_result )
@@ -124,356 +118,28 @@ parse_show_command( char *token, Analysis *analy )
         analy->cur_result = NULL;
         analy->showmat = TRUE;
     }
-    else if (FALSE && strncmp( token, "es_", 3 )== 0 )
+    else
     {
-        init_result( &es_result );
-        if ( !find_result( analy, analy->result_source, TRUE, &es_result,
-                           token ) )
-        {
-            popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
-            return( 0 );
-        }
-        if ( !es_result.single_valued )
-        {
-            /* An es result of the form es_n[var] is really an invalid specification that
-             * needs to be resolved when we load the result. The result will later be
-             * converted to the form es_n[i,var] where I is the integration point.
-             * for now use the component as the result but we  will look at the original
-             * result later to build a result spec for the load.
-             */
-
-            /* Divide the specification into its component parts. */
-            if ( !parse_result_spec( token, root, &index_qty, indices, component ) )
-            {
-                return 0;
-            }
-            /* now that element sets for multiple integration points are supported just redirect to the component */
-            strcpy(newcmd, "show ");
-            strcat(newcmd, component);
-            parse_command(newcmd, analy); 
- 
-        }
-        else
-        {
-            current_result = es_result;
-        }
-        init_result( &es_result );
         init_result( &new_result );
-
-        analy->cur_result = &current_result;
-        analy->cur_result->reference_count++; 
-    }
-    else if ( find_result( analy, analy->result_source, TRUE, &new_result,
-                           token ) && analy->int_labels != NULL || !htable_search(p_es_components_ht, token, FIND_ENTRY, &p_hte)) 
-    {
-        /* since we are displaying a new result should initialize original_results array values to NULL */
-        for(i = 0; i < ORIG_RESULTS; i++)
-        {
-            analy->original_results[i] = NULL;
-        }
-
-        res_ptr = create_result_list(token, analy);
-        subrecs = (int *) calloc(analy->srec_tree->qty + 1, sizeof(int));
- 
-        if(res_ptr != NULL)
-        {
-            qty = 0;
-            j = 0;
-            for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
-            {
-                for(i = 0; i < ptr->qty; i++)
-                {
-                    if(subrecs[ptr->subrecs[i]] == 0)
-                    {
-                        qty++;
-                        subrecs[ptr->subrecs[i]] = 1;
-                    }
-                }
-                if(!strncmp(ptr->name, "es_", 3))
-                {
-                    strncpy(analy->int_labels->result_names[j], ptr->name, strlen(ptr->name) + 1);
-                    j++;
-                }
-            }
-        } else
-        {
-            popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
-            return( 0 );
-        }
-
-        combined_es_result.qty = qty;
-        combined_es_result.subrecs = calloc(qty, sizeof(int));
-        combined_es_result.superclasses = calloc(qty, sizeof(int));
-        combined_es_result.indirect_flags = calloc(qty, sizeof(int));
-        combined_es_result.result_funcs = calloc(qty, sizeof(void (**)()));
-        if(combined_es_result.subrecs == NULL || combined_es_result.superclasses == NULL ||
-           combined_es_result.indirect_flags == NULL || combined_es_result.result_funcs == NULL)
-        {
-            popup_dialog(WARNING_POPUP, "Out of memory in function parse_show_command. exiting\n");
-            parse_command("quit", analy);
-        }
-        combined_es_result.original_names = (char **) malloc(qty*sizeof(char *));
-       
-        combined_es_result.primals = NEW_N(char **, qty, "Result primals array");
-        i = 0;
-        for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
-        {
-            if(ptr->primals != NULL)
-            {
-                for(j = 0; j < ptr->qty; j++)
-                {
-                    if(subrecs[ptr->subrecs[j]] == 1)
-                    {
-                        combined_es_result.primals[i+j] = ptr->primals[j];
-                        subrecs[ptr->subrecs[j]]++;
-                    } else
-                    {
-                        continue;
-                    }
-                }
-            }
-
-            i++;
-        } 
-        /* now reset the subrecs array values > 0 back to 1 */
-        for(i = 0; i < analy->srec_tree->qty + 1; i++)
-        {
-            if(subrecs[i] > 0)
-            {
-                subrecs[i] = 1;
-            } 
-        }
-
-        i = 0;
-        for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
-        {
-            for(k = 0; k < ptr->qty; k++)
-            {
-                if(subrecs[ptr->subrecs[k]] == 1)
-                {
-                    combined_es_result.original_names[i + k] = malloc(strlen(ptr->name) + 1);
-                    strcpy(combined_es_result.original_names[i + k], ptr->original_name);
-                    subrecs[ptr->subrecs[k]]++;
-                } else
-                {
-                    continue;
-                } 
-            }
-            i++;
-        }
-
-        for(i = 0; i < analy->srec_tree->qty + 1; i++)
-        {
-            if(subrecs[i] > 0)
-            {
-                subrecs[i] = 1;
-            } 
-        }
- 
-        i = 0;
-        c_ptr = res_ptr->name[0];   
-        while( c_ptr != '\0' && c_ptr != ']')
-        {
-           c_ptr = res_ptr->name[i];
-           if(c_ptr == '[')
-           {
-               i++;
-               Match = TRUE;
-               break;
-           }
-           i++; 
-        }
-        
-        if(Match)
-        {
-            j = 0;
-            do 
-            {
-                c_ptr = res_ptr->name[i]; 
-                combined_es_result.name[j] = c_ptr;
-                i++;
-                j++;
-            }while(res_ptr->name[i] != ']' && res_ptr->name[i] != ',');
-  
-            combined_es_result.name[j] = '\0';
-        } else
-        {
-            strncpy(combined_es_result.name, res_ptr->name, strlen(res_ptr->name) + 1);
-        }
-        strncpy(combined_es_result.root, combined_es_result.name, strlen(combined_es_result.name)+1);
-        strncpy(combined_es_result.original_name, combined_es_result.name, strlen(combined_es_result.name)+1);
-
-        if(!strncmp(res_ptr->name, "es_", 3))
-        {
-            i = 0;
-            c_ptr = res_ptr->title[0];
-            while(c_ptr != '\0' && c_ptr != ']')
-            {
-                c_ptr = res_ptr->title[i];
-                if(c_ptr == ',')
-                {
-                    i += 2;
-                    break;
-                }
-                i++; 
-            } 
-
-            j = 0;
-            do
-            {
-                c_ptr = res_ptr->title[i];
-                combined_es_result.title[j] = c_ptr;
-                i++;
-                j++;
-            }while(res_ptr->title[i] != ']');
-            
-            combined_es_result.title[j] = '\0';                   
-        } else if(Match)
-        {
-            i = 0;
-            c_ptr = res_ptr->title[0];
-            while(c_ptr != '\0' && c_ptr != ']')
-            {
-                c_ptr = res_ptr->title[i];
-                if(c_ptr == '[')
-                {
-                    i++;
-                    break;
-                }
-                i++; 
-            } 
-
-            j = 0;
-            do
-            {
-                c_ptr = res_ptr->title[i];
-                combined_es_result.title[j] = c_ptr;
-                i++;
-                j++;
-            }while(res_ptr->title[i] != ']');
-            
-            combined_es_result.title[j] = '\0';                   
-        } else
-        {
-            strncpy(combined_es_result.root, res_ptr->root, strlen(res_ptr->root) + 1);
-            strncpy(combined_es_result.name, res_ptr->name, strlen(res_ptr->name) + 1);
-            strncpy(combined_es_result.title, res_ptr->title, strlen(res_ptr->title) + 1);
-            strncpy(combined_es_result.original_name, combined_es_result.name, strlen(combined_es_result.name) + 1);
-
-        }
-
-        combined_es_result.next = NULL;
-        combined_es_result.prev = NULL;
-        i = 0; 
-        /* now loop through the res_ptr and create the combined result */
-        for(ptr = res_ptr; ptr != NULL; ptr = ptr->next)
-        { 
-            for(j = 0; j < ptr->qty; j++)
-            {
-              if(subrecs[ptr->subrecs[j]] == 1)
-              {
-                  combined_es_result.subrecs[i] = ptr->subrecs[j];
-                  combined_es_result.superclasses[i] = ptr->superclasses[j];
-                  combined_es_result.result_funcs[i] = ptr->result_funcs[j];
-                  combined_es_result.indirect_flags[i] = ptr->indirect_flags[j];
-                  analy->original_results[ptr->superclasses[j]] = ptr->original_result;
-                  i++; 
-                  subrecs[ptr->subrecs[j]]++;
-              } else
-              {
-                  continue;
-              }  
-            }
-            /*analy->original_results[ptr->superclasses[0]] = ptr->original_result;*/
-        }
-
-        combined_es_result.mesh_id = res_ptr->mesh_id; 
-        combined_es_result.srec_id = res_ptr->srec_id; 
-        combined_es_result.origin = res_ptr->origin;
-        combined_es_result.modifiers = res_ptr->modifiers;
-        combined_es_result.single_valued = res_ptr->single_valued;
-        combined_es_result.original_result = res_ptr->original_result;
-        combined_es_result.reference_count = res_ptr->reference_count;
-        combined_es_result.must_recompute = res_ptr->must_recompute;
-        combined_es_result.hide_in_menu = res_ptr->hide_in_menu;
-        
-       /* set the reference surface if needed */
-       if(strstr(token, "in"))
-       {
-           analy->ref_surf = INNER;
-       } else if (strstr(token, "out"))
-       {
-           analy->ref_surf = OUTER;
-       }
-       free(subrecs);
-
-        if ( !combined_es_result.single_valued && analy->int_labels != NULL && !analy->int_labels->use_combined)
-        {
-            popup_dialog( INFO_POPUP,
-                          "Result specification for \"show\" command\n"
-                          "must resolve to a scalar quantity for plotting." );
-            return( 0 );
-        }
-
-        if(res_ptr != NULL)
-        {
-            delete_result_list(&res_ptr, analy);
-        }
-
-        if(analy->int_labels != NULL && analy->int_labels->use_combined)
-        {
-            current_result = combined_es_result;
-            init_result( &combined_es_result );
-        } else 
-        { 
-            current_result = new_result;
-            init_result( &new_result );
-        } 
-
-        current_result = combined_es_result;
-        init_result( &combined_es_result);
-
-        analy->cur_result = &current_result;
-        analy->cur_result->reference_count++;
-    }
-    else if(analy->int_labels != NULL)
-    {
-        popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
-        return( 0 );
-    } else if(analy->int_labels == NULL)
-    {
-        init_result( &new_result);
-        if( find_result(analy, analy->result_source, TRUE, &new_result, token ))
-        { 
-            if ( !new_result.single_valued )
-            {
+        if ( find_result( analy, analy->result_source, TRUE, &new_result, token) ){
+            if( !new_result.single_valued ){
                 popup_dialog( INFO_POPUP,
                               "Result specification for \"show\" command\n"
-                              "must resolve to a scalar quantity for plotting." );
-                return( 0 );
+                              "must resolve to a scalar quantity for plotting");
+                return 0;
             }
+
             current_result = new_result;
             init_result( &new_result );
 
             analy->cur_result = &current_result;
             analy->cur_result->reference_count++;
-        } else
-        {
-            popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
-            return( 0 );
         }
-          
-    } else
-    {
-        popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
-        return( 0 );
+        else{
+            popup_dialog( INFO_POPUP, "Result \"%s\" not found.", token );
+            return 0;
+        }
     }
-
-   
-    if(analy->int_labels != NULL)
-    {
-        analy->int_labels->use_combined = TRUE;
-    }  
     
     analy->extreme_result = FALSE; 
 

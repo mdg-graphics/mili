@@ -3099,9 +3099,7 @@ load_result( Analysis *analy, Bool_type update, Bool_type interpolate, Bool_type
 
         for ( i = 0; i < qty; i++ )
         {
-            for ( j = 0;
-                    j < p_r->qty;
-                    j++ )
+            for ( j = 0; j < p_r->qty; j++ )
             {
                 /**/
                 /* Set the subrecord references in the Derived_result in the appropriate

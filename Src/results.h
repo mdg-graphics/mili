@@ -55,6 +55,7 @@
 #define RESULTS_H
 
 #include "misc.h"
+typedef struct _subrec_obj Subrec_obj; // Forward declaration so it can be used in Primal_result.
 
 typedef struct _result_origin_flags
 {
@@ -90,37 +91,19 @@ typedef struct _dimensions
 
 typedef struct _result_candidate
 {
-    int superclass;
-    Dimensions dim;
+    int valid_superclasses[QTY_SCLASS]; // Superclasses for which this result can be calculated
+    Dimensions dim; // Dimensions for with the result can be calculated
     Result_origin_flags origin;
     Bool_type single_precision_input;
-    Bool_type hide_in_menu ;
-    /**/
-    /*    void (*compute_func)( Analysis *, float *, Bool_type ); */
+    Bool_type hide_in_menu;
     void (*compute_func)();
     Bool_type (*check_compute_func)();
-    char **short_names;
+    char * group_name; // A name to group this result under in the gui
+    char **short_names; // Short names for derived results
     char **long_names;
-    char **primals;
-    int *primal_superclasses;
+    char **primals; // primal results required to calculate the derived result.
+    int primal_superclass;
 } Result_candidate;
-
-
-typedef struct _es_result_candidate
-{
-    int superclass;
-    Dimensions dim;
-    Result_origin_flags origin;
-    Bool_type single_precision_input;
-    Bool_type hide_in_menu ;
-    void (*compute_func)();
-    /*void (*primal_func)();*/
-    Bool_type (*check_compute_func)();
-    char **short_names;
-    char **long_names;
-    char **primals;
-    int *primal_superclasses;
-} es_Result_candidate;
 
 
 typedef struct _list_head
@@ -167,11 +150,17 @@ typedef struct _list_head
  */
 typedef struct _primal_result
 {
-    State_variable *var;
-    Result_origin_flags origin;
-    List_head *srec_map;
     char *short_name;
     char *long_name;
+    State_variable *var;
+    Result_origin_flags origin;
+    List_head *srec_map;        // List of subrec numbers.
+    Subrec_obj **subrecs;         // List of Subrec_objs
+    int qty_subrecs;
+    Bool_type is_shared;        // Is the result shared by multiple element classes
+    int owning_vec_count;
+    struct _primal_result **owning_vector_result;
+    char **original_names_per_subrec;
     Bool_type in_menu;
 } Primal_result;
 
@@ -196,6 +185,7 @@ typedef struct _subrecord_result
 {
     int subrec_id;
     int index;
+    int superclass;
     Result_candidate *candidate;
     Bool_type indirect;
 } Subrecord_result;
@@ -219,8 +209,15 @@ typedef struct _derived_result
 {
     Result_origin_flags origin;
     List_head *srec_map;
+    int *srec_ids;
+    int srec_id_cnt;
+    Subrec_obj **subrecs;         // List of Subrec_objs
+    int qty_subrecs;
+    char * group_name; // A name to group this result under in the gui
+    Bool_type is_shared;        // Is the result shared by multiple element classes
     Bool_type in_menu;
     Bool_type has_indirect;
+    Bool_type hide_in_menu;
 } Derived_result;
 
 

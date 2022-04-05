@@ -1,0 +1,2969 @@
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 1: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999999e-03
+  2.000000e-01  2.000000e-02
+  3.000000e-01  3.000000e-02
+  4.000000e-01  4.000000e-02
+  5.000000e-01  4.999999e-02
+  6.000000e-01  5.999999e-02
+  7.000000e-01  6.999999e-02
+  8.000000e-01  7.999999e-02
+  9.000000e-01  8.999999e-02
+  1.000000e+00  9.999999e-02
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 2: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -5.999999e-03
+  2.000000e-01  -1.200000e-02
+  3.000000e-01  -1.800000e-02
+  4.000000e-01  -2.400000e-02
+  5.000000e-01  -3.000000e-02
+  6.000000e-01  -3.599999e-02
+  7.000000e-01  -4.200000e-02
+  8.000000e-01  -4.799999e-02
+  9.000000e-01  -5.399999e-02
+  1.000000e+00  -5.999999e-02
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 3: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.083327e-13
+  2.000000e-01  8.333332e-13
+  3.000000e-01  1.875003e-12
+  4.000000e-01  3.333338e-12
+  5.000000e-01  5.208363e-12
+  6.000000e-01  7.500010e-12
+  7.000000e-01  1.020837e-11
+  8.000000e-01  1.333339e-11
+  9.000000e-01  1.687508e-11
+  1.000000e+00  2.083349e-11
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 4: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 5: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 2 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 6: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.999975e-02
+  2.000000e-01  -3.999950e-02
+  3.000000e-01  -5.999925e-02
+  4.000000e-01  -7.999899e-02
+  5.000000e-01  -9.999873e-02
+  6.000000e-01  -1.074989e-01
+  7.000000e-01  -1.149988e-01
+  8.000000e-01  -1.224987e-01
+  9.000000e-01  -1.299986e-01
+  1.000000e+00  -1.374985e-01
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 3 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 7: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.999975e-02
+  2.000000e-01  -3.999950e-02
+  3.000000e-01  -5.999925e-02
+  4.000000e-01  -7.999899e-02
+  5.000000e-01  -9.999873e-02
+  6.000000e-01  -1.171682e-01
+  7.000000e-01  -1.246681e-01
+  8.000000e-01  -1.321680e-01
+  9.000000e-01  -1.396679e-01
+  1.000000e+00  -1.471678e-01
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 4 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 8: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.899725e-02
+  2.000000e-01  -3.633263e-02
+  3.000000e-01  -5.237837e-02
+  4.000000e-01  -6.738552e-02
+  5.000000e-01  -8.153296e-02
+  6.000000e-01  -9.495340e-02
+  7.000000e-01  -1.077486e-01
+  8.000000e-01  -1.199986e-01
+  9.000000e-01  -1.317676e-01
+  1.000000e+00  -1.431082e-01
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 5 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 9: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -6.666583e-03
+  2.000000e-01  -1.333317e-02
+  3.000000e-01  -1.999975e-02
+  4.000000e-01  -2.666633e-02
+  5.000000e-01  -3.333291e-02
+  6.000000e-01  -3.666627e-02
+  7.000000e-01  -3.833295e-02
+  8.000000e-01  -3.916629e-02
+  9.000000e-01  -3.958295e-02
+  1.000000e+00  -3.979129e-02
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 6 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 10: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.999975e-02
+  2.000000e-01  -3.999950e-02
+  3.000000e-01  -5.999925e-02
+  4.000000e-01  -7.999899e-02
+  5.000000e-01  -9.999873e-02
+  6.000000e-01  -1.122617e-01
+  7.000000e-01  -1.122617e-01
+  8.000000e-01  -1.122617e-01
+  9.000000e-01  -1.122617e-01
+  1.000000e+00  -1.122617e-01
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 7 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 11: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.999975e-02
+  2.000000e-01  -3.999950e-02
+  3.000000e-01  -5.999925e-02
+  4.000000e-01  -7.999899e-02
+  5.000000e-01  -9.999873e-02
+  6.000000e-01  -1.113819e-01
+  7.000000e-01  -1.181321e-01
+  8.000000e-01  -1.234441e-01
+  9.000000e-01  -1.279697e-01
+  1.000000e+00  -1.319801e-01
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 8 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 12: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.999975e-02
+  2.000000e-01  -3.999950e-02
+  3.000000e-01  -5.999925e-02
+  4.000000e-01  -7.999899e-02
+  5.000000e-01  -9.999873e-02
+  6.000000e-01  -9.999914e-02
+  7.000000e-01  -9.646329e-02
+  8.000000e-01  -9.260063e-02
+  9.000000e-01  -8.898973e-02
+  1.000000e+00  -8.568694e-02
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 9 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 13: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.999999e-03
+  2.000000e-01  -2.000000e-02
+  3.000000e-01  -3.000000e-02
+  4.000000e-01  -4.000000e-02
+  5.000000e-01  -4.999999e-02
+  6.000000e-01  -5.999999e-02
+  7.000000e-01  -5.999999e-02
+  8.000000e-01  -5.999999e-02
+  9.000000e-01  -5.999999e-02
+  1.000000e+00  -5.999999e-02
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 10 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 14: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.999975e-02
+  2.000000e-01  -3.999950e-02
+  3.000000e-01  -5.773502e-02
+  4.000000e-01  -5.773502e-02
+  5.000000e-01  -5.773501e-02
+  6.000000e-01  -5.773501e-02
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# Y Stress reference surface: middle
+# Y Stress reference frame: global
+# Material 11 Integration point: 1
+
+#         Time      Y Stress
+# Shells - 15: Y Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 1: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.570092e-18
+  2.000000e-01  -3.140185e-18
+  3.000000e-01  -4.710277e-18
+  4.000000e-01  -6.280369e-18
+  5.000000e-01  -7.850461e-18
+  6.000000e-01  -9.420553e-18
+  7.000000e-01  -1.099065e-17
+  8.000000e-01  -1.256074e-17
+  9.000000e-01  -1.413083e-17
+  1.000000e+00  -1.570092e-17
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 2: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  3.252607e-19
+  2.000000e-01  -1.308406e-28
+  3.000000e-01  -3.151427e-18
+  4.000000e-01  -6.505213e-19
+  5.000000e-01  -9.757820e-19
+  6.000000e-01  -1.301043e-18
+  7.000000e-01  4.968084e-18
+  8.000000e-01  -9.488006e-18
+  9.000000e-01  -1.075532e-17
+  1.000000e+00  -1.202264e-17
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 3: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  5.999999e-03
+  2.000000e-01  1.200000e-02
+  3.000000e-01  1.800000e-02
+  4.000000e-01  2.400000e-02
+  5.000000e-01  3.000000e-02
+  6.000000e-01  3.599999e-02
+  7.000000e-01  4.200000e-02
+  8.000000e-01  4.799999e-02
+  9.000000e-01  5.399999e-02
+  1.000000e+00  5.999999e-02
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 4: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 5: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 2 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 6: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.734723e-18
+  2.000000e-01  -3.469447e-18
+  3.000000e-01  -4.336810e-18
+  4.000000e-01  -2.602087e-18
+  5.000000e-01  -3.469449e-18
+  6.000000e-01  -1.554030e-18
+  7.000000e-01  -2.184002e-18
+  8.000000e-01  -2.768832e-18
+  9.000000e-01  -3.317231e-18
+  1.000000e+00  -4.630961e-18
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 3 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 7: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -8.673618e-19
+  2.000000e-01  -1.734724e-18
+  3.000000e-01  -1.202252e-17
+  4.000000e-01  -1.734725e-18
+  5.000000e-01  -8.673638e-19
+  6.000000e-01  -2.540716e-18
+  7.000000e-01  -3.885828e-18
+  8.000000e-01  -2.271684e-17
+  9.000000e-01  -2.599921e-18
+  1.000000e+00  -3.995302e-18
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 4 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 8: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -8.238849e-19
+  2.000000e-01  4.050612e-20
+  3.000000e-01  -7.688184e-19
+  4.000000e-01  9.174530e-20
+  5.000000e-01  8.948736e-19
+  6.000000e-01  -7.854288e-19
+  7.000000e-01  -1.684073e-17
+  8.000000e-01  -1.557351e-18
+  9.000000e-01  -2.282161e-18
+  1.000000e+00  -3.787702e-18
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 5 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 9: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -2.891206e-19
+  2.000000e-01  -2.671672e-18
+  3.000000e-01  -8.673620e-19
+  4.000000e-01  -1.156483e-18
+  5.000000e-01  -1.445604e-18
+  6.000000e-01  -6.817056e-18
+  7.000000e-01  -1.193554e-18
+  8.000000e-01  -1.290477e-18
+  9.000000e-01  -1.364200e-18
+  1.000000e+00  -1.422453e-18
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 6 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 10: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -8.673618e-19
+  2.000000e-01  -1.734724e-18
+  3.000000e-01  -2.602086e-18
+  4.000000e-01  -3.469448e-18
+  5.000000e-01  -4.336811e-18
+  6.000000e-01  -4.868640e-18
+  7.000000e-01  -4.868640e-18
+  8.000000e-01  -2.249476e-17
+  9.000000e-01  -4.868642e-18
+  1.000000e+00  -2.102235e-17
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 7 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 11: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -8.673618e-19
+  2.000000e-01  -1.734724e-18
+  3.000000e-01  -2.602086e-18
+  4.000000e-01  -3.469448e-18
+  5.000000e-01  -4.336811e-18
+  6.000000e-01  -4.830486e-18
+  7.000000e-01  -5.123232e-18
+  8.000000e-01  -2.473547e-17
+  9.000000e-01  -5.549877e-18
+  1.000000e+00  -2.489863e-17
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 8 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 12: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -8.673618e-19
+  2.000000e-01  -1.734724e-18
+  3.000000e-01  -2.602086e-18
+  4.000000e-01  -3.469449e-18
+  5.000000e-01  -4.336811e-18
+  6.000000e-01  -4.336830e-18
+  7.000000e-01  -4.183486e-18
+  8.000000e-01  -1.855512e-17
+  9.000000e-01  -3.859370e-18
+  1.000000e+00  -1.580595e-17
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 9 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 13: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.195710e-19
+  2.000000e-01  -6.505213e-19
+  3.000000e-01  3.409234e-18
+  4.000000e-01  4.979327e-18
+  5.000000e-01  5.898898e-18
+  6.000000e-01  7.468989e-18
+  7.000000e-01  -1.951564e-18
+  8.000000e-01  -1.951564e-18
+  9.000000e-01  -1.951564e-18
+  1.000000e+00  7.468989e-18
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 10 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 14: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -8.673618e-19
+  2.000000e-01  -1.734724e-18
+  3.000000e-01  -2.503890e-18
+  4.000000e-01  -2.503890e-18
+  5.000000e-01  -2.503891e-18
+  6.000000e-01  -2.503891e-18
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# XY Stress reference surface: middle
+# XY Stress reference frame: global
+# Material 11 Integration point: 1
+
+#         Time     XY Stress
+# Shells - 15: XY Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 1: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 2: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 3: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 4: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  6.000000e-03
+  2.000000e-01  1.200000e-02
+  3.000000e-01  1.800000e-02
+  4.000000e-01  2.400000e-02
+  5.000000e-01  3.000000e-02
+  6.000000e-01  3.600000e-02
+  7.000000e-01  4.200000e-02
+  8.000000e-01  4.800000e-02
+  9.000000e-01  5.400000e-02
+  1.000000e+00  6.000000e-02
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 5: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  1.925930e-34
+  4.000000e-01  0.000000e+00
+  5.000000e-01  3.851860e-34
+  6.000000e-01  0.000000e+00
+  7.000000e-01  -3.851860e-34
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 2 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 6: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.000000e-02
+  2.000000e-01  4.000000e-02
+  3.000000e-01  6.000000e-02
+  4.000000e-01  8.000000e-02
+  5.000000e-01  1.000000e-01
+  6.000000e-01  1.075003e-01
+  7.000000e-01  1.150003e-01
+  8.000000e-01  1.225003e-01
+  9.000000e-01  1.300003e-01
+  1.000000e+00  1.375003e-01
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 3 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 7: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 4 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 8: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.899749e-02
+  2.000000e-01  3.633309e-02
+  3.000000e-01  5.237903e-02
+  4.000000e-01  6.738637e-02
+  5.000000e-01  8.153399e-02
+  6.000000e-01  9.495461e-02
+  7.000000e-01  1.077500e-01
+  8.000000e-01  1.200001e-01
+  9.000000e-01  1.317693e-01
+  1.000000e+00  1.431100e-01
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 5 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 9: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  6.666667e-03
+  2.000000e-01  1.333333e-02
+  3.000000e-01  2.000000e-02
+  4.000000e-01  2.666667e-02
+  5.000000e-01  3.333334e-02
+  6.000000e-01  3.666674e-02
+  7.000000e-01  3.833344e-02
+  8.000000e-01  3.916679e-02
+  9.000000e-01  3.958346e-02
+  1.000000e+00  3.979180e-02
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 6 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 10: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.000000e-02
+  2.000000e-01  4.000000e-02
+  3.000000e-01  6.000000e-02
+  4.000000e-01  8.000000e-02
+  5.000000e-01  1.000000e-01
+  6.000000e-01  1.122631e-01
+  7.000000e-01  1.122631e-01
+  8.000000e-01  1.122631e-01
+  9.000000e-01  1.122631e-01
+  1.000000e+00  1.122631e-01
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 7 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 11: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.000000e-02
+  2.000000e-01  4.000000e-02
+  3.000000e-01  6.000000e-02
+  4.000000e-01  8.000000e-02
+  5.000000e-01  1.000000e-01
+  6.000000e-01  1.113834e-01
+  7.000000e-01  1.181336e-01
+  8.000000e-01  1.234457e-01
+  9.000000e-01  1.279713e-01
+  1.000000e+00  1.319818e-01
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 8 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 12: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.000000e-02
+  2.000000e-01  4.000000e-02
+  3.000000e-01  6.000000e-02
+  4.000000e-01  8.000000e-02
+  5.000000e-01  1.000000e-01
+  6.000000e-01  1.000004e-01
+  7.000000e-01  9.646451e-02
+  8.000000e-01  9.260182e-02
+  9.000000e-01  8.899089e-02
+  1.000000e+00  8.568805e-02
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 9 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 13: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 10 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 14: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# YZ Stress reference surface: middle
+# YZ Stress reference frame: global
+# Material 11 Integration point: 1
+
+#         Time     YZ Stress
+# Shells - 15: YZ Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  3.000000e-03
+  2.000000e-01  6.000000e-03
+  3.000000e-01  9.000000e-03
+  4.000000e-01  1.200000e-02
+  5.000000e-01  1.500000e-02
+  6.000000e-01  1.800000e-02
+  7.000000e-01  2.100000e-02
+  8.000000e-01  2.400000e-02
+  9.000000e-01  2.700000e-02
+  1.000000e+00  3.000000e-02
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 1: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999999e-04
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  4.999999e-03
+  6.000000e-01  5.999999e-03
+  7.000000e-01  6.999999e-03
+  8.000000e-01  7.999999e-03
+  9.000000e-01  8.999999e-03
+  1.000000e+00  9.999999e-03
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 2: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.999999e-04
+  2.000000e-01  -2.000000e-03
+  3.000000e-01  -3.000000e-03
+  4.000000e-01  -4.000000e-03
+  5.000000e-01  -4.999999e-03
+  6.000000e-01  -5.999999e-03
+  7.000000e-01  -6.999999e-03
+  8.000000e-01  -7.999999e-03
+  9.000000e-01  -8.999999e-03
+  1.000000e+00  -9.999999e-03
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 3: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  2.083327e-14
+  2.000000e-01  8.333341e-14
+  3.000000e-01  1.875004e-13
+  4.000000e-01  3.333335e-13
+  5.000000e-01  5.208372e-13
+  6.000000e-01  7.500000e-13
+  7.000000e-01  1.020837e-12
+  8.000000e-01  1.333337e-12
+  9.000000e-01  1.687506e-12
+  1.000000e+00  2.083347e-12
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 4: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 5: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 2 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 6: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.999875e-03
+  2.000000e-01  -1.999975e-02
+  3.000000e-01  -2.999962e-02
+  4.000000e-01  -3.999950e-02
+  5.000000e-01  -4.999937e-02
+  6.000000e-01  -5.999924e-02
+  7.000000e-01  -6.999911e-02
+  8.000000e-01  -7.999898e-02
+  9.000000e-01  -8.999886e-02
+  1.000000e+00  -9.999873e-02
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 7: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.999875e-03
+  2.000000e-01  -1.999975e-02
+  3.000000e-01  -2.999962e-02
+  4.000000e-01  -3.999950e-02
+  5.000000e-01  -4.999937e-02
+  6.000000e-01  -5.999924e-02
+  7.000000e-01  -6.999911e-02
+  8.000000e-01  -7.999898e-02
+  9.000000e-01  -8.999886e-02
+  1.000000e+00  -9.999873e-02
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 4 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 8: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.999875e-03
+  2.000000e-01  -1.999975e-02
+  3.000000e-01  -2.999962e-02
+  4.000000e-01  -3.999950e-02
+  5.000000e-01  -4.999937e-02
+  6.000000e-01  -5.999924e-02
+  7.000000e-01  -6.999911e-02
+  8.000000e-01  -7.999898e-02
+  9.000000e-01  -8.999886e-02
+  1.000000e+00  -9.999873e-02
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 5 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 9: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.999875e-03
+  2.000000e-01  -1.999975e-02
+  3.000000e-01  -2.999962e-02
+  4.000000e-01  -3.999950e-02
+  5.000000e-01  -4.999937e-02
+  6.000000e-01  -5.999924e-02
+  7.000000e-01  -6.999911e-02
+  8.000000e-01  -7.999898e-02
+  9.000000e-01  -8.999886e-02
+  1.000000e+00  -9.999873e-02
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 6 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 10: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.999875e-03
+  2.000000e-01  -1.999975e-02
+  3.000000e-01  -2.999962e-02
+  4.000000e-01  -3.999950e-02
+  5.000000e-01  -4.999937e-02
+  6.000000e-01  -5.999924e-02
+  7.000000e-01  -6.999911e-02
+  8.000000e-01  -7.999898e-02
+  9.000000e-01  -8.999886e-02
+  1.000000e+00  -9.999873e-02
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 7 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 11: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.999875e-03
+  2.000000e-01  -1.999975e-02
+  3.000000e-01  -2.999962e-02
+  4.000000e-01  -3.999950e-02
+  5.000000e-01  -4.999937e-02
+  6.000000e-01  -5.999924e-02
+  7.000000e-01  -6.999911e-02
+  8.000000e-01  -7.999898e-02
+  9.000000e-01  -8.999886e-02
+  1.000000e+00  -9.999873e-02
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 8 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 12: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.999875e-03
+  2.000000e-01  -1.999975e-02
+  3.000000e-01  -2.999962e-02
+  4.000000e-01  -3.999950e-02
+  5.000000e-01  -4.999937e-02
+  6.000000e-01  -5.999924e-02
+  7.000000e-01  -6.999911e-02
+  8.000000e-01  -7.999898e-02
+  9.000000e-01  -8.999886e-02
+  1.000000e+00  -9.999873e-02
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 9 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 13: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.999999e-04
+  2.000000e-01  -2.000000e-03
+  3.000000e-01  -3.000000e-03
+  4.000000e-01  -4.000000e-03
+  5.000000e-01  -4.999999e-03
+  6.000000e-01  -5.999999e-03
+  7.000000e-01  -5.999999e-03
+  8.000000e-01  -5.999999e-03
+  9.000000e-01  -5.999999e-03
+  1.000000e+00  -5.999999e-03
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 10 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 14: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -9.999875e-03
+  2.000000e-01  -1.999975e-02
+  3.000000e-01  -2.999962e-02
+  4.000000e-01  -3.999950e-02
+  5.000000e-01  -4.999937e-02
+  6.000000e-01  -5.999924e-02
+  7.000000e-01  -6.999911e-02
+  8.000000e-01  -6.999911e-02
+  9.000000e-01  -6.999911e-02
+  1.000000e+00  -6.999911e-02
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# Y-Strain reference surface: middle
+# Y-Strain reference frame: global
+# Material 11 Integration point: 1
+
+#         Time      Y-Strain
+# Shells - 15: Y-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 1: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -1.570092e-19
+  2.000000e-01  -3.140184e-19
+  3.000000e-01  -4.710277e-19
+  4.000000e-01  -6.280369e-19
+  5.000000e-01  -7.850462e-19
+  6.000000e-01  -9.420553e-19
+  7.000000e-01  -1.099065e-18
+  8.000000e-01  -1.256074e-18
+  9.000000e-01  -1.413083e-18
+  1.000000e+00  -1.570092e-18
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 2: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  5.421011e-20
+  2.000000e-01  -1.308407e-29
+  3.000000e-01  -5.252378e-19
+  4.000000e-01  -1.084202e-19
+  5.000000e-01  -1.626303e-19
+  6.000000e-01  -2.168404e-19
+  7.000000e-01  8.280140e-19
+  8.000000e-01  -1.581334e-18
+  9.000000e-01  -1.792554e-18
+  1.000000e+00  -2.003773e-18
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 3: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999999e-04
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  4.999999e-03
+  6.000000e-01  5.999999e-03
+  7.000000e-01  6.999999e-03
+  8.000000e-01  7.999999e-03
+  9.000000e-01  8.999999e-03
+  1.000000e+00  9.999999e-03
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 4: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 5: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 2 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 6: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -8.673617e-19
+  2.000000e-01  -1.734724e-18
+  3.000000e-01  -2.168405e-18
+  4.000000e-01  -1.301043e-18
+  5.000000e-01  -1.734724e-18
+  6.000000e-01  -8.673629e-19
+  7.000000e-01  -1.301044e-18
+  8.000000e-01  -1.734726e-18
+  9.000000e-01  -2.168407e-18
+  1.000000e+00  -3.035769e-18
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 7: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -4.336809e-19
+  2.000000e-01  -8.673618e-19
+  3.000000e-01  -6.011261e-18
+  4.000000e-01  -8.673623e-19
+  5.000000e-01  -4.336817e-19
+  6.000000e-01  -1.301044e-18
+  7.000000e-01  -2.168406e-18
+  8.000000e-01  -1.386163e-17
+  9.000000e-01  -1.734726e-18
+  1.000000e+00  -2.602089e-18
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 4 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 8: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -4.336809e-19
+  2.000000e-01  -1.308412e-25
+  3.000000e-01  -4.336812e-19
+  4.000000e-01  -5.234171e-25
+  5.000000e-01  4.336800e-19
+  6.000000e-01  -4.336821e-19
+  7.000000e-01  -1.099051e-17
+  8.000000e-01  -8.673638e-19
+  9.000000e-01  -1.301045e-18
+  1.000000e+00  -2.168408e-18
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 5 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 9: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -4.336809e-19
+  2.000000e-01  -4.007507e-18
+  3.000000e-01  -1.301043e-18
+  4.000000e-01  -1.734724e-18
+  5.000000e-01  -2.168405e-18
+  6.000000e-01  -1.115516e-17
+  7.000000e-01  -2.168406e-18
+  8.000000e-01  -2.602087e-18
+  9.000000e-01  -3.035769e-18
+  1.000000e+00  -3.469450e-18
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 6 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 10: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -4.336809e-19
+  2.000000e-01  -8.673618e-19
+  3.000000e-01  -1.301043e-18
+  4.000000e-01  -1.734724e-18
+  5.000000e-01  -2.168405e-18
+  6.000000e-01  -2.602086e-18
+  7.000000e-01  -3.035768e-18
+  8.000000e-01  -1.603003e-17
+  9.000000e-01  -3.903130e-18
+  1.000000e+00  -1.917018e-17
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 7 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 11: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -4.336809e-19
+  2.000000e-01  -8.673618e-19
+  3.000000e-01  -1.301043e-18
+  4.000000e-01  -1.734724e-18
+  5.000000e-01  -2.168405e-18
+  6.000000e-01  -2.602086e-18
+  7.000000e-01  -3.035768e-18
+  8.000000e-01  -1.603003e-17
+  9.000000e-01  -3.903130e-18
+  1.000000e+00  -1.917018e-17
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 8 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 12: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -4.336809e-19
+  2.000000e-01  -8.673618e-19
+  3.000000e-01  -1.301043e-18
+  4.000000e-01  -1.734724e-18
+  5.000000e-01  -2.168405e-18
+  6.000000e-01  -2.602086e-18
+  7.000000e-01  -3.035768e-18
+  8.000000e-01  -1.603003e-17
+  9.000000e-01  -3.903130e-18
+  1.000000e+00  -1.917018e-17
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 9 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 13: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  4.858901e-20
+  2.000000e-01  -1.084202e-19
+  3.000000e-01  2.541873e-19
+  4.000000e-01  4.111965e-19
+  5.000000e-01  4.597855e-19
+  6.000000e-01  6.167947e-19
+  7.000000e-01  -3.252607e-19
+  8.000000e-01  -3.252607e-19
+  9.000000e-01  -3.252607e-19
+  1.000000e+00  6.167947e-19
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 10 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 14: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  -4.336809e-19
+  2.000000e-01  -8.673618e-19
+  3.000000e-01  -1.301043e-18
+  4.000000e-01  -1.734724e-18
+  5.000000e-01  -2.168405e-18
+  6.000000e-01  -2.602086e-18
+  7.000000e-01  -1.272523e-17
+  8.000000e-01  -1.734725e-18
+  9.000000e-01  -1.734725e-18
+  1.000000e+00  -1.272523e-17
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# XY-Strain reference surface: middle
+# XY-Strain reference frame: global
+# Material 11 Integration point: 1
+
+#         Time     XY-Strain
+# Shells - 15: XY-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 1: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 2: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 3: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 4: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-03
+  2.000000e-01  2.000000e-03
+  3.000000e-01  3.000000e-03
+  4.000000e-01  4.000000e-03
+  5.000000e-01  5.000000e-03
+  6.000000e-01  6.000000e-03
+  7.000000e-01  7.000000e-03
+  8.000000e-01  8.000000e-03
+  9.000000e-01  9.000000e-03
+  1.000000e+00  1.000000e-02
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 1 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 5: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.203706e-35
+  2.000000e-01  2.407412e-35
+  3.000000e-01  4.814825e-35
+  4.000000e-01  4.814825e-35
+  5.000000e-01  -4.814825e-35
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  9.629650e-35
+  9.000000e-01  9.629650e-35
+  1.000000e+00  9.629650e-35
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 2 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 6: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-02
+  2.000000e-01  2.000000e-02
+  3.000000e-01  3.000000e-02
+  4.000000e-01  4.000000e-02
+  5.000000e-01  5.000000e-02
+  6.000000e-01  6.000000e-02
+  7.000000e-01  7.000000e-02
+  8.000000e-01  8.000000e-02
+  9.000000e-01  9.000000e-02
+  1.000000e+00  1.000000e-01
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 3 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 7: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 4 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 8: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-02
+  2.000000e-01  2.000000e-02
+  3.000000e-01  3.000000e-02
+  4.000000e-01  4.000000e-02
+  5.000000e-01  5.000000e-02
+  6.000000e-01  6.000000e-02
+  7.000000e-01  7.000000e-02
+  8.000000e-01  8.000000e-02
+  9.000000e-01  9.000000e-02
+  1.000000e+00  1.000000e-01
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 5 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 9: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-02
+  2.000000e-01  2.000000e-02
+  3.000000e-01  3.000000e-02
+  4.000000e-01  4.000000e-02
+  5.000000e-01  5.000000e-02
+  6.000000e-01  6.000000e-02
+  7.000000e-01  7.000000e-02
+  8.000000e-01  8.000000e-02
+  9.000000e-01  9.000000e-02
+  1.000000e+00  1.000000e-01
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 6 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 10: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-02
+  2.000000e-01  2.000000e-02
+  3.000000e-01  3.000000e-02
+  4.000000e-01  4.000000e-02
+  5.000000e-01  5.000000e-02
+  6.000000e-01  6.000000e-02
+  7.000000e-01  7.000000e-02
+  8.000000e-01  8.000000e-02
+  9.000000e-01  9.000000e-02
+  1.000000e+00  1.000000e-01
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 7 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 11: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-02
+  2.000000e-01  2.000000e-02
+  3.000000e-01  3.000000e-02
+  4.000000e-01  4.000000e-02
+  5.000000e-01  5.000000e-02
+  6.000000e-01  6.000000e-02
+  7.000000e-01  7.000000e-02
+  8.000000e-01  8.000000e-02
+  9.000000e-01  9.000000e-02
+  1.000000e+00  1.000000e-01
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 8 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 12: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.000000e-02
+  2.000000e-01  2.000000e-02
+  3.000000e-01  3.000000e-02
+  4.000000e-01  4.000000e-02
+  5.000000e-01  5.000000e-02
+  6.000000e-01  6.000000e-02
+  7.000000e-01  7.000000e-02
+  8.000000e-01  8.000000e-02
+  9.000000e-01  9.000000e-02
+  1.000000e+00  1.000000e-01
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 9 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 13: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 10 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 14: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  0.000000e+00
+  2.000000e-01  0.000000e+00
+  3.000000e-01  0.000000e+00
+  4.000000e-01  0.000000e+00
+  5.000000e-01  0.000000e+00
+  6.000000e-01  0.000000e+00
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# YZ-Strain reference surface: middle
+# YZ-Strain reference frame: global
+# Material 11 Integration point: 1
+
+#         Time     YZ-Strain
+# Shells - 15: YZ-Strain
+  0.000000e+00  0.000000e+00
+  1.000000e-01  5.000000e-04
+  2.000000e-01  1.000000e-03
+  3.000000e-01  1.500000e-03
+  4.000000e-01  2.000000e-03
+  5.000000e-01  2.500000e-03
+  6.000000e-01  3.000000e-03
+  7.000000e-01  3.500000e-03
+  8.000000e-01  4.000000e-03
+  9.000000e-01  4.500000e-03
+  1.000000e+00  5.000000e-03
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 1: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.111111e-02
+  2.000000e-01  1.111111e-02
+  3.000000e-01  1.111111e-02
+  4.000000e-01  1.111111e-02
+  5.000000e-01  1.111111e-02
+  6.000000e-01  1.111111e-02
+  7.000000e-01  1.111111e-02
+  8.000000e-01  1.111111e-02
+  9.000000e-01  1.111111e-02
+  1.000000e+00  1.111111e-02
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 2: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.154700e-02
+  2.000000e-01  1.154700e-02
+  3.000000e-01  1.154700e-02
+  4.000000e-01  1.154700e-02
+  5.000000e-01  1.154700e-02
+  6.000000e-01  1.154700e-02
+  7.000000e-01  1.154700e-02
+  8.000000e-01  1.154700e-02
+  9.000000e-01  1.154700e-02
+  1.000000e+00  1.154700e-02
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 3: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.154700e-02
+  2.000000e-01  1.154700e-02
+  3.000000e-01  1.154700e-02
+  4.000000e-01  1.154700e-02
+  5.000000e-01  1.154700e-02
+  6.000000e-01  1.154700e-02
+  7.000000e-01  1.154700e-02
+  8.000000e-01  1.154700e-02
+  9.000000e-01  1.154700e-02
+  1.000000e+00  1.154700e-02
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 4: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.154701e-02
+  2.000000e-01  1.154701e-02
+  3.000000e-01  1.154701e-02
+  4.000000e-01  1.154701e-02
+  5.000000e-01  1.154701e-02
+  6.000000e-01  1.154701e-02
+  7.000000e-01  1.154701e-02
+  8.000000e-01  1.154701e-02
+  9.000000e-01  1.154701e-02
+  1.000000e+00  1.154701e-02
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 5: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.154701e-02
+  2.000000e-01  1.154701e-02
+  3.000000e-01  1.154701e-02
+  4.000000e-01  1.154701e-02
+  5.000000e-01  1.154701e-02
+  6.000000e-01  1.154701e-02
+  7.000000e-01  1.154701e-02
+  8.000000e-01  1.154701e-02
+  9.000000e-01  1.154701e-02
+  1.000000e+00  1.154701e-02
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 2 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 6: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.999992e-01
+  2.000000e-01  1.999992e-01
+  3.000000e-01  1.999992e-01
+  4.000000e-01  1.999992e-01
+  5.000000e-01  1.999992e-01
+  6.000000e-01  1.999992e-01
+  7.000000e-01  1.999992e-01
+  8.000000e-01  1.999992e-01
+  9.000000e-01  1.999992e-01
+  1.000000e+00  1.999992e-01
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 7: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.154686e-01
+  2.000000e-01  1.154686e-01
+  3.000000e-01  1.154686e-01
+  4.000000e-01  1.154686e-01
+  5.000000e-01  1.154686e-01
+  6.000000e-01  1.154686e-01
+  7.000000e-01  1.154686e-01
+  8.000000e-01  1.154686e-01
+  9.000000e-01  1.154686e-01
+  1.000000e+00  1.154686e-01
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 4 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 8: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.999992e-01
+  2.000000e-01  1.999992e-01
+  3.000000e-01  1.999992e-01
+  4.000000e-01  1.999992e-01
+  5.000000e-01  1.999992e-01
+  6.000000e-01  1.999992e-01
+  7.000000e-01  1.999992e-01
+  8.000000e-01  1.999992e-01
+  9.000000e-01  1.999992e-01
+  1.000000e+00  1.999992e-01
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 5 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 9: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.999992e-01
+  2.000000e-01  1.999992e-01
+  3.000000e-01  1.999992e-01
+  4.000000e-01  1.999992e-01
+  5.000000e-01  1.999992e-01
+  6.000000e-01  1.999992e-01
+  7.000000e-01  1.999992e-01
+  8.000000e-01  1.999992e-01
+  9.000000e-01  1.999992e-01
+  1.000000e+00  1.999992e-01
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 6 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 10: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.999992e-01
+  2.000000e-01  1.999992e-01
+  3.000000e-01  1.999992e-01
+  4.000000e-01  1.999992e-01
+  5.000000e-01  1.999992e-01
+  6.000000e-01  1.999992e-01
+  7.000000e-01  1.999992e-01
+  8.000000e-01  1.999992e-01
+  9.000000e-01  1.999992e-01
+  1.000000e+00  1.999992e-01
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 7 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 11: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.999992e-01
+  2.000000e-01  1.999992e-01
+  3.000000e-01  1.999992e-01
+  4.000000e-01  1.999992e-01
+  5.000000e-01  1.999992e-01
+  6.000000e-01  1.999992e-01
+  7.000000e-01  1.999992e-01
+  8.000000e-01  1.999992e-01
+  9.000000e-01  1.999992e-01
+  1.000000e+00  1.999992e-01
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 8 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 12: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.999992e-01
+  2.000000e-01  1.999992e-01
+  3.000000e-01  1.999992e-01
+  4.000000e-01  1.999992e-01
+  5.000000e-01  1.999992e-01
+  6.000000e-01  1.999992e-01
+  7.000000e-01  1.999992e-01
+  8.000000e-01  1.999992e-01
+  9.000000e-01  1.999992e-01
+  1.000000e+00  1.999992e-01
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 9 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 13: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.111111e-02
+  2.000000e-01  1.111111e-02
+  3.000000e-01  1.111111e-02
+  4.000000e-01  1.111111e-02
+  5.000000e-01  1.111111e-02
+  6.000000e-01  1.111111e-02
+  7.000000e-01  1.111111e-02
+  8.000000e-01  1.111111e-02
+  9.000000e-01  1.111111e-02
+  1.000000e+00  1.111111e-02
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 10 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 14: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.154686e-01
+  2.000000e-01  1.154686e-01
+  3.000000e-01  1.154686e-01
+  4.000000e-01  1.154686e-01
+  5.000000e-01  1.154686e-01
+  6.000000e-01  1.154686e-01
+  7.000000e-01  1.154686e-01
+  8.000000e-01  1.154686e-01
+  9.000000e-01  1.154686e-01
+  1.000000e+00  1.154686e-01
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# Eff. Dev. Strain Rate reference surface: middle
+# Eff. Dev. Strain Rate reference frame: global
+# Material 11 Integration point: 1
+
+#         Time  Eff. Dev. Strain Rate
+# Shells - 15: Eff. Dev. Strain Rate
+  0.000000e+00  0.000000e+00
+  1.000000e-01  8.164966e-03
+  2.000000e-01  8.164966e-03
+  3.000000e-01  8.164966e-03
+  4.000000e-01  8.164966e-03
+  5.000000e-01  8.164966e-03
+  6.000000e-01  8.164966e-03
+  7.000000e-01  8.164966e-03
+  8.000000e-01  8.164966e-03
+  9.000000e-01  8.164966e-03
+  1.000000e+00  8.164966e-03
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 1: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999999e-03
+  2.000000e-01  2.000000e-02
+  3.000000e-01  3.000000e-02
+  4.000000e-01  4.000000e-02
+  5.000000e-01  4.999999e-02
+  6.000000e-01  5.999999e-02
+  7.000000e-01  6.999999e-02
+  8.000000e-01  7.999999e-02
+  9.000000e-01  8.999999e-02
+  1.000000e+00  9.999999e-02
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 2: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.039230e-02
+  2.000000e-01  2.078461e-02
+  3.000000e-01  3.117691e-02
+  4.000000e-01  4.156921e-02
+  5.000000e-01  5.196152e-02
+  6.000000e-01  6.235382e-02
+  7.000000e-01  7.274613e-02
+  8.000000e-01  8.313843e-02
+  9.000000e-01  9.353074e-02
+  1.000000e+00  1.039230e-01
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 3: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.039230e-02
+  2.000000e-01  2.078461e-02
+  3.000000e-01  3.117691e-02
+  4.000000e-01  4.156921e-02
+  5.000000e-01  5.196152e-02
+  6.000000e-01  6.235382e-02
+  7.000000e-01  7.274613e-02
+  8.000000e-01  8.313843e-02
+  9.000000e-01  9.353074e-02
+  1.000000e+00  1.039230e-01
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 4: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.039231e-02
+  2.000000e-01  2.078461e-02
+  3.000000e-01  3.117691e-02
+  4.000000e-01  4.156922e-02
+  5.000000e-01  5.196153e-02
+  6.000000e-01  6.235383e-02
+  7.000000e-01  7.274614e-02
+  8.000000e-01  8.313844e-02
+  9.000000e-01  9.353074e-02
+  1.000000e+00  1.039231e-01
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 1 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 5: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.039231e-02
+  2.000000e-01  2.078461e-02
+  3.000000e-01  3.117691e-02
+  4.000000e-01  4.156922e-02
+  5.000000e-01  5.196153e-02
+  6.000000e-01  6.235383e-02
+  7.000000e-01  7.274614e-02
+  8.000000e-01  8.313844e-02
+  9.000000e-01  9.353074e-02
+  1.000000e+00  1.039231e-01
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 2 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 6: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  5.999975e-02
+  2.000000e-01  1.199995e-01
+  3.000000e-01  1.799992e-01
+  4.000000e-01  2.399990e-01
+  5.000000e-01  2.999988e-01
+  6.000000e-01  3.224995e-01
+  7.000000e-01  3.449993e-01
+  8.000000e-01  3.674993e-01
+  9.000000e-01  3.899992e-01
+  1.000000e+00  4.124990e-01
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 3 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 7: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  3.464058e-02
+  2.000000e-01  6.928117e-02
+  3.000000e-01  1.039217e-01
+  4.000000e-01  1.385623e-01
+  5.000000e-01  1.732029e-01
+  6.000000e-01  2.029413e-01
+  7.000000e-01  2.159315e-01
+  8.000000e-01  2.289218e-01
+  9.000000e-01  2.419120e-01
+  1.000000e+00  2.549022e-01
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 4 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 8: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  5.699223e-02
+  2.000000e-01  1.089988e-01
+  3.000000e-01  1.571364e-01
+  4.000000e-01  2.021583e-01
+  5.000000e-01  2.446010e-01
+  6.000000e-01  2.848626e-01
+  7.000000e-01  3.232486e-01
+  8.000000e-01  3.599988e-01
+  9.000000e-01  3.953061e-01
+  1.000000e+00  4.293283e-01
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 5 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 9: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  1.999992e-02
+  2.000000e-01  3.999984e-02
+  3.000000e-01  5.999975e-02
+  4.000000e-01  7.999966e-02
+  5.000000e-01  9.999959e-02
+  6.000000e-01  1.099998e-01
+  7.000000e-01  1.149998e-01
+  8.000000e-01  1.174999e-01
+  9.000000e-01  1.187499e-01
+  1.000000e+00  1.193749e-01
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 6 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 10: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  5.999975e-02
+  2.000000e-01  1.199995e-01
+  3.000000e-01  1.799992e-01
+  4.000000e-01  2.399990e-01
+  5.000000e-01  2.999988e-01
+  6.000000e-01  3.367879e-01
+  7.000000e-01  3.367879e-01
+  8.000000e-01  3.367879e-01
+  9.000000e-01  3.367879e-01
+  1.000000e+00  3.367879e-01
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 7 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 11: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  5.999975e-02
+  2.000000e-01  1.199995e-01
+  3.000000e-01  1.799992e-01
+  4.000000e-01  2.399990e-01
+  5.000000e-01  2.999988e-01
+  6.000000e-01  3.341487e-01
+  7.000000e-01  3.543993e-01
+  8.000000e-01  3.703354e-01
+  9.000000e-01  3.839124e-01
+  1.000000e+00  3.959439e-01
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 8 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 12: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  5.999975e-02
+  2.000000e-01  1.199995e-01
+  3.000000e-01  1.799992e-01
+  4.000000e-01  2.399990e-01
+  5.000000e-01  2.999988e-01
+  6.000000e-01  3.000000e-01
+  7.000000e-01  2.893923e-01
+  8.000000e-01  2.778043e-01
+  9.000000e-01  2.669716e-01
+  1.000000e+00  2.570631e-01
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 9 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 13: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  9.999999e-03
+  2.000000e-01  2.000000e-02
+  3.000000e-01  3.000000e-02
+  4.000000e-01  4.000000e-02
+  5.000000e-01  4.999999e-02
+  6.000000e-01  5.999999e-02
+  7.000000e-01  5.999999e-02
+  8.000000e-01  5.999999e-02
+  9.000000e-01  5.999999e-02
+  1.000000e+00  5.999999e-02
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 10 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 14: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  3.464058e-02
+  2.000000e-01  6.928117e-02
+  3.000000e-01  1.000000e-01
+  4.000000e-01  1.000000e-01
+  5.000000e-01  1.000000e-01
+  6.000000e-01  1.000000e-01
+  7.000000e-01  0.000000e+00
+  8.000000e-01  0.000000e+00
+  9.000000e-01  0.000000e+00
+  1.000000e+00  0.000000e+00
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# Effective Stress reference surface: middle
+# Effective Stress reference frame: global
+# Material 11 Integration point: 1
+
+#         Time  Effective Stress
+# Shells - 15: Effective Stress
+  0.000000e+00  0.000000e+00
+  1.000000e-01  7.348469e-03
+  2.000000e-01  1.469694e-02
+  3.000000e-01  2.204541e-02
+  4.000000e-01  2.939388e-02
+  5.000000e-01  3.674235e-02
+  6.000000e-01  4.409081e-02
+  7.000000e-01  5.143929e-02
+  8.000000e-01  5.878776e-02
+  9.000000e-01  6.613623e-02
+  1.000000e+00  7.348470e-02
+
+#
+# Curve 1 - Shells 1
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Pressure
+# Shells - 1: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -6.666666e-03
+  2.000000e-01  -1.333333e-02
+  3.000000e-01  -2.000000e-02
+  4.000000e-01  -2.666666e-02
+  5.000000e-01  -3.333333e-02
+  6.000000e-01  -4.000000e-02
+  7.000000e-01  -4.666666e-02
+  8.000000e-01  -5.333333e-02
+  9.000000e-01  -5.999999e-02
+  1.000000e+00  -6.666666e-02
+
+#
+# Curve 2 - Shells 2
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Pressure
+# Shells - 2: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -0.000000e+00
+  2.000000e-01  -0.000000e+00
+  3.000000e-01  -0.000000e+00
+  4.000000e-01  -0.000000e+00
+  5.000000e-01  -0.000000e+00
+  6.000000e-01  -0.000000e+00
+  7.000000e-01  -0.000000e+00
+  8.000000e-01  -0.000000e+00
+  9.000000e-01  -0.000000e+00
+  1.000000e+00  -0.000000e+00
+
+#
+# Curve 3 - Shells 3
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Pressure
+# Shells - 3: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -1.388885e-13
+  2.000000e-01  -5.555546e-13
+  3.000000e-01  -1.250001e-12
+  4.000000e-01  -2.222225e-12
+  5.000000e-01  -3.472233e-12
+  6.000000e-01  -5.000018e-12
+  7.000000e-01  -6.805585e-12
+  8.000000e-01  -8.888937e-12
+  9.000000e-01  -1.125008e-11
+  1.000000e+00  -1.388901e-11
+
+#
+# Curve 4 - Shells 4
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Pressure
+# Shells - 4: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -0.000000e+00
+  2.000000e-01  -0.000000e+00
+  3.000000e-01  -0.000000e+00
+  4.000000e-01  -0.000000e+00
+  5.000000e-01  -0.000000e+00
+  6.000000e-01  -0.000000e+00
+  7.000000e-01  -0.000000e+00
+  8.000000e-01  -0.000000e+00
+  9.000000e-01  -0.000000e+00
+  1.000000e+00  -0.000000e+00
+
+#
+# Curve 5 - Shells 5
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 1 Integration point: 1
+
+#         Time      Pressure
+# Shells - 5: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -0.000000e+00
+  2.000000e-01  -0.000000e+00
+  3.000000e-01  -0.000000e+00
+  4.000000e-01  -0.000000e+00
+  5.000000e-01  -0.000000e+00
+  6.000000e-01  -0.000000e+00
+  7.000000e-01  -0.000000e+00
+  8.000000e-01  -0.000000e+00
+  9.000000e-01  -0.000000e+00
+  1.000000e+00  -0.000000e+00
+
+#
+# Curve 6 - Shells 6
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 2 Integration point: 1
+
+#         Time      Pressure
+# Shells - 6: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -0.000000e+00
+  2.000000e-01  -2.483527e-09
+  3.000000e-01  -2.483527e-09
+  4.000000e-01  -4.967054e-09
+  5.000000e-01  -9.934108e-09
+  6.000000e-01  -1.241763e-08
+  7.000000e-01  -1.738469e-08
+  8.000000e-01  -1.986822e-08
+  9.000000e-01  -2.483527e-08
+  1.000000e+00  -2.980232e-08
+
+#
+# Curve 7 - Shells 7
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 3 Integration point: 1
+
+#         Time      Pressure
+# Shells - 7: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -0.000000e+00
+  2.000000e-01  -2.483527e-09
+  3.000000e-01  -2.483527e-09
+  4.000000e-01  -4.967054e-09
+  5.000000e-01  -9.934108e-09
+  6.000000e-01  -1.241763e-08
+  7.000000e-01  -1.738469e-08
+  8.000000e-01  -2.483527e-08
+  9.000000e-01  -2.483527e-08
+  1.000000e+00  -2.980232e-08
+
+#
+# Curve 8 - Shells 8
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 4 Integration point: 1
+
+#         Time      Pressure
+# Shells - 8: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -0.000000e+00
+  2.000000e-01  -1.241763e-09
+  3.000000e-01  -2.483527e-09
+  4.000000e-01  -4.967054e-09
+  5.000000e-01  -9.934108e-09
+  6.000000e-01  -1.241763e-08
+  7.000000e-01  -1.490116e-08
+  8.000000e-01  -2.235174e-08
+  9.000000e-01  -2.980232e-08
+  1.000000e+00  -2.980232e-08
+
+#
+# Curve 9 - Shells 9
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 5 Integration point: 1
+
+#         Time      Pressure
+# Shells - 9: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -1.552204e-10
+  2.000000e-01  -6.208817e-10
+  3.000000e-01  -1.241763e-09
+  4.000000e-01  -1.862645e-09
+  5.000000e-01  -3.725290e-09
+  6.000000e-01  -4.967054e-09
+  7.000000e-01  -6.208817e-09
+  8.000000e-01  -7.450581e-09
+  9.000000e-01  -9.934108e-09
+  1.000000e+00  -1.117587e-08
+
+#
+# Curve 10 - Shells 10
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 6 Integration point: 1
+
+#         Time      Pressure
+# Shells - 10: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -0.000000e+00
+  2.000000e-01  -2.483527e-09
+  3.000000e-01  -2.483527e-09
+  4.000000e-01  -4.967054e-09
+  5.000000e-01  -9.934108e-09
+  6.000000e-01  -1.241763e-08
+  7.000000e-01  -1.490116e-08
+  8.000000e-01  -1.986822e-08
+  9.000000e-01  -2.483527e-08
+  1.000000e+00  -2.980232e-08
+
+#
+# Curve 11 - Shells 11
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 7 Integration point: 1
+
+#         Time      Pressure
+# Shells - 11: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -0.000000e+00
+  2.000000e-01  -2.483527e-09
+  3.000000e-01  -2.483527e-09
+  4.000000e-01  -4.967054e-09
+  5.000000e-01  -9.934108e-09
+  6.000000e-01  -1.241763e-08
+  7.000000e-01  -1.490116e-08
+  8.000000e-01  -1.986822e-08
+  9.000000e-01  -2.483527e-08
+  1.000000e+00  -2.980232e-08
+
+#
+# Curve 12 - Shells 12
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 8 Integration point: 1
+
+#         Time      Pressure
+# Shells - 12: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -0.000000e+00
+  2.000000e-01  -2.483527e-09
+  3.000000e-01  -3.725290e-09
+  4.000000e-01  -4.967054e-09
+  5.000000e-01  -9.934108e-09
+  6.000000e-01  -1.490116e-08
+  7.000000e-01  -1.738469e-08
+  8.000000e-01  -1.986822e-08
+  9.000000e-01  -2.483527e-08
+  1.000000e+00  -2.731880e-08
+
+#
+# Curve 13 - Shells 13
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 9 Integration point: 1
+
+#         Time      Pressure
+# Shells - 13: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  6.666666e-03
+  2.000000e-01  1.333333e-02
+  3.000000e-01  2.000000e-02
+  4.000000e-01  2.666666e-02
+  5.000000e-01  3.333333e-02
+  6.000000e-01  4.000000e-02
+  7.000000e-01  4.000000e-02
+  8.000000e-01  4.000000e-02
+  9.000000e-01  4.000000e-02
+  1.000000e+00  4.000000e-02
+
+#
+# Curve 14 - Shells 14
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 10 Integration point: 1
+
+#         Time      Pressure
+# Shells - 14: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -0.000000e+00
+  2.000000e-01  -2.483527e-09
+  3.000000e-01  -3.725290e-09
+  4.000000e-01  -4.967054e-09
+  5.000000e-01  -7.450581e-09
+  6.000000e-01  -9.934108e-09
+  7.000000e-01  -0.000000e+00
+  8.000000e-01  -0.000000e+00
+  9.000000e-01  -0.000000e+00
+  1.000000e+00  -0.000000e+00
+
+#
+# Curve 15 - Shells 15
+# Time reference surface: middle
+# Time reference frame: global
+# Pressure reference surface: middle
+# Pressure reference frame: global
+# Material 11 Integration point: 1
+
+#         Time      Pressure
+# Shells - 15: Pressure
+  0.000000e+00  -0.000000e+00
+  1.000000e-01  -0.000000e+00
+  2.000000e-01  -0.000000e+00
+  3.000000e-01  -0.000000e+00
+  4.000000e-01  -0.000000e+00
+  5.000000e-01  -0.000000e+00
+  6.000000e-01  -0.000000e+00
+  7.000000e-01  -0.000000e+00
+  8.000000e-01  -0.000000e+00
+  9.000000e-01  -0.000000e+00
+  1.000000e+00  -0.000000e+00

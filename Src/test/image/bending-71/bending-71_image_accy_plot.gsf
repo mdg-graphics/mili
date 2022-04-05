@@ -32,6 +32,8 @@ unselect node 1 4-5 15
 select mat 1
 disable 1
 
+sw interp
+
 # Images for variable mt vectors
 state 9
 show accy

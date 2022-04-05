@@ -617,10 +617,10 @@
 # Curve 1 - Bricks 1
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# Bricks - 1: X Stress
+#           Time        Sigma-xx
+# Bricks - 1: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  1.61505136e-06
   2.00000003e-01  3.18548291e-06
@@ -631,10 +631,10 @@
 # Curve 2 - Bricks 14134
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# Bricks - 14134: X Stress
+#           Time        Sigma-xx
+# Bricks - 14134: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  2.40144595e-06
   2.00000003e-01  4.78420861e-06
@@ -645,10 +645,10 @@
 # Curve 3 - Bricks 51912
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# Bricks - 51912: X Stress
+#           Time        Sigma-xx
+# Bricks - 51912: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -8.30086755e-09
   2.00000003e-01  -1.86904465e-08
@@ -659,10 +659,10 @@
 # Curve 4 - Bricks 10824
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# Bricks - 10824: X Stress
+#           Time        Sigma-xx
+# Bricks - 10824: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -2.02801607e-06
   2.00000003e-01  -4.08549340e-06
@@ -673,10 +673,10 @@
 # Curve 5 - Bricks 10333
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# Bricks - 10333: X Stress
+#           Time        Sigma-xx
+# Bricks - 10333: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -5.70498241e-06
   2.00000003e-01  -1.14445847e-05
@@ -687,10 +687,10 @@
 # Curve 6 - Bricks 11656
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# Bricks - 11656: X Stress
+#           Time        Sigma-xx
+# Bricks - 11656: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  3.91479080e-06
   2.00000003e-01  7.80808023e-06
@@ -701,10 +701,10 @@
 # Curve 7 - Bricks 11842
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# Bricks - 11842: X Stress
+#           Time        Sigma-xx
+# Bricks - 11842: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -3.69991471e-06
   2.00000003e-01  -7.43954297e-06
@@ -715,10 +715,10 @@
 # Curve 8 - Bricks 11843
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# Bricks - 11843: X Stress
+#           Time        Sigma-xx
+# Bricks - 11843: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -4.74343324e-06
   2.00000003e-01  -9.52959454e-06
@@ -729,10 +729,10 @@
 # Curve 9 - Bricks 11844
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# Bricks - 11844: X Stress
+#           Time        Sigma-xx
+# Bricks - 11844: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -6.75234423e-06
   2.00000003e-01  -1.35544133e-05
@@ -743,10 +743,10 @@
 # Curve 10 - Bricks 11845
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# Bricks - 11845: X Stress
+#           Time        Sigma-xx
+# Bricks - 11845: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  2.61955688e-06
   2.00000003e-01  5.21778520e-06
@@ -757,10 +757,10 @@
 # Curve 1 - Bricks 1
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# Sigma-zz reference frame: global
 
-#           Time        Z Stress
-# Bricks - 1: Z Stress
+#           Time        Sigma-zz
+# Bricks - 1: Sigma-zz
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  6.53214149e-09
   2.00000003e-01  1.26954056e-08
@@ -771,10 +771,10 @@
 # Curve 2 - Bricks 14134
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# Sigma-zz reference frame: global
 
-#           Time        Z Stress
-# Bricks - 14134: Z Stress
+#           Time        Sigma-zz
+# Bricks - 14134: Sigma-zz
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -1.50896639e-07
   2.00000003e-01  -3.01975064e-07
@@ -785,10 +785,10 @@
 # Curve 3 - Bricks 51912
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# Sigma-zz reference frame: global
 
-#           Time        Z Stress
-# Bricks - 51912: Z Stress
+#           Time        Sigma-zz
+# Bricks - 51912: Sigma-zz
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -8.58323912e-10
   2.00000003e-01  -6.70699496e-09
@@ -799,10 +799,10 @@
 # Curve 4 - Bricks 10824
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# Sigma-zz reference frame: global
 
-#           Time        Z Stress
-# Bricks - 10824: Z Stress
+#           Time        Sigma-zz
+# Bricks - 10824: Sigma-zz
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -1.58069355e-07
   2.00000003e-01  -3.16132883e-07
@@ -813,10 +813,10 @@
 # Curve 5 - Bricks 10333
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# Sigma-zz reference frame: global
 
-#           Time        Z Stress
-# Bricks - 10333: Z Stress
+#           Time        Sigma-zz
+# Bricks - 10333: Sigma-zz
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -2.18356462e-07
   2.00000003e-01  -4.36725429e-07
@@ -827,10 +827,10 @@
 # Curve 6 - Bricks 11656
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# Sigma-zz reference frame: global
 
-#           Time        Z Stress
-# Bricks - 11656: Z Stress
+#           Time        Sigma-zz
+# Bricks - 11656: Sigma-zz
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -1.52816160e-08
   2.00000003e-01  -3.05729451e-08
@@ -841,10 +841,10 @@
 # Curve 7 - Bricks 11842
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# Sigma-zz reference frame: global
 
-#           Time        Z Stress
-# Bricks - 11842: Z Stress
+#           Time        Sigma-zz
+# Bricks - 11842: Sigma-zz
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -1.11461482e-07
   2.00000003e-01  -2.23194661e-07
@@ -855,10 +855,10 @@
 # Curve 8 - Bricks 11843
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# Sigma-zz reference frame: global
 
-#           Time        Z Stress
-# Bricks - 11843: Z Stress
+#           Time        Sigma-zz
+# Bricks - 11843: Sigma-zz
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  2.48879957e-07
   2.00000003e-01  4.98102224e-07
@@ -869,10 +869,10 @@
 # Curve 9 - Bricks 11844
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# Sigma-zz reference frame: global
 
-#           Time        Z Stress
-# Bricks - 11844: Z Stress
+#           Time        Sigma-zz
+# Bricks - 11844: Sigma-zz
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -2.38841335e-06
   2.00000003e-01  -4.78323000e-06
@@ -883,10 +883,10 @@
 # Curve 10 - Bricks 11845
 # Time reference surface: middle
 # Time reference frame: global
-# Z Stress reference frame: global
+# Sigma-zz reference frame: global
 
-#           Time        Z Stress
-# Bricks - 11845: Z Stress
+#           Time        Sigma-zz
+# Bricks - 11845: Sigma-zz
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -1.63699472e-08
   2.00000003e-01  -3.27293037e-08
@@ -897,10 +897,10 @@
 # Curve 1 - Bricks 1
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# Bricks - 1: XY Stress
+#           Time        Sigma-xy
+# Bricks - 1: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -2.90432780e-08
   2.00000003e-01  -5.75280907e-08
@@ -911,10 +911,10 @@
 # Curve 2 - Bricks 14134
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# Bricks - 14134: XY Stress
+#           Time        Sigma-xy
+# Bricks - 14134: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  1.12530176e-06
   2.00000003e-01  2.25056942e-06
@@ -925,10 +925,10 @@
 # Curve 3 - Bricks 51912
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# Bricks - 51912: XY Stress
+#           Time        Sigma-xy
+# Bricks - 51912: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -3.45327300e-09
   2.00000003e-01  -6.61944410e-09
@@ -939,10 +939,10 @@
 # Curve 4 - Bricks 10824
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# Bricks - 10824: XY Stress
+#           Time        Sigma-xy
+# Bricks - 10824: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  1.01084439e-07
   2.00000003e-01  2.02333638e-07
@@ -953,10 +953,10 @@
 # Curve 5 - Bricks 10333
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# Bricks - 10333: XY Stress
+#           Time        Sigma-xy
+# Bricks - 10333: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  3.75313292e-09
   2.00000003e-01  7.50934870e-09
@@ -967,10 +967,10 @@
 # Curve 6 - Bricks 11656
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# Bricks - 11656: XY Stress
+#           Time        Sigma-xy
+# Bricks - 11656: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -3.18251647e-09
   2.00000003e-01  -6.36349284e-09
@@ -981,10 +981,10 @@
 # Curve 7 - Bricks 11842
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# Bricks - 11842: XY Stress
+#           Time        Sigma-xy
+# Bricks - 11842: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -1.01529463e-06
   2.00000003e-01  -2.02732895e-06
@@ -995,10 +995,10 @@
 # Curve 8 - Bricks 11843
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# Bricks - 11843: XY Stress
+#           Time        Sigma-xy
+# Bricks - 11843: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -1.04885635e-06
   2.00000003e-01  -2.09362474e-06
@@ -1009,10 +1009,10 @@
 # Curve 9 - Bricks 11844
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# Bricks - 11844: XY Stress
+#           Time        Sigma-xy
+# Bricks - 11844: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -1.09670827e-06
   2.00000003e-01  -2.18637115e-06
@@ -1023,10 +1023,10 @@
 # Curve 10 - Bricks 11845
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# Bricks - 11845: XY Stress
+#           Time        Sigma-xy
+# Bricks - 11845: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -5.02486941e-08
   2.00000003e-01  -1.00498795e-07
@@ -1037,10 +1037,10 @@
 # Curve 1 - Bricks 1
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 1: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 1: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  3.55258767e-10
   2.00000003e-01  7.02787106e-10
@@ -1051,10 +1051,10 @@
 # Curve 2 - Bricks 14134
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 14134: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 14134: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  7.83393830e-08
   2.00000003e-01  1.57281292e-07
@@ -1065,10 +1065,10 @@
 # Curve 3 - Bricks 51912
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 51912: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 51912: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  6.82700785e-09
   2.00000003e-01  1.45222705e-08
@@ -1079,10 +1079,10 @@
 # Curve 4 - Bricks 10824
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 10824: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 10824: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -4.42732585e-07
   2.00000003e-01  -8.86264729e-07
@@ -1093,10 +1093,10 @@
 # Curve 5 - Bricks 10333
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 10333: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 10333: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -9.62103819e-09
   2.00000003e-01  -1.92566585e-08
@@ -1107,10 +1107,10 @@
 # Curve 6 - Bricks 11656
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11656: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 11656: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -9.62770130e-09
   2.00000003e-01  -1.92834158e-08
@@ -1121,10 +1121,10 @@
 # Curve 7 - Bricks 11842
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11842: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 11842: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -4.69462577e-07
   2.00000003e-01  -9.39733582e-07
@@ -1135,10 +1135,10 @@
 # Curve 8 - Bricks 11843
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11843: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 11843: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -5.45188243e-07
   2.00000003e-01  -1.09170082e-06
@@ -1149,10 +1149,10 @@
 # Curve 9 - Bricks 11844
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11844: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 11844: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -2.04868797e-06
   2.00000003e-01  -4.10436678e-06
@@ -1163,10 +1163,10 @@
 # Curve 10 - Bricks 11845
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11845: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 11845: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -7.58288365e-09
   2.00000003e-01  -1.51830069e-08
@@ -1177,10 +1177,10 @@
 # Curve 1 - Bricks 1
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 1: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 1: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  3.55258767e-10
   2.00000003e-01  7.02787106e-10
@@ -1191,10 +1191,10 @@
 # Curve 2 - Bricks 14134
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 14134: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 14134: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  7.83393830e-08
   2.00000003e-01  1.57281292e-07
@@ -1205,10 +1205,10 @@
 # Curve 3 - Bricks 51912
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 51912: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 51912: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  6.82700785e-09
   2.00000003e-01  1.45222705e-08
@@ -1219,10 +1219,10 @@
 # Curve 4 - Bricks 10824
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 10824: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 10824: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -4.42732585e-07
   2.00000003e-01  -8.86264729e-07
@@ -1233,10 +1233,10 @@
 # Curve 5 - Bricks 10333
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 10333: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 10333: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -9.62103819e-09
   2.00000003e-01  -1.92566585e-08
@@ -1247,10 +1247,10 @@
 # Curve 6 - Bricks 11656
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11656: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 11656: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -9.62770130e-09
   2.00000003e-01  -1.92834158e-08
@@ -1261,10 +1261,10 @@
 # Curve 7 - Bricks 11842
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11842: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 11842: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -4.69462577e-07
   2.00000003e-01  -9.39733582e-07
@@ -1275,10 +1275,10 @@
 # Curve 8 - Bricks 11843
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11843: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 11843: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -5.45188243e-07
   2.00000003e-01  -1.09170082e-06
@@ -1289,10 +1289,10 @@
 # Curve 9 - Bricks 11844
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11844: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 11844: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -2.04868797e-06
   2.00000003e-01  -4.10436678e-06
@@ -1303,10 +1303,10 @@
 # Curve 10 - Bricks 11845
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# Bricks - 11845: ZX Stress
+#           Time        Sigma-zx
+# Bricks - 11845: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000001e-01  -7.58288365e-09
   2.00000003e-01  -1.51830069e-08

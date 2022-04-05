@@ -33,7 +33,7 @@ select mat 1
 sw hidden
 show  nodpos[uy]
 state 5
-sw noterp
+sw interp
 outjpeg bolt_image_nodposuy_plot.answ.jpg
 
 # EndCase 

@@ -1,0 +1,13 @@
+# shell_mat54 image test problem
+# Set viewing
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+
+# Object selection
+select shell 1-15
+set_ipt 1
+
+# Show result and output image
+show edrate
+plot
+outjpeg shell_mat54_image_edrate_th.answ.jpg

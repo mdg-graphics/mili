@@ -101,20 +101,6 @@ static char *node_disp_primals[] =
     "nodpos", NULL
 };
 
-static int node_disp_primal_sclasses[] =
-{
-    G_NODE
-};
-
-static int node_modedisp_primal_sclasses[] =
-{
-    G_NODE
-};
-static int node_moderot_primal_sclasses[] =
-{
-    G_NODE
-};
-
 static char *node_vel_shorts_xy[] =
 {
     "velx", "vely", NULL
@@ -172,11 +158,6 @@ static char *node_rot_vel_mag_primals1[] =
     "rotvel", NULL
 };
 
-static int node_rot_vel_mag_primal_sclasses[] =
-{
-    G_NODE
-};
- 
 static char *node_acc_shorts_xy[] =
 {
     "accx", "accy", NULL
@@ -213,11 +194,6 @@ static char *node_acc_primals2[] =
     "nodpos", NULL
 };
 
-static int node_acc_primal_sclasses[] =
-{
-    G_NODE
-};
-
 
 static char *node_temp_short[] =
 {
@@ -230,10 +206,6 @@ static char *node_temp_long[] =
 static char *node_temp_primal[] =
 {
     "temp", NULL
-};
-static int node_temp_primal_sclasses[] =
-{
-    G_NODE
 };
 
 
@@ -249,10 +221,6 @@ static char *node_pint_primal[] =
 {
     "press", NULL
 };
-static int node_pint_primal_sclasses[] =
-{
-    G_NODE
-};
 
 
 static char *node_helicity_short[] =
@@ -266,10 +234,6 @@ static char *node_helicity_long[] =
 static char *node_helicity_primal[] =
 {
     "nodvel", "nodvort", NULL
-};
-static int node_helicity_primal_sclasses[] =
-{
-    G_NODE, G_NODE
 };
 
 
@@ -285,10 +249,6 @@ static char *node_enstrophy_primal[] =
 {
     "nodvort", NULL
 };
-static int node_enstrophy_primal_sclasses[] =
-{
-    G_NODE
-};
 
 
 static char *node_pvmag_short[] =
@@ -302,119 +262,6 @@ static char *node_pvmag_long[] =
 static char *node_pvmag_primal[] =
 {
     NULL
-};
-static int node_pvmag_primal_sclasses[] =
-{
-    0
-};
-
-
-
-static char *beam_axfor_short[] =
-{
-    "axfor", NULL
-};
-static char *beam_axfor_long[] =
-{
-    "Axial Force", NULL
-};
-static char *beam_axfor_primal[] =
-{
-    "axfor", NULL
-};
-static int beam_axfor_primal_sclasses[] =
-{
-    G_BEAM
-};
-
-
-static char *beam_sshear_short[] =
-{
-    "sshear", NULL
-};
-static char *beam_sshear_long[] =
-{
-    "S Shear Resultant", NULL
-};
-static char *beam_sshear_primal[] =
-{
-    "sshear", NULL
-};
-static int beam_sshear_primal_sclasses[] =
-{
-    G_BEAM
-};
-
-
-static char *beam_tshear_short[] =
-{
-    "tshear", NULL
-};
-static char *beam_tshear_long[] =
-{
-    "T Shear Resultant", NULL
-};
-static char *beam_tshear_primal[] =
-{
-    "tshear", NULL
-};
-static int beam_tshear_primal_sclasses[] =
-{
-    G_BEAM
-};
-
-
-static char *beam_smom_short[] =
-{
-    "smom", NULL
-};
-static char *beam_smom_long[] =
-{
-    "S Moment", NULL
-};
-static char *beam_smom_primal[] =
-{
-    "smom", NULL
-};
-static int beam_smom_primal_sclasses[] =
-{
-    G_BEAM
-};
-
-
-static char *beam_tmom_short[] =
-{
-    "tmom", NULL
-};
-static char *beam_tmom_long[] =
-{
-    "T Moment", NULL
-};
-static char *beam_tmom_primal[] =
-{
-    "tmom", NULL
-};
-static int beam_tmom_primal_sclasses[] =
-{
-    G_BEAM
-};
-
-
-static char *beam_tor_short[] =
-{
-    "tor", NULL
-};
-static char *beam_tor_long[] =
-{
-    "Torsional Resultant", NULL
-};
-static char *beam_tor_primal[] =
-{
-    "tor", NULL
-};
-static int beam_tor_primal_sclasses[] =
-{
-    G_BEAM
 };
 
 
@@ -430,10 +277,6 @@ static char *beam_sae_primal[] =
 {
     "axfor", "smom", NULL
 };
-static int beam_sae_primal_sclasses[] =
-{
-    G_BEAM, G_BEAM
-};
 
 
 static char *beam_tae_short[] =
@@ -448,11 +291,6 @@ static char *beam_tae_primal[] =
 {
     "axfor", "tmom", NULL
 };
-static int beam_tae_primal_sclasses[] =
-{
-    G_BEAM, G_BEAM
-};
-
 
 
 static char *shell_stress_shorts[] =
@@ -468,74 +306,8 @@ static char *shell_stress_primals[] =
 {
     "stress_in", "stress_mid", "stress_out", NULL
 };
-static int shell_stress_primal_sclasses[] =
-{
-    G_QUAD, G_QUAD, G_QUAD
-};
 
-static int shell_stress_tri_primal_sclasses[] =
-{
-    G_TRI, G_TRI, G_TRI
-};
 
-static char *es_press_shorts[] = 
-{
-    "press", NULL
-};
-
-static char *es_press_longs[] = 
-{
-    "Pressure", NULL
-};
-
-static char *es_press_primals[] =
-{
-    "sx", "sy", "sz", NULL
-};
-
-static int es_press_primal_sclasses[] =
-{
-    G_TRI, G_QUAD, G_HEX
-};
-
-static char *es_effs_shorts[] =
-{
-    "seff", NULL
-};
-
-static char *es_effs_longs[] =
-{
-    "Effective Stress", NULL
-};
-
-static char *es_effs_primals[] =
-{
-    "sx", "sy", "sz", "sxy", "syz", "szx", NULL
-};
-
-static int es_effs_primal_sclasses[] = 
-{
-    G_TRI, G_QUAD, G_HEX
-};
-
-static char *es_prin_shorts[] =
-{
-    "pdev1", "pdev2", "pdev3", "maxshr", "prin1", "prin2", "prin3", NULL
-};
-static char *es_prin_longs[] =
-{
-    "Prin Dev Stress 1", "Prin Dev Stress 2", "Prin Dev Stress 3",
-    "Maximum Shear Stress", "Principal Stress 1", "Principal Stress 2",
-    "Principal Stress 3", NULL
-};
-static char *es_prin_primals[] =
-{
-    "sx", "sy", "sz", "sxy", "syz", "szx", NULL
-};
-static int es_prin_primal_sclasses[] =
-{
-    G_TRI, G_QUAD, G_HEX
-};
 static char *shell_press_shorts[] =
 {
     "press", NULL
@@ -547,15 +319,6 @@ static char *shell_press_longs[] =
 static char *shell_press_primals[] =
 {
     "stress_in", "stress_mid", "stress_out", NULL
-};
-static int shell_press_primal_sclasses[] =
-{
-    G_QUAD, G_QUAD, G_QUAD
-};
-
-static int shell_press_tri_primal_sclasses[] =
-{
-    G_TRI, G_TRI, G_TRI
 };
 
 static char *shell_effs_shorts[] =
@@ -570,15 +333,7 @@ static char *shell_effs_primals[] =
 {
     "stress_in", "stress_mid", "stress_out", NULL
 };
-static int shell_effs_primal_sclasses[] =
-{
-    G_QUAD, G_QUAD, G_QUAD
-};
 
-static int shell_effs_tri_primal_sclasses[] =
-{
-    G_TRI, G_TRI, G_TRI
-};
 
 static char *shell_prin_shorts[] =
 {
@@ -594,15 +349,7 @@ static char *shell_prin_primals[] =
 {
     "stress_in", "stress_mid", "stress_out", NULL
 };
-static int shell_prin_primal_sclasses[] =
-{
-    G_QUAD, G_QUAD, G_QUAD
-};
 
-static int shell_prin_tri_primal_sclasses[] =
-{
-    G_TRI, G_TRI, G_TRI
-};
 
 static char *shell_surf_shorts[] =
 {
@@ -620,15 +367,7 @@ static char *shell_surf_primals[] =
 {
     "bend", "shear", "normal", "thick", NULL
 };
-static int shell_surf_primal_sclasses[] =
-{
-    G_QUAD, G_QUAD, G_QUAD, G_QUAD
-};
 
-static int shell_surf_tri_primal_sclasses[] =
-{
-    G_TRI, G_TRI, G_TRI, G_TRI
-};
 
 static char *shell_strain_shorts[] =
 {
@@ -643,15 +382,7 @@ static char *shell_strain_primals[] =
 {
     "strain_in", "strain_out", NULL
 };
-static int shell_strain_primal_sclasses[] =
-{
-    G_QUAD, G_QUAD
-};
 
-static int shell_strain_tri_primal_sclasses[] =
-{
-    G_TRI, G_TRI
-};
 
 static char *shell_eeff_shorts[] =
 {
@@ -677,11 +408,6 @@ static char *shell_eeff_primals[] =
 {
     "eeff_mid", "eeff_in", "eeff_out", NULL
 };
-static int shell_eeff_primal_sclasses[] =
-{
-    G_QUAD, G_QUAD, G_QUAD
-};
-
 
 
 static char *hex_stress_shorts[] =
@@ -697,10 +423,6 @@ static char *hex_stress_primals[] =
 {
     "stress", NULL
 };
-static int hex_stress_primal_sclasses[] =
-{
-    G_HEX
-};
 
 
 static char *hex_press_shorts[] =
@@ -715,10 +437,6 @@ static char *hex_press_primals[] =
 {
     "stress", NULL
 };
-static int hex_press_primal_sclasses[] =
-{
-    G_HEX
-};
 
 
 static char *hex_effs_shorts[] =
@@ -732,10 +450,6 @@ static char *hex_effs_longs[] =
 static char *hex_effs_primals[] =
 {
     "stress", NULL
-};
-static int hex_effs_primal_sclasses[] =
-{
-    G_HEX
 };
 
 
@@ -752,10 +466,6 @@ static char *hex_prin_longs[] =
 static char *hex_prin_primals[] =
 {
     "stress", NULL
-};
-static int hex_prin_primal_sclasses[] =
-{
-    G_HEX
 };
 
 
@@ -795,11 +505,6 @@ static char *hex_strain_primals[] =
     "nodpos", NULL
 };
 
-static int hex_strain_primal_sclasses[] =
-{
-    G_NODE
-};
-
 
 static char *hex_eeff_shorts[] =
 {
@@ -812,10 +517,6 @@ static char *hex_eeff_longs[] =
 static char *hex_eeff_primals[] =
 {
     "eeff", NULL
-};
-static int hex_eeff_primal_sclasses[] =
-{
-    G_HEX
 };
 
 
@@ -830,10 +531,6 @@ static char *hex_vol_longs[] =
 static char *hex_vol_primals[] =
 {
     "nodpos", NULL
-};
-static int hex_vol_primal_sclasses[] =
-{
-    G_NODE
 };
 
 
@@ -852,10 +549,6 @@ static char *hex_damage_primals[] =
 static char *hex_damage_primals1[] =
 {
     "eeff", NULL
-};
-static int hex_damage_primal_sclasses[] =
-{
-    G_HEX
 };
 
 
@@ -902,206 +595,6 @@ static char *fnmass_primals[] =
 {
     "nodpos", NULL
 };
-static int fnmass_primal_sclasses[] =
-{
-    G_NODE
-};
-static char *particle_press_shorts[] =
-{
-    "press", NULL
-};
-static char *particle_press_longs[] =
-{
-    "Pressure", NULL
-};
-static char *particle_press_primals[] =
-{
-    "stress", NULL
-};
-static int particle_press_primal_sclasses[] =
-{
-    G_PARTICLE
-};
-static char *particle_effs_shorts[] =
-{
-    "seff", NULL
-};
-static char *particle_effs_longs[] =
-{
-    "Effective Stress", NULL
-};
-static char *particle_effs_primals[] =
-{
-    "stress", NULL
-};
-static int particle_effs_primal_sclasses[] =
-{
-    G_PARTICLE
-};
-static char *particle_prin_shorts[] =
-{
-    "pdev1", "pdev2", "pdev3", "maxshr", "prin1", "prin2", "prin3", NULL
-};
-static char *particle_prin_longs[] =
-{
-    "Prin Dev Stress 1", "Prin Dev Stress 2", "Prin Dev Stress 3",
-    "Maximum Shear Stress", "Principal Stress 1", "Principal Stress 2",
-    "Principal Stress 3", NULL
-};
-static char *particle_prin_primals[] =
-{
-    "stress", NULL
-};
-static int particle_prin_primal_sclasses[] =
-{
-    G_PARTICLE
-};
-
-
-es_Result_candidate possible_es_results[] =
-{
-    {
-        G_TRI,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_es_press,
-        NULL,
-        es_press_shorts,
-        es_press_longs,
-        es_press_primals,
-        es_press_primal_sclasses
-    },
-
-    {
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_es_press,
-        NULL,
-        es_press_shorts,
-        es_press_longs,
-        es_press_primals,
-        es_press_primal_sclasses
-    },
-
-    {
-        G_HEX,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_es_press,
-        NULL,
-        es_press_shorts,
-        es_press_longs,
-        es_press_primals,
-        es_press_primal_sclasses
-    },
-
-    {
-        G_TRI,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_es_effstress,
-        NULL,
-        es_effs_shorts,
-        es_effs_longs,
-        es_effs_primals,
-        es_effs_primal_sclasses
-    },
-
-    {
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_es_effstress,
-        NULL,
-        es_effs_shorts,
-        es_effs_longs,
-        es_effs_primals,
-        es_effs_primal_sclasses
-    },
-
-    {
-        G_HEX,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_es_effstress,
-        NULL,
-        es_effs_shorts,
-        es_effs_longs,
-        es_effs_primals,
-        es_effs_primal_sclasses
-    },
- 
-    {
-        G_TRI,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_es_principal_stress,
-        NULL,
-        es_prin_shorts,
-        es_prin_longs,
-        es_prin_primals,
-        es_prin_primal_sclasses
-    },
-
-    {
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_es_principal_stress,
-        NULL,
-        es_prin_shorts,
-        es_prin_longs,
-        es_prin_primals,
-        es_prin_primal_sclasses
-    },
-
-    {
-        G_HEX,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_es_principal_stress,
-        NULL,
-        es_prin_shorts,
-        es_prin_longs,
-        es_prin_primals,
-        es_prin_primal_sclasses
-    },
-    /* array terminator */
-    {
-        QTY_SCLASS,
-        { 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL
-    }
-    
-
-};
 
 Result_candidate possible_results[] =
 {
@@ -1113,86 +606,98 @@ Result_candidate possible_results[] =
      * are allowed for both 2D and 3D datasets.
      */
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         FALSE,
         FALSE,
         compute_node_displacement,
         NULL,
+        "Node Displacement",
         node_disp_shorts_xy,
         node_disp_longs_xy,
         node_disp_primals,
-        node_disp_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         FALSE,
         FALSE,
         compute_node_displacement,
         NULL,
+        "Node Displacement",
         node_disp_shorts_z,
         node_disp_longs_z,
         node_disp_primals,
-        node_disp_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         FALSE,
         FALSE,
         compute_node_radial_displacement,
         NULL,
+        NULL,
         node_disp_shorts_r,
         node_disp_longs_r,
         node_disp_primals,
-        node_disp_primal_sclasses
+        QTY_SCLASS
     },
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         FALSE,
         FALSE,
         compute_node_displacement_mag,
         NULL,
+        NULL,
         node_disp_mag_shorts,
         node_disp_mag_longs,
         node_disp_primals,
-        node_disp_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         FALSE,
         FALSE,
         compute_node_modaldisplacement_mag,
+        NULL,
         NULL,
         node_modedisp_mag_shorts,
         node_modedisp_mag_longs,
         node_modedisp_primals,
-        node_modedisp_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         FALSE,
         FALSE,
         compute_node_modaldisplacement_mag,
         NULL,
+        NULL,
         node_moderot_mag_shorts,
         node_moderot_mag_longs,
         node_moderot_primals,
-        node_moderot_primal_sclasses
+        QTY_SCLASS
     },
     /*
      * Node velocity can occur explicitly in the data or be derived from
@@ -1206,932 +711,648 @@ Result_candidate possible_results[] =
      * if velocities don't exist.
      */
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_velocity,
         NULL,
+        "Node Velocity",
         node_vel_shorts_xy,
         node_vel_longs_xy,
         node_vel_primals1,
-        node_vel_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_velocity,
         NULL,
+        "Node Velocity",
         node_vel_shorts_xy,
         node_vel_longs_xy,
         node_vel_primals2,
-        node_vel_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_velocity,
         NULL,
+        "Node Velocity",
         node_vel_shorts_z,
         node_vel_longs_z,
         node_vel_primals1,
-        node_vel_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_velocity,
         NULL,
+        "Node Velocity",
         node_vel_shorts_z,
         node_vel_longs_z,
         node_vel_primals2,
-        node_vel_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_velocity,
+        NULL,
         NULL,
         node_vel_mag_shorts,
         node_vel_mag_longs,
         node_vel_primals1,
-        node_vel_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_velocity,
         NULL,
+        NULL,
         node_vel_mag_shorts,
         node_vel_mag_longs,
         node_vel_primals2,
-        node_vel_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_velocity,
+        NULL,
         NULL,
         node_rot_vel_mag_shorts,
         node_rot_vel_mag_longs,
         node_rot_vel_mag_primals1,
-        node_rot_vel_mag_primal_sclasses
+        QTY_SCLASS
     },
     /*
      * Ditto the comment above about velocities for accelerations.
      */
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_acceleration,
         NULL,
+        "Node Acceleration",
         node_acc_shorts_xy,
         node_acc_longs_xy,
         node_acc_primals1,
-        node_acc_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_acceleration,
         NULL,
+        "Node Acceleration",
         node_acc_shorts_xy,
         node_acc_longs_xy,
         node_acc_primals2,
-        node_acc_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_acceleration,
         NULL,
+        "Node Acceleration",
         node_acc_shorts_z,
         node_acc_longs_z,
         node_acc_primals1,
-        node_acc_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_acceleration,
         NULL,
+        "Node Acceleration",
         node_acc_shorts_z,
         node_acc_longs_z,
         node_acc_primals2,
-        node_acc_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_acceleration,
+        NULL,
         NULL,
         node_acc_mag_shorts,
         node_acc_mag_longs,
         node_acc_primals1,
-        node_acc_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_acceleration,
         NULL,
+        NULL,
         node_acc_mag_shorts,
         node_acc_mag_longs,
         node_acc_primals2,
-        node_acc_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
-        { 1, 1 },
-        { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        node_temp_short,
-        node_temp_long,
-        node_temp_primal,
-        node_temp_primal_sclasses
-    },
-
-    {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_pr_intense,
         NULL,
+        NULL,
         node_pint_short,
         node_pint_long,
         node_pint_primal,
-        node_pint_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_node_helicity,
         NULL,
+        NULL,
         node_helicity_short,
         node_helicity_long,
         node_helicity_primal,
-        node_helicity_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         TRUE,
         compute_node_enstrophy,
         NULL,
+        NULL,
         node_enstrophy_short,
         node_enstrophy_long,
         node_enstrophy_primal,
-        node_enstrophy_primal_sclasses
+        QTY_SCLASS
     },
     {
-        G_NODE,
+        // Can calculate for G_NODE
+        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 1, 1 },
         { 0, 0, 1, 0, 0, 0, 1, 0, 0 },
         TRUE,
         FALSE,
         compute_vector_component,
         check_compute_vector_component,
+        NULL,
         node_pvmag_short,
         node_pvmag_long,
         node_pvmag_primal,
-        node_pvmag_primal_sclasses
+        QTY_SCLASS
     },
-
     {
-        G_BEAM,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        beam_axfor_short,
-        beam_axfor_long,
-        beam_axfor_primal,
-        beam_axfor_primal_sclasses
-    },
-
-    {
-        G_BEAM,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        beam_sshear_short,
-        beam_sshear_long,
-        beam_sshear_primal,
-        beam_sshear_primal_sclasses
-    },
-
-    {
-        G_BEAM,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        TRUE,
-        load_primal_result,
-        NULL,
-        beam_tshear_short,
-        beam_tshear_long,
-        beam_tshear_primal,
-        beam_tshear_primal_sclasses
-    },
-
-    {
-        G_BEAM,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        beam_smom_short,
-        beam_smom_long,
-        beam_smom_primal,
-        beam_smom_primal_sclasses
-    },
-
-    {
-        G_BEAM,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        beam_tmom_short,
-        beam_tmom_long,
-        beam_tmom_primal,
-        beam_tmom_primal_sclasses
-    },
-
-    {
-        G_BEAM,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        beam_tor_short,
-        beam_tor_long,
-        beam_tor_primal,
-        beam_tor_primal_sclasses
-    },
-
-    {
-        G_BEAM,
+        // Can calculate for G_TRUSS and G_BEAM
+        { 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
         FALSE,
         compute_beam_axial_strain,
+        NULL,
         NULL,
         beam_sae_short,
         beam_sae_long,
         beam_sae_primal,
-        beam_sae_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_BEAM,
+        // Can calculate for G_TRUSS and G_BEAM
+        { 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
         FALSE,
         compute_beam_axial_strain,
+        NULL,
         NULL,
         beam_tae_short,
         beam_tae_long,
         beam_tae_primal,
-        beam_tae_primal_sclasses
+        QTY_SCLASS
     },
-
     {
-        G_TRUSS,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        beam_axfor_short,
-        beam_axfor_long,
-        beam_axfor_primal,
-        beam_axfor_primal_sclasses
-    },
-
-    {
-        G_TRUSS,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        beam_sshear_short,
-        beam_sshear_long,
-        beam_sshear_primal,
-        beam_sshear_primal_sclasses
-    },
-
-    {
-        G_TRUSS,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        beam_tshear_short,
-        beam_tshear_long,
-        beam_tshear_primal,
-        beam_tshear_primal_sclasses
-    },
-
-    {
-        G_TRUSS,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        beam_smom_short,
-        beam_smom_long,
-        beam_smom_primal,
-        beam_smom_primal_sclasses
-    },
-
-    {
-        G_TRUSS,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        beam_tmom_short,
-        beam_tmom_long,
-        beam_tmom_primal,
-        beam_tmom_primal_sclasses
-    },
-
-    {
-        G_TRUSS,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        load_primal_result,
-        NULL,
-        beam_tor_short,
-        beam_tor_long,
-        beam_tor_primal,
-        beam_tor_primal_sclasses
-    },
-
-    {
-        G_TRUSS,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_beam_axial_strain,
-        NULL,
-        beam_sae_short,
-        beam_sae_long,
-        beam_sae_primal,
-        beam_sae_primal_sclasses
-    },
-
-    {
-        G_TRUSS,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        TRUE,
-        compute_beam_axial_strain,
-        NULL,
-        beam_tae_short,
-        beam_tae_long,
-        beam_tae_primal,
-        beam_tae_primal_sclasses
-    },
-
-    /*{
-        G_TRI,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_stress,
-        NULL,
-        shell_stress_shorts,
-        shell_stress_longs,
-        shell_stress_primals,
-        shell_stress_tri_primal_sclasses
-    }, */
-
-    {
-        G_TRI,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_press,
-        NULL,
-        shell_press_shorts,
-        shell_press_longs,
-        shell_press_primals,
-        shell_press_tri_primal_sclasses
-    },
-
-    {
-        G_TRI,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_effstress,
-        NULL,
-        shell_effs_shorts,
-        shell_effs_longs,
-        shell_effs_primals,
-        shell_effs_tri_primal_sclasses
-    },
-
-    {
-        G_TRI,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_principal_stress,
-        NULL,
-        shell_prin_shorts,
-        shell_prin_longs,
-        shell_prin_primals,
-        shell_prin_tri_primal_sclasses
-    },
-
-    {
-        G_TRI,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_surface_stress,
-        NULL,
-        shell_surf_shorts,
-        shell_surf_longs,
-        shell_surf_primals,
-        shell_surf_tri_primal_sclasses
-    },
-
-    {
-        G_TRI,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_strain,
-        NULL,
-        shell_strain_shorts,
-        shell_strain_longs,
-        shell_strain_primals,
-        shell_strain_tri_primal_sclasses
-    },
-
-    {
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_stress,
-        NULL,
-        shell_stress_shorts,
-        shell_stress_longs,
-        shell_stress_primals,
-        shell_stress_primal_sclasses
-    }, 
-
-    {
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_press,
-        NULL,
-        shell_press_shorts,
-        shell_press_longs,
-        shell_press_primals,
-        shell_press_primal_sclasses
-    },
-    /*{
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_es_press,
-        NULL,
-        es_press_shorts,
-        es_press_longs,
-        es_press_primals,
-        es_press_primal_sclasses
-    },
-
-    {
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_es_press,
-        NULL,
-        es_press_shorts,
-        es_press_longs,
-        es_press_primals,
-        shell_press_primal_sclasses
-    },*/
-
-    {
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_effstress,
-        NULL,
-        shell_effs_shorts,
-        shell_effs_longs,
-        shell_effs_primals,
-        shell_effs_primal_sclasses
-    },
-
-    {
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_principal_stress,
-        NULL,
-        shell_prin_shorts,
-        shell_prin_longs,
-        shell_prin_primals,
-        shell_prin_primal_sclasses
-    },
-
-    {
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_surface_stress,
-        NULL,
-        shell_surf_shorts,
-        shell_surf_longs,
-        shell_surf_primals,
-        shell_surf_primal_sclasses
-    },
-
-    {
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_strain,
-        NULL,
-        shell_strain_shorts,
-        shell_strain_longs,
-        shell_strain_primals,
-        shell_strain_primal_sclasses
-    },
-
-    {
-        G_QUAD,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_shell_eff_strain,
-        NULL,
-        shell_eeff_shorts,
-        shell_eeff_longs,
-        shell_eeff_primals,
-        shell_eeff_primal_sclasses
-    },
-
-    {
-        G_HEX,
+        // Can calculate for G_HEX
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
         FALSE,
         compute_hex_stress,
         NULL,
+        "Stress",
         hex_stress_shorts,
         hex_stress_longs,
         hex_stress_primals,
-        hex_stress_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_HEX,
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
         FALSE,
-        compute_hex_press,
+        compute_effstress,
         NULL,
-        hex_press_shorts,
-        hex_press_longs,
-        hex_press_primals,
-        hex_press_primal_sclasses
-    },
-
-    {
-        G_HEX,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_hex_effstress,
         NULL,
         hex_effs_shorts,
         hex_effs_longs,
         hex_effs_primals,
-        hex_effs_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_HEX,
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
         FALSE,
-        compute_hex_principal_stress,
+        compute_press,
+        NULL,
+        NULL,
+        hex_press_shorts,
+        hex_press_longs,
+        hex_press_primals,
+        QTY_SCLASS
+    },
+
+    {
+        // Can calculate for G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_HEX, G_PARTICLE
+        { 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1 },
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_principal_stress,
+        NULL,
         NULL,
         hex_prin_shorts,
         hex_prin_longs,
         hex_prin_primals,
-        hex_prin_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_HEX,
+        // Can calculate for G_HEX
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
         FALSE,
         compute_hex_strain,
         NULL,
+        "Strain",
         hex_strain_shorts,
         hex_strain_longs,
         hex_strain_primals,
-        hex_strain_primal_sclasses
+        G_NODE
     },
 
     {
-        G_HEX,
+        // Can calculate for G_HEX
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
         FALSE,
         compute_hex_strain,
         NULL,
+        "Strain",
         hex_strain_shorts,
         hex_strain_longs,
         hex_strain_th_primals,
-        hex_strain_primal_sclasses
+        G_NODE
     },
 
     {
-        G_HEX,
+        // Can calculate for G_HEX
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         TRUE,
         FALSE,
         compute_hex_eff_strain,
         NULL,
+        NULL,
         hex_eeff_shorts,
         hex_eeff_longs,
         hex_eeff_primals,
-        hex_eeff_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_HEX,
+        // Can calculate for G_HEX
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         FALSE,
         FALSE,
         compute_hex_relative_volume,
         NULL,
+        NULL,
         hex_vol_shorts,
         hex_vol_longs,
         hex_vol_primals,
-        hex_vol_primal_sclasses
+        G_NODE
     },
 
     {
-        G_HEX,
+        // Can calculate for G_HEX
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         FALSE,
         FALSE,
         compute_hex_damage,
+        NULL,
         NULL,
         hex_damage_shorts,
         hex_damage_longs,
         hex_damage_primals,
-        hex_damage_primal_sclasses
+        QTY_SCLASS
     },
 
     {
-        G_HEX,
+        // Can calculate for G_HEX
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         FALSE,
         FALSE,
         compute_hex_damage,
         NULL,
+        NULL,
         hex_damage_shorts,
         hex_damage_longs,
         hex_damage_primals1,
-        hex_damage_primal_sclasses
+        QTY_SCLASS
+    },
+
+    {
+        // Can calculate for G_TRI, G_QUAD
+        { 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_shell_effstress,
+        NULL,
+        NULL,
+        shell_effs_shorts,
+        shell_effs_longs,
+        shell_effs_primals,
+        QTY_SCLASS
+    },
+
+    {
+        // Can calculate for G_TRI, G_QUAD
+        { 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_shell_press,
+        NULL,
+        NULL,
+        shell_press_shorts,
+        shell_press_longs,
+        shell_press_primals,
+        QTY_SCLASS
+    },
+
+    {
+        // Can calculate for G_TRI, G_QUAD
+        { 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_shell_principal_stress,
+        NULL,
+        NULL,
+        shell_prin_shorts,
+        shell_prin_longs,
+        shell_prin_primals,
+        QTY_SCLASS
+    },
+
+    {
+        // Can calculate for G_TRI, G_QUAD
+        { 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_shell_surface_stress,
+        NULL,
+        NULL,
+        shell_surf_shorts,
+        shell_surf_longs,
+        shell_surf_primals,
+        QTY_SCLASS
+    },
+
+    {
+        // Can calculate for G_TRI, G_QUAD
+        { 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_shell_strain,
+        NULL,
+        NULL,
+        shell_strain_shorts,
+        shell_strain_longs,
+        shell_strain_primals,
+        QTY_SCLASS
+    },
+
+    {
+        // Can calculate for G_TRI, G_QUAD
+        { 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_shell_eff_strain,
+        NULL,
+        NULL,
+        shell_eeff_shorts,
+        shell_eeff_longs,
+        shell_eeff_primals,
+        QTY_SCLASS
+    },
+
+    {
+        // Can calculate for G_TRI, G_QUAD
+        { 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 1 },
+        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
+        TRUE,
+        FALSE,
+        compute_shell_stress,
+        NULL,
+        "Stress",
+        shell_stress_shorts,
+        shell_stress_longs,
+        shell_stress_primals,
+        QTY_SCLASS
     },
 
     /* Free Node results */
     {
-        G_MESH,
+        // Can calculate for G_MESH
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         FALSE,
         TRUE,
         compute_fnmass,
         NULL,
+        NULL,
         fnmass_shorts,
         fnmass_longs,
         fnmass_primals,
-        fnmass_primal_sclasses
+        G_NODE
     },
 
     {
-        G_MESH,
+        // Can calculate for G_MESH
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         FALSE,
         TRUE,
         compute_anmass,
         NULL,
+        NULL,
         anmass_shorts,
         anmass_longs,
         fnmass_primals,
-        fnmass_primal_sclasses
+        G_NODE
     },
 
     {
-        G_MESH,
+        // Can calculate for G_MESH
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         FALSE,
         TRUE,
         compute_fnmoment,
         NULL,
+        NULL,
         fnmom_shorts,
         fnmom_longs,
         fnmass_primals,
-        fnmass_primal_sclasses
+        G_NODE
     },
 
     {
-        G_MESH,
+        // Can calculate for G_MESH
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 },
         { 0, 1 },
         { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
         FALSE,
         TRUE,
         compute_fnvol,
         NULL,
+        NULL,
         fnvol_shorts,
         fnvol_longs,
         fnmass_primals,
-        fnmass_primal_sclasses
+        G_NODE
     },
 
+    /* Array terminator */
     {
-        G_PARTICLE,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_particle_press,
-        NULL,
-        particle_press_shorts,
-        particle_press_longs,
-        particle_press_primals,
-        particle_press_primal_sclasses
-    },
-
-    {
-        G_PARTICLE,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_particle_effstress,
-        NULL,
-        particle_effs_shorts,
-        particle_effs_longs,
-        particle_effs_primals,
-        particle_effs_primal_sclasses
-    },
-
-    {
-        G_PARTICLE,
-        { 0, 1 },
-        { 0, 0, 1, 0, 0, 1, 0, 0, 0 },
-        TRUE,
-        FALSE,
-        compute_particle_principal_stress,
-        NULL,
-        particle_prin_shorts,
-        particle_prin_longs,
-        particle_prin_primals,
-        particle_prin_primal_sclasses
-    },
-
-    {   /* Array terminator */
-        QTY_SCLASS,
+        { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
         { 0, 0 },
         { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
         TRUE,
@@ -2140,7 +1361,9 @@ Result_candidate possible_results[] =
         NULL,
         NULL,
         NULL,
-        NULL
+        NULL,
+        NULL,
+        QTY_SCLASS
     }
 };
 
@@ -2251,7 +1474,7 @@ update_result( Analysis *analy, Result *p_result )
             for ( i = 0; i < qty; i++ )
             {
                 p_result->subrecs[i] = p_sr[i].subrec_id;
-                p_result->superclasses[i] = p_sr[i].candidate->superclass;
+                p_result->superclasses[i] = p_sr[i].superclass;
                 p_result->indirect_flags[i] = p_sr[i].indirect;
                 p_result->result_funcs[i] = p_sr[i].candidate->compute_func;
                 p_result->primals[i] = p_sr[i].candidate->primals;
@@ -2349,8 +1572,8 @@ parse_result_spec( char *res_spec, char *root, int *p_qty_indices,
             strcpy( comp_str, p_c_idx );
 
             /* Shouldn't be anything left after a comp_str name. */
-            if ( strtok( NULL, delimiters ) != NULL )
-                return FALSE;
+            //if ( strtok( NULL, delimiters ) != NULL )
+            //    return FALSE;
         }
 
         p_c_idx = strtok( NULL, delimiters );
@@ -2412,7 +1635,6 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
 				       * render window.
 				       */
 
-
     rval = search_result_tables( analy, table, name,
                                  root, &index_qty, indices, component,
                                  &srec_id, &scalar, &p_dr, &p_pr,
@@ -2438,20 +1660,8 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
      * Array and Vector-array names must be in column-major format
      * for database requests.
      */
-    if ( index_qty > 0 )
-    {
-        sprintf( col_major_name, "%s[", root );
-        if ( component[0] != '\0' )
-            sprintf( col_major_name + strlen( col_major_name ),
-                     "%s,", component );
-        for ( i = 0; i < index_qty - 1; i++ )
-            sprintf( col_major_name + strlen( col_major_name ),
-                     "%d,", indices[i] );
-        sprintf( col_major_name + strlen( col_major_name ), "%d]",
-                 indices[index_qty - 1] );
-
-        strcpy( p_result->name, col_major_name );
-    }
+    if ( component[0] != '\0' )
+        strcpy( p_result->name, component );
     else
         strcpy( p_result->name, name );
 
@@ -2459,9 +1669,7 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
                      NULL, (void *) &mesh_id );
     p_result->mesh_id = mesh_id;
     p_result->srec_id = srec_id;
-
     p_result->qty = qty;
-
     p_result->single_valued = scalar;
 
     if ( qty > 0 )
@@ -2498,18 +1706,16 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
     if ( p_dr != NULL )
     {
         /* Derived_result-specific initializations. */
-
         p_sr = (Subrecord_result *) srec_map[srec_id].list;
  
         /* Derived results need reference to supporting primals. */
         if ( qty > 0 )
-            p_result->primals = NEW_N( char **, qty,
-                                       "Result primals array" );
+            p_result->primals = NEW_N( char **, qty, "Result primals array" );
 
         for ( i = 0; i < qty; i++ )
         {
             p_result->subrecs[i] = p_sr[i].subrec_id;
-            p_result->superclasses[i] = p_sr[i].candidate->superclass;
+            p_result->superclasses[i] = p_sr[i].superclass;
             p_result->indirect_flags[i] = p_sr[i].indirect;
             p_result->result_funcs[i] = p_sr[i].candidate->compute_func;
             p_result->primals[i] = p_sr[i].candidate->primals;
@@ -2517,8 +1723,7 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
 
         p_result->origin = p_dr->origin;
         p_result->original_result = (void *) p_dr;
-        strcpy( p_result->title,
-                p_sr[0].candidate->long_names[p_sr[0].index] );
+        strcpy( p_result->title, p_sr[0].candidate->long_names[p_sr[0].index] );
 
         p_result->hide_in_menu = p_sr[0].candidate->hide_in_menu ;
     }
@@ -2530,6 +1735,13 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
         for ( i = 0; i < qty; i++ )
         {
             p_result->subrecs[i] = p_i[i];
+
+            if(analy->srec_tree[srec_id].subrecs[p_i[i]].element_set)
+            {
+                setElementSet_integration_point(analy->srec_tree[srec_id].subrecs[p_i[i]].element_set,
+                                                3, 1, indices[0]);
+            }
+
             p_s = &(analy->srec_tree[srec_id].subrecs[p_i[i]].subrec);
             analy->db_query( analy->db_ident, QRY_CLASS_SUPERCLASS,
                              (void *) &mesh_id, p_s->class_name,
@@ -2548,9 +1760,8 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
 
         p_result->origin = p_pr->origin;
         p_result->original_result = (void *) p_pr;
-        strcpy( p_result->title, p_pr->long_name );
 
-        if ( index_qty > 0 || *component != '\0' )
+        if ( component[0] != '\0' )
         {
             /*
              * Append additional specifying text onto title.  Note that
@@ -2558,43 +1769,37 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
              * format, unlike p_result->name, which is used to make
              * db requests.
              */
-            strcat( p_result->title, "[" );
-
-            if ( index_qty > 0 )
+            if(p_pr->owning_vector_result[0] != NULL)
             {
-                sprintf( str, "%d", indices[index_qty - 1] );
-                strcat( p_result->title, str );
-            }
-            for ( i = index_qty - 2; i >= 0; i-- )
-            {
-                sprintf( str, ", %d", indices[i] );
-                strcat( p_result->title, str );
-            }
-
-            if ( *component != '\0' )
-            {
-                /* Find the component's State_variable to get title. */
-                rval = htable_search( analy->st_var_table, component,
-                                      FIND_ENTRY, &p_hte );
-                if ( rval != 0 )
+                strcpy( p_result->title, p_pr->owning_vector_result[0]->long_name);
+                strcat( p_result->title, "[" );
+                if ( index_qty > 0 )
                 {
-                    popup_dialog( WARNING_POPUP,
-                                  "Vector primal component svar missing." );
-                    cleanse_result( p_result );
-                    return 0;
+                    sprintf( str, "%d", indices[index_qty - 1] );
+                    strcat( p_result->title, str );
+                }
+                for ( i = index_qty - 2; i >= 0; i-- )
+                {
+                    sprintf( str, ", %d", indices[i] );
+                    strcat( p_result->title, str );
                 }
 
-                p_sv = (State_variable *) p_hte->data;
-
                 if ( index_qty > 0 )
-                    sprintf( str, ", %s", p_sv->long_name );
+                    sprintf( str, ", %s", p_pr->long_name );
                 else
-                    strcpy( str, p_sv->long_name );
-
+                    strcpy( str, p_pr->long_name );
                 strcat( p_result->title, str );
-            }
 
-            strcat( p_result->title, "]" );
+                strcat( p_result->title, "]" );
+            }
+            else
+            {
+                strcpy( p_result->title, p_pr->long_name );
+            }
+        }
+        else
+        {
+            strcpy( p_result->title, p_pr->long_name );
         }
     }
 
@@ -2641,8 +1846,7 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
         return FALSE;
 
     /* No results if no states in db... */
-    analy->db_query( analy->db_ident, QRY_QTY_STATES,
-                     NULL, NULL, (void *) &qty_states );
+    analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL, (void *) &qty_states );
     if ( qty_states == 0 )
         return FALSE;
 
@@ -2650,16 +1854,14 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
     if ( !parse_result_spec( name, root, &index_qty, indices, component ) )
         return FALSE;
 
-    if ( table == DERIVED
-            && ( index_qty > 0 || component[0] != '\0' ) )
-        return FALSE; /* There are no _derived_ vector or array results. */
+    if ( table == DERIVED && ( index_qty > 0 || component[0] != '\0' ) )
+        /* There are no _derived_ vector or array results. */
+        return FALSE;
 
     /* Get srec format and mesh ident for current state. */
     st = analy->cur_state + 1;
-    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID,
-                     (void *) &st, NULL, (void *) &srec_id );
-    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id,
-                     NULL, (void *) &mesh_id );
+    analy->db_query( analy->db_ident, QRY_SREC_FMT_ID, (void *) &st, NULL, (void *) &srec_id );
+    analy->db_query( analy->db_ident, QRY_SREC_MESH, (void *) &srec_id, NULL, (void *) &mesh_id );
 
     found = FALSE;
     scalar = TRUE;
@@ -2671,10 +1873,61 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
      * are to be searched, look for a derived result first.
      */
 
-    if ( table == DERIVED || table == ALL )
+    if ( table == PRIMAL || table == ALL )
     {
-        rval = htable_search( analy->derived_results, root, FIND_ENTRY,
-                              &p_hte );
+        if(component[0] == '\0')
+            rval = htable_search( analy->primal_results, root, FIND_ENTRY, &p_hte );
+        else
+            rval = htable_search( analy->primal_results, component, FIND_ENTRY, &p_hte );
+
+        if ( rval != OK && table == PRIMAL )
+            return FALSE; /* Unable to match requested result. */
+        else if( rval == OK ){
+            /* Found Primal result matching name. */
+            p_pr = (Primal_result *) p_hte->data;
+            found = TRUE;
+
+            /*
+            * Determine if the specified request is ultimately scalar,
+            * i.e., either the result is scalar or the result modified
+            * by a subset specification results in a singly-valued quantity.
+            */
+            switch( p_pr->var->agg_type )
+            {
+            case VECTOR:
+                if ( *component == '\0' )
+                    scalar = FALSE;
+                break;
+            case ARRAY:
+                if ( index_qty < p_pr->var->rank )
+                    scalar = FALSE;
+                break;
+            case VEC_ARRAY:
+                if ( *component == '\0' )
+                    scalar = FALSE;
+                else if ( index_qty < p_pr->var->rank )
+                    scalar = FALSE;
+                break;
+            }
+
+            /* Assign return parameters for primal results. */
+            if ( p_srec_map != NULL )
+                *p_srec_map = p_pr->srec_map;
+            if ( pp_pr != NULL )
+                *pp_pr = p_pr;
+            if ( p_component != NULL )
+                strcpy( p_component, component );
+            if ( p_index_qty != NULL )
+                *p_index_qty = index_qty;
+            if ( p_indices != NULL )
+                for ( i = 0; i < index_qty; i++ )
+                    p_indices[i] = indices[i];
+        }
+    }
+
+    if ( !found && ( table == DERIVED || table == ALL ) )
+    {
+        rval = htable_search( analy->derived_results, root, FIND_ENTRY, &p_hte );
 
         if ( rval != OK && table == DERIVED )
             return FALSE; /* Unable to match requested result. */
@@ -2705,114 +1958,6 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
         }
     }
 
-    if ( !found
-            && ( table == PRIMAL || table == ALL ) )
-    {
-        rval = htable_search( analy->primal_results, root, FIND_ENTRY,
-                              &p_hte );
-
-        if ( rval != OK )
-            return FALSE; /* Unable to match requested result. */
-        else if ( component[0] != '\0' )
-        {
-            /* Search for specified vector component. */
-            comp_names = ((Primal_result *) p_hte->data)->var->components;
-            if(comp_names == NULL)
-            {
-                return FALSE;
-            }
-            comp_qty = ((Primal_result *) p_hte->data)->var->vec_size;
-            for ( i = 0; i < comp_qty; i++ )
-                if ( strcmp( comp_names[i], component ) == 0 )
-                    break;
-            if ( i == comp_qty )
-                return FALSE; /* Unable to match vector component. */
-        }
-
-        /* Found Primal result matching name. */
-        p_pr = (Primal_result *) p_hte->data;
-
-        /*
-         * Additional checks for specification errors.
-         */
-        switch ( p_pr->var->agg_type )
-        {
-        case SCALAR:
-            if ( index_qty > 0 || component[0] != '\0' )
-                return FALSE;
-            break;
-
-        case VECTOR:
-            if ( index_qty > 0 )
-                return FALSE;
-            break;
-
-        case ARRAY:
-            if ( component[0] != '\0' )
-                return FALSE;
-            else if ( index_qty > p_pr->var->rank )
-                return FALSE;
-            else
-            {
-                for ( i = 0; i < index_qty; i++ )
-                    if ( indices[i] > p_pr->var->dims[i] )
-                        break;
-                if ( i < index_qty )
-                    return FALSE;
-            }
-            break;
-
-        case VEC_ARRAY:
-            if ( index_qty > p_pr->var->rank )
-                return FALSE;
-            else
-            {
-                for ( i = 0; i < index_qty; i++ )
-                    if ( indices[i] > p_pr->var->dims[i] || indices[i] < 1 )
-                        break;
-                if ( i < index_qty )
-                    return FALSE;
-            }
-            break;
-        }
-
-        /*
-         * Determine if the specified request is ultimately scalar,
-         * i.e., either the result is scalar or the result modified
-         * by a subset specification results in a singly-valued quantity.
-         */
-        switch( p_pr->var->agg_type )
-        {
-        case VECTOR:
-            if ( *component == '\0' )
-                scalar = FALSE;
-            break;
-        case ARRAY:
-            if ( index_qty < p_pr->var->rank )
-                scalar = FALSE;
-            break;
-        case VEC_ARRAY:
-            if ( *component == '\0' )
-                scalar = FALSE;
-            else if ( index_qty < p_pr->var->rank )
-                scalar = FALSE;
-            break;
-        }
-
-        /* Assign return parameters for primal results. */
-        if ( p_srec_map != NULL )
-            *p_srec_map = p_pr->srec_map;
-        if ( pp_pr != NULL )
-            *pp_pr = p_pr;
-        if ( p_component != NULL )
-            strcpy( p_component, component );
-        if ( p_index_qty != NULL )
-            *p_index_qty = index_qty;
-        if ( p_indices != NULL )
-            for ( i = 0; i < index_qty; i++ )
-                p_indices[i] = indices[i];
-    }
-
     /* Assign remaining return parameters. */
     if ( p_root != NULL )
         strcpy( p_root, root );
@@ -2821,7 +1966,7 @@ search_result_tables( Analysis *analy, Result_table_type table, char *name,
     if ( p_scalar != NULL )
         *p_scalar = scalar;
 
-    return TRUE;
+    return found;
 }
 
 
@@ -2993,14 +2138,6 @@ result_has_class( Result *p_result, MO_class_data *p_mo_class, Analysis *analy )
     if ( p_result == NULL )
         return FALSE;
 
-    if(analy->int_labels != NULL && analy->int_labels->use_combined)
-    {
-        if(analy->original_results[p_mo_class->superclass] != NULL)
-        {
-            return TRUE;
-        }
-    }
-
     if ( p_result->origin.is_derived )
     {
         p_dr = (Derived_result *) p_result->original_result;
@@ -3028,8 +2165,7 @@ result_has_class( Result *p_result, MO_class_data *p_mo_class, Analysis *analy )
                          * the test class superclass matches the subrecord
                          * candidate superclass.
                          */
-                        if ( p_mo_class->superclass
-                                == p_sr[j].candidate->superclass )
+                        if ( p_mo_class->superclass == p_sr[j].superclass )
                             return TRUE;
                     }
                 }
@@ -3038,43 +2174,10 @@ result_has_class( Result *p_result, MO_class_data *p_mo_class, Analysis *analy )
     }
     else
     {
-        if(analy->int_labels != NULL && analy->int_labels->use_combined)
-        {
-            for(i = 0; i < p_result->qty; i++)
-            {
-                if(p_mo_class->superclass == p_result->superclasses[i])
-                {
-                    p_pr = (Primal_result *) analy->original_results[p_mo_class->superclass];
-                    if(p_pr == NULL)
-                    {
-                        return FALSE;
-                    }
-                    break;
-                }
-            } 
-        } else
-        { 
-            p_pr = (Primal_result *) p_result->original_result;
-        }
+        p_pr = (Primal_result *) p_result->original_result;
         if(p_pr == NULL)
-        {
             return FALSE;
-        }       
  
-        if(!strncmp(p_pr->var->short_name, "es_", 3) && analy->int_labels != NULL && analy->int_labels->use_combined)
-        {
-            /* We are dealing with a combined element set result */
-            /* loop thru the superclasses of the combined result and see if there is a superclass match with the 
- *             class passed in. */
-            for(i = 0; i < p_result->qty; i++)
-            {
-               if(p_result->superclasses[i] == p_mo_class->superclass)
-               {
-                   return TRUE;
-               } 
-            }
-        }
-
         for ( i = 0; i < analy->qty_srec_fmts; i++ )
         {
             if ( (qty = p_pr->srec_map[i].qty) > 0 )
@@ -3120,9 +2223,12 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
         return FALSE;
 
 
-    /* with element sets we now need to deal with a result that is a mixture of primal and derived results
- *     so if the passed in superclass has a results function that is not load_primal_result then it needs
- *     to be treated as derived even if the origin flag is set to primal */
+    /* with element sets we now need to deal with a result
+     * that is a mixture of primal and derived results
+     * so if the passed in superclass has a results function 
+     * that is not load_primal_result then it needs
+     * to be treated as derived even if the origin flag is set to primal
+     */
     for(i = 0; i < p_result->qty; i++)
     {
         if(p_result->superclasses[i] == superclass)
@@ -3140,35 +2246,9 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
         }
     }
 
-    /*if(i >= p_result->qty)
-    {
-        return FALSE;
-    }*/
-
     if ( p_result->origin.is_derived || is_derived)
     {
-        if(!is_elemset)
-        {
-            p_dr = (Derived_result *) analy->original_results[superclass];
-            if(p_dr == NULL)
-            {
-                p_dr = (Derived_result *) p_result->original_result;
-            }
-            for ( i = 0; i < analy->qty_srec_fmts; i++ )
-            {
-                qty = p_dr->srec_map[i].qty;
-                if ( qty > 0 )
-                {
-                    p_sr = (Subrecord_result *) p_dr->srec_map[i].list;
-
-                    for ( j = 0; j < qty; j++ )
-                        if ( p_sr[j].candidate->superclass == superclass )
-                        /* Found superclass match. */
-                            return TRUE;
-                }
-            
-            }
-        } else if( is_derived )
+        if( is_derived )
         {
            for(i = 0; i < p_result->qty; i++)
            {
@@ -3178,7 +2258,8 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
                }
            }
            return FALSE; 
-        } else
+        }
+        else
         {
             for(i = 0; i < p_result->qty; i++)
             {
@@ -3192,27 +2273,7 @@ result_has_superclass( Result *p_result, int superclass, Analysis *analy )
     }
     else
     {
-        if(analy->int_labels != NULL && analy->int_labels->use_combined)
-        {
-            for(i = 0; i < p_result->qty; i++)
-            {
-                p_pr = (Primal_result *) analy->original_results[superclass];
-
-                if(p_pr == NULL)
-                {
-                    return FALSE;
-                }
-                found = TRUE;
-                break;
-            }
-            if(!found)
-            {
-                p_pr = (Primal_result *) analy->original_results[p_result->superclasses[0]];
-            } 
-        } else
-        {
-            p_pr = (Primal_result *) p_result->original_result;
-        }
+        p_pr = (Primal_result *) p_result->original_result;
 
         for ( i = 0; i < analy->qty_srec_fmts; i++ )
         {
@@ -3377,7 +2438,7 @@ void
 load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
 {
     float *resultElem;
-    int i;
+    int i, rval;
     float *result_buf;
     Result *p_result;
     Result test_result;
@@ -3399,61 +2460,75 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     obj_qty = p_subrec->subrec.qty_objects;
     float * activity;
     Bool_type found = FALSE;
- 
-    if(analy->int_labels != NULL && analy->int_labels->use_combined == TRUE && p_result->original_names != NULL &&
-       !strncmp(p_result->original_names[index], "es_", 3))
+    Primal_result* primal_result;
+    Htable_entry *table_result;
+
+    rval = htable_search(analy->primal_results, p_result->name, FIND_ENTRY, &table_result);
+
+    if(rval == OK)
     {
-        es_qty = analy->int_labels->num_es_sets;
-        for(i = 0; i < es_qty; i++)
-        {
-            for(j = 0; j < p_subrec->subrec.qty_svars; j++)
+        primal_result = (Primal_result*)table_result->data;
+    }
+
+    if( primal_result->owning_vec_count > 0){
+        found = FALSE;
+        for( i = 0; i < primal_result->owning_vec_count; i++){
+            int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
+            for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
             {
-                if(!strcmp(analy->int_labels->es_names[i], p_subrec->subrec.svar_names[j]))
-                {
-                    strcpy(primal_spec, analy->int_labels->result_names[i]);
+                if(list[j] == subrec){
                     found = TRUE;
                     break;
                 }
             }
             if(found)
-            {
                 break;
-            }
         }
-    } else if(index < p_result->qty && p_result->original_names != NULL)
-    {
-        for(i = 0; i < p_subrec->subrec.qty_svars; i++)
+
+        strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+        if(p_subrec->element_set)
         {
-            if(strstr(p_result->original_names[index], p_subrec->subrec.svar_names[i]) != NULL)
+            if(p_subrec->element_set->tempIndex < 0)
             {
-                strcpy(primal_spec, p_result->original_names[index]);
-                break;
+                sprintf(primal_spec, "%s[%d,%s]", primal_spec,
+                        p_subrec->element_set->current_index+1, p_result->name);
+            }else
+            {
+                sprintf(primal_spec,"%s[%d,%s]" , primal_spec,
+                        p_subrec->element_set->tempIndex+1, p_result->name);
             }
         }
-    } else
+        else
+        {
+            sprintf(primal_spec,"%s[%s]" ,primal_spec, p_result->name);
+        }
+        primals[0] = primal_spec;
+    }
+    else
     {
-        strcpy(primal_spec, p_result->name);
-    } 
-    
-    primals[0] = primal_spec;
+        int *list = (int*)primal_result->srec_map->list;
+        for(i = 0; i < primal_result->srec_map->qty; i++)
+        {
+            if(list[i] == subrec)
+                break;
+        }
+        primals[0] = primal_result->original_names_per_subrec[i];
+    }
+
     primals[1] = NULL;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
-				   * for hexes currently. Set to false insure that
-				   * that the EI message will not appear in the
-				   * render window.
-    				   */
-    /*activity = analy->state_p->sand_present
-        ? analy->state_p->elem_class_sand[p_subrec->p_object_class->elem_class_index]
-        : NULL; */
+			                       * for hexes currently. Set to false insure that
+				                   * that the EI message will not appear in the
+				                   * render window. */
+
     if(analy->state_p->sand_present && p_subrec->p_object_class->elem_class_index >= 0)
-    {
         activity = analy->state_p->elem_class_sand[p_subrec->p_object_class->elem_class_index];
-    } else
-    {
+    else
         activity = NULL;
-    }
-    if ( !analy->particle_nodes_enabled && is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
+
+    if ( !analy->particle_nodes_enabled
+            && is_particle_class( analy, p_subrec->p_object_class->superclass, p_subrec->p_object_class->short_name ) )
         return;
 
     if((p_result->superclasses[index] == G_QUAD || p_result->superclasses[index] == G_TRI) &&
@@ -3512,24 +2587,12 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
                            primals, (void *) result_buf );
 
-    /*if ( activity && analy->show_deleted_elements)
-    {
-        for ( i = 0; i < obj_qty; i++)
-	{
-            result_buf[i] = activity[i];
-	}
-
-    }*/
-    
     /* Re-order data if necessary. */
     if ( object_ids )
     {
         /* If we ge a particle object and we do not have particles on, then set value to zero */
         for ( i = 0; i < obj_qty; i++ )
-        {
             resultElem[object_ids[i]] = result_buf[i];
-        }
-
 
         /*
          * Re-assign result_buf with data now sorted in class-sized arrays
@@ -3680,27 +2743,7 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
         }
     } 
 
-    if(analy->int_labels != NULL && analy->int_labels->use_combined == TRUE && p_result->original_names != NULL &&
-       !strncmp(p_result->original_names[index], "es_", 3))
-    {
-        es_qty = analy->int_labels->num_es_sets;
-        for(i = 0; i < es_qty; i++)
-        {
-            for(j = 0; j < p_subrec->subrec.qty_svars; j++)
-            {
-                if(!strcmp(analy->int_labels->es_names[i], p_subrec->subrec.svar_names[j]))
-                {
-                    strcpy(primal_spec, analy->int_labels->result_names[i]);
-                    found = TRUE;
-                    break;
-                }
-            }
-            if(found)
-            {
-                break;
-            }
-        }
-    } else if(p_result->qty > 1 && p_result->original_names != NULL)
+    if(p_result->qty > 1 && p_result->original_names != NULL)
     {
         for(i = 0; i < p_subrec->subrec.qty_svars; i++)
         {
@@ -3710,10 +2753,12 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
                 break;
             }
         }
-    } else
+    }
+    else
     {
         strcpy(primal_spec, p_result->name);
     } 
+
     p_mo_class = p_subrec->p_object_class;
 
     /* we know that we are in the local coordinate system or this function would not be called.  We also know that
@@ -3741,72 +2786,43 @@ load_stress_local_coord( Analysis *analy, float *resultArr, Bool_type interpolat
     {
         primal_list[i] = malloc(32*sizeof(char));
     }
-    if(!strncmp(primal_spec, "es_", 3))
+     
+    if(p_result->original_names != NULL)
     {
-        for(i = 0; i < 6; i++)
+        if(strstr(p_result->original_names[index], "stress_in") != NULL)
         {
-            strcpy(primal_list[i], p_subrec->subrec.svar_names[0]);
-        }
-        strcat(primal_list[0], "[sx");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[0], p);
-        strcat(primal_list[1], "[sy");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[1], p);
-        strcat(primal_list[2], "[sz");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[2], p);
-        strcat(primal_list[3], "[sxy");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[3], p);
-        strcat(primal_list[4], "[syz");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[4], p);
-        strcat(primal_list[5], "[szx");
-        for(p = primal_spec; *p != ','; p++);
-        strcat(primal_list[5], p);
-        found = TRUE;
-               
-    } else
-    {
-       if(p_result->original_names != NULL)
-       {
-           if(strstr(p_result->original_names[index], "stress_in") != NULL)
-           {
-               strcpy(name, "stress_in");
-           } else if(strstr(p_result->original_names[index], "stress_mid") != NULL)
-           {
-               strcpy(name, "stress_mid");
-           } else if(strstr(p_result->original_names[index], "stress_out") != NULL)
-           {
-               strcpy(name, "stress_out");
-           } else
-           {
-               strcpy(name, "stress");
-           }
+            strcpy(name, "stress_in");
+        } else if(strstr(p_result->original_names[index], "stress_mid") != NULL)
+        {
+            strcpy(name, "stress_mid");
+        } else if(strstr(p_result->original_names[index], "stress_out") != NULL)
+        {
+            strcpy(name, "stress_out");
         } else
         {
-            if(strstr(p_result->original_name, "stress_in") != NULL)
-            {
-                strcpy(name, "stress_in");
-            } else if(strstr(p_result->original_name, "stress_mid") != NULL)
-            {
-                strcpy(name, "stress_mid");
-            } else if(strstr(p_result->original_name, "stress_out") != NULL)
-            {
-                strcpy(name, "stress_out");
-            } else
-            {
-                strcpy(name, "stress");
-            }
+            strcpy(name, "stress");
         }
-            
-       found = FALSE;
-       primals[0] = malloc(strlen(name) + 1);
-       strcpy(primals[0], name);
-       primals[1] = NULL;
-    } 
-    
+    } else
+    {
+        if(strstr(p_result->original_name, "stress_in") != NULL)
+        {
+            strcpy(name, "stress_in");
+        } else if(strstr(p_result->original_name, "stress_mid") != NULL)
+        {
+            strcpy(name, "stress_mid");
+        } else if(strstr(p_result->original_name, "stress_out") != NULL)
+        {
+            strcpy(name, "stress_out");
+        } else
+        {
+            strcpy(name, "stress");
+        }
+    }
+        
+    found = FALSE;
+    primals[0] = malloc(strlen(name) + 1);
+    strcpy(primals[0], name);
+    primals[1] = NULL;
 
    primal_list[6] = NULL;
  
@@ -3903,7 +2919,7 @@ load_primal_result_double( Analysis *analy, float *resultArr,
                            Bool_type interpolate )
 {
     float *resultElem;
-    int i;
+    int i, j, rval;
     Result *p_result;
     int subrec, srec;
     int obj_qty;
@@ -3913,6 +2929,10 @@ load_primal_result_double( Analysis *analy, float *resultArr,
     char *primals[2];
     char primal_spec[32];
     double *dbuffer;
+    Primal_result* primal_result;
+    Htable_entry *table_result;
+    Bool_type found;
+
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
 				   * for hexes currently. Set to false insure that
@@ -3930,9 +2950,57 @@ load_primal_result_double( Analysis *analy, float *resultArr,
 
     dbuffer = NEW_N( double, obj_qty, "Double precision input buffer" );
 
-    strcpy( primal_spec, p_result->name );
-    primals[0] = primal_spec;
-    primals[1] = NULL;
+    rval = htable_search(analy->primal_results, p_result->name, FIND_ENTRY, &table_result);
+
+    if(rval == OK)
+    {
+        primal_result = (Primal_result*)table_result->data;
+    }
+
+    if( primal_result->owning_vec_count > 0){
+        found = FALSE;
+        for( i = 0; i < primal_result->owning_vec_count; i++){
+            int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
+            for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
+            {
+                if(list[j] == subrec){
+                    found = TRUE;
+                    break;
+                }
+            }
+            if(found)
+                break;
+        }
+
+        strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+        if(p_subrec->element_set)
+        {
+            if(p_subrec->element_set->tempIndex < 0)
+            {
+                sprintf(primal_spec, "%s[%d,%s]", primal_spec,
+                        p_subrec->element_set->current_index+1, p_result->name);
+            }else
+            {
+                sprintf(primal_spec,"%s[%d,%s]" , primal_spec,
+                        p_subrec->element_set->tempIndex+1, p_result->name);
+            }
+        }
+        else
+        {
+            sprintf(primal_spec,"%s[%s]" ,primal_spec, p_result->name);
+        }
+        primals[0] = primal_spec;
+    }
+    else
+    {
+        int *list = (int*)primal_result->srec_map->list;
+        for(i = 0; i < primal_result->srec_map->qty; i++)
+        {
+            if(list[i] == subrec)
+                break;
+        }
+        primals[0] = primal_result->original_names_per_subrec[i];
+    }
 
     /* Read the database. */
     analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
@@ -4043,7 +3111,7 @@ load_primal_result_int( Analysis *analy, float *resultArr,
                         Bool_type interpolate )
 {
     float *resultElem;
-    int i;
+    int i, j, rval;
     Result *p_result;
     int subrec, srec;
     int obj_qty;
@@ -4053,6 +3121,9 @@ load_primal_result_int( Analysis *analy, float *resultArr,
     char *primals[2];
     char primal_spec[32];
     int *ibuffer;
+    Primal_result* primal_result;
+    Htable_entry *table_result;
+    Bool_type found;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
 				   * for hexes currently. Set to false insure that
@@ -4070,9 +3141,57 @@ load_primal_result_int( Analysis *analy, float *resultArr,
 
     ibuffer = NEW_N( int, obj_qty, "integer single precision input buffer" );
 
-    strcpy( primal_spec, p_result->name );
-    primals[0] = primal_spec;
-    primals[1] = NULL;
+    rval = htable_search(analy->primal_results, p_result->name, FIND_ENTRY, &table_result);
+
+    if(rval == OK)
+    {
+        primal_result = (Primal_result*)table_result->data;
+    }
+
+    if( primal_result->owning_vec_count > 0){
+        found = FALSE;
+        for( i = 0; i < primal_result->owning_vec_count; i++){
+            int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
+            for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
+            {
+                if(list[j] == subrec){
+                    found = TRUE;
+                    break;
+                }
+            }
+            if(found)
+                break;
+        }
+
+        strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+        if(p_subrec->element_set)
+        {
+            if(p_subrec->element_set->tempIndex < 0)
+            {
+                sprintf(primal_spec, "%s[%d,%s]", primal_spec,
+                        p_subrec->element_set->current_index+1, p_result->name);
+            }else
+            {
+                sprintf(primal_spec,"%s[%d,%s]" , primal_spec,
+                        p_subrec->element_set->tempIndex+1, p_result->name);
+            }
+        }
+        else
+        {
+            sprintf(primal_spec,"%s[%s]" ,primal_spec, p_result->name);
+        }
+        primals[0] = primal_spec;
+    }
+    else
+    {
+        int *list = (int*)primal_result->srec_map->list;
+        for(i = 0; i < primal_result->srec_map->qty; i++)
+        {
+            if(list[i] == subrec)
+                break;
+        }
+        primals[0] = primal_result->original_names_per_subrec[i];
+    }
 
     /* Read the database. */
     analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
@@ -4183,7 +3302,7 @@ load_primal_result_long( Analysis *analy, float *resultArr,
                          Bool_type interpolate )
 {
     float *resultElem;
-    int i;
+    int i, j, rval;
     Result *p_result;
     int subrec, srec;
     int obj_qty;
@@ -4193,6 +3312,9 @@ load_primal_result_long( Analysis *analy, float *resultArr,
     char *primals[2];
     char primal_spec[32];
     long *ibuffer;
+    Primal_result* primal_result;
+    Htable_entry *table_result;
+    Bool_type found;
 
     analy->result_active = FALSE; /* Used for error indicator which is only implemented
 				   * for hexes currently. Set to false insure that
@@ -4209,9 +3331,64 @@ load_primal_result_long( Analysis *analy, float *resultArr,
 
     ibuffer = NEW_N( long, obj_qty, "integer single precision input buffer" );
 
-    strcpy( primal_spec, p_result->name );
-    primals[0] = primal_spec;
-    primals[1] = NULL;
+    rval = htable_search(analy->primal_results, p_result->name, FIND_ENTRY, &table_result);
+
+    if(rval == OK)
+    {
+        primal_result = (Primal_result*)table_result->data;
+    }
+
+    rval = htable_search(analy->primal_results, p_result->name, FIND_ENTRY, &table_result);
+
+    if(rval == OK)
+    {
+        primal_result = (Primal_result*)table_result->data;
+    }
+
+    if( primal_result->owning_vec_count > 0){
+        found = FALSE;
+        for( i = 0; i < primal_result->owning_vec_count; i++){
+            int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
+            for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
+            {
+                if(list[j] == subrec){
+                    found = TRUE;
+                    break;
+                }
+            }
+            if(found)
+                break;
+        }
+
+        strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+        if(p_subrec->element_set)
+        {
+            if(p_subrec->element_set->tempIndex < 0)
+            {
+                sprintf(primal_spec, "%s[%d,%s]", primal_spec,
+                        p_subrec->element_set->current_index+1, p_result->name);
+            }else
+            {
+                sprintf(primal_spec,"%s[%d,%s]" , primal_spec,
+                        p_subrec->element_set->tempIndex+1, p_result->name);
+            }
+        }
+        else
+        {
+            sprintf(primal_spec,"%s[%s]" ,primal_spec, p_result->name);
+        }
+        primals[0] = primal_spec;
+    }
+    else
+    {
+        int *list = (int*)primal_result->srec_map->list;
+        for(i = 0; i < primal_result->srec_map->qty; i++)
+        {
+            if(list[i] == subrec)
+                break;
+        }
+        primals[0] = primal_result->original_names_per_subrec[i];
+    }
 
     /* Read the database. */
     analy->db_get_results( analy->db_ident, analy->cur_state + 1, subrec, 1,
@@ -4956,24 +4133,24 @@ get_element_set_id( char *es_input_ptr )
  * Returns the element set (es) index for the specified es id.
  *
  */
-int
-get_element_set_index( Analysis *analy, int es_id )
-{
-    int i=0;
-    int es_index=-1;
-
-    for (i=0;
-            i<analy->es_cnt;
-            i++ )
-    {
-        if ( analy->es_intpoints[i].es_id == es_id )
-        {
-            es_index = i;
-            break;
-        }
-    }
-    return( es_index );
-}
+//int
+//get_element_set_index( Analysis *analy, int es_id )
+//{
+//    int i=0;
+//    int es_index=-1;
+//
+//    for (i=0;
+//            i<analy->es_cnt;
+//            i++ )
+//    {
+//        if ( analy->es_intpoints[i].es_id == es_id )
+//        {
+//            es_index = i;
+//            break;
+//        }
+//    }
+//    return( es_index );
+//}
 
 /*****************************************************************
  * TAG( get_intpoint_index )
@@ -5004,26 +4181,26 @@ get_intpoint_index ( int label, int num_labels, int *intpoint_labels )
  * intpoints for a specified element set id.
  *
  */
-void
-get_intpoints ( Analysis *analy, int es_id, int intpoints[3] )
-{
-    int i;
-
-    for ( i=0;
-            i<analy->es_cnt;
-            i++ )
-    {
-        if ( es_id == analy->es_intpoints[i].es_id )
-        {
-            intpoints[0] = analy->es_intpoints[i].in_mid_out_set[0];
-            intpoints[1] = analy->es_intpoints[i].in_mid_out_set[1];
-            intpoints[2] = analy->es_intpoints[i].in_mid_out_set[2];
-            return;
-        }
-    }
-    intpoints[0] =  intpoints[1] =  intpoints[2] = -1;
-    return;
-}
+//void
+//get_intpoints ( Analysis *analy, int es_id, int intpoints[3] )
+//{
+//    int i;
+//
+//    for ( i=0;
+//            i<analy->es_cnt;
+//            i++ )
+//    {
+//        if ( es_id == analy->es_intpoints[i].es_id )
+//        {
+//            intpoints[0] = analy->es_intpoints[i].in_mid_out_set[0];
+//            intpoints[1] = analy->es_intpoints[i].in_mid_out_set[1];
+//            intpoints[2] = analy->es_intpoints[i].in_mid_out_set[2];
+//            return;
+//        }
+//    }
+//    intpoints[0] =  intpoints[1] =  intpoints[2] = -1;
+//    return;
+//}
 
 /*****************************************************************
  * TAG( set_default_intpoints )
@@ -5090,7 +4267,7 @@ Result * create_result_list( char * token, Analysis *analy)
     Result * p2;
     Result result;
     Result_candidate *p_rc;
-    es_Result_candidate *p_es_rc;
+    Result_candidate *p_es_rc;
     Bool_type raw = TRUE;
     Bool_type match = FALSE;
 
@@ -5104,29 +4281,6 @@ Result * create_result_list( char * token, Analysis *analy)
         return NULL;
     } 
    
-	k = 0;
-	if(!strncmp(token, "es_", 3))
-	{
-	   for(i = 0; i < strlen(token); i++)
-	   {
-		   if(token[i] == '[')
-		   {
-			   raw = FALSE;
-			   continue;
-		   }
-
-		   if(raw == FALSE && token[i] != ']')
-		   {
-			   raw_primal[k] = token[i];
-			   k++;
-		   } else if(raw == FALSE && token[i] == ']')
-		   {
-			   raw_primal[k] = '\0';
-			   break;
-		   }
-	   }
-	}
-            
     /* allocate for a 1 based array so that the subrec number equals the indes into the array */
     subrecs = (int *) calloc(analy->srec_tree->qty + 1, sizeof(int));
     if(subrecs == NULL)
@@ -5135,126 +4289,7 @@ Result * create_result_list( char * token, Analysis *analy)
         parse_command("quit", analy);
     }
 
-    
-    if(analy->int_labels != NULL)
-    { 
-        for(i = 0; possible_es_results[i].superclass != QTY_SCLASS; i++)
-        {
-            p_es_rc = &possible_es_results[i];
-            for(j = 0; p_es_rc->short_names[j] != NULL; j++)
-            {
-                if(strcmp(token, p_es_rc->short_names[j]) == 0)
-                {
-                    match = TRUE;
-                    break;
-                }
-            }
-            if(match == TRUE)
-            {
-                break;
-            }
-        }
- 
-    }
-
-    if(!match && analy->int_labels != NULL)
-    {
-        /*There are element sets and we are looking for primal results */
-        for(i = 0; i < analy->int_labels->num_es_sets; i++)
-        {
-            sprintf(ipt, "%d", analy->int_labels->int_pts_selected[i]);
-            strcpy(name, analy->int_labels->es_names[i]);
-            strcat(name, "[");
-            strcat(name, ipt);
-            strcat(name, ", ");
-            if(raw)
-            {
-                strcat(name, token);
-            } else
-            {
-                strcat(name, raw_primal);
-            }
-            strcat(name, "]");
-            init_result(&result);
-            if(find_result(analy, analy->result_source, TRUE, &result, name))
-            {
-                if(subrecs[result.subrecs[0]] == 0)
-                {
-                    res_ptr = insert_result(res_ptr, result, analy);
-                    for(j = 0; j < result.qty; j++)
-                    {
-                        subrecs[result.subrecs[j]] = 1; 
-                    }
-                }
-            }
-        }
-        
-    }
-
-    /* the only way match could be true is if there are element sets in the problem.
-     * so se still have the possible_es_results with the token match and the primals
-     * so build a query for each element set and build the result then add it to the
-     * linked list 
-     */
-
-    if(match && analy->int_labels != NULL)
-    {
-        for(i = 0; i < analy->int_labels->num_es_sets; i++)
-        {
-            n = snprintf(ipt, 124, "%d", analy->int_labels->int_pts_selected[i]); 
-        
-            match = TRUE;
-            for(j = 0; p_es_rc->primals[j] != NULL; j++)
-            { 
-                strncpy(raw_primal, p_es_rc->primals[j], 20);
-
-                n += 5 + strlen(analy->int_labels->es_names[i])+ strlen(raw_primal);
-                if(n < 64)
-                {
-                    strcpy(name, analy->int_labels->es_names[i]);
-                    strcat(name, "[");
-                    strcat(name, ipt);
-                    strcat(name, ", ");
-                    strcat(name, p_es_rc->primals[j]);
-                    strcat(name, "]");
-                    init_result(&result);
-                    if(!find_result(analy, analy->result_source, TRUE, &result, name))
-                    {
-                        match = FALSE;
-                        break;
-                    }
-                }
-            }
-            if(match == TRUE && subrecs[result.subrecs[0]] == 1)
-            {
-                /* this result has already been added */
-                match = FALSE;
-            }
-            if(match == TRUE)
-            {
-                /* This element set has all the primale to calculate the result so add it to
- *             the linked list after some adjustments to the result structure */
-                strncpy(result.root, token, strlen(token) + 1); 
-                strncpy(result.name, token, strlen(token) + 1); 
-                strcpy(result.title, p_es_rc->long_names[0]);
-                result.result_funcs[0] = p_es_rc->compute_func;
-                analy->original_results[result.superclasses[0]] = result.original_result;
-                result.primals = NEW_N(char**, result.qty, "Result primals array");
-                for(j = 0; j < result.qty; j++)
-                {
-                    result.primals[j] = p_es_rc->primals;
-                }
-
-                res_ptr = insert_result(res_ptr, result, analy);
-                for(j = 0; j < result.qty; j++)
-                {
-                    subrecs[result.subrecs[j]] = 1;
-                }  
-            } 
-        }    
-    }
- 
-    for(i = 0; possible_results[i].superclass != QTY_SCLASS; i++)
+    for(i = 0; possible_results[i].valid_superclasses[0] != -1; i++)
     {
         p_rc = &possible_results[i];
         for(j = 0; p_rc->short_names[j] != NULL; j++)
@@ -5279,88 +4314,10 @@ Result * create_result_list( char * token, Analysis *analy)
         }
     }
 
-    /* if res_ptr != NULL then this was a derived result */
-    /*if(res_ptr != NULL)
-    {
-        free(subrecs);
-        return res_ptr;
-    } */
- 
     init_result(&result);
  
     rval = find_result(analy, analy->result_source, TRUE, &result, token);
-    /* start with element sets if they exist */
-    if(analy->int_labels != NULL && rval == 1 )
-    {
-        /* we are looking for a primal result */
-        for(qty_candidates = 0; possible_results[qty_candidates].superclass != QTY_SCLASS; qty_candidates++);
-       k = 0;
-       p_es_rc = &possible_es_results[0];
-       /* lets get the raw primal */
-       for(i = 0; i < strlen(token); i++)
-       {
-           if(token[i] == '[')
-           {
-               raw = FALSE;
-               continue;
-           }
-            
-           if(raw == FALSE && token[i] != ']')
-           {
-               raw_primal[k] = token[i];
-               k++;
-           } else if(raw == FALSE && token[i] == ']')
-           {
-               raw_primal[k] = '\0';
-               break;
-           }
-           
-            
-       }
-
-       for(j = 0; j < analy->int_labels->num_es_sets; j++)
-       {
-           strcpy(name, analy->int_labels->es_names[j]);
-           strcat(name, "[");
-           sprintf(ipt, "%d", analy->int_labels->int_pts_selected[j]);
-           strcat(name, ipt);
-           strcat(name, ", ");
-           if(raw == TRUE)
-           {
-               strcat(name, token);
-           } else
-           {
-               strcat(name, raw_primal);
-           }
-           strcat(name, "]"); 
-           init_result(&result);
-           if(find_result(analy, analy->result_source, TRUE, &result, name))
-           {
-               if(subrecs[result.subrecs[0]] == 0)
-               {
-                   res_ptr = insert_result(res_ptr, result, analy);
-                   for(k = 0; k < result.qty; k++)
-                   {
-                       subrecs[result.subrecs[k]] = 1;
-                   }
-               }
-           }
-       }
-       init_result(&result);
-       if(find_result(analy, analy->result_source, TRUE, &result, token))
-       {
-           if(subrecs[result.subrecs[0]] == 0)
-           {
-               res_ptr = insert_result(res_ptr, result, analy);
-               for(k = 0; k < result.qty; k++)
-               {
-                   subrecs[result.subrecs[k]] = 1;
-               }
-           }
-       }
-
-    } else if(analy->int_labels == NULL && rval == 1)
-    {
+    if( rval == 1 ){
         /* ok element sets are not in this plot file */
         if(raw == TRUE)
         {
@@ -5391,7 +4348,7 @@ Result * create_result_list( char * token, Analysis *analy)
                 }
             }
         } 
-    } 
+    }
    
     free(subrecs); 
     return res_ptr;        

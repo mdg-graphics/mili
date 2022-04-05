@@ -326,7 +326,6 @@ main( int argc, char *argv[] )
          */
         if ( env.quiet_mode==FALSE)
         {
-            init_griz_name( analy );
             write_start_text();
         }
 
@@ -837,14 +836,10 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         return FALSE;
     }
 
-    analy->auto_gray = FALSE;
-
     analy->path_name[0] = '\0';
     analy->path_found   = FALSE;
     dir_pos = -1;
-    for ( i=0;
-            i<strlen(temp_fname);
-            i++ )
+    for ( i = 0; i < strlen(temp_fname); i++ )
     {
         if ( temp_fname[i]=='/' )
             dir_pos = i;
@@ -884,8 +879,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     if ( stat != OK )
     {
         reset_db_io( db_type );
-        popup_dialog( WARNING_POPUP,
-                      "Unable to initialize database during open." );
+        popup_dialog( WARNING_POPUP, "Unable to initialize database during open." );
         return FALSE;
     }
 
@@ -894,8 +888,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     stat = analy->db_get_title( analy->db_ident, analy->title );
     if ( stat != OK )
-        popup_dialog( INFO_POPUP, "open_analysis() - unable to load "
-                      "title." );
+        popup_dialog( INFO_POPUP, "open_analysis() - unable to load title." );
 
     stat = analy->db_get_dimension( analy->db_ident, &analy->dimension );
     if ( stat != OK )
@@ -912,8 +905,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     if ( analy->dimension == 2 )
         analy->limit_rotations = TRUE;
 
-    stat = analy->db_get_geom( analy->db_ident, &analy->mesh_table,
-                               &analy->mesh_qty );
+    stat = analy->db_get_geom( analy->db_ident, &analy->mesh_table, &analy->mesh_qty );
     if ( stat != OK )
     {
         /*
@@ -937,8 +929,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     manage_timer( 0, 0 );
 #endif
 
-    stat = analy->db_get_state( analy, 0, analy->state_p, &analy->state_p,
-                                &num_states );
+    stat = analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, &num_states );
     if ( stat != 0 )
         return FALSE;
 
@@ -946,7 +937,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     manage_timer( 0, 1 );
     putc( (int) '\n', stdout );
 #endif
-    
+
     /* set state count in analysis struct */
     analy->state_count = num_states;
 
@@ -965,18 +956,21 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         analy->normals_constant = analy->state_p->position_constant &&
                                   !analy->state_p->sand_present;
 
+    analy->auto_gray = TRUE;
+    analy->int_point_labels = TRUE;
+
     analy->showmat = TRUE;
     analy->result_source = ALL;
+    analy->prev_result_source = ALL;
     analy->cur_state  = 0;
     analy->last_state = 0;
     analy->refresh = TRUE;
     analy->normals_smooth = TRUE;
     analy->render_mode = RENDER_MESH_VIEW;
     analy->mesh_view_mode = RENDER_HIDDEN;
-    /*analy->interp_mode = REG_INTERP;*/
     analy->interp_mode = NO_INTERP;
     analy->autoselect = FALSE;
-     
+
     analy->manual_backface_cull = TRUE;
     analy->float_frac_size = DEFAULT_FLOAT_FRACTION_SIZE;
     analy->auto_frac_size = TRUE;
@@ -1036,7 +1030,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
     analy->show_deleted_elements      = FALSE;
     analy->show_only_deleted_elements = FALSE;
-    
+
 
     analy->echocmd     = TRUE;
 
@@ -1055,7 +1049,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
     VEC_SET( analy->displace_scale, 1.0, 1.0, 1.0 );
 
     /* Check for "particles_on" Mili parameter and set particle_nodes_enabled_flag */
-    stat = mc_read_scalar(analy->db_ident, "particles_on", &particles_on); 
+    stat = mc_read_scalar(analy->db_ident, "particles_on", &particles_on);
     // If "particles_on" paramter does not exist, default to off.
     if(stat != OK)
         particles_on = 0;
@@ -1087,9 +1081,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         analy->ti_var_count = num_entries;
         analy->ti_vars      = (TI_Var *) malloc( num_entries*sizeof(TI_Var) );
 
-        for ( i=0;
-                i<num_entries;
-                i++ )
+        for ( i = 0; i < num_entries; i++ )
         {
             /* Extract the long name (with class info in name)
              * and short name of the TI variable.
@@ -1111,11 +1103,11 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         }
 
         analy->ti_data_found = TRUE;
-        
+
         htable_delete_wildcard_list( num_entries, wildcard_list ) ;
         free(wildcard_list);
         wildcard_list = NULL;
-        
+
         /* Get particle element names count */
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "particle_element", "NULL", "NULL",
@@ -1127,8 +1119,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             if(wildcard_list == NULL)
             {
                 return ALLOC_FAILED;
-            }              
-        
+            }
+
             /* Load particle element names from list if available */
             num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                           "particle_element", "NULL", "NULL",
@@ -1151,13 +1143,13 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
                 wildcard_list = NULL;
             }
         }
-        
-        
+
+
         /* Get Modal analysis variables if they exist */
         num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
                       "analysis_type", "NULL", "NULL",
                       NULL );
-        
+
         if ( num_entries==1 )
         {
             char tmp_string[256];
@@ -1184,9 +1176,9 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             analy->ti_data_found = FALSE;
         }
 
-        
+
     }
-    
+
     /*
      * Loop over meshes to complete mesh-specific initializations.
      */
@@ -1293,7 +1285,7 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
             if ( p_mocd->superclass == G_TET )
             {
                 p_md->tet_qty += p_mocd->qty;
-                tet_qty += p_md->tet_qty; 
+                tet_qty += p_md->tet_qty;
             }
         }
 
@@ -1839,320 +1831,15 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 
         free( class_array );
     }
-    
-    
-    if ( env.ti_enable )
-    {
-        /* Shell Integration Point Labels */
-        
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-                      "IntLabel", "NULL", "NULL",
-                      NULL );
-        
-        wildcard_list=(char**) malloc( num_entries*sizeof(char *));
 
-        if(wildcard_list == NULL)
-        {
-            return ALLOC_FAILED;
-        }
-
-        num_entries = mc_ti_htable_search_wildcard(analy->db_ident, 0, FALSE,
-                      "IntLabel", "NULL", "NULL",
-                      wildcard_list );
-        
-        analy->es_cnt = 0;
-
-        if ( num_entries>0 )
-        {
-            analy->es_intpoints = NEW_N( Integration_points, num_entries, "Integration Point Data" );
-            analy->es_cnt       = num_entries ;
-
-            analy->int_labels = NEW_N(IntLabels, 1, "Integration Point Labels");
-            analy->int_labels->numLabels = num_entries;
-            analy->int_labels->LabelNames = (char**) malloc(num_entries*sizeof(char*));
-            if(analy->int_labels->LabelNames == NULL)
-            {
-                printf("Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
-            
-            analy->int_labels->labels = (int**)malloc(num_entries*sizeof(int*));
-           
-
-            if(analy->int_labels->labels == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
-                
-            analy->int_labels->labelSizes = (int *) malloc(num_entries*sizeof(int)); 
-            if(analy->int_labels->labels == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
- 
-            analy->int_labels->mats = (int *) calloc(num_entries, sizeof(int));
-            if(analy->int_labels->mats == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
-
-            analy->int_labels->int_pts_selected = (int *) calloc(num_entries, sizeof(int));
-            if(analy->int_labels->labels == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
-
-            analy->int_labels->valid = (int *) calloc(num_entries, sizeof(int));
-            if(analy->int_labels->valid == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
-            
-            analy->int_labels->map = (int *) calloc(cur_mesh_mat_qty+1, sizeof(int));
-            if(analy->int_labels->map == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis. terminating\n");
-                abort();
-            }
-            
-            for(i=0; i<cur_mesh_mat_qty+1;i++)
-            {
-                analy->int_labels->map[i] = -1;
-            }
-            
-            analy->int_labels->mapsize = cur_mesh_mat_qty + 1;
-
-            int num_items_read=0;
-            int highest_mat_num = 0;
- 
-            for(i = 0; i < num_entries; i++)
-            {
-
-                /* allocate memory and read in the label names */
-                analy->int_labels->LabelNames[i] = (char *) malloc(strlen(wildcard_list[i]) + 1);
-                if(analy->int_labels->LabelNames[i] == NULL)
-                {
-                    popup_dialog(WARNING_POPUP, "Out of memory in func open_analysis. Terminating\n");
-                    abort();
-                }
-                strcpy(analy->int_labels->LabelNames[i], wildcard_list[i]);
-
-                status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
-                    (void**)& analy->int_labels->labels[i], &num_items_read );
-                analy->int_labels->labelSizes[i] = num_items_read;
-                analy->int_labels->valid[i] = 1; 
-                /*qsort(analy->int_labels->labels[i], num_items_read, sizeof(int), compints);*/ 
-                /* extract the material number from the Label Name and store it in the Label Data Struct */ 
-                int m = 0;
-                char str;
-                int k = 0;
- 
-                for(j = strlen(analy->int_labels->LabelNames[i]) - 1; j >= 0; j--)
-                {
-                    if(isdigit(analy->int_labels->LabelNames[i][j]))
-                    {
-                        str = analy->int_labels->LabelNames[i][j];
-                        m += atoi(&str)*pow(10, k);
-                        k++;
-                    }
-                }
-                analy->int_labels->mats[i] = m;
-                analy->int_labels->map[m] = i;
-
-                /* initialize to select the first integration point for each entry */
-                analy->int_labels->int_pts_selected[i] = analy->int_labels->labels[i][0];
-                for(j = 0; j < analy->int_labels->labelSizes[i] - 1; j++)
-                {
-                    if(analy->int_labels->labels[i][j] > analy->int_labels->labels[i][j+1])
-                    {
-                        /* mark this labels array as invalid because it is not in ascending order */
-                        analy->int_labels->valid[i] = 0;
-                        popup_dialog(WARNING_POPUP, "ERROR: Integration points not written in the labels array in ascending order for some element sets. Aborting\n");
-                        parse_command("quit", analy);
-                    }
-                }    
-    
-            }
-            
-
-            {
-                int qty, rval, index;
-                int i, j, k, l, m;
-                int ii;
-                int dbid;
-                char  svar_name[32];
-                char p;
-                int srec_qty, subrec_qty;
-                Subrecord subrec;
-                
-                dbid = analy->db_ident;
-                srec_qty = 0;
-                analy->int_labels->num_es_sets = 0;
-
-                analy->db_query(dbid, QRY_QTY_SREC_FMTS, NULL, NULL, (void *) &srec_qty);
-                /* loop over srecs */
-                for(i = 0; i < srec_qty; i++)
-                {
-                    /*Get subrecord count for this state record. */
-                    rval = analy->db_query(dbid, QRY_QTY_SUBRECS, (void *) &i, NULL, (void *) &subrec_qty);
-                    if(rval != OK)
-                    {
-                        continue;
-                    } 
-                    
-                    /* loop over subrecs looking for "es_" */
-                    for(j = 0; j < subrec_qty; j++)
-                    {
-                        rval = analy->db_get_subrec_def(dbid, i, j, &subrec);
-                        if(rval != OK)
-                        {
-                            continue;
-                        }
-                        strcpy(svar_name, subrec.svar_names[0]);
-                        if(strncmp(svar_name, "es_", 3) == 0)
-                        {
-                            analy->int_labels->num_es_sets++;
-                        }
-                    }
-                }
-
-                /* now that we know the number of element sets written to the plot file allocate an array of strings of that size */
-                if(analy->int_labels->num_es_sets > 0)
-                {
-                    analy->int_labels->es_names = (char **) malloc(analy->int_labels->num_es_sets*sizeof(char*));
-                    analy->int_labels->result_names = (char **) malloc(analy->int_labels->num_es_sets * sizeof(char*));
-
-                    if(analy->int_labels->es_names == NULL || analy->int_labels->result_names == NULL)
-                    {
-                        popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis.  Exiting\n");
-                        parse_command("quit", analy); 
-                    }
-
-                 
-                }
-
-                for(i = 0; i < srec_qty; i++)
-                {
-                    /*Get subrecord count for this state record. */
-                    rval = analy->db_query(dbid, QRY_QTY_SUBRECS, (void *) &i, NULL, (void *) &subrec_qty);
-                    if(rval != OK)
-                    {
-                        continue;
-                    } 
-                    k = 0; 
-                    /* loop over subrecs looking for "es_" */
-                    for(j = 0; j < subrec_qty; j++)
-                    {
-                        rval = analy->db_get_subrec_def(dbid, i, j, &subrec);
-                        if(rval != OK)
-                        {
-                            continue;
-                        }
-                        strcpy(svar_name, subrec.svar_names[0]);
-                        if(strncmp(svar_name, "es_", 3) == 0)
-                        {
-                            /* allocate memory to add the svar_name to the es_names string array */
-                            analy->int_labels->es_names[k] = (char *) malloc((strlen(svar_name) + 1)*sizeof(char));
-                            analy->int_labels->result_names[k] = (char *) malloc(64*sizeof(char));
-                            if(analy->int_labels->es_names[k] == NULL || analy->int_labels->result_names[k] == NULL)
-                            {
-                                popup_dialog(WARNING_POPUP, "Out of memory in function open_analysis.  Exiting\n");
-                                parse_command("quit", analy); 
-                            } 
-                            strcpy(analy->int_labels->es_names[k], svar_name);
-                            strcpy(analy->int_labels->result_names[k], "\0");
-                            k++;
-                        }
-                    }
-                }
-            }
-
-            /* from here on it is Bob Corey's code. */
-            for ( i=0;
-                    i<num_entries;
-                    i++ )
-            {
-                int num_items_read=0;
-                int datatype=0, datalength=0;
-                char *es_ptr=NULL;
-
-                /*status = mc_ti_get_data_len( analy->db_ident, wildcard_list[i],
-                                             &datatype, &datalength );*/
-                /* Read int the integration point labels. The last element of the array is
-                 * the total number of integration points.
-                 * For example:
-                 *  5 10 25 32 51
-                 *             ^- This element set has a max of 51 integration points.
-                 *
-                 *             Inner  =  5
-                 *             Middle = 25
-                 *             Outer  = 32
-                 */
-                analy->es_intpoints[i].in_mid_out_default[0] = -1; /* -1 = undefined inner integration point */
-                analy->es_intpoints[i].in_mid_out_default[1] = -1;
-                analy->es_intpoints[i].in_mid_out_default[2] = -1;
-
-                status = mc_ti_read_array(analy->db_ident, wildcard_list[i],
-                                          (void **) & analy->es_intpoints[i].labels, &datalength );
-
-                analy->es_intpoints[i].labels_cnt      = datalength-1;
-                analy->es_intpoints[i].intpoints_total = analy->es_intpoints[i].labels[datalength-2];
-
-                /* Strip off the element set uid from the end of the name field */
-                es_ptr = strstr( wildcard_list[i], "_es_" );
-                if ( es_ptr )
-                {
-                    analy->es_intpoints[i].es_id = get_element_set_id( wildcard_list[i] );
-                }
-                else
-                {
-                    continue;
-                } 
-                set_default_intpoints ( analy->es_intpoints[i].intpoints_total, analy->es_intpoints[i].labels_cnt,
-                                        analy->es_intpoints[i].labels, analy->es_intpoints[i].in_mid_out_default );
-
-                analy->es_intpoints[i].in_mid_out_set[0] = analy->es_intpoints[i].in_mid_out_default[0];
-                analy->es_intpoints[i].in_mid_out_set[1] = analy->es_intpoints[i].in_mid_out_default[1];
-                analy->es_intpoints[i].in_mid_out_set[2] = analy->es_intpoints[i].in_mid_out_default[2];
-            }
-
-        }
-        htable_delete_wildcard_list( num_entries, wildcard_list ) ;
-        free(wildcard_list);
-        wildcard_list = NULL;
-    }
     if ( face_qty > max_face_qty )
         max_face_qty = face_qty;
 
     /* Save max quantity of materials. */
     analy->max_mesh_mat_qty = mat_sz;
 
-    //NEW_MAT_CODE
-
-
-//    if(env.ti_enable){
-//    	char *pretest;
-//		pretest = malloc(label_length * sizeof(char));
-//		status = mc_ti_read_string(analy->db_ident, "MAT_NAME_1", (void*) pretest);
-//		if(status == OK){
-//			analy->mat_labels_active = TRUE;
-//		}
-//		else{
-//			analy->mat_labels_active = FALSE;
-//		}
-//		free(pretest);
-//    }
-//    else{
-//    	analy->mat_labels_active = FALSE;
-//    }
-
     analy->mat_labels_active = TRUE;
-    
+
     analy->maxLabelLength = 0;
 
     if(analy->mat_labels_active && env.ti_enable){
@@ -2233,8 +1920,8 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
 						analy->conflict_messages[analy->num_messages] = malloc(120 * sizeof(char));
 						sprintf(analy->conflict_messages[analy->num_messages], "%s", message);
 						analy->num_messages++;
-					}               
-				}				
+					}
+				}
 			}
 			else{
 				sprintf(test,"%s",str);
@@ -2578,16 +2265,16 @@ open_analysis( char *fname, Analysis *analy, Bool_type reload, Bool_type verify_
         {
             time(&curtime);
             timeinfo = localtime(&curtime);
-            
+
             sprintf(timestr, "_%d.%d.%d_%d:%d:%d", timeinfo->tm_mon
                                                 , timeinfo->tm_mday
                                                 , timeinfo->tm_year -100
                                                 , timeinfo->tm_hour
                                                 , timeinfo->tm_min
                                                 , timeinfo->tm_sec);
-            
+
             sprintf(timestamp, "%s", asctime(timeinfo));
-            
+
             strcpy (hist_fname, ".");
             strcat( hist_fname, analy->root_name );
             strcat( hist_fname, timestr);
@@ -2729,8 +2416,8 @@ load_analysis( char *fname, Analysis *analy, Bool_type reload )
     Bool_type status;
     Analysis temp_analy;
     char comment[512];
-    
-    /* We are either loading another plotfile or reloading the current one.  So if a current 
+
+    /* We are either loading another plotfile or reloading the current one.  So if a current
  *     grizhist file is open close and delete if before creating another one */
     if(analy->p_histfile)
     {
@@ -2772,7 +2459,7 @@ load_analysis( char *fname, Analysis *analy, Bool_type reload )
     model_history_log_clear( analy );
 
     check_for_free_nodes( analy );
-    
+
 #ifdef SERIAL_BATCH
 #else
     regenerate_result_menus();
@@ -3016,10 +2703,10 @@ model_history_log_update( char *command, Analysis *analy )
     comment = (char *)malloc((cmdlen+20)*sizeof(char));
     time_t curtime;
     struct tm *timeinfo=NULL;
-    
+
     if ( model_loading_phase ) /* We do not want to log commands from the log data */
         return;
-    
+
     strcpy( copy_command, command );
 
     /*first_token = strtok( copy_command, "\t " );*/
@@ -3230,8 +2917,8 @@ process_serial_batch_mode( char *batch_input_file_name, Analysis *analy )
 
         if ( command_string[0] != '#' && command_string[0] != '\0' )
         {
-            if ( ( 0 != strcmp( command_string, "quit" ) ) && 
-                    ( 0 != strcmp( command_string, "exit" ) ) && 
+            if ( ( 0 != strcmp( command_string, "quit" ) ) &&
+                    ( 0 != strcmp( command_string, "exit" ) ) &&
                     ( 0 != strcmp( command_string, "end"  ) ) )
                 parse_command( command_string, analy );
             else

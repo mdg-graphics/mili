@@ -1,0 +1,70 @@
+# Append output to TH file
+on tha
+on thsinglecol
+
+# Shells - SY - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show sy
+outth shell_mat54_va.jansw
+
+# Shells - SXY - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show sxy
+outth shell_mat54_va.jansw
+
+# Shells - SYZ - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show syz
+outth shell_mat54_va.jansw
+
+
+# Shells - EY - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show ey
+outth shell_mat54_va.jansw
+
+# Shells - EXY - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show exy
+outth shell_mat54_va.jansw
+
+# Shells - EYZ - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show eyz
+outth shell_mat54_va.jansw
+
+
+# Shells - edrate - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show edrate
+outth shell_mat54_va.jansw
+
+
+# Shells - seff - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show seff
+outth shell_mat54_va.jansw
+
+
+# Shells - press - Integration Point 1
+clrsel
+select shell 1-15
+set_ipt 1
+show press
+outth shell_mat54_va.jansw

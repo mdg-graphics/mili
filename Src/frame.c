@@ -89,7 +89,7 @@ void
 hex_g2l_mtx(Analysis *analy, MO_class_data *p_mo_class, int elem,
             int n1, int n2, int n3, float localMat[3][3] )
 {
-    float vi[3], vj[3], vk[3], vd[3];
+    float visual_info[3], vj[3], vk[3], vd[3];
     float x[8], y[8], z[8];
     float al1, al2;
     GVec3D *coords;
@@ -110,9 +110,9 @@ hex_g2l_mtx(Analysis *analy, MO_class_data *p_mo_class, int elem,
     /*
      *  "i" axis is the direction from node 1 to node 2
      */
-    vi[0] = x[n2] - x[n1];
-    vi[1] = y[n2] - y[n1];
-    vi[2] = z[n2] - z[n1];
+    visual_info[0] = x[n2] - x[n1];
+    visual_info[1] = y[n2] - y[n1];
+    visual_info[2] = z[n2] - z[n1];
 
     /*
      *  Vector "D" is the direction from node 1 to node 4
@@ -124,10 +124,10 @@ hex_g2l_mtx(Analysis *analy, MO_class_data *p_mo_class, int elem,
     /*
      * Normalize the reference vectors
      */
-    al1=1.0/sqrt(vi[0]*vi[0]+vi[1]*vi[1]+vi[2]*vi[2]);
-    vi[0]=vi[0]*al1;
-    vi[1]=vi[1]*al1;
-    vi[2]=vi[2]*al1;
+    al1=1.0/sqrt(visual_info[0]*visual_info[0]+visual_info[1]*visual_info[1]+visual_info[2]*visual_info[2]);
+    visual_info[0]=visual_info[0]*al1;
+    visual_info[1]=visual_info[1]*al1;
+    visual_info[2]=visual_info[2]*al1;
 
     al2=1.0/sqrt(vd[0]*vd[0]+vd[1]*vd[1]+vd[2]*vd[2]);
     vd[0]=vd[0]*al2;
@@ -137,17 +137,17 @@ hex_g2l_mtx(Analysis *analy, MO_class_data *p_mo_class, int elem,
     /*
      *  "k" axis is cross-product of "i" and vector "D"
      */
-    VEC_CROSS( vk, vi, vd );
+    VEC_CROSS( vk, visual_info, vd );
 
     /*
      *  "j" axis is cross-product of "k" and "i"
      */
-    VEC_CROSS( vj, vk, vi );
+    VEC_CROSS( vj, vk, visual_info );
 
     /* column vectors */
     for ( i = 0; i < 3; i++ )
     {
-        localMat[i][0] =  vi[i];
+        localMat[i][0] =  visual_info[i];
         localMat[i][1] =  vj[i];
         localMat[i][2] =  vk[i];
     }

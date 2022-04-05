@@ -1,0 +1,102 @@
+
+# Append output to TH file
+on tha
+on thsinglecol
+
+
+# Shell SX - Integration Point 1
+clrsel
+select shell 1, 10, 12, 13, 27, 31, 34, 49, 55, 67, 73, 85, 91, 100
+set_ipt 1 1
+set_ipt 1 2
+show sx
+outth m52_plate_va.jansw
+
+# Shell SX - Integration Point 2
+set_ipt 2 1
+set_ipt 2 2
+outth m52_plate_va.jansw
+
+
+# Shell SZ - Integration Point 1
+clrsel
+select shell 1, 10, 12, 13, 27, 31, 34, 49, 55, 67, 73, 85, 91, 100
+set_ipt 1 1
+set_ipt 1 2
+show sz
+outth m52_plate_va.jansw
+
+# Shell SZ - Integration Point 2
+set_ipt 2 1
+set_ipt 2 2
+outth m52_plate_va.jansw
+
+
+# Shell SZX - Integration Point 1
+clrsel
+select shell 1, 10, 12, 13, 27, 31, 34, 49, 55, 67, 73, 85, 91, 100
+set_ipt 1 1
+set_ipt 1 2
+show szx
+outth m52_plate_va.jansw
+
+# Shell SZX - Integration Point 2
+set_ipt 2 1
+set_ipt 2 2
+outth m52_plate_va.jansw
+
+
+# Shell EPS - Integration Point 1
+clrsel
+select shell 1, 10, 12, 13, 27, 31, 34, 49, 55, 67, 73, 85, 91, 100
+set_ipt 1 1
+set_ipt 1 2
+show eps
+outth m52_plate_va.jansw
+
+# Shell EPS - Integration Point 2
+set_ipt 2 1
+set_ipt 2 2
+outth m52_plate_va.jansw
+
+
+# Shell Effective Stress - Integration Point 1
+clrsel
+select shell 1, 10, 12, 13, 27, 31, 34, 49, 55, 67, 73, 85, 91, 100
+set_ipt 1 1
+set_ipt 1 2
+show seff
+outth m52_plate_va.jansw
+
+# Shell Effective Stress - Integration Point 2
+set_ipt 2 1
+set_ipt 2 2
+outth m52_plate_va.jansw
+
+
+# Shell Pressure - Integration Point 1
+clrsel
+select shell 1, 10, 12, 13, 27, 31, 34, 49, 55, 67, 73, 85, 91, 100
+set_ipt 1 1
+set_ipt 1 2
+show press
+outth m52_plate_va.jansw
+
+# Shell Pressure - Integration Point 2
+set_ipt 2 1
+set_ipt 2 2
+outth m52_plate_va.jansw
+
+
+# Shell Max Shear Stress - Integration Point 1
+clrsel
+select shell 1, 10, 12, 13, 27, 31, 34, 49, 55, 67, 73, 85, 91, 100
+set_ipt 1 1
+set_ipt 1 2
+show maxshr
+outth m52_plate_va.jansw
+
+# Shell Max Shear Stress - Integration Point 2
+set_ipt 2 1
+set_ipt 2 2
+outth m52_plate_va.jansw

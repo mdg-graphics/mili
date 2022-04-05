@@ -12,6 +12,7 @@
 off all; on cmap; on title; on time; on coord
 switch mglob
 #  Plot for variable eps
+on pn
 clrsel 
 select ntet 1 2 261
 minst 1

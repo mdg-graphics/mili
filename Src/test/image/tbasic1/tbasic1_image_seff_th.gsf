@@ -1,0 +1,17 @@
+# tbasic1 image test problem
+# Set viewing
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+
+# Object selection
+select tshell 1 10 32 40 45 62 77 81 94 104 111 118 137 154
+set_ipt 2 1
+set_ipt 1 2
+set_ipt 2 3
+set_ipt 1 4
+set_ipt 2 5
+
+# Show result and output image
+show seff
+plot
+outjpeg tbasic1_image_seff_th.answ.jpg
