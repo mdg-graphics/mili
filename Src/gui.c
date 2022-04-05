@@ -3309,11 +3309,11 @@ get_pick_superclass( Util_panel_button_type btn_type, int *p_superclass )
 extern void
 regenerate_pick_menus( void )
 {
-    Widget menu, submenu, child;
+    Widget submenu, child;
     int position;
 
     /* Get the Picking menu, which is the parent of the setpick menus. */
-    menu = NULL;
+    child = NULL;
     int idx = -1;
     find_labelled_child( menu_widg, "Picking", &child, &idx );
 
