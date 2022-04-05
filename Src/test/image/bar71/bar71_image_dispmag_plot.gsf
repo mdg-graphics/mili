@@ -35,7 +35,7 @@ outview test_V1.gsf
 rdhis bar71_V1.gsf
 posmap .91 -.75 .07 .5
 sw ortho
-sw noterp
+sw interp
 
 # Object selection 
 select node 1 741 777-778 1369

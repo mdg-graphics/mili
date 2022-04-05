@@ -40,7 +40,7 @@ select mat 1
 
 # Images for variable nodposux
 show nodpos[ux]
-sw goterp
+sw interp
 outjpeg bending-71_image_nodposux_plot.answ.jpg
 
 # EndCase 

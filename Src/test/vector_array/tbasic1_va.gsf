@@ -1,0 +1,62 @@
+# Append output to TH file
+on tha
+on thsinglecol
+
+# tshell - SX - Integration point 1
+clrsel
+select tshell 1 10 32 40 45 62 77 81 94 104 111 118 137 154
+set_ipt 1
+show sx
+outth tbasic1_va.jansw
+
+# tshell - SX - Integration point 2
+set_ipt 2
+outth tbasic1_va.jansw
+
+
+# tshell - SZ - Integration point 1
+clrsel
+select tshell 1 10 32 40 45 62 77 81 94 104 111 118 137 154
+set_ipt 1
+show sz
+outth tbasic1_va.jansw
+
+# tshell - SZ - Integration point 2
+set_ipt 2
+outth tbasic1_va.jansw
+
+
+# tshell - SZX - Integration point 1
+clrsel
+select tshell 1 10 32 40 45 62 77 81 94 104 111 118 137 154
+set_ipt 1
+show szx
+outth tbasic1_va.jansw
+
+# tshell - SZX - Integration point 2
+set_ipt 2
+outth tbasic1_va.jansw
+
+
+# tshell - seff - Integration point 1
+clrsel
+select tshell 1 10 32 40 45 62 77 81 94 104 111 118 137 154
+set_ipt 1
+show seff
+outth tbasic1_va.jansw
+
+# tshell - seff - Integration point 2
+set_ipt 2
+outth tbasic1_va.jansw
+
+
+# tshell - press - Integration point 1
+clrsel
+select tshell 1 10 32 40 45 62 77 81 94 104 111 118 137 154
+set_ipt 1
+show press
+outth tbasic1_va.jansw
+
+# tshell - press - Integration point 2
+set_ipt 2
+outth tbasic1_va.jansw

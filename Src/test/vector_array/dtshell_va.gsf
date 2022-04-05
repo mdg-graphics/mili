@@ -1,0 +1,130 @@
+# Append output to TH file
+on tha
+on thsinglecol
+
+# tshell - SX - Integration Point 1
+clrsel
+select tshell 1-6
+set_ipt 1
+show sx
+outth dtshell_va.jansw
+
+# tshell - SX - Integration Point 3
+set_ipt 3
+outth dtshell_va.jansw
+
+# tshell - SX - Integration Point 5
+set_ipt 5
+outth dtshell_va.jansw
+
+
+# tshell - SY - Integration Point 1
+clrsel
+select tshell 1-6
+set_ipt 1
+show sy
+outth dtshell_va.jansw
+
+# tshell - SY - Integration Point 3
+set_ipt 3
+outth dtshell_va.jansw
+
+# tshell - SY - Integration Point 5
+set_ipt 5
+outth dtshell_va.jansw
+
+
+# tshell - SYZ - Integration Point 1
+clrsel
+select tshell 1-6
+set_ipt 1
+show syz
+outth dtshell_va.jansw
+
+# tshell - SYZ - Integration Point 3
+set_ipt 3
+outth dtshell_va.jansw
+
+# tshell - SYZ - Integration Point 5
+set_ipt 5
+outth dtshell_va.jansw
+
+
+# tshell - EPS - Integration Point 1
+clrsel
+select tshell 1-6
+set_ipt 1
+show eps
+outth dtshell_va.jansw
+
+# tshell - EPS - Integration Point 3
+set_ipt 3
+outth dtshell_va.jansw
+
+# tshell - EPS - Integration Point 5
+set_ipt 5
+outth dtshell_va.jansw
+
+
+# tshell - seff - Integration Point 1
+clrsel
+select tshell 1-6
+set_ipt 1
+show seff
+outth dtshell_va.jansw
+
+# tshell - seff - Integration Point 3
+set_ipt 3
+outth dtshell_va.jansw
+
+# tshell - seff - Integration Point 5
+set_ipt 5
+outth dtshell_va.jansw
+
+
+# tshell - press - Integration Point 1
+clrsel
+select tshell 1-6
+set_ipt 1
+show press
+outth dtshell_va.jansw
+
+# tshell - press - Integration Point 3
+set_ipt 3
+outth dtshell_va.jansw
+
+# tshell - press - Integration Point 5
+set_ipt 5
+outth dtshell_va.jansw
+
+
+# tshell - pdev1 - Integration Point 1
+clrsel
+select tshell 1-6
+set_ipt 1
+show pdev1
+outth dtshell_va.jansw
+
+# tshell - pdev1 - Integration Point 3
+set_ipt 3
+outth dtshell_va.jansw
+
+# tshell - pdev1 - Integration Point 5
+set_ipt 5
+outth dtshell_va.jansw
+
+
+# tshell - prin2 - Integration Point 1
+clrsel
+select tshell 1-6
+set_ipt 1
+show prin2
+outth dtshell_va.jansw
+
+# tshell - prin2 - Integration Point 3
+set_ipt 3
+outth dtshell_va.jansw
+
+# tshell - prin2 - Integration Point 5
+set_ipt 5
+outth dtshell_va.jansw

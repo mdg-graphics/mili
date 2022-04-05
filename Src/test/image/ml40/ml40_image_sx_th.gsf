@@ -15,6 +15,7 @@ jpegqual 100
 alias selml select ml 1 667 963 1010 200-204
 
 # Image for variable sx
+on pn
 clrsel 
 selml
 plot sx

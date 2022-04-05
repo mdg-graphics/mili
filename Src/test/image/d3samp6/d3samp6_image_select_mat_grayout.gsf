@@ -1,0 +1,34 @@
+# d3samp6
+# Title: Beam element example quarter model INGDY6.dat (in.sec.lb-s^2/in)
+# End Time: 1.0e-3
+# Griz Script File: d3samp6_image_select_mat_grayout.gsf
+# Min/Max Switch: global
+
+# Setup
+# alias chgst f;n;n;l // Multi command alias in newer releases
+alias min 1
+alias max 81
+alias staterange minst 1; maxst 100
+clrsel 
+switch mglob
+
+# staterange // Multi command alias in newer releases 
+# chgst      // Enable this after 13.1 release
+
+minst 1
+maxst 100
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; off box; on minmax
+off path
+rview
+rx -120
+
+# Material selection and grayout
+select mat 1 2
+state 40
+outjpeg d3samp6_image_select_mat_grayout.answ.jpg
+

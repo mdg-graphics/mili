@@ -4,7 +4,7 @@
 # Griz Version Info:
 #
 #	Griz4-V21_01
-# 	Built: 	Thu Mar 31 10:57:17 2022 on Linux #1 SMP Wed Feb 23 10:11:21 PST 2022 3.10.0-1160.59.1.1chaos.ch6.x86_64 x86_64 by rhathaw
+# 	Built: 	Fri Apr  1 08:33:22 2022 on Linux #1 SMP Wed Feb 23 10:11:21 PST 2022 3.10.0-1160.59.1.1chaos.ch6.x86_64 x86_64 by rhathaw
 # 	Configure: ./configure linux gnu
 # 	Compile Options: icc -g -O2 -DSERIAL_BATCH -I/g/g16/rhathaw/all_codes/mili/MILI-toss_3_x86_64_ib-RZGENIE/include -I/../include -I../.. 
 # 		Mili Library Version (Griz Linked): 	V21_02
@@ -16,7 +16,7 @@
 #---------------------------------------------------------------------
 # Database path/name: dblplt000
 # Description: Sample input for plane strain cantilever beam ala DLEARN
-# Output date: 03/31/22
+# Output date: 04/01/22
 #
 
 #
@@ -210,118 +210,118 @@
 # Curve 1 - brick 1
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 1: X Stress
+#           Time        Sigma-xx
+# brick - 1: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  6.80138306e+02
   2.00000000e+00  1.35080151e+03
 
 #
-# Curve 2 - brick 119
+# Curve 2 - brick 45
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 119: X Stress
+#           Time        Sigma-xx
+# brick - 45: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  4.33682080e+03
   2.00000000e+00  8.40262402e+03
 
 #
-# Curve 3 - brick 40
+# Curve 3 - brick 48
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 40: X Stress
+#           Time        Sigma-xx
+# brick - 48: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.65665552e+03
   2.00000000e+00  5.16687354e+03
 
 #
-# Curve 4 - brick 106
+# Curve 4 - brick 116
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 106: X Stress
+#           Time        Sigma-xx
+# brick - 116: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  1.07027405e+02
   2.00000000e+00  3.15691223e+02
 
 #
-# Curve 5 - brick 88
+# Curve 5 - brick 80
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 88: X Stress
+#           Time        Sigma-xx
+# brick - 80: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.92237122e+02
   2.00000000e+00  5.65282104e+02
 
 #
-# Curve 6 - brick 82
+# Curve 6 - brick 68
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 82: X Stress
+#           Time        Sigma-xx
+# brick - 68: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  1.07027405e+02
   2.00000000e+00  3.15691223e+02
 
 #
-# Curve 7 - brick 65
+# Curve 7 - brick 97
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 65: X Stress
+#           Time        Sigma-xx
+# brick - 97: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  3.48290619e+02
   2.00000000e+00  7.71154541e+02
 
 #
-# Curve 8 - brick 66
+# Curve 8 - brick 98
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 66: X Stress
+#           Time        Sigma-xx
+# brick - 98: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.76850250e+02
   2.00000000e+00  6.53221497e+02
 
 #
-# Curve 9 - brick 97
+# Curve 9 - brick 99
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 97: X Stress
+#           Time        Sigma-xx
+# brick - 99: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.01839127e+02
   2.00000000e+00  5.21791992e+02
 
 #
-# Curve 10 - brick 98
+# Curve 10 - brick 100
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 98: X Stress
+#           Time        Sigma-xx
+# brick - 100: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  1.07027405e+02
   2.00000000e+00  3.15691223e+02
@@ -330,118 +330,118 @@
 # Curve 1 - brick 1
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 1: X Stress
+#           Time        Sigma-xx
+# brick - 1: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  6.80138306e+02
   2.00000000e+00  1.35080151e+03
 
 #
-# Curve 2 - brick 119
+# Curve 2 - brick 45
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 119: X Stress
+#           Time        Sigma-xx
+# brick - 45: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  4.33682080e+03
   2.00000000e+00  8.40262402e+03
 
 #
-# Curve 3 - brick 40
+# Curve 3 - brick 48
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 40: X Stress
+#           Time        Sigma-xx
+# brick - 48: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.65665552e+03
   2.00000000e+00  5.16687354e+03
 
 #
-# Curve 4 - brick 106
+# Curve 4 - brick 116
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 106: X Stress
+#           Time        Sigma-xx
+# brick - 116: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  1.07027405e+02
   2.00000000e+00  3.15691223e+02
 
 #
-# Curve 5 - brick 88
+# Curve 5 - brick 80
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 88: X Stress
+#           Time        Sigma-xx
+# brick - 80: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.92237122e+02
   2.00000000e+00  5.65282104e+02
 
 #
-# Curve 6 - brick 82
+# Curve 6 - brick 68
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 82: X Stress
+#           Time        Sigma-xx
+# brick - 68: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  1.07027405e+02
   2.00000000e+00  3.15691223e+02
 
 #
-# Curve 7 - brick 65
+# Curve 7 - brick 97
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 65: X Stress
+#           Time        Sigma-xx
+# brick - 97: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  3.48290619e+02
   2.00000000e+00  7.71154541e+02
 
 #
-# Curve 8 - brick 66
+# Curve 8 - brick 98
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 66: X Stress
+#           Time        Sigma-xx
+# brick - 98: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.76850250e+02
   2.00000000e+00  6.53221497e+02
 
 #
-# Curve 9 - brick 97
+# Curve 9 - brick 99
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 97: X Stress
+#           Time        Sigma-xx
+# brick - 99: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.01839127e+02
   2.00000000e+00  5.21791992e+02
 
 #
-# Curve 10 - brick 98
+# Curve 10 - brick 100
 # Time reference surface: middle
 # Time reference frame: global
-# X Stress reference frame: global
+# Sigma-xx reference frame: global
 
-#           Time        X Stress
-# brick - 98: X Stress
+#           Time        Sigma-xx
+# brick - 100: Sigma-xx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  1.07027405e+02
   2.00000000e+00  3.15691223e+02
@@ -450,118 +450,118 @@
 # Curve 1 - brick 1
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# brick - 1: XY Stress
+#           Time        Sigma-xy
+# brick - 1: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -4.35856720e+02
   2.00000000e+00  -9.00583313e+02
 
 #
-# Curve 2 - brick 119
+# Curve 2 - brick 45
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# brick - 119: XY Stress
+#           Time        Sigma-xy
+# brick - 45: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  3.10547161e+01
   2.00000000e+00  1.14496925e+02
 
 #
-# Curve 3 - brick 40
+# Curve 3 - brick 48
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# brick - 40: XY Stress
+#           Time        Sigma-xy
+# brick - 48: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -1.09434082e+02
   2.00000000e+00  -2.43007431e+02
 
 #
-# Curve 4 - brick 106
+# Curve 4 - brick 116
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# brick - 106: XY Stress
+#           Time        Sigma-xy
+# brick - 116: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -3.71043854e+02
   2.00000000e+00  -7.63509521e+02
 
 #
-# Curve 5 - brick 88
+# Curve 5 - brick 80
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# brick - 88: XY Stress
+#           Time        Sigma-xy
+# brick - 80: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -9.47124100e+01
   2.00000000e+00  -1.83172882e+02
 
 #
-# Curve 6 - brick 82
+# Curve 6 - brick 68
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# brick - 82: XY Stress
+#           Time        Sigma-xy
+# brick - 68: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -3.71043854e+02
   2.00000000e+00  -7.63509521e+02
 
 #
-# Curve 7 - brick 65
+# Curve 7 - brick 97
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# brick - 65: XY Stress
+#           Time        Sigma-xy
+# brick - 97: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -3.45416656e+02
   2.00000000e+00  -6.68940735e+02
 
 #
-# Curve 8 - brick 66
+# Curve 8 - brick 98
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# brick - 66: XY Stress
+#           Time        Sigma-xy
+# brick - 98: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -3.47082947e+02
   2.00000000e+00  -6.75264465e+02
 
 #
-# Curve 9 - brick 97
+# Curve 9 - brick 99
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# brick - 97: XY Stress
+#           Time        Sigma-xy
+# brick - 99: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -3.53656036e+02
   2.00000000e+00  -6.99331787e+02
 
 #
-# Curve 10 - brick 98
+# Curve 10 - brick 100
 # Time reference surface: middle
 # Time reference frame: global
-# XY Stress reference frame: global
+# Sigma-xy reference frame: global
 
-#           Time       XY Stress
-# brick - 98: XY Stress
+#           Time        Sigma-xy
+# brick - 100: Sigma-xy
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -3.71043854e+02
   2.00000000e+00  -7.63509521e+02
@@ -570,118 +570,118 @@
 # Curve 1 - brick 1
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# brick - 1: ZX Stress
+#           Time        Sigma-zx
+# brick - 1: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -5.12290033e-14
   2.00000000e+00  -8.54560292e-14
 
 #
-# Curve 2 - brick 119
+# Curve 2 - brick 45
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# brick - 119: ZX Stress
+#           Time        Sigma-zx
+# brick - 45: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -1.66350833e-14
   2.00000000e+00  -9.26589399e-14
 
 #
-# Curve 3 - brick 40
+# Curve 3 - brick 48
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# brick - 40: ZX Stress
+#           Time        Sigma-zx
+# brick - 48: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  1.94883741e-13
   2.00000000e+00  2.69577953e-13
 
 #
-# Curve 4 - brick 106
+# Curve 4 - brick 116
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# brick - 106: ZX Stress
+#           Time        Sigma-zx
+# brick - 116: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -1.81852743e-13
   2.00000000e+00  7.76676195e-13
 
 #
-# Curve 5 - brick 88
+# Curve 5 - brick 80
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# brick - 88: ZX Stress
+#           Time        Sigma-zx
+# brick - 80: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -3.73081665e-13
   2.00000000e+00  7.67594213e-13
 
 #
-# Curve 6 - brick 82
+# Curve 6 - brick 68
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# brick - 82: ZX Stress
+#           Time        Sigma-zx
+# brick - 68: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  6.44861660e-13
   2.00000000e+00  8.79396545e-13
 
 #
-# Curve 7 - brick 65
+# Curve 7 - brick 97
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# brick - 65: ZX Stress
+#           Time        Sigma-zx
+# brick - 97: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -9.68505549e-13
   2.00000000e+00  -1.16062447e-13
 
 #
-# Curve 8 - brick 66
+# Curve 8 - brick 98
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# brick - 66: ZX Stress
+#           Time        Sigma-zx
+# brick - 98: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  8.43781154e-13
   2.00000000e+00  7.07144087e-13
 
 #
-# Curve 9 - brick 97
+# Curve 9 - brick 99
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# brick - 97: ZX Stress
+#           Time        Sigma-zx
+# brick - 99: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -1.11773709e-12
   2.00000000e+00  -7.08117755e-13
 
 #
-# Curve 10 - brick 98
+# Curve 10 - brick 100
 # Time reference surface: middle
 # Time reference frame: global
-# ZX Stress reference frame: global
+# Sigma-zx reference frame: global
 
-#           Time       ZX Stress
-# brick - 98: ZX Stress
+#           Time        Sigma-zx
+# brick - 100: Sigma-zx
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  1.11943430e-12
   2.00000000e+00  1.36235034e-12
@@ -699,91 +699,67 @@
   2.00000000e+00  3.45026812e-04
 
 #
-# Curve 2 - brick 119
+# Curve 2 - brick 45
 # Time reference surface: middle
 # Time reference frame: global
 # Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
-# brick - 119: Volumetric Strain
+# brick - 45: Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  1.08917174e-03
   2.00000000e+00  2.11134437e-03
 
 #
-# Curve 3 - brick 40
+# Curve 3 - brick 48
 # Time reference surface: middle
 # Time reference frame: global
 # Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
-# brick - 40: Volumetric Strain
+# brick - 48: Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  6.63394516e-04
   2.00000000e+00  1.29028922e-03
 
 #
-# Curve 4 - brick 106
+# Curve 4 - brick 116
 # Time reference surface: middle
 # Time reference frame: global
 # Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
-# brick - 106: Volumetric Strain
+# brick - 116: Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.72233119e-05
   2.00000000e+00  8.07226388e-05
 
 #
-# Curve 5 - brick 88
+# Curve 5 - brick 80
 # Time reference surface: middle
 # Time reference frame: global
 # Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
-# brick - 88: Volumetric Strain
+# brick - 80: Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  7.13308109e-05
   2.00000000e+00  1.38387331e-04
 
 #
-# Curve 6 - brick 82
+# Curve 6 - brick 68
 # Time reference surface: middle
 # Time reference frame: global
 # Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
-# brick - 82: Volumetric Strain
+# brick - 68: Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.72233119e-05
   2.00000000e+00  8.07226388e-05
 
 #
-# Curve 7 - brick 65
-# Time reference surface: middle
-# Time reference frame: global
-# Volumetric Strain reference frame: global
-
-#           Time  Volumetric Strain
-# brick - 65: Volumetric Strain
-  0.00000000e+00  0.00000000e+00
-  1.00000000e+00  8.78507853e-05
-  2.00000000e+00  1.95851026e-04
-
-#
-# Curve 8 - brick 66
-# Time reference surface: middle
-# Time reference frame: global
-# Volumetric Strain reference frame: global
-
-#           Time  Volumetric Strain
-# brick - 66: Volumetric Strain
-  0.00000000e+00  0.00000000e+00
-  1.00000000e+00  6.98480362e-05
-  2.00000000e+00  1.65608522e-04
-
-#
-# Curve 9 - brick 97
+# Curve 7 - brick 97
 # Time reference surface: middle
 # Time reference frame: global
 # Volumetric Strain reference frame: global
@@ -791,17 +767,41 @@
 #           Time  Volumetric Strain
 # brick - 97: Volumetric Strain
   0.00000000e+00  0.00000000e+00
-  1.00000000e+00  5.23249219e-05
-  2.00000000e+00  1.37509007e-04
+  1.00000000e+00  8.78507853e-05
+  2.00000000e+00  1.95851026e-04
 
 #
-# Curve 10 - brick 98
+# Curve 8 - brick 98
 # Time reference surface: middle
 # Time reference frame: global
 # Volumetric Strain reference frame: global
 
 #           Time  Volumetric Strain
 # brick - 98: Volumetric Strain
+  0.00000000e+00  0.00000000e+00
+  1.00000000e+00  6.98480362e-05
+  2.00000000e+00  1.65608522e-04
+
+#
+# Curve 9 - brick 99
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
+
+#           Time  Volumetric Strain
+# brick - 99: Volumetric Strain
+  0.00000000e+00  0.00000000e+00
+  1.00000000e+00  5.23249219e-05
+  2.00000000e+00  1.37509007e-04
+
+#
+# Curve 10 - brick 100
+# Time reference surface: middle
+# Time reference frame: global
+# Volumetric Strain reference frame: global
+
+#           Time  Volumetric Strain
+# brick - 100: Volumetric Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  2.72233119e-05
   2.00000000e+00  8.07226388e-05
@@ -821,7 +821,7 @@
   2.00000000e+00  -1.12426572e-03
 
 #
-# Curve 2 - brick 119
+# Curve 2 - brick 45
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -829,13 +829,13 @@
 # XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
-# brick - 119: XY Engr Strain
+# brick - 45: XY Engr Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  4.25998696e-05
   2.00000000e+00  1.57674207e-04
 
 #
-# Curve 3 - brick 40
+# Curve 3 - brick 48
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -843,13 +843,13 @@
 # XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
-# brick - 40: XY Engr Strain
+# brick - 48: XY Engr Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -1.26032857e-04
   2.00000000e+00  -2.63383641e-04
 
 #
-# Curve 4 - brick 106
+# Curve 4 - brick 116
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -857,13 +857,13 @@
 # XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
-# brick - 106: XY Engr Strain
+# brick - 116: XY Engr Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -4.63178818e-04
   2.00000000e+00  -9.50894726e-04
 
 #
-# Curve 5 - brick 88
+# Curve 5 - brick 80
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -871,13 +871,13 @@
 # XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
-# brick - 88: XY Engr Strain
+# brick - 80: XY Engr Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -1.16646144e-04
   2.00000000e+00  -2.22534087e-04
 
 #
-# Curve 6 - brick 82
+# Curve 6 - brick 68
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -885,41 +885,13 @@
 # XY Engr Strain reference frame: global
 
 #           Time  XY Engr Strain
-# brick - 82: XY Engr Strain
+# brick - 68: XY Engr Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -4.63178818e-04
   2.00000000e+00  -9.50894726e-04
 
 #
-# Curve 7 - brick 65
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# brick - 65: XY Engr Strain
-  0.00000000e+00  0.00000000e+00
-  1.00000000e+00  -4.30143904e-04
-  2.00000000e+00  -8.29265628e-04
-
-#
-# Curve 8 - brick 66
-# Time strain variety: infinitesimal
-# Time reference surface: middle
-# Time reference frame: global
-# XY Engr Strain strain variety: infinitesimal
-# XY Engr Strain reference frame: global
-
-#           Time  XY Engr Strain
-# brick - 66: XY Engr Strain
-  0.00000000e+00  0.00000000e+00
-  1.00000000e+00  -4.32406901e-04
-  2.00000000e+00  -8.37538100e-04
-
-#
-# Curve 9 - brick 97
+# Curve 7 - brick 97
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -929,11 +901,11 @@
 #           Time  XY Engr Strain
 # brick - 97: XY Engr Strain
   0.00000000e+00  0.00000000e+00
-  1.00000000e+00  -4.40968754e-04
-  2.00000000e+00  -8.68801144e-04
+  1.00000000e+00  -4.30143904e-04
+  2.00000000e+00  -8.29265628e-04
 
 #
-# Curve 10 - brick 98
+# Curve 8 - brick 98
 # Time strain variety: infinitesimal
 # Time reference surface: middle
 # Time reference frame: global
@@ -942,6 +914,34 @@
 
 #           Time  XY Engr Strain
 # brick - 98: XY Engr Strain
+  0.00000000e+00  0.00000000e+00
+  1.00000000e+00  -4.32406901e-04
+  2.00000000e+00  -8.37538100e-04
+
+#
+# Curve 9 - brick 99
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# brick - 99: XY Engr Strain
+  0.00000000e+00  0.00000000e+00
+  1.00000000e+00  -4.40968754e-04
+  2.00000000e+00  -8.68801144e-04
+
+#
+# Curve 10 - brick 100
+# Time strain variety: infinitesimal
+# Time reference surface: middle
+# Time reference frame: global
+# XY Engr Strain strain variety: infinitesimal
+# XY Engr Strain reference frame: global
+
+#           Time  XY Engr Strain
+# brick - 100: XY Engr Strain
   0.00000000e+00  0.00000000e+00
   1.00000000e+00  -4.63178818e-04
   2.00000000e+00  -9.50894726e-04

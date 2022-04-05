@@ -43,7 +43,7 @@ select mat 1
 show nodpos[uz]
 state 20
 state 75
-sw noterp
+sw interp
 outjpeg bar71_image_nodposuz_plot.answ.jpg
 
 # EndCase 

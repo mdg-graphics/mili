@@ -1734,9 +1734,11 @@ static void
 output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
 {
     float *ab_data, *ord_data;
-    int i, j;
+    int i, j, rval;
     int col_1_width, col_2_width, title_1_width, title_2_width, cwidth=0;
     int qty_blocks, limit_state;
+    int ord_label;
+    int mat_id, mat_num;
     Int_2tuple *blocks;
     float scale, offset;
     Result *ab_res, *ord_res;
@@ -1786,10 +1788,22 @@ output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
         ab_is_time = TRUE;
     }
 
+    /* use labels if they exist */
+    if(ord_tso->mo_class)
+    {
+        if(ord_tso->mo_class->labels_found)
+        {
+            ord_label = get_class_label(ord_tso->mo_class, ord_tso->ident);
+        } else
+        {
+            ord_label = ord_tso->ident + 1;
+        }
+    }
+
     /* Output individual curve header. */
     if ( ab_tso->mo_class==NULL )
         fprintf( ofile, "\n#\n# Curve %d - %s %d\n", index,
-                 ord_tso->mo_class->long_name, ord_tso->ident + 1 );
+                 ord_tso->mo_class->long_name, ord_label );
     else
         fprintf( ofile, "\n\n# Curve %d - %s %d\n", index,
                  ab_tso->mo_class->long_name, ab_tso->ident + 1 );
@@ -1829,6 +1843,35 @@ output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
     if ( ord_res->modifiers.use_flags.use_ref_state )
         fprintf( ofile, "# %s reference state: %d\n", ord_res->title,
                  ord_res->modifiers.ref_state );
+    
+    /* Check for element set / integration points */
+    int srec_id = ord_res->srec_id;
+    for( i = 0; i < ord_res->qty; i++ ){
+        int subrec_id = ord_res->subrecs[i];
+        if( ord_tso->mo_class == analy->srec_tree[srec_id].subrecs[subrec_id].p_object_class ){
+            Subrec_obj* p_subrec = analy->srec_tree[srec_id].subrecs + subrec_id;
+            /* Check that this element is in this subrecord */
+            Bool_type elem_in_subrec = FALSE;
+            for(j = 0; j < p_subrec->subrec.qty_blocks; j++ ){
+                int block_start = p_subrec->subrec.mo_blocks[j*2];
+                int block_end = p_subrec->subrec.mo_blocks[j*2+1];
+                if( ord_label >= block_start && ord_label <= block_end )
+                    elem_in_subrec = TRUE;
+            }
+            if( elem_in_subrec && p_subrec->element_set != NULL ){
+                mat_id = ord_tso->mo_class->objects.elems->mat[ord_tso->ident];
+                Htable_entry* p_hte;
+                rval = htable_search(env.curr_analy->mat_labels, env.curr_analy->sorted_labels[mat_id], FIND_ENTRY, &p_hte);
+                rval = OK;
+                if( rval == OK ){
+                    mat_num = atoi((char*)p_hte->data);
+                    int index = p_subrec->element_set->current_index;
+                    int ipt = p_subrec->element_set->integration_points[index];
+                    fprintf( ofile, "# Material %d Integration point: %d\n", mat_num, ipt);
+                }
+            }
+        }
+    }
 
     /* Set initial column widths for 13.6e numeric format. */
     col_1_width = col_2_width = fracsz;
@@ -1851,7 +1894,7 @@ output_one_series( int index, Plot_obj *p_plot, FILE *ofile, Analysis *analy )
     if ( analy->th_single_col )
     {
         fprintf( ofile, "# %s - %d: %s\n", ord_tso->mo_class->long_name,
-                 ord_tso->ident + 1, ord_res->title );
+                 ord_label, ord_res->title );
     }
 
     for ( i = 0; i < qty_blocks; i++ )
@@ -2138,7 +2181,7 @@ check_for_global( Result *res_list, Specified_obj **p_so_list, Analysis *analy )
 
                     for ( j = 0; j < p_dr->srec_map[i].qty; j++ )
                     {
-                        if ( p_sr[j].candidate->superclass == G_MESH )
+                        if ( p_sr[j].superclass == G_MESH )
                         {
                             if ( p_sr[j].indirect )
                             {
@@ -2207,8 +2250,10 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
                    Analysis *analy, int *p_index, Result **p_list )
 {
     int idx;
+    int rval;
     Result *res_list, *p_r;
     Bool_type found;
+    Htable_entry* p_hte;
 
     idx = 1;
     res_list = NULL;
@@ -2277,9 +2322,12 @@ build_result_list( int token_qty, char tokens[][TOKENLENGTH],
             }
             else
             {
-                /* If necessary, search among possible results for db. */
-                p_r = NEW( Result, "History result" );
-                found = find_result( analy, ALL, FALSE, p_r, tokens[idx] );
+                rval = htable_search(MESH(analy).class_table, tokens[idx], FIND_ENTRY, &p_hte);
+                if(rval != OK){
+                    /* If necessary, search among possible results for db. */
+                    p_r = NEW( Result, "History result" );
+                    found = find_result( analy, ALL, FALSE, p_r, tokens[idx] );
+                }
             }
 
             if ( !found )
@@ -4470,7 +4518,7 @@ gen_gather( Result *res_list, Specified_obj *so_list, Analysis *analy,
                      *  a time history on this subrecord.
                      */
                     if ( ( derived && sr_array[j].indirect
-                            && sr_array[j].candidate->superclass
+                            && sr_array[j].superclass
                             == p_so->mo_class->superclass )
                             || ( ( !derived || !sr_array[j].indirect )
                                  && object_is_bound( p_so->ident + 1,
@@ -4493,11 +4541,18 @@ gen_gather( Result *res_list, Specified_obj *so_list, Analysis *analy,
 
                             valid_combinations++;
 
-                            if ( p_tso->min_eval_st > minst
-                                    || p_tso->max_eval_st < maxst )
+                            if ( p_tso->min_eval_st > minst || p_tso->max_eval_st < maxst )
                             {
                                 /* Requested bounds exceed extant bounds. */
                                 UNLINK( p_tso, analy->time_series_list );
+                                INSERT( p_tso, tso_list );
+                            }
+                            else if( p_subrec->element_set != NULL ){
+                                // Result has element set, update just in case integration
+                                // point has changed.
+                                UNLINK( p_tso, analy->time_series_list );
+                                p_tso->max_eval_st = -1;
+                                p_tso->min_eval_st = -1;
                                 INSERT( p_tso, tso_list );
                             }
                             else

@@ -27,9 +27,7 @@
 #include "exodusII.h"
 #endif
 
-
 #define CTL_WORDS 40
-
 
 static Bool_type is_mili_db( char *fname );
 static Bool_type is_taurus_plot_db( char *fname );
@@ -37,6 +35,79 @@ static Bool_type is_byte_swapped_taurus_plot_db( char *fname );
 static Bool_type is_exodus_db( char *fname );
 
 static void *exo_handle;
+
+
+/*****************************************************************
+ * TAG( parse_griz_init_file )
+ *
+ * This routine is called after minimal startup is completed in order to
+ * find and process a grizinit file of initial commands to execute.
+ */
+void
+parse_griz_init_file( void )
+{
+    FILE *test_file;
+    char *init_file;
+    char *home, home_path[512], home_hist[512];
+
+    char init_cmd[100];
+
+    /* Set error handler so that rgb dump errors don't cause an exit. */
+    i_seterror( do_nothing_stub );
+
+    /*
+     * Read in the start-up history file.  First check in current
+     * directory, then in directory specified in environment path.
+     */
+
+    /* First read an init file from home directory */
+    home = getenv( "HOME" );
+    strcpy(home_hist, "h ");
+    strcpy(home_path, home);
+    strcat(home_path, "/grizinit");
+
+    if ( ( test_file = fopen( home_path, "r" ) ) != NULL )
+    {
+        fclose( test_file );
+        strcat(home_hist, home_path);
+        parse_command( home_hist, env.curr_analy );
+    }
+    else
+    {
+        init_file = getenv( "GRIZINIT" );
+        if ( init_file != NULL )
+        {
+            strcpy( init_cmd, "h " );
+            strcat( init_cmd, init_file );
+            if ( ( test_file = fopen( init_file, "r" ) ) != NULL )
+            {
+                fclose( test_file );
+                parse_command( init_cmd, env.curr_analy );
+            }
+        }
+    }
+
+    /* Now read init file from local directory */
+    if ( ( test_file = fopen( "grizinit", "r" ) ) != NULL )
+    {
+        fclose( test_file );
+        parse_command( "h grizinit", env.curr_analy );
+    }
+
+
+    /* Now read from local directory - problem specific init file = grizinit.<plotfile_name> */
+    strcpy(home_path, "grizinit.");
+    strcat(home_path, env.plotfile_name);
+    strcpy(home_hist, "h ");
+    strcat(home_hist, home_path);
+
+    if ( ( test_file = fopen( home_path, "r" ) ) != NULL )
+    {
+        fclose( test_file );
+        parse_command( home_hist, env.curr_analy );
+    }
+
+}
 
 
 /************************************************************

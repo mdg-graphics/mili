@@ -174,7 +174,9 @@ time_t tm;
 int  label_compare( const void *key, const void *label );
 int  get_class_label_index( MO_class_data *class, int label_num );
 void dump_class_labels( MO_class_data *class );
-void populate_result(int superclass, char map[], int size, MO_class_data * p_class, Analysis * analy);
+void populate_mat_result(int superclass, char map[], MO_class_data* class, Analysis* analy);
+void populate_result(int superclass, char map[], MO_class_data* class, Analysis * analy);
+char* gather_selected_materials( Analysis* analy );
 
 int grayel = 0;
 const float grayval = 0.7;
@@ -1922,41 +1924,41 @@ static int check_for_tri_face( int, int, MO_class_data *, float [4][3],
 static void get_min_max( Analysis *, Bool_type, float *, float * );
 
 /*static void draw_grid( Analysis * );
-static void draw_grid_2d( Analysis * ); */ 
+static void draw_grid_2d( Analysis * ); */
 
 static void draw_hexs( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                       Analysis * );
+                       char* , Analysis * );
 
 static void draw_pyramids( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                           Analysis * );
+                           char* , Analysis * );
 
 static void draw_wedges( Bool_type, Bool_type, Bool_type, MO_class_data *,
                          Analysis * );
 
 static void draw_tets( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                       Analysis * );
+                       char*, Analysis * );
 
 static void draw_quads_2d( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                           Analysis * );
+                           char*, Analysis * );
 static void draw_quads_3d( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                           Analysis * );
+                           char*, Analysis * );
 
 static void draw_tris_2d( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                          Analysis * );
+                          char*, Analysis * );
 static void draw_tris_3d( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                          Analysis * );
+                          char*, Analysis * );
 
-static void draw_beams_2d( Bool_type, Bool_type, Bool_type, MO_class_data *, Analysis * );
-static void draw_beams_3d( Bool_type, Bool_type, Bool_type, MO_class_data *, Analysis * );
+static void draw_beams_2d( Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
+static void draw_beams_3d( Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
 
-static void draw_truss_2d( Bool_type, Bool_type, MO_class_data *, Analysis * );
-static void draw_truss_3d( Bool_type, Bool_type, MO_class_data *, Analysis * );
+static void draw_truss_2d( Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
+static void draw_truss_3d( Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
 
-static void draw_surfaces_2d( Color_property *, Bool_type, Bool_type, Bool_type,MO_class_data *, Analysis * );
-static void draw_surfaces_3d( Color_property *, Bool_type, Bool_type, Bool_type,MO_class_data *, Analysis * );
+static void draw_surfaces_2d( Color_property *, Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
+static void draw_surfaces_3d( Color_property *, Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
 
-static void draw_particles_2d( MO_class_data *, Analysis * );
-static void draw_particles_3d( MO_class_data *, Analysis * );
+static void draw_particles_2d( Bool_type, MO_class_data *, char*, Analysis * );
+static void draw_particles_3d( Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
 
 static void draw_edges_2d( Analysis * );
 static void draw_edges_3d( Analysis * );
@@ -2016,7 +2018,7 @@ static void linear_variable_scale( float, float, int, float *, float *,
                                    float *, int * );
 extern void log_variable_scale( float, float, int, float *, float *,
                                 float *, float *, int * );
-extern void log_scale_data_shift( float val, float data_minimum, 
+extern void log_scale_data_shift( float val, float data_minimum,
                                   float data_maximum,
                                   float *new_val, float *new_data_minimum,
                                   float *new_data_maximum, float *data_shift,
@@ -2035,7 +2037,7 @@ static void change_current_color_property( Color_property *, int );
 void update_current_color_property( Color_property *, Material_property_type );
 
 static float
-get_free_node_result( Analysis *, MO_class_data *, int, Bool_type *, 
+get_free_node_result( Analysis *, MO_class_data *, int, Bool_type *,
                       Bool_type * );
 
 static float
@@ -3905,6 +3907,47 @@ draw_mesh_view( Analysis *analy )
 
 
 /************************************************************
+ * TAG( gather_selected_materials )
+ * 
+ * Loop over analy->selected_objects and mark all materials that 
+ * are selected. This is used in the draw functions to color the
+ * elements of selected materials gray.
+ */
+char* gather_selected_materials( Analysis* analy )
+{
+    int qty_materials;
+    int i, mtl;
+    char* mats;
+    Specified_obj* p_so;
+    MO_class_data* p_mo_class;
+
+    /* Allocate list of materials */
+    qty_materials = analy->mesh_table[0].material_qty;
+    mats = NEW_N(char, qty_materials, "selected materials list");
+    if( mats == NULL )
+    {
+        popup_dialog(WARNING_POPUP, "Out of memory in function gather_selected_materials. Terminating!!\n");
+        parse_command("quit", analy);
+    }
+
+    /* Initialize list to '0' */
+    for( i = 0; i < qty_materials; i++ )
+        mats[i] = '0';
+    
+    /* Loop over analy->selected_objects and mark all selected materials */
+    for( p_so = analy->selected_objects; p_so != NULL; NEXT(p_so) ){
+        p_mo_class = p_so->mo_class;
+        if( p_mo_class->superclass == G_MAT ){
+            mtl = p_so->ident;
+            mats[mtl] = '1';
+        }
+    }
+
+    return mats;
+}
+
+
+/************************************************************
  * TAG( draw_grid )
  *
  * Draw the element grid.  This routine handles all procedures
@@ -3933,6 +3976,7 @@ draw_grid( Analysis *analy )
     Specified_obj *p_so;
     Classed_list *p_cl;
     int qty_classes;
+    char* selected_materials;
     MO_class_data **mo_classes;
     MO_class_data *p_mo_class;
     Htable_entry *p_hte;
@@ -3965,7 +4009,7 @@ draw_grid( Analysis *analy )
      * Draw iso-surfaces.
      */
 
-    if ( analy->show_isosurfs /* && !analy->show_carpet */ )
+    if ( analy->show_isosurfs )
     {
         /* Difference between result min and max. */
         rdiff = analy->result_mm[1] - analy->result_mm[0];
@@ -4005,19 +4049,16 @@ draw_grid( Analysis *analy )
     /*
      * Draw cut planes.
      */
-    /**/
 
     /*  Set glMaterial to draw from the correct color property data base */
     change_current_color_property( &v_win->mesh_materials, v_win->mesh_materials.current_index );
 
 
-    if ( analy->show_cut /* && !analy->show_carpet */ )
+    if ( analy->show_cut  )
     {
-        composite_show = show_node_result || show_mat_result
-                         || show_mesh_result;
+        composite_show = show_node_result || show_mat_result || show_mesh_result;
 
-        get_min_max( analy, ( show_mat_result || show_mesh_result ), &rmin,
-                     &rmax );
+        get_min_max( analy, ( show_mat_result || show_mesh_result ), &rmin, &rmax );
 
         /* Use two-sided lighting. */
         glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, 1 );
@@ -4034,8 +4075,7 @@ draw_grid( Analysis *analy )
                           || result_has_class( analy->cur_result,
                                                p_cl->mo_class, analy );
 
-            for ( tri = (Triangle_poly *) p_cl->list; tri != NULL;
-                    NEXT( tri ) )
+            for ( tri = (Triangle_poly *) p_cl->list; tri != NULL; NEXT( tri ) )
             {
                 colorflag = show_result && !disable_mtl[tri->mat];
                 if ( analy->material_greyscale && disable_mtl[tri->mat] )
@@ -4081,9 +4121,6 @@ draw_grid( Analysis *analy )
         glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
         glPolygonOffset( 1.0, 1 );
         glDepthRange( 0, 2 );
-
-        /* analy->edge_zbias = 20;
-           glDepthRange( 0, 1 - analy->edge_zbias ); */
     }
 
     /* IRC: Added Oct 17, 2006. Offset Polygon lines so that lines do not
@@ -4100,16 +4137,17 @@ draw_grid( Analysis *analy )
      */
     if ( analy->show_ref_polys )
         draw_ref_polys( analy );
+    
+    /*
+     * Loop through selected objects and gather all materials that are selected
+     */
+    selected_materials = gather_selected_materials(analy);
 
     /*
      * Draw free nodes.
      */
     if ( analy->free_nodes_enabled || analy->particle_nodes_enabled )
         draw_free_nodes( analy ); 
-      /*if(analy->free_nodes_enabled)
-      {
-          draw_free_nodes(analy);
-      } */
 
     /*
      * Draw the elements.
@@ -4122,7 +4160,7 @@ draw_grid( Analysis *analy )
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_HEX].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_hexs( show_node_result, show_mat_result, show_mesh_result,
-                   mo_classes[i], analy );
+                   mo_classes[i], selected_materials, analy );
 
     if ( analy->ei_result && analy->result_active )
         show_mat_result = TRUE;
@@ -4132,7 +4170,7 @@ draw_grid( Analysis *analy )
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TET].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_tets( show_node_result, show_mat_result, show_mesh_result,
-                   mo_classes[i], analy );
+                   mo_classes[i], selected_materials, analy );
 
     glEnable( GL_POLYGON_OFFSET_FILL );
 
@@ -4143,7 +4181,7 @@ draw_grid( Analysis *analy )
     {
         glPolygonOffset( analy->z_poly_offset * ( i + 1 ), analy->z_poly_offset * ( i + 1 ) );
         draw_quads_3d( show_node_result, show_mat_result, show_mesh_result,
-                       mo_classes[i], analy );
+                       mo_classes[i], selected_materials, analy );
         glPolygonOffset( 0.0, 0.0 );
     }
 
@@ -4154,7 +4192,7 @@ draw_grid( Analysis *analy )
     {
         glPolygonOffset( analy->z_poly_offset * ( i + 1 ), analy->z_poly_offset * ( i + 1 ) );
         draw_tris_3d( show_node_result, show_mat_result, show_mesh_result,
-                      mo_classes[i], analy );
+                      mo_classes[i], selected_materials, analy );
         glPolygonOffset( 0.0, 0.0 );
     }
 
@@ -4163,7 +4201,7 @@ draw_grid( Analysis *analy )
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PYRAMID].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_pyramids( show_node_result, show_mat_result, show_mesh_result,
-                       mo_classes[i], analy );
+                       mo_classes[i], selected_materials, analy );
 
     /* Turn lighting off (back to the default). */
     if ( v_win->lighting )
@@ -4178,14 +4216,14 @@ draw_grid( Analysis *analy )
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_beams_3d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
-                       analy );
+                       selected_materials, analy );
 
     /* Discrete element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_TRUSS].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRUSS].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_truss_3d( show_mat_result, show_mesh_result, mo_classes[i],
-                       analy );
+        draw_truss_3d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
+                       selected_materials, analy );
 
 
     /*  Set glMaterial to draw from the correct color property data base */
@@ -4203,7 +4241,7 @@ draw_grid( Analysis *analy )
         glPolygonOffset( analy->z_poly_offset * ( i + 1 ), analy->z_poly_offset * ( i + 1 ) );
         draw_surfaces_3d( v_win->current_color_property,
                           show_node_result, show_surf_result, show_mesh_result,
-                          mo_classes[ i ], analy );
+                          mo_classes[ i ], selected_materials, analy );
         glPolygonOffset( 0.0, 0.0 );
     }
 
@@ -4226,20 +4264,13 @@ draw_grid( Analysis *analy )
 
     qty_classes = p_mesh->classes_by_sclass[G_PARTICLE].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PARTICLE].list;
-    //if(qty_classes > 0)
-    //{
-        /*analy->show_particle_class = FALSE; */
-    //    analy->show_particle_class = TRUE;
-        
-    //} 
-
-    /*  Set glMaterial to draw from the correct color property data base */
-    if ( analy->show_particle_class )
+    if ( analy->particle_nodes_enabled )
     {
         strcpy(particle_name, "DBC1");
         for(i=0; i < qty_classes; i++)
         {
-            draw_particles_3d( mo_classes[i], analy);
+            draw_particles_3d( show_node_result, show_mat_result, show_mesh_result,
+                               mo_classes[i], selected_materials, analy );
         } 
     }
 
@@ -4256,8 +4287,6 @@ draw_grid( Analysis *analy )
     {
         Contour_obj *cont;
 
-        /*        lsetdepth( v_win->z_front_near, v_win->z_front_far ); */
-
         antialias_lines( TRUE, analy->z_buffer_lines );
         glLineWidth( (GLfloat) analy->contour_width );
 
@@ -4267,9 +4296,6 @@ draw_grid( Analysis *analy )
 
         glLineWidth( (GLfloat) 1.0 );
         antialias_lines( FALSE, 0 );
-
-        /* Reset near/far planes to the defaults. */
-        /*        lsetdepth( v_win->z_default_near, v_win->z_default_far ); */
     }
 
     /*
@@ -4284,33 +4310,6 @@ draw_grid( Analysis *analy )
         else
             popup_dialog( INFO_POPUP, "No grid defined for vectors." );
     }
-
-    /*
-     * Draw regular vector carpet.
-     */
-    /*
-        if ( analy->show_carpet )
-            draw_reg_carpet( analy );
-    */
-
-    /*
-     * Draw grid vector carpet or iso or cut surface carpet.
-     */
-    /*
-        if ( analy->show_carpet )
-        {
-            draw_vol_carpet( analy );
-            draw_shell_carpet( analy );
-        }
-    */
-
-    /*
-     * Draw reference surface vector carpet.
-     */
-    /*
-        if ( analy->show_carpet )
-            draw_ref_carpet( analy );
-    */
 
     /*
      * Draw particle traces.
@@ -4376,52 +4375,49 @@ draw_grid_2d( Analysis *analy )
     Bool_type show_surf_result;
     Htable_entry *p_hte;
     int rval;
+    char *selected_materials;
+
     /*
-     * Draw external surface polygons.
+     * Loop through selected objects and gather all materials that are selected
      */
-    /*
-        if ( analy->show_extern_polys )
-            draw_extern_polys( analy );
-    */
+    selected_materials = gather_selected_materials(analy);
 
     /*
      * Draw the elements.
      */
 
     p_mesh = MESH_P( analy );
-    show_node_result = result_has_superclass( analy->cur_result, G_NODE,
-                       analy );
+    show_node_result = result_has_superclass( analy->cur_result, G_NODE, analy );
     show_mat_result = result_has_superclass( analy->cur_result, G_MAT, analy );
-    show_mesh_result = result_has_superclass( analy->cur_result, G_MESH,
-                       analy );
+    show_mesh_result = result_has_superclass( analy->cur_result, G_MESH, analy );
 
     /* Quad element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_QUAD].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_quads_2d( show_node_result, show_mat_result, show_mesh_result,
-                       mo_classes[i], analy );
+                       mo_classes[i], selected_materials, analy );
 
     /* Triangle element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_TRI].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRI].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_tris_2d( show_node_result, show_mat_result, show_mesh_result,
-                      mo_classes[i], analy );
+                      mo_classes[i], selected_materials, analy );
 
     /* Beam element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_BEAM].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_beams_2d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
-                       analy );
+                       selected_materials, analy );
 
     /* Discrete Element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_BEAM].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_truss_2d( show_mat_result, show_mesh_result, mo_classes[i],
-                       analy );
+        draw_truss_2d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
+                       selected_materials, analy );
 
     /* Surface element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_SURFACE].qty;
@@ -4429,7 +4425,7 @@ draw_grid_2d( Analysis *analy )
     for ( i = 0; i < qty_classes; i++ )
         draw_surfaces_2d( v_win->current_color_property,
                           show_node_result, show_surf_result, show_mesh_result,
-                          mo_classes[ i ], analy );
+                          mo_classes[ i ], selected_materials, analy );
 
     /*
      * Draw point cloud.
@@ -4445,19 +4441,15 @@ draw_grid_2d( Analysis *analy )
     /*
      * Draw particle data.
      */
-    if ( analy->show_particle_class )
+    qty_classes = p_mesh->classes_by_sclass[G_PARTICLE].qty;
+    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PARTICLE].list;
+    if ( analy->particle_nodes_enabled )
     {
-        rval = htable_search( p_mesh->class_table, particle_cname, FIND_ENTRY,
-                              &p_hte );
-        if ( rval == OK )
+        strcpy(particle_name, "DBC1");
+        for(i=0; i < qty_classes; i++)
         {
-            p_mo_class = (MO_class_data *) p_hte->data;
-
-            rval = htable_search( analy->primal_results, "partpos", FIND_ENTRY,
-                                  &p_hte );
-            if ( rval == OK )
-                draw_particles_2d( p_mo_class, analy );
-        }
+            draw_particles_2d( show_node_result, mo_classes[i], selected_materials, analy);
+        } 
     }
 
     /*
@@ -4646,7 +4638,7 @@ get_min_max( Analysis *analy, Bool_type no_interp, float *p_min, float *p_max )
 static void
 draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
            Bool_type show_mesh_result, MO_class_data *p_hex_class,
-           Analysis *analy )
+           char* selected_materials, Analysis *analy )
 {
     Bool_type show_result;
     float verts[4][3];
@@ -4670,136 +4662,10 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     Interp_mode_type save_interp_mode;
     unsigned char *hide_mtl;
     int *p_mats;
-    Bool_type disable_gray = TRUE;
-    Result *p_result;
-    Subrec_obj *p_subrec;
-    p_result = analy->cur_result;
-/* Adding code to determine if a subrecord for these objects has the appropriate variable and if
- * not it sets that element to a gray scale prior to calling draw poly */
-    int index, subrec, srec, qty_blocks, mesh_id;
-    Bool_type same_as_last = FALSE;
-    char **results_map;
-    char * result_name = NULL;
-    char * short_name = NULL;
-    
-    static int first = 0;
-
-    mesh_id = p_hex_class->mesh_id;
-
-    show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_hex_class, analy )
-                  || show_mat_result
-                  || show_mesh_result;
-
-    if(result_has_class(analy->cur_result, p_hex_class, analy))
-    {
-        disable_gray = FALSE;
-    }
-
-    /*if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
-        if(results_map == NULL)
-        {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-
-        first = 1;
-    } */
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
-        if(results_map == NULL)
-        {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(!strcmp(short_name, p_hex_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_hex_class->qty+1);
-            if( results_map[mesh_id] == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_hex_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_hex_class->short_name, strlen(p_hex_class->short_name) + 1);
-        }
-    }
-
-    if(show_result && analy->cur_result != NULL) 
-    { 
-        populate_result(G_HEX, results_map[mesh_id], p_hex_class->qty + 1, p_hex_class, analy);
-    }
-
-
- 
-    Bool_type hidden_poly=FALSE,
-              hidden_poly_elem=FALSE,
-              hidden_poly_elem_wft=FALSE,
-              hidden_poly_mat=FALSE,
-              disable_flag=FALSE;
-    Bool_type showgs=TRUE;
+    Bool_type result_exists_for_hex = FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type is_unit_result;
+    char * results_map = NULL;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -4807,6 +4673,43 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
 
     if ( is_particle_class(analy, p_hex_class->superclass, p_hex_class->short_name) )
         return; 
+
+    result_exists_for_hex = result_has_class( analy->cur_result, p_hex_class, analy );
+
+    show_result = show_node_result
+                  || result_exists_for_hex
+                  || show_mat_result
+                  || show_mesh_result;
+
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
+    { 
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_hex_class->qty, "result map for draw_hexs");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_HEX, results_map, p_hex_class, analy);
+        else
+            populate_result(G_HEX, results_map, p_hex_class, analy);
+    }
+
+    Bool_type hidden_poly=FALSE,
+              hidden_poly_elem=FALSE,
+              hidden_poly_elem_wft=FALSE,
+              hidden_poly_mat=FALSE,
+              disable_flag=FALSE;
+    Bool_type showgs=TRUE;
 
     p_mesh = MESH_P( analy );
     connects = (int (*)[8]) p_hex_class->objects.elems->nodes;
@@ -4857,12 +4760,6 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         data_array = NODAL_RESULT_BUFFER( analy );
         p_index_source = &nd;
     }
-
-    /* If we are drawing particles then look for a particle result and map onto hexes
-      *
-      */
-    /* if ( show_result && analy->free_particles )
-           data_array = analy->pn_buffer_ptr[0]; */
 
     get_min_max( analy, FALSE, &rmin, &rmax );
 
@@ -4942,11 +4839,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
          * polygons are drawn in the material color.
          */
         disable_flag = disable_by_object_type( p_hex_class, matl, el, analy, data_array );
-
-        colorflag = show_result && !disable_mtl[matl] && !disable_by_object_type( p_hex_class, matl, el, analy, data_array );
-
-        colorflag = show_result && !disable_mtl[matl];
-        colorflag = show_result && !disable_mtl[matl] && !disable_by_object_type( p_hex_class, matl, el, analy, data_array );
+        colorflag = show_result && !disable_mtl[matl] && !disable_flag;
 
         if ( analy->material_greyscale && disable_mtl[matl])
             showgs = TRUE;
@@ -4998,7 +4891,6 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
         if ( analy->mesh_view_mode == RENDER_WIREFRAMETRANS )
         {
             hidden_poly_elem_wft = TRUE;  
-           /*hidden_poly_elem_wft = disable_by_object_type( p_hex_class, matl, el, analy, data_array ); */
         }
 
         if ( hidden_poly_mat || hidden_poly_elem || hidden_poly_elem_wft )
@@ -5010,35 +4902,49 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
             if ( p_mats[matl] )
                 hidden_poly = TRUE;
 
-        /* check to see if this element has the variable to be shown */
-        if(show_result && !analy->material_greyscale && analy->auto_gray && !disable_gray)
-        {
-            grayel = 0;
-            if((results_map[mesh_id][el+1] == '0') && !disable_mtl[matl] && !disable_flag)
-            {
-                grayel = 1;         
-                for(j = 0; j < 4; j++)
-                {
-                    for(k = 0; k < 4; k++)
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
+
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for hexes
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element AND material is not disabled
+                    // AND brick element is not disabled
+                    if((results_map[el] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
-                        cols[j][k] = grayval;
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            for(k = 0; k < 4; k++)
+                            {
+                                cols[j][k] = grayval;
+                            }
+                        }
                     }
                 }
-               
             }
-        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
-        {
-            grayel = 1;
-            for(j = 0; j < 4; j++)
-            {
-                for(k = 0; k < 4; k++)
-                {
-                    cols[j][k] = grayval;
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                        for(k = 0; k < 4; k++)
+                        {
+                            cols[j][k] = grayval;
+                        }
+                    }
                 }
             }
-             
         }
-  
+
         if(analy->mesh_view_mode == RENDER_WIREFRAMETRANS)
         {
             draw_edges_3d(analy);
@@ -5055,19 +4961,9 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     glDisable( GL_CULL_FACE );
     glDisable( GL_COLOR_MATERIAL );
     analy->interp_mode = save_interp_mode;
+
     if(results_map != NULL)
-    {
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            if(results_map[i] != NULL)
-            {
-                free(results_map[i]);
-                results_map[i] = NULL;
-            }
-        }
         free(results_map);
-        results_map = NULL;
-    }
 }
 
 
@@ -5079,7 +4975,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
 static void
 draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
            Bool_type show_mesh_result, MO_class_data *p_tet_class,
-           Analysis *analy )
+           char* selected_materials, Analysis *analy )
 {
     Bool_type show_result, showgs=FALSE;
     float verts[3][3];
@@ -5100,125 +4996,47 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     int *p_index_source;
     Interp_mode_type save_interp_mode;
     Bool_type hidden_poly;
-    Bool_type disable_flag=FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
+    Bool_type is_unit_result;
 
-    int mesh_id;
-    static int first = 0;
-    static char ** results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Result * p_result;
-    Bool_type same_as_last = FALSE;
-    Bool_type disable_gray = TRUE;
-
-    mesh_id = p_tet_class->mesh_id;
-    p_result = analy->cur_result;
-
-
-    show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_tet_class, analy )
-                  || show_mat_result
-                  || show_mesh_result; 
-
-    if(result_has_class( analy->cur_result, p_tet_class, analy))
-    {
-        disable_gray = FALSE;
-    }
-
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
-        if(results_map == NULL)
-        {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_tet_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_tet_class->qty+1);
-            if( results_map[mesh_id] == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tets. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tets. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_tet_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tets Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_tet_class->short_name, strlen(p_tet_class->short_name) + 1);
-        }
-    }
-
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
-        populate_result(G_TET, results_map[mesh_id], p_tet_class->qty + 1, p_tet_class, analy);
-    }
-
-    /*show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_tet_class, analy )
-                  || show_mat_result
-                  || show_mesh_result; */
+    char * results_map = NULL;
+    Bool_type result_exists_for_tet = FALSE;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
         return;
+
+    result_exists_for_tet = result_has_class( analy->cur_result, p_tet_class, analy);
+
+    show_result = show_node_result
+                  || result_exists_for_tet
+                  || show_mat_result
+                  || show_mesh_result;
+
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
+    { 
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_tet_class->qty, "result map for draw_tets");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tets. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_TET, results_map, p_tet_class, analy);
+        else
+            populate_result(G_TET, results_map, p_tet_class, analy);
+    }
+
 
     p_mesh = MESH_P( analy );
     connects = (int (*)[4]) p_tet_class->objects.elems->nodes;
@@ -5263,11 +5081,6 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
         data_array = NODAL_RESULT_BUFFER( analy );
         p_index_source = &nd;
     }
-
-    show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_tet_class, analy )
-                  || show_mat_result
-                  || show_mesh_result; 
 
     get_min_max( analy, FALSE, &rmin, &rmax );
 
@@ -5332,7 +5145,9 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
         /* Colorflag is TRUE if displaying a result, otherwise
          * polygons are drawn in the material color.
          */
-        colorflag = show_result && !disable_mtl[matl];
+        disable_flag = disable_by_object_type( p_tet_class, matl, el, analy, data_array );
+        colorflag = show_result && !disable_mtl[matl] && !disable_flag;
+
         if ( analy->material_greyscale && disable_mtl[matl] )
             showgs = TRUE;
         else
@@ -5365,35 +5180,48 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
             }
         }
 
-        disable_flag = disable_by_object_type( p_tet_class, matl, el, analy, data_array );
 
-        /* check to see if this element has the variable to be shown */
-        if(show_result && !analy->material_greyscale && !disable_gray)
-        {
-            grayel = 0;
-            if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
-            {
-                grayel = 1;         
-                for(j = 0; j < 3; j++)
-                {
-                    for(k = 0; k < 4; k++)
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
+
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for tets
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element AND material is not disabled
+                    // AND tet element is not disabled
+                    if((results_map[el] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
-                        cols[j][k] = grayval;
+                        grayel = 1;         
+                        for(j = 0; j < 3; j++)
+                        {
+                            for(k = 0; k < 4; k++)
+                            {
+                                cols[j][k] = grayval;
+                            }
+                        }
                     }
                 }
-               
             }
-        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
-        {
-            grayel = 1;
-            for(j = 0; j < 3; j++)
-            {
-                for(k = 0; k < 4; k++)
-                {
-                    cols[j][k] = grayval;
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                        for(k = 0; k < 4; k++)
+                        {
+                            cols[j][k] = grayval;
+                        }
+                    }
                 }
             }
-             
         }
 
         hidden_poly = hide_by_object_type( p_tet_class, matl, el, analy, data_array );
@@ -5405,6 +5233,9 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     glDisable( GL_CULL_FACE );
     glDisable( GL_COLOR_MATERIAL );
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -5416,7 +5247,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
 static void
 draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
                Bool_type show_mesh_result, MO_class_data *p_quad_class,
-               Analysis *analy )
+               char* selected_materials, Analysis *analy )
 {
     Bool_type show_result, showgs=FALSE;
     Bool_type has_degen;
@@ -5439,119 +5270,46 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
 
     Bool_type hidden_poly;
     Bool_type inactive_element=FALSE;
-    Bool_type disable_flag=FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
+    Bool_type is_unit_result;
     Result * p_result;
 
-    int mesh_id;
-    static int first = 0;
-    static char ** results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Bool_type same_as_last = FALSE;
-    Bool_type disable_gray = TRUE;
-
-    p_result = analy->cur_result;
-    mesh_id = p_quad_class->mesh_id;
-
-    show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_quad_class, analy )
-                  || show_mat_result
-                  || show_mesh_result;
-
-    if(result_has_class( analy->cur_result, p_quad_class, analy))
-    {
-        disable_gray = FALSE;
-    }
-
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
-        if(results_map == NULL)
-        {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_quad_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_quad_class->qty+1);
-            if( results_map[mesh_id] == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_quad_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_quad_class->short_name, strlen(p_quad_class->short_name) + 1);
-        }
-    }
-
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
-        populate_result(G_QUAD, results_map[mesh_id], p_quad_class->qty + 1, p_quad_class, analy);
-    }
+    char * results_map = NULL;
+    Bool_type result_exists_for_quad;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
         return;
+
+    result_exists_for_quad = result_has_class( analy->cur_result, p_quad_class, analy );
+    show_result = show_node_result
+                  || result_exists_for_quad
+                  || show_mat_result
+                  || show_mesh_result;
+
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
+    { 
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_quad_class->qty, "result map for draw_quads_3d");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_quads_3d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_QUAD, results_map, p_quad_class, analy);
+        else
+            populate_result(G_QUAD, results_map, p_quad_class, analy);
+    }
 
     activity = analy->state_p->sand_present
                ? analy->state_p->elem_class_sand[p_quad_class->elem_class_index]
@@ -5601,11 +5359,6 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
         p_index_source = &nd;
     }
 
-   /* show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_quad_class, analy )
-                  || show_mat_result
-                  || show_mesh_result; */
-
     get_min_max( analy, FALSE, &rmin, &rmax );
 
     /* Enable color to change AMBIENT & DIFFUSE property of the material. */
@@ -5640,8 +5393,9 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
         /* Colorflag is TRUE if displaying a result, otherwise
          * polygons are drawn in the material color.
          */
-        colorflag = show_result && !disable_mtl[matl] &&
-                    !disable_by_object_type( p_quad_class, matl, i, analy, NULL );
+        disable_flag = disable_by_object_type(p_quad_class, matl, i, analy, NULL);
+        colorflag = show_result && !disable_mtl[matl] && !disable_flag;
+
         if ( analy->material_greyscale && disable_mtl[matl] )
             showgs = TRUE;
         else
@@ -5679,42 +5433,54 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
 
         /* Check for triangular (degenerate) quad element. */
         cnt = 4;
-        if ( has_degen &&
-                connects[i][2] == connects[i][3] )
+        if ( has_degen && connects[i][2] == connects[i][3] )
             cnt = 3;
       
-        disable_flag = disable_by_object_type(p_quad_class, matl, i, analy, NULL);
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
 
-        /* check to see if this element has the variable to be shown */
-        if(show_result && !analy->material_greyscale && !disable_gray)
-        {
-            grayel = 0;
-            if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
-            {
-                grayel = 1;         
-                for(j = 0; j < 4; j++)
-                {
-                    for(k = 0; k < 4; k++)
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for quads
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element AND material is not disabled
+                    // AND quad element is not disabled
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
-                        cols[j][k] = grayval;
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            for(k = 0; k < 4; k++)
+                            {
+                                cols[j][k] = grayval;
+                            }
+                        }
                     }
                 }
-               
             }
-        } else if(!show_result && !analy->showmat && !disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
-        {
-            grayel = 1;
-            for(j = 0; j < 4; j++)
-            {
-                for(k = 0; k < 4; k++)
-                {
-                    cols[j][k] = grayval;
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                        for(k = 0; k < 4; k++)
+                        {
+                            cols[j][k] = grayval;
+                        }
+                    }
                 }
             }
         }
 
         hidden_poly = hide_by_object_type( p_quad_class, matl, i, analy, data_array );
- 
+
         if(analy->mesh_view_mode == RENDER_WIREFRAMETRANS)
         {
             draw_edges_3d(analy);
@@ -5732,6 +5498,9 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
     glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, 0 );
     glDisable( GL_COLOR_MATERIAL );
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -5743,7 +5512,7 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
 static void
 draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
               Bool_type show_mesh_result, MO_class_data *p_tri_class,
-              Analysis *analy )
+              char* selected_materials, Analysis *analy )
 {
     Bool_type show_result, showgs=FALSE;
     float *activity;
@@ -5765,128 +5534,45 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
 
 /* Adding code to determine if a subrecord for these objects has the appropriate variable and if
  * not it sets that element to a gray scale prior to calling draw poly */
-    int index, subrec, srec, qty_blocks;
-    int total_blocks = 0;
-    Subrec_obj *p_subrec;
     Bool_type hidden_poly;
+    Bool_type disable_gray = FALSE;
     Bool_type disable_flag=FALSE;
-    int mesh_id;
-    static char **results_map;
-    static char *result_name = NULL;
-    static char *short_name = NULL;
-    static int first = 0;
-    Result * p_result;
-    Bool_type same_as_last = FALSE;
-    Bool_type disable_gray = TRUE;
-
-    mesh_id = p_tri_class->mesh_id;
-    p_result = analy->cur_result;
-
-    show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_tri_class, analy )
-                  || show_mat_result
-                  || show_mesh_result;
-
-    if(result_has_class( analy->cur_result, p_tri_class, analy))
-    {
-        disable_gray = FALSE;
-    }
-
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
-        if(results_map == NULL)
-        {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_tri_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_tri_class->qty+1);
-            if( results_map[mesh_id] == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_tri_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_tri_class->short_name, strlen(p_tri_class->short_name) + 1);
-        }
-    }
-
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
-        populate_result(G_TRI, results_map[mesh_id], p_tri_class->qty + 1, p_tri_class, analy);
-    }
-
-
-    /*show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_tri_class, analy )
-                  || show_mat_result
-                  || show_mesh_result; */
+    char *results_map = NULL;
+    Bool_type result_exists_for_tri;
+    Bool_type is_unit_result;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
         return;
+
+    result_exists_for_tri = result_has_class( analy->cur_result, p_tri_class, analy );
+    show_result = show_node_result
+                  || result_exists_for_tri
+                  || show_mat_result
+                  || show_mesh_result;
+
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
+    { 
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_tri_class->qty, "result map for draw_tris_3d");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tris_3d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_TRI, results_map, p_tri_class, analy);
+        else
+            populate_result(G_TRI, results_map, p_tri_class, analy);
+    }
 
     activity = analy->state_p->sand_present
                ? analy->state_p->elem_class_sand[p_tri_class->elem_class_index]
@@ -5935,11 +5621,6 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
         p_index_source = &nd;
     }
 
-    show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_tri_class, analy )
-                  || show_mat_result
-                  || show_mesh_result;
-
     get_min_max( analy, FALSE, &rmin, &rmax );
 
     /* Enable color to change AMBIENT & DIFFUSE property of the material. */
@@ -5967,18 +5648,19 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
 
         /* Skip if this material is invisible. */
         matl = mtl[i];
-        if ( hide_mtl[matl] )
+        if ( hide_mtl[matl] || hide_by_object_type( p_tri_class, matl, i, analy, data_array ))
             continue;
 
 
         if ( v_win->mesh_materials.current_index != matl )
             change_current_color_property( &v_win->mesh_materials, matl );
 
-
         /* Colorflag is TRUE if displaying a result, otherwise
          * polygons are drawn in the material color.
          */
-        colorflag = show_result && !disable_mtl[matl];
+        disable_flag = disable_by_object_type( p_tri_class, matl, i, analy, data_array );
+        colorflag = show_result && !disable_mtl[matl] && !disable_flag;
+
         if ( analy->material_greyscale && disable_mtl[matl] )
             showgs = TRUE;
         else
@@ -6013,35 +5695,47 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
             }
         }
 
-        disable_flag = disable_by_object_type( p_tri_class, matl, i, analy, data_array );
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
 
-        /* check to see if this element has the variable to be shown */
-        if(show_result && !analy->material_greyscale && !disable_gray)
-        {
-            grayel = 0;
-            if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
-            {
-                grayel = 1;         
-                for(j = 0; j < 4; j++)
-                {
-                    for(k = 0; k < 4; k++)
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for tris
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element AND material is not disabled
+                    // AND tri element is not disabled
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
                     {
-                        cols[j][k] = grayval;
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            for(k = 0; k < 3; k++)
+                            {
+                                cols[j][k] = grayval;
+                            }
+                        }
                     }
                 }
-               
             }
-        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
-        {
-            grayel = 1;
-            for(j = 0; j < 4; j++)
-            {
-                for(k = 0; k < 4; k++)
-                {
-                    cols[j][k] = grayval;
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                        for(k = 0; k < 4; k++)
+                        {
+                            cols[j][k] = grayval;
+                        }
+                    }
                 }
             }
-             
         }
 
         hidden_poly = FALSE;
@@ -6053,6 +5747,9 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
     glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, 0 );
     glDisable( GL_COLOR_MATERIAL );
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 /*****************************************************************
@@ -6072,7 +5769,7 @@ static Bool_type bad_node_warn_once=TRUE;
  */
 static void
 draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
-               MO_class_data *p_beam_class, Analysis *analy )
+               MO_class_data *p_beam_class, char* selected_materials, Analysis *analy )
 {
     Bool_type verts_ok, show_result, showgs;
     float *data_array;
@@ -6087,121 +5784,50 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     int *p_index_source;
     int beam_qty;
     unsigned char *disable_mtl, *hide_mtl;
-    Bool_type disable_flag=FALSE;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
     Mesh_data *p_mesh;
 
-    int mesh_id;
-    static int first = 0;
-    static char ** results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Result * p_result;
-    Bool_type same_as_last = FALSE;
-    Bool_type disable_gray = TRUE;
-    mesh_id = p_beam_class->mesh_id;
-
-    p_result = analy->cur_result;
-
-    show_result = result_has_class( analy->cur_result, p_beam_class, analy )
-                  || show_node_result
-                  || show_mat_result
-                  || show_mesh_result;
-   
-    if(result_has_class( analy->cur_result, p_beam_class, analy ))
-    {
-        disable_gray = FALSE;
-    }
-
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
-        if(results_map == NULL)
-        {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_beam_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_beam_class->qty+1);
-            if( results_map[mesh_id] == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_beam_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_3d. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_beam_class->short_name, strlen(p_beam_class->short_name) + 1);
-        }
-    }
-
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
-        populate_result(G_BEAM, results_map[mesh_id], p_beam_class->qty + 1, p_beam_class, analy);
-    }
-
+    char * results_map = NULL;
+    Bool_type result_exists_for_beam;
+    Bool_type is_unit_result;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
         return;
+
+    result_exists_for_beam = result_has_class( analy->cur_result, p_beam_class, analy );
+    show_result = result_exists_for_beam
+                  || show_node_result
+                  || show_mat_result
+                  || show_mesh_result;
+
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
+    { 
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_beam_class->qty, "result map for draw_beams_3d");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beams_3d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_BEAM, results_map, p_beam_class, analy);
+        else
+            populate_result(G_BEAM, results_map, p_beam_class, analy);
+    }
+
+    activity = analy->state_p->sand_present
+               ?  analy->state_p->elem_class_sand[p_beam_class->elem_class_index]
+               : NULL;
 
     p_mesh = MESH_P( analy );
     mtl = p_beam_class->objects.elems->mat;
@@ -6229,13 +5855,6 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
         p_index_source = &i;
     }
 
-    /*show_result = result_has_class( analy->cur_result, p_beam_class, analy )
-                  || show_mat_result
-                  || show_mesh_result; */
-
-    activity = analy->state_p->sand_present
-               ?  analy->state_p->elem_class_sand[p_beam_class->elem_class_index]
-               : NULL;
     get_min_max( analy, TRUE, &rmin, &rmax );
     threshold = analy->zero_result;
 
@@ -6261,7 +5880,7 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
         /* Skip if this material is invisible. */
         matl = mtl[i];
-        if ( hide_mtl[matl] || hide_by_object_type( p_beam_class, matl, i, analy, data_array ))
+        if ( hide_mtl[matl] || hide_by_object_type(p_beam_class, matl, i, analy, data_array))
             continue;
 
         verts_ok = get_beam_verts_2d_3d( i, p_beam_class, analy, verts );
@@ -6273,8 +5892,9 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
             continue;
         }
 
-        colorflag = show_result && !disable_mtl[matl] &&
-                    !disable_by_object_type( p_beam_class, matl, i, analy, data_array );
+        disable_flag = disable_by_object_type(p_beam_class, matl, i, analy, data_array);
+        colorflag = show_result && !disable_mtl[matl] && !disable_flag;
+
         if ( analy->material_greyscale && disable_mtl[matl] )
             showgs = TRUE;
         else
@@ -6284,60 +5904,72 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                       rmin, rmax, threshold,
                       matl, analy->logscale, showgs );
 
-        glColor3fv(col);
-
-        disable_flag = disable_by_object_type(p_beam_class, matl, i, analy, data_array);
-
+        /* Handle automatically graying out elements without a result */
         grayel = 0;
 
-        if(show_result && !analy->material_greyscale && !disable_gray)
-        {
-            grayel = 1;
-
-            if((results_map[mesh_id][i + 1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
-            {   
-                for(j = 0; j < 4; j++)
-                {
-                    col[j] = 0.7;
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for beams
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element AND material is not disabled
+                    // AND beam element is not disabled
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    {
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            col[j] = grayval;
+                        }
+                    }
                 }
-                
-                glColor3fv(col);
             }
-        } else if(!show_result && !analy->showmat && !disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
-        {
-            for(j = 0; j < 4; j++)
-            {
-                col[j] = 0.7;
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                        col[j] = grayval;
+                    }
+                }
             }
-             
-            glColor3fv(col);
         }
 
+        /* Set color */
+        glColor3fv(col);
 
         for ( j = 0; j < 2; j++ )
             for ( k = 0; k < 3; k++ )
                 pts[j*3+k] = verts[j][k];
         draw_line( 2, pts, matl, p_mesh, analy, FALSE, NULL );
     }
-    
+
     grayel = 0;
 
     /* Remove depth bias. */
     if ( analy->zbias_beams )
         glDepthRange( nearfar[0], nearfar[1] );
-
     antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 /************************************************************
  * TAG( draw_truss_3d )
  *
- * Draw the beam elements in the model.
+ * Draw the truss elements in the model.
  */
 static void
-draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
-               MO_class_data *p_truss_class, Analysis *analy )
+draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
+               MO_class_data *p_truss_class, char* selected_materials, Analysis *analy )
 {
     Bool_type verts_ok, show_result, showgs=FALSE;
     float *data_array;
@@ -6353,120 +5985,53 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
     int truss_qty;
     unsigned char *disable_mtl, *hide_mtl;
     Mesh_data *p_mesh;
+    Bool_type disable_gray = FALSE;
     Bool_type disable_flag=FALSE;
+    Bool_type is_unit_result;
    
-    int grayel = 0; 
-    int mesh_id;
-    static int first = 0;
-    static char **results_map;
-    static char * result_name = NULL;
-    static char * short_name = NULL;
-    Bool_type same_as_last = FALSE;
-    Bool_type disable_gray = TRUE;
-    Result * p_result;
-
-    mesh_id = p_truss_class->mesh_id;
-    p_result = analy->cur_result; 
-
-    show_result = result_has_class( analy->cur_result, p_truss_class, analy )
-                  || show_mat_result
-                  || show_mesh_result;
-
-    if(result_has_class( analy->cur_result, p_truss_class, analy ))
-    {
-        disable_gray = FALSE;
-    }
-
-    if(first == 0)
-    {
-        results_map = (char **)malloc(analy->mesh_qty*sizeof(char *));
-        if(results_map == NULL)
-        {
-            popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!-n");
-            parse_command("quit", analy);
-        }
-        for(i = 0; i < analy->mesh_qty; i++)
-        {
-            results_map[i] = NULL;
-        } 
-
-        first = 1;
-    }
-   
-    if(show_result)
-    { 
-        if(result_name != NULL)
-        {
-            if(strcmp(result_name, p_result->name))
-            {
-                /* we are showing a different result than the last shown result */
-                free(result_name);
-                result_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-                same_as_last = FALSE;
-            } else
-            {
-                same_as_last = TRUE;
-            }
-        }
-        if(short_name != NULL )
-        {
-            if(strcmp(short_name, p_truss_class->short_name))
-            {
-                free(short_name);
-                short_name = NULL;
-                if(results_map[mesh_id] != NULL)
-                {
-                    free(results_map[mesh_id]);
-                    results_map[mesh_id] = NULL;
-                }
-            }
-        }  
-       
-        if(results_map[mesh_id] == NULL)
-        {
-            results_map[mesh_id] = (char *) malloc(p_truss_class->qty+1);
-            if( results_map[mesh_id] == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-        }
-        if(result_name == NULL)
-        {
-            result_name = (char *) malloc(strlen(p_result->name) + 1);
-            if(result_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(result_name, p_result->name, strlen(p_result->name) + 1);
-        }
-        if(short_name == NULL)
-        {
-            short_name = (char *) malloc(strlen(p_truss_class->short_name) + 1);
-            if(short_name == NULL)
-            {
-                popup_dialog(WARNING_POPUP, "Out of memory in function draw_hexs. Terminating!!\n");
-                parse_command("quit", analy);
-            }
-            strncpy(short_name, p_truss_class->short_name, strlen(p_truss_class->short_name) + 1);
-        }
-    }
-
-    if(show_result && analy->cur_result != NULL && !same_as_last) 
-    { 
-        populate_result(G_TRUSS, results_map[mesh_id], p_truss_class->qty + 1, p_truss_class, analy);
-    }
-
+    char *results_map = NULL;
+    Bool_type result_exists_for_truss;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
         return;
+
+    result_exists_for_truss = result_has_class( analy->cur_result, p_truss_class, analy );
+    show_result = show_node_result
+                  || result_exists_for_truss
+                  || show_mat_result
+                  || show_mesh_result;
+
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
+    { 
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_truss_class->qty, "result map for draw_truss_3d");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_truss_3d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_TRUSS, results_map, p_truss_class, analy);
+        else
+            populate_result(G_TRUSS, results_map, p_truss_class, analy);
+    }
+
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
+
+    activity = analy->state_p->sand_present
+               ?  analy->state_p->elem_class_sand[p_truss_class->elem_class_index]
+               : NULL;
 
     p_mesh = MESH_P( analy );
     mtl = p_truss_class->objects.elems->mat;
@@ -6494,13 +6059,6 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
         p_index_source = &i;
     }
 
-    /*show_result = result_has_class( analy->cur_result, p_truss_class, analy )
-                  || show_mat_result
-                  || show_mesh_result; */
-
-    activity = analy->state_p->sand_present
-               ?  analy->state_p->elem_class_sand[p_truss_class->elem_class_index]
-               : NULL;
     get_min_max( analy, TRUE, &rmin, &rmax );
     threshold = analy->zero_result;
 
@@ -6539,8 +6097,9 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
             continue;
         }
 
-        colorflag = show_result && !disable_mtl[matl] &&
-                    !disable_by_object_type( p_truss_class, matl, i, analy, data_array );
+        disable_flag = disable_by_object_type( p_truss_class, matl, i, analy, data_array );
+        colorflag = show_result && !disable_mtl[matl] && !disable_flag;
+
         if ( analy->material_greyscale && disable_mtl[matl] )
             showgs = TRUE;
         else
@@ -6550,42 +6109,62 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
                       rmin, rmax, threshold,
                       matl, analy->logscale, showgs );
 
-        glColor3fv( col );
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
 
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for Truss
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element AND material is not disabled
+                    // AND truss element is not disabled
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    {
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            col[j] = grayval;
+                        }
+                    }
+                }
+            }
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                        col[j] = grayval;
+                    }
+                }
+            }
+        }
+
+        /* Set color */
+        glColor3fv( col );
+        /* Draw Truss */
         for ( j = 0; j < 2; j++ )
             for ( k = 0; k < 3; k++ )
                 pts[j*3+k] = verts[j][k];
-
-        if(show_result && !analy->material_greyscale && !disable_gray)
-        {
-            grayel = 0;
-            if((results_map[mesh_id][i+1] == '0') && !disable_mtl[matl] && !disable_flag && analy->auto_gray)
-            {
-                grayel = 1;         
-                for(k = 0; k < 4; k++)
-                {
-                    col[k] = grayval;
-                }
-                glColor3fv( col );
-            }
-        } else if(!show_result && !analy->showmat &&!disable_mtl[matl] && !disable_flag && analy->auto_gray && !disable_gray)
-        {
-            grayel = 1;
-            for(k = 0; k < 4; k++)
-            {
-                col[k] = grayval;
-            }
-            glColor3fv( col );
-        }
         draw_line( 2, pts, matl, p_mesh, analy, FALSE, NULL );
     }
+
+    grayel = 0;
 
     /* Remove depth bias. */
     if ( analy->zbias_beams )
         glDepthRange( nearfar[0], nearfar[1] );
-
     antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -6599,7 +6178,7 @@ draw_truss_3d( Bool_type show_mat_result, Bool_type show_mesh_result,
 static void
 draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
                Bool_type show_mesh_result, MO_class_data *p_pyramid_class,
-               Analysis *analy )
+               char* selected_materials, Analysis *analy )
 {
     Bool_type show_result;
     float verts[4][3];
@@ -6624,12 +6203,10 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
     unsigned char *hide_mtl;
     int *p_mats;
 
-    Bool_type hidden_poly=FALSE,
-              hidden_poly_elem=FALSE,
-              hidden_poly_elem_wft=FALSE,
-              hidden_poly_mat=FALSE,
-              disable_flag=FALSE;
-    Bool_type showgs=TRUE;
+    char * results_map = NULL;
+    Bool_type disable_gray = FALSE;
+    Bool_type result_exists_for_pyramid = FALSE;
+    Bool_type is_unit_result;
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -6637,6 +6214,42 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
 
     if ( is_particle_class(analy, p_pyramid_class->superclass, p_pyramid_class->short_name) )
         return;
+
+    result_exists_for_pyramid = result_has_class( analy->cur_result, p_pyramid_class, analy );
+    show_result = show_node_result
+                  || result_exists_for_pyramid
+                  || show_mat_result
+                  || show_mesh_result;
+
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
+    { 
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_pyramid_class->qty, "result map for draw_pyramids");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_pyramids. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_PYRAMID, results_map, p_pyramid_class, analy);
+        else
+            populate_result(G_PYRAMID, results_map, p_pyramid_class, analy);
+    }
+
+    Bool_type hidden_poly=FALSE,
+              hidden_poly_elem=FALSE,
+              hidden_poly_elem_wft=FALSE,
+              hidden_poly_mat=FALSE,
+              disable_flag=FALSE;
+    Bool_type showgs=TRUE;
 
     p_mesh = MESH_P( analy );
     connects = (int (*)[5]) p_pyramid_class->objects.elems->nodes;
@@ -6694,17 +6307,6 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
         data_array = NODAL_RESULT_BUFFER( analy );
         p_index_source = &nd;
     }
-
-    show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_pyramid_class, analy )
-                  || show_mat_result
-                  || show_mesh_result;
-
-    /* If we are drawing particles then look for a particle result and map onto hexes
-      *
-      */
-    /* if ( show_result && analy->free_particles )
-           data_array = analy->pn_buffer_ptr[0]; */
 
     get_min_max( analy, FALSE, &rmin, &rmax );
 
@@ -6781,16 +6383,27 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
          * polygons are drawn in the material color.
          */
         disable_flag = disable_by_object_type( p_pyramid_class, matl, el, analy, data_array );
-
-        colorflag = show_result && !disable_mtl[matl] && !disable_by_object_type( p_pyramid_class, matl, el, analy, data_array );
-
-        colorflag = show_result && !disable_mtl[matl];
-        colorflag = show_result && !disable_mtl[matl] && !disable_by_object_type( p_pyramid_class, matl, el, analy, data_array );
+        colorflag = show_result && !disable_mtl[matl] && !disable_flag;
 
         if ( analy->material_greyscale && disable_mtl[matl])
             showgs = TRUE;
         else
             showgs = FALSE;
+
+        hidden_poly_mat = hide_mtl[matl];
+
+        hidden_poly_elem = hide_by_object_type( p_pyramid_class, matl, el, analy, data_array );
+        if ( analy->mesh_view_mode == RENDER_WIREFRAMETRANS )
+            hidden_poly_elem_wft = disable_flag;
+
+        if ( hidden_poly_mat || hidden_poly_elem || hidden_poly_elem_wft )
+            hidden_poly = TRUE;
+        else
+            hidden_poly = FALSE;
+
+        if ( analy->particle_nodes_hide_background && p_mats )
+            if ( p_mats[matl] )
+                hidden_poly = TRUE;
 
         /*
         * Array "ord[4]" represents a map from the order of vertex data
@@ -6831,20 +6444,48 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
             }
         }
 
-        hidden_poly_mat = hide_mtl[matl];
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
 
-        hidden_poly_elem = hide_by_object_type( p_pyramid_class, matl, el, analy, data_array );
-        if ( analy->mesh_view_mode == RENDER_WIREFRAMETRANS )
-            hidden_poly_elem_wft = disable_by_object_type( p_pyramid_class, matl, el, analy, data_array );
-
-        if ( hidden_poly_mat || hidden_poly_elem || hidden_poly_elem_wft )
-            hidden_poly = TRUE;
-        else
-            hidden_poly = FALSE;
-
-        if ( analy->particle_nodes_hide_background && p_mats )
-            if ( p_mats[matl] )
-                hidden_poly = TRUE;
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for pyramids
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element AND material is not disabled
+                    // AND pyramid element is not disabled
+                    if((results_map[el] == '0') && !disable_mtl[matl] && !disable_flag)
+                    {
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            for(k = 0; k < 3; k++)
+                            {
+                                cols[j][k] = grayval;
+                            }
+                        }
+                    }
+                }
+            }
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                        for(k = 0; k < 4; k++)
+                        {
+                            cols[j][k] = grayval;
+                        }
+                    }
+                }
+            }
+        }
 
         draw_poly( cnt, verts, norms, cols, res, matl, p_mesh, analy, hidden_poly );
     }
@@ -6854,6 +6495,9 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
     glDisable( GL_CULL_FACE );
     glDisable( GL_COLOR_MATERIAL );
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -6865,7 +6509,7 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
 static void
 draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
                Bool_type show_mesh_result, MO_class_data *p_quad_class,
-               Analysis *analy )
+               char* selected_materials, Analysis *analy )
 {
     int i, j, k, nd, matl;
     Mesh_data *p_mesh;
@@ -6887,9 +6531,44 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
     int mesh_idx;
     Interp_mode_type save_interp_mode;
 
+    char * results_map = NULL;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
+    Bool_type is_unit_result;
+    Bool_type result_exists_for_quad;
+
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
         return;
+
+    result_exists_for_quad = result_has_class( analy->cur_result, p_quad_class, analy );
+    show_result = show_node_result
+                  || result_exists_for_quad
+                  || show_mat_result
+                  || show_mesh_result;
+
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
+    { 
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_quad_class->qty, "result map for draw_quads_2d");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_quads_2d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_QUAD, results_map, p_quad_class, analy);
+        else
+            populate_result(G_QUAD, results_map, p_quad_class, analy);
+    }
 
     p_mesh = analy->mesh_table + p_quad_class->mesh_id;
     hide_mtl = p_mesh->hide_material;
@@ -6941,11 +6620,6 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
         p_index_source = &nd;
     }
 
-    show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_quad_class, analy )
-                  || show_mat_result
-                  || show_mesh_result;
-
     get_min_max( analy, FALSE, &rmin, &rmax );
 
     /* Set up for polygon drawing. */
@@ -6974,8 +6648,9 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
         /* If displaying a result, enable color to change
          * the DIFFUSE property of the material.
          */
-        colorflag = show_result && !disable_mtl[matl] &&
-                    !disable_by_object_type( p_quad_class, matl, i, analy, data_array );
+        disable_flag = disable_by_object_type( p_quad_class, matl, i, analy, data_array );
+        colorflag = show_result && !disable_mtl[matl] && !disable_flag;
+
         if ( analy->material_greyscale && disable_mtl[matl] )
             showgs = TRUE;
         else
@@ -7040,6 +6715,49 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
                     color_lookup( cols[j], data_array[*p_index_source],
                                   rmin, rmax, analy->zero_result, matl,
                                   analy->logscale, showgs );
+                }
+            }
+        }
+
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
+
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for quads
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element AND material is not disabled
+                    // AND quad element is not disabled
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    {
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            for(k = 0; k < 2; k++)
+                            {
+                                cols[j][k] = grayval;
+                            }
+                        }
+                    }
+                }
+            }
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                        for(k = 0; k < 4; k++)
+                        {
+                            cols[j][k] = grayval;
+                        }
+                    }
                 }
             }
         }
@@ -7103,6 +6821,9 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
     }
 
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -7114,7 +6835,7 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
 static void
 draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
               Bool_type show_mesh_result, MO_class_data *p_tri_class,
-              Analysis *analy )
+              char* selected_materials, Analysis *analy )
 {
     int i, j, k, nd, matl;
     Mesh_data *p_mesh;
@@ -7135,6 +6856,47 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
     int *p_index_source;
     int mesh_idx;
     Interp_mode_type save_interp_mode;
+
+/* Adding code to determine if a subrecord for these objects has the appropriate variable and if
+ * not it sets that element to a gray scale prior to calling draw poly */
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
+    Bool_type is_unit_result;
+    char *results_map = NULL;
+    Bool_type result_exists_for_tri;
+
+    if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
+            analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
+        return;
+
+    result_exists_for_tri = result_has_class( analy->cur_result, p_tri_class, analy );
+    show_result = show_node_result
+                  || result_exists_for_tri
+                  || show_mat_result
+                  || show_mesh_result;
+
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
+    { 
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_tri_class->qty, "result map for draw_tris_2d");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_tris_2d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_TRI, results_map, p_tri_class, analy);
+        else
+            populate_result(G_TRI, results_map, p_tri_class, analy);
+    }
 
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
@@ -7190,11 +6952,6 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
         p_index_source = &nd;
     }
 
-    show_result = show_node_result
-                  || result_has_class( analy->cur_result, p_tri_class, analy )
-                  || show_mat_result
-                  || show_mesh_result;
-
     get_min_max( analy, FALSE, &rmin, &rmax );
 
     /* Set up for polygon drawing. */
@@ -7214,16 +6971,17 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
                 continue;
         }
 
-        matl = mtls[i];
-
         /* Skip if this material is invisible. */
-        if ( hide_mtl[matl] )
+        matl = mtls[i];
+        if ( hide_mtl[matl] || hide_by_object_type( p_tri_class, matl, i, analy, data_array ))
             continue;
 
         /* If displaying a result, enable color to change
          * the DIFFUSE property of the material.
          */
-        colorflag = show_result && !disable_mtl[matl];
+        disable_flag = disable_by_object_type( p_tri_class, matl, i, analy, data_array );
+        colorflag = show_result && !disable_mtl[matl] && !disable_flag;
+
         if ( analy->material_greyscale && disable_mtl[matl] )
             showgs = TRUE;
         else
@@ -7292,6 +7050,49 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
             }
         }
 
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
+
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for tris
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element AND material is not disabled
+                    // AND tri element is not disabled
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    {
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            for(k = 0; k < 3; k++)
+                            {
+                                cols[j][k] = grayval;
+                            }
+                        }
+                    }
+                }
+            }
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                        for(k = 0; k < 4; k++)
+                        {
+                            cols[j][k] = grayval;
+                        }
+                    }
+                }
+            }
+        }
+
         draw_poly_2d( 3, verts, cols, res, matl, p_mesh, analy );
     }
 
@@ -7351,6 +7152,9 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
     }
 
     analy->interp_mode = save_interp_mode;
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -7361,7 +7165,7 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
  */
 static void
 draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
-               MO_class_data *p_beam_class, Analysis *analy )
+               MO_class_data *p_beam_class, char* selected_materials, Analysis *analy )
 {
     int i, j, k, nd, matl, mesh_idx;
     int (*connects)[3];
@@ -7378,9 +7182,44 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
     int *mtls;
     int beam_qty;
 
+    char * results_map = NULL;
+    Bool_type result_exists_for_beam;
+    Bool_type is_unit_result;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
+
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
         return;
+
+    result_exists_for_beam = result_has_class( analy->cur_result, p_beam_class, analy );
+    show_result = result_exists_for_beam
+                  || show_node_result
+                  || show_mat_result
+                  || show_mesh_result;
+
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
+    { 
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_beam_class->qty, "result map for draw_beams_2d");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_beam_2d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_BEAM, results_map, p_beam_class, analy);
+        else
+            populate_result(G_BEAM, results_map, p_beam_class, analy);
+    }
 
     p_mesh = analy->mesh_table + p_beam_class->mesh_id;
     connects = (int (*)[3]) p_beam_class->objects.elems->nodes;
@@ -7414,11 +7253,6 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
         p_index_source = &i;
     }
 
-    show_result = result_has_class( analy->cur_result, p_beam_class, analy )
-                  || show_node_result
-                  || show_mat_result
-                  || show_mesh_result;
-
     get_min_max( analy, FALSE, &rmin, &rmax );
     threshold = analy->zero_result;
 
@@ -7439,14 +7273,14 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                 continue;
         }
 
-        matl = mtls[i];
-
         /* Skip if this material is invisible. */
+        matl = mtls[i];
         if ( hide_mtl[matl] || hide_by_object_type( p_beam_class, matl, i, analy, data_array ))
             continue;
 
-        colorflag = show_result && !disable_mtl[matl] &&
-                    !disable_by_object_type( p_beam_class, matl, i, analy, NULL );
+        disable_flag = disable_by_object_type(p_beam_class, matl, i, analy, data_array);
+        colorflag = show_result && !disable_mtl[matl] && !disable_flag;
+
         if ( analy->material_greyscale && disable_mtl[matl] )
             showgs = TRUE;
         else
@@ -7456,7 +7290,45 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
                       rmin, rmax, threshold,
                       matl, analy->logscale, showgs );
 
-        glColor3fv( col );
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
+
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for beams
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element AND material is not disabled
+                    // AND beam element is not disabled
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    {
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            col[j] = grayval;
+                        }
+                    }
+                }
+            }
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                        col[j] = grayval;
+                    }
+                }
+            }
+        }
+
+        /* Set color */
+        glColor3fv(col);
 
         for ( j = 0; j < 2; j++ )
         {
@@ -7483,6 +7355,9 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -7492,8 +7367,8 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
  * Draw the beam elements in the model.
  */
 static void
-draw_truss_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
-               MO_class_data *p_truss_class, Analysis *analy )
+draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
+               MO_class_data *p_truss_class, char* selected_materials, Analysis *analy )
 {
     int i, j, k, nd, matl, mesh_idx;
     int (*connects)[3];
@@ -7510,9 +7385,44 @@ draw_truss_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
     int *mtls;
     int truss_qty;
 
+    char *results_map = NULL;
+    Bool_type disable_gray = FALSE;
+    Bool_type disable_flag = FALSE;
+    Bool_type is_unit_result;
+    Bool_type result_exists_for_truss;
+
     if ( analy->mesh_view_mode != RENDER_FILLED          && analy->mesh_view_mode != RENDER_WIREFRAME &&
             analy->mesh_view_mode != RENDER_WIREFRAMETRANS  && analy->mesh_view_mode != RENDER_HIDDEN )
         return;
+
+    result_exists_for_truss = result_has_class( analy->cur_result, p_truss_class, analy );
+    show_result = show_node_result
+                  || result_exists_for_truss
+                  || show_mat_result
+                  || show_mesh_result;
+
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+    }
+
+    if(analy->auto_gray && show_result && !disable_gray)
+    { 
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_truss_class->qty, "result map for draw_truss_2d");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_truss_2d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_TRUSS, results_map, p_truss_class, analy);
+        else
+            populate_result(G_TRUSS, results_map, p_truss_class, analy);
+    }
 
     p_mesh = analy->mesh_table + p_truss_class->mesh_id;
     connects = (int (*)[3]) p_truss_class->objects.elems->nodes;
@@ -7546,10 +7456,6 @@ draw_truss_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
         p_index_source = &i;
     }
 
-    show_result = result_has_class( analy->cur_result, p_truss_class, analy )
-                  || show_mat_result
-                  || show_mesh_result;
-
     get_min_max( analy, FALSE, &rmin, &rmax );
     threshold = analy->zero_result;
 
@@ -7570,14 +7476,14 @@ draw_truss_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
                 continue;
         }
 
-        matl = mtls[i];
-
         /* Skip if this material is invisible. */
-        if ( hide_mtl[matl] )
+        matl = mtls[i];
+        if ( hide_mtl[matl] || hide_by_object_type( p_truss_class, matl, i, analy, data_array ))
             continue;
 
-        colorflag = show_result && !disable_mtl[matl] &&
-                    !disable_by_object_type( p_truss_class, matl, i, analy, data_array );
+        disable_flag = disable_by_object_type( p_truss_class, matl, i, analy, data_array );
+        colorflag = show_result && !disable_mtl[matl] && !disable_flag;
+
         if ( analy->material_greyscale && disable_mtl[matl] )
             showgs = TRUE;
         else
@@ -7587,8 +7493,47 @@ draw_truss_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
                       rmin, rmax, threshold,
                       matl, analy->logscale, showgs );
 
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
+
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for Truss
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element AND material is not disabled
+                    // AND truss element is not disabled
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    {
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            col[j] = grayval;
+                        }
+                    }
+                }
+            }
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                            col[j] = grayval;
+                    }
+                }
+            }
+        }
+
+        /* Set color */
         glColor3fv( col );
 
+        /* Draw Truss */
         for ( j = 0; j < 2; j++ )
         {
             nd = connects[i][j];
@@ -7614,6 +7559,9 @@ draw_truss_2d( Bool_type show_mat_result, Bool_type show_mesh_result,
 
     antialias_lines( FALSE, 0 );
     glLineWidth( 1.0 );
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -7731,7 +7679,7 @@ static void
 draw_surfaces_2d( Color_property *p_cp,
                   Bool_type show_node_result, Bool_type show_surf_result,
                   Bool_type show_mesh_result, MO_class_data *p_surface_class,
-                  Analysis *analy )
+                  char* selected_materials, Analysis *analy )
 {
     Bool_type show_result, showgs=FALSE;
     float verts[4][3];
@@ -7749,7 +7697,7 @@ draw_surfaces_2d( Color_property *p_cp,
     int surface_qty;
     float *data_array;
     int *p_index_source;
-    GVec2D *nodes; 
+    GVec2D *nodes;
     Interp_mode_type save_interp_mode;
 
     if ( analy->mesh_view_mode != RENDER_FILLED &&
@@ -7766,7 +7714,7 @@ draw_surfaces_2d( Color_property *p_cp,
     hide_surf = p_mesh->hide_surface;
 
     nodes = analy->state_p->nodes.nodes2d;
-    
+
     /* 2D, so set Z coord of every vertex to zero. */
     verts[0][2] = verts[1][2] = verts[2][2] = verts[3][2] = 0.0;
 
@@ -7885,7 +7833,7 @@ static void
 draw_surfaces_3d( Color_property *p_cp,
                   Bool_type show_node_result, Bool_type show_surf_result,
                   Bool_type show_mesh_result, MO_class_data *p_surface_class,
-                  Analysis *analy )
+                  char* selected_materials, Analysis *analy )
 {
     Bool_type show_result, showgs=FALSE;
     Bool_type has_degen;
@@ -8082,39 +8030,68 @@ particle_error( GLenum err_code )
  * Render particles from a particle unit class as spheres.
  */
 static void
-draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
+draw_particles_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
+                   MO_class_data *p_particle_class, char* selected_materials, Analysis *analy )
 {
-    GVec3D *coords3;
-    float *el_state_mm, *part_res;
+    Mesh_data* p_mesh;
+    int* mtls;
+    unsigned char *disable_mtl, *hide_mtl;
+    float *data_array;
     float col[4];
-    int i;
+    int i, j;
     int part_qty;
     GLUquadricObj *sphere;
     GLuint display_list;
-    int index, node, matl;
+    int node, matl;
     float x, y, z, rmin, rmax;
     Bool_type show_result = FALSE;
-
+    Bool_type showgs;
+    Bool_type disable_gray = FALSE,
+              disable_flag = FALSE;
+    Bool_type is_unit_result;
+    char *results_map = NULL;
     MO_class_data * p_node_class = NULL;
+    Bool_type result_exists_for_particles;
 
-    p_node_class = MESH(analy).node_geom;
+    result_exists_for_particles = result_has_class(analy->cur_result, p_particle_class, analy);
+    show_result = show_node_result
+                    || result_exists_for_particles
+                    || show_mat_result
+                    || show_mesh_result;
 
-    part_qty = p_particle_class->qty;
-    part_res = p_particle_class->data_buffer;
-    el_state_mm = analy->elem_state_mm.object_minmax;
-
-    index = 0;
-
-    colorflag = analy->cur_result != NULL;
-
-    /*coords3 = analy->state_p->particles.particles3d;*/
-    coords3 = analy->state_p->nodes.particles3d;
-
-    if(analy->cur_result != NULL)
-    {
-        show_result = result_has_class(analy->cur_result, p_particle_class, analy);
+    /* Check if gray out feature should be disabled. */
+    is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
+    if(show_node_result || show_mesh_result || is_unit_result){
+        disable_gray = TRUE;
+        if(analy->interp_mode == NO_INTERP){
+            disable_gray = FALSE;
+        }
     }
-  
+
+    if(analy->auto_gray && show_result && !disable_gray){
+        if(results_map == NULL)
+        {
+            results_map = NEW_N(char, p_particle_class->qty, "result map for draw_particles_3d");
+            if( results_map == NULL)
+            {
+                popup_dialog(WARNING_POPUP, "Out of memory in function draw_particles_3d. Terminating!!\n");
+                parse_command("quit", analy);
+            }
+        }
+        if(show_mat_result)
+            populate_mat_result(G_PARTICLE, results_map, p_particle_class, analy);
+        else
+            populate_result(G_PARTICLE, results_map, p_particle_class, analy);
+    }
+
+    p_mesh = analy->mesh_table + p_particle_class->mesh_id;
+    p_node_class = MESH(analy).node_geom;
+    part_qty = p_particle_class->qty;
+    data_array = p_particle_class->data_buffer;
+    mtls = p_particle_class->objects.elems->mat;
+    hide_mtl = p_mesh->hide_material;
+    disable_mtl = p_mesh->disable_material;
+
     get_min_max(analy, FALSE, &rmin, &rmax);
 
     display_list = glGenLists( 1 );
@@ -8123,19 +8100,15 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
     if ( sphere == NULL )
     {
-        popup_dialog( WARNING_POPUP,
-                      "Unable to create sphere quadric for particle rendering."
-                    );
+        popup_dialog( WARNING_POPUP, "Unable to create sphere quadric for particle rendering.");
         return;
     }
 
     gluQuadricCallback( sphere, (GLenum) GLU_ERROR, (GLvoid(*)() )particle_error );
-
     gluQuadricDrawStyle( sphere, (GLenum) GLU_FILL );
     gluQuadricNormals( sphere, (GLenum) GLU_SMOOTH );
     gluQuadricTexture(sphere, (GLboolean) GLU_TRUE );
     glNewList( display_list, GL_COMPILE );
-    /*gluSphere( sphere, particle_radius, 16, 8 ); */
     gluSphere( sphere, particle_radius, 32, 16 );
     glEndList();
 
@@ -8146,35 +8119,75 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
 
     for ( i = 0; i < part_qty; i++ )
     {
+        /* Skip if particle is invisible */
         if(p_particle_class->p_vis_data->visib[i] == FALSE)
-        {
             continue;
-        }
- 
-        matl = p_particle_class->objects.elems->mat[i];
+
+        /* Skip if material is invisible */
+        matl = mtls[i];
+        if( hide_mtl[matl] || hide_by_object_type(p_particle_class, matl, i, analy, data_array))
+            continue;
+
+        disable_flag = disable_by_object_type( p_particle_class, matl, i, analy, data_array );
+        colorflag = show_result && !disable_flag;
 
         if(v_win->mesh_materials.current_index != matl)
         {
             change_current_color_property(&v_win->mesh_materials, matl);
         }
 
-        /*color_lookup( col, part_res[i], el_state_mm[0], el_state_mm[1],
-                      analy->zero_result, index, analy->logscale,
-                      analy->material_greyscale ); */
+        if( analy->material_greyscale && disable_mtl[matl])
+            showgs = TRUE;
+        else
+            showgs = FALSE;
 
-        color_lookup( col, part_res[i], rmin, rmax,
+        color_lookup( col, data_array[i], rmin, rmax,
                       analy->zero_result, matl, analy->logscale,
-                      analy->material_greyscale );
+                      showgs );
+
+        /* Handle automatically graying out elements without a result */
+        grayel = 0;
+
+        // If auto_gray is enabled
+        if(analy->auto_gray && !disable_gray){
+            // If we are showing a result for particles
+            if(show_result){
+                if(!analy->material_greyscale){
+                    // If result does not exist for this element
+                    if((results_map[i] == '0') && !disable_mtl[matl] && !disable_flag)
+                    {
+                        grayel = 1;         
+                        for(j = 0; j < 4; j++)
+                        {
+                            col[j] = grayval;
+                        }
+                    }
+                }
+            }
+            else{
+                /* Gray out any elements of a material that is selected
+                 * OR
+                 * Any element for which the current result does not exist.
+                 */
+                Bool_type grayout = (analy->showmat && selected_materials[matl] == '1')
+                                    || (!analy->showmat && !disable_mtl[matl] && !disable_flag);
+                if( grayout ){
+                    grayel = 1;
+                    for(j = 0; j < 4; j++)
+                    {
+                            col[j] = grayval;
+                    }
+                }
+            }
+        }
 
         glColor3fv( col );
 
         glPushMatrix();
         node = p_particle_class->objects.elems->nodes[i];
-        x = p_node_class->objects.nodes3d[node][0]; 
-        y = p_node_class->objects.nodes3d[node][1]; 
+        x = p_node_class->objects.nodes3d[node][0];
+        y = p_node_class->objects.nodes3d[node][1];
         z = p_node_class->objects.nodes3d[node][2];
-  
-        /*glTranslatef( coords3[i][0], coords3[i][1], coords3[i][2] ); */
         glTranslatef( x, y, z );
 
         glCallList( display_list );
@@ -8190,6 +8203,9 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
     gluDeleteQuadric( sphere );
 
     glDeleteLists( display_list, 1 );
+
+    if(results_map != NULL)
+        free(results_map);
 }
 
 
@@ -8199,7 +8215,8 @@ draw_particles_3d( MO_class_data *p_particle_class, Analysis *analy )
  * Render particles from a particle unit class as circles.
  */
 static void
-draw_particles_2d( MO_class_data *p_particle_class, Analysis *analy )
+draw_particles_2d( Bool_type show_node_result, MO_class_data *p_particle_class,
+                   char* selected_materials, Analysis *analy )
 {
     GVec2D *coords2;
     float *el_state_mm, *part_res;
@@ -8591,11 +8608,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
     data_array = p_mo_class->data_buffer;
 
     hilite_label = get_class_label( p_mo_class, hilite_num );
-    /*if ( p_mo_class->labels_found )
-        
-    else
-        hilite_label = hilite_num;
-*/
+
     if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) &&
             analy->particle_nodes_enabled &&
             p_mo_class->labels_found )
@@ -8607,7 +8620,6 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
         analy->hilite_ml_node = p_near;
     }
 
-    /**/
     /* Change superclass tested to G_PARTICLE when it exists. */
     if ( p_mo_class->short_name )
     {
@@ -8692,7 +8704,7 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
                     sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz,
                              val );
                 } else
-                { 
+                {
                     sprintf( label, " %s %d", cname, hilite_label );
                 }
             }
@@ -9039,41 +9051,6 @@ draw_hilite( Bool_type hilite, MO_class_data *p_mo_class, int hilite_num,
 
     case G_PYRAMID:
         /* Highlight a pyramid element. */
-
-        /*if ( analy->particle_nodes_enabled && is_particle_class(analy, p_mo_class->superclass, p_mo_class->short_name) )
-        {
-             pn_hilite = TRUE;
-
-                 if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
-              val = get_free_node_result( analy, p_mo_class, hilite_num, &result_defined, &valid_free_node );
-         else
-              val = get_ml_result( analy, p_mo_class, hilite_num, &result_defined );
-
-                 if ( result_defined )
-         {
-              if ( analy->perform_unit_conversion )
-                   val = val * analy->conversion_scale + analy->conversion_offset;
-              sprintf( label, " %s %d (%.*e)", cname, hilite_label, fracsz, val );
-         }
-         else
-              sprintf( label, " %s %d", cname, hilite_label );
-
-         if ( analy->particle_nodes_enabled && is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
-              get_node_vert_2d_3d( analy->hilite_ml_node, p_mo_class, analy, verts[0] );
-         else
-              get_node_vert_2d_3d( hilite_num, p_mo_class, analy, verts[0] );
-
-         vert_cnt = 1;
-
-                 for ( i = 0; i < dim; i++ )
-                       leng[i] = analy->bbox[1][i] - analy->bbox[0][i];
-
-                 node_base_radius = 0.01 * (leng[0] + leng[1] + leng[2]) / 3.0;
-
-                 radius = node_base_radius*analy->free_nodes_scale_factor*1.2;
-         break;
-        } */
-
         if ( result_has_superclass( analy->cur_result, G_PYRAMID, analy ) )
         {
             val = analy->perform_unit_conversion
@@ -11550,7 +11527,7 @@ draw_edged_wireframe_poly( int cnt, float pts[4][3], float norm[4][3], float col
     if ( analy->interp_mode == GOOD_INTERP )
     {
         if(!grayel)
-        { 
+        {
             /* Scan convert the polygon by hand. */
             scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
         } else
@@ -11619,7 +11596,7 @@ draw_plain_poly( int cnt, float pts[4][3], float norm[4][3], float cols[4][4],
             /* Scan convert the polygon by hand. */
             scan_poly( cnt, pts, norm, vals, matl, p_mesh, analy );
         } else
-        {    
+        {
             glBegin( GL_POLYGON );
             for ( i = 0; i < cnt; i++ )
             {
@@ -11628,7 +11605,7 @@ draw_plain_poly( int cnt, float pts[4][3], float norm[4][3], float cols[4][4],
                 glVertex3fv( pts[i] );
             }
             glEnd();
-        
+
         }
     }
     else
@@ -11681,7 +11658,7 @@ scan_poly( int cnt, float pts[4][3], float norm[4][3], float vals[4], int matl,
     float rmin, rmax, threshold;
     int dist, ni, nj;
     int i, ii, j, k;
- 
+
     /*
      * For triangular faces, duplicate the last vertex value
      * and then treat as a quad.  Is interpolation correct in
@@ -12301,6 +12278,8 @@ draw_foreground( Analysis *analy )
     Mesh_data *p_mesh;
     float map_text_offset;
     int dim;
+    int subrec, srec;
+    Subrec_obj * p_subrec;
 
     int ylines=2;
 
@@ -12684,7 +12663,7 @@ draw_foreground( Analysis *analy )
                     hmove2( xp, yp - (0.6 * text_height) );
                     sprintf( str, "%.*e", fracsz, low );
                     hcharstr( str );
-                } 
+                }
             }
 
             xp = xpos - (2.0 * b_width);
@@ -12782,11 +12761,26 @@ draw_foreground( Analysis *analy )
             /* Allow for presence of Displacement Scale */
             if ( analy->show_scale && found_data )
                 yp -= LINE_SPACING_COEFF * text_height;
-            /*
-             * Strain type, reference surface, and reference frame,
-             * if applicable.
-             */
 
+            /* Result element set information, if applicable */
+            if( analy->int_point_labels && analy->cur_result != NULL && found_data )
+            {
+                for( i = 0; i < analy->cur_result->qty; i++ ){
+                    subrec = analy->cur_result->subrecs[i];
+                    srec = analy->cur_result->srec_id;
+                    p_subrec = analy->srec_tree[srec].subrecs + subrec;
+                    if( p_subrec->element_set != NULL ){
+                        hmove2( xp, yp );
+                        int mat_num = p_subrec->element_set->material_number;
+                        int ipt = p_subrec->element_set->integration_points[p_subrec->element_set->current_index];
+                        sprintf( str, "Material %d Integration Point: %d", mat_num, ipt );
+                        hcharstr( str );
+                        yp -= LINE_SPACING_COEFF * text_height;
+                    }
+                }
+            }
+
+            /* Strain type, reference surface, and reference frame, if applicable. */
             if ( analy->cur_result != NULL && found_data )
             {
                 p_rs = &analy->cur_result->modifiers;
@@ -12907,7 +12901,7 @@ draw_foreground( Analysis *analy )
         for ( i = 0; i < p_mesh->material_qty; i++ )
         {
             name =  analy->sorted_labels[i];
-            
+
             status = htable_search(analy->mat_labels,name,FIND_ENTRY,&tempEnt);
             if(status != OK)
             {
@@ -12925,7 +12919,7 @@ draw_foreground( Analysis *analy )
 
             glColor3fv( v_win->text_color );
             hmove2( xp - 0.5*text_height, yp );
-            
+
             hcharstr( name );
 
             yp -= 1.5*text_height;
@@ -14032,7 +14026,7 @@ hot_cold_colormap( void )
         v_win->colormap[i][2] = bv;
         i++;
     }
-    
+
     /* set the initial colormap to go back from grayscale to the initial colormap */
     for(i = 0; i < CMAP_SIZE; i++)
     {
@@ -14195,20 +14189,20 @@ cutoff_colormap( Bool_type cut_low, Bool_type cut_high )
 /************************************************************
  * TAG( restore_colormap )
  *
- * restores the colormap to that which was the colormap on startup 
- * By William Oliver 
+ * restores the colormap to that which was the colormap on startup
+ * By William Oliver
  */
 void
 restore_colormap()
 {
     int sz, i;
-    
+
     sz = CMAP_SIZE;
     for(i = 0; i < sz; i++)
     {
-        v_win->colormap[i][0] = v_win->initial_colormap[i][0];      
-        v_win->colormap[i][1] = v_win->initial_colormap[i][1];      
-        v_win->colormap[i][2] = v_win->initial_colormap[i][2];      
+        v_win->colormap[i][0] = v_win->initial_colormap[i][0];
+        v_win->colormap[i][1] = v_win->initial_colormap[i][1];
+        v_win->colormap[i][2] = v_win->initial_colormap[i][2];
     }
 
     VEC_COPY( v_win->cmap_min_color, v_win->colormap[0] );
@@ -15599,7 +15593,7 @@ get_free_node_result( Analysis  *analy, MO_class_data *p_mo_class, int particle_
     Bool_type nodal_result=TRUE;
 
     *valid_free_node = FALSE;
-    
+
     node_loc = 8*particle_num;
 
     particle_nodes = p_mo_class->objects.elems->nodes;
@@ -15637,8 +15631,7 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
     float val=0., num_nodes, *nodal_data, *activity;
     int   node_num;
     MO_class_data *p_node_class;
-    Bool_type nodal_result=TRUE;
-    float ** sand_arrays;
+    Bool_type nodal_result = TRUE;
 
     int i,j;
     int *connects_hex, *connects_particle;
@@ -15648,20 +15641,14 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
 
     if(analy->cur_result == NULL)
     {
-        return(0.0);
-    }
-  
-    if(analy->cur_result != NULL)
-    {
-        *result_defined = TRUE;
-         return p_mo_class->data_buffer[elem_num];
+        return 0.0;
     }
 
     p_node_class = MESH_P( analy )->node_geom;
 
     num_nodes = p_node_class->qty;
-    if ( elem_num<0 || elem_num>p_mo_class->qty )
-        return( 0.0 );
+    if ( elem_num < 0 || elem_num > p_mo_class->qty )
+        return 0.0;
 
     nodal_data = NODAL_RESULT_BUFFER( analy );
 
@@ -15671,10 +15658,10 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
         nodal_result = FALSE;
     }
 
-    if ( nodal_data!=NULL )
+    if ( nodal_data != NULL )
         *result_defined = TRUE;
 
-    if ( p_mo_class->superclass==G_HEX )
+    if ( p_mo_class->superclass == G_HEX )
     {
         connects_hex = p_mo_class->objects.elems->nodes;
         node_num     = (connects_hex+(elem_num*8))[0];
@@ -15695,42 +15682,7 @@ get_ml_result( Analysis  *analy, MO_class_data *p_mo_class, int elem_num, Bool_t
         val = nodal_data[node_num];
         *result_defined = TRUE;
     }
-    /*if(analy->show_deleted_elements || analy->show_only_deleted_elements)
-    {
-        val = p_mo_class->data_buffer[elem_num];
-        *result_defined = TRUE;
-    }*/
-    /*if(analy->state_p->sand_present)
-    {
-        sand_arrays = analy->state_p->elem_class_sand;
-        if(sand_arrays[p_mo_class->elem_class_index] != NULL)
-        {
-            activity = sand_arrays[p_mo_class->elem_class_index];
-        } else
-        {
-            activity = NULL;
-            *result_defined = TRUE;
-            return val;
-        }
-
-        if(analy->show_deleted_elements)
-        {
-            val = activity[elem_num];
-            *result_defined = TRUE;
-        } else if(analy->show_only_deleted_elements)
-        {
-            if(activity[elem_num] == 0.0)
-            {
-                val = 0.0;
-                *result_defined = TRUE;
-            } else
-            {
-                *result_defined = TRUE;
-            }
-             
-        }
-    } */ 
-    return ( val );
+    return val;
 }
 
 
@@ -15850,27 +15802,25 @@ check_for_free_nodes( Analysis *analy )
 static void
 draw_free_nodes( Analysis *analy )
 {
-    MO_class_data   *p_element_class=NULL,
-                     *p_node_class=NULL,
-                      *p_mo_class=NULL,
-                       *p_ml_class=NULL,
-                        **p_ml_classes=NULL,
-                         **mo_classes;
+    MO_class_data *p_element_class=NULL,
+                  *p_node_class=NULL,
+                  *p_mo_class=NULL,
+                  *p_ml_class=NULL,
+                  **p_ml_classes=NULL,
+                  **mo_classes;
 
-    Mesh_data     *p_mesh;
-
-    List_head     *p_lh;
-
+    Mesh_data *p_mesh;
+    List_head *p_lh;
     Visibility_data *p_vd;
     unsigned char *part_visib;
-
     char *cname;
 
-    int   *free_nodes_list=NULL, *free_nodes_elem_list=NULL;
-    int   *part_nodes_list=NULL;
-    int   *part_nodes_result=NULL;
+    int *free_nodes_list=NULL;
+    int *free_nodes_elem_list=NULL;
+    int *part_nodes_list=NULL;
+    int *part_nodes_result=NULL;
 
-    int   nd;
+    int nd;
 
     float *activity, activity_flag=0.0, temp_activity_flag=0.0;
     float *data_array;
@@ -15883,8 +15833,9 @@ draw_free_nodes( Analysis *analy )
     float  mass_scale_factor, mass_scale_factor_max = 0, mass_scale_factor_min = MAXFLOAT;
 
     float rmin, rmax;
-    float poly_pts[4][3],
-    poly_norms[6][3] = {{-1., 0., 0},  {0., 1., 0.}, {1., 0., 0.},
+    float poly_pts[4][3];
+    float poly_norms[6][3] = {
+        {-1., 0., 0},  {0., 1., 0.}, {1., 0., 0.},
         {0., -1., 0.}, {0., 0., 1.}, {0., 0., -1}
     };
 
@@ -15905,36 +15856,35 @@ draw_free_nodes( Analysis *analy )
     int  dbc_nodes_found  = FALSE;
     int  mass_scaling     = FALSE;
     int  vol_scaling      = FALSE;
-    int  free_node_data_index=0;
-    Bool_type skip_node=False;
+    int  free_node_data_index = 0;
+    Bool_type skip_node = False;
 
     int  status;
 
     float *nodal_data;
 
-    Bool particle_class       = FALSE, particle_class_found = FALSE,
-         showgs=FALSE,
-         particle_node_found  = FALSE, free_node_found=FALSE;
-    int  particle_count;
-    int  *particle_nodes;
-    int  particle_hide=0;
+    Bool_type particle_class = FALSE,
+              particle_class_found = FALSE,
+              showgs = FALSE,
+              particle_node_found = FALSE,
+              free_node_found = FALSE;
+    int particle_count;
+    int *particle_nodes;
+    int particle_hide = 0;
 
     /* Variables related to materials */
     unsigned char *disable_mtl,  *hide_mtl, hide_one_mat;
     unsigned char *disable_part, *hide_part;
 
-    int  *mat, mat_num, elem_id, ode_cnt = 0;
+    int  *mat, mat_num, elem_id;
 
-    Bool_type result_defined=FALSE;
+    Bool_type result_defined = FALSE;
+    Bool_type disable_flag = FALSE;
 
     /* Used for fast sphere drawing */
     GLUquadricObj *sphere;
     GLuint display_list;
-    Bool_type fastSpheres=TRUE;
-    GLuint texMaps[1];
-    static char * texNames[1] = { "maps/earth-seas-small.rgb"};
-    IMAGE *img;
-    GLint gluerr;
+    Bool_type fastSpheres = TRUE;
 
     Refl_plane_obj *plane;
     float refl_verts[3];
@@ -15972,9 +15922,7 @@ draw_free_nodes( Analysis *analy )
         analy->free_nodes_vals = NEW_N( float,     num_nodes, "free_nodes_vals" );
     }
 
-    for (i=0;
-            i<num_nodes;
-            i++)
+    for (i=0; i<num_nodes; i++)
     {
         free_nodes_list[i]      = 0;
         free_nodes_elem_list[i] = 0;
@@ -15986,20 +15934,17 @@ draw_free_nodes( Analysis *analy )
     }
 
     /* If mass scaling option is enabled, then look for the nodal masses */
-
     if (analy->free_nodes_mass_scaling)
     {
-        status = mili_db_get_param_array(analy->db_ident,     "Nodal Mass",   (void *) &free_nodes_mass);
+        status = mili_db_get_param_array(analy->db_ident, "Nodal Mass", (void *) &free_nodes_mass);
         if (status==0)
         {
             mass_scaling = TRUE;
             vol_scaling  = FALSE;
-            status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
         }
     }
 
     /* Read the nodal volumes if volume scaling is enabled */
-
     if (analy->free_nodes_vol_scaling)
     {
         status = mili_db_get_param_array(analy->db_ident,  "Nodal Volume", (void *) &free_nodes_vol);
@@ -16011,8 +15956,7 @@ draw_free_nodes( Analysis *analy )
     }
 
     /* Set up for polygon drawing. */
-
-    if ( analy->free_nodes_sphere_res_factor<=2 && ! fastSpheres )
+    if ( analy->free_nodes_sphere_res_factor <= 2 && !fastSpheres )
     {
         begin_draw_poly( analy );
     }
@@ -16037,9 +15981,7 @@ draw_free_nodes( Analysis *analy )
             conn_qty    = ( i == G_BEAM ) ? node_qty - 1 : node_qty;
 
             /* Loop over each class. */
-            for ( j = 0;
-                    j < p_lh->qty;
-                    j++ )
+            for ( j = 0; j < p_lh->qty; j++ )
             {
                 p_mo_class = mo_classes[j];
                 if ( is_particle_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
@@ -16065,84 +16007,72 @@ draw_free_nodes( Analysis *analy )
                 else
                     particle_class = FALSE;
 
-                connects   = p_mo_class->objects.elems->nodes;
-                mat        = p_mo_class->objects.elems->mat;
+                connects = p_mo_class->objects.elems->nodes;
+                mat = p_mo_class->objects.elems->mat;
 
-                if ( analy->state_p->sand_present && sand_arrays[p_mo_class->elem_class_index]!=NULL )
-                    activity = sand_arrays[p_mo_class->elem_class_index];
-                else
-                    activity = NULL;
+                activity = analy->state_p->sand_present
+                        ? analy->state_p->elem_class_sand[p_mo_class->elem_class_index]
+                        : NULL;
 
                 if ( particle_class && is_dbc_class( analy, p_mo_class->superclass, p_mo_class->short_name ) )
                 {
                     dbc_nodes_found = TRUE;
                     show_result = result_has_class( analy->cur_result, p_mo_class, analy );
                 }
-                else show_result = TRUE;
+                else {
+                    show_result = TRUE;
+                }
 
                 /* Loop over each element */
-                for ( k = 0;
-                        k < p_mo_class->qty;
-                        k++ )
+                for ( k = 0; k < p_mo_class->qty; k++ )
                 {
                     if( activity )
                     {
                         activity_flag = activity[k];
-                    } else
+                    }
+                    else
                     {
                         activity_flag = 1.0;
                     }
                     
-                    mat_num = mat[k];
+                    if ( analy->show_deleted_elements )
+                        activity_flag = 1.0;
 
-                     if ( !particle_class)
+                    if ( analy->show_only_deleted_elements )
                     {
-                        if ( analy->show_deleted_elements )
-                            activity_flag = 1.0;
-
-                        if ( analy->show_only_deleted_elements )
+                        if  ( activity_flag == 0.0 )
                         {
-                            if  ( activity_flag == 0.0 )
-                            {
-                                activity_flag = 1.0;
-                            }
+                            activity_flag = 1.0;
                         }
-                    } else
-                    {
-                        if ( analy->show_deleted_elements )
-                            activity_flag = 1.0;
-
-                        if ( analy->show_only_deleted_elements )
+                        else
                         {
-                            if  ( activity != NULL && activity[k] == 0.0 )
-                            {
-                                activity_flag = 1.0;
-                                ode_cnt++;
-                            } else
-                            {
-                                activity_flag = 0.0;
-                            }
+                            activity_flag = 0.0;
                         }
                     }
 
                     if ( sph_type && particle_class )
                     {
-                        if ( analy->show_sph_ghost==FALSE && sph_type[k]==1 )
+                        if ( analy->show_sph_ghost == FALSE && sph_type[k] == 1 )
                             activity_flag = 0.0;
                     }
 
-                    free_node_found = !hide_by_object_type( p_mo_class, mat_num, k, analy, data_array ) && activity_flag == 0.0 && analy->free_nodes_enabled;
-                    if ( particle_class )
-                        particle_node_found = !hide_by_object_type( p_mo_class, mat_num, k, analy, data_array ) && activity_flag > 0.0 && analy->particle_nodes_enabled &&
-                                              part_visib[k];
-                    else particle_node_found = FALSE;
+                    mat_num = mat[k];
+                    Bool_type hide_element = hide_by_object_type(p_mo_class, mat_num, k, analy, data_array);
+                    free_node_found = !hide_element && activity_flag == 0.0 && analy->free_nodes_enabled;
+                    if ( particle_class ){
+                        particle_node_found = !hide_element
+                                                && activity_flag > 0.0
+                                                && analy->particle_nodes_enabled
+                                                && part_visib[k];
+                    }
+                    else{
+                        particle_node_found = FALSE;
+                    }
 
-                    if ( !particle_class )
+                    if ( !particle_class ){
                         if (free_node_found)
                         {
-                            for ( l = 0;
-                                    l < conn_qty;
-                                    l++ )
+                            for ( l = 0; l < conn_qty; l++ )
                             {
                                 nd = connects[k * node_qty + l];
                                 if (free_nodes_list[nd]<0 )
@@ -16176,21 +16106,17 @@ draw_free_nodes( Analysis *analy )
                         }
                         else
                         {
-                            for ( l = 0;
-                                    l < conn_qty;
-                                    l++ )
+                            for ( l = 0; l < conn_qty; l++ )
                             {
                                 nd = connects[k * node_qty + l];
                                 free_nodes_list[nd] = -1;
                             }
                         }
-
+                    }
                     if (particle_node_found)
                     {
                         part_nodes_found = TRUE;
-                        for ( l = 0;
-                                l < conn_qty;
-                                l++ )
+                        for ( l = 0; l < conn_qty; l++ )
                         {
                             nd = connects[k * node_qty + l];
                             part_nodes_list[nd]      = mat_num;
@@ -16204,19 +16130,11 @@ draw_free_nodes( Analysis *analy )
         }
     }
 
-    /* Make a quick exit if no free nodes are to
-     * be displayed.
-     */
-
+    /* Make a quick exit if no free nodes are to be displayed. */
     if (!free_nodes_found && !part_nodes_found)
-    {
         return;
-    }
 
-    /* If we are viewing a nodal result then map the nodal
-      * result onto the particles.
-      *
-      */
+    /* If we are viewing a nodal result then map the nodal result onto the particles. */
     if ( analy->pn_nodal_result )
     {
         particle_count = analy->pn_ref_node_count[0];
@@ -16225,30 +16143,23 @@ draw_free_nodes( Analysis *analy )
     }
 
     /* Determine a scaling range factor for the Mass/Vol data */
-
     mass_scale_factor = 0.5;
-
     if (mass_scaling || vol_scaling)
     {
-        mass_scale_factor = 0.5/mass_scale_factor_max;
+        mass_scale_factor = 0.5 / mass_scale_factor_max;
     }
 
-    for ( i = 0; i < dim; i++ )
+    for ( i = 0; i < dim; i++ ){
         leng[i] = analy->bbox[1][i] - analy->bbox[0][i];
+    }
 
     node_base_radius  = 0.01 * (leng[0] + leng[1] + leng[2]) / 3.0;
-    if ( node_base_radius==0 )
-        node_base_radius=1.;
-
-    /* Modified: Nov 3, 2006: IRC - Do not scale particles with window */
-    /* node_base_radius *= 1.0 / v_win->scale[0]; */
-
-    /*    if ( v_win->lighting )
-      glEnable( GL_LIGHTING ); */
+    if ( node_base_radius == 0 )
+        node_base_radius = 1.0;
 
     glEnable( GL_COLOR_MATERIAL );
 
-    if ( fastSpheres)
+    if ( fastSpheres )
     {
         display_list = glGenLists( 1 );
         sphere       = gluNewQuadric();
@@ -16257,30 +16168,13 @@ draw_free_nodes( Analysis *analy )
         gluQuadricDrawStyle( sphere, (GLenum) GLU_FILL );
         gluQuadricNormals( sphere, (GLenum) GLU_SMOOTH );
 
-        /*******************************/
-        /* Future texture mapping code */
-        /* glGenTextures(1,&(texMaps[0]));
-        gluQuadricTexture(sphere, GL_TRUE);
-               glBindTexture(GL_TEXTURE_2D,texMaps[0]);
-
-         img=ImageLoad(texNames[0]);
-               glPixelStorei(GL_UNPACK_ALIGNMENT,4);
-               gluerr=gluBuild2DMipmaps(GL_TEXTURE_2D, 4, 100, 100,
-                       GL_RGBA, GL_UNSIGNED_BYTE,
-                          (GLvoid *)(img->data)); */
-
-        /*******************************/
-
         glNewList( display_list, GL_COMPILE );
         gluSphere( sphere, node_base_radius*rfac, analy->free_nodes_sphere_res_factor*2, analy->free_nodes_sphere_res_factor );
         glEndList();
     }
 
-    for (node_index=0;
-            node_index<num_nodes;
-            node_index++)
+    for (node_index = 0; node_index < num_nodes; node_index++)
     {
-
         skip_node = TRUE;
         if (free_nodes_found && free_nodes_list[node_index] >= 0)
             skip_node = FALSE;
@@ -16293,18 +16187,18 @@ draw_free_nodes( Analysis *analy )
         if ( free_nodes_list[node_index] < 0 )
             mat_num = free_nodes_list[node_index];
         mat_num = free_nodes_list[node_index];
-        if ( mat_num <0 )
+        if ( mat_num < 0 )
             mat_num = part_nodes_list[node_index];
         elem_id = free_nodes_elem_list[node_index];
 
         /* Colorflag is TRUE if displaying a result, otherwise
          * polygons are drawn in the material color.
          */
-        colorflag = TRUE;
-        if ( analy->cur_result==NULL || disable_part[mat_num] )
-            colorflag = FALSE;
+        disable_flag = disable_by_object_type( p_ml_class, mat_num, elem_id, analy, data_array );
+        colorflag = show_result && !disable_part[mat_num] && !disable_flag;
         if ( dbc_nodes_found && part_nodes_result[node_index] == FALSE )
             colorflag = FALSE;
+
         if ( analy->material_greyscale && disable_part[mat_num] )
             showgs = TRUE;
         else
@@ -16316,17 +16210,11 @@ draw_free_nodes( Analysis *analy )
 
         /* Scale node to mass and volume */
         if (mass_scaling)
-        {
-            node_radius = node_radius * free_nodes_mass[node_index] *
-                          mass_scale_factor;
-        }
+            node_radius = node_radius * free_nodes_mass[node_index] * mass_scale_factor;
 
         /* Scale node to volume only */
         if (vol_scaling)
-        {
-            node_radius = node_radius * fabs((double)free_nodes_vol[node_index]) *
-                          mass_scale_factor;
-        }
+            node_radius = node_radius * fabs((double)free_nodes_vol[node_index]) * mass_scale_factor;
 
         /* Scale node radius by user selected scale factor */
         node_radius *= rfac;
@@ -16334,38 +16222,50 @@ draw_free_nodes( Analysis *analy )
         /* Scale node radius by user selected scale factor */
         node_radius *= rfac;
 
-        /* If a result is available, then color node by the current
-         * result.
-         */
-
-        if (data_array!=NULL && colorflag)
+        /* If a result is available, then color node by the current result. */
+        if (data_array != NULL && colorflag)
         {
             if ( p_ml_classes[node_index] )
             {
                 int j;
                 val = get_ml_result( analy, p_ml_classes[node_index], elem_id, &result_defined );
-                for(i = 0; i < MESH(analy).qty_class_selections; i++)
-                {
-                    if(!strcmp(p_ml_class->short_name, MESH(analy).by_class_select[i].p_class->short_name))
+                if( result_defined ){
+                    for(i = 0; i < MESH(analy).qty_class_selections; i++)
                     {
-                        break;
+                        if(!strcmp(p_ml_class->short_name, MESH(analy).by_class_select[i].p_class->short_name))
+                            break;
+                    }
+
+                    /* if any of the elements are disabled show the material color */
+                    if(MESH(analy).by_class_select[i].disable_class_elem[elem_id] == TRUE)
+                    {
+                        col[3] = v_win->mesh_materials.diffuse[mat_num][3];
+
+                        VEC_COPY( col, v_win->mesh_materials.diffuse[mat_num] );
+                        for (j = 0; j < 4; j++)
+                            col[j] = col[j] - col[j] * .5;
+                    }
+                    else
+                    {
+                        color_lookup( col, val,
+                                    rmin, rmax, analy->zero_result, mat_num,
+                                    analy->logscale, showgs );
                     }
                 }
-                /* if any of the elements are disabled show the material color */
-                if(MESH(analy).by_class_select[i].disable_class_elem[elem_id] == TRUE)
+                else
                 {
-                    col[3] = v_win->mesh_materials.diffuse[mat_num][3];
+                    if( analy->auto_gray && show_result && !analy->showmat && !disable_flag ){
+                        for (i = 0; i < 4; i++)
+                            col[i] = grayval;
+                    }
+                    else
+                    {
+                        col[3] = v_win->mesh_materials.diffuse[mat_num][3];
 
-                    VEC_COPY( col, v_win->mesh_materials.diffuse[mat_num] );
-                    for (j=0;
-                            j<4;
-                            j++)
-                        col[j] = col[j]- col[j]*.5;
-                } else
-                {
-                    color_lookup( col, val,
-                                  rmin, rmax, analy->zero_result, mat_num,
-                                  analy->logscale, analy->material_greyscale );
+                        VEC_COPY( col, v_win->mesh_materials.diffuse[mat_num] );
+                        for (i = 0; i < 4; i++)
+                            col[i] = col[i] - col[i] * .5;
+                    }
                 }
             }
             else
@@ -16373,19 +16273,23 @@ draw_free_nodes( Analysis *analy )
                 val = data_array[free_node_data_index];
                 color_lookup( col, val,
                               rmin, rmax, analy->zero_result, mat_num,
-                              analy->logscale, analy->material_greyscale );
+                              analy->logscale, showgs );
             }
         }
         else
         {
-            /* No result, color by material */
-            col[3] = v_win->mesh_materials.diffuse[mat_num][3];
+            /* No result, color by material or autogray if result if not show mat. */
+            if( analy->auto_gray && show_result && !analy->showmat && !disable_flag ){
+                for (i = 0; i < 4; i++)
+                    col[i] = grayval;
+            }
+            else{
+                col[3] = v_win->mesh_materials.diffuse[mat_num][3];
 
-            VEC_COPY( col, v_win->mesh_materials.diffuse[mat_num] );
-            for (i=0;
-                    i<4;
-                    i++)
-                col[i] = col[i]- col[i]*.5;
+                VEC_COPY( col, v_win->mesh_materials.diffuse[mat_num] );
+                for (i = 0; i < 4; i++)
+                    col[i] = col[i] - col[i] * .5;
+            }
         }
 
         analy->free_nodes_vals[node_index] = val;
@@ -16393,37 +16297,29 @@ draw_free_nodes( Analysis *analy )
         /* Draw spheres at the nodes of the element. If the res for the sphere is
          * <=2, then draw a box instead.
          */
-        if ( analy->dimension == 3 )
-            if (analy->free_nodes_sphere_res_factor>2)
+        if ( analy->dimension == 3 ){
+            if (analy->free_nodes_sphere_res_factor > 2)
             {
                 glColor3fv( col );
                 if ( !fastSpheres )
                     draw_sphere_GL( verts, node_radius, analy->free_nodes_sphere_res_factor);
                 else
                 {
-                    /* gluSphere( sphere, node_base_radius*rfac, analy->free_nodes_sphere_res_factor*2, analy->free_nodes_sphere_res_factor ); */
-
                     glPushMatrix();
                     glTranslatef( verts[0], verts[1], verts[2] );
                     glCallList( display_list );
                     glPopMatrix();
                 }
 
-                /*
-                 * If reflection planes are active, then reflect free nodes.
-                 */
+                /* If reflection planes are active, then reflect free nodes. */
                 if ( analy->reflect )
-                    for ( plane = analy->refl_planes;
-                            plane != NULL;
-                            plane = plane->next )
+                    for ( plane = analy->refl_planes; plane != NULL; plane = plane->next )
                     {
                         point_transform( refl_verts, verts, &plane->pt_transf );
                         draw_sphere_GL( refl_verts, node_radius, analy->free_nodes_sphere_res_factor);
                     }
             }
-
-        /* Draw a hex for the free node */
-
+            /* Draw a hex for the free node */
             else
             {
                 glBegin( GL_QUADS );
@@ -16431,7 +16327,6 @@ draw_free_nodes( Analysis *analy )
 
                 for (j=0; j<6; j++)
                 {
-
                     switch ( j )
                     {
                     case 0:  /* +z */
@@ -16542,18 +16437,16 @@ draw_free_nodes( Analysis *analy )
                         poly_pts[3][2] = verts[2]+node_radius;
                         break;
                     }
+
                     glNormal3fv( poly_norms[j] );
-                    for (k=0; k<4; k++)
+                    for (k = 0; k < 4; k++)
                         glVertex3fv( poly_pts[k] );
                 }
                 glEnd();
             }
+        }
         free_node_data_index++;
     }
-
-
-    /*if ( v_win->lighting )
-      glDisable( GL_LIGHTING ); */
 
     glDisable( GL_COLOR_MATERIAL );
 
@@ -17307,7 +17200,7 @@ hide_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *ana
 
     if ( !hide_elem && class_select_index>=0 && elm<p_class->qty)
     {
-        if ( p_mesh->by_class_select[class_select_index].hide_class_elem[elm] || 
+        if ( p_mesh->by_class_select[class_select_index].hide_class_elem[elm] ||
              p_mesh->by_class_select[class_select_index].exclude_class_elem[elm])
             hide_elem = TRUE;
     }
@@ -17324,7 +17217,6 @@ hide_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *ana
  * object type.
  *
  */
-
 Bool_type
 disable_by_object_type( MO_class_data *p_class, int mat_num, int elm, Analysis *analy, float *data_array )
 {
@@ -17527,114 +17419,127 @@ get_class_label_index( MO_class_data *class, int label_num )
 
 
 /************************************************************
- * TAG( populate_result )
+ * TAG( populate_mat_result )
  *
- * Added Jan 17 2014: William Oliver 
- * Takes a result array and loops thru the subrecords and the map array and puts a 1
- * in the indexes representing the element number if that element has that subrecord variable.
- *
- * Assumptions:
- * By the time this function is called the current result has already been processed
- *
+ * For the current result (Must be for M_MAT) determine for which materials this result exist
+ * and mark the associated elements as having the result.
  */
-
-void populate_result(int superclass, char map[], int size, MO_class_data * p_class, Analysis * analy)
-{
-    int qty_blocks = 0;
-    int total_blocks = 0;
-    int i, j, k, mtl;
+void populate_mat_result(int superclass, char map[], MO_class_data* class, Analysis* analy){
+    int i, j, k;
+    int mtl;
     int start, end;
-    int qty_classes;
-    int *range = NULL;
     Result *p_result;
     Subrec_obj *p_subrec;
 
-    /* Add code to return FALSE if the element is associated with a material that has been disabled */
-
-    MO_class_data ** mo_classes;
-    Mesh_data *p_mesh;
-
+    /* Get the current result */
     p_result = analy->cur_result;
 
-    /* Just a precautionary step */
-    if(p_result == NULL)
+    /* Sanity Check */
+    if(p_result == NULL || map == NULL || !result_has_superclass(p_result, G_MAT, analy))
     {
         return;
     }
-    /*if(p_result->origin.is_derived)
-    {j
-       return TRUE;
-    } */
-    if(map == NULL)
-    {
-        return;
-    }
-    p_mesh = MESH_P(analy);
-    qty_classes = p_mesh->classes_by_sclass[superclass].qty;
-    mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[superclass].list;
 
     /* initialize the map array */
-    for(i = 0; i < size; i++)
+    for(i = 0; i < class->qty; i++)
+    {
+        map[i] = '0';
+    }
+
+    for(i = 0; i < p_result->qty; i++){
+        if(p_result->superclasses[i] == G_MAT){
+            // Get the subrecord
+            p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[i];
+            // Check for M_MAT
+            if(p_subrec->p_object_class->superclass == G_MAT){
+                /* loop over material id blocks */
+                for(j = 0; j < p_subrec->subrec.qty_blocks; j++){
+                    // Get start and end material id for range
+                    start = p_subrec->subrec.mo_blocks[j*2];
+                    end = p_subrec->subrec.mo_blocks[j*2+1];
+                    // shift to zero based indexing
+                    start -= 1;
+                    end -= 1;
+
+                    // loop over elements and mark if associated material result exists
+                    for(k = 0; k < class->qty; k++){
+                        mtl = class->objects.elems->mat[k];
+                        if(mtl >= start && mtl <= end){
+                            map[k] = '1';
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/************************************************************
+ * TAG( populate_result )
+ *
+ * For the current result, mark all elements of the specified superclass for which the
+ * result exists. This is stored in the array map: '1' means the results exists for the
+ * element. '0' means it does not.
+ *
+ * Assumptions:
+ * By the time this function is called the current result has already been processed
+ */
+void populate_result(int superclass, char map[], MO_class_data* class, Analysis * analy)
+{
+    int i, j, k;
+    int start, end;
+    Result *p_result;
+    Subrec_obj *p_subrec;
+
+    /* Get the current result */
+    p_result = analy->cur_result;
+
+    /* Sanity Check */
+    if(p_result == NULL || map == NULL)
+    {
+        return;
+    }
+
+    /* initialize the map array */
+    for(i = 0; i < class->qty; i++)
     {
         map[i] = '0';
     }
     
-    /* loop thru the subrecs associated with this result to get the total
- *     number of subrec blocks*/ 
+    /* loop over all subrecords associated with this result*/ 
     for(i = 0; i < p_result->qty; i++)
     {
-        /*p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[p_result->subrecs[i]]; */
-        p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[i];
-        /* make sure we have the correct superclass */
-        qty_blocks += p_subrec->subrec.qty_blocks;
-    }
+        // If result superclass matches
+        if(p_result->superclasses[i] == superclass){
+            // Get the subrecord
+            p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[i];
 
-
-    total_blocks = qty_blocks*2;
-
-    /*now that we know the total quantity of subrecord blocks allocate the range array*/ 
-    range = (int *) malloc(2*qty_blocks*sizeof(int));
-    /* check to make sure we are not out of memory */ 
-    if(range == NULL)
-    {
-        abort();
-    }
-
-    j = 0;
-    qty_blocks = 0;
-    /* now loop thru the subrecs again and populate the range array */
-    for(i = 0; i < p_result->qty; i++)
-    {
-        /*p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[p_result->subrecs[i]]; */
-        p_subrec = analy->srec_tree[0].subrecs + p_result->subrecs[i];
-
-        qty_blocks = p_subrec->subrec.qty_blocks;
-         /* make sure we have the correct superclass*/ 
-        for(k = 0; k < qty_blocks*2; k+=2)
-        {
-            range[j] = p_subrec->subrec.mo_blocks[k];
-            j++;
-            range[j] = p_subrec->subrec.mo_blocks[k+1];
-            j++;
+            // If the correct class in subrecord
+            if(p_subrec->p_object_class == class){
+                /* loop over element blocks */
+                for(j = 0; j < p_subrec->subrec.qty_blocks; j++){
+                    // Get start and end element id for range
+                    start = p_subrec->subrec.mo_blocks[j*2];
+                    end = p_subrec->subrec.mo_blocks[j*2+1];
+                    // shift to zero based indexing
+                    start -= 1;
+                    end -= 1;
+                    // Loop over elements and update map
+                    for(k = start; k <= end; k++){
+                        map[k] = '1';
+                    }
+                }
+            }
+            // Check for Derived result where primal superclass does not match
+            // derived result superclass
+            else if(p_result->origin.is_derived){
+                // For now, assume result can be calculated for all elements
+                for(k = 0; k < class->qty; k++){
+                    map[k] = '1';
+                }
+            }
         }
     }
-
-    for(i = 0; i < total_blocks; i+= 2)
-    {
-        start = range[i];
-        end = range[i+1];
-        if(end >= size)
-        {
-            end = size - 1;
-        }
-        for(j = start; j <= end; j++)
-        {
-            map[j] = '1';
-        }
-    }
-
-    free(range);
-   
 }
 
 

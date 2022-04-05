@@ -491,6 +491,24 @@ typedef struct _result_mo_list_obj
 
 
 /*****************************************************************
+ * TAG( ElementSet )
+ *
+ * Information about a Element Set.
+ */
+typedef struct _ElementSet
+{
+  int size;                 /* Size of the integration_points in the array */
+  int * integration_points;  /* The actual integration point put out by the code the int at
+                               size is the simulation actual integration points processed*/
+  int ipt_count;                // This is the size of the array.
+  int current_index;        /* The selected integration point by the user. Default is zero? */
+  int tempIndex;
+  int middle_index;
+  int material_number;
+} ElementSet;
+
+
+/*****************************************************************
  * TAG( Subrec_obj )
  *
  * Information about a subrecord of a state record format.
@@ -503,6 +521,7 @@ typedef struct _subrec_obj
     int *referenced_nodes;
     int ref_node_qty;
     Subrecord subrec;
+    ElementSet *element_set;
 
     /*
      * Handle for temporary storage of references to results
@@ -885,27 +904,11 @@ typedef struct _TI_Var
     int       length;
 } TI_Var;
 
-/*****************************************************************
- * TAG( Integration_points )
- *
- *   Struct which contains information on integration point
- *   labels.
- */
-typedef struct _Integration_points
-{
-    int       es_id;
-    int       intpoints_total;
-    int       labels_cnt;
-    int       *labels;
-    int       in_mid_out_set[3];     /* Integration points set by user */
-    int       in_mid_out_default[3]; /* Integration points default     */
-} Integration_points;
-
 
 /*****************************************************************
  * TAG( combined_names )
  *
- *   Struct which contains the result names making up the combined 
+ *   Struct which contains the result names making up the combined
  *   result.
  ****************************************************************/
 typedef struct _combined_names
@@ -916,43 +919,11 @@ typedef struct _combined_names
 } combined_names;
 
 
-/*****************************************************************
- * TAG( IntLabel )
- *
- *   Struct which contains information on integration point
- *   labels.
- */
-typedef struct _IntLabels
-{
-    char ** LabelNames;
-    int numLabels;
-    int *labelSizes;  /* the length of the ith label array*/
-    int ** labels;
-    int * mats;  /* The materials associated with the LabelNames, size is numLabels */
-    int * int_pts_selected;  /* For each material, which integration point is selected,  0 
-                                means none is selected for that material.  The size of
-                                this array is also numLabels */
-    int * map;               /* When accessing the materal array and in case the material numbers
-                                in the material array are not in consecutive order then selecting
-                                a material say j maps map[j] to the indes of that material in the
-                                mats array.  Prevents looping every time this is accessed. */
-   int mapsize;             /* size of the map array and is equal to the highest material number plus 1 */
-   int * valid;             /* set to 1 if the labels array is in ascending order otherwise set to 0 */
-
-   char ** es_names;       /* The names of all the element sets written to the plot file.  e.g.  "es_1a" */
-   int num_es_sets;        /* The number of elements sets written to the plot file. */
-
-   char **result_names;
-   Bool_type use_combined;
-
-} IntLabels;
-
 typedef struct _intPtMessages
 {
     struct _intPtMessages * next;
     struct _intPtMessages * prev;
     char messages[256];
-    
 } intPtMessages;
 
 
@@ -964,6 +935,7 @@ typedef struct _mmHisEnt
 	int global_mm_nodes[2];        	/* For result at nodes. */
 	char *global_mm_class_long_name[2];
 }mmHistEnt;
+
 
 /*****************************************************************
  * TAG( Analysis )
@@ -996,7 +968,7 @@ typedef struct _Analysis
                                      int, int );
 
     Bool_type autoselect;
-    void * original_results[ORIG_RESULTS];   /* for combined results need to hold the original results for each superclass */ 
+    void * original_results[ORIG_RESULTS];   /* for combined results need to hold the original results for each superclass */
     int db_ident;
     char root_name[MAXPATHLENGTH];
     char path_name[MAXPATHLENGTH];
@@ -1051,8 +1023,9 @@ typedef struct _Analysis
     int num_banned_names;
     char **conflict_messages;
     int num_messages;
-    Hash_table *es_components_table;
+    Hash_table *intPoints;
     Result_table_type result_source;
+    Result_table_type prev_result_source;
     char **component_menu_specs;
     int component_spec_qty;
     State2 *state_p;
@@ -1476,8 +1449,11 @@ typedef struct _Analysis
      * data.
      */
     int                 es_cnt; /* Number of element sets */
-    Integration_points *es_intpoints;
-    IntLabels * int_labels;
+    //Integration_points *es_intpoints;
+    //IntLabels * int_labels;
+    Hash_table * Element_sets;
+    char **Element_set_names;
+    Bool_type int_point_labels;
 
     /*
  *   Added February , 2014:  WBO Switch to turn off auto gray
@@ -1824,7 +1800,7 @@ typedef struct
      * This is basically checking if we are running on VNC, VNC uses direct rendering
      * while Xwin32 uses indirect rendering.
      */
-    Bool_type direct_rendering; 
+    Bool_type direct_rendering;
 
     /*
      * Added January 5, 2005: IRC - Variable used for selecting a beta
@@ -1899,8 +1875,8 @@ extern void model_history_log_update( char *command, Analysis *analy );
 extern void model_history_log_comment(char *comment, Analysis *analy);
 extern void model_history_log_run( Analysis * analy );
 
-extern char *griz_version;
-extern char *particle_cname;
+extern char * griz_version;
+extern char * particle_cname;
 extern Database_type_griz db_type;
 
 /* faces.c */
@@ -1932,9 +1908,7 @@ extern void get_hex_face_verts( int, int, MO_class_data *, Analysis *,
                                 float [][3] );
 extern void get_pyramid_face_verts( int, int, MO_class_data *, Analysis *,
                                     float [][3] );
-void
-get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class,
-                    Analysis *analy, int *faceNodes );
+void get_hex_face_nodes( int elem, int face, MO_class_data *p_hex_class, Analysis *analy, int *faceNodes );
 extern void get_hex_verts( int, MO_class_data *, Analysis *, float [][3] );
 extern void get_pyramid_verts( int, MO_class_data *, Analysis *, float [][3] );
 extern void get_particle_verts( int, MO_class_data *, Analysis *, float [][3] );
@@ -2279,7 +2253,9 @@ extern void update_cursor_vals( void );
 extern void set_plot_win_params( float, float, float, float, float *, float * );
 extern void suppress_display_updates( Bool_type );
 extern void write_start_text( void );
-extern void init_griz_name( Analysis *analy  );
+
+extern char * make_path_str( Analysis * analy );
+extern char * make_griz_name( Analysis * analy, char * vstr );
 
 /* DERIVED VARIABLES. */
 
@@ -2317,7 +2293,6 @@ extern void dump_result( Analysis *, char * );
 
 /* results.c */
 extern Result_candidate possible_results[];
-extern es_Result_candidate possible_es_results[];
 extern void update_result( Analysis *, Result * );
 extern Result * create_result_list(char *, Analysis *);
 extern void delete_result_list(Result **, Analysis *);
@@ -2376,20 +2351,24 @@ extern void      rotate_quad_result( Analysis *analy, char *primal, int result_c
 
 /* stress.c */
 extern void compute_hex_stress( Analysis *, float *, Bool_type );
+
+extern void compute_press( Analysis *, float *, Bool_type );
 extern void compute_hex_press( Analysis *, float *, Bool_type );
 extern void compute_shell_press( Analysis *, float *, Bool_type );
 extern void compute_es_press( Analysis *, float *, Bool_type );
+
+extern void compute_effstress( Analysis *, float *, Bool_type );
 extern void compute_hex_effstress( Analysis *, float *, Bool_type );
 extern void compute_shell_effstress( Analysis *, float *, Bool_type );
 extern void compute_es_effstress( Analysis *, float *, Bool_type );
+
+extern void compute_principal_stress( Analysis *, float *, Bool_type );
 extern void compute_hex_principal_stress( Analysis *, float *, Bool_type );
 extern void compute_shell_principal_stress( Analysis *, float *, Bool_type );
 extern void compute_es_principal_stress( Analysis *, float *, Bool_type );
+
 extern void compute_shell_surface_stress( Analysis *, float *, Bool_type );
 extern void compute_shell_stress( Analysis *, float *, Bool_type );
-extern void compute_particle_press( Analysis *, float *, Bool_type );
-extern void compute_particle_effstress( Analysis *, float *, Bool_type );
-extern void compute_particle_principal_stress( Analysis *, float *, Bool_type );
 
 /* node.c */
 extern void compute_node_displacement( Analysis *, float *, Bool_type );
@@ -2411,66 +2390,43 @@ extern void get_class_nodes ( int superclass, Mesh_data *p_mesh,
 extern void compute_global_acceleration( Analysis *, float *, Bool_type );
 /* frame.c */
 
-extern void global_to_local_mtx( Analysis *, MO_class_data *, int,
-                                 Bool_type, GVec3D2P *,
-                                 float [3][3] );
-extern void global_to_local_tri_mtx( Analysis *, MO_class_data *, int,
-                                     Bool_type, GVec3D2P *,
-                                     float [3][3] );
-extern Bool_type transform_stress_strain( char **, int, Analysis *,
-        float [3][3], float * );
+extern void global_to_local_mtx( Analysis *, MO_class_data *, int, Bool_type, GVec3D2P *, float [3][3] );
+extern void global_to_local_tri_mtx( Analysis *, MO_class_data *, int, Bool_type, GVec3D2P *, float [3][3] );
+extern Bool_type transform_stress_strain( char **, int, Analysis *, float [3][3], float * );
 extern void transform_tensors( int, double (*)[6], float [][3] );
 extern void transform_tensors_1p( int, float (*)[6], float [][3] );
 
 /* explode.c */
-extern int associate_matl_exp( int token_cnt,
-                               char tokens[MAXTOKENS][TOKENLENGTH],
-                               Analysis *analy, Exploded_view_type exp );
-extern void explode_materials( int token_cnt,
-                               char tokens[MAXTOKENS][TOKENLENGTH],
-                               Analysis *analy, Bool_type scaled );
+extern int associate_matl_exp( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], Analysis *analy, Exploded_view_type exp );
+extern void explode_materials( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH], Analysis *analy, Bool_type scaled );
 extern void free_matl_exp( void );
-extern void remove_exp_assoc( int token_cnt,
-                              char tokens[MAXTOKENS][TOKENLENGTH] );
+extern void remove_exp_assoc( int token_cnt, char tokens[MAXTOKENS][TOKENLENGTH] );
 extern void report_exp_assoc( void );
 
 /* init_io.c */
+extern void parse_griz_init_file( void ); // maybe into interpret.c instead?
 extern Bool_type is_known_db( char *fname, Database_type_griz *p_db_type );
 extern Bool_type init_db_io( Database_type_griz db_type, Analysis *analy );
 extern void reset_db_io( Database_type_griz db_type );
 
 /* tell.c */
-extern void parse_tell_command( Analysis *analy, char tokens[][TOKENLENGTH],
-                                int token_cnt, Bool_type ignore_tell_token,
-                                Redraw_mode_type *p_redraw );
+extern void parse_tell_command( Analysis *analy, char tokens[][TOKENLENGTH], int token_cnt, Bool_type ignore_tell_token, Redraw_mode_type *p_redraw );
 
 /* damage.c */
-extern void compute_hex_damage( Analysis *analy, float *resultArr,
-                                Bool_type interpolate );
+extern void compute_hex_damage( Analysis *analy, float *resultArr, Bool_type interpolate );
 
 /* free node functions  - an = all nodes counted, not just free nodes */
 
 extern int *get_free_nodes( Analysis *analy );
-extern void compute_fnmass( Analysis *analy, float *resultArr,
-                            Bool_type interpolate );
-extern void compute_anmass( Analysis *analy, float *resultArr,
-                            Bool_type interpolate );
-extern void compute_fnmoment( Analysis *analy, float *resultArr,
-                              Bool_type interpolate );
-extern void compute_anmoment( Analysis *analy, float *resultArr,
-                              Bool_type interpolate );
-extern void compute_fnvol(  Analysis *analy, float *resultArr,
-                            Bool_type interpolate );
-extern void compute_anvol(  Analysis *analy, float *resultArr,
-                            Bool_type interpolate );
+extern void compute_fnmass( Analysis *analy, float *resultArr, Bool_type interpolate );
+extern void compute_anmass( Analysis *analy, float *resultArr, Bool_type interpolate );
+extern void compute_fnmoment( Analysis *analy, float *resultArr, Bool_type interpolate );
+extern void compute_anmoment( Analysis *analy, float *resultArr, Bool_type interpolate );
+extern void compute_fnvol(  Analysis *analy, float *resultArr, Bool_type interpolate );
+extern void compute_anvol(  Analysis *analy, float *resultArr, Bool_type interpolate );
 
-extern void write_griz_session_file( Analysis *analy, Session *session,
-                                     char *sessionFileName,
-                                     int session_id, Bool_type global );
-
-extern int read_griz_session_file( Session *session,
-                                   char *sessionFileName,
-                                   int session_id, Bool_type global );
+extern void write_griz_session_file( Analysis *analy, Session *session, char *sessionFileName, int session_id, Bool_type global );
+extern int read_griz_session_file( Session *session, char *sessionFileName, int session_id, Bool_type global );
 
 char *get_VersionInfo( Analysis * );
 extern char *bi_date(void);

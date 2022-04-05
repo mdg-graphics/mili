@@ -32,6 +32,7 @@ select node 1 4-5 15 13
 select mat 1
 disable 1
 
+sw interp
 # Images for variable velmag
 maxst 11
 l

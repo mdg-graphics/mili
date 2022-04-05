@@ -1,0 +1,18 @@
+# dtshell image test problem
+fracsz 8
+jpegqual 100
+sw interp
+
+# Set viewing
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+
+# Object selection
+select tshell 1-6
+set_ipt 5
+
+# Show result and output image
+show press
+state 20
+state 50
+outjpeg dtshell_image_press_plot.answ.jpg

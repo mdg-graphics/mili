@@ -299,9 +299,8 @@ tellmm( Analysis *analy, char *desired_result_variable, int start_state,
             if ( p_dr == NULL )
                 p_dr = (Derived_result *) p_res->original_result;
             p_sr = (Subrecord_result *)  p_dr->srec_map[i].list;
-            superclass = p_sr[i].candidate->superclass;
-            p_mo_classes = (MO_class_data **)
-                           p_mesh->classes_by_sclass[superclass].list;
+            superclass = p_sr[i].superclass;
+            p_mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[superclass].list;
             class_qty = p_mesh->classes_by_sclass[superclass].qty;
 
             for ( j = 0; j < class_qty; j++ )

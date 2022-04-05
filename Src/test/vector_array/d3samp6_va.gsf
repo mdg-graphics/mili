@@ -1,0 +1,175 @@
+
+# Append ouput to TH file
+on tha
+on thsinglecol
+
+
+# Beam SX - integration point 1
+clrsel
+select beam 1, 7, 11, 13, 16, 20, 23, 24, 33
+set_ipt 1 1
+show sx
+outth d3samp6_va.jansw
+
+# Beam SX - integration point 2
+set_ipt 2 1
+outth d3samp6_va.jansw
+
+# Beam SX - integration point 3
+set_ipt 3 1
+outth d3samp6_va.jansw
+
+# Beam SX - integration point 4
+set_ipt 4 1
+outth d3samp6_va.jansw
+
+
+# Beam SY - integration point 1
+clrsel
+select beam 1, 7, 11, 13, 16, 20, 23, 24, 33
+set_ipt 1 1
+show sy
+outth d3samp6_va.jansw
+
+# Beam SY - integration point 2
+set_ipt 2 1
+outth d3samp6_va.jansw
+
+# Beam SY - integration point 3
+set_ipt 3 1
+outth d3samp6_va.jansw
+
+# Beam SY - integration point 4
+set_ipt 4 1
+outth d3samp6_va.jansw
+
+
+# Beam SXY - integration point 1
+clrsel
+select beam 1, 7, 11, 13, 16, 20, 23, 24, 33
+set_ipt 1 1
+show sxy
+outth d3samp6_va.jansw
+
+# Beam SXY - integration point 2
+set_ipt 2 1
+outth d3samp6_va.jansw
+
+# Beam SXY - integration point 3
+set_ipt 3 1
+outth d3samp6_va.jansw
+
+# Beam SXY - integration point 4
+set_ipt 4 1
+outth d3samp6_va.jansw
+
+
+# Beam Effective Stress - integration point 1
+clrsel
+select beam 1, 7, 11, 13, 16, 20, 23, 24, 33
+set_ipt 1 1
+show seff
+outth d3samp6_va.jansw
+
+# Beam Effective Stress - integration point 2
+set_ipt 2 1
+outth d3samp6_va.jansw
+
+# Beam Effective Stress - integration point 3
+set_ipt 3 1
+outth d3samp6_va.jansw
+
+# Beam Effective Stress - integration point 4
+set_ipt 4 1
+outth d3samp6_va.jansw
+
+
+# Beam Pressure - integration point 1
+clrsel
+select beam 1, 7, 11, 13, 16, 20, 23, 24, 33
+set_ipt 1 1
+show press
+outth d3samp6_va.jansw
+
+# Beam Pressure - integration point 2
+set_ipt 2 1
+outth d3samp6_va.jansw
+
+# Beam Pressure - integration point 3
+set_ipt 3 1
+outth d3samp6_va.jansw
+
+# Beam Pressure - integration point 4
+set_ipt 4 1
+outth d3samp6_va.jansw
+
+
+# Shell SX - integration point 1
+clrsel
+select shell 1, 3, 5, 8, 12
+set_ipt 1 3
+show sx
+outth d3samp6_va.jansw
+
+# Shell SX - integration point 2
+set_ipt 2 3
+outth d3samp6_va.jansw
+
+
+# Shell SZ - integration point 1
+clrsel
+select shell 1, 3, 5, 8, 12
+set_ipt 1 3
+show sz
+outth d3samp6_va.jansw
+
+# Shell SZ - integration point 2
+set_ipt 2 3
+outth d3samp6_va.jansw
+
+# Shell SYZ - integration point 1
+clrsel
+select shell 1, 3, 5, 8, 12
+set_ipt 1 3
+show syz
+outth d3samp6_va.jansw
+
+# Shell SYZ - integration point 2
+set_ipt 2 3
+outth d3samp6_va.jansw
+
+
+# Shell EX - integration point 1
+clrsel
+select shell 1, 3, 5, 8, 12
+set_ipt 1 3
+show ex
+outth d3samp6_va.jansw
+
+# Shell EX - integration point 2
+set_ipt 2 3
+outth d3samp6_va.jansw
+
+
+# Shell EZ - integration point 1
+clrsel
+select shell 1, 3, 5, 8, 12
+set_ipt 1 3
+show ez
+outth d3samp6_va.jansw
+
+# Shell EZ - integration point 2
+set_ipt 2 3
+outth d3samp6_va.jansw
+
+
+# Shell EYZ - integration point 1
+clrsel
+select shell 1, 3, 5, 8, 12
+set_ipt 1 3 
+show eyz
+outth d3samp6_va.jansw
+
+# Shell EYZ - integration point 2
+set_ipt 2 3
+outth d3samp6_va.jansw

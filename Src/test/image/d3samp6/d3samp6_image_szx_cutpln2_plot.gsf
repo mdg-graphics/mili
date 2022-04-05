@@ -36,6 +36,7 @@ select brick 1 14 36 18 20-24 30
 select shell all
 select shell 6 7 
 select mat 1
+set_ipt 1 1
 
 # Images for variable szx
 rmax 5.5e2

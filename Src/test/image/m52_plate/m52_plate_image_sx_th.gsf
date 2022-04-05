@@ -1,0 +1,11 @@
+# m52_plate image test problem
+
+# Object selection
+select shell 1, 10, 13, 34, 67, 85, 100
+set_ipt 2 1
+set_ipt 1 2
+
+# Show result and output image
+show sx
+plot
+outjpeg m52_plate_image_sx_th.answ.jpg

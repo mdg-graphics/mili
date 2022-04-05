@@ -7,47 +7,6 @@
  *      Oct 24 1991
  *
  ************************************************************************
- * Modifications:
- *
- * I. R. Corey (May 18, 2004): Fixed a problem compilation problem
- *  for HP platforms: timeb was not being included yet variables
- *  were defined using struct timeb (wc1 & wc2).
- *
- *  I. R. Corey - Dec 14, 2004: Add new function called get_temp_mem_ptr
- *  that will return a pointer to a chunk of n-bytes of the result temp
- *  memory.
- *
- *  I. R. Corey - Nov 2, 2006: Add a new function str_to_upper to convert
- *  strings to all upper case - used when parsing input stream.
- *  memory.
- *
- *  I. R. Corey - March 14, 2007: Added struct and functions to support
- *                writing and reading session data.
- *                See SRC#: 439
- *
- *  I. R. Corey - May 15, 2007: Added more functionality to the session
- *                read-write function.
- *                See SRC#421.
- *
- *  I. R. Corey - May 15, 2007:	Save/Restore window attributes.
- *                See SRC#458.
- *
- *  I. R. Corey - May 5, 2008: Added support for code usage tracking using
- *                the AX tracker tool.
- *                See SRC#533.
- *
- * 12/05/2008 I. R. Corey   Add DP calculations for all derived nodal
- *                          results. See mili_db_set_results().
- *                          See SRC#: 556
- *
- * 12/05/2010 I. R. Corey   Add DP calculations for all derived nodal
- *                          results. See mili_db_set_results().
- *                          See SRC#: 556
- *
- * 12/05/2010 I. R. Corey   Add DP calculations for all derived nodal
- *                          results. See mili_db_set_results().
- *                          See SRC#: 556
- ************************************************************************
  */
 #include "griz_config.h"
 #include <stdlib.h>
@@ -724,7 +683,7 @@ object_is_bound( int ident, MO_class_data *p_mo_class, Subrec_obj *p_subrec )
     Int_2tuple *p_block;
     int blk_qty;
     int i;
-    
+
     if ( p_mo_class != p_subrec->p_object_class )
     {
       return FALSE;
@@ -871,20 +830,55 @@ void
 delete_primal_result( void *p_primal_result )
 {
     Primal_result *p_pr;
-    int i;
+    int i,j;
 
     p_pr = (Primal_result *) p_primal_result;
+    if(p_pr->long_name == NULL)
+    {
+       p_primal_result = NULL;
+       return;
+    }
+    free( p_pr->long_name );
+    p_pr->long_name = NULL;
+    free( p_pr->short_name );
+    p_pr->short_name = NULL;
 
-    if ( p_pr->origin.is_alias )
-        free( p_pr->long_name );
+    //These are just null and freed elsewhere
+    for(i=0;i<p_pr->owning_vec_count;i++)
+    {
+        p_pr->owning_vector_result[i] = NULL;
+    }
 
     for ( i = 0; i < env.curr_analy->qty_srec_fmts; i++ )
+    {
         if ( p_pr->srec_map[i].qty != 0 )
+        {
+            if(p_pr->original_names_per_subrec != NULL)
+            {
+                for(j=0; j<p_pr->srec_map[i].qty;j++)
+                {
+                    free( p_pr->original_names_per_subrec[j]);
+                    p_pr->original_names_per_subrec[j] = NULL;
+                }
+            }
             free( p_pr->srec_map[i].list );
+        }
+    }
 
     free( p_pr->srec_map );
 
-    free( p_pr );
+    if(p_pr->original_names_per_subrec != NULL)
+    {
+        free( p_pr->original_names_per_subrec);
+        p_pr->original_names_per_subrec = NULL;
+    }
+
+    if(p_pr->subrecs != NULL)
+        free( p_pr->subrecs);
+
+    free( p_primal_result );
+    p_primal_result = NULL;
+    p_pr= NULL;
 }
 
 
@@ -907,6 +901,8 @@ delete_derived_result( void *p_derived_result )
             free( p_dr->srec_map[i].list );
 
     free( p_dr->srec_map );
+
+    free( p_dr->srec_ids );
 
     free( p_dr );
 }
@@ -2025,10 +2021,10 @@ void fr_state2( State2 *p_state, Analysis *analy )
 extern void
 set_ref_state( Analysis *analy, int new_ref_state )
 {
-    int qty, 
-        srec_id, 
-        mesh_id, 
-        rval, 
+    int qty,
+        srec_id,
+        mesh_id,
+        rval,
         first_state=1;
     State_rec_obj *p_sro = NULL;
     int index;
@@ -2069,7 +2065,7 @@ set_ref_state( Analysis *analy, int new_ref_state )
                 analy->cur_ref_state_dataDp = NEW_N( double, num_nodes*analy->dimension,
                                  "Tmp DP node cache" );
             }
-            
+
             load_nodpos( analy, p_sro, p_md, analy->dimension, 1,
                          FALSE, (void *) analy->cur_ref_state_dataDp );
 
@@ -2126,18 +2122,18 @@ set_ref_state( Analysis *analy, int new_ref_state )
                      TRUE, analy->cur_ref_state_data );
 
         /* Assign the reference pointer to the data that was just read in. */
-        
+
         if (MESH_P( analy )->double_precision_nodpos)
         {
             if ( !analy->cur_ref_state_dataDp )
-            {    
+            {
                 analy->cur_ref_state_dataDp = NEW_N( double, num_nodes*analy->dimension,
                                  "Tmp DP node cache" );
             }
-            
+
             load_nodpos( analy, p_sro, p_md, analy->dimension, new_ref_state,
                          FALSE, analy->cur_ref_state_dataDp );
-            
+
         }
 
     }
@@ -3322,12 +3318,13 @@ replace_string( char *input_str, char *sub_str, char *replace_str )
  * This function will check the beginnig of str for substr
  */
 Bool_type
-begins_with(char* str, char* substr){
-	Bool_type result = False;
-	if(strncmp(str,substr,strlen(substr)) == 0){
-		result = True;
-	}
-	return result;
+begins_with(char* str, char* substr)
+{
+    Bool_type result = False;
+    if(strncmp(str,substr,strlen(substr)) == 0){
+        result = True;
+    }
+    return result;
 }
 
 /*****************************************************************
@@ -3336,183 +3333,81 @@ begins_with(char* str, char* substr){
  * This function will check the beginnig of str for substr
  */
 Bool_type
-ends_with(char* str, char* substr){
-	Bool_type result = False;
-	if(strcmp(str + strlen(str) - strlen(substr),substr) == 0){
-		result = True;
-	}
-	return result;
+ends_with(char* str, char* substr)
+{
+    Bool_type result = False;
+    if(strcmp(str + strlen(str) - strlen(substr),substr) == 0){
+        result = True;
+    }
+    return result;
 }
-
-/*****************************************************************
- * TAG( my_str_cmp )
- *
- * This function will check the beginnig of str for substr
- */
-int
-my_str_cmp(char *str1, char *str2){
-	int pos = 0;
-	int s1pos = 0;
-	int s2pos = 0;
-	int maxlen = 0;
-
-	//base case
-	if(strlen(str1) == 0 && strlen(str2) != 0){
-		return 1;
-	}
-	//basecase
-	if(strlen(str1) == 0 && strlen(str2) != 0){
-		return -1;
-	}
-
-	//determine max length
-	if(strlen(str1) > strlen(str2)){
-		maxlen = strlen(str1)+1;
-	}
-	else{
-		maxlen = strlen(str2)+1;
-	}
-
-	//base case
-	//are they the same? if so just return
-	if(strcmp(str1,str2) == 0){
-		return 0;
-	}
-
-	//else we have work to do
-	else{
-		//skip matching section
-		while(((pos < strlen(str1)) && (pos < strlen(str2))) && (str1[pos] == str2[pos])){
-			pos++;
-			s1pos++;
-			s2pos++;
-		}
-		//there is a distinct difference
-		if((strlen(str1) > pos) || (strlen(str2) > pos)){
-			return strcmp(str1,str2);
-		}
-
-		//str1 is at a number
-		if(isdigit(str1[pos])){
-			//str1 is at a number
-			if(isdigit(str2[pos])){
-				char* tempnum1 = malloc(maxlen * sizeof(char));
-				char* tempnum2 = malloc(maxlen * sizeof(char));
-				//read till we dont hit a digit on both
-				while(s1pos < strlen(str1) && (isdigit(str1[s1pos]))){
-					tempnum1[s1pos-pos] = str1[s1pos];
-					s1pos++;
-				}
-				tempnum1[s1pos-pos] = '\0';
-				while(s2pos < strlen(str2) && (isdigit(str2[s2pos]))){
-					tempnum2[s2pos-pos] = str2[s2pos];
-					s2pos++;
-				}
-				tempnum2[s2pos-pos] = '\0';
-
-				int num1 = atoi(tempnum1);
-				int num2 = atoi(tempnum2);
-				//are the substrings equivalent numbers?
-				//>
-				if (num1 > num2){
-					return -1;
-				}
-				//<
-				else if (num1 < num2){
-					return 1;
-				}
-				//=
-				else{
-					return my_str_cmp((str1 + s1pos),(str2 + s2pos));
-				}
-					//return
-			}
-			//str1 is at a charachter
-			else{
-				return strcmp(str1,str2);
-			}
-		}
-		//str1 is at a charachter
-		else{
-			return strcmp(str1,str2);
-		}
-	}
-}
-
-/*****************************************************************
- * TAG( my_comparator )
- *
- * This function will
- */
-int
-my_comparator(void const *item1, void const *item2){
-	char *str1 = (char*) item1;
-	char *str2 = (char*) item2;
-	int val = my_str_cmp(str1,str2);
-	return val;
-	//return alphanum_cmp(item1,item2);
-}
-
-/*****************************************************************
- * TAG( safeStrCpy )
- *
- * This function will copy the source string to the destination string
- * using the safest method available
- *
- * has option of only a partial copy if length of source > destination
- */
-Bool_type
-safeStrCpy(char* dest, int dlen, char* src, int slen, int flag){
-	Bool_type status = TRUE;
-	if(dlen >= strlen(src)){
-		snprintf(dest,slen,"%s",src);
-	}
-	else{
-		snprintf(dest,dlen-1,"%s",src);
-		dest[dlen-1] = '\0';
-	}
-	return status;
-}
-
-
-
-//Bool_type
-//isClassname(char* input, Analysis *analy){
-//	Bool_type result = False;
-//	Htable_entry *p_hte;
-//	int rval;
-//	char token_upper[256];
-//	string_to_upper( input, token_upper );
-//	rval = htable_search( MESH( analy ).class_table, input, FIND_ENTRY, &p_hte );
-//	if ( rval!=OK ){
-//		rval = htable_search( MESH( analy ).class_table, token_upper, FIND_ENTRY, &p_hte );
-//	}
-//	if (rval != OK){
-//		result = False;
-//	}
-//	else{
-//		result = True;
-//	}
-//	return result;
-//}
 
 Bool_type
-isClassname(char* input, Hash_table *class_table){
-	Bool_type result = False;
-	Htable_entry *p_hte;
-	int rval;
-	char token_upper[256];
-	string_to_upper( input, token_upper );
-	rval = htable_search( class_table, input, FIND_ENTRY, &p_hte );
-	if ( rval!=OK ){
-		rval = htable_search( class_table, token_upper, FIND_ENTRY, &p_hte );
-	}
-	if (rval != OK){
-		result = False;
-	}
-	else{
-		result = True;
-	}
-	return result;
+is_classname(char* input, Hash_table *class_table){
+    Bool_type result = False;
+    Htable_entry *p_hte;
+    int rval;
+    char token_upper[256];
+    string_to_upper( input, token_upper );
+    rval = htable_search( class_table, input, FIND_ENTRY, &p_hte );
+    if ( rval!=OK ){
+        rval = htable_search( class_table, token_upper, FIND_ENTRY, &p_hte );
+    }
+    if (rval != OK){
+        result = False;
+    }
+    else{
+        result = True;
+    }
+    return result;
 }
 
+void str_swap(const char * arr[], int * perm, int a, int b)
+{
+    if( perm != NULL )
+    {
+        int tmp = perm[b];
+        perm[b] = perm[a];
+        perm[a] = tmp;
+    }
+
+    const char * tmp_str = arr[b];
+    arr[b] = arr[a];
+    arr[a] = tmp_str;
+}
+
+void str_heapify(const char * arr[], int * perm, int mid, int ii)
+{
+    // Find largest among root, left child and right child
+    int largest = ii;
+    int left = 2 * ii + 1;
+    int right = 2 * ii + 2;
+
+    if (left < mid && strcmp(arr[left], arr[largest]) > 0 )
+        largest = left;
+
+    if (right < mid && strcmp(arr[right], arr[largest]) > 0 )
+        largest = right;
+
+    // Swap and continue heapifying if root is not largest
+    if (largest != ii)
+    {
+        str_swap( arr, perm, ii, largest );
+        str_heapify( arr, perm, mid, largest );
+    }
+}
+
+void str_heapsort(const char * arr[], int * perm, int cnt)
+{
+    int ii = 0;
+    // Build max heap
+    for (ii = cnt / 2 - 1; ii >= 0; ii--)
+        str_heapify(arr, perm, cnt, ii);
+
+    // Heap sort
+    for (ii = cnt - 1; ii >= 0; ii--)
+    {
+        str_swap(arr, perm, 0, ii);
+        str_heapify(arr, perm, ii, 0);
+    }
+}

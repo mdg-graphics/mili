@@ -15,6 +15,7 @@ switch mglob
 clrsel 
 time 80
 rview; ry 90; rx 45; ry -35.26; rz -30
+on pn
 show sz
 outjpeg ntet20_image_sz_plot.answ.jpg
 # EndCase 

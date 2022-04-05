@@ -1,0 +1,20 @@
+# dtshell image test problem
+fracsz 8
+jpegqual 100
+sw interp
+
+# Set viewing
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+rx 45
+ry 45
+
+# Object selection
+select tshell 1-6
+set_ipt 3
+
+# Show result and output image
+show eps
+state 20
+state 50
+outjpeg dtshell_image_eps_plot.answ.jpg

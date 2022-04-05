@@ -1110,8 +1110,7 @@ extract_strain_vec( double *strain, double F[9], Strain_type s_type )
  * passes back primal data.
  */
 void
-compute_hex_eff_strain( Analysis *analy,float *resultArr,
-                        Bool_type interpolate )
+compute_hex_eff_strain( Analysis *analy,float *resultArr, Bool_type interpolate )
 {
     int cur_st, obj_qty, index, subrec, st_num, last_st;
     int i;
@@ -2155,6 +2154,7 @@ compute_beam_axial_strain( Analysis *analy, float *resultArr,
     float *force, *moment;
     Result *p_result;
     Subrec_obj *p_subrec;
+    MO_class_data *p_mo_class;
 
     p_result = analy->cur_result;
     index = analy->result_index;
@@ -2162,6 +2162,7 @@ compute_beam_axial_strain( Analysis *analy, float *resultArr,
     p_subrec = analy->srec_tree[p_result->srec_id].subrecs + subrec;
     obj_qty = p_subrec->subrec.qty_objects;
     object_ids = p_subrec->object_ids;
+    p_mo_class = p_subrec->p_object_class;
     resultElem = p_subrec->p_object_class->data_buffer;
 
     if ( new_beam_parameters )
@@ -2220,8 +2221,16 @@ compute_beam_axial_strain( Analysis *analy, float *resultArr,
     }
 
     if ( interpolate )
-        beam_to_nodal( resultElem, resultArr, p_subrec->p_object_class,
-                       obj_qty, object_ids, analy );
+        switch( p_mo_class->superclass ){
+        case G_TRUSS:
+            truss_to_nodal( resultElem, resultArr, p_subrec->p_object_class,
+                            obj_qty, object_ids, analy );
+            break;
+        case G_BEAM:
+            beam_to_nodal( resultElem, resultArr, p_subrec->p_object_class,
+                        obj_qty, object_ids, analy );
+            break;
+        }
 }
 
 

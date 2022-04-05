@@ -1,137 +1,6 @@
 /* $Id$ */
 /*
- *
  * gui.c - Graphical user interface routines.
- *
- *      Donald J. Dovey
- *      Lawrence Livermore National Laboratory
- *      Apr 27 1992
- *
- ************************************************************************
- * Modifications:
- *  I. R. Corey - Oct 1, 2004:Changed reference to env variable GRIZ4HOME
- *  to GRIZHOME.
- *
- *  I. R. Corey - Jan 5, 2005: Added new option to allow for selecting
- *                a beta version of the code. This option (-beta) is
- *                also parsed by the griz4s shell script.
- *                See SCR #298.
- *
- *  I. R. Corey - Mar 29, 2005: Print list of in objects state records.
- *
- *  I. R. Corey - Apr 11, 2005: Increased length of cnt to 100 in
- *                function wrt_standard_db_text.
- *
- *  I. R. Corey - May 19, 2005: Added new option to allow for selecting
- *                a alpha version of the code. This option (-alpha) is
- *                also parsed by the griz4s shell script.
- *                See SCR #328.
- *
- *  I. R. Corey - Aug 26, 2005: Add option to hide result from pull-down
- *                list using new variable 'hide_in_menu'.
- *                See SRC# 339.
- *
- *  I. R. Corey - Jan 17, 2006: Add Rubberband zoom capability. Activated
- *                using control key with left mouse button.
- *                See SRC#354 .
- *
- *  I. R. Corey - Feb 02, 2006: Add a new capability to display meshless,
- *                particle-based results.
- *                See SRC#367.
- *
- *  I. R. Corey - October 24, 2006: Add a class selector to all vis/invis
- *                and enable/disable commands.
- *                See SRC#421.
- *
- *  I. R. Corey - Dec 16, 2006: Added full path name to plot window and remove
- *                from titlebar.
- *                See SRC#431.
- *
- *  I. R. Corey - Feb 12, 2007: Added wireframe viewing capability and added
- *                logic to fix degenerate polygon faces.
- *                See SRC#437.
- *
- *  I. R. Corey - Apr 25, 2007:	Added check to make sure we really had a
- *                button press.
- *
- *  I. R. Corey - Apr 27, 2007:	Added a new menu item and button for Help
- *                to display the PDF manual.
- *
- *  I. R. Corey - May 11, 2007:	Raise Utility and Control windows to the
- *                top.
- *                See SRC#456.
- *
- *  I. R. Corey - May 15, 2007:	Save/Restore window attributes.
- *                See SRC#458.
- *
- *  I. R. Corey - Aug 15, 2007:	Added menus for displaying TI results.
- *                See SRC#480.
- *
- *  I. R. Corey - Aug 24, 2007:	Made a minor adjustment to the RB zoom
- *                factor, set to 1.28 - RE Mark Gracia.
- *                See SRC#482.
- *
- *  I. R. Corey - Aug 24, 2007:	Added a new help button to display cur-
- *                rent release notes.
- *                See SRC#483.
- *
- *  I. R. Corey - Oct 04, 2007: Increase size of history buffer in control
- *                window to 25.
- *                See SRC#493.
- *
- *  I. R. Corey - Jan 09, 2008: Added button to utility menu for Greyscale
- *                              mode.
- *                See SRC#476.
- *
- *  I. R. Corey - Feb 12, 2008: Added a condition compile option for IRIX.
- *
- *  K. Durrenberger - April 29, 2008: added a define for the glwMDrawingAreaWidgetClass
- *                    to be compiled as glwDrawingAreaWidgetClass except on the
- *		      sun and irix systems.
- *
- *  I. R. Corey - Feb 12, 2008: Added a conditional compile option for
- *                              IRIX.
- *
- *  I. R. Corey - May 5, 2008: Added support for code usage tracking using
- *                the AX tracker tool.
- *                See SRC#533.
- *
- *  I. R. Corey - Aug 12, 2009: Rewrote the code to get blocking and class
- *                info for the wrt_standard_db_text() function.
- *                See SRC#621.
- *
- *  I. R. Corey - Nov 09, 2009: Added enhancements to better support
- *                running multiple sessions of Griz.
- *                See SRC#638.
- *
- *  I. R. Corey - Sept 14, 2010: Added support for tear-off menus.
- *                See SRC#686
- *
- *  I. R. Corey - June 1, 2011: Added support for long result menus using
- *                a multi-column layout.
- *
- *  I. R. Corey - April 8th, 2012: Completed development of surface class
- *                based on new requirements.
- *                See TeamForge#17795
- *
- *  I. R. Corey - May 2nd, 2012: Added path to top of window panes.
- *                See TeamForge#17900
- *
- *  I. R. Corey - July 26th, 2012: Added capability to plot a Modal
- *                database from Diablo.
- *                See TeamForge#18395 & 18396
- *
- *  I. R. Corey - October 18th, 2012: Fixed problem with output of blocking
- *                info.
- *
- *  I. R. Corey - November 14th, 2012: Removed code name & date from top
- *                of all windows and moved to Control Window text box.
- *
- *  I. R. Corey - March 20th, 2013:
- *                of all windows and moved to Control Window text box.
- *                See TeamForge#18395 & 18396
- *
- ************************************************************************
  */
 
 #include <stdlib.h>
@@ -185,7 +54,6 @@
 
 #include "GL/gl.h"
 #include "GL/glx.h"
-//#include "image.h"
 #include "viewer.h"
 #include "draw.h"
 #include "results.h"
@@ -203,57 +71,28 @@
 #define GrizCheck_width 23
 #define GrizCheck_height 22
 static unsigned char GrizCheck_bits[] = {
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x03,
-   0x00, 0x80, 0x07, 0x00, 0x80, 0x07, 0x00, 0xc0, 0x0f, 0x00, 0xe0, 0x07,
-   0x00, 0xe0, 0x03, 0x20, 0xf0, 0x01, 0x70, 0xf0, 0x00, 0x78, 0x78, 0x00,
-   0xf8, 0x38, 0x00, 0xf0, 0x1c, 0x00, 0xe0, 0x1d, 0x00, 0xc0, 0x0d, 0x00,
-   0x80, 0x0f, 0x00, 0x00, 0x07, 0x00, 0x00, 0x07, 0x00, 0x00, 0x02, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x03, 0x00, 0x80, 0x07, 0x00, 0x80, 0x07, 0x00, 0xc0, 0x0f, 0x00, 0xe0, 0x07, 0x00, 0xe0, 0x03, 0x20, 0xf0, 0x01, 0x70, 0xf0, 0x00, 0x78, 0x78, 0x00, 0xf8, 0x38, 0x00, 0xf0, 0x1c, 0x00, 0xe0, 0x1d, 0x00, 0xc0, 0x0d, 0x00, 0x80, 0x0f, 0x00, 0x00, 0x07, 0x00, 0x00, 0x07, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 #define GrizButton_width 23
 #define GrizButton_height 17
 
 static unsigned char GrizLeft_bits[] = {
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x0f,
-   0x00, 0xe0, 0x0f, 0x00, 0xfc, 0x0f, 0x80, 0xff, 0x0f, 0xf0, 0xff, 0x0f,
-   0xfc, 0xff, 0x0f, 0xf0, 0xff, 0x0f, 0x80, 0xff, 0x0f, 0x00, 0xfc, 0x0f,
-   0x00, 0xe0, 0x0f, 0x00, 0x00, 0x0f, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00};
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x0f, 0x00, 0xe0, 0x0f, 0x00, 0xfc, 0x0f, 0x80, 0xff, 0x0f, 0xf0, 0xff, 0x0f, 0xfc, 0xff, 0x0f, 0xf0, 0xff, 0x0f, 0x80, 0xff, 0x0f, 0x00, 0xfc, 0x0f, 0x00, 0xe0, 0x0f, 0x00, 0x00, 0x0f, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static unsigned char GrizLeftStop_bits[] = {
-   0x07, 0x00, 0x00, 0x07, 0x00, 0x00, 0x07, 0x00, 0x40, 0x07, 0x00, 0x78,
-   0x07, 0x00, 0x7f, 0x07, 0xe0, 0x7f, 0x07, 0xfc, 0x7f, 0x87, 0xff, 0x7f,
-   0xe7, 0xff, 0x7f, 0x87, 0xff, 0x7f, 0x07, 0xfc, 0x7f, 0x07, 0xe0, 0x7f,
-   0x07, 0x00, 0x7f, 0x07, 0x00, 0x78, 0x07, 0x00, 0x40, 0x07, 0x00, 0x00,
-   0x07, 0x00, 0x00};
+   0x07, 0x00, 0x00, 0x07, 0x00, 0x00, 0x07, 0x00, 0x40, 0x07, 0x00, 0x78, 0x07, 0x00, 0x7f, 0x07, 0xe0, 0x7f, 0x07, 0xfc, 0x7f, 0x87, 0xff, 0x7f, 0xe7, 0xff, 0x7f, 0x87, 0xff, 0x7f, 0x07, 0xfc, 0x7f, 0x07, 0xe0, 0x7f, 0x07, 0x00, 0x7f, 0x07, 0x00, 0x78, 0x07, 0x00, 0x40, 0x07, 0x00, 0x00, 0x07, 0x00, 0x00};
 
 static unsigned char GrizRightStop_bits[] = {
-   0x00, 0x00, 0x70, 0x00, 0x00, 0x70, 0x01, 0x00, 0x70, 0x0f, 0x00, 0x70,
-   0x7f, 0x00, 0x70, 0xff, 0x03, 0x70, 0xff, 0x1f, 0x70, 0xff, 0xff, 0x70,
-   0xff, 0xff, 0x73, 0xff, 0xff, 0x70, 0xff, 0x1f, 0x70, 0xff, 0x03, 0x70,
-   0x7f, 0x00, 0x70, 0x0f, 0x00, 0x70, 0x01, 0x00, 0x70, 0x00, 0x00, 0x70,
-   0x00, 0x00, 0x70};
+   0x00, 0x00, 0x70, 0x00, 0x00, 0x70, 0x01, 0x00, 0x70, 0x0f, 0x00, 0x70, 0x7f, 0x00, 0x70, 0xff, 0x03, 0x70, 0xff, 0x1f, 0x70, 0xff, 0xff, 0x70, 0xff, 0xff, 0x73, 0xff, 0xff, 0x70, 0xff, 0x1f, 0x70, 0xff, 0x03, 0x70, 0x7f, 0x00, 0x70, 0x0f, 0x00, 0x70, 0x01, 0x00, 0x70, 0x00, 0x00, 0x70, 0x00, 0x00, 0x70};
 
 static unsigned char GrizRight_bits[] = {
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x3c, 0x00, 0x00,
-   0xfc, 0x01, 0x00, 0xfc, 0x0f, 0x00, 0xfc, 0x7f, 0x00, 0xfc, 0xff, 0x03,
-   0xfc, 0xff, 0x0f, 0xfc, 0xff, 0x03, 0xfc, 0x7f, 0x00, 0xfc, 0x0f, 0x00,
-   0xfc, 0x01, 0x00, 0x3c, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00};
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x3c, 0x00, 0x00, 0xfc, 0x01, 0x00, 0xfc, 0x0f, 0x00, 0xfc, 0x7f, 0x00, 0xfc, 0xff, 0x03, 0xfc, 0xff, 0x0f, 0xfc, 0xff, 0x03, 0xfc, 0x7f, 0x00, 0xfc, 0x0f, 0x00, 0xfc, 0x01, 0x00, 0x3c, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static unsigned char GrizStart_bits[] = {
-   0x07, 0x00, 0x00, 0x07, 0x00, 0x00, 0x27, 0x00, 0x00, 0xe7, 0x01, 0x00,
-   0xe7, 0x0f, 0x00, 0xe7, 0x7f, 0x00, 0xe7, 0xff, 0x03, 0xe7, 0xff, 0x1f,
-   0xe7, 0xff, 0x7f, 0xe7, 0xff, 0x1f, 0xe7, 0xff, 0x03, 0xe7, 0x7f, 0x00,
-   0xe7, 0x0f, 0x00, 0xe7, 0x01, 0x00, 0x27, 0x00, 0x00, 0x07, 0x00, 0x00,
-   0x07, 0x00, 0x00};
+   0x07, 0x00, 0x00, 0x07, 0x00, 0x00, 0x27, 0x00, 0x00, 0xe7, 0x01, 0x00, 0xe7, 0x0f, 0x00, 0xe7, 0x7f, 0x00, 0xe7, 0xff, 0x03, 0xe7, 0xff, 0x1f, 0xe7, 0xff, 0x7f, 0xe7, 0xff, 0x1f, 0xe7, 0xff, 0x03, 0xe7, 0x7f, 0x00, 0xe7, 0x0f, 0x00, 0xe7, 0x01, 0x00, 0x27, 0x00, 0x00, 0x07, 0x00, 0x00, 0x07, 0x00, 0x00};
 
 static unsigned char GrizStop_bits[] = {
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03,
-   0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03,
-   0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03,
-   0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00};
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0xe0, 0xff, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 
 /*
@@ -262,10 +101,6 @@ static unsigned char GrizStop_bits[] = {
  */
 Bool_type include_util_panel    = FALSE;
 Bool_type include_mtl_panel     = FALSE;
-
-/* Griz name & version for window titles. */
-static char *griz_name=NULL;
-static char path_string[MAXPATHLENGTH];
 
 /* Set to TRUE if the material Color-Mode is active */
 Bool_type mtl_color_active=FALSE;
@@ -296,107 +131,25 @@ static Bool_type resize_in_progress = FALSE;
  */
 typedef enum
 {
-    BTN_COPYRIGHT,
-    BTN_MTL_MGR,
-    BTN_SURF_MGR,
-    BTN_UTIL_PANEL,
-    BTN_SAVE_SESSION_GLOBAL,
-    BTN_SAVE_SESSION_PLOT,
-    BTN_LOAD_SESSION_GLOBAL,
-    BTN_LOAD_SESSION_PLOT,
-    BTN_QUIT,
-
-    BTN_DRAWFILLED,
-    BTN_DRAWHIDDEN,
-    BTN_DRAWWIREFRAME,
-    BTN_DRAWWIREFRAMETRANS,
-    BTN_DRAWGS,
-    BTN_COORDSYS,
-    BTN_TITLE,
-    BTN_TIME,
-    BTN_COLORMAP,
-    BTN_MINMAX,
-    BTN_SCALE,
-    BTN_ALLON,
-    BTN_ALLOFF,
-    BTN_BBOX,
-    BTN_EDGES,
-    BTN_PERSPECTIVE,
-    BTN_ORTHOGRAPHIC,
-    BTN_ADJUSTNF,
-    BTN_RESETVIEW,
-    BTN_SU,
-
-    BTN_HILITE,
-    BTN_SELECT,
-    BTN_CLEARHILITE,
-    BTN_CLEARSELECT,
-    BTN_CLEARALL,
-    BTN_PICSHELL,
-    BTN_PICBEAM,
-    BTN_CENTERON,
-    BTN_CENTEROFF,
-
-    BTN_INFINITESIMAL,
-    BTN_ALMANSI,
-    BTN_GREEN,
-    BTN_RATE,
-    BTN_LOCAL,
-    BTN_GLOBAL,
-    BTN_MIDDLE,
-    BTN_INNER,
-    BTN_OUTER,
-
-    BTN_NEXTSTATE,
-    BTN_PREVSTATE,
-    BTN_FIRSTSTATE,
-    BTN_LASTSTATE,
-    BTN_ANIMATE,
-    BTN_STOPANIMATE,
-    BTN_CONTANIMATE,
-
-    BTN_TIMEPLOT,
-    BTN_EI,
-
-    BTN_FN,  /* Free nodes     */
+    BTN_COPYRIGHT, BTN_MTL_MGR, BTN_SURF_MGR, BTN_UTIL_PANEL, BTN_SAVE_SESSION_GLOBAL, BTN_SAVE_SESSION_PLOT, BTN_LOAD_SESSION_GLOBAL, BTN_LOAD_SESSION_PLOT, BTN_QUIT, BTN_DRAWFILLED, BTN_DRAWHIDDEN, BTN_DRAWWIREFRAME, BTN_DRAWWIREFRAMETRANS, BTN_DRAWGS, BTN_COORDSYS, BTN_TITLE, BTN_TIME, BTN_COLORMAP, BTN_MINMAX, BTN_SCALE, BTN_ALLON, BTN_ALLOFF, BTN_BBOX, BTN_EDGES, BTN_PERSPECTIVE, BTN_ORTHOGRAPHIC, BTN_ADJUSTNF, BTN_RESETVIEW, BTN_SU, BTN_HILITE, BTN_SELECT, BTN_CLEARHILITE, BTN_CLEARSELECT, BTN_CLEARALL, BTN_PICSHELL, BTN_PICBEAM, BTN_CENTERON, BTN_CENTEROFF, BTN_INFINITESIMAL, BTN_ALMANSI, BTN_GREEN, BTN_RATE, BTN_LOCAL, BTN_GLOBAL, BTN_MIDDLE, BTN_INNER, BTN_OUTER, BTN_NEXTSTATE, BTN_PREVSTATE, BTN_FIRSTSTATE, BTN_LASTSTATE, BTN_ANIMATE, BTN_STOPANIMATE, BTN_CONTANIMATE, BTN_TIMEPLOT, BTN_EI, BTN_FN,  /* Free nodes     */
     BTN_PN,  /* Particle nodes */
 
-    BTN_HELP,
-    BTN_RELNOTES,
-    BTN_GS
+    BTN_HELP, BTN_RELNOTES, BTN_GS
 } Btn_type;
 
 typedef enum
 {
-    FUNC_VISIBLE, 
-    FUNC_INVISIBLE, 
-    FUNC_ENABLE, 
-    FUNC_DISABLE, 
-    FUNC_COLOR
+    FUNC_VISIBLE, FUNC_INVISIBLE, FUNC_ENABLE, FUNC_DISABLE, FUNC_COLOR
 } Func_buttons;
 
 typedef enum
 {
-    SELECT_ALL, 
-    SELECT_NONE, 
-    SELECT_INVERT, 
-    SELECT_BY_FUNC, 
-    SELECT_PREV
+    SELECT_ALL, SELECT_NONE, SELECT_INVERT, SELECT_BY_FUNC, SELECT_PREV
 } Select_buttons;
 
 /* Local routines. */
-static void init_gui( void );
-#ifdef USE_OLD_CALLBACKS
-static void expose_CB( Widget w, XtPointer client_data, XtPointer call_data );
-static void resize_CB( Widget w, XtPointer client_data, XtPointer call_data );
-#else
-static void expose_resize_CB( Widget w, XtPointer client_data,
-                              XtPointer call_data );
-static Bool_type get_last_renderable_event( Window win, XEvent *p_xe,
-        Bool_type *p_resize,
-        Dimension *p_width,
-        Dimension *p_height );
-#endif
+static void expose_resize_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static Bool_type get_last_renderable_event( Window win, XEvent *p_xe, Bool_type *p_resize, Dimension *p_width, Dimension *p_height );
 static void res_menu_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void menu_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void input_CB( Widget w, XtPointer client_data, XtPointer call_data );
@@ -405,89 +158,58 @@ static void install_plot_coords_display( void );
 static void remove_plot_coords_display( void );
 static void set_plot_cursor_display ( int cursor_x, int cursor_y );
 #ifdef WANT_PLOT_CALLBACK
-static void plot_input_CB( Widget w, XtPointer client_data,
-                           XtPointer call_data );
+static void plot_input_CB( Widget w, XtPointer client_data, XtPointer call_data );
 #endif
 static void parse_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void exit_CB( Widget, XtPointer, XtPointer );
 
-static void destroy_mtl_mgr_CB( Widget w, XtPointer client_data,
-                                XtPointer call_data );
+static void destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data );
 void destroy_mtl_mgr( void );
-static void destroy_surf_mgr_CB( Widget w, XtPointer client_data,
-                                 XtPointer call_data );
+static void destroy_surf_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data );
 void destroy_surf_mgr( void );
-static void destroy_util_panel_CB( Widget w, XtPointer client_data,
-                                   XtPointer call_data );
+static void destroy_util_panel_CB( Widget w, XtPointer client_data, XtPointer call_data );
 
 /*     Material Manager Functions */
-static void mtl_func_select_CB( Widget w, XtPointer client_data,
-                                XtPointer call_data );
-static void mtl_quick_select_CB( Widget w, XtPointer client_data,
-                                 XtPointer call_data );
-static void mtl_select_CB( Widget w, XtPointer client_data,
-                           XtPointer call_data );
-static void mtl_func_operate_CB( Widget w, XtPointer client_data,
-                                 XtPointer call_data );
-static void col_comp_disarm_CB( Widget w, XtPointer client_data,
-                                XtPointer call_data );
-static void col_ed_scale_CB( Widget w, XtPointer client_data,
-                             XtPointer call_data );
-static void col_ed_scale_update_CB( Widget w, XtPointer client_data,
-                                    XtPointer call_data );
-static void expose_swatch_CB( Widget w, XtPointer client_data,
-                              XtPointer call_data );
-static void init_swatch_CB( Widget w, XtPointer client_data,
-                            XtPointer call_data );
+static void mtl_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void mtl_select_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void col_comp_disarm_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void col_ed_scale_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void col_ed_scale_update_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void expose_swatch_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void init_swatch_CB( Widget w, XtPointer client_data, XtPointer call_data );
 
 /*     Surface Manager Functions */
-static void surf_func_select_CB( Widget w, XtPointer client_data,
-                                 XtPointer call_data );
-static void surf_quick_select_CB( Widget w, XtPointer client_data,
-                                  XtPointer call_data );
-static void surf_select_CB( Widget w, XtPointer client_data,
-                            XtPointer call_data );
-static void surf_func_operate_CB( Widget w, XtPointer client_data,
-                                  XtPointer call_data );
+static void surf_func_select_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void surf_select_CB( Widget w, XtPointer client_data, XtPointer call_data );
+static void surf_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data );
 
-static void util_render_CB( Widget w, XtPointer client_data,
-                            XtPointer call_data );
+static void util_render_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void step_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void stride_CB( Widget w, XtPointer client_data, XtPointer call_data );
-static void menu_setpick_CB( Widget w, XtPointer client_data,
-                             XtPointer call_data );
+static void menu_setpick_CB( Widget w, XtPointer client_data, XtPointer call_data );
 static void menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data );
-static void plot_cursor_EH( Widget w, XtPointer client_data,
-                            XEvent *event, Boolean *continue_dispatch );
-static void enter_render_EH( Widget w, XtPointer client_data, XEvent *event,
-                             Boolean *continue_dispatch );
-static void stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
-                           Boolean *continue_dispatch );
-static void stack_window_EH( Widget w, XtPointer client_data, XEvent *event,
-                             Boolean *continue_dispatch );
+static void plot_cursor_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch );
+static void enter_render_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch );
+static void stack_init_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch );
+static void stack_window_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch );
 static void find_ancestral_root_child( Widget widg, Window *root_child );
 static void create_app_widg( Btn_type btn );
-static void create_result_menus( Widget parent );
-static void create_derived_res_menu( Widget parent );
-static void create_primal_res_menu( Widget parent );
+static void create_derived_res_menu( Analysis * analy, Widget parent );
+static void create_primal_res_menu( Analysis * analy, Widget parent );
 static void create_ti_res_menu( Widget parent );
-static void add_primal_result_button( Widget parent, Primal_result * );
+static void add_primal_result_button( Analysis * analy, Widget parent, Primal_result * );
 static void add_ti_result_button( Widget parent, Primal_result * );
-static void get_primal_submenu_name( Analysis *, Primal_result *, char * );
-static Bool_type find_labelled_child( Widget, char *, Widget *, int * );
-static void add_derived_result_button( Derived_result * );
-static void get_result_submenu_name( Derived_result *, char * );
-static Widget create_menu_bar( Widget parent, Analysis * );
+static void add_derived_result_button( Analysis * analy, Widget parent, Derived_result * );
+static Widget create_menu_bar( Analysis * Analy, Widget parent );
 static Widget create_mtl_manager( Widget main_widg );
 static Widget create_surf_manager( Widget main_widg );
 static Widget create_free_util_panel( Widget main_widg );
 static Widget create_utility_panel( Widget main_widg );
-static Widget create_pick_menu( Widget parent, int *btn_type,
-                                char *cascade_name );
-static Widget create_pick_submenu( Widget parent,
-                                   int *btn_type,
-                                   char *cascade_name,
-                                   Widget *p_initial_button );
+static Widget create_pick_menu( Widget parent, int *btn_type, char *cascade_name );
+static Widget create_pick_submenu( Widget parent, int *btn_type, char *cascade_name, Widget *p_initial_button );
 static void get_pick_superclass( Util_panel_button_type, int * );
 static void send_mtl_cmd( char *cmd, int tok_qty );
 static size_t load_mtl_mgr_funcs( char *p_buf, int *p_token_cnt );
@@ -505,20 +227,15 @@ static void update_actions_sens( void );
 static void update_surf_actions_sens( void );
 static void update_swatch_label( void );
 static void action_quit( Widget w, XEvent *event, String params[], int *qty );
-static void action_translate_command( Widget w, XEvent *event, String params[],
-                                      int *qty );
+static void action_translate_command( Widget w, XEvent *event, String params[], int *qty );
 static Bool_type mtl_func_active( void );
 static Bool_type surf_func_active( void );
 
-static void action_create_app_widg( Widget w, XEvent *event, String params[],
-                                    int *qty );
+static void action_create_app_widg( Widget w, XEvent *event, String params[], int *qty );
 static void resize_mtl_scrollwin( Widget , XtPointer, XtPointer );
-static void resize_surf_scrollwin( Widget w, XEvent *event, String params[],
-                                   int qty );
-static void gress_mtl_mgr_EH( Widget w, XtPointer client_data, XEvent *event,
-                              Boolean *continue_dispatch );
-static void gress_surf_mgr_EH( Widget w, XtPointer client_data, XEvent *event,
-                               Boolean *continue_dispatch );
+static void resize_surf_scrollwin( Widget w, XEvent *event, String params[], int qty );
+static void gress_mtl_mgr_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch );
+static void gress_surf_mgr_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch );
 static void string_convert( XmString str, char *buf );
 static Boolean animate_workproc_CB();
 static void remove_widget_CB( Widget, XtPointer, XtPointer );
@@ -529,34 +246,16 @@ void put_window_attributes( void );
 void defineDialogColor( Display* dpy );
 void pushpop_window( PushPop_type direction );
 
-MO_class_data *
-assemble_blocking( Analysis *analy, int sclass, char *class_name,
-                   int *qty_objects, int *label_block_qty,
-                   int *num_blocks, int *blocks, int *blocks_labels );
+MO_class_data * assemble_blocking( Analysis *analy, int sclass, char *class_name, int *qty_objects, int *label_block_qty, int *num_blocks, int *blocks, int *blocks_labels );
+MO_class_data * get_blocking_info( Analysis *analy,  char *class_name, int superclass, int *qty_objects, int *num_blocks,  int **blocks );
 
-MO_class_data *
-get_blocking_info( Analysis *analy,  char *class_name, int superclass,
-                   int *qty_objects,
-                   int *num_blocks,  int **blocks );
-
-int
-assemble_compare_blocks( int *blockl1, int *block2 );
-
+int assemble_compare_blocks( int *blockl1, int *block2 );
 void defineBorderColor( Display* dpy );
 
-static Widget
-create_colormap_menu( Widget parent, Util_panel_button_type btn_type,
-                      char *cascade_name );
+static Widget create_colormap_menu( Widget parent, Util_panel_button_type btn_type, char *cascade_name );
+static Widget create_colormap_submenu( Widget parent, colormap_type btn_type, Widget *p_initial_button );
 
-static Widget
-create_colormap_submenu( Widget parent, colormap_type btn_type,
-                         Widget *p_initial_button );
-
-
-void x11_signal( int code )
-{
-    exit( code );
-}
+static void element_set_popup_message(Analysis* analy);
 
 /*
  * This resource list provides defaults for settable values in the
@@ -564,81 +263,51 @@ void x11_signal( int code )
  */
 String fallback_resources[] =
 {
-    "*fontList: -misc-fixed-medium-r-normal-*-14-*-*-*-*-*-*-*",
-    "*background: grey",
-    "*monitor*height: 130",
-    "*monitor*columns: 60",
-    "*foreground: Black",
-    NULL
+    "*fontList: -misc-fixed-medium-r-normal-*-14-*-*-*-*-*-*-*", "*background: grey", "*monitor*height: 130", "*monitor*columns: 60", "*foreground: Black", NULL
 };
 
 static void load_colormap( Analysis *analy, char *colormap );
 
-
 /* Material manager function button values. */
 typedef enum
 {
-    VIS,
-    INVIS,
-    ENABLE,
-    DISABLE,
-    COLOR,
-    MTL_FUNC_QTY
+    VIS, INVIS, ENABLE, DISABLE, COLOR, MTL_FUNC_QTY
 } Mtl_mgr_func_type;
 
 /* Material manager global material selection button values. */
 typedef enum
 {
-    ALL_MTL,
-    NONE,
-    INVERT,
-    BY_FUNC
+    ALL_MTL, NONE, INVERT, BY_FUNC
 } Mtl_mgr_glo_sel_type;
 
 /* Material manager function operation button values. */
 typedef enum
 {
-    OP_PREVIEW,
-    OP_CANCEL,
-    OP_APPLY,
-    OP_DEFAULT,
-    MTL_OP_QTY
+    OP_PREVIEW, OP_CANCEL, OP_APPLY, OP_DEFAULT, MTL_OP_QTY
 } Mtl_mgr_op_type;
 
 /* Material manager color scales. */
 typedef enum
 {
-    RED_SCALE,
-    GREEN_SCALE,
-    BLUE_SCALE,
-    SHININESS_SCALE
+    RED_SCALE, GREEN_SCALE, BLUE_SCALE, SHININESS_SCALE
 } Color_editor_scale_type;
 
 /* Surface manager function button values. */
 typedef enum
 {
-    VIS_SURF,
-    INVIS_SURF,
-    ENABLE_SURF,
-    DISABLE_SURF,
-    SURF_FUNC_QTY
+    VIS_SURF, INVIS_SURF, ENABLE_SURF, DISABLE_SURF, SURF_FUNC_QTY
 } Surf_mgr_func_type;
 
 /* Surface manager global selection button values. */
 typedef enum
 {
-    ALL_SURF,
-    NONE_SURF,
-    INVERT_SURF,
-    BY_FUNC_SURF
+    ALL_SURF, NONE_SURF, INVERT_SURF, BY_FUNC_SURF
 } Surf_mgr_glo_sel_type;
 
 /* Surface manager function operation button values. */
 typedef enum
 {
-    SURF_OP_APPLY,
-    SURF_OP_DEFAULT,
-    SURF_OP_QTY
+    SURF_OP_APPLY, SURF_OP_DEFAULT, SURF_OP_QTY
 } Surf_mgr_op_type;
 
 
@@ -698,9 +367,6 @@ static Widget plot_coord_widg = NULL;
 static Widget x_coord_widg = NULL;
 static Widget y_coord_widg = NULL;
 static Widget menu_widg = NULL;
-static Widget ctl_menu_pane = NULL;
-static Widget derived_menu_widg = NULL;
-static Widget primal_menu_widg = NULL;
 static Widget ti_menu_widg = NULL;
 static Widget monitor_widg = NULL;
 static Widget mtl_mgr_widg = NULL;
@@ -709,8 +375,6 @@ static Widget mtl_base = NULL;
 static Widget surf_mgr_widg = NULL;
 static Widget surf_mgr_button = NULL;
 static Widget surf_base = NULL;
-static Widget util_button = NULL;
-static Widget quit_button = NULL;
 static Widget mtl_mgr_func_toggles[5];
 static Widget select_buttons[4];
 static Widget surf_mgr_func_toggles[SURF_FUNC_QTY];
@@ -736,15 +400,10 @@ static Widget stride_label = NULL;
 static Widget setpick_menu1_widg = NULL;
 static Widget setpick_menu2_widg = NULL;
 static Widget setpick_menu3_widg = NULL;
-static Widget colormap_menu_widg = NULL;
 
 typedef enum _shell_win_type
 {
-    CONTROL_SHELL_WIN,
-    RENDER_SHELL_WIN,
-    UTIL_PANEL_SHELL_WIN,
-    MTL_MGR_SHELL_WIN,
-    SURF_MGR_SHELL_WIN
+    CONTROL_SHELL_WIN, RENDER_SHELL_WIN, UTIL_PANEL_SHELL_WIN, MTL_MGR_SHELL_WIN, SURF_MGR_SHELL_WIN
 } Shell_win_type;
 
 static Window ctl_top_win = 0;
@@ -772,7 +431,7 @@ static GLXContext render_ctx;
 static GLXContext swatch_ctx;
 
 /* Visual info. */
-static XVisualInfo *vi;
+static XVisualInfo * visual_info;
 
 /* Current rendering window. */
 static OpenGL_win cur_opengl_win = NO_OGL_WIN;
@@ -799,9 +458,7 @@ char *mtl_mgr_cmd;
 char *surf_mgr_cmd;
 
 /* Pixmaps. */
-static Pixmap mtl_check, surf_check,
-       pixmap_start, pixmap_stop, pixmap_leftstop,
-       pixmap_left, pixmap_right, pixmap_rightstop;
+static Pixmap mtl_check, surf_check, pixmap_start, pixmap_stop, pixmap_leftstop, pixmap_left, pixmap_right, pixmap_rightstop;
 
 /* Lists for select and deselected materials for material manager. */
 static Material_list_obj *mtl_select_list = NULL;
@@ -827,8 +484,7 @@ static MO_class_data *btn3_mo_class = NULL;
 /* NOTE - G_UNIT should be replaced with G_PARTICLE when/if available!!! */
 static int pick_sclasses[] =
 {
-    G_NODE, G_UNIT, G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_PYRAMID, G_WEDGE,
-    G_HEX, G_SURFACE, G_PARTICLE
+    G_NODE, G_UNIT, G_TRUSS, G_BEAM, G_TRI, G_QUAD, G_TET, G_PYRAMID, G_WEDGE, G_HEX, G_SURFACE, G_PARTICLE
 };
 
 /* List for warning dialog handles. */
@@ -860,39 +516,18 @@ static float motion_threshold = 0.0;
  * Resource settings for GL choose visual.  Demand full 24 bit
  * color -- otherwise you can get yucky dithering.
  */
-/*
-static int single_buf[] = { GLX_RGBA, GLX_DEPTH_SIZE, 16,
-                            GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8,
-                            GLX_BLUE_SIZE, 8, GLX_STENCIL_SIZE, 1, None };
-static int double_buf[] = { GLX_RGBA, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER,
-                            GLX_RED_SIZE, 4, GLX_GREEN_SIZE, 4,
-                            GLX_BLUE_SIZE, 4, GLX_STENCIL_SIZE, 1, None };
-static int single_buf_no_z[] = { GLX_RGBA, GLX_RED_SIZE, 8,
-                                 GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8,
-                                 GLX_STENCIL_SIZE, 1, None };
-static int double_buf_no_z[] = { GLX_RGBA, GLX_RED_SIZE, 4,
-                                 GLX_GREEN_SIZE, 4, GLX_BLUE_SIZE, 4,
-                                 GLX_STENCIL_SIZE, 1, GLX_DOUBLEBUFFER, None };
-*/
+
 /*
  * glXChooseVisual() should return the maximum buffers supported on the
  * machine.  Apparently, this was buggy in IRIX 5.1.
  */
-static int single_buf[] = { GLX_RGBA, GLX_DEPTH_SIZE, 1,
-                            GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1,
-                            GLX_BLUE_SIZE, 1, GLX_STENCIL_SIZE, 1, None
+static int single_buf[] = { GLX_RGBA, GLX_DEPTH_SIZE, 1, GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1, GLX_BLUE_SIZE, 1, GLX_STENCIL_SIZE, 1, None
                           };
-static int double_buf[] = { GLX_RGBA, GLX_DEPTH_SIZE, 1, GLX_DOUBLEBUFFER,
-                            GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1,
-                            GLX_BLUE_SIZE, 1, GLX_STENCIL_SIZE, 1, None
+static int double_buf[] = { GLX_RGBA, GLX_DEPTH_SIZE, 1, GLX_DOUBLEBUFFER, GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1, GLX_BLUE_SIZE, 1, GLX_STENCIL_SIZE, 1, None
                           };
-static int single_buf_no_z[] = { GLX_RGBA, GLX_RED_SIZE, 1,
-                                 GLX_GREEN_SIZE, 1, GLX_BLUE_SIZE, 1,
-                                 GLX_STENCIL_SIZE, 1, None
+static int single_buf_no_z[] = { GLX_RGBA, GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1, GLX_BLUE_SIZE, 1, GLX_STENCIL_SIZE, 1, None
                                };
-static int double_buf_no_z[] = { GLX_RGBA, GLX_DOUBLEBUFFER, GLX_RED_SIZE, 1,
-                                 GLX_GREEN_SIZE, 1, GLX_BLUE_SIZE, 1,
-                                 GLX_STENCIL_SIZE, 1, None
+static int double_buf_no_z[] = { GLX_RGBA, GLX_DOUBLEBUFFER, GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1, GLX_BLUE_SIZE, 1, GLX_STENCIL_SIZE, 1, None
                                };
 
 /*
@@ -905,7 +540,7 @@ void
 test()
 {
     dpy = XtDisplay( ctl_shell_widg );
-    vi = glXChooseVisual( dpy, DefaultScreen( dpy ), single_buf );
+    visual_info = glXChooseVisual( dpy, DefaultScreen( dpy ), single_buf );
     exit(1);
 }
 /*
@@ -948,6 +583,80 @@ static Position  ctl_x, ctl_y;
 static Dimension ctl_width, ctl_height;
 float rb_dx, rb_dy, temp_x, temp_y;
 
+
+XVisualInfo*
+gl_get_x_visual_info( Analysis * analy )
+{
+    if ( analy->dimension == 3 )
+    {
+        if ( !env.single_buffer )
+            visual_info = glXChooseVisual( dpy, DefaultScreen( dpy ), double_buf );
+        if ( visual_info == NULL )
+            visual_info = glXChooseVisual( dpy, DefaultScreen( dpy ), single_buf );
+        if ( visual_info == NULL )
+            popup_fatal( "No RGB visual with depth buffer.\n" );
+    }
+    else  /* Don't use Z buffer for 2D drawing. */
+    {
+        if ( !env.single_buffer )
+            visual_info = glXChooseVisual( dpy, DefaultScreen( dpy ), double_buf_no_z );
+        if ( visual_info == NULL )
+            visual_info = glXChooseVisual( dpy, DefaultScreen( dpy ), single_buf_no_z );
+        if ( visual_info == NULL )
+            popup_fatal( "No RGB visual with depth buffer.\n" );
+    }
+    return visual_info;
+}
+
+GLXContext
+gl_create_context( XVisualInfo * visual_info )
+{
+    /* Create an OpenGL rendering context. */
+    GLXContext ctx = glXCreateContext( dpy, visual_info, None, GL_TRUE );
+
+    /* Check if direct or indirect rendering context */
+    Bool_type isDirectRendering = glXIsDirect(dpy, ctx);
+    env.direct_rendering = isDirectRendering;
+
+    if ( ctx == NULL )
+        popup_fatal( "Could not create rendering context.\n" );
+    return ctx;
+}
+
+/* ARGSUSED 3 */
+/*****************************************************************
+ * TAG( update_gui )
+ *
+ * Update gui callbacks and resources for render mode changes.
+ */
+void
+update_gui( Analysis *analy, Render_mode_type new_rmode, Render_mode_type old_rmode )
+{
+    if ( new_rmode != RENDER_PLOT )
+    {
+        if ( old_rmode == RENDER_PLOT )
+        {
+#ifdef WANT_PLOT_CALLBACK
+            XtRemoveCallback( ogl_widg[MESH_VIEW], GLwNinputCallback, plot_input_CB, 0 );
+#endif
+            XtAddCallback( ogl_widg[MESH_VIEW], GLwNinputCallback, input_CB, NULL );
+
+            manage_plot_cursor_display( analy->show_plot_coords, new_rmode, old_rmode );
+        }
+    }
+    else
+    {
+        if ( old_rmode == RENDER_MESH_VIEW )
+        {
+            XtRemoveCallback( ogl_widg[MESH_VIEW], GLwNinputCallback, input_CB, 0 );
+#ifdef WANT_PLOT_CALLBACK
+            XtAddCallback( ogl_widg[MESH_VIEW], GLwNinputCallback, plot_input_CB, NULL );
+#endif
+            manage_plot_cursor_display( analy->show_plot_coords, new_rmode, old_rmode );
+        }
+    }
+}
+
 /*****************************************************************
  * TAG( gui_start )
  *
@@ -955,7 +664,7 @@ float rb_dx, rb_dy, temp_x, temp_y;
  * the gui event loop.
  */
 void
-gui_start( int argc, char **argv , Analysis *analy )
+gui_start( int argc, char **argv , Analysis * analy )
 {
     Widget mainwin_widg, pane, x_label_widg, y_label_widg;
     Drawable d1;
@@ -969,8 +678,6 @@ gui_start( int argc, char **argv , Analysis *analy )
     int status;
     int i;
 
-    init_griz_name( analy );
-
     /* Read in the session initialization data */
 
     /*
@@ -978,41 +685,25 @@ gui_start( int argc, char **argv , Analysis *analy )
      * the rendering window.
      */
 
-    if ( !analy->path_found )
-        strcpy( path, analy->path_name );
-
+    char * path_string = make_path_str( analy );
     if ( env.bname )
         sprintf( title, "Control:  %s%s", path_string, env.bname );
     else
         sprintf( title, "Control:  %s%s", path_string, env.plotfile_name );
-
-    n = 0;
-    XtSetArg( args[n], XmNiconic, FALSE );
-    n++;
-    XtSetArg( args[n], XmNiconName, "GRIZ" );
-    n++;
-    XtSetArg( args[n], XmNtitle, title );
-    n++;
-    XtSetArg( args[n], XmNallowShellResize, TRUE );
-    n++;
+    free( path_string );
 
     /*
- *     XtAppInitialize returns an ApplicationShell widget to be used as the root of the application's
- *     widget tree.
- *  */
-    ctl_shell_widg = XtAppInitialize( &app_context, "GRIZ",
-                                      (XrmOptionDescList)NULL , 0,
-                                      &argc,
-                                      (String*)argv,
-                                      fallback_resources,
-                                      args, n );
-
+     * XtAppInitialize returns an ApplicationShell widget to be used as the root of the application's
+     * widget tree.
+     */
+    ctl_shell_widg = XtVaAppInitialize( &app_context, "GRIZ", NULL, 0, &argc, argv, fallback_resources, XmNiconic, FALSE, XmNiconName, "GRIZ", XmNtitle, title, XmNallowShellResize, TRUE);
+    // ctl_shell_widg = XtVaOpenApplication( &app_context, "GRIZ", NULL, 0, &argc, argv, fallback_resources, sessionShellWidgetClass, //                                       XmNiconic, FALSE, //                                       XmNiconName, "GRIZ", //                                       XmNtitle, title, //                                       XmNallowShellResize, TRUE );
     /* Record the display for use elsewhere. */
     dpy = XtDisplay( ctl_shell_widg );
     dpy_copy = dpy;
     defineDialogColor( dpy );
 
-    if ( env.griz_id>0 )
+    if ( env.griz_id > 0 )
         defineBorderColor( dpy );
 
     /*
@@ -1020,244 +711,112 @@ gui_start( int argc, char **argv , Analysis *analy )
      * it will be called if the user kills GRIZ via the window manager.
      */
     WM_DELETE_WINDOW = XmInternAtom( dpy, "WM_DELETE_WINDOW", False );
-    XmAddWMProtocolCallback( ctl_shell_widg, WM_DELETE_WINDOW,
-                             (XtCallbackProc) exit_CB, NULL );
+    XmAddWMProtocolCallback( ctl_shell_widg, WM_DELETE_WINDOW, (XtCallbackProc)exit_CB, NULL );
 
-    n = 0;
     /*
- *     Creating a widget is a three-step process. First, the widget instance is allocated, and various 
- *     instance-specific attributes are set by using XtCreateWidget. Second, the widget's parent
- *     is informed of the new child by using XtManageChild. Finally, X windows are created for the
- *     parent and all its children by using XtRealizeWidget and specifying the top-most widget. The
- *     first two steps can be combined by using XtCreateManagedWidget. In addition, XtRealizeWidget is
- *     automatically called when the child becomes managed if the parent is already realized.
- *  */
-    mainwin_widg = XtCreateManagedWidget( "mainw",
-                                          xmMainWindowWidgetClass,
-                                          ctl_shell_widg, args, n );
-
-    menu_widg = create_menu_bar( mainwin_widg, analy );
+     * Creating a widget is a three-step process. First, the widget instance is allocated, and various
+     * instance-specific attributes are set by using XtCreateWidget. Second, the widget's parent
+     * is informed of the new child by using XtManageChild. Finally, X windows are created for the
+     * parent and all its children by using XtRealizeWidget and specifying the top-most widget. The
+     * first two steps can be combined by using XtCreateManagedWidget. In addition, XtRealizeWidget is
+     * automatically called when the child becomes managed if the parent is already realized.
+     */
+    mainwin_widg = XtCreateManagedWidget( "mainw", xmMainWindowWidgetClass, ctl_shell_widg, NULL, 0 );
+    menu_widg = create_menu_bar( analy, mainwin_widg );
 
     /*
      * Everything else for the control window goes onto a pane.
      */
-
-    n = 0;
-    if ( env.griz_id>0 )
+    if ( env.griz_id > 0 )
     {
         gid = env.griz_id;
-        XtSetArg( args[n], XmNallowResize, TRUE );
-        n++;
-        XtSetArg( args[n], XmNmarginWidth, 2 );
-        n++;
-        XtSetArg( args[n], XmNmarginHeight, 2 );
-        n++;
-        XtSetArg( args[n],  XmNbackground,  env.border_colors[gid-1] );
-        n++;
+        pane = XmVaCreatePanedWindow( mainwin_widg, "pane", XmNallowResize, TRUE, XmNmarginWidth, 2, XmNmarginHeight, 2, XmNbackground,  env.border_colors[gid-1] );
     }
-
-    pane = XmCreatePanedWindow( mainwin_widg, "pane", args, n );
+    else
+    {
+        pane = XmCreatePanedWindow( mainwin_widg, "pane", NULL, 0 );
+    }
     XtManageChild( pane );
+
+    // scrolledtext has no Va or managed wrapper
     n = 0;
-    XtSetArg( args[n], XmNeditable, FALSE );
-    n++;
-    XtSetArg( args[n], XmNeditMode, XmMULTI_LINE_EDIT );
-    n++;
-    XtSetArg( args[n], XmNautoShowCursorPosition, FALSE );
-    n++;
-    XtSetArg( args[n], XmNscrollingPolicy, XmAUTOMATIC );
-    n++;
+    XtSetArg( args[n], XmNeditable, FALSE );  n++;
+    XtSetArg( args[n], XmNeditMode, XmMULTI_LINE_EDIT ); n++;
+    XtSetArg( args[n], XmNautoShowCursorPosition, FALSE ); n++;
+    XtSetArg( args[n], XmNscrollingPolicy, XmAUTOMATIC ); n++;
     monitor_widg = XmCreateScrolledText( pane, "monitor", args, n );
     XtManageChild( monitor_widg );
 
     /* Include other panels in Control Panel if requested on command line */
-
     if ( include_util_panel )
         util_panel_widg = create_utility_panel( pane );
-
     if ( include_mtl_panel )
         mtl_mgr_widg = create_mtl_manager( pane );
 
     command_label = XmStringCreateLocalized( "Command:" );
-    n = 0;
-    /* XtSetArg( args[n], XmNheight, 150 ); n++; */
-
-    /* History display is set to 25 */
-    XtSetArg( args[n], XmNhistoryVisibleItemCount, 25 );
-    n++;
-    XtSetArg( args[n], XmNselectionLabelString, command_label );
-    n++;
-    XtSetArg( args[n], XmNskipAdjust, True );
-    n++;
-
-    command_widg = XmCreateCommand( pane, "command", args, n );
-    XtAddCallback( command_widg, XmNcommandEnteredCallback, parse_CB, NULL );
+    command_widg = XmVaCreateCommand( pane, "command", XmNhistoryVisibleItemCount, 25, XmNselectionLabelString, command_label, XmNskipAdjust, True, NULL );
     XtManageChild( command_widg );
-    
+    XmStringFree( command_label );
+    XtAddCallback( command_widg, XmNcommandEnteredCallback, parse_CB, NULL );
 
     /* Set initial keyboard focus to the command widget. */
     XtVaSetValues( pane, XmNinitialFocus, command_widg, NULL );
-
     XmMainWindowSetAreas( mainwin_widg, menu_widg, NULL, NULL, NULL, pane );
 
     /* The control widget gets realized down below. */
-
-    /* Start-up notices go into the monitor window. */
     write_start_text();
-//    int pos = 0;
-//    for(pos = 0; pos < analy->num_messages; pos++){
-//    	wrt_text(analy->conflict_messages[pos]);
-//    }
 
-    /*
-     * Have the control window, now build the rendering window.
-     */
-
-    /* Create a topLevelShell for the rendering window. */
-
+    // Build the rendering window.
+    path_string = make_path_str( analy );
     if ( env.bname )
-    {
         sprintf( title, "Render:  %s%s", path_string, env.bname );
-    }
     else
         sprintf( title, "Render:  %s%s", path_string, env.plotfile_name );
-
-    n = 0;
-    XtSetArg( args[n], XtNtitle, title );
-    n++;
-    XtSetArg( args[n], XmNiconic, FALSE );
-    n++;
-    XtSetArg( args[n], XmNwindowGroup, XtWindow( mainwin_widg ) );
-    n++;
-    XtSetArg( args[n], XmNdeleteResponse, XmDO_NOTHING );
-    n++;
-    XtSetArg( args[n], XmNbackground, XBlackPixel( dpy, DefaultScreen( dpy ) ));
-    n++;
+    free( path_string );
 
     /*
- *     XtAppCreateShell creates a shell widget of class topLevelShellWidgetClass on display 
- *     XtDisplay( mainwin_widg ). The created widget has no parent -- it is at the root of a
- *     tree and at the top of the resource name hierarchy.
- *  */
-    rendershell_widg = XtAppCreateShell( NULL, "rendershell",
-                                         topLevelShellWidgetClass,
-                                         XtDisplay( mainwin_widg ), args, n );
+     * XtAppCreateShell creates a shell widget of class topLevelShellWidgetClass on display
+     * XtDisplay( mainwin_widg ). The created widget has no parent -- it is at the root of a
+     * tree and at the top of the resource name hierarchy.
+     */
+    rendershell_widg = XtVaAppCreateShell( NULL, "renderShell", topLevelShellWidgetClass, XtDisplay( mainwin_widg ), XtNtitle, title, XmNiconic, FALSE, XmNwindowGroup, XtWindow( mainwin_widg ), XmNdeleteResponse, XmDO_NOTHING, XmNbackground, XBlackPixel( dpy, DefaultScreen( dpy ) ) );
 
     /* Find an OpenGL-capable RGB visual with depth buffer. */
+    visual_info = gl_get_x_visual_info( analy );
+    render_ctx = gl_create_context( visual_info );
 
-    vi = NULL;
-    if ( env.curr_analy->dimension == 3 )
-    {
-        if ( !env.single_buffer )
-            vi = glXChooseVisual( dpy, DefaultScreen( dpy ), double_buf );
-        if ( vi == NULL )
-            vi = glXChooseVisual( dpy, DefaultScreen( dpy ), single_buf );
-        if ( vi == NULL )
-            popup_fatal( "No RGB visual with depth buffer.\n" );
-    }
-    else  /* Don't use Z buffer for 2D drawing. */
-    {
-        if ( !env.single_buffer )
-            vi = glXChooseVisual( dpy, DefaultScreen( dpy ), double_buf_no_z );
-        if ( vi == NULL )
-            vi = glXChooseVisual( dpy, DefaultScreen( dpy ), single_buf_no_z );
-        if ( vi == NULL )
-            popup_fatal( "No RGB visual with depth buffer.\n" );
-    }
-
-    /* Create an OpenGL rendering context. */
-    render_ctx = glXCreateContext( dpy, vi, None, GL_TRUE );
-
-    /* Check if direct or indirect rendering context */
-    Bool_type isDirectRendering = glXIsDirect(dpy, render_ctx);
-    env.direct_rendering = isDirectRendering;
-
-    if ( render_ctx == NULL )
-        popup_fatal( "Could not create rendering context.\n" );
-
-    if ( env.griz_id>0 )
-        render_form_widg = XtVaCreateManagedWidget(
-                               "renderform", xmFormWidgetClass, rendershell_widg,
-                               XmNborderWidth, 20,
-                               XmNmarginWidth, 4,
-                               XmNmarginHeight, 4,
-                               XmNbackground, env.border_colors[gid-1],
-                               NULL );
+    if ( env.griz_id > 0 )
+        render_form_widg = XtVaCreateManagedWidget( "renderform", xmFormWidgetClass, rendershell_widg, XmNborderWidth, 20, XmNmarginWidth, 4, XmNmarginHeight, 4, XmNbackground, env.border_colors[gid-1] );
     else
-        render_form_widg = XtVaCreateManagedWidget(
-                               "renderform", xmFormWidgetClass, rendershell_widg,
-                               NULL );
+        render_form_widg = XtCreateManagedWidget( "renderform", xmFormWidgetClass, rendershell_widg, NULL, 0 );
 
     /* Create a RowColumn for plot cursor coordinates display. */
-    plot_coord_widg = XtVaCreateWidget(
-                          "plotcoords", xmRowColumnWidgetClass, render_form_widg,
-                          XmNorientation, XmHORIZONTAL,
-                          XmNtopAttachment, XmATTACH_NONE,
-                          XmNleftAttachment, XmATTACH_FORM,
-                          XmNrightAttachment, XmATTACH_FORM,
-                          XmNbottomAttachment, XmATTACH_FORM,
-                          NULL );
+    plot_coord_widg = XtVaCreateWidget( "plotcoords", xmRowColumnWidgetClass, render_form_widg, XmNorientation, XmHORIZONTAL, XmNtopAttachment, XmATTACH_NONE, XmNleftAttachment, XmATTACH_FORM, XmNrightAttachment, XmATTACH_FORM, XmNbottomAttachment, XmATTACH_FORM );
 
     /*"Values at cursor:   X", xmLabelGadgetClass, plot_coord_widg, */
-    x_label_widg = XtVaCreateManagedWidget(
-                       "Cursor X value: ", xmLabelGadgetClass, plot_coord_widg,
-                       NULL );
-    x_coord_widg = XtVaCreateManagedWidget(
-                       "xplotcoord", xmTextFieldWidgetClass, plot_coord_widg,
-                       XmNcolumns, 12,
-                       XmNeditable, False,
-                       XmNcursorPositionVisible, False,
-                       XmNtraversalOn, False,
-                       XmNbackground, XWhitePixel( dpy, DefaultScreen( dpy ) ),
-                       NULL );
-    y_label_widg = XtVaCreateManagedWidget(
-                       " Cursor Y value:", xmLabelGadgetClass, plot_coord_widg,
-                       NULL );
-    y_coord_widg = XtVaCreateManagedWidget(
-                       "yplotcoord", xmTextFieldWidgetClass, plot_coord_widg,
-                       XmNcolumns, 12,
-                       XmNeditable, False,
-                       XmNcursorPositionVisible, False,
-                       XmNtraversalOn, False,
-                       XmNbackground, XWhitePixel( dpy, DefaultScreen( dpy ) ),
-                       NULL );
+    x_label_widg = XtCreateManagedWidget( "Cursor X value: ", xmLabelGadgetClass, plot_coord_widg, NULL, 0 );
+    x_coord_widg = XtVaCreateManagedWidget( "xplotcoord", xmTextFieldWidgetClass, plot_coord_widg, XmNcolumns, 12, XmNeditable, False, XmNcursorPositionVisible, False, XmNtraversalOn, False, XmNbackground, XWhitePixel( dpy, DefaultScreen( dpy ) ) );
+    y_label_widg = XtCreateManagedWidget( " Cursor Y value:", xmLabelGadgetClass, plot_coord_widg, NULL, 0 );
+    y_coord_widg = XtVaCreateManagedWidget( "yplotcoord", xmTextFieldWidgetClass, plot_coord_widg, XmNcolumns, 12, XmNeditable, False, XmNcursorPositionVisible, False, XmNtraversalOn, False, XmNbackground, XWhitePixel( dpy, DefaultScreen( dpy ) ) );
+
+    WidgetClass glWidgetClass;
+#ifdef GLWM
+    glWidgetClass = glwMDrawingAreaWidgetClass;
+ #else
+    glWidgetClass = glwDrawingAreaWidgetClass;
+#endif
 
     /* Create the OpenGL drawing widget. */
-    ogl_widg[MESH_VIEW] = XtVaCreateManagedWidget(
-                              "glwidget",
-#ifdef GLWM
-                              glwMDrawingAreaWidgetClass,
-#else
-                              glwDrawingAreaWidgetClass,
-#endif
-                              render_form_widg,
-                              XmNtopAttachment, XmATTACH_FORM,
-                              XmNleftAttachment, XmATTACH_FORM,
-                              XmNrightAttachment, XmATTACH_FORM,
-                              XmNbottomAttachment, XmATTACH_FORM,
-                              GLwNvisualInfo, vi,
-                              XmNwidth, window_width, XmNheight, window_height,
-                              NULL );
-#ifdef USE_OLD_CALLBACKS
-    XtAddCallback( ogl_widg[MESH_VIEW], GLwNexposeCallback, expose_CB, NULL );
-    XtAddCallback( ogl_widg[MESH_VIEW], GLwNresizeCallback, resize_CB, NULL );
-#else
-    XtAddCallback( ogl_widg[MESH_VIEW], GLwNexposeCallback,
-                   expose_resize_CB, NULL );
-    XtAddCallback( ogl_widg[MESH_VIEW], GLwNresizeCallback,
-                   expose_resize_CB, NULL );
-#endif
+    ogl_widg[MESH_VIEW] = XtVaCreateManagedWidget( "glwidget", glWidgetClass, render_form_widg, XmNtopAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, XmNrightAttachment, XmATTACH_FORM, XmNbottomAttachment, XmATTACH_FORM, GLwNvisualInfo, visual_info, XmNwidth, window_width, XmNheight, window_height );
+
+    XtAddCallback( ogl_widg[MESH_VIEW], GLwNexposeCallback, expose_resize_CB, NULL );
+    XtAddCallback( ogl_widg[MESH_VIEW], GLwNresizeCallback, expose_resize_CB, NULL );
     XtAddCallback( ogl_widg[MESH_VIEW], GLwNinputCallback, input_CB, NULL );
     XtManageChild( ogl_widg[MESH_VIEW] );
 
     static int render_shell_win = RENDER_SHELL_WIN;
-
-    XtAddEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False,
-                       stack_init_EH, &render_shell_win );
-
-    XtAddEventHandler( ogl_widg[MESH_VIEW],
-                       EnterWindowMask | LeaveWindowMask, False,
-                       enter_render_EH, NULL );
+    XtAddEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False, stack_init_EH, &render_shell_win );
+    XtAddEventHandler( ogl_widg[MESH_VIEW], EnterWindowMask | LeaveWindowMask, False, enter_render_EH, NULL );
 
     /*
      * Define translations for creation of Material Manager and
@@ -1274,37 +833,22 @@ gui_start( int argc, char **argv , Analysis *analy )
 
     if ( !include_util_panel )
     {
-        sprintf( action_spec,
-                 "Ctrl<Key>m: action_create_app_widg( %d ) \n ",
-                 BTN_MTL_MGR );
-        sprintf( action_spec + strlen( action_spec ),
-                 "Ctrl<Key>s: action_create_app_widg( %d ) \n ",
-                 BTN_SURF_MGR );
-        sprintf( action_spec + strlen( action_spec ),
-                 "Ctrl<Key>u: action_create_app_widg( %d ) \n ",
-                 BTN_UTIL_PANEL );
-        sprintf( action_spec + strlen( action_spec ),
-                 "Ctrl<Key>q: action_quit() \n " );
-        sprintf( action_spec + strlen( action_spec ),
-                 "~Ctrl <Key>: action_translate_command()" );
+        sprintf( action_spec, "Ctrl<Key>m: action_create_app_widg( %d ) \n ", BTN_MTL_MGR );
+        sprintf( action_spec + strlen( action_spec ), "Ctrl<Key>s: action_create_app_widg( %d ) \n ", BTN_SURF_MGR );
+        sprintf( action_spec + strlen( action_spec ), "Ctrl<Key>u: action_create_app_widg( %d ) \n ", BTN_UTIL_PANEL );
+        sprintf( action_spec + strlen( action_spec ), "Ctrl<Key>q: action_quit() \n " );
+        sprintf( action_spec + strlen( action_spec ), "~Ctrl <Key>: action_translate_command()" );
     }
     else
     {
-        sprintf( action_spec,
-                 "Ctrl<Key>m: action_create_app_widg( %d ) \n ",
-                 BTN_MTL_MGR );
-        sprintf( action_spec + strlen( action_spec ),
-                 "Ctrl<Key>s: action_create_app_widg( %d ) \n ",
-                 BTN_SURF_MGR );
-        sprintf( action_spec + strlen( action_spec ),
-                 "Ctrl<Key>q: action_quit() \n " );
-        sprintf( action_spec + strlen( action_spec ),
-                 "~Ctrl <Key>: action_translate_command()" );
+        sprintf( action_spec, "Ctrl<Key>m: action_create_app_widg( %d ) \n ", BTN_MTL_MGR );
+        sprintf( action_spec + strlen( action_spec ), "Ctrl<Key>s: action_create_app_widg( %d ) \n ", BTN_SURF_MGR );
+        sprintf( action_spec + strlen( action_spec ), "Ctrl<Key>q: action_quit() \n " );
+        sprintf( action_spec + strlen( action_spec ), "~Ctrl <Key>: action_translate_command()" );
     }
 
     /* Add the translations to the rendering window. */
-    XtOverrideTranslations( ogl_widg[MESH_VIEW],
-                            XtParseTranslationTable( action_spec ) );
+    XtOverrideTranslations( ogl_widg[MESH_VIEW], XtParseTranslationTable( action_spec ) );
 
     /* Bring up the control window last. */
     XtPopup( rendershell_widg, XtGrabNone );
@@ -1312,31 +856,19 @@ gui_start( int argc, char **argv , Analysis *analy )
 
     /* Rubber Band Zoom */
     screen_num = XDefaultScreen(dpy);
-    d1         = XtWindow(ogl_widg[MESH_VIEW]);
-
+    d1 = XtWindow(ogl_widg[MESH_VIEW]);
     XAllocNamedColor(dpy, XDefaultColormap(dpy, screen_num), "black", &rb_color, &rb_dummy);
     xgcvalues.background = WhitePixel(dpy, screen_num) ;
     xgcvalues.foreground = BlackPixel(dpy, screen_num) ;
-
     gc_rubber = XDefaultGC(dpy, screen_num);
 
-    XtVaGetValues ( ogl_widg[MESH_VIEW],
-                    XmNforeground, &xgcvalues.foreground,
-                    XmNbackground, &xgcvalues.background,
-                    NULL );
-
+    XtVaGetValues( ogl_widg[MESH_VIEW], XmNforeground, &xgcvalues.foreground, XmNbackground, &xgcvalues.background );
     /* Set the rubber band gc to use XOR mode and draw a solid line. */
-
     xgcvalues.line_style = LineOnOffDash;
     xgcvalues.foreground = xgcvalues.foreground ^ xgcvalues.background;
     xgcvalues.line_width = 1; /* pixels */
     xgcvalues.function   = GXxor;
-
-    gc_rubber = XtGetGC ( ogl_widg[MESH_VIEW], GCForeground | GCBackground |
-                          GCFunction | GCLineStyle | GCLineWidth,
-                          &xgcvalues );
-
-    /* Rubber Band Zoom */
+    gc_rubber = XtGetGC( ogl_widg[MESH_VIEW], GCForeground | GCBackground | GCFunction | GCLineStyle | GCLineWidth, &xgcvalues );
 
     gui_up = TRUE;
 
@@ -1345,12 +877,19 @@ gui_start( int argc, char **argv , Analysis *analy )
      */
     sleep(1);
     switch_opengl_win( MESH_VIEW );
-    init_gui();
 
+    if(MESH(env.curr_analy).material_qty == 0)
+    {
+        env.curr_analy->draw_wireframe = TRUE;
+        env.curr_analy->mesh_view_mode = RENDER_WIREFRAME;
+    }
+
+    init_mesh_window( env.curr_analy );
+
+
+    parse_griz_init_file();
     init_alt_cursors();
-
     init_btn_pick_classes();
-
 
     /* Bring in other Apps if they were defaulted tp come up
      * in the session file.
@@ -1366,31 +905,82 @@ gui_start( int argc, char **argv , Analysis *analy )
         create_app_widg( BTN_MTL_MGR );
 
     /* Read in Global preferences */
-    status = read_griz_session_file( session, ".griz_session",
-                                     env.griz_id, TRUE );
+    status = read_griz_session_file( session, ".griz_session", env.griz_id, TRUE );
 
-    if ( status==OK )
+    if ( status == OK )
     {
         /* Update the window attributes */
         put_window_attributes() ;
         put_griz_session( env.curr_analy, session );
     }
-    //labels = analy->int_labels;
-    if(analy->int_labels != NULL)
-    {
-        for(i = 0; i < analy->int_labels->numLabels; i++)
-        {
-            if(analy->int_labels->valid[i] == 0)
-            { 
-                wrt_text("\nelement set %d was marked as invalid because the labels array \nwas not in ascending order\n", analy->int_labels->mats[i]);
-            }
-        }
+
+    // popup message that element sets exist
+    if(analy->es_cnt > 0){
+        element_set_popup_message(analy);
     }
 
     env.curr_analy->update_display( env.curr_analy );
+
     /* Start event processing. */
     XtAppMainLoop( app_context );
 }
+
+static void element_set_popup_message(Analysis* analy)
+{
+    int index, material;
+    int i, j, status;
+    Htable_entry* es_entry;
+    ElementSet* element_set;
+    char element_set_message[1500];
+    char temp_str[100];
+    char ipts[30];
+    char ipt[4];
+
+    element_set_message[0] = '\0';
+    strcat(element_set_message, "NOTE: This analysis contains integration points.\n\n");
+    strcat(element_set_message, "Available Integration Points in this plot file are as follows:\n\n");
+
+    sprintf(temp_str, " %-20s| %-10s | %-30s\n", "Material", "Int. Point", "Int. Point");
+    strcat(element_set_message, temp_str);
+
+    sprintf(temp_str, " %-20s| %-10s | %-30s\n", "", "Selected", "Available");
+    strcat(element_set_message, temp_str);
+
+    for(i = 0; i < analy->es_cnt; i++){
+        status = htable_search(analy->Element_sets, analy->Element_set_names[i], FIND_ENTRY, &es_entry);
+        if(status == OK){
+            element_set = (ElementSet*) es_entry->data;
+            ipts[0] = '\0';
+            for(j = 0; j < element_set->size; j++){
+                if(j < element_set->size - 1)
+                    sprintf(ipt, "%d, ", element_set->integration_points[j]);
+                else
+                    sprintf(ipt, "%d", element_set->integration_points[j]);
+                strcat(ipts, ipt);
+            }
+            index = element_set->current_index;
+            material = element_set->material_number;
+            sprintf(temp_str, " %-20d|    %-6d  | %-30s\n", material, element_set->integration_points[index], ipts);
+            strcat(element_set_message, temp_str);
+        }
+    }
+
+    // Information about useful commands relating to integration points
+    sprintf(temp_str, "\n\nThe following griz commands are useful when working with integration points: \n");
+    strcat(element_set_message, temp_str);
+
+    sprintf(temp_str, "\n   show_ipts: List the integration points available/selected for the current Analysis.\n");
+    strcat(element_set_message, temp_str);
+
+    sprintf(temp_str, "\n   set_ipt <ipt> <mtl>: Select the desired integration point for the specified material\n");
+    strcat(element_set_message, temp_str);
+
+    sprintf(temp_str, "\n   set_ipt <ipt>: Select the desired integration point for all materials\n");
+    strcat(element_set_message, temp_str);
+
+    popup_dialog( INFO_POPUP, element_set_message);
+}
+
 
 
 /*****************************************************************
@@ -1411,8 +1001,7 @@ find_ancestral_root_child( Widget widg, Window *root_child )
     root_win = RootWindow( dpy, DefaultScreen( dpy ) );
 
     win = XtWindow( widg );
-    stat = XQueryTree( dpy, win, &root_return, &parent_win, &children,
-                       &qty_children );
+    stat = XQueryTree( dpy, win, &root_return, &parent_win, &children, &qty_children );
     if ( stat == 0 )
         return;
 
@@ -1421,8 +1010,7 @@ find_ancestral_root_child( Widget widg, Window *root_child )
     while ( parent_win != root_win )
     {
         win = parent_win;
-        stat = XQueryTree( dpy, win, &root_return, &parent_win, &children,
-                           &qty_children );
+        stat = XQueryTree( dpy, win, &root_return, &parent_win, &children, &qty_children );
         if ( stat == 0 )
             return;
 
@@ -1431,6 +1019,47 @@ find_ancestral_root_child( Widget widg, Window *root_child )
 
     *root_child = win;
 }
+
+/*****************************************************************
+ * TAG( find_labelled_child )
+ *
+ * Attempt match a name among a widgets children.
+ */
+static Bool_type
+find_labelled_child( Widget parent, char *name, Widget *child, int *index )
+{
+    WidgetList children;
+    XmString label;
+    int i;
+    int qty;
+    char cbuf[M_MAX_NAME_LEN];
+
+    *child = NULL;
+    *index = -1;
+
+    /* Get list of parent's children widgets. */
+    XtVaGetValues( parent, XmNnumChildren, &qty, XmNchildren, &children, NULL );
+
+    /* Search children for name match. */
+    for ( i = qty - 1; i > -1; i-- )
+    {
+        XtVaGetValues( children[i], XmNlabelString, &label, NULL );
+        if ( label != NULL )
+            string_convert( label, cbuf );
+        else
+            continue;
+
+        if ( strcmp( cbuf, name ) == 0 )
+        {
+            *child = children[i];
+            *index = i;
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 
 
 /*****************************************************************
@@ -1456,17 +1085,7 @@ move_bottom( int new_offset )
 void
 init_app_context_serial_batch( int argc, char *argv[] )
 {
-    ctl_shell_widg = XtAppInitialize(
-                         &app_context,
-                         "GRIZ",
-                         (XrmOptionDescList) NULL,
-                         0,
-                         &argc,
-                         (String*) argv,
-                         fallback_resources,
-                         (ArgList) NULL,
-                         0
-                     );
+    ctl_shell_widg = XtAppInitialize( &app_context, "GRIZ", (XrmOptionDescList) NULL, 0, &argc, (String*) argv, fallback_resources, (ArgList) NULL, 0 );
 }
 #endif
 
@@ -1487,6 +1106,75 @@ gui_swap_buffers( void )
 #endif /* SERIAL_BATCH */
 }
 
+static void
+sep( Widget parent )
+{
+    XtCreateManagedWidget( "separator", xmSeparatorGadgetClass, parent, NULL, 0 );
+}
+
+static void
+add_simple_button( Widget parent, char * label, XtCallbackProc cback, XtPointer cback_args )
+{
+    Widget button = XtCreateManagedWidget( label, xmPushButtonGadgetClass, parent, NULL, 0 );
+    XtAddCallback( button, XmNactivateCallback, cback, cback_args );
+}
+
+static void
+add_shortcut_button( Widget parent, char * label, char * key_label, char * key_combo, XtCallbackProc cback, XtPointer cback_args )
+{
+    Arg args[2];
+    XmString key_label_str = XmStringCreateSimple( key_label );
+    XtSetArg( args[0], XmNaccelerator, key_combo );
+    XtSetArg( args[1], XmNacceleratorText, key_label_str );
+    Widget button = XtCreateManagedWidget( label, xmPushButtonGadgetClass, parent, args, 2 );
+    XtAddCallback( button, XmNactivateCallback, cback, cback_args );
+    XmStringFree( key_label_str );
+}
+
+static void
+add_menu_buttons( Widget parent, int count, char * labels[], XtCallbackProc cback, int cback_ids[] )
+{
+    int ii = 0;
+    for( ii = 0; ii < count; ++ii )
+    {
+        if( cback_ids[ii] != -1 )
+        {
+            add_simple_button( parent, labels[ii], cback, &cback_ids[ii] );
+        }
+        else
+        {
+            sep( parent );
+        }
+    }
+}
+
+typedef struct _result_cb_data{
+    char* show_name;
+    Result_table_type table;
+} result_CB_data;
+
+static void
+add_show_button( Widget parent, char * label, char * show_name, Result_table_type table )
+{
+    result_CB_data* cb_data = NEW( result_CB_data, "result callback data");
+    cb_data->show_name = show_name;
+    cb_data->table = table;
+    add_simple_button( parent, label, res_menu_CB, cb_data );
+}
+
+static Widget
+add_pulldown_submenu( Widget parent, char * label )
+{
+    Arg arg[5];
+    XtSetArg( arg[0], XmNtearOffModel, XmTEAR_OFF_ENABLED );
+    XtSetArg( arg[1], XmNscrollingPolicy, XmAUTOMATIC );
+    XtSetArg( arg[2], XmNnumColumns, 40 );
+    XtSetArg( arg[3], XmNorientation, XmHORIZONTAL );
+    XtSetArg( arg[4], XmNpacking, XmPACK_COLUMN );
+    Widget pulldown = XmCreatePulldownMenu( parent, "pulldown", &arg[0], 5 );
+    XtVaCreateManagedWidget( label, xmCascadeButtonWidgetClass, parent, XmNsubMenuId, pulldown, NULL );
+    return pulldown;
+}
 
 /*****************************************************************
  * TAG( create_menu_bar )
@@ -1494,577 +1182,153 @@ gui_swap_buffers( void )
  * Create the menu bar for the main window.
  */
 static Widget
-create_menu_bar( Widget parent, Analysis *analy )
+create_menu_bar( Analysis * analy, Widget parent )
 {
-    Widget menu_bar;
-    Widget cascade;
-    Widget menu_pane;
-    Widget button;
-    Widget colormap_menu;
-    Arg args[10];
-    int n;
-    static int btn_cpyright, 
-               btn_util_panel, 
-               btn_mtl_mgr,
-               btn_surf_mgr = BTN_SURF_MGR,
-               btn_save_session_global,
-               btn_save_session_plot,
-               btn_load_session_global,
-               btn_load_session_plot,
-               btn_quit;
-    
-    btn_cpyright = BTN_COPYRIGHT;
-    btn_util_panel = BTN_UTIL_PANEL;
-    btn_mtl_mgr = BTN_MTL_MGR; 
-    
-    XmString accel_str;
-
-    n = 0;
-    XtSetArg( args[n], XmNx, 0 );
-    n++;
-    XtSetArg( args[n], XmNx, 0 );
-    n++;
-    menu_bar = XmCreateMenuBar( parent, "menu_bar", args, n );
+    Widget menu_bar = XmCreateMenuBar( parent, "menu_bar", NULL, 0 );
     XtManageChild( menu_bar );
 
-    /****************/
     /* Control menu.*/
-    /****************/
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    ctl_menu_pane = XmCreatePulldownMenu( menu_bar, "ctl_menu_pane", args, n );
+    Widget menu_pane = add_pulldown_submenu( menu_bar, "Control" );
 
-    button = XmCreatePushButtonGadget( ctl_menu_pane, "Copyright", args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_cpyright );
+    int btn_cpyright = BTN_COPYRIGHT;
+    add_simple_button( menu_pane, "Copyright", menu_CB, &btn_cpyright );
 
     /* If utility panel not part of control window, allow it from pulldown. */
     if ( !include_util_panel )
     {
-        accel_str = XmStringCreateSimple( "Ctrl+u" );
-        n = 0;
-        XtSetArg( args[n], XmNaccelerator, "Ctrl<Key>u" );
-        n++;
-        XtSetArg( args[n], XmNacceleratorText, accel_str );
-        n++;
-        util_button = XmCreatePushButtonGadget( ctl_menu_pane, "Utility Panel",
-                                                args, n );
-        XmStringFree( accel_str );
-        XtManageChild( util_button );
-        XtAddCallback( util_button, XmNactivateCallback, menu_CB,
-                       &btn_util_panel );
+        static int btn_util_panel = BTN_UTIL_PANEL;
+        add_shortcut_button( menu_pane, "Utility Panel", "Ctrl+u", "Ctrl<Key>u", menu_CB, &btn_util_panel );
     }
 
-    accel_str = XmStringCreateSimple( "Ctrl+m" );
-    n = 0;
-    XtSetArg( args[n], XmNaccelerator, "Ctrl<Key>m" );
-    n++;
-    XtSetArg( args[n], XmNacceleratorText, accel_str );
-    n++;
-    mtl_mgr_button = XmCreatePushButtonGadget( ctl_menu_pane, "Material Mgr",
-                     args, n );
-    XmStringFree( accel_str );
-    XtManageChild( mtl_mgr_button );
-    XtAddCallback( mtl_mgr_button, XmNactivateCallback, menu_CB,
-                   &btn_mtl_mgr );
+    static int btn_mtl_mgr = BTN_MTL_MGR;
+    add_shortcut_button( menu_pane, "Material Mgr", "Ctrl+m", "Ctrl<Key>m", menu_CB, &btn_mtl_mgr );
 
     if( env.curr_analy->mesh_table[0].surface_qty > 0 )
     {
-        accel_str = XmStringCreateSimple( "Ctrl+s" );
-        n = 0;
-        XtSetArg( args[n], XmNaccelerator, "Ctrl<Key>s" );
-        n++;
-        XtSetArg( args[n], XmNacceleratorText, accel_str );
-        n++;
-        surf_mgr_button = XmCreatePushButtonGadget( ctl_menu_pane, "Surface Mgr",
-                          args, n );
-        XmStringFree( accel_str );
-        XtManageChild( surf_mgr_button );
-        XtAddCallback( surf_mgr_button, XmNactivateCallback, menu_CB,
-                       &btn_surf_mgr);
+        static int btn_surf_mgr = BTN_SURF_MGR;
+        add_shortcut_button( menu_pane, "Surface Mgr", "Ctrl+s", "Ctrl<Key>s", menu_CB, &btn_surf_mgr );
     }
 
-    n = 0;
-    button = XmCreateSeparatorGadget( ctl_menu_pane, "separator", args, n );
-    XtManageChild( button );
-    
-    btn_save_session_global = BTN_SAVE_SESSION_GLOBAL;
-    button = XmCreatePushButtonGadget( ctl_menu_pane, "Save Session - Global", args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_save_session_global );
+    static int ctl_btn_ids[] =
+    {
+        -1, BTN_SAVE_SESSION_GLOBAL, BTN_SAVE_SESSION_PLOT, -1, BTN_LOAD_SESSION_GLOBAL, BTN_LOAD_SESSION_PLOT, -1
+    };
+    char * ctl_btn_labels[] =
+    {
+        "---", "Save Session - Global", "Save Session - Plotfile", "---", "Load Session - Global", "Load Session - Plotfile", "---"
+    };
+    add_menu_buttons( menu_pane, sizeof(ctl_btn_ids) / sizeof(ctl_btn_ids[0]), ctl_btn_labels, menu_CB, ctl_btn_ids );
 
-    btn_save_session_plot = BTN_SAVE_SESSION_PLOT;
-    button = XmCreatePushButtonGadget( ctl_menu_pane, "Save Session - Plotfile", args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_save_session_plot );
+    static int btn_quit = BTN_QUIT;
+    add_shortcut_button( menu_pane, "Quit", "Ctrl+q", "Ctrl<Key>q", menu_CB, &btn_quit);
 
-
-    button = XmCreateSeparatorGadget( ctl_menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    btn_load_session_global = BTN_LOAD_SESSION_GLOBAL;
-    button = XmCreatePushButtonGadget( ctl_menu_pane, "Load Session - Global", args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_load_session_global );
-
-    btn_load_session_plot = BTN_LOAD_SESSION_PLOT;
-    button = XmCreatePushButtonGadget( ctl_menu_pane, "Load Session - Plotfile", args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_load_session_plot );
-
-    button = XmCreateSeparatorGadget( ctl_menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    btn_quit = BTN_QUIT;
-    accel_str = XmStringCreateSimple( "Ctrl+q" );
-    n = 0;
-    XtSetArg( args[n], XmNaccelerator, "Ctrl<Key>q" );
-    n++;
-    XtSetArg( args[n], XmNacceleratorText, accel_str );
-    n++;
-    
-    quit_button = XmCreatePushButtonGadget( ctl_menu_pane, "Quit", args, n );
-    XmStringFree( accel_str );
-    XtManageChild( quit_button );
-    XtAddCallback( quit_button, XmNactivateCallback, menu_CB,
-                   &btn_quit);
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, ctl_menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Control", args, n );
-    XtManageChild( cascade );
-
-    /******************/
     /* Rendering menu.*/
-    /******************/
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
-
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Draw Solid", args, n );
-    XtManageChild( button );
-    static int btn_drawfilled = BTN_DRAWFILLED;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_drawfilled );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Draw Hidden", args, n );
-    XtManageChild( button );
-    static int btn_drawhidden = BTN_DRAWHIDDEN;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_drawhidden );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Draw Wireframe", args, n );
-    XtManageChild( button );
-    static int btn_drawwireframe = BTN_DRAWWIREFRAME;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_drawwireframe );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Draw Wireframe Transparent", args, n );
-    XtManageChild( button );
-    static int btn_drawwireframetrans = BTN_DRAWWIREFRAMETRANS;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_drawwireframetrans );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Coord Sys On/Off", args, n );
-    XtManageChild( button );
-    static int btn_coordsys = BTN_COORDSYS;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_coordsys );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Title On/Off", args, n );
-    XtManageChild( button );
-    static int btn_title = BTN_TITLE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_title );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Time On/Off", args, n );
-    XtManageChild( button );
-    static int btn_time = BTN_TIME;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_time );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Colormap On/Off", args, n );
-    XtManageChild( button );
-    static int btn_colormap = BTN_COLORMAP;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_colormap );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Min/max On/Off", args, n );
-    XtManageChild( button );
-    static int btn_minmax = BTN_MINMAX;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_minmax );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Disp Scale On/Off", args, n );
-    XtManageChild( button );
-    static int btn_scale = BTN_SCALE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_scale );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Error Indicator On/Off", args, n );
-    XtManageChild( button );
-    static int btn_ei = BTN_EI;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_ei );
-
-    button = XmCreatePushButtonGadget( menu_pane, "All On", args, n );
-    XtManageChild( button );
-    static int btn_allon = BTN_ALLON;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_allon );
-
-    button = XmCreatePushButtonGadget( menu_pane, "All Off", args, n );
-    XtManageChild( button );
-    static int btn_alloff = BTN_ALLOFF;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_alloff );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Bound Box On/Off", args, n );
-    XtManageChild( button );
-    static int btn_bbox = BTN_BBOX;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_bbox );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Edges On/Off", args, n );
-    XtManageChild( button );
-    static int btn_edges = BTN_EDGES;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_edges );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Greyscale On/Off", args, n );
-    XtManageChild( button );
-    static int btn_gs = BTN_GS;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_gs );
-
+    menu_pane = add_pulldown_submenu( menu_bar, "Rendering" );
+    static int render_btn_ids[] =
+    {
+        BTN_DRAWFILLED, BTN_DRAWHIDDEN, BTN_DRAWWIREFRAME, BTN_DRAWWIREFRAMETRANS, BTN_COORDSYS, BTN_TITLE, BTN_TIME, BTN_COLORMAP, BTN_MINMAX, BTN_SCALE, BTN_EI, BTN_ALLON, BTN_ALLOFF, BTN_BBOX, BTN_EDGES, BTN_GS
+    };
+    char * render_btn_labels[] =
+    {
+        "Draw Solid", "Draw Hidden", "Draw Wireframe", "Draw Wireframe Transparent", "Coord Sys On/Off", "Title On/Off", "Time On/Off", "Colormap On/Off", "Min/max On/Off", "Disp Scale On/Off", "Error Indicator On/Off", "All On", "All Off", "Bound Box On/Off", "Edges On/Off", "Greyscale On/Off", };
+    add_menu_buttons( menu_pane, sizeof(render_btn_ids) / sizeof(render_btn_ids[0]), render_btn_labels, menu_CB, render_btn_ids );
 
     if ( analy->free_nodes_found || analy->particle_nodes_found )
     {
-        button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-        XtManageChild( button );
-
-        if ( analy->free_nodes_found )
+        static int render_btn_ids_2[] =
         {
-            button = XmCreatePushButtonGadget( menu_pane, "Free Nodes On/Off", args, n );
-            XtManageChild( button );
-            static int btn_fn = BTN_FN;
-            XtAddCallback( button, XmNactivateCallback, menu_CB,
-                           &btn_fn );
-        }
-
-        if ( analy->particle_nodes_found )
+            -1, BTN_FN, BTN_PN, };
+        char * render_btn_labels_2[] =
         {
-            button = XmCreatePushButtonGadget( menu_pane, "Particle Nodes On/Off", args, n );
-            XtManageChild( button );
-            static int btn_pn = BTN_PN;
-            XtAddCallback( button, XmNactivateCallback, menu_CB,
-                           &btn_pn );
-        }
+            "---", "Free Nodes On/Off", "Particle Nodes On/Off"
+        };
+        add_menu_buttons( menu_pane, sizeof(render_btn_ids_2) / sizeof(render_btn_ids_2[0]), render_btn_labels_2, menu_CB, render_btn_ids_2 );
     }
 
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
+    static int render_btn_ids_3[] =
+    {
+        -1, BTN_PERSPECTIVE, BTN_ORTHOGRAPHIC, -1, BTN_ADJUSTNF, -1, BTN_RESETVIEW, BTN_SU, -1
+    };
+    char * render_btn_labels_3[] =
+    {
+        "---", "Perspective", "Orthographic", "---", "Adjust Near/Far", "---", "Reset View", "Supress Screen Refresh", "---"
+    };
+    add_menu_buttons( menu_pane, sizeof(render_btn_ids_3) / sizeof(render_btn_ids_3[0]), render_btn_labels_3, menu_CB, render_btn_ids_3 );
 
-    button = XmCreatePushButtonGadget( menu_pane, "Perspective", args, n );
-    XtManageChild( button );
-    static int btn_perspective = BTN_PERSPECTIVE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_perspective );
+    create_colormap_menu( menu_pane, BTN_CM_PICK, "Set Colormap" );
 
-    button = XmCreatePushButtonGadget( menu_pane, "Orthographic", args, n );
-    XtManageChild( button );
-    static int btn_orthographic = BTN_ORTHOGRAPHIC;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_orthographic );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Adjust Near/Far", args, n );
-    XtManageChild( button );
-    static int btn_adjustnf = BTN_ADJUSTNF;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_adjustnf );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Reset View", args, n );
-    XtManageChild( button );
-    static int btn_resetview = BTN_RESETVIEW;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_resetview );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Supress Screen Refresh", args, n );
-    XtManageChild( button );
-    static int btn_su = BTN_SU;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_su );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    colormap_menu_widg = create_colormap_menu( menu_pane, BTN_CM_PICK,
-                         "Set Colormap" );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Rendering", args, n );
-    XtManageChild( cascade );
-
-    /****************/
     /* Picking menu.*/
-    /****************/
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
+    menu_pane = add_pulldown_submenu( menu_bar, "Picking" );
 
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Mouse Hilite", args, n );
-    XtManageChild( button );
-    static int btn_hilite = BTN_HILITE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_hilite );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Mouse Select", args, n );
-    XtManageChild( button );
-    static int btn_select = BTN_SELECT;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_select );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Clear Hilite", args, n );
-    XtManageChild( button );
-    static int btn_clearhilite = BTN_CLEARHILITE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_clearhilite );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Clear Select", args, n );
-    XtManageChild( button );
-    static int btn_clearselect = BTN_CLEARSELECT;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_clearselect );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Clear All", args, n );
-    XtManageChild( button );
-    static int btn_clearall = BTN_CLEARALL;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_clearall );
-
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
+    static int pick_btn_ids[] =
+    {
+        BTN_HILITE, BTN_SELECT, -1, BTN_CLEARHILITE, BTN_CLEARSELECT, BTN_CLEARALL, -1
+    };
+    char * pick_btn_labels[] =
+    {
+        "Mouse Hilite", "Mouse Select", "---", "Clear Hilite", "Clear Select", "Clear All", "---"
+    };
+    add_menu_buttons( menu_pane, sizeof(pick_btn_ids) / sizeof(pick_btn_ids[0]), pick_btn_labels, menu_CB, pick_btn_ids );
 
     static int btn1_pick = BTN1_PICK;
+    setpick_menu1_widg = create_pick_menu( menu_pane, &btn1_pick, "Set Btn 1 Pick" );
     static int btn2_pick = BTN2_PICK;
+    setpick_menu2_widg = create_pick_menu( menu_pane, &btn2_pick, "Set Btn 2 Pick" );
     static int btn3_pick = BTN3_PICK;
-    setpick_menu1_widg = create_pick_menu( menu_pane, &btn1_pick,
-                                           "Set Btn 1 Pick" );
-    setpick_menu2_widg = create_pick_menu( menu_pane, &btn2_pick,
-                                           "Set Btn 2 Pick" );
-    setpick_menu3_widg = create_pick_menu( menu_pane, &btn3_pick,
-                                           "Set Btn 3 Pick" );
+    setpick_menu3_widg = create_pick_menu( menu_pane, &btn3_pick, "Set Btn 3 Pick" );
 
-    button = XmCreateSeparatorGadget( menu_pane, "separator", args, n );
-    XtManageChild( button );
+    static int pick_btn_ids_2[] =
+    {
+        -1, BTN_CENTERON, BTN_CENTEROFF
+    };
+    char * pick_btn_labels_2[] =
+    {
+        "---", "Center Hilite On", "Center Hilite Off"
+     };
+    add_menu_buttons( menu_pane, sizeof(pick_btn_ids_2) / sizeof(pick_btn_ids_2[0]), pick_btn_labels_2, menu_CB, pick_btn_ids_2 );
 
-    button = XmCreatePushButtonGadget( menu_pane, "Center Hilite On", args, n);
-    XtManageChild( button );
-    static int btn_centeron = BTN_CENTERON;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_centeron );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Center Hilite Off", args, n);
-    XtManageChild( button );
-    static int btn_centeroff = BTN_CENTEROFF;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_centeroff );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Picking", args, n );
-    XtManageChild( cascade );
-
-    /************************************/
     /* Build db-sensitive result menus. */
-    /************************************/
-    create_result_menus( menu_bar );
+    create_derived_res_menu( analy, menu_bar );
+    create_primal_res_menu( analy, menu_bar );
 
-    /* Time menu. */
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
-
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Next State", args, n );
-    XtManageChild( button );
-    static int btn_nextstate = BTN_NEXTSTATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_nextstate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Prev State", args, n );
-    XtManageChild( button );
-    static int btn_prevstate = BTN_PREVSTATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_prevstate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "First State", args, n );
-    XtManageChild( button );
-    static int btn_firststate = BTN_FIRSTSTATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_firststate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Last State", args, n );
-    XtManageChild( button );
-    static int btn_laststate = BTN_LASTSTATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_laststate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Animate States", args, n );
-    XtManageChild( button );
-    static int btn_animate = BTN_ANIMATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_animate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Stop Animate", args, n );
-    XtManageChild( button );
-    static int btn_stopanimate = BTN_STOPANIMATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_stopanimate );
-
-    button = XmCreatePushButtonGadget( menu_pane, "Continue Animate", args, n );
-    XtManageChild( button );
-    static int btn_contanimate = BTN_CONTANIMATE;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_contanimate );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Time", args, n );
-    XtManageChild( cascade );
-
-    /**************/
-    /* Plot menu. */
-    /**************/
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
-
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Time Hist Plot", args, n );
-    XtManageChild( button );
-    static int btn_timeplot = BTN_TIMEPLOT;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_timeplot );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Plot", args, n );
-    XtManageChild( cascade );
-
-    /**************/
-    /* Help menu. */
-    /**************/
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    menu_pane = XmCreatePulldownMenu( menu_bar, "menu_pane", args, n );
-
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Display Griz Manual", args, n );
-    XtManageChild( button );
-    static int btn_help = BTN_HELP;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_help );
-
-    n = 0;
-    button = XmCreatePushButtonGadget( menu_pane, "Display Release Notes", args, n );
-    XtManageChild( button );
-    static int btn_relnotes = BTN_RELNOTES;
-    XtAddCallback( button, XmNactivateCallback, menu_CB,
-                   &btn_relnotes );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, menu_pane );
-    n++;
-    cascade = XmCreateCascadeButton( menu_bar, "Help", args, n );
-
-    XtManageChild( cascade );
-
-    return( menu_bar );
-}
-
-
-/*****************************************************************
- * TAG( create_result_menus )
- *
- * Create the results menu(s) for the Control window menu bar.
- */
-static void
-create_result_menus( Widget parent )
-{
-    int n;
-    Arg args[10];
-    Widget cascade;
-    Analysis *analy;
-
-    analy = env.curr_analy;
-
-    /* Create new result menus. */
-    create_derived_res_menu( parent );
-    create_primal_res_menu( parent );
-
+#ifdef TIGUI
     /* Bring up TI menus if TI data is found */
     if (  analy->ti_data_found )
-        create_ti_res_menu( parent );
-
-    /* Create cascade buttons for the new menus. */
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, derived_menu_widg );
-    n++;
-    cascade = XmCreateCascadeButton( parent, derived_menu_name,
-                                     args, n );
-    XtManageChild( cascade );
-
-    n = 0;
-    XtSetArg( args[n], XmNsubMenuId, primal_menu_widg );
-    n++;
-    cascade = XmCreateCascadeButton( parent, primal_menu_name, args, n );
-    XtManageChild( cascade );
-
-    /* Create cascade buttons for TI menus */
-#ifdef TIGUI
-    if (  analy->ti_data_found )
-    {
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, ti_menu_widg );
-        n++;
-        cascade = XmCreateCascadeButton( parent, ti_menu_name,
-                                         args, n );
-        XtManageChild( cascade );
-    }
+        create_ti_res_menu( menu_bar );
 #endif
+
+    /* Time menu. */
+    menu_pane = add_pulldown_submenu( menu_bar, "Time" );
+    static int time_btn_ids[] =
+    {
+        BTN_NEXTSTATE, BTN_PREVSTATE, BTN_FIRSTSTATE, BTN_LASTSTATE, BTN_ANIMATE, BTN_STOPANIMATE, BTN_CONTANIMATE
+    };
+    char * time_btn_labels[] =
+    {
+        "Next State", "Prev State", "First State", "Last State", "Animate States", "Stop Animate", "Continue Animate"
+    };
+    add_menu_buttons( menu_pane, sizeof(time_btn_ids) / sizeof(time_btn_ids[0]), time_btn_labels, menu_CB, time_btn_ids );
+
+    /* Plot menu. */
+    menu_pane = add_pulldown_submenu( menu_bar, "Plot" );
+    static int btn_timeplot = BTN_TIMEPLOT;
+    add_simple_button( menu_pane, "Time Hist Plot", menu_CB, &btn_timeplot );
+
+    /* Help menu. */
+    menu_pane = add_pulldown_submenu( menu_bar, "Help" );
+    static int help_btn_ids[] =
+    {
+        BTN_HELP, BTN_RELNOTES
+    };
+    char * help_btn_labels[] =
+    {
+        "Display Griz Manual", "Display Release Notes"
+    };
+    add_menu_buttons( menu_pane, sizeof(help_btn_ids) / sizeof(help_btn_ids[0]), help_btn_labels, menu_CB, help_btn_ids );
+
+    return menu_bar;
 }
+
 
 
 /*****************************************************************
@@ -2073,353 +1337,122 @@ create_result_menus( Widget parent )
  * Add a single primal result button to the menu.
  */
 static void
-add_primal_result_button( Widget parent, Primal_result *p_pr )
+add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
 {
-    Widget submenu_cascade, submenu, result_menu;
-    Widget button, cascade, result_submenu, subsubmenu_cascade;
-    int position, vec_size;
-    int i, j, n, rval;
-    char cbuf[M_MAX_NAME_LEN];
-    char parent_menu[32];
-    Bool_type make_submenu;
-    Arg args[10];
-    char **comps, **p_specs;
-    int spec_qty;
-    Analysis *analy;
-    State_variable *comp_svar;
-    Hash_table * p_es_components_ht;
-    Htable_entry * p_hte2;
-    ES_in_menu * p_es;
-    static char *cell_nums[] =
-    {
-        "[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]", "[9]", "[10]",
-        "[11]", "[12]", "[13]", "[14]", "[15]", "[16]", "[17]", "[18]", "[19]",
-        "[20]"
-    };
-    int qty_cell_nums;
-    Htable_entry *p_hte;
-
-
-    analy = env.curr_analy;
-
-    p_es_components_ht = analy->es_components_table;
-
-    qty_cell_nums = sizeof( cell_nums ) / sizeof( cell_nums[0] );
-
     /* Arrays and Vector Arrays that are too big don't go in menu. */
-    if ( ( p_pr->var->agg_type == ARRAY
-            && ( p_pr->var->rank > 2
-                 || p_pr->var->dims[0] > qty_cell_nums
-                 || ( p_pr->var->rank == 2
-                      && p_pr->var->dims[1] > qty_cell_nums
-                    )
-               )
+    int array_limit = 20;
+    if ( ( p_pr->var->agg_type == ARRAY &&
+           ( p_pr->var->rank > 2 || p_pr->var->dims[0] > array_limit || ( p_pr->var->rank == 2 && p_pr->var->dims[1] > array_limit ) )
+         ) ||
+         ( p_pr->var->agg_type == VEC_ARRAY &&
+           ( p_pr->var->rank > 1 || p_pr->var->dims[0] > array_limit )
          )
-
-            ||
-
-            ( p_pr->var->agg_type == VEC_ARRAY
-              && ( p_pr->var->rank > 1
-                   || p_pr->var->dims[0] > qty_cell_nums
-                 )
-            )
        )
     {
-        popup_dialog( INFO_POPUP, "Non-scalar Variable \"%s\" has too many\n%s",
-                      p_pr->long_name,
-                      "entries for inclusion in pulldown menu." );
+        popup_dialog( INFO_POPUP, "Non-scalar Variable \"%s\" has too many\nentries for inclusion in pulldown menu.", p_pr->long_name );
         return;
     }
-
-    /* Determine correct submenu name ("Shared" or class name). */
-    get_primal_submenu_name( analy, p_pr, cbuf );
-
-    /* See if submenu exists. */
-    make_submenu = !find_labelled_child( primal_menu_widg, cbuf,
-                                         &submenu_cascade, &position );
-
-    if ( make_submenu )
+    char label_buffer[M_MAX_NAME_LEN];
+    if ( p_pr->is_shared )
     {
-        n = 0;
-        XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-        n++;
-        XtSetArg( args[n], XmNscrollingPolicy, XmAUTOMATIC );
-        n++;
-        XtSetArg( args[n], XmNnumColumns, 40 );
-        n++;
-        XtSetArg( args[n], XmNorientation, XmHORIZONTAL );
-        n++;
-        XtSetArg( args[n], XmNpacking, XmPACK_COLUMN );
-        n++;
-        submenu = XmCreatePulldownMenu( primal_menu_widg, "submenu_pane", args,
-                                        n );
-
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, submenu );
-        n++;
-        submenu_cascade = XmCreateCascadeButton( primal_menu_widg, cbuf, args,
-                          n );
-        XtManageChild( submenu_cascade );
+        strcpy( label_buffer, "Shared" );
     }
     else
-        /* Submenu exists; get the pane from the cascade button. */
+    {
+        /* Only one class, so submenu name is class name. */
+        sprintf( label_buffer, "%s (%s)", p_pr->subrecs[0]->p_object_class->long_name, p_pr->subrecs[0]->p_object_class->short_name );
+    }
+
+    // ensure the submenu exists
+    int idx = -1;
+    Widget submenu;
+    Widget submenu_cascade;
+    if( ! find_labelled_child( parent, label_buffer, &submenu_cascade, &idx ) )
+        submenu = add_pulldown_submenu( parent, label_buffer );
+    else
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
     /* Now add the new primal result button. */
-    if ( p_pr->var->agg_type != SCALAR && strncmp(p_pr->short_name, "es_", 3))
+    if( p_pr->owning_vec_count == 0 ) // don't add buttons for terms contained in other terms as they should be added by vec/vec_array/array?
     {
-        /* Non-scalar types require another submenu level. */
-        n = 0;
-        XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-        n++;
-        result_menu = XmCreatePulldownMenu( submenu, "submenu_pane", args, n );
-
-        comps = p_pr->var->components;
-        p_specs = analy->component_menu_specs;
-        spec_qty = analy->component_spec_qty;
-
-        if ( p_pr->var->agg_type == VECTOR )
+        if ( p_pr->var->agg_type == SCALAR )
         {
-            for ( i = 0; i < p_pr->var->vec_size; i++ )
-            {
-                /* Find State_variable to provide component long name. */
-                htable_search( analy->st_var_table, comps[i], FIND_ENTRY,
-                               &p_hte );
-                comp_svar = (State_variable *) p_hte->data;
-
-                /* Build/save complete result specification string. */
-                if( p_specs == NULL )
-                    p_specs = NEW( char *, "New menu specs" );
-                else
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
-                sprintf( cbuf, "%s[%s]", p_pr->short_name,
-                         comp_svar->short_name );
-                griz_str_dup( p_specs + spec_qty, cbuf );
-
-                /* Create button. */
-                sprintf( cbuf, "%s (%s)", comp_svar->long_name,
-                         comp_svar->short_name );
-                n = 0;
-                button = XmCreatePushButtonGadget( result_menu, cbuf, args,
-                                                   n );
-                XtManageChild( button );
-                XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                               p_specs[spec_qty] );
-
-                spec_qty++;
-            }
-        }
-        else if ( p_pr->var->agg_type == ARRAY )
-        {
-            if ( p_pr->var->rank == 1 )
-            {
-                for ( i = 0; i < p_pr->var->dims[0]; i++ )
-                {
-                    /* Build/save complete result specification string. */
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
-                    sprintf( cbuf, "%s[%d]", p_pr->short_name, i + 1 );
-                    griz_str_dup( p_specs + spec_qty, cbuf );
-
-                    /* Create button. */
-                    n = 0;
-                    button = XmCreatePushButtonGadget( result_menu,
-                                                       cell_nums[i], args, n );
-                    XtManageChild( button );
-                    XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                   p_specs[spec_qty] );
-
-                    spec_qty++;
-                }
-            }
-            else /* rank is 2 */
-            {
-                for ( i = 0; i < p_pr->var->dims[1]; i++ )
-                {
-                    /* Create button. */
-                    n = 0;
-                    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                    n++;
-                    result_submenu = XmCreatePulldownMenu( result_menu,
-                                                           "subsubmenu_pane",
-                                                           args, n );
-
-                    n = 0;
-                    XtSetArg( args[n], XmNsubMenuId, result_submenu );
-                    n++;
-                    subsubmenu_cascade = XmCreateCascadeButton( result_menu,
-                                         cell_nums[i],
-                                         args, n );
-                    XtManageChild( subsubmenu_cascade );
-
-                    for ( j = 0; j < p_pr->var->dims[0]; j++ )
-                    {
-                        /* Build/save complete result specification string. */
-                        p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                           "Extend menu specs" );
-
-                        sprintf( cbuf, "%s[%d,%d]", p_pr->short_name, i + 1,
-                                 j + 1 );
-                        griz_str_dup( p_specs + spec_qty, cbuf );
-
-                        /* Create button. */
-                        n = 0;
-                        button = XmCreatePushButtonGadget( result_submenu,
-                                                           cell_nums[j],
-                                                           args, n );
-                        XtManageChild( button );
-                        XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                       p_specs[spec_qty] );
-
-                        spec_qty++;
-                    }
-                }
-            }
+            sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
+            add_show_button( submenu, label_buffer, p_pr->short_name, PRIMAL );
         }
         else
         {
-            for ( i = 0; i < p_pr->var->dims[0]; i++ )
+            int vec_size = p_pr->var->vec_size;
+
+            Widget result_menu;
+            Htable_entry * p_hte;
+            int i;
+            int j;
+            if ( p_pr->var->agg_type == VECTOR || p_pr->var->agg_type == VEC_ARRAY )
             {
-                /* Create button. */
-                n = 0;
-                XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                n++;
-                result_submenu = XmCreatePulldownMenu( result_menu,
-                                                       "subsubmenu_pane",
-                                                       args, n );
-
-                n = 0;
-                XtSetArg( args[n], XmNsubMenuId, result_submenu );
-                n++;
-                XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                n++;
-
-                /*
-                 * This is WIP for the new Element Set menus.
-                 */
-
-               /* if ( analy->es_cnt>0 && strstr(p_pr->short_name, "es_" ) )
-                {
-                   int es_id=0, es_index=0, es_label=-1;
-                    char *es_ptr=NULL, es_title[64], surface_title[16]="";
-                    int integration_pt=0;
-                    es_ptr   = strstr( p_pr->short_name, "es_" );
-                    es_id    = get_element_set_id( es_ptr );
-                    es_index = get_element_set_index( analy, es_id );
-
-                    if ( es_id>=0 && i<= analy->es_intpoints[es_index].labels_cnt )
-                    {
-                        es_label = analy->es_intpoints[es_index].labels[i];
-                        if ( analy->es_intpoints[es_index].in_mid_out_set[0]==es_label )
-                            strcpy( surface_title, "(Default In)" );
-                        else if ( analy->es_intpoints[es_index].in_mid_out_set[1]==es_label )
-                            strcpy( surface_title, "(Default Mid)" );
-                        else if ( analy->es_intpoints[es_index].in_mid_out_set[2]==es_label )
-                            strcpy( surface_title, "(Default Out)" );
-                        sprintf( es_title, "Int Pt %d (Label %d) %s", i+1, analy->es_intpoints[es_index].labels[i],
-                                 surface_title );
-                    }
-                    else sprintf(es_title, "[%d]", i);
-                    subsubmenu_cascade = XmCreateCascadeButton( result_menu,
-                                         es_title,
-                                         args, n );
-                } 
-                else  */
-                    subsubmenu_cascade = XmCreateCascadeButton( result_menu,
-                                         cell_nums[i],
-                                         args, n );
-                XtManageChild( subsubmenu_cascade ); 
-
-                vec_size = p_pr->var->vec_size;
-
-                for ( j = 0; j < vec_size; j++ )
+                /* Non-scalar types require another submenu level. */
+                sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
+                result_menu = add_pulldown_submenu( submenu, label_buffer );
+                for ( i = 0; i < p_pr->var->vec_size; i++ )
                 {
                     /* Find State_variable to provide component long name. */
-                    htable_search( analy->st_var_table, comps[j], FIND_ENTRY,
-                                   &p_hte );
-                    comp_svar = (State_variable *) p_hte->data;
+                    htable_search( analy->st_var_table, p_pr->var->components[i], FIND_ENTRY, &p_hte );
+                    State_variable * comp_svar = (State_variable *) p_hte->data;
 
-                    /* Build/save complete result specification string. */
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
-
-                    sprintf( cbuf, "%s[%d,%s]", p_pr->short_name, i + 1,
-                             comp_svar->short_name );
-
-                    griz_str_dup( p_specs + spec_qty, cbuf );
-
-                    /* Create button. */
-                    sprintf( cbuf, "%s (%s)", comp_svar->long_name,
-                             comp_svar->short_name );
-                    n = 0;
-                    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                    n++;
-                    button = XmCreatePushButtonGadget( result_submenu, cbuf,
-                                                       args, n );
-                    XtManageChild( button );
-                    XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                   p_specs[spec_qty] );
-
-                    spec_qty++;
+                    analy->component_menu_specs = RENEW_N( char *, analy->component_menu_specs, analy->component_spec_qty, 1, "Extend menu specs" );
+                    sprintf( label_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
+                    griz_str_dup( &analy->component_menu_specs[analy->component_spec_qty], label_buffer );
+                    sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
+                    add_show_button( result_menu, label_buffer, comp_svar->short_name, PRIMAL );
+                    analy->component_spec_qty++;
                 }
             }
-        }
-
-        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, result_menu );
-        n++;
-        cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
-        XtManageChild( cascade );
-
-        /* Update analy ("p_specs" could have been re-located). */
-        analy->component_menu_specs = p_specs;
-        analy->component_spec_qty = spec_qty;
-    }
-    else if ( p_pr->var->agg_type == SCALAR )
-    {
-        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        n = 0;
-        button = XmCreatePushButtonGadget( submenu, cbuf, args, n );
-        XtManageChild( button );
-        XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                       p_pr->short_name );
-    } 
-    else if( !strncmp(p_pr->short_name, "es_", 3))
-    {   
-        strcpy(parent_menu, cbuf); 
-        for(i = 0; i < p_pr->var->vec_size; i++)
-        {
-            rval = htable_search(p_es_components_ht, p_pr->var->components[i], FIND_ENTRY, &p_hte2);
-            if(rval != OK)
+            else if ( p_pr->var->agg_type == ARRAY )
             {
-                continue;
+                /* Non-scalar types require another submenu level. */
+                sprintf( label_buffer, "%s (%s)", p_pr->long_name, p_pr->short_name );
+                Widget result_menu = add_pulldown_submenu( submenu, label_buffer );
+
+                if ( p_pr->var->rank == 1 )
+                {
+                    for ( i = 0; i < p_pr->var->dims[0]; i++ )
+                    {
+                        analy->component_menu_specs = RENEW_N( char *, analy->component_menu_specs, analy->component_spec_qty, 1, "Extend menu specs" );
+                        sprintf( label_buffer, "%s[%s]", p_pr->short_name, i+1 );
+                        griz_str_dup( &analy->component_menu_specs[analy->component_spec_qty], label_buffer );
+                        sprintf( label_buffer, "[%s]", i+1 );
+                        add_show_button( result_menu, label_buffer, analy->component_menu_specs[analy->component_spec_qty], PRIMAL );
+                        analy->component_spec_qty++;
+                    }
+                }
+                else /* rank is 2 */
+                {
+                    for ( i = 0; i < p_pr->var->dims[1]; i++ )
+                    {
+                        sprintf( label_buffer, "[%s]", i + 1 );
+                        Widget result_submenu = add_pulldown_submenu( result_menu, label_buffer );
+                        for ( j = 0; j < p_pr->var->dims[0]; j++ )
+                        {
+                            htable_search( analy->st_var_table, p_pr->var->components[i], FIND_ENTRY, &p_hte );
+                            State_variable * comp_svar = (State_variable *) p_hte->data;
+
+                            analy->component_menu_specs = RENEW_N( char *, analy->component_menu_specs, analy->component_spec_qty, 1, "Extend menu specs" );
+                            sprintf( label_buffer, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
+                            griz_str_dup( &analy->component_menu_specs[analy->component_spec_qty], label_buffer );
+                            sprintf( label_buffer, "[%s]", j + 1 );
+                            add_show_button( result_menu, label_buffer, analy->component_menu_specs[analy->component_spec_qty], PRIMAL );
+                            analy->component_spec_qty++;
+                        }
+                    }
+                }
             }
-            p_es = (ES_in_menu *) p_hte2->data;
-            
-            if(p_es->in_menu == TRUE && !strcmp(p_es->parent_menu, parent_menu))
+            else
             {
-                continue;
-            } 
-
-            p_es->in_menu = TRUE;
-            strcpy(p_es->parent_menu, parent_menu);
-            /*rval = htable_add_entry_data(p_es_components_ht, p_es->component_name, ENTER_MERGE, (ES_in_menu *) p_es); */
-
-            sprintf( cbuf, "%s (%s)", p_pr->var->component_titles[i], p_pr->var->components[i] );
-            n = 0;
-            button = XmCreatePushButtonGadget( submenu, cbuf, args, n );
-            XtManageChild( button );
-            XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                           p_pr->var->components[i] );
-       } 
+                popup_dialog( WARNING_POPUP, "Variable of unknown agg type \"%s\"\n%s", p_pr->long_name, "not included in pulldown menu." );
+            }
+        }
     }
-    else
-        popup_dialog( WARNING_POPUP, "Variable of unknown agg type \"%s\"\n%s",
-                      p_pr->long_name, "not included in pulldown menu." );
 }
-
 
 /*****************************************************************
  * TAG( add_ti_result_button )
@@ -2429,37 +1462,12 @@ add_primal_result_button( Widget parent, Primal_result *p_pr )
 static void
 add_ti_result_button( Widget parent, Primal_result *p_pr )
 {
-    Widget submenu_cascade, submenu, result_menu;
-    Widget button, cascade, result_submenu, subsubmenu_cascade;
-    int position, vec_size;
-    int i, j, n;
-    char cbuf[M_MAX_NAME_LEN];
-    Bool_type make_submenu;
-    Arg args[10];
-    char **comps, **p_specs;
-    int spec_qty;
-    Analysis *analy;
-    State_variable *comp_svar;
-    static char *cell_nums[] =
-    {
-        "[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]", "[9]", "[10]",
-        "[11]", "[12]", "[13]", "[14]", "[15]", "[16]", "[17]", "[18]", "[19]",
-        "[20]"
-    };
-    int qty_cell_nums;
-    Htable_entry *p_hte;
-
-    Bool_type found_hex=FALSE,
-              found_shell=FALSE,
-              found_beam=FALSE,
-              shared_found=FALSE;
-
-    analy = env.curr_analy;
-
-    /* First make a tally of the TI objects that we have */
-    for (i=0;
-            i<analy->ti_var_count;
-            i++)
+    Bool_type found_hex = FALSE;
+    Bool_type found_shell = FALSE;
+    Bool_type found_beam = FALSE;
+    Analysis * analy = env.curr_analy;
+    int i = 0;
+    for ( i = 0; i < analy->ti_var_count; i++ )
     {
         if ( analy->ti_vars[i].superclass==M_HEX )
             found_hex = TRUE;
@@ -2467,376 +1475,11 @@ add_ti_result_button( Widget parent, Primal_result *p_pr )
             found_shell = TRUE;
         if ( analy->ti_vars[i].superclass==M_BEAM)
             found_beam = TRUE;
-
     }
-
-    /* Add the first-level sub-menus */
-
     if ( found_hex )
     {
-        strcpy(cbuf, "Bricks");
-        n = 0;
-        submenu = XmCreatePulldownMenu( ti_menu_widg, "submenu_pane", args,
-                                        n );
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, submenu );
-        n++;
-        submenu_cascade = XmCreateCascadeButton( ti_menu_widg, cbuf, args,
-                          n );
-        XtManageChild( submenu_cascade );
+        add_pulldown_submenu( ti_menu_widg, "Bricks" );
     }
-
-
-
-#ifdef AAA
-    /* Arrays and Vector Arrays that are too big don't go in menu. */
-    if ( ( p_pr->var->agg_type == ARRAY
-            && ( p_pr->var->rank > 2
-                 || p_pr->var->dims[0] > qty_cell_nums
-                 || ( p_pr->var->rank == 2
-                      && p_pr->var->dims[1] > qty_cell_nums
-                    )
-               )
-         )
-
-            ||
-
-            ( p_pr->var->agg_type == VEC_ARRAY
-              && ( p_pr->var->rank > 1
-                   || p_pr->var->dims[0] > qty_cell_nums
-                 )
-            )
-       )
-    {
-        popup_dialog( INFO_POPUP, "Non-scalar Variable \"%s\" has too many\n%s",
-                      p_pr->long_name,
-                      "entries for inclusion in pulldown menu." );
-        return;
-    }
-
-    /* Determine correct submenu name ("Shared" or class name). */
-    get_primal_submenu_name( analy, p_pr, cbuf );
-
-    /* See if submenu exists. */
-    make_submenu = !find_labelled_child( primal_menu_widg, cbuf,
-                                         &submenu_cascade, &position );
-
-    if ( make_submenu )
-    {
-        n = 0;
-        submenu = XmCreatePulldownMenu( primal_menu_widg, "submenu_pane", args,
-                                        n );
-
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, submenu );
-        n++;
-        submenu_cascade = XmCreateCascadeButton( primal_menu_widg, cbuf, args,
-                          n );
-        XtManageChild( submenu_cascade );
-    }
-    else
-        /* Submenu exists; get the pane from the cascade button. */
-        XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
-
-    /* Now add the new primal result button. */
-    if ( p_pr->var->agg_type != SCALAR )
-    {
-        /* Non-scalar types require another submenu level. */
-        n = 0;
-        result_menu = XmCreatePulldownMenu( submenu, "submenu_pane", args, n );
-
-        comps = p_pr->var->components;
-        p_specs = analy->component_menu_specs;
-        spec_qty = analy->component_spec_qty;
-
-        if ( p_pr->var->agg_type == VECTOR )
-        {
-            for ( i = 0; i < p_pr->var->vec_size; i++ )
-            {
-                /* Find State_variable to provide component long name. */
-                htable_search( analy->st_var_table, comps[i], FIND_ENTRY,
-                               &p_hte );
-                comp_svar = (State_variable *) p_hte->data;
-
-                /* Build/save complete result specification string. */
-                if( p_specs == NULL )
-                    p_specs = NEW( char *, "New menu specs" );
-                else
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
-                sprintf( cbuf, "%s[%s]", p_pr->short_name,
-                         comp_svar->short_name );
-                griz_str_dup( p_specs + spec_qty, cbuf );
-
-                /* Create button. */
-                sprintf( cbuf, "%s (%s)", comp_svar->long_name,
-                         comp_svar->short_name );
-                n = 0;
-                button = XmCreatePushButtonGadget( result_menu, cbuf, args,
-                                                   n );
-                XtManageChild( button );
-                XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                               p_specs[spec_qty] );
-
-                spec_qty++;
-            }
-        }
-        else if ( p_pr->var->agg_type == ARRAY )
-        {
-            if ( p_pr->var->rank == 1 )
-            {
-                for ( i = 0; i < p_pr->var->dims[0]; i++ )
-                {
-                    /* Build/save complete result specification string. */
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
-                    sprintf( cbuf, "%s[%d]", p_pr->short_name, i + 1 );
-                    griz_str_dup( p_specs + spec_qty, cbuf );
-
-                    /* Create button. */
-                    n = 0;
-                    button = XmCreatePushButtonGadget( result_menu,
-                                                       cell_nums[i], args, n );
-                    XtManageChild( button );
-                    XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                   p_specs[spec_qty] );
-
-                    spec_qty++;
-                }
-            }
-            else /* rank is 2 */
-            {
-                for ( i = 0; i < p_pr->var->dims[1]; i++ )
-                {
-                    /* Create button. */
-                    n = 0;
-                    result_submenu = XmCreatePulldownMenu( result_menu,
-                                                           "subsubmenu_pane",
-                                                           args, n );
-
-                    n = 0;
-                    XtSetArg( args[n], XmNsubMenuId, result_submenu );
-                    n++;
-                    subsubmenu_cascade = XmCreateCascadeButton( result_menu,
-                                         cell_nums[i],
-                                         args, n );
-                    XtManageChild( subsubmenu_cascade );
-
-                    for ( j = 0; j < p_pr->var->dims[0]; j++ )
-                    {
-                        /* Build/save complete result specification string. */
-                        p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                           "Extend menu specs" );
-
-                        sprintf( cbuf, "%s[%d,%d]", p_pr->short_name, i + 1,
-                                 j + 1 );
-                        griz_str_dup( p_specs + spec_qty, cbuf );
-
-                        /* Create button. */
-                        n = 0;
-                        button = XmCreatePushButtonGadget( result_submenu,
-                                                           cell_nums[j],
-                                                           args, n );
-                        XtManageChild( button );
-                        XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                       p_specs[spec_qty] );
-
-                        spec_qty++;
-                    }
-                }
-            }
-        }
-        else
-        {
-            for ( i = 0; i < p_pr->var->dims[0]; i++ )
-            {
-                /* Create button. */
-                n = 0;
-                result_submenu = XmCreatePulldownMenu( result_menu,
-                                                       "subsubmenu_pane",
-                                                       args, n );
-
-                n = 0;
-                XtSetArg( args[n], XmNsubMenuId, result_submenu );
-                n++;
-                subsubmenu_cascade = XmCreateCascadeButton( result_menu,
-                                     cell_nums[i],
-                                     args, n );
-                XtManageChild( subsubmenu_cascade );
-
-                vec_size = p_pr->var->vec_size;
-
-                for ( j = 0; j < vec_size; j++ )
-                {
-                    /* Find State_variable to provide component long name. */
-                    htable_search( analy->st_var_table, comps[j], FIND_ENTRY,
-                                   &p_hte );
-                    comp_svar = (State_variable *) p_hte->data;
-
-                    /* Build/save complete result specification string. */
-                    p_specs = RENEW_N( char *, p_specs, spec_qty, 1,
-                                       "Extend menu specs" );
-
-                    sprintf( cbuf, "%s[%d,%s]", p_pr->short_name, i + 1,
-                             comp_svar->short_name );
-                    griz_str_dup( p_specs + spec_qty, cbuf );
-
-                    /* Create button. */
-                    sprintf( cbuf, "%s (%s)", comp_svar->long_name,
-                             comp_svar->short_name );
-                    n = 0;
-                    button = XmCreatePushButtonGadget( result_submenu, cbuf,
-                                                       args, n );
-                    XtManageChild( button );
-                    XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                                   p_specs[spec_qty] );
-
-                    spec_qty++;
-                }
-            }
-        }
-
-        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, result_menu );
-        n++;
-        cascade = XmCreateCascadeButton( submenu, cbuf, args, n );
-        XtManageChild( cascade );
-
-        /* Update analy ("p_specs" could have been re-located). */
-        analy->component_menu_specs = p_specs;
-        analy->component_spec_qty = spec_qty;
-    }
-    else if ( p_pr->var->agg_type == SCALAR )
-    {
-        sprintf( cbuf, "%s (%s)", p_pr->long_name, p_pr->short_name );
-        n = 0;
-        button = XmCreatePushButtonGadget( submenu, cbuf, args, n );
-        XtManageChild( button );
-        XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                       p_pr->short_name );
-    }
-    else
-        popup_dialog( WARNING_POPUP, "Variable of unknown agg type \"%s\"\n%s",
-                      p_pr->long_name, "not included in pulldown menu." );
-#endif
-}
-
-
-/*****************************************************************
- * TAG( get_primal_submenu_name )
- *
- * Determine the proper submenu name for a primal result by
- * searching through the object classes that support the result.
- */
-static void
-get_primal_submenu_name( Analysis *analy, Primal_result *p_pr, char *name )
-{
-    Subrecord *p_subrec;
-    char **class_names;
-    int qty, subr_qty;
-    int *subr_indxs;
-    int i, j, k;
-    Bool_type done;
-    Htable_entry *p_hte;
-    MO_class_data *p_mo_class;
-
-    qty = 0;
-    done = FALSE;
-    class_names = NULL;
-    for ( i = 0; i < analy->qty_srec_fmts && !done; i++ )
-    {
-        subr_qty = p_pr->srec_map[i].qty;
-
-        if ( subr_qty == 0 )
-            continue;
-
-        subr_indxs = (int *) p_pr->srec_map[i].list;
-
-        for ( j = 0; j < p_pr->srec_map[i].qty; j++ )
-        {
-            p_subrec = &analy->srec_tree[i].subrecs[ subr_indxs[j] ].subrec;
-
-            /* Search through existing class names to see if this is new. */
-            for ( k = 0; k < qty; k++ )
-                if ( strcmp( p_subrec->class_name, class_names[k] ) == 0 )
-                    break;
-
-            if ( k == qty )
-            {
-                /* New class name; add it to list. */
-                class_names = RENEW_N( char *, class_names, qty, 1,
-                                       "Extend class name list" );
-                griz_str_dup( class_names + qty, p_subrec->class_name );
-                qty++;
-
-                /* If we see more than one class name, menu is "Shared". */
-                if ( qty > 1 )
-                {
-                    done = TRUE;
-                    break;
-                }
-            }
-        }
-    }
-
-    if ( qty == 1 )
-    {
-        /* Only saw one class, so submenu name is class name. */
-
-        /* Need to look up the long name. */
-        htable_search( MESH_P( analy )->class_table, class_names[0], FIND_ENTRY,
-                       &p_hte );
-        p_mo_class = (MO_class_data *) p_hte->data;
-        sprintf( name, "%s (%s)", p_mo_class->long_name, class_names[0] );
-    }
-    else
-        /* Saw multiple classes, menu is "Shared". */
-        strcpy( name, "Shared" );
-
-    /* Clean-up. */
-    for ( i = 0; i < qty; i++ )
-        free( class_names[i] );
-    free( class_names );
-}
-
-
-/*****************************************************************
- * TAG( find_labelled_child )
- *
- * Attempt match a name among a widgets children.
- */
-static Bool_type
-find_labelled_child( Widget parent, char *name, Widget *child, int *index )
-{
-    WidgetList children;
-    XmString label;
-    int i;
-    int qty;
-    char cbuf[M_MAX_NAME_LEN];
-
-    /* Get list of parent's children widgets. */
-    XtVaGetValues( parent, XmNnumChildren, &qty, XmNchildren, &children,
-                   NULL );
-
-    /* Search children for name match. */
-    for ( i = qty - 1; i > -1; i-- )
-    {
-        XtVaGetValues( children[i], XmNlabelString, &label, NULL );
-        if ( label != NULL )
-            string_convert( label, cbuf );
-        else
-            continue;
-
-        if ( strcmp( cbuf, name ) == 0 )
-        {
-            *child = children[i];
-            *index = i;
-            return TRUE;
-        }
-    }
-
-    return FALSE;
 }
 
 /*****************************************************************
@@ -2845,347 +1488,64 @@ find_labelled_child( Widget parent, char *name, Widget *child, int *index )
  * Add a single derived result button to the menu.
  */
 static void
-add_derived_result_button( Derived_result *p_dr )
+add_derived_result_button( Analysis * analy, Widget parent, Derived_result * p_dr )
 {
-    Widget submenu_cascade, submenu, subsubmenu, cascade, sub_cascade, button;
-    int i, j, k, n;
-    int idx, position;
-    char cbuf[M_MAX_NAME_LEN], nambuf[M_MAX_NAME_LEN];
-    Bool_type make_submenu;
-    Arg args[10];
-    Analysis *analy;
-    Subrecord_result *p_subr_res;
+    if( !p_dr->hide_in_menu ){
+        Subrecord_result * p_subr_res = (Subrecord_result *) p_dr->srec_map[p_dr->srec_ids[0]].list;
+        int idx = p_subr_res->index;
 
-    /* Vars added to add element set derived results */
-    int es_id=0;
-    char submenu_name[64], *cb_name=NULL, cb_name_temp[64];
-    Bool_type es_found=FALSE;
-    State_variable sv;
-    Subrecord subrec;
-    Hash_table *p_pr_ht;
-    Htable_entry *p_hte;
-    Primal_result *p_pr;
-    int dbid=0, srec_qty=0;
-    int subrec_qty=0;
-    int rval=0;
-
-    analy = env.curr_analy;
-
-    /* See if correct submenu exists. */
-
-    /* Determine correct submenu name ("Shared" or class name). */
-    get_result_submenu_name( p_dr, cbuf );
-    strcpy( submenu_name, cbuf );
-
-    /* See if submenu exists. */
-    make_submenu = !find_labelled_child( derived_menu_widg, cbuf,
-                                         &submenu_cascade, &position );
-
-    if ( make_submenu )
-    {
-        n = 0;
-        XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-        n++;
-        submenu = XmCreatePulldownMenu( derived_menu_widg, "submenu_pane",
-                                        args, n );
-
-        n = 0;
-        XtSetArg( args[n], XmNsubMenuId, submenu );
-        n++;
-        cascade = XmCreateCascadeButton( derived_menu_widg, cbuf, args, n );
-        XtManageChild( cascade );
-    }
-    else
-        /* Submenu exists; get the pane from the cascade button. */
-        XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
-
-    for ( i = 0; i < analy->qty_srec_fmts; i++ )
-        if ( p_dr->srec_map[i].qty > 0 )
-            break;
-    p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
-    idx = p_subr_res->index;
-
-    /* If we have element set derived results then add them now */
-
-    p_pr_ht = env.curr_analy->primal_results;
-    if ( analy->es_cnt>0 && p_pr_ht != NULL )
-    {
-
-        /* Get state record format count for this database. */
-        dbid = env.curr_analy->db_ident;
-        srec_qty = 0;
-        env.curr_analy->db_query( dbid, QRY_QTY_SREC_FMTS, NULL, NULL,
-                                  (void *) &srec_qty );
-
-        /* Loop over srecs */
-        for ( i = 0;
-                i < srec_qty;
-                i++ )
+        char label_buffer[M_MAX_NAME_LEN];
+        if ( p_dr->is_shared )
         {
-            /* Get subrecord count for this state record. */
-            rval = env.curr_analy->db_query( dbid, QRY_QTY_SUBRECS, (void *) &i,
-                                             NULL, (void *) &subrec_qty );
-            if ( rval != OK )
-                continue;
-
-            /* Loop over subrecs */
-            for ( j = 0;
-                    j < subrec_qty;
-                    j++ )
-            {
-                /* Get binding */
-                rval = env.curr_analy->db_get_subrec_def( dbid, i, j, &subrec );
-                if ( rval != OK )
-                    continue;
-
-                /* Look for element set svars to add to sub-menu */
-
-                if ( subrec.qty_svars==1 && strstr( submenu_name, subrec.class_name)
-                        && !strncmp( subrec.svar_names[0], "es_", 3 ) ) 
-                {
-                    continue;
-                    es_id = get_element_set_id( subrec.svar_names[0] );
-                    sprintf( nambuf, "Element Set %d (%s)", es_id,
-                             subrec.svar_names[0] );
-
-                    /* See if submenu exists. */
-                    make_submenu = !find_labelled_child( submenu, nambuf,
-                                                         &submenu_cascade, &position );
-
-                    /* Use bound state vars as keys into Primal_result hash table.
-                     */
-                    rval = htable_search( p_pr_ht, subrec.svar_names[0], FIND_ENTRY, &p_hte );
-                    if ( rval != OK )
-                        continue;
-
-                    p_pr = (Primal_result *) p_hte->data;
-
-                    if ( make_submenu )
-                    {
-                        n = 0;
-                        XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-                        n++;
-                        subsubmenu = XmCreatePulldownMenu( submenu, "es_submenu_pane",
-                                                           args, n );
-
-                        n = 0;
-                        XtSetArg( args[n], XmNsubMenuId, subsubmenu );
-                        n++;
-                        sub_cascade = XmCreateCascadeButton( submenu, nambuf, args, n );
-                        XtManageChild( sub_cascade );
-                    }
-                    else
-                        /* Submenu exists; get the pane from the cascade button. */
-                        XtVaGetValues( submenu_cascade, XmNsubMenuId, &subsubmenu, NULL );
-
-                    if ( p_pr->var->num_type == M_STRING )
-                        continue;
-
-                    rval = mc_get_svar_def( dbid, subrec.svar_names[0], &sv );
-                    if ( rval == 0 )
-                    {
-                        for ( k=0;
-                                k<sv.vec_size;
-                                k++ )
-                            if ( !strcmp( sv.components[k], p_subr_res->candidate->short_names[idx] ) )
-                            {
-                                /* Add derived element set result button. */
-                                for ( i = 0; i < analy->qty_srec_fmts; i++ )
-                                    if ( p_dr->srec_map[i].qty > 0 )
-                                        break;
-                                p_subr_res = (Subrecord_result *) p_dr->srec_map[i].list;
-
-                                sprintf( nambuf, "%s (%s)", p_subr_res->candidate->long_names[idx],
-                                         p_subr_res->candidate->short_names[idx] );
-                                n = 0;
-                                button = XmCreatePushButtonGadget( subsubmenu, nambuf, args, n );
-                                XtManageChild( button );
-                                sprintf( cb_name_temp, "%s[%s]", subrec.svar_names[0], p_subr_res->candidate->short_names[idx] );
-                                cb_name = NEW_N( char, strlen(cb_name_temp), "Static cb name" );
-                                strcpy( cb_name, cb_name_temp );
-                                XtAddCallback( button, XmNactivateCallback, res_menu_CB, cb_name );
-                            }
-                    }
-                } /* es variable test */
-
-                /* Don't care about return value for this. */
-                env.curr_analy->db_cleanse_subrec( &subrec );
-            } /* for on j */
+            strcpy( label_buffer, "Shared" );
         }
-    }
-
-    /* Add derived result button. */
-
-    sprintf( nambuf, "%s (%s)", p_subr_res->candidate->long_names[idx],
-             p_subr_res->candidate->short_names[idx] );
-    n = 0;
-    button = XmCreatePushButtonGadget( submenu, nambuf, args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, res_menu_CB,
-                   p_subr_res->candidate->short_names[idx] );
-
-}
-
-/*****************************************************************
- * TAG( get_result_submenu_name )
- *
- * Determine the proper submenu name for a derived result by
- * determining if multiple classes support the result.  Because
- * a result can be derived for one class from data in another
- * class (for ex., brick strains calculated from nodal positions),
- * we can't rely on simple examinations of the class names for
- * the subrecords to identify the classes actually supporting the
- * result derivation or to provide the menu name of a non-shared
- * result.
- */
-static void
-get_result_submenu_name( Derived_result *p_dr, char *name )
-{
-    int i, j, k;
-    int qty_fmts, sr_qty, class_qty;
-    Subrec_obj *subrecs;
-    int subr_id;
-    Subrecord_result *p_sr;
-    int candidate_sclass, subrecord_sclass;
-    MO_class_data *p_mo_class;
-    Mesh_data *p_mesh;
-    char *shared = "Shared";
-    char *subrecord_class;
-
-    qty_fmts = env.curr_analy->qty_srec_fmts;
-
-    /*
-     * Search all state record formats to get a menu name from the
-     * first format that supports the derived result.
-     */
-    for ( i = 0; i < qty_fmts; i++ )
-    {
-        /*
-         * Compare data for the first class supporting the result
-         * with the rest of the classes supporting the result to
-         * determine if the submenu name should be "Shared" or a
-         * class name.
-         */
-        sr_qty = p_dr->srec_map[i].qty;
-
-        if ( sr_qty == 0 )
-            continue;
-
-        p_sr = (Subrecord_result *) p_dr->srec_map[i].list;
-        subrecs = env.curr_analy->srec_tree[i].subrecs;
-
-        /* Parameterize data for the first class. */
-        candidate_sclass = p_sr[0].candidate->superclass;
-        subr_id = p_sr[0].subrec_id;
-        subrecord_sclass = subrecs[subr_id].p_object_class->superclass;
-        subrecord_class = subrecs[subr_id].p_object_class->short_name;
-
-        /*
-         * Loop over the subrecords supporting the result derivation
-         * to determine if the result is shared.
-         */
-        for ( j = 1; j < sr_qty; j++ )
+        else if( p_dr->has_indirect )
         {
-            subr_id = p_sr[j].subrec_id;
-
-            if ( candidate_sclass != p_sr[j].candidate->superclass )
-            {
-                /*
-                 * The superclasses from originating Result_candidate's
-                 * differ; go no farther, it's a shared result.
-                 */
-                strcpy( name, shared );
-                break;
-            }
-            else if ( subrecord_sclass
-                      != subrecs[subr_id].p_object_class->superclass )
-            {
-                /*
-                 * The originating superclasses are the same but the
-                 * supporting subrecords bind data from classes which
-                 * themselves have different superclasses, so it's a shared
-                 * result (maybe, for example, nodal data supporting
-                 * brick strain calculations and thick shell data which
-                 * includes a strain tensor explicitly - bricks and
-                 * thick shells would both be G_HEX, but the supporting
-                 * subrecords would have superclasses G_NODE and G_HEX).
-                 */
-                strcpy( name, shared );
-                break;
-            }
-            else if ( strcmp( subrecord_class,
-                              subrecs[subr_id].p_object_class->short_name )
-                      != 0 )
-            {
-                /*
-                 * The Result_candidate and subrecord superclasses match,
-                 * but the subrecord classes differ - almost certainly a
-                 * shared result (for example, a stress derived result
-                 * from a brick subrecord containing a stress tensor and
-                 * a thick shell subrecord containing a stress tensor).
-                 * An exception might be if for some reason there were two
-                 * nodal classes in the mesh (not currently supported by
-                 * Griz), and subrecords binding each of the nodal classes
-                 * independently support the same result derivation on
-                 * another class (i.e., brick strains from nodal positions).
-                 * In that case, it shouldn't be treated as shared since
-                 * the final result from both subrecords would be for the
-                 * same class.  Assume this won't occur for now.
-                 */
-                strcpy( name, shared );
-                break;
-            }
-        }
-
-        if ( j == sr_qty && sr_qty != 0 )
-        {
-            /*
-             * Might still be shared if the result is indirect and there are
-             * multiple classes from the superclass of the derived result.
-             * If it's indirect but there's only one class from that
-             * superclass, use that class name.  Otherwise, use the class
-             * name of the class bound to the subrecord.
-             */
-
-            p_mo_class = subrecs[p_sr[0].subrec_id].p_object_class;
-
-            if ( candidate_sclass != p_mo_class->superclass )
-            {
-                /*
-                 * The superclasses differ, so we have to find a suitable
-                 * class name somewhere, but the Result_candidate doesn't
-                 * know about classes.  Pick the first class of the correct
-                 * superclass.
-                 */
-                for ( k = 0; k < env.curr_analy->mesh_qty; k++ )
-                {
-                    p_mesh = env.curr_analy->mesh_table + k;
-                    class_qty = p_mesh->classes_by_sclass[candidate_sclass].qty;
-
-                    if ( class_qty > 0 )
-                    {
-                        p_mo_class = ((MO_class_data **)
-                                      p_mesh->classes_by_sclass[candidate_sclass].list)[0];
-
-                        if ( class_qty > 1 )
-                        {
-                            strcpy( name, shared );
-                            p_mo_class = NULL;
-                        }
-                        break;
+            // Don't put indirect result in the subrecord mesh object menu, find appropriate
+            // element class with matching superclass.
+            if( p_subr_res->superclass != p_dr->subrecs[0]->p_object_class->superclass ){
+                int i, class_qty;
+                Mesh_data* p_mesh;
+                MO_class_data* p_mo_class;
+                for( i = 0; i < analy->mesh_qty; i++ ){
+                    p_mesh = analy->mesh_table + i;
+                    class_qty = p_mesh->classes_by_sclass[p_subr_res->superclass].qty;
+                    if(class_qty > 0 ){
+                        p_mo_class = ((MO_class_data**) p_mesh->classes_by_sclass[p_subr_res->superclass].list)[0];
+                        if(class_qty > 1)
+                            strcpy( label_buffer, "Shared" );
+                        else
+                            sprintf( label_buffer, "%s (%s)", p_mo_class->long_name, p_mo_class->short_name );
                     }
                 }
             }
-
-            if ( p_mo_class != NULL )
-                sprintf( name, "%s (%s)", p_mo_class->long_name,
-                         p_mo_class->short_name );
         }
+        else
+        {
+            /* Only one class, so submenu name is class name. */
+            sprintf( label_buffer, "%s (%s)", p_dr->subrecs[0]->p_object_class->long_name, p_dr->subrecs[0]->p_object_class->short_name );
+        }
+        int child_idx = -1;
+        Widget submenu;
+        Widget submenu_cascade;
+        // Find element class menu
+        if( ! find_labelled_child( parent, label_buffer, &submenu_cascade, &child_idx ) )
+            submenu = add_pulldown_submenu( parent, label_buffer );
+        else
+            XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
+        
+        // If derived results are group together create another submenu
+        if( p_dr->group_name != NULL ){
+            if( !find_labelled_child( submenu, p_dr->group_name, &submenu_cascade, &child_idx))
+                submenu = add_pulldown_submenu( submenu, p_dr->group_name );
+            else
+                XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
+        }
+
+        sprintf( label_buffer, "%s (%s)", p_subr_res->candidate->long_names[idx], p_subr_res->candidate->short_names[idx] );
+        add_show_button( submenu, label_buffer, p_subr_res->candidate->short_names[idx], DERIVED );
     }
-
-    return;
 }
-
 
 /*****************************************************************
  * TAG( create_derived_res_menu )
@@ -3193,136 +1553,46 @@ get_result_submenu_name( Derived_result *p_dr, char *name )
  * Create the derived results menu for the Control window menu bar.
  */
 static void
-create_derived_res_menu( Widget parent )
+create_derived_res_menu( Analysis * analy, Widget parent )
 {
-    Widget button;
-    int i, j, k, n;
-    int qty_fmts;
-    Arg args[1];
-    int qty_candidates;
-    Result_candidate *p_rc;
-    Hash_table *p_dr_ht;
-    Htable_entry *p_hte;
-    Derived_result *p_dr = NULL;
-    Hash_table *p_pr_ht;
-    Htable_entry *pp_hte;
-    Primal_result *p_pr = NULL;
-    Subrecord_result *p_sr;
-    char **svar_names;
-    Bool_type short_name_is_primal = FALSE;
-    Bool_type match = FALSE;
-
-    int rval;
-    Analysis *p_analy;
-    p_analy = get_analy_ptr();
-
-    /*
-     * Traverse the possible_results[] array to get the names of derived
-     * results in a reasonable order.  Ignore the ones that don't exist
-     * since this database doesn't support them.
-     */
-
-    for ( qty_candidates = 0;
-            possible_results[qty_candidates].superclass != QTY_SCLASS;
-            qty_candidates++ );
-
-    p_dr_ht = env.curr_analy->derived_results;
-    p_pr_ht = env.curr_analy->primal_results;
-    qty_fmts = env.curr_analy->qty_srec_fmts;
-
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    derived_menu_widg = XmCreatePulldownMenu( parent, "derived_menu_pane",
-                        args, n );
-
-    /* Always add an entry to show materials. */
-    n = 0;
-    button = XmCreatePushButtonGadget( derived_menu_widg, "Result off",
-                                       args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, res_menu_CB, "mat" );
-
-    /* Go no further if there aren't actually any derived results. */
+    int num_in_menu = 0;
+    int ii = 0;
+    Analysis * p_analy = get_analy_ptr();
+    Widget derived_menu_widg = add_pulldown_submenu( parent, derived_menu_name );
+    add_show_button( derived_menu_widg, "Result off", "mat", DERIVED );
+    // Go no further if there aren't actually any derived results.
+    Hash_table * p_dr_ht = env.curr_analy->derived_results;
     if ( p_dr_ht == NULL )
         return;
-
-    /* Now build the result menu(s) */
-    for ( i = 0; i < qty_candidates; i++ )
+    void ** p_dr_data = NULL;
+    int qty_dr = 0;
+    int rval = htable_get_data( p_dr_ht, &p_dr_data, &qty_dr );
+    if( rval == OK )
     {
-        p_rc = &possible_results[i];
-        if(p_rc->compute_func == load_primal_result)
+        const char ** snames = NEW_N(const char*,qty_dr,"pointers to the names to use to order the derived results");
+        int * permutation = NEW_N(int,qty_dr,"reorder the derived results to get better grouping");
+        int ii = 0;
+        for( ii = 0; ii < qty_dr; ++ii )
         {
-            continue;
+            permutation[ii] = ii;
+            Derived_result * p_dr = (Derived_result*) p_dr_data[ii];
+            Subrecord_result * p_subr_res = (Subrecord_result *) p_dr->srec_map[p_dr->srec_ids[0]].list;
+            snames[ii] = p_subr_res->candidate->short_names[p_subr_res->index];
         }
-        /* added code to not create a menu for true primal variables in the derived results section */
-        svar_names = p_rc->primals;
-        for(j = 0; svar_names[j] != NULL; j++)
+        str_heapsort(snames,permutation,qty_dr);
+        free(snames);
+        for( ii = 0; ii < qty_dr; ++ii )
         {
-            rval = htable_search(p_pr_ht, svar_names[j], FIND_ENTRY, &pp_hte);
-            if(rval == OK)
+            Derived_result * p_dr = (Derived_result*) p_dr_data[permutation[ii]];
+            if ( !p_dr->in_menu )
             {
-                p_pr = (Primal_result *) pp_hte->data;
-                break;
+                add_derived_result_button( analy, derived_menu_widg, p_dr );
+                p_dr->in_menu = TRUE;
             }
         }
-        for ( j = 0; p_rc->short_names[j] != NULL; j++ )
-        {
-            short_name_is_primal = FALSE;
-            /* Don't add a menu button if the short name is really primal (i.e. "sx") */
-            if(p_pr != NULL && p_pr->var->components != NULL)
-            {
-               for(k = 0; k < p_pr->var->vec_size ; k++)
-               {
-                   if(!strcmp(p_rc->short_names[j], p_pr->var->components[k]))
-                   {
-                       short_name_is_primal = TRUE;
-                       break;
-                   }
-               } 
-            }
- 
-            if(short_name_is_primal)
-            {
-                continue;
-            } 
- 
-            rval = htable_search( p_dr_ht, p_rc->short_names[j], FIND_ENTRY,
-                                  &p_hte );
-
-            if ( rval == OK )
-            {
-                p_dr = (Derived_result *) p_hte->data;
-                /* make sure the superclasses match. */
-                match = FALSE;
-                for(k = 0; k < qty_fmts; k++)
-                {
-                    p_sr = (Subrecord_result *) p_dr->srec_map[k].list;
-                    if(p_sr->candidate->superclass == p_rc->superclass)
-                    {
-                        match = TRUE;
-                    } 
-                }
-                if(match == FALSE)
-                {
-                    continue;
-                }
-
-                if ( p_analy->analysis_type==MODAL ) /* May later check for
-						      * p_rc->origin.is_node_result
-						      */
-                    if ( p_rc->short_names[0]!=NULL )
-                        if ( strncmp(  p_rc->short_names[0], "evec_", 5) )
-                            p_rc->hide_in_menu = TRUE;
-
-                if ( !p_dr->in_menu && !p_rc->hide_in_menu)
-                {
-                    add_derived_result_button( p_dr );
-                    p_dr->in_menu = TRUE;
-                }
-            }
-        }
+        free(permutation);
     }
+    free( p_dr_data );
 }
 
 
@@ -3332,96 +1602,33 @@ create_derived_res_menu( Widget parent )
  * Create the primal results menu for the Control window menu bar.
  */
 static void
-create_primal_res_menu( Widget parent )
+create_primal_res_menu( Analysis * analy, Widget parent )
 {
-    int i, j, k, n;
-    Arg args[1];
-    Hash_table *p_pr_ht;
-    Htable_entry *p_hte;
-    Primal_result *p_pr;
-    int rval;
-    Widget button;
-    int srec_qty, subrec_qty;
-    char **svar_names;
-    int dbid;
-    Subrecord subrec;
-
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    primal_menu_widg = XmCreatePulldownMenu( parent, "primal_menu_pane",
-                       args, n );
-
-    /* Always add an entry to show materials. */
-    n = 0;
-    button = XmCreatePushButtonGadget( primal_menu_widg, "Result off",
-                                       args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, res_menu_CB, "mat" );
-
-    p_pr_ht = env.curr_analy->primal_results;
-
-    /* Go no further if there aren't actually any primal results. */
+    Widget primal_menu_widg = add_pulldown_submenu( parent, primal_menu_name );
+    add_show_button( primal_menu_widg, "Result off", "mat", PRIMAL );
+    Hash_table * p_pr_ht = env.curr_analy->primal_results;
     if ( p_pr_ht == NULL )
         return;
-
-    /*
-     * Traverse the state record formats and read each subrecord definition
-     * to get (potential) Primal_results in a reasonable order.
-     */
-
-    /* Get state record format count for this database. */
-    dbid = env.curr_analy->db_ident;
-    srec_qty = 0;
-
-    /* Don't care about return value for this. */
-    env.curr_analy->db_query( dbid, QRY_QTY_SREC_FMTS, NULL, NULL,
-                              (void *) &srec_qty );
-
-    /* Loop over srecs */
-    for ( i = 0; i < srec_qty; i++ )
+    void ** p_pr_data = NULL;
+    int qty_pr = 0;
+    int rval = htable_get_data( p_pr_ht, &p_pr_data, &qty_pr );
+    if ( rval == OK )
     {
-        /* Get subrecord count for this state record. */
-        rval = env.curr_analy->db_query( dbid, QRY_QTY_SUBRECS, (void *) &i,
-                                         NULL, (void *) &subrec_qty );
-        if ( rval != OK )
-            continue;
-
-        /* Loop over subrecs */
-        for ( j = 0; j < subrec_qty; j++ )
+        int ii = 0;
+        for( ii = 0; ii < qty_pr; ++ii )
         {
-            /* Get binding */
-            rval = env.curr_analy->db_get_subrec_def( dbid, i, j, &subrec );
-            if ( rval != OK )
+            Primal_result * p_pr = (Primal_result *) p_pr_data[ii];
+            // Don't put string results data in the menu
+            if ( p_pr->var->num_type == M_STRING )
                 continue;
-
-            /* Use bound state vars as keys into Primal_result hash table.
-             */
-            svar_names = subrec.svar_names;
-
-            for ( k = 0; k < subrec.qty_svars; k++ )
+            if ( !p_pr->in_menu )
             {
-                rval = htable_search( p_pr_ht, svar_names[k], FIND_ENTRY,
-                                      &p_hte );
-                if ( rval == OK )
-                {
-                    p_pr = (Primal_result *) p_hte->data;
-
-                    if ( p_pr->var->num_type == M_STRING )
-                        continue;
-
-                    if ( !p_pr->in_menu )
-                    {
-                        add_primal_result_button( parent, p_pr );
-                        p_pr->in_menu = TRUE;
-                    }
-                }
+                add_primal_result_button( analy, primal_menu_widg, p_pr );
+                p_pr->in_menu = TRUE;
             }
-
-            /* Don't care about return value for this. */
-            env.curr_analy->db_cleanse_subrec( &subrec );
         }
     }
+    free(p_pr_data);
 }
 
 
@@ -3433,42 +1640,12 @@ create_primal_res_menu( Widget parent )
 static void
 create_ti_res_menu( Widget parent )
 {
-    int i, j, k, n;
-    Arg args[1];
-    Hash_table *p_pr_ht;
-    Htable_entry *p_hte;
-    Primal_result *p_pr;
-    int rval;
-    Widget button;
-    int srec_qty, subrec_qty;
-    char **svar_names;
-    int dbid;
-    Subrecord subrec;
-    Analysis *analy;
-
-    analy = env.curr_analy;
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    ti_menu_widg = XmCreatePulldownMenu( parent, "ti_menu_pane",
-                                         args, n );
-
-    /* Always add an entry to show materials. */
-    n = 0;
-    button = XmCreatePushButtonGadget( ti_menu_widg, "Result off",
-                                       args, n );
-    XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, res_menu_CB, "mat" );
-
-    /*
-     * Traverse the state record formats and read each subrecord definition
-     * to get (potential) Ti_results in a reasonable order.
-     */
-
+    Analysis * analy = env.curr_analy;
+    Widget ti_menu_widg = add_pulldown_submenu( parent, ti_menu_name );
+    add_show_button( ti_menu_widg, "Result off", "mat", ALL );
+    // for ti_result in ti_results...
     /* add_ti_result_button( parent, p_pr ); */
 }
-
-
 
 /*****************************************************************
  * TAG( regenerate_result_menus )
@@ -3479,17 +1656,15 @@ create_ti_res_menu( Widget parent )
 void
 regenerate_result_menus( void )
 {
-    Widget child;
     int position;
-    Analysis *analy;
-
-    analy = env.curr_analy;
+    Analysis * analy = env.curr_analy;
 
     /* Destroy the existing pulldown menus. */
-    XtDestroyWidget( derived_menu_widg );
-    derived_menu_widg = NULL;
-    XtDestroyWidget( primal_menu_widg );
-    primal_menu_widg = NULL;
+    // XtDestroyWidget( derived_menu_widg );
+    // derived_menu_widg = NULL;
+
+    // XtDestroyWidget( primal_menu_widg );
+    // primal_menu_widg = NULL;
 
     if ( analy->ti_data_found && ti_menu_widg != NULL )
     {
@@ -3498,25 +1673,29 @@ regenerate_result_menus( void )
     }
 
     /* Create new result menus. */
-    create_derived_res_menu( menu_widg );
-    create_primal_res_menu( menu_widg );
+    create_derived_res_menu( analy, menu_widg );
+    create_primal_res_menu( analy, menu_widg );
 
     /* Bring up TI menus if TI data is found */
     if ( analy->ti_data_found )
         create_ti_res_menu( menu_widg );
 
     /* Reference the new menus in the appropriate cascade buttons. */
-    find_labelled_child( menu_widg, derived_menu_name, &child, &position );
-    XtVaSetValues( child, XmNsubMenuId, derived_menu_widg, NULL );
+    Widget child;
+    int idx = -1;
+    find_labelled_child( menu_widg, derived_menu_name, &child, &idx );
+    XtVaSetValues( child, XmNsubMenuId, NULL, NULL );
 
-    find_labelled_child( menu_widg, primal_menu_name, &child, &position );
-    XtVaSetValues( child, XmNsubMenuId, primal_menu_widg, NULL );
+    find_labelled_child( menu_widg, primal_menu_name, &child, &idx );
+    XtVaSetValues( child, XmNsubMenuId, NULL, NULL );
 
+    /*
     if ( analy->ti_data_found )
     {
-        find_labelled_child(  menu_widg, ti_menu_name, &child, &position );
-        /* XtVaSetValues( child, XmNsubMenuId, ti_menu_widg, NULL ); */
+        // child = XtNameToWidget( menu_widg, ti_menu_widg );
+        // XtVaSetValues( child, XmNsubMenuId, ti_menu_widg, NULL );
     }
+    */
 }
 
 
@@ -3528,38 +1707,22 @@ regenerate_result_menus( void )
 static Widget
 create_mtl_manager( Widget main_widg )
 {
-    Widget widg, func_select, scroll_win, sep1,
-           sep2, sep3, vert_scroll, func_operate, mtl_label,
-           frame, col_comp;
+    Widget widg, func_select, scroll_win, sep1, sep2, sep3, vert_scroll, func_operate, mtl_label, frame, col_comp;
     Arg args[10];
     char win_title[256];
     char mtl_toggle_name[256];
-    static int ambient = 0, 
-               diffuse = 1, 
-               specular = 2, 
-               emissive = 3,
-               visible = FUNC_VISIBLE, 
-               invisible = FUNC_INVISIBLE, 
-               enable = FUNC_ENABLE, 
-               disable = FUNC_DISABLE, 
-               color = FUNC_COLOR,
-               all = SELECT_ALL, 
-               none = SELECT_NONE, 
-               invert = SELECT_INVERT, 
-               by_func = SELECT_BY_FUNC;
-               
+    static int ambient = 0, diffuse = 1, specular = 2, emissive = 3, visible = FUNC_VISIBLE, invisible = FUNC_INVISIBLE, enable = FUNC_ENABLE, disable = FUNC_DISABLE, color = FUNC_COLOR, all = SELECT_ALL, none = SELECT_NONE, invert = SELECT_INVERT, by_func = SELECT_BY_FUNC;
+
     int n, i, mtl, qty_mtls;
     int gid=3;
-    Dimension width, max_child_width, margin_width, spacing, scrollbar_width,
-              name_len, col_ed_width, max_mgr_width, height, sw_height, fudge;
+    Dimension width, max_child_width, margin_width, spacing, scrollbar_width, name_len, col_ed_width, max_mgr_width, height, sw_height, fudge;
     short func_width, max_cols, rows;
     XtActionsRec rec;
-    
+
     //static Widget *ctl_buttons[2];
     XmString val_text;
-    int scale_len, val_len, vert_space, vert_height,
-        vert_pos, hori_offset, vert_offset, loc;
-    
+    int scale_len, val_len, vert_space, vert_height, vert_pos, hori_offset, vert_offset, loc;
+
     char *func_names[] =
     {
         "Visible", "Invisible", "Enable", "Disable", "Color"
@@ -3587,155 +1750,73 @@ create_mtl_manager( Widget main_widg )
 
     /* Use a Form widget to manage everything else. */
 
-    mtl_base = XtVaCreateManagedWidget(
-                   "mtl_base", xmFormWidgetClass, main_widg,
-                   NULL );
+    mtl_base = XtVaCreateManagedWidget( "mtl_base", xmFormWidgetClass, main_widg, NULL );
 
-    XtAddCallback( mtl_base, XmNdestroyCallback,
-                   destroy_mtl_mgr_CB, (XtPointer) NULL );
+    XtAddCallback( mtl_base, XmNdestroyCallback, destroy_mtl_mgr_CB, (XtPointer) NULL );
 
     if ( env.griz_id>0 )
     {
         gid = env.griz_id;
-        widg = XtVaCreateManagedWidget(
-                   "Function", xmLabelGadgetClass, mtl_base,
-                   XmNalignment, XmALIGNMENT_CENTER,
-                   XmNtopAttachment, XmATTACH_FORM,
-                   XmNrightAttachment, XmATTACH_FORM,
-                   XmNleftAttachment, XmATTACH_FORM,
-                   XmNinitialResourcesPersistent, FALSE,
-                   XmNbackground, env.border_colors[gid-1],
-                   NULL );
+        widg = XtVaCreateManagedWidget( "Function", xmLabelGadgetClass, mtl_base, XmNalignment, XmALIGNMENT_CENTER, XmNtopAttachment, XmATTACH_FORM, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, XmNinitialResourcesPersistent, FALSE, XmNbackground, env.border_colors[gid-1], NULL );
     }
     else
     {
-        widg = XtVaCreateManagedWidget(
-                   "Function", xmLabelGadgetClass, mtl_base,
-                   XmNalignment, XmALIGNMENT_CENTER,
-                   XmNtopAttachment, XmATTACH_FORM,
-                   XmNrightAttachment, XmATTACH_FORM,
-                   XmNleftAttachment, XmATTACH_FORM,
-                   XmNinitialResourcesPersistent, FALSE,
-                   NULL );
+        widg = XtVaCreateManagedWidget( "Function", xmLabelGadgetClass, mtl_base, XmNalignment, XmALIGNMENT_CENTER, XmNtopAttachment, XmATTACH_FORM, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, XmNinitialResourcesPersistent, FALSE, NULL );
 
     }
     /* Use a RowColumn to hold the function select toggles. */
-    func_select = XtVaCreateManagedWidget(
-                      "func_select", xmRowColumnWidgetClass, mtl_base,
-                      XmNorientation, XmHORIZONTAL,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNtraversalOn, False,
-                      XmNisAligned, True,
-                      XmNentryAlignment, XmALIGNMENT_CENTER,
-                      XmNtopAttachment, XmATTACH_WIDGET,
-                      XmNtopWidget, widg,
-                      XmNrightAttachment, XmATTACH_POSITION,
-                      XmNrightPosition, 50,
-                      NULL );
-
+    func_select = XtVaCreateManagedWidget( "func_select", xmRowColumnWidgetClass, mtl_base, XmNorientation, XmHORIZONTAL, XmNpacking, XmPACK_COLUMN, XmNtraversalOn, False, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNtopAttachment, XmATTACH_WIDGET, XmNtopWidget, widg, XmNrightAttachment, XmATTACH_POSITION, XmNrightPosition, 50, NULL );
     XtOverrideTranslations( func_select, key_trans );
 
     /* Get these for geometry adjustment later. */
-    XtVaGetValues( func_select,
-                   XmNmarginWidth, &margin_width,
-                   XmNspacing, &spacing,
-                   NULL );
-
+    XtVaGetValues( func_select, XmNmarginWidth, &margin_width, XmNspacing, &spacing, NULL );
     max_mgr_width = 0;
     max_child_width = 0;
-    
-    mtl_mgr_func_toggles[0] = XtVaCreateManagedWidget(
-                                  func_names[0], xmToggleButtonWidgetClass, func_select,
-                                  XmNindicatorOn, False,
-                                  XmNshadowThickness, 3,
-                                  XmNfillOnSelect, True,
-                                  NULL );
 
+    mtl_mgr_func_toggles[0] = XtVaCreateManagedWidget( func_names[0], xmToggleButtonWidgetClass, func_select, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtOverrideTranslations( mtl_mgr_func_toggles[0], key_trans );
-
-    XtAddCallback( mtl_mgr_func_toggles[0], XmNdisarmCallback,
-                   mtl_func_select_CB, &visible );
-
+    XtAddCallback( mtl_mgr_func_toggles[0], XmNdisarmCallback, mtl_func_select_CB, &visible );
     XtVaGetValues( mtl_mgr_func_toggles[0], XmNwidth, &width, NULL );
     if ( width > max_child_width )
     {
         max_child_width = width;
     }
-    
-    mtl_mgr_func_toggles[1] = XtVaCreateManagedWidget(
-                                  func_names[1], xmToggleButtonWidgetClass, func_select,
-                                  XmNindicatorOn, False,
-                                  XmNshadowThickness, 3,
-                                  XmNfillOnSelect, True,
-                                  NULL );
 
+    mtl_mgr_func_toggles[1] = XtVaCreateManagedWidget( func_names[1], xmToggleButtonWidgetClass, func_select, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtOverrideTranslations( mtl_mgr_func_toggles[1], key_trans );
-
-    XtAddCallback( mtl_mgr_func_toggles[1], XmNdisarmCallback,
-                   mtl_func_select_CB, &invisible );
-
+    XtAddCallback( mtl_mgr_func_toggles[1], XmNdisarmCallback, mtl_func_select_CB, &invisible );
     XtVaGetValues( mtl_mgr_func_toggles[1], XmNwidth, &width, NULL );
     if ( width > max_child_width )
     {
         max_child_width = width;
     }
-    
-    mtl_mgr_func_toggles[2] = XtVaCreateManagedWidget(
-                                  func_names[2], xmToggleButtonWidgetClass, func_select,
-                                  XmNindicatorOn, False,
-                                  XmNshadowThickness, 3,
-                                  XmNfillOnSelect, True,
-                                  NULL );
 
+    mtl_mgr_func_toggles[2] = XtVaCreateManagedWidget( func_names[2], xmToggleButtonWidgetClass, func_select, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtOverrideTranslations( mtl_mgr_func_toggles[2], key_trans );
-
-    XtAddCallback( mtl_mgr_func_toggles[2], XmNdisarmCallback,
-                   mtl_func_select_CB, &enable );
-
+    XtAddCallback( mtl_mgr_func_toggles[2], XmNdisarmCallback, mtl_func_select_CB, &enable );
     XtVaGetValues( mtl_mgr_func_toggles[2], XmNwidth, &width, NULL );
     if ( width > max_child_width )
     {
         max_child_width = width;
     }
-    
-    mtl_mgr_func_toggles[3] = XtVaCreateManagedWidget(
-                                  func_names[3], xmToggleButtonWidgetClass, func_select,
-                                  XmNindicatorOn, False,
-                                  XmNshadowThickness, 3,
-                                  XmNfillOnSelect, True,
-                                  NULL );
 
+    mtl_mgr_func_toggles[3] = XtVaCreateManagedWidget( func_names[3], xmToggleButtonWidgetClass, func_select, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtOverrideTranslations( mtl_mgr_func_toggles[3], key_trans );
-
-    XtAddCallback( mtl_mgr_func_toggles[3], XmNdisarmCallback,
-                   mtl_func_select_CB, &disable );
-
+    XtAddCallback( mtl_mgr_func_toggles[3], XmNdisarmCallback, mtl_func_select_CB, &disable );
     XtVaGetValues( mtl_mgr_func_toggles[3], XmNwidth, &width, NULL );
     if ( width > max_child_width )
     {
         max_child_width = width;
     }
-    
-    
-    mtl_mgr_func_toggles[4] = XtVaCreateManagedWidget(
-                                  func_names[4], xmToggleButtonWidgetClass, func_select,
-                                  XmNindicatorOn, False,
-                                  XmNshadowThickness, 3,
-                                  XmNfillOnSelect, True,
-                                  NULL );
 
+    mtl_mgr_func_toggles[4] = XtVaCreateManagedWidget( func_names[4], xmToggleButtonWidgetClass, func_select, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtOverrideTranslations( mtl_mgr_func_toggles[4], key_trans );
-
-    XtAddCallback( mtl_mgr_func_toggles[4], XmNdisarmCallback,
-                   mtl_func_select_CB, &color );
-
+    XtAddCallback( mtl_mgr_func_toggles[4], XmNdisarmCallback, mtl_func_select_CB, &color );
     XtVaGetValues( mtl_mgr_func_toggles[4], XmNwidth, &width, NULL );
     if ( width > max_child_width )
     {
         max_child_width = width;
     }
-    
-    
 
     /*
      * Now that all function selects have been created and the total width
@@ -3743,28 +1824,14 @@ create_mtl_manager( Widget main_widg )
      * RowColumn will be on the attach position.
      */
     func_width = 5 * max_child_width + 2 * margin_width + 4 * spacing;
-    XtVaSetValues( func_select,
-                   XmNrightOffset, -((int) (func_width / 2)), NULL );
+    XtVaSetValues( func_select, XmNrightOffset, -((int) (func_width / 2)), NULL );
 
     if ( func_width > max_mgr_width )
         max_mgr_width = func_width;
 
-    sep1 = XtVaCreateManagedWidget(
-               "sep1", xmSeparatorGadgetClass, mtl_base,
-               XmNtopAttachment, XmATTACH_WIDGET,
-               XmNtopWidget, func_select,
-               XmNrightAttachment, XmATTACH_FORM,
-               XmNleftAttachment, XmATTACH_FORM,
-               NULL );
+    sep1 = XtVaCreateManagedWidget( "sep1", xmSeparatorGadgetClass, mtl_base, XmNtopAttachment, XmATTACH_WIDGET, XmNtopWidget, func_select, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
 
-    mtl_label = XtVaCreateManagedWidget(
-                    "Material", xmLabelGadgetClass, mtl_base,
-                    XmNalignment, XmALIGNMENT_CENTER,
-                    XmNtopAttachment, XmATTACH_WIDGET,
-                    XmNtopWidget, sep1,
-                    XmNrightAttachment, XmATTACH_FORM,
-                    XmNleftAttachment, XmATTACH_FORM,
-                    NULL );
+    mtl_label = XtVaCreateManagedWidget( "Material", xmLabelGadgetClass, mtl_base, XmNalignment, XmALIGNMENT_CENTER, XmNtopAttachment, XmATTACH_WIDGET, XmNtopWidget, sep1, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
 
     /*
      * Now build up from the bottom...
@@ -3776,145 +1843,71 @@ create_mtl_manager( Widget main_widg )
     if ( col_ed_width > max_mgr_width )
         max_mgr_width = col_ed_width;
 
-    color_editor = XtVaCreateManagedWidget(
-                       "color_editor", xmBulletinBoardWidgetClass, mtl_base,
-                       XmNwidth, col_ed_width,
-                       XmNheight, 225,
-                       XmNmarginHeight, 0,
-                       XmNmarginWidth, 0,
-                       XmNtraversalOn, False,
-                       XmNresizePolicy, XmRESIZE_NONE,
-                       XmNtopAttachment, XmATTACH_NONE,
-                       XmNrightAttachment, XmATTACH_POSITION,
-                       XmNrightPosition, 50,
-                       XmNrightOffset, -(col_ed_width / 2),
-                       XmNbottomAttachment, XmATTACH_FORM,
-                       NULL );
+    color_editor = XtVaCreateManagedWidget( "color_editor", xmBulletinBoardWidgetClass, mtl_base, XmNwidth, col_ed_width, XmNheight, 225, XmNmarginHeight, 0, XmNmarginWidth, 0, XmNtraversalOn, False, XmNresizePolicy, XmRESIZE_NONE, XmNtopAttachment, XmATTACH_NONE, XmNrightAttachment, XmATTACH_POSITION, XmNrightPosition, 50, XmNrightOffset, -(col_ed_width / 2), XmNbottomAttachment, XmATTACH_FORM, NULL );
 
     XtOverrideTranslations( color_editor, key_trans );
 
     /* Use a RowColumn to hold the color property select buttons. */
-    col_comp = XtVaCreateManagedWidget(
-                   "col_comp", xmRowColumnWidgetClass, color_editor,
-                   XmNx, 10,
-                   XmNy, 30,
-                   XmNorientation, XmHORIZONTAL,
-                   XmNradioBehavior, True,
-                   XmNradioAlwaysOne, False,
-                   XmNisAligned, True,
-                   XmNentryAlignment, XmALIGNMENT_CENTER,
-                   XmNpacking, XmPACK_COLUMN,
-                   NULL );
+    col_comp = XtVaCreateManagedWidget( "col_comp", xmRowColumnWidgetClass, color_editor, XmNx, 10, XmNy, 30, XmNorientation, XmHORIZONTAL, XmNradioBehavior, True, XmNradioAlwaysOne, False, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNpacking, XmPACK_COLUMN, NULL );
 
     XtOverrideTranslations( col_comp, key_trans );
 
-    widg = XtVaCreateManagedWidget(
-               " Property", xmLabelGadgetClass, col_comp,
-               NULL );
+    widg = XtVaCreateManagedWidget( " Property", xmLabelGadgetClass, col_comp, NULL );
     XtVaGetValues( widg, XmNwidth, &name_len, NULL );
-    
+
     //Ambient property
-    color_comps[0] = XtVaCreateManagedWidget(
-                             comp_names[0], xmToggleButtonWidgetClass, col_comp,
-                             XmNset, False,
-                             XmNindicatorOn, False,
-                             XmNshadowThickness, 3,
-                             XmNfillOnSelect, True,
-                             NULL );
+    color_comps[0] = XtVaCreateManagedWidget( comp_names[0], xmToggleButtonWidgetClass, col_comp, XmNset, False, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
 
     XtOverrideTranslations( color_comps[0], key_trans );
 
-    XtAddCallback( color_comps[0], XmNdisarmCallback,
-                   col_comp_disarm_CB, &ambient );
+    XtAddCallback( color_comps[0], XmNdisarmCallback, col_comp_disarm_CB, &ambient );
 
     prop_val_changed[0] = FALSE;
     //property_vals[0] = NEW_N( GLfloat, 3, "Col comp val" );
-    
+
     //Diffuse property
-    color_comps[1] = XtVaCreateManagedWidget(
-                             comp_names[1], xmToggleButtonWidgetClass, col_comp,
-                             XmNset, False,
-                             XmNindicatorOn, False,
-                             XmNshadowThickness, 3,
-                             XmNfillOnSelect, True,
-                             NULL );
+    color_comps[1] = XtVaCreateManagedWidget( comp_names[1], xmToggleButtonWidgetClass, col_comp, XmNset, False, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
 
     XtOverrideTranslations( color_comps[1], key_trans );
 
-    XtAddCallback( color_comps[1], XmNdisarmCallback,
-                   col_comp_disarm_CB, &diffuse );
+    XtAddCallback( color_comps[1], XmNdisarmCallback, col_comp_disarm_CB, &diffuse );
 
     prop_val_changed[1] = FALSE;
     //property_vals[1] = NEW_N( GLfloat, 3, "Col comp val" );
-    
+
     //Specular property
-    color_comps[2] = XtVaCreateManagedWidget(
-                             comp_names[2], xmToggleButtonWidgetClass, col_comp,
-                             XmNset, False,
-                             XmNindicatorOn, False,
-                             XmNshadowThickness, 3,
-                             XmNfillOnSelect, True,
-                             NULL );
+    color_comps[2] = XtVaCreateManagedWidget( comp_names[2], xmToggleButtonWidgetClass, col_comp, XmNset, False, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
 
     XtOverrideTranslations( color_comps[2], key_trans );
 
-    XtAddCallback( color_comps[2], XmNdisarmCallback,
-                   col_comp_disarm_CB, &specular );
+    XtAddCallback( color_comps[2], XmNdisarmCallback, col_comp_disarm_CB, &specular );
 
     prop_val_changed[2] = FALSE;
     //property_vals[2] = NEW_N( GLfloat, 3, "Col comp val" );
-    
+
     //Emissive property
-    color_comps[3] = XtVaCreateManagedWidget(
-                         comp_names[3], xmToggleButtonWidgetClass, col_comp,
-                         XmNset, False,
-                         XmNindicatorOn, False,
-                         XmNshadowThickness, 3,
-                         XmNfillOnSelect, True,
-                         NULL );
+    color_comps[3] = XtVaCreateManagedWidget( comp_names[3], xmToggleButtonWidgetClass, col_comp, XmNset, False, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
 
     XtOverrideTranslations( color_comps[3], key_trans );
 
-    XtAddCallback( color_comps[3], XmNdisarmCallback,
-                   col_comp_disarm_CB, &emissive );
+    XtAddCallback( color_comps[3], XmNdisarmCallback, col_comp_disarm_CB, &emissive );
 
     prop_val_changed[3] = FALSE;
     //property_vals[3] = NEW_N( GLfloat, 3, "Col comp val" );
-    
-    
+
+
     XtVaGetValues( color_editor, XmNforeground, &fg, XmNbackground, &bg, NULL );
-    mtl_check = XCreatePixmapFromBitmapData( dpy,
-                RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizCheck_bits,
-                GrizCheck_width, GrizCheck_height, fg, bg,
-                DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+    mtl_check = XCreatePixmapFromBitmapData( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizCheck_bits, GrizCheck_width, GrizCheck_height, fg, bg, DefaultDepth( dpy, DefaultScreen( dpy ) ) );
 
     /* Use a RowColumn to hold the property-modify indicators. */
-    widg = XtVaCreateManagedWidget(
-               "col_comp_checks", xmRowColumnWidgetClass, color_editor,
-               XmNx, (name_len + 10 + margin_width + spacing),
-               XmNy, 5,
-               XmNorientation, XmHORIZONTAL,
-               XmNisAligned, True,
-               XmNentryAlignment, XmALIGNMENT_CENTER,
-               XmNpacking, XmPACK_COLUMN,
-               NULL );
+    widg = XtVaCreateManagedWidget( "col_comp_checks", xmRowColumnWidgetClass, color_editor, XmNx, (name_len + 10 + margin_width + spacing), XmNy, 5, XmNorientation, XmHORIZONTAL, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNpacking, XmPACK_COLUMN, NULL );
 
     XtOverrideTranslations( widg, key_trans );
 
     /* Use a pixmap of a check as the modify indicator. */
     for ( i = 0; i < (EMISSIVE + 1); i++ )
     {
-        prop_checks[i] = XtVaCreateManagedWidget(
-                             "check", xmLabelWidgetClass, widg,
-                             XmNlabelType, XmPIXMAP,
-                             XmNlabelPixmap, mtl_check,
-                             XmNwidth, name_len,
-                             XmNrecomputeSize, False,
-                             XmNmappedWhenManaged, False,
-                             XmNmarginWidth, 0,
-                             XmNmarginHeight, 0,
-                             XmNpositionIndex, ((GLshort) i),
-                             NULL );
+        prop_checks[i] = XtVaCreateManagedWidget( "check", xmLabelWidgetClass, widg, XmNlabelType, XmPIXMAP, XmNlabelPixmap, mtl_check, XmNwidth, name_len, XmNrecomputeSize, False, XmNmappedWhenManaged, False, XmNmarginWidth, 0, XmNmarginHeight, 0, XmNpositionIndex, ((GLshort) i), NULL );
 
         XtOverrideTranslations( prop_checks[i], key_trans );
     }
@@ -3928,285 +1921,138 @@ create_mtl_manager( Widget main_widg )
     vert_offset = 75;
 
     /* Now add the modify indicator for the shininess scale. */
-    prop_checks[SHININESS] = XtVaCreateManagedWidget(
-                                 "check", xmLabelWidgetClass, color_editor,
-                                 XmNx, (hori_offset + (name_len - GrizCheck_width) / 2),
-                                 XmNy, (vert_offset + 3 * vert_height
-                                        + 4 * vert_space + vert_height / 2 - GrizCheck_height),
-                                 XmNlabelType, XmPIXMAP,
-                                 XmNlabelPixmap, mtl_check,
-                                 XmNmappedWhenManaged, False,
-                                 XmNmarginWidth, 0,
-                                 XmNmarginHeight, 0,
-                                 NULL );
+    prop_checks[SHININESS] = XtVaCreateManagedWidget( "check", xmLabelWidgetClass, color_editor, XmNx, (hori_offset + (name_len - GrizCheck_width) / 2), XmNy, (vert_offset + 3 * vert_height
+                                        + 4 * vert_space + vert_height / 2 - GrizCheck_height), XmNlabelType, XmPIXMAP, XmNlabelPixmap, mtl_check, XmNmappedWhenManaged, False, XmNmarginWidth, 0, XmNmarginHeight, 0, NULL );
 
     XtOverrideTranslations( prop_checks[SHININESS], key_trans );
 
     val_text = XmStringCreateLocalized( "0.00" );
-    
+
     //Ambient color selection
     i = 0;
     vert_pos = vert_offset + i * vert_height + i * vert_space;
     if ( i == SHININESS_SCALE )
         vert_pos += vert_height / 2 + vert_space;
 
-    widg = XtVaCreateManagedWidget(
-               scale_names[i], xmLabelGadgetClass, color_editor,
-               XmNx, hori_offset,
-               XmNy, vert_pos,
-               XmNwidth, name_len,
-               XmNheight, vert_height,
-               XmNalignment, XmALIGNMENT_END,
-               NULL );
+    widg = XtVaCreateManagedWidget( scale_names[i], xmLabelGadgetClass, color_editor, XmNx, hori_offset, XmNy, vert_pos, XmNwidth, name_len, XmNheight, vert_height, XmNalignment, XmALIGNMENT_END, NULL );
 
     XtOverrideTranslations( widg, key_trans );
 
-    col_ed_scales[0][i] = XtVaCreateManagedWidget(
-                              "scale", xmScaleWidgetClass, color_editor,
-                              XmNx, hori_offset + name_len + spacing,
-                              XmNy, vert_pos + (vert_height - 20) / 2,
-                              XmNwidth, scale_len,
-                              XmNheight, 20,
-                              XmNorientation, XmHORIZONTAL,
-                              XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ),
-                              XmNvalue, 0,
-                              XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ),
-                              NULL );
+    col_ed_scales[0][i] = XtVaCreateManagedWidget( "scale", xmScaleWidgetClass, color_editor, XmNx, hori_offset + name_len + spacing, XmNy, vert_pos + (vert_height - 20) / 2, XmNwidth, scale_len, XmNheight, 20, XmNorientation, XmHORIZONTAL, XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ), XmNvalue, 0, XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ), NULL );
 
     XtOverrideTranslations( col_ed_scales[0][i], key_trans );
 
-    frame = XtVaCreateManagedWidget(
-                "frame", xmFrameWidgetClass, color_editor,
-                XmNx, hori_offset + name_len + scale_len + spacing,
-                XmNy, vert_pos,
-                XmNheight, vert_height,
-                NULL );
+    frame = XtVaCreateManagedWidget( "frame", xmFrameWidgetClass, color_editor, XmNx, hori_offset + name_len + scale_len + spacing, XmNy, vert_pos, XmNheight, vert_height, NULL );
 
     XtOverrideTranslations( frame, key_trans );
 
-    col_ed_scales[1][i] = XtVaCreateManagedWidget(
-                              "scale_val", xmLabelGadgetClass, frame,
-                              XmNalignment, XmALIGNMENT_CENTER,
-                              XmNlabelString, val_text,
-                              NULL );
+    col_ed_scales[1][i] = XtVaCreateManagedWidget( "scale_val", xmLabelGadgetClass, frame, XmNalignment, XmALIGNMENT_CENTER, XmNlabelString, val_text, NULL );
 
-    XtAddCallback( col_ed_scales[0][i], XmNdragCallback,
-                   col_ed_scale_CB, &ambient );
-    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                   col_ed_scale_CB, &ambient );
-    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                   col_ed_scale_update_CB, &ambient );
-    
+    XtAddCallback( col_ed_scales[0][i], XmNdragCallback, col_ed_scale_CB, &ambient );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_CB, &ambient );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_update_CB, &ambient );
+
     //Diffuse color selection
     i = 1;
     vert_pos = vert_offset + i * vert_height + i * vert_space;
     if ( i == SHININESS_SCALE )
         vert_pos += vert_height / 2 + vert_space;
 
-    widg = XtVaCreateManagedWidget(
-               scale_names[i], xmLabelGadgetClass, color_editor,
-               XmNx, hori_offset,
-               XmNy, vert_pos,
-               XmNwidth, name_len,
-               XmNheight, vert_height,
-               XmNalignment, XmALIGNMENT_END,
-               NULL );
+    widg = XtVaCreateManagedWidget( scale_names[i], xmLabelGadgetClass, color_editor, XmNx, hori_offset, XmNy, vert_pos, XmNwidth, name_len, XmNheight, vert_height, XmNalignment, XmALIGNMENT_END, NULL );
 
     XtOverrideTranslations( widg, key_trans );
 
-    col_ed_scales[0][i] = XtVaCreateManagedWidget(
-                              "scale", xmScaleWidgetClass, color_editor,
-                              XmNx, hori_offset + name_len + spacing,
-                              XmNy, vert_pos + (vert_height - 20) / 2,
-                              XmNwidth, scale_len,
-                              XmNheight, 20,
-                              XmNorientation, XmHORIZONTAL,
-                              XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ),
-                              XmNvalue, 0,
-                              XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ),
-                              NULL );
+    col_ed_scales[0][i] = XtVaCreateManagedWidget( "scale", xmScaleWidgetClass, color_editor, XmNx, hori_offset + name_len + spacing, XmNy, vert_pos + (vert_height - 20) / 2, XmNwidth, scale_len, XmNheight, 20, XmNorientation, XmHORIZONTAL, XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ), XmNvalue, 0, XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ), NULL );
 
     XtOverrideTranslations( col_ed_scales[0][i], key_trans );
 
-    frame = XtVaCreateManagedWidget(
-                "frame", xmFrameWidgetClass, color_editor,
-                XmNx, hori_offset + name_len + scale_len + spacing,
-                XmNy, vert_pos,
-                XmNheight, vert_height,
-                NULL );
+    frame = XtVaCreateManagedWidget( "frame", xmFrameWidgetClass, color_editor, XmNx, hori_offset + name_len + scale_len + spacing, XmNy, vert_pos, XmNheight, vert_height, NULL );
 
     XtOverrideTranslations( frame, key_trans );
 
-    col_ed_scales[1][i] = XtVaCreateManagedWidget(
-                              "scale_val", xmLabelGadgetClass, frame,
-                              XmNalignment, XmALIGNMENT_CENTER,
-                              XmNlabelString, val_text,
-                              NULL );
+    col_ed_scales[1][i] = XtVaCreateManagedWidget( "scale_val", xmLabelGadgetClass, frame, XmNalignment, XmALIGNMENT_CENTER, XmNlabelString, val_text, NULL );
 
-    XtAddCallback( col_ed_scales[0][i], XmNdragCallback,
-                   col_ed_scale_CB, &diffuse );
-    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                   col_ed_scale_CB, &diffuse );
-    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                   col_ed_scale_update_CB, &diffuse );
-    
-    
-    
+    XtAddCallback( col_ed_scales[0][i], XmNdragCallback, col_ed_scale_CB, &diffuse );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_CB, &diffuse );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_update_CB, &diffuse );
+
+
+
     //Specular color selection
     i = 2;
     vert_pos = vert_offset + i * vert_height + i * vert_space;
     if ( i == SHININESS_SCALE )
         vert_pos += vert_height / 2 + vert_space;
 
-    widg = XtVaCreateManagedWidget(
-               scale_names[i], xmLabelGadgetClass, color_editor,
-               XmNx, hori_offset,
-               XmNy, vert_pos,
-               XmNwidth, name_len,
-               XmNheight, vert_height,
-               XmNalignment, XmALIGNMENT_END,
-               NULL );
+    widg = XtVaCreateManagedWidget( scale_names[i], xmLabelGadgetClass, color_editor, XmNx, hori_offset, XmNy, vert_pos, XmNwidth, name_len, XmNheight, vert_height, XmNalignment, XmALIGNMENT_END, NULL );
 
     XtOverrideTranslations( widg, key_trans );
 
-    col_ed_scales[0][i] = XtVaCreateManagedWidget(
-                              "scale", xmScaleWidgetClass, color_editor,
-                              XmNx, hori_offset + name_len + spacing,
-                              XmNy, vert_pos + (vert_height - 20) / 2,
-                              XmNwidth, scale_len,
-                              XmNheight, 20,
-                              XmNorientation, XmHORIZONTAL,
-                              XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ),
-                              XmNvalue, 0,
-                              XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ),
-                              NULL );
+    col_ed_scales[0][i] = XtVaCreateManagedWidget( "scale", xmScaleWidgetClass, color_editor, XmNx, hori_offset + name_len + spacing, XmNy, vert_pos + (vert_height - 20) / 2, XmNwidth, scale_len, XmNheight, 20, XmNorientation, XmHORIZONTAL, XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ), XmNvalue, 0, XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ), NULL );
 
     XtOverrideTranslations( col_ed_scales[0][i], key_trans );
 
-    frame = XtVaCreateManagedWidget(
-                "frame", xmFrameWidgetClass, color_editor,
-                XmNx, hori_offset + name_len + scale_len + spacing,
-                XmNy, vert_pos,
-                XmNheight, vert_height,
-                NULL );
+    frame = XtVaCreateManagedWidget( "frame", xmFrameWidgetClass, color_editor, XmNx, hori_offset + name_len + scale_len + spacing, XmNy, vert_pos, XmNheight, vert_height, NULL );
 
     XtOverrideTranslations( frame, key_trans );
 
-    col_ed_scales[1][i] = XtVaCreateManagedWidget(
-                              "scale_val", xmLabelGadgetClass, frame,
-                              XmNalignment, XmALIGNMENT_CENTER,
-                              XmNlabelString, val_text,
-                              NULL );
+    col_ed_scales[1][i] = XtVaCreateManagedWidget( "scale_val", xmLabelGadgetClass, frame, XmNalignment, XmALIGNMENT_CENTER, XmNlabelString, val_text, NULL );
 
-    XtAddCallback( col_ed_scales[0][i], XmNdragCallback,
-                   col_ed_scale_CB, &specular );
-    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                   col_ed_scale_CB, &specular );
-    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                   col_ed_scale_update_CB, &specular );
-    
+    XtAddCallback( col_ed_scales[0][i], XmNdragCallback, col_ed_scale_CB, &specular );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_CB, &specular );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_update_CB, &specular );
+
     //Ambient color selection
     i = 3;
     vert_pos = vert_offset + i * vert_height + i * vert_space;
     if ( i == SHININESS_SCALE )
         vert_pos += vert_height / 2 + vert_space;
 
-    widg = XtVaCreateManagedWidget(
-               scale_names[i], xmLabelGadgetClass, color_editor,
-               XmNx, hori_offset,
-               XmNy, vert_pos,
-               XmNwidth, name_len,
-               XmNheight, vert_height,
-               XmNalignment, XmALIGNMENT_END,
-               NULL );
+    widg = XtVaCreateManagedWidget( scale_names[i], xmLabelGadgetClass, color_editor, XmNx, hori_offset, XmNy, vert_pos, XmNwidth, name_len, XmNheight, vert_height, XmNalignment, XmALIGNMENT_END, NULL );
 
     XtOverrideTranslations( widg, key_trans );
 
-    col_ed_scales[0][i] = XtVaCreateManagedWidget(
-                              "scale", xmScaleWidgetClass, color_editor,
-                              XmNx, hori_offset + name_len + spacing,
-                              XmNy, vert_pos + (vert_height - 20) / 2,
-                              XmNwidth, scale_len,
-                              XmNheight, 20,
-                              XmNorientation, XmHORIZONTAL,
-                              XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ),
-                              XmNvalue, 0,
-                              XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ),
-                              NULL );
+    col_ed_scales[0][i] = XtVaCreateManagedWidget( "scale", xmScaleWidgetClass, color_editor, XmNx, hori_offset + name_len + spacing, XmNy, vert_pos + (vert_height - 20) / 2, XmNwidth, scale_len, XmNheight, 20, XmNorientation, XmHORIZONTAL, XmNmaximum, (( i == SHININESS_SCALE ) ? 128 : 100 ), XmNvalue, 0, XmNsensitive, (( i == SHININESS_SCALE ) ? True : False ), NULL );
 
     XtOverrideTranslations( col_ed_scales[0][i], key_trans );
 
-    frame = XtVaCreateManagedWidget(
-                "frame", xmFrameWidgetClass, color_editor,
-                XmNx, hori_offset + name_len + scale_len + spacing,
-                XmNy, vert_pos,
-                XmNheight, vert_height,
-                NULL );
+    frame = XtVaCreateManagedWidget( "frame", xmFrameWidgetClass, color_editor, XmNx, hori_offset + name_len + scale_len + spacing, XmNy, vert_pos, XmNheight, vert_height, NULL );
 
     XtOverrideTranslations( frame, key_trans );
 
-    col_ed_scales[1][i] = XtVaCreateManagedWidget(
-                              "scale_val", xmLabelGadgetClass, frame,
-                              XmNalignment, XmALIGNMENT_CENTER,
-                              XmNlabelString, val_text,
-                              NULL );
+    col_ed_scales[1][i] = XtVaCreateManagedWidget( "scale_val", xmLabelGadgetClass, frame, XmNalignment, XmALIGNMENT_CENTER, XmNlabelString, val_text, NULL );
 
-    XtAddCallback( col_ed_scales[0][i], XmNdragCallback,
-                   col_ed_scale_CB, &emissive );
-    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                   col_ed_scale_CB, &emissive );
-    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback,
-                   col_ed_scale_update_CB, &emissive );
-    
-    
+    XtAddCallback( col_ed_scales[0][i], XmNdragCallback, col_ed_scale_CB, &emissive );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_CB, &emissive );
+    XtAddCallback( col_ed_scales[0][i], XmNvalueChangedCallback, col_ed_scale_update_CB, &emissive );
+
+
     XmStringFree( val_text );
     /* Reset the shininess scale text to an integer rep. */
     val_text = XmStringCreateLocalized( "0" );
-    XtVaSetValues( col_ed_scales[1][SHININESS_SCALE],
-                   XmNlabelString, val_text,
-                   NULL );
+    XtVaSetValues( col_ed_scales[1][SHININESS_SCALE], XmNlabelString, val_text, NULL );
     XmStringFree( val_text );
 
     /* Create the color swatch in a frame. */
     loc = hori_offset + name_len + scale_len + spacing + val_len + 28;
-    swatch_frame = XtVaCreateManagedWidget(
-                       "frame", xmFrameWidgetClass, color_editor,
-                       XmNx, loc,
-                       XmNy, vert_offset,
-                       XmNwidth, 60,
-                       XmNheight, 60,
-                       NULL );
+    swatch_frame = XtVaCreateManagedWidget( "frame", xmFrameWidgetClass, color_editor, XmNx, loc, XmNy, vert_offset, XmNwidth, 60, XmNheight, 60, NULL );
 
-    /* Create the OpenGL drawing window. */
-    ogl_widg[SWATCH] = XtVaCreateManagedWidget(
-                           "swatch",
+    WidgetClass glWidgetClass;
 #ifdef GLWM
-                           glwMDrawingAreaWidgetClass,
+    glWidgetClass = glwMDrawingAreaWidgetClass;
 #else
-                           glwDrawingAreaWidgetClass,
+    glWidgetClass = glwDrawingAreaWidgetClass;
 #endif
-                           swatch_frame,
-                           GLwNvisualInfo, vi,
-                           NULL );
+    /* Create the OpenGL drawing window. */
+    ogl_widg[SWATCH] = XtVaCreateManagedWidget( "swatch", glWidgetClass, swatch_frame, GLwNvisualInfo, visual_info, NULL );
 
     XtOverrideTranslations( ogl_widg[SWATCH], key_trans );
 
-    XtAddCallback( ogl_widg[SWATCH], GLwNginitCallback,
-                   init_swatch_CB, (XtPointer) main_widg );
-    XtAddCallback( ogl_widg[SWATCH], GLwNexposeCallback,
-                   expose_swatch_CB, (XtPointer) main_widg );
+    XtAddCallback( ogl_widg[SWATCH], GLwNginitCallback, init_swatch_CB, (XtPointer) main_widg );
+    XtAddCallback( ogl_widg[SWATCH], GLwNexposeCallback, expose_swatch_CB, (XtPointer) main_widg );
 
     /* Label to show current material in the swatch. */
-    swatch_label = XtVaCreateManagedWidget(
-                       "swatch_label", xmLabelWidgetClass, color_editor,
-                       XmNalignment, XmALIGNMENT_CENTER,
-                       XmNmappedWhenManaged, False,
-                       XmNrecomputeSize, False,
-                       XmNx, (loc - (104 - 60) / 2),
-                       XmNy, vert_offset + 60 + 10,
-                       XmNwidth, 104,
-                       NULL );
-
+    swatch_label = XtVaCreateManagedWidget( "swatch_label", xmLabelWidgetClass, color_editor, XmNalignment, XmALIGNMENT_CENTER, XmNmappedWhenManaged, False, XmNrecomputeSize, False, XmNx, (loc - (104 - 60) / 2), XmNy, vert_offset + 60 + 10, XmNwidth, 104, NULL );
     XtOverrideTranslations( swatch_label, key_trans );
 
     /* Init some globals associated with the color editor. */
@@ -4219,29 +2065,10 @@ create_mtl_manager( Widget main_widg )
     cur_color[3] = 0.0;
 
     /* Place a separator on top of the color editor. */
-    sep3 = XtVaCreateManagedWidget(
-               "sep3", xmSeparatorGadgetClass, mtl_base,
-               XmNbottomAttachment, XmATTACH_WIDGET,
-               XmNbottomWidget, color_editor,
-               XmNrightAttachment, XmATTACH_FORM,
-               XmNleftAttachment, XmATTACH_FORM,
-               NULL );
+    sep3 = XtVaCreateManagedWidget( "sep3", xmSeparatorGadgetClass, mtl_base, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, color_editor, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
 
     /* Use a RowColumn to hold the function operate buttons. */
-    func_operate = XtVaCreateManagedWidget(
-                       "func_operate", xmRowColumnWidgetClass, mtl_base,
-                       XmNorientation, XmHORIZONTAL,
-                       XmNpacking, XmPACK_COLUMN,
-                       XmNtraversalOn, False,
-                       XmNisAligned, True,
-                       XmNentryAlignment, XmALIGNMENT_CENTER,
-                       XmNtopAttachment, XmATTACH_NONE,
-                       XmNrightAttachment, XmATTACH_POSITION,
-                       XmNrightPosition, 50,
-                       XmNbottomAttachment, XmATTACH_WIDGET,
-                       XmNbottomWidget, sep3,
-                       NULL );
-
+    func_operate = XtVaCreateManagedWidget( "func_operate", xmRowColumnWidgetClass, mtl_base, XmNorientation, XmHORIZONTAL, XmNpacking, XmPACK_COLUMN, XmNtraversalOn, False, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNtopAttachment, XmATTACH_NONE, XmNrightAttachment, XmATTACH_POSITION, XmNrightPosition, 50, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, sep3, NULL );
     XtOverrideTranslations( func_operate, key_trans );
 
     max_child_width = 0;
@@ -4250,55 +2077,36 @@ create_mtl_manager( Widget main_widg )
 
     //UNROLL
     static int op_preview0 = OP_PREVIEW;
-    op_buttons[0] = XtVaCreateManagedWidget(
-                                op_names[0], xmPushButtonGadgetClass, func_operate,
-                                XmNsensitive, False,
-                                NULL );
-	XtOverrideTranslations( op_buttons[0], key_trans );
-	XtAddCallback( op_buttons[0], XmNdisarmCallback, mtl_func_operate_CB,
-				   &op_preview0 );
-	XtVaGetValues( op_buttons[0], XmNwidth, &width, NULL );
-	if ( width > max_child_width )
-		max_child_width = width;
-
+    op_buttons[0] = XtVaCreateManagedWidget( op_names[0], xmPushButtonGadgetClass, func_operate, XmNsensitive, False, NULL );
+    XtOverrideTranslations( op_buttons[0], key_trans );
+    XtAddCallback( op_buttons[0], XmNdisarmCallback, mtl_func_operate_CB, &op_preview0 );
+    XtVaGetValues( op_buttons[0], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+        max_child_width = width;
 
     static int op_preview1 = OP_CANCEL;
-    op_buttons[1] = XtVaCreateManagedWidget(
-                                op_names[1], xmPushButtonGadgetClass, func_operate,
-                                XmNsensitive, False,
-                                NULL );
-	XtOverrideTranslations( op_buttons[1], key_trans );
-	XtAddCallback( op_buttons[1], XmNdisarmCallback, mtl_func_operate_CB,
-				   &op_preview1 );
-	XtVaGetValues( op_buttons[1], XmNwidth, &width, NULL );
-	if ( width > max_child_width )
-		max_child_width = width;
-
+    op_buttons[1] = XtVaCreateManagedWidget( op_names[1], xmPushButtonGadgetClass, func_operate, XmNsensitive, False, NULL );
+    XtOverrideTranslations( op_buttons[1], key_trans );
+    XtAddCallback( op_buttons[1], XmNdisarmCallback, mtl_func_operate_CB, &op_preview1 );
+    XtVaGetValues( op_buttons[1], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+        max_child_width = width;
 
     static int op_preview2 = OP_APPLY ;
-    op_buttons[2] = XtVaCreateManagedWidget(
-                                op_names[2], xmPushButtonGadgetClass, func_operate,
-                                XmNsensitive, False,
-                                NULL );
-	XtOverrideTranslations( op_buttons[2], key_trans );
-	XtAddCallback( op_buttons[2], XmNdisarmCallback, mtl_func_operate_CB,
-				   &op_preview2 );
-	XtVaGetValues( op_buttons[2], XmNwidth, &width, NULL );
-	if ( width > max_child_width )
-		max_child_width = width;
-
+    op_buttons[2] = XtVaCreateManagedWidget( op_names[2], xmPushButtonGadgetClass, func_operate, XmNsensitive, False, NULL );
+    XtOverrideTranslations( op_buttons[2], key_trans );
+    XtAddCallback( op_buttons[2], XmNdisarmCallback, mtl_func_operate_CB, &op_preview2 );
+    XtVaGetValues( op_buttons[2], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+        max_child_width = width;
 
     static int op_preview3 = OP_DEFAULT;
-    op_buttons[3] = XtVaCreateManagedWidget(
-                                op_names[3], xmPushButtonGadgetClass, func_operate,
-                                XmNsensitive, False,
-                                NULL );
-	XtOverrideTranslations( op_buttons[3], key_trans );
-	XtAddCallback( op_buttons[3], XmNdisarmCallback, mtl_func_operate_CB,
-				   &op_preview3 );
-	XtVaGetValues( op_buttons[3], XmNwidth, &width, NULL );
-	if ( width > max_child_width )
-		max_child_width = width;
+    op_buttons[3] = XtVaCreateManagedWidget( op_names[3], xmPushButtonGadgetClass, func_operate, XmNsensitive, False, NULL );
+    XtOverrideTranslations( op_buttons[3], key_trans );
+    XtAddCallback( op_buttons[3], XmNdisarmCallback, mtl_func_operate_CB, &op_preview3 );
+    XtVaGetValues( op_buttons[3], XmNwidth, &width, NULL );
+    if ( width > max_child_width )
+        max_child_width = width;
 
 
     /*
@@ -4306,114 +2114,71 @@ create_mtl_manager( Widget main_widg )
      * will be on the attach position.
      */
     func_width = 4 * max_child_width + 2 * margin_width + 3 * spacing;
-    XtVaSetValues( func_operate,
-                   XmNrightOffset, -((int) (func_width / 2)), NULL );
+    XtVaSetValues( func_operate, XmNrightOffset, -((int) (func_width / 2)), NULL );
 
     if ( func_width > max_mgr_width )
         max_mgr_width = func_width;
 
-    widg = XtVaCreateManagedWidget(
-               "Action", xmLabelGadgetClass, mtl_base,
-               XmNalignment, XmALIGNMENT_CENTER,
-               XmNbottomAttachment, XmATTACH_WIDGET,
-               XmNbottomWidget, func_operate,
-               XmNrightAttachment, XmATTACH_FORM,
-               XmNleftAttachment, XmATTACH_FORM,
-               NULL );
-
+    widg = XtVaCreateManagedWidget( "Action", xmLabelGadgetClass, mtl_base, XmNalignment, XmALIGNMENT_CENTER, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, func_operate, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
     /* Place a separator on top of the operation buttons. */
-    sep2 = XtVaCreateManagedWidget(
-               "sep2", xmSeparatorGadgetClass, mtl_base,
-               XmNbottomAttachment, XmATTACH_WIDGET,
-               XmNbottomWidget, widg,
-               XmNrightAttachment, XmATTACH_FORM,
-               XmNleftAttachment, XmATTACH_FORM,
-               NULL );
+    sep2 = XtVaCreateManagedWidget( "sep2", xmSeparatorGadgetClass, mtl_base, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, widg, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
 
     /* Use a RowColumn to hold the global material select buttons. */
-    mtl_quick_select = XtVaCreateManagedWidget(
-                           "mtl_quick_select", xmRowColumnWidgetClass, mtl_base,
-                           XmNorientation, XmHORIZONTAL,
-                           XmNpacking, XmPACK_COLUMN,
-                           XmNtraversalOn, False,
-                           XmNisAligned, True,
-                           XmNentryAlignment, XmALIGNMENT_CENTER,
-                           XmNbottomAttachment, XmATTACH_WIDGET,
-                           XmNbottomWidget, sep2,
-                           XmNrightAttachment, XmATTACH_POSITION,
-                           XmNrightPosition, 50,
-                           NULL );
+    mtl_quick_select = XtVaCreateManagedWidget( "mtl_quick_select", xmRowColumnWidgetClass, mtl_base, XmNorientation, XmHORIZONTAL, XmNpacking, XmPACK_COLUMN, XmNtraversalOn, False, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, sep2, XmNrightAttachment, XmATTACH_POSITION, XmNrightPosition, 50, NULL );
 
     XtOverrideTranslations( mtl_quick_select, key_trans );
 
     max_child_width = 0;
 
-    select_buttons[0] = XtVaCreateManagedWidget(
-                            select_names[0], xmPushButtonGadgetClass, mtl_quick_select,
-                            XmNshadowThickness, 3,
-                            NULL );
+    select_buttons[0] = XtVaCreateManagedWidget( select_names[0], xmPushButtonGadgetClass, mtl_quick_select, XmNshadowThickness, 3, NULL );
 
     XtOverrideTranslations( select_buttons[0], key_trans );
 
-    XtAddCallback( select_buttons[0], XmNdisarmCallback,
-                   mtl_quick_select_CB, &all );
+    XtAddCallback( select_buttons[0], XmNdisarmCallback, mtl_quick_select_CB, &all );
 
     XtVaGetValues( select_buttons[0], XmNwidth, &width, NULL );
     if ( width > max_child_width )
          max_child_width = width;
-    
-    select_buttons[1] = XtVaCreateManagedWidget(
-                            select_names[1], xmPushButtonGadgetClass, mtl_quick_select,
-                            XmNshadowThickness, 3,
-                            NULL );
+
+    select_buttons[1] = XtVaCreateManagedWidget( select_names[1], xmPushButtonGadgetClass, mtl_quick_select, XmNshadowThickness, 3, NULL );
 
     XtOverrideTranslations( select_buttons[1], key_trans );
 
-    XtAddCallback( select_buttons[1], XmNdisarmCallback,
-                   mtl_quick_select_CB, &none );
+    XtAddCallback( select_buttons[1], XmNdisarmCallback, mtl_quick_select_CB, &none );
 
     XtVaGetValues( select_buttons[1], XmNwidth, &width, NULL );
     if ( width > max_child_width )
          max_child_width = width;
-    
-    select_buttons[2] = XtVaCreateManagedWidget(
-                            select_names[2], xmPushButtonGadgetClass, mtl_quick_select,
-                            XmNshadowThickness, 3,
-                            NULL );
+
+    select_buttons[2] = XtVaCreateManagedWidget( select_names[2], xmPushButtonGadgetClass, mtl_quick_select, XmNshadowThickness, 3, NULL );
 
     XtOverrideTranslations( select_buttons[2], key_trans );
 
-    XtAddCallback( select_buttons[2], XmNdisarmCallback,
-                   mtl_quick_select_CB, &invert );
+    XtAddCallback( select_buttons[2], XmNdisarmCallback, mtl_quick_select_CB, &invert );
 
     XtVaGetValues( select_buttons[2], XmNwidth, &width, NULL );
     if ( width > max_child_width )
          max_child_width = width;
-            
-    select_buttons[3] = XtVaCreateManagedWidget(
-                            select_names[3], xmPushButtonGadgetClass, mtl_quick_select,
-                            XmNshadowThickness, 3,
-                            NULL );
+
+    select_buttons[3] = XtVaCreateManagedWidget( select_names[3], xmPushButtonGadgetClass, mtl_quick_select, XmNshadowThickness, 3, NULL );
 
     XtOverrideTranslations( select_buttons[3], key_trans );
 
-    XtAddCallback( select_buttons[3], XmNdisarmCallback,
-                   mtl_quick_select_CB, &by_func );
+    XtAddCallback( select_buttons[3], XmNdisarmCallback, mtl_quick_select_CB, &by_func );
 
     XtVaGetValues( select_buttons[3], XmNwidth, &width, NULL );
     if ( width > max_child_width )
          max_child_width = width;
-    
-           
-    
+
+
+
 
     /*
      * Now set the right offset so that the middle of the RowColumn
      * will be on the attach position.
      */
     func_width = 4 * max_child_width + 2 * margin_width + 3 * spacing;
-    XtVaSetValues( mtl_quick_select,
-                   XmNrightOffset, -((int) (func_width / 2)), NULL );
+    XtVaSetValues( mtl_quick_select, XmNrightOffset, -((int) (func_width / 2)), NULL );
 
     if ( func_width > max_mgr_width )
         max_mgr_width = func_width;
@@ -4424,30 +2189,14 @@ create_mtl_manager( Widget main_widg )
      * the bottom of the form.
      */
 
-    scroll_win = XtVaCreateManagedWidget(
-                     "mtl_scroll", xmScrolledWindowWidgetClass, mtl_base,
-                     XmNscrollingPolicy, XmAUTOMATIC,
-                     XmNtopAttachment, XmATTACH_WIDGET,
-                     XmNtopWidget, mtl_label,
-                     XmNrightAttachment, XmATTACH_FORM,
-                     XmNleftAttachment, XmATTACH_FORM,
-                     XmNbottomAttachment, XmATTACH_WIDGET,
-                     XmNbottomWidget, mtl_quick_select,
-                     NULL );
+    scroll_win = XtVaCreateManagedWidget( "mtl_scroll", xmScrolledWindowWidgetClass, mtl_base, XmNscrollingPolicy, XmAUTOMATIC, XmNtopAttachment, XmATTACH_WIDGET, XmNtopWidget, mtl_label, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, mtl_quick_select, NULL );
 
     XtVaGetValues( scroll_win, XmNverticalScrollBar, &vert_scroll, NULL );
     XtVaGetValues( vert_scroll, XmNwidth, &scrollbar_width, NULL );
-    
-    XtAddCallback (scroll_win, XmNactivateCallback, resize_mtl_scrollwin,NULL); 
-                    
-    mtl_row_col = XtVaCreateManagedWidget(
-                      "row_col", xmRowColumnWidgetClass, scroll_win,
-                      XmNorientation, XmHORIZONTAL,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNrowColumnType, XmWORK_AREA,
-                      XmNentryAlignment, XmALIGNMENT_CENTER,
-                      XmNisAligned, True,
-                      NULL );
+
+    XtAddCallback (scroll_win, XmNactivateCallback, resize_mtl_scrollwin,NULL);
+
+    mtl_row_col = XtVaCreateManagedWidget( "row_col", xmRowColumnWidgetClass, scroll_win, XmNorientation, XmHORIZONTAL, XmNpacking, XmPACK_COLUMN, XmNrowColumnType, XmWORK_AREA, XmNentryAlignment, XmALIGNMENT_CENTER, XmNisAligned, True, NULL );
 
     XtOverrideTranslations( mtl_row_col, key_trans );
 
@@ -4463,13 +2212,7 @@ create_mtl_manager( Widget main_widg )
 
         sprintf( mtl_toggle_name, "%s", env.curr_analy->sorted_labels[i] );
 
-        widg = XtVaCreateManagedWidget(
-                   mtl_toggle_name, xmToggleButtonWidgetClass, mtl_row_col,
-                   XmNtraversalOn, False,
-                   XmNindicatorOn, False,
-                   XmNshadowThickness, 3,
-                   XmNfillOnSelect, True,
-                   NULL );
+        widg = XtVaCreateManagedWidget( mtl_toggle_name, xmToggleButtonWidgetClass, mtl_row_col, XmNtraversalOn, False, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
 
         XtOverrideTranslations( widg, key_trans );
 
@@ -4477,8 +2220,7 @@ create_mtl_manager( Widget main_widg )
         p_mtl->mtl = mtl;
         INSERT( p_mtl, mtl_deselect_list );
 
-        XtAddCallback( widg, XmNdisarmCallback, mtl_select_CB,
-                       p_mtl );
+        XtAddCallback( widg, XmNdisarmCallback, mtl_select_CB, p_mtl );
     }
 
     /*
@@ -4513,7 +2255,7 @@ create_mtl_manager( Widget main_widg )
     mtl_mgr_cmd = NEW_N( char, 128 + qty_mtls * label_length, "Mtl mgr cmd bufr" );
 
     //XtOverrideTranslations( mtl_base, key_trans );
-  
+
     return mtl_base;
 }
 
@@ -4526,22 +2268,18 @@ create_mtl_manager( Widget main_widg )
 static Widget
 create_surf_manager( Widget main_widg )
 {
-    Widget surf_shell, widg, func_select = NULL, scroll_win, sep1,
-                             sep2, sep3, vert_scroll, func_operate, surf_label,
-                             frame, col_comp;
+    Widget surf_shell, widg, func_select = NULL, scroll_win, sep1, sep2, sep3, vert_scroll, func_operate, surf_label, frame, col_comp;
     Arg args[10];
     char win_title[256];
     char surf_toggle_name[64];
     int n, i, surf, qty_surfs;
-    Dimension width, max_child_width, margin_width, spacing, scrollbar_width,
-              name_len, col_ed_width, max_mgr_width, height, sw_height, fudge;
+    Dimension width, max_child_width, margin_width, spacing, scrollbar_width, name_len, col_ed_width, max_mgr_width, height, sw_height, fudge;
     short func_width, max_cols, rows;
     XtActionsRec rec;
     static Widget select_buttons[4];
     static Widget *ctl_buttons[2];
     XmString val_text;
-    int scale_len, val_len, vert_space, vert_height,
-        vert_pos, hori_offset, vert_offset, loc;
+    int scale_len, val_len, vert_space, vert_height, vert_pos, hori_offset, vert_offset, loc;
     char *func_names[] =
     {
         "Visible", "Invisible", "Enable", "Disable"
@@ -4563,7 +2301,9 @@ create_surf_manager( Widget main_widg )
     ctl_buttons[1] = select_buttons;
     qty_surfs = env.curr_analy->mesh_table[0].surface_qty;
 
+    char * griz_name = make_griz_name( env.curr_analy, griz_version );
     sprintf( win_title, "%s Surface Manager", griz_name );
+    free( griz_name );
     n = 0;
     XtSetArg( args[n], XtNtitle, win_title );
     n++;
@@ -4573,79 +2313,44 @@ create_surf_manager( Widget main_widg )
     n++;
     XtSetArg( args[n], XmNwindowGroup, XtWindow( main_widg ) );
     n++;
-    surf_shell = XtAppCreateShell( "GRIZ", "surf_shell",
-                                   topLevelShellWidgetClass,
-                                   XtDisplay( main_widg ), args, n );
+    surf_shell = XtAppCreateShell( "GRIZ", "surf_shell", topLevelShellWidgetClass, XtDisplay( main_widg ), args, n );
 
-    XtAddCallback( surf_shell, XmNdestroyCallback,
-                   destroy_surf_mgr_CB, (XtPointer) NULL );
+    XtAddCallback( surf_shell, XmNdestroyCallback, destroy_surf_mgr_CB, (XtPointer) NULL );
 
-    XtAddEventHandler( surf_shell, EnterWindowMask | LeaveWindowMask, False,
-                       gress_surf_mgr_EH, NULL );
+    XtAddEventHandler( surf_shell, EnterWindowMask | LeaveWindowMask, False, gress_surf_mgr_EH, NULL );
 
     /* Use a Form widget to manage everything else. */
     gid = env.griz_id;
     if ( env.griz_id>0 )
     {
-        surf_base = XtVaCreateManagedWidget( "surf_base", xmFormWidgetClass, surf_shell,
-                                             XmNmarginWidth, 2,
-                                             XmNmarginHeight, 2,
-                                             XmNbackground, env.border_colors[gid-1],
-                                             NULL );
+        surf_base = XtVaCreateManagedWidget( "surf_base", xmFormWidgetClass, surf_shell, XmNmarginWidth, 2, XmNmarginHeight, 2, XmNbackground, env.border_colors[gid-1], NULL );
     }
     else
-        surf_base = XtVaCreateManagedWidget( "surf_base", xmFormWidgetClass, surf_shell,
-                                             NULL );
+        surf_base = XtVaCreateManagedWidget( "surf_base", xmFormWidgetClass, surf_shell, NULL );
 
 
     XtOverrideTranslations( surf_base, key_trans );
 
-    widg = XtVaCreateManagedWidget(
-               "Function", xmLabelGadgetClass, surf_base,
-               XmNalignment, XmALIGNMENT_CENTER,
-               XmNtopAttachment, XmATTACH_FORM,
-               XmNrightAttachment, XmATTACH_FORM,
-               XmNleftAttachment, XmATTACH_FORM,
-               NULL );
+    widg = XtVaCreateManagedWidget( "Function", xmLabelGadgetClass, surf_base, XmNalignment, XmALIGNMENT_CENTER, XmNtopAttachment, XmATTACH_FORM, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
 
     /* Use a RowColumn to hold the function select toggles. */
-    func_select = XtVaCreateManagedWidget(
-                      "func_select", xmRowColumnWidgetClass, surf_base,
-                      XmNorientation, XmHORIZONTAL,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNtraversalOn, False,
-                      XmNisAligned, True,
-                      XmNentryAlignment, XmALIGNMENT_CENTER,
-                      XmNtopAttachment, XmATTACH_WIDGET,
-                      XmNtopWidget, widg,
-                      XmNrightAttachment, XmATTACH_POSITION,
-                      XmNrightPosition, 50,
-                      NULL );
+    func_select = XtVaCreateManagedWidget( "func_select", xmRowColumnWidgetClass, surf_base, XmNorientation, XmHORIZONTAL, XmNpacking, XmPACK_COLUMN, XmNtraversalOn, False, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNtopAttachment, XmATTACH_WIDGET, XmNtopWidget, widg, XmNrightAttachment, XmATTACH_POSITION, XmNrightPosition, 50, NULL );
 
     XtOverrideTranslations( func_select, key_trans );
 
     /* Get these for geometry adjustment later. */
-    XtVaGetValues( func_select,
-                   XmNmarginWidth, &margin_width,
-                   XmNspacing, &spacing,
-                   NULL );
+    XtVaGetValues( func_select, XmNmarginWidth, &margin_width, XmNspacing, &spacing, NULL );
 
     max_mgr_width = 0;
     max_child_width = 0;
 
     for ( i = 0; i < 4; i++ )
     {
-        surf_mgr_func_toggles[i] = XtVaCreateManagedWidget(
-                                       func_names[i], xmToggleButtonWidgetClass, func_select,
-                                       XmNindicatorOn, False,
-                                       XmNshadowThickness, 3,
-                                       XmNfillOnSelect, True,
-                                       NULL );
+        surf_mgr_func_toggles[i] = XtVaCreateManagedWidget( func_names[i], xmToggleButtonWidgetClass, func_select, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
 
         XtOverrideTranslations( surf_mgr_func_toggles[i], key_trans );
 
-        XtAddCallback( surf_mgr_func_toggles[i], XmNdisarmCallback,
-                       surf_func_select_CB, (XtPointer) surf_mgr_func_toggles );
+        XtAddCallback( surf_mgr_func_toggles[i], XmNdisarmCallback, surf_func_select_CB, (XtPointer) surf_mgr_func_toggles );
 
         XtVaGetValues( surf_mgr_func_toggles[i], XmNwidth, &width, NULL );
         if ( width > max_child_width )
@@ -4658,62 +2363,31 @@ create_surf_manager( Widget main_widg )
      * RowColumn will be on the attach position.
      */
     func_width = 4 * max_child_width + 2 * margin_width + 4 * spacing;
-    XtVaSetValues( func_select,
-                   XmNrightOffset, -((int) (func_width / 2)), NULL );
+    XtVaSetValues( func_select, XmNrightOffset, -((int) (func_width / 2)), NULL );
 
     if ( func_width > max_mgr_width )
         max_mgr_width = func_width;
 
-    sep1 = XtVaCreateManagedWidget(
-               "sep1", xmSeparatorGadgetClass, surf_base,
-               XmNtopAttachment, XmATTACH_WIDGET,
-               XmNtopWidget, func_select,
-               XmNrightAttachment, XmATTACH_FORM,
-               XmNleftAttachment, XmATTACH_FORM,
-               NULL );
-
-    surf_label = XtVaCreateManagedWidget(
-                     "Surface Classes", xmLabelGadgetClass, surf_base,
-                     XmNalignment, XmALIGNMENT_CENTER,
-                     XmNtopAttachment, XmATTACH_WIDGET,
-                     XmNtopWidget, sep1,
-                     XmNrightAttachment, XmATTACH_FORM,
-                     XmNleftAttachment, XmATTACH_FORM,
-                     NULL );
+    sep1 = XtVaCreateManagedWidget( "sep1", xmSeparatorGadgetClass, surf_base, XmNtopAttachment, XmATTACH_WIDGET, XmNtopWidget, func_select, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
+    surf_label = XtVaCreateManagedWidget( "Surface Classes", xmLabelGadgetClass, surf_base, XmNalignment, XmALIGNMENT_CENTER, XmNtopAttachment, XmATTACH_WIDGET, XmNtopWidget, sep1, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
 
     /*
      * Now build up from the bottom...
      */
 
     /* Use a RowColumn to hold the function operate buttons. */
-    func_operate = XtVaCreateManagedWidget(
-                       "func_operate", xmRowColumnWidgetClass, surf_base,
-                       XmNorientation, XmHORIZONTAL,
-                       XmNpacking, XmPACK_COLUMN,
-                       XmNtraversalOn, False,
-                       XmNisAligned, True,
-                       XmNentryAlignment, XmALIGNMENT_CENTER,
-                       XmNtopAttachment, XmATTACH_NONE,
-                       XmNrightAttachment, XmATTACH_POSITION,
-                       XmNrightPosition, 50,
-                       XmNbottomAttachment, XmATTACH_WIDGET,
-                       NULL );
-
+    func_operate = XtVaCreateManagedWidget( "func_operate", xmRowColumnWidgetClass, surf_base, XmNorientation, XmHORIZONTAL, XmNpacking, XmPACK_COLUMN, XmNtraversalOn, False, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNtopAttachment, XmATTACH_NONE, XmNrightAttachment, XmATTACH_POSITION, XmNrightPosition, 50, XmNbottomAttachment, XmATTACH_WIDGET, NULL );
     XtOverrideTranslations( func_operate, key_trans );
 
     max_child_width = 0;
 
     for ( i = 0; i < sizeof( op_names ) / sizeof( op_names[0] ); i++ )
     {
-        surf_op_buttons[i] = XtVaCreateManagedWidget(
-                                 op_names[i], xmPushButtonGadgetClass, func_operate,
-                                 XmNsensitive, False,
-                                 NULL );
+        surf_op_buttons[i] = XtVaCreateManagedWidget( op_names[i], xmPushButtonGadgetClass, func_operate, XmNsensitive, False, NULL );
 
         XtOverrideTranslations( surf_op_buttons[i], key_trans );
 
-        XtAddCallback( surf_op_buttons[i], XmNdisarmCallback, surf_func_operate_CB,
-                       &i );
+        XtAddCallback( surf_op_buttons[i], XmNdisarmCallback, surf_func_operate_CB, &i );
 
         XtVaGetValues( surf_op_buttons[i], XmNwidth, &width, NULL );
         if ( width > max_child_width )
@@ -4725,43 +2399,18 @@ create_surf_manager( Widget main_widg )
      * will be on the attach position.
      */
     func_width = 2 * max_child_width + 2 * margin_width + 3 * spacing;
-    XtVaSetValues( func_operate,
-                   XmNrightOffset, -((int) (func_width / 2)), NULL );
+    XtVaSetValues( func_operate, XmNrightOffset, -((int) (func_width / 2)), NULL );
 
     if ( func_width > max_mgr_width )
         max_mgr_width = func_width;
 
-    widg = XtVaCreateManagedWidget(
-               "Action", xmLabelGadgetClass, surf_base,
-               XmNalignment, XmALIGNMENT_CENTER,
-               XmNbottomAttachment, XmATTACH_WIDGET,
-               XmNbottomWidget, func_operate,
-               XmNrightAttachment, XmATTACH_FORM,
-               XmNleftAttachment, XmATTACH_FORM,
-               NULL );
+    widg = XtVaCreateManagedWidget( "Action", xmLabelGadgetClass, surf_base, XmNalignment, XmALIGNMENT_CENTER, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, func_operate, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
 
     /* Place a separator on top of the operation buttons. */
-    sep2 = XtVaCreateManagedWidget(
-               "sep2", xmSeparatorGadgetClass, surf_base,
-               XmNbottomAttachment, XmATTACH_WIDGET,
-               XmNbottomWidget, widg,
-               XmNrightAttachment, XmATTACH_FORM,
-               XmNleftAttachment, XmATTACH_FORM,
-               NULL );
+    sep2 = XtVaCreateManagedWidget( "sep2", xmSeparatorGadgetClass, surf_base, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, widg, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
 
     /* Use a RowColumn to hold the global surface select buttons. */
-    surf_quick_select = XtVaCreateManagedWidget(
-                            "surf_quick_select", xmRowColumnWidgetClass, surf_base,
-                            XmNorientation, XmHORIZONTAL,
-                            XmNpacking, XmPACK_COLUMN,
-                            XmNtraversalOn, False,
-                            XmNisAligned, True,
-                            XmNentryAlignment, XmALIGNMENT_CENTER,
-                            XmNbottomAttachment, XmATTACH_WIDGET,
-                            XmNbottomWidget, sep2,
-                            XmNrightAttachment, XmATTACH_POSITION,
-                            XmNrightPosition, 50,
-                            NULL );
+    surf_quick_select = XtVaCreateManagedWidget( "surf_quick_select", xmRowColumnWidgetClass, surf_base, XmNorientation, XmHORIZONTAL, XmNpacking, XmPACK_COLUMN, XmNtraversalOn, False, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, sep2, XmNrightAttachment, XmATTACH_POSITION, XmNrightPosition, 50, NULL );
 
     XtOverrideTranslations( surf_quick_select, key_trans );
 
@@ -4769,15 +2418,11 @@ create_surf_manager( Widget main_widg )
 
     for ( i = 0; i < 4; i++ )
     {
-        select_buttons[i] = XtVaCreateManagedWidget(
-                                select_names[i], xmPushButtonGadgetClass, surf_quick_select,
-                                XmNshadowThickness, 3,
-                                NULL );
+        select_buttons[i] = XtVaCreateManagedWidget( select_names[i], xmPushButtonGadgetClass, surf_quick_select, XmNshadowThickness, 3, NULL );
 
         XtOverrideTranslations( select_buttons[i], key_trans );
 
-        XtAddCallback( select_buttons[i], XmNdisarmCallback,
-                       surf_quick_select_CB, (XtPointer) ctl_buttons );
+        XtAddCallback( select_buttons[i], XmNdisarmCallback, surf_quick_select_CB, (XtPointer) ctl_buttons );
 
         XtVaGetValues( select_buttons[i], XmNwidth, &width, NULL );
         if ( width > max_child_width )
@@ -4789,8 +2434,7 @@ create_surf_manager( Widget main_widg )
      * will be on the attach position.
      */
     func_width = 3 * max_child_width + 2 * margin_width + 3 * spacing;
-    XtVaSetValues( surf_quick_select,
-                   XmNrightOffset, -((int) (func_width / 2)), NULL );
+    XtVaSetValues( surf_quick_select, XmNrightOffset, -((int) (func_width / 2)), NULL );
 
     if ( func_width > max_mgr_width )
         max_mgr_width = func_width;
@@ -4801,16 +2445,7 @@ create_surf_manager( Widget main_widg )
      * the bottom of the form.
      */
 
-    scroll_win = XtVaCreateManagedWidget(
-                     "surf_scroll", xmScrolledWindowWidgetClass, surf_base,
-                     XmNscrollingPolicy, XmAUTOMATIC,
-                     XmNtopAttachment, XmATTACH_WIDGET,
-                     XmNtopWidget, surf_label,
-                     XmNrightAttachment, XmATTACH_FORM,
-                     XmNleftAttachment, XmATTACH_FORM,
-                     XmNbottomAttachment, XmATTACH_WIDGET,
-                     XmNbottomWidget, surf_quick_select,
-                     NULL );
+    scroll_win = XtVaCreateManagedWidget( "surf_scroll", xmScrolledWindowWidgetClass, surf_base, XmNscrollingPolicy, XmAUTOMATIC, XmNtopAttachment, XmATTACH_WIDGET, XmNtopWidget, surf_label, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, XmNbottomAttachment, XmATTACH_WIDGET, XmNbottomWidget, surf_quick_select, NULL );
 
     XtVaGetValues( scroll_win, XmNverticalScrollBar, &vert_scroll, NULL );
     XtVaGetValues( vert_scroll, XmNwidth, &scrollbar_width, NULL );
@@ -4818,17 +2453,9 @@ create_surf_manager( Widget main_widg )
     rec.string = "resize_surf_scrollwin";
     rec.proc = (XtActionProc) resize_surf_scrollwin;
     XtAppAddActions( app_context, &rec, 1 );
-    XtOverrideTranslations( scroll_win,
-                            XtParseTranslationTable( "<Configure>: resize_surf_scrollwin()" ) );
+    XtOverrideTranslations( scroll_win, XtParseTranslationTable( "<Configure>: resize_surf_scrollwin()" ) );
 
-    surf_row_col = XtVaCreateManagedWidget(
-                       "row_col", xmRowColumnWidgetClass, scroll_win,
-                       XmNorientation, XmHORIZONTAL,
-                       XmNpacking, XmPACK_COLUMN,
-                       XmNrowColumnType, XmWORK_AREA,
-                       XmNentryAlignment, XmALIGNMENT_CENTER,
-                       XmNisAligned, True,
-                       NULL );
+    surf_row_col = XtVaCreateManagedWidget( "row_col", xmRowColumnWidgetClass, scroll_win, XmNorientation, XmHORIZONTAL, XmNpacking, XmPACK_COLUMN, XmNrowColumnType, XmWORK_AREA, XmNentryAlignment, XmALIGNMENT_CENTER, XmNisAligned, True, NULL );
 
     XtOverrideTranslations( surf_row_col, key_trans );
 
@@ -4844,13 +2471,7 @@ create_surf_manager( Widget main_widg )
         else
             sprintf( surf_toggle_name, "%d", surf );
 
-        widg = XtVaCreateManagedWidget(
-                   surf_toggle_name, xmToggleButtonWidgetClass, surf_row_col,
-                   XmNtraversalOn, False,
-                   XmNindicatorOn, False,
-                   XmNshadowThickness, 3,
-                   XmNfillOnSelect, True,
-                   NULL );
+        widg = XtVaCreateManagedWidget( surf_toggle_name, xmToggleButtonWidgetClass, surf_row_col, XmNtraversalOn, False, XmNindicatorOn, False, XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
 
         XtOverrideTranslations( widg, key_trans );
 
@@ -4858,8 +2479,7 @@ create_surf_manager( Widget main_widg )
         p_surf->surf = surf;
         INSERT( p_surf, surf_deselect_list );
 
-        XtAddCallback( widg, XmNdisarmCallback, surf_select_CB,
-                       &surf );
+        XtAddCallback( widg, XmNdisarmCallback, surf_select_CB, &surf );
     }
 
     /*
@@ -4895,8 +2515,7 @@ create_surf_manager( Widget main_widg )
     XtPopup( surf_shell, XtGrabNone );
 
     /* Add handler to init stacking order control. */
-    XtAddEventHandler( surf_shell, StructureNotifyMask, False,
-                       stack_init_EH, (XtPointer) SURF_MGR_SHELL_WIN );
+    XtAddEventHandler( surf_shell, StructureNotifyMask, False, stack_init_EH, (XtPointer) SURF_MGR_SHELL_WIN );
 
     session->win_surf_active = 1;
 
@@ -4918,7 +2537,9 @@ create_free_mtl_panel( Widget main_widg )
     String trans =
         "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
 
+    char * path_string = make_path_str( env.curr_analy );
     sprintf( win_title, "Material Manager %s", path_string );
+    free( path_string );
 
     n = 0;
     XtSetArg( args[n], XtNtitle, win_title );
@@ -4930,13 +2551,11 @@ create_free_mtl_panel( Widget main_widg )
     n++;
     XtSetArg( args[n], XmNwindowGroup, XtWindow( main_widg ) );
     n++;
-    XtSetArg (args[n], XmNdeleteResponse, XmDO_NOTHING); 
+    XtSetArg (args[n], XmNdeleteResponse, XmDO_NOTHING);
     n++;
-    mtl_shell = XtAppCreateShell( "GRIZ", "mtl_panel",
-                                   topLevelShellWidgetClass,
-                                   XtDisplay( main_widg ), args, n );
+    mtl_shell = XtAppCreateShell( "GRIZ", "mtl_panel", topLevelShellWidgetClass, XtDisplay( main_widg ), args, n );
 
-    
+
     mtl_panel = create_mtl_manager( mtl_shell );
 
     XtOverrideTranslations( mtl_panel, XtParseTranslationTable( trans ) );
@@ -4947,8 +2566,7 @@ create_free_mtl_panel( Widget main_widg )
     static int mtl_panel_shell_win = MTL_MGR_SHELL_WIN;
 
     /* XtAddEventHandler( util_shell, ExposureMask, False, stack_init_EH,  */
-    XtAddEventHandler( mtl_shell, StructureNotifyMask, False, stack_init_EH,
-                       &mtl_panel_shell_win );
+    XtAddEventHandler( mtl_shell, StructureNotifyMask, False, stack_init_EH, &mtl_panel_shell_win );
 
     session->win_util_active = 1;
 
@@ -4971,7 +2589,9 @@ create_free_util_panel( Widget main_widg )
     String trans =
         "Ctrl<Key>q: action_quit() \n ~Ctrl <Key>: action_translate_command()";
 
+    char * path_string = make_path_str( env.curr_analy );
     sprintf( win_title, "Utility Panel %s", path_string );
+    free( path_string );
 
     n = 0;
     XtSetArg( args[n], XtNtitle, win_title );
@@ -4983,9 +2603,7 @@ create_free_util_panel( Widget main_widg )
     n++;
     XtSetArg( args[n], XmNwindowGroup, XtWindow( main_widg ) );
     n++;
-    util_shell = XtAppCreateShell( "GRIZ", "util_panel",
-                                   topLevelShellWidgetClass,
-                                   XtDisplay( main_widg ), args, n );
+    util_shell = XtAppCreateShell( "GRIZ", "util_panel", topLevelShellWidgetClass, XtDisplay( main_widg ), args, n );
 
     util_panel = create_utility_panel( util_shell );
 
@@ -4997,8 +2615,7 @@ create_free_util_panel( Widget main_widg )
     static int util_panel_shell_win = UTIL_PANEL_SHELL_WIN;
 
     /* XtAddEventHandler( util_shell, ExposureMask, False, stack_init_EH,  */
-    XtAddEventHandler( util_shell, StructureNotifyMask, False, stack_init_EH,
-                       &util_panel_shell_win );
+    XtAddEventHandler( util_shell, StructureNotifyMask, False, stack_init_EH, &util_panel_shell_win );
 
     session->win_util_active = 1;
 
@@ -5028,8 +2645,7 @@ create_utility_panel( Widget main_widg )
 {
     Widget widg, rend_child, sep1;
     Pixel fg, bg;
-    Dimension width, rc_width, child_width, height,
-              margin_width, spacing;
+    Dimension width, rc_width, child_width, height, margin_width, spacing;
     char stride_text[5];
     XmString stride_str;
     static int step;
@@ -5046,232 +2662,115 @@ create_utility_panel( Widget main_widg )
     /* Use a Form widget to manage everything else. */
     gid = env.griz_id;
     if ( env.griz_id>0 && !include_util_panel )
-        util_panel_main = XtVaCreateManagedWidget(
-                              "util_panel_main", xmFormWidgetClass, main_widg,
-                              XmNallowResize, FALSE,
-                              XmNmarginWidth, 2,
-                              XmNmarginHeight, 2,
-                              XmNbackground, env.border_colors[gid-1],
-                              NULL );
+        util_panel_main = XtVaCreateManagedWidget( "util_panel_main", xmFormWidgetClass, main_widg, XmNallowResize, FALSE, XmNmarginWidth, 2, XmNmarginHeight, 2, XmNbackground, env.border_colors[gid-1], NULL );
     else
-        util_panel_main = XtVaCreateManagedWidget(
-                              "util_panel_main", xmFormWidgetClass, main_widg,
-                              XmNallowResize, TRUE,
-                              NULL );
+        util_panel_main = XtVaCreateManagedWidget( "util_panel_main", xmFormWidgetClass, main_widg, XmNallowResize, TRUE, NULL );
 
-    XtAddCallback( util_panel_main, XmNdestroyCallback,
-                   destroy_util_panel_CB, (XtPointer) NULL );
+    XtAddCallback( util_panel_main, XmNdestroyCallback, destroy_util_panel_CB, (XtPointer) NULL );
 
-    util_state_ctl = XtVaCreateManagedWidget(
-                         "util_state_ctl", xmRowColumnWidgetClass, util_panel_main,
-                         XmNorientation, XmHORIZONTAL,
-                         XmNrowColumnType, XmWORK_AREA,
-                         XmNtraversalOn, False,
-                         XmNtopAttachment, XmATTACH_FORM,
-                         XmNrightAttachment, XmATTACH_POSITION,
-                         XmNrightPosition, 50,
-                         NULL );
+    util_state_ctl = XtVaCreateManagedWidget( "util_state_ctl", xmRowColumnWidgetClass, util_panel_main, XmNorientation, XmHORIZONTAL, XmNrowColumnType, XmWORK_AREA, XmNtraversalOn, False, XmNtopAttachment, XmATTACH_FORM, XmNrightAttachment, XmATTACH_POSITION, XmNrightPosition, 50, NULL );
 
     XtOverrideTranslations( util_state_ctl, key_trans );
 
     /* Get these for use later. */
-    XtVaGetValues( util_state_ctl,
-                   XmNmarginWidth, &margin_width,
-                   XmNspacing, &spacing,
-                   XmNforeground, &fg,
-                   XmNbackground, &bg,
-                   NULL );
+    XtVaGetValues( util_state_ctl, XmNmarginWidth, &margin_width, XmNspacing, &spacing, XmNforeground, &fg, XmNbackground, &bg, NULL );
 
     rc_width = 2 * margin_width + 12 * spacing;
 
-    widg = XtVaCreateManagedWidget(
-               "Step", xmLabelGadgetClass, util_state_ctl,
-               NULL );
+    widg = XtVaCreateManagedWidget( "Step", xmLabelGadgetClass, util_state_ctl, NULL );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
-    pixmap_leftstop = XCreatePixmapFromBitmapData( dpy,
-                      RootWindow( dpy, DefaultScreen( dpy ) ), (char *)  GrizLeftStop_bits,
-                      GrizButton_width, GrizButton_height, fg, bg,
-                      DefaultDepth( dpy, DefaultScreen( dpy ) ) );
-    widg = XtVaCreateManagedWidget(
-               "first_state", xmPushButtonGadgetClass, util_state_ctl,
-               XmNlabelType, XmPIXMAP,
-               XmNlabelPixmap, pixmap_leftstop,
-               NULL );
+    pixmap_leftstop = XCreatePixmapFromBitmapData( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), (char *)  GrizLeftStop_bits, GrizButton_width, GrizButton_height, fg, bg, DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+    widg = XtVaCreateManagedWidget( "first_state", xmPushButtonGadgetClass, util_state_ctl, XmNlabelType, XmPIXMAP, XmNlabelPixmap, pixmap_leftstop, NULL );
     step = STEP_FIRST;
     XtAddCallback( widg, XmNactivateCallback, step_CB, &step );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
-    pixmap_left = XCreatePixmapFromBitmapData( dpy,
-                  RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizLeft_bits,
-                  GrizButton_width, GrizButton_height, fg, bg,
-                  DefaultDepth( dpy, DefaultScreen( dpy ) ) );
-    widg = XtVaCreateManagedWidget(
-               "prev_state", xmPushButtonGadgetClass, util_state_ctl,
-               XmNlabelType, XmPIXMAP,
-               XmNlabelPixmap, pixmap_left,
-               NULL );
+    pixmap_left = XCreatePixmapFromBitmapData( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizLeft_bits, GrizButton_width, GrizButton_height, fg, bg, DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+    widg = XtVaCreateManagedWidget( "prev_state", xmPushButtonGadgetClass, util_state_ctl, XmNlabelType, XmPIXMAP, XmNlabelPixmap, pixmap_left, NULL );
     static int step_down = STEP_DOWN;
     XtAddCallback( widg, XmNactivateCallback, step_CB, &step_down);
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
-    pixmap_right = XCreatePixmapFromBitmapData( dpy,
-                   RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizRight_bits,
-                   GrizButton_width, GrizButton_height, fg, bg,
-                   DefaultDepth( dpy, DefaultScreen( dpy ) ) );
-    widg = XtVaCreateManagedWidget(
-               "next_state", xmPushButtonGadgetClass, util_state_ctl,
-               XmNlabelType, XmPIXMAP,
-               XmNlabelPixmap, pixmap_right,
-               NULL );
+    pixmap_right = XCreatePixmapFromBitmapData( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizRight_bits, GrizButton_width, GrizButton_height, fg, bg, DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+    widg = XtVaCreateManagedWidget( "next_state", xmPushButtonGadgetClass, util_state_ctl, XmNlabelType, XmPIXMAP, XmNlabelPixmap, pixmap_right, NULL );
     static int step_up = STEP_UP;
     XtAddCallback( widg, XmNactivateCallback, step_CB, &step_up );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
-    pixmap_rightstop = XCreatePixmapFromBitmapData( dpy,
-                       RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizRightStop_bits,
-                       GrizButton_width, GrizButton_height, fg, bg,
-                       DefaultDepth( dpy, DefaultScreen( dpy ) ) );
-    widg = XtVaCreateManagedWidget(
-               "last_state", xmPushButtonGadgetClass, util_state_ctl,
-               XmNlabelType, XmPIXMAP,
-               XmNlabelPixmap, pixmap_rightstop,
-               NULL );
+    pixmap_rightstop = XCreatePixmapFromBitmapData( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizRightStop_bits, GrizButton_width, GrizButton_height, fg, bg, DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+    widg = XtVaCreateManagedWidget( "last_state", xmPushButtonGadgetClass, util_state_ctl, XmNlabelType, XmPIXMAP, XmNlabelPixmap, pixmap_rightstop, NULL );
     static int last_step = STEP_LAST;
     XtAddCallback( widg, XmNactivateCallback, step_CB, &last_step  );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
-    stride_str = XmStringCreateLtoR( "Stride",
-                                     XmSTRING_DEFAULT_CHARSET );
-    widg = XtVaCreateManagedWidget(
-               "stride_label", xmLabelGadgetClass, util_state_ctl,
-               XmNlabelString, stride_str,
-               NULL );
+    stride_str = XmStringCreateLtoR( "Stride", XmSTRING_DEFAULT_CHARSET );
+    widg = XtVaCreateManagedWidget( "stride_label", xmLabelGadgetClass, util_state_ctl, XmNlabelString, stride_str, NULL );
     XmStringFree( stride_str );
     XtVaGetValues( widg, XmNwidth, &child_width, XmNheight, &height, NULL );
     rc_width += child_width;
 
     sprintf( stride_text, "%d", step_stride );
-    stride_label = XtVaCreateManagedWidget(
-                       "stride_text", xmTextFieldWidgetClass, util_state_ctl,
-                       XmNcolumns, 3,
-                       XmNcursorPositionVisible, True,
-                       XmNeditable, True,
-                       XmNresizeWidth, True,
-                       XmNvalue, stride_text,
-                       NULL );
+    stride_label = XtVaCreateManagedWidget( "stride_text", xmTextFieldWidgetClass, util_state_ctl, XmNcolumns, 3, XmNcursorPositionVisible, True, XmNeditable, True, XmNresizeWidth, True, XmNvalue, stride_text, NULL );
     static int stride_edit = STRIDE_EDIT;
-    XtAddCallback( stride_label, XmNactivateCallback, stride_CB,
-                   &stride_edit );
+    XtAddCallback( stride_label, XmNactivateCallback, stride_CB, &stride_edit );
     XtVaGetValues( stride_label, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
-    widg = XtVaCreateManagedWidget(
-               "stride_incr", xmArrowButtonWidgetClass, util_state_ctl,
-               NULL );
+    widg = XtVaCreateManagedWidget( "stride_incr", xmArrowButtonWidgetClass, util_state_ctl, NULL );
     XtOverrideTranslations( widg, key_trans );
     static int stride_increment = STRIDE_INCREMENT;
-    XtAddCallback( widg, XmNactivateCallback, stride_CB,
-                   &stride_increment );
+    XtAddCallback( widg, XmNactivateCallback, stride_CB, &stride_increment );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
-    widg = XtVaCreateManagedWidget(
-               "stride_decr", xmArrowButtonWidgetClass, util_state_ctl,
-               XmNarrowDirection, XmARROW_DOWN,
-               NULL );
+    widg = XtVaCreateManagedWidget( "stride_decr", xmArrowButtonWidgetClass, util_state_ctl, XmNarrowDirection, XmARROW_DOWN, NULL );
     XtOverrideTranslations( widg, key_trans );
     static int stride_decrement = STRIDE_DECREMENT;
-    XtAddCallback( widg, XmNactivateCallback, stride_CB,
-                   &stride_decrement );
+    XtAddCallback( widg, XmNactivateCallback, stride_CB, &stride_decrement );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
-    widg = XtVaCreateManagedWidget(
-               "  Animate", xmLabelGadgetClass, util_state_ctl,
-               NULL );
+    widg = XtVaCreateManagedWidget( "  Animate", xmLabelGadgetClass, util_state_ctl, NULL );
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
 
-    pixmap_start = XCreatePixmapFromBitmapData( dpy,
-                   RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizStart_bits,
-                   GrizButton_width, GrizButton_height, fg, bg,
-                   DefaultDepth( dpy, DefaultScreen( dpy ) ) );
-    widg = XtVaCreateManagedWidget(
-               "start_anim", xmPushButtonGadgetClass, util_state_ctl,
-               XmNlabelType, XmPIXMAP,
-               XmNlabelPixmap, pixmap_start,
-               NULL );
+    pixmap_start = XCreatePixmapFromBitmapData( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizStart_bits, GrizButton_width, GrizButton_height, fg, bg, DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+    widg = XtVaCreateManagedWidget( "start_anim", xmPushButtonGadgetClass, util_state_ctl, XmNlabelType, XmPIXMAP, XmNlabelPixmap, pixmap_start, NULL );
     static int  btn_animate = BTN_ANIMATE;
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
-    XtAddCallback( widg, XmNactivateCallback, menu_CB,
-                   &btn_animate );
+    XtAddCallback( widg, XmNactivateCallback, menu_CB, &btn_animate );
 
-    pixmap_stop = XCreatePixmapFromBitmapData( dpy,
-                  RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizStop_bits,
-                  GrizButton_width, GrizButton_height, fg, bg,
-                  DefaultDepth( dpy, DefaultScreen( dpy ) ) );
-    widg = XtVaCreateManagedWidget(
-               "stop_anim", xmPushButtonGadgetClass, util_state_ctl,
-               XmNlabelType, XmPIXMAP,
-               XmNlabelPixmap, pixmap_stop,
-               NULL );
+    pixmap_stop = XCreatePixmapFromBitmapData( dpy, RootWindow( dpy, DefaultScreen( dpy ) ), (char *) GrizStop_bits, GrizButton_width, GrizButton_height, fg, bg, DefaultDepth( dpy, DefaultScreen( dpy ) ) );
+    widg = XtVaCreateManagedWidget( "stop_anim", xmPushButtonGadgetClass, util_state_ctl, XmNlabelType, XmPIXMAP, XmNlabelPixmap, pixmap_stop, NULL );
     static int btn_stopanimate = BTN_STOPANIMATE;
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
-    XtAddCallback( widg, XmNactivateCallback, menu_CB,
-                   &btn_stopanimate );
+    XtAddCallback( widg, XmNactivateCallback, menu_CB, &btn_stopanimate );
 
-    widg = XtVaCreateManagedWidget(
-               "cont_anim", xmPushButtonGadgetClass, util_state_ctl,
-               XmNlabelType, XmPIXMAP,
-               XmNlabelPixmap, pixmap_right,
-               NULL );
+    widg = XtVaCreateManagedWidget( "cont_anim", xmPushButtonGadgetClass, util_state_ctl, XmNlabelType, XmPIXMAP, XmNlabelPixmap, pixmap_right, NULL );
     static int  btn_contanimate = BTN_CONTANIMATE;
     XtVaGetValues( widg, XmNwidth, &child_width, NULL );
     rc_width += child_width;
-    XtAddCallback( widg, XmNactivateCallback, menu_CB,
-                   &btn_contanimate );
+    XtAddCallback( widg, XmNactivateCallback, menu_CB, &btn_contanimate );
 
-    XtVaSetValues( util_state_ctl,
-                   XmNrightOffset, -((int) (rc_width / 2)), NULL );
+    XtVaSetValues( util_state_ctl, XmNrightOffset, -((int) (rc_width / 2)), NULL );
 
-    sep1 = XtVaCreateManagedWidget(
-               "sep1", xmSeparatorGadgetClass, util_panel_main,
-               XmNtopAttachment, XmATTACH_WIDGET,
-               XmNtopWidget, util_state_ctl,
-               XmNrightAttachment, XmATTACH_FORM,
-               XmNleftAttachment, XmATTACH_FORM,
-               NULL );
+    sep1 = XtVaCreateManagedWidget( "sep1", xmSeparatorGadgetClass, util_panel_main, XmNtopAttachment, XmATTACH_WIDGET, XmNtopWidget, util_state_ctl, XmNrightAttachment, XmATTACH_FORM, XmNleftAttachment, XmATTACH_FORM, NULL );
 
-    util_render_ctl = XtVaCreateManagedWidget(
-                          "util_render_ctl", xmRowColumnWidgetClass, util_panel_main,
-                          XmNtopAttachment, XmATTACH_WIDGET,
-                          XmNtopWidget, sep1,
-                          XmNrightAttachment, XmATTACH_POSITION,
-                          XmNrightPosition, 50,
-                          XmNorientation, XmHORIZONTAL,
-                          XmNpacking, XmPACK_COLUMN,
-                          XmNtraversalOn, False,
-                          NULL );
+    util_render_ctl = XtVaCreateManagedWidget( "util_render_ctl", xmRowColumnWidgetClass, util_panel_main, XmNtopAttachment, XmATTACH_WIDGET, XmNtopWidget, sep1, XmNrightAttachment, XmATTACH_POSITION, XmNrightPosition, 50, XmNorientation, XmHORIZONTAL, XmNpacking, XmPACK_COLUMN, XmNtraversalOn, False, NULL );
 
     XtOverrideTranslations( util_render_ctl, key_trans );
 
     util_render_btns = NEW_N( Widget, UTIL_PANEL_BTN_QTY, "Util render btns" );
 
-    rend_child = XtVaCreateManagedWidget(
-                     "render_select", xmRowColumnWidgetClass, util_render_ctl,
-                     XmNisAligned, True,
-                     XmNentryAlignment, XmALIGNMENT_CENTER,
-                     XmNorientation, XmVERTICAL,
-                     XmNpacking, XmPACK_COLUMN,
-                     NULL );
+    rend_child = XtVaCreateManagedWidget( "render_select", xmRowColumnWidgetClass, util_render_ctl, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNorientation, XmVERTICAL, XmNpacking, XmPACK_COLUMN, NULL );
 
     XtOverrideTranslations( rend_child, key_trans );
 
@@ -5281,96 +2780,59 @@ create_utility_panel( Widget main_widg )
      * Mesh rendering style selection toggle buttons.
      */
 
-    widg = XtVaCreateManagedWidget(
-               "Mesh View", xmLabelGadgetClass, rend_child,
-               NULL );
+    widg = XtVaCreateManagedWidget( "Mesh View", xmLabelGadgetClass, rend_child, NULL );
     XtVaGetValues( widg, XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
 
-    util_render_btns[VIEW_SOLID] = XtVaCreateManagedWidget(
-                                       "Solid", xmToggleButtonWidgetClass, rend_child,
-                                       XmNindicatorOn,  False,
-                                       XmNset,  ( analy->mesh_view_mode == RENDER_FILLED ),
-                                       XmNshadowThickness, 3,
-                                       XmNfillOnSelect, True,
-                                       NULL );
+    util_render_btns[VIEW_SOLID] = XtVaCreateManagedWidget( "Solid", xmToggleButtonWidgetClass, rend_child, XmNindicatorOn,  False, XmNset,  ( analy->mesh_view_mode == RENDER_FILLED ), XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtVaGetValues( util_render_btns[VIEW_SOLID], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
     static int view_solid = VIEW_SOLID;
-    XtAddCallback( util_render_btns[VIEW_SOLID], XmNvalueChangedCallback,
-                   util_render_CB, &view_solid );
+    XtAddCallback( util_render_btns[VIEW_SOLID], XmNvalueChangedCallback, util_render_CB, &view_solid );
 
     XtOverrideTranslations( util_render_btns[VIEW_SOLID], key_trans );
 
-    util_render_btns[VIEW_SOLID_MESH] = XtVaCreateManagedWidget(
-                                            "Solid Mesh", xmToggleButtonWidgetClass, rend_child,
-                                            XmNindicatorOn, False,
-                                            XmNset, ( analy->mesh_view_mode == RENDER_HIDDEN ),
-                                            XmNshadowThickness, 3,
-                                            XmNfillOnSelect, True,
-                                            NULL );
+    util_render_btns[VIEW_SOLID_MESH] = XtVaCreateManagedWidget( "Solid Mesh", xmToggleButtonWidgetClass, rend_child, XmNindicatorOn, False, XmNset, ( analy->mesh_view_mode == RENDER_HIDDEN ), XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
     static int view_solid_mesh = VIEW_SOLID_MESH;
-    XtAddCallback( util_render_btns[VIEW_SOLID_MESH], XmNvalueChangedCallback,
-                   util_render_CB, &view_solid_mesh );
+    XtAddCallback( util_render_btns[VIEW_SOLID_MESH], XmNvalueChangedCallback, util_render_CB, &view_solid_mesh );
 
     XtOverrideTranslations( util_render_btns[VIEW_SOLID_MESH], key_trans );
 
-    util_render_btns[VIEW_EDGES] = XtVaCreateManagedWidget(
-                                       "Edges Only", xmToggleButtonWidgetClass, rend_child,
-                                       XmNindicatorOn, False,
-                                       XmNset, ( analy->show_edges
-                                               && env.curr_analy->mesh_view_mode == RENDER_NONE ),
-                                       XmNshadowThickness, 3,
-                                       XmNfillOnSelect, True,
-                                       NULL );
+    util_render_btns[VIEW_EDGES] = XtVaCreateManagedWidget( "Edges Only", xmToggleButtonWidgetClass, rend_child, XmNindicatorOn, False, XmNset, ( analy->show_edges
+                                               && env.curr_analy->mesh_view_mode == RENDER_NONE ), XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtVaGetValues( util_render_btns[VIEW_EDGES], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
     static int view_edges = VIEW_EDGES;
-    XtAddCallback( util_render_btns[VIEW_EDGES], XmNvalueChangedCallback,
-                   util_render_CB, &view_edges );
+    XtAddCallback( util_render_btns[VIEW_EDGES], XmNvalueChangedCallback, util_render_CB, &view_edges );
 
     XtOverrideTranslations( util_render_btns[VIEW_EDGES], key_trans );
 
 
     /* IRC: May 04, 2007 - Added buttons on utility panel for Wireframe render modes */
 
-    util_render_btns[VIEW_WIREFRAME] = XtVaCreateManagedWidget(
-                                           "Wireframe", xmToggleButtonWidgetClass, rend_child,
-                                           XmNindicatorOn,  False,
-                                           XmNset,  ( analy->mesh_view_mode == RENDER_WIREFRAME ),
-                                           XmNshadowThickness, 3,
-                                           XmNfillOnSelect, True,
-                                           NULL );
+    util_render_btns[VIEW_WIREFRAME] = XtVaCreateManagedWidget( "Wireframe", xmToggleButtonWidgetClass, rend_child, XmNindicatorOn,  False, XmNset,  ( analy->mesh_view_mode == RENDER_WIREFRAME ), XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtVaGetValues( util_render_btns[VIEW_WIREFRAME], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
     static int view_wireframe = VIEW_WIREFRAME;
-    XtAddCallback( util_render_btns[VIEW_WIREFRAME], XmNvalueChangedCallback,
-                   util_render_CB, &view_wireframe );
+    XtAddCallback( util_render_btns[VIEW_WIREFRAME], XmNvalueChangedCallback, util_render_CB, &view_wireframe );
 
     XtOverrideTranslations( util_render_btns[VIEW_WIREFRAME], key_trans );
 
     /* IRC: Jan 09, 2008 - Added buttons on utility panel for Greyscale render modes */
 
-    util_render_btns[VIEW_GS] = XtVaCreateManagedWidget(
-                                    "Greyscale", xmToggleButtonWidgetClass, rend_child,
-                                    XmNindicatorOn,  False,
-                                    XmNset,  ( analy->material_greyscale ),
-                                    XmNshadowThickness, 3,
-                                    XmNfillOnSelect, True,
-                                    NULL );
+    util_render_btns[VIEW_GS] = XtVaCreateManagedWidget( "Greyscale", xmToggleButtonWidgetClass, rend_child, XmNindicatorOn,  False, XmNset,  ( analy->material_greyscale ), XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtVaGetValues( util_render_btns[VIEW_GS], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
     static int view_gs = VIEW_GS;
-    XtAddCallback( util_render_btns[VIEW_GS], XmNvalueChangedCallback,
-                   util_render_CB, &view_gs );
+    XtAddCallback( util_render_btns[VIEW_GS], XmNvalueChangedCallback, util_render_CB, &view_gs );
 
     XtOverrideTranslations( util_render_btns[VIEW_GS], key_trans );
 
@@ -5378,53 +2840,29 @@ create_utility_panel( Widget main_widg )
      * Select/Hilite mode select radio buttons.
      */
 
-    rend_child = XtVaCreateManagedWidget(
-                     "render_pick", xmRowColumnWidgetClass, util_render_ctl,
-                     XmNisAligned, True,
-                     XmNentryAlignment, XmALIGNMENT_CENTER,
-                     XmNradioBehavior, True,
-                     XmNradioAlwaysOne, True,
-                     XmNorientation, XmVERTICAL,
-                     XmNpacking, XmPACK_COLUMN,
-                     NULL );
+    rend_child = XtVaCreateManagedWidget( "render_pick", xmRowColumnWidgetClass, util_render_ctl, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNradioBehavior, True, XmNradioAlwaysOne, True, XmNorientation, XmVERTICAL, XmNpacking, XmPACK_COLUMN, NULL );
 
     XtOverrideTranslations( rend_child, key_trans );
 
-    widg = XtVaCreateManagedWidget(
-               "Pick Mode", xmLabelGadgetClass, rend_child,
-               NULL );
+    widg = XtVaCreateManagedWidget( "Pick Mode", xmLabelGadgetClass, rend_child, NULL );
     XtVaGetValues( widg, XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
-    util_render_btns[PICK_MODE_SELECT] = XtVaCreateManagedWidget(
-            "Select", xmToggleButtonWidgetClass, rend_child,
-            XmNindicatorOn, False,
-            XmNset, ( analy->mouse_mode == MOUSE_SELECT ),
-            XmNshadowThickness, 3,
-            XmNfillOnSelect, True,
-            NULL );
+    util_render_btns[PICK_MODE_SELECT] = XtVaCreateManagedWidget( "Select", xmToggleButtonWidgetClass, rend_child, XmNindicatorOn, False, XmNset, ( analy->mouse_mode == MOUSE_SELECT ), XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtVaGetValues( util_render_btns[PICK_MODE_SELECT], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
     static int pick_mode_select = PICK_MODE_SELECT;
-    XtAddCallback( util_render_btns[PICK_MODE_SELECT], XmNvalueChangedCallback,
-                   util_render_CB, &pick_mode_select );
+    XtAddCallback( util_render_btns[PICK_MODE_SELECT], XmNvalueChangedCallback, util_render_CB, &pick_mode_select );
 
     XtOverrideTranslations( util_render_btns[PICK_MODE_SELECT], key_trans );
 
-    util_render_btns[PICK_MODE_HILITE] = XtVaCreateManagedWidget(
-            "Hilite", xmToggleButtonWidgetClass, rend_child,
-            XmNindicatorOn, False,
-            XmNset, ( analy->mouse_mode == MOUSE_HILITE ),
-            XmNshadowThickness, 3,
-            XmNfillOnSelect, True,
-            NULL );
+    util_render_btns[PICK_MODE_HILITE] = XtVaCreateManagedWidget( "Hilite", xmToggleButtonWidgetClass, rend_child, XmNindicatorOn, False, XmNset, ( analy->mouse_mode == MOUSE_HILITE ), XmNshadowThickness, 3, XmNfillOnSelect, True, NULL );
     XtVaGetValues( util_render_btns[PICK_MODE_HILITE], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
     static int pick_mode_hilite = PICK_MODE_HILITE;
-    XtAddCallback( util_render_btns[PICK_MODE_HILITE], XmNvalueChangedCallback,
-                   util_render_CB, &pick_mode_hilite );
+    XtAddCallback( util_render_btns[PICK_MODE_HILITE], XmNvalueChangedCallback, util_render_CB, &pick_mode_hilite );
 
     XtOverrideTranslations( util_render_btns[PICK_MODE_HILITE], key_trans );
 
@@ -5432,41 +2870,30 @@ create_utility_panel( Widget main_widg )
      * Mouse-pick mesh object class selection buttons.
      */
 
-    rend_child = XtVaCreateManagedWidget(
-                     "bt2_pick", xmRowColumnWidgetClass, util_render_ctl,
-                     XmNisAligned, True,
-                     XmNentryAlignment, XmALIGNMENT_CENTER,
-                     XmNorientation, XmVERTICAL,
-                     XmNpacking, XmPACK_COLUMN,
-                     NULL );
+    rend_child = XtVaCreateManagedWidget( "bt2_pick", xmRowColumnWidgetClass, util_render_ctl, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNorientation, XmVERTICAL, XmNpacking, XmPACK_COLUMN, NULL );
 
     XtOverrideTranslations( rend_child, key_trans );
 
-    widg = XtVaCreateManagedWidget(
-               "Btn Pick Class", xmLabelGadgetClass, rend_child,
-               NULL );
+    widg = XtVaCreateManagedWidget( "Btn Pick Class", xmLabelGadgetClass, rend_child, NULL );
     XtVaGetValues( widg, XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
     static int btn1_pick = BTN1_PICK;
-    util_render_btns[BTN1_PICK] = create_pick_menu( rend_child, &btn1_pick,
-                                  NULL );
+    util_render_btns[BTN1_PICK] = create_pick_menu( rend_child, &btn1_pick, NULL );
     XtVaGetValues( util_render_btns[BTN1_PICK], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
 
     XtOverrideTranslations( util_render_btns[BTN1_PICK], key_trans );
     static int btn2_pick = BTN2_PICK;
-    util_render_btns[BTN2_PICK] = create_pick_menu( rend_child, &btn2_pick,
-                                  NULL );
+    util_render_btns[BTN2_PICK] = create_pick_menu( rend_child, &btn2_pick, NULL );
     XtVaGetValues( util_render_btns[BTN2_PICK], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
 
     XtOverrideTranslations( util_render_btns[BTN2_PICK], key_trans );
     static int btn3_pick = BTN3_PICK;
-    util_render_btns[BTN3_PICK] = create_pick_menu( rend_child, &btn3_pick,
-                                  NULL );
+    util_render_btns[BTN3_PICK] = create_pick_menu( rend_child, &btn3_pick, NULL );
     XtVaGetValues( util_render_btns[BTN3_PICK], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
@@ -5477,52 +2904,35 @@ create_utility_panel( Widget main_widg )
      * Mesh clean-up buttons.
      */
 
-    rend_child = XtVaCreateManagedWidget(
-                     "render_clean", xmRowColumnWidgetClass, util_render_ctl,
-                     XmNisAligned, True,
-                     XmNentryAlignment, XmALIGNMENT_CENTER,
-                     XmNorientation, XmVERTICAL,
-                     XmNpacking, XmPACK_COLUMN,
-                     NULL );
+    rend_child = XtVaCreateManagedWidget( "render_clean", xmRowColumnWidgetClass, util_render_ctl, XmNisAligned, True, XmNentryAlignment, XmALIGNMENT_CENTER, XmNorientation, XmVERTICAL, XmNpacking, XmPACK_COLUMN, NULL );
 
     XtOverrideTranslations( rend_child, key_trans );
 
-    widg = XtVaCreateManagedWidget(
-               "Clean-up", xmLabelGadgetClass, rend_child,
-               NULL );
+    widg = XtVaCreateManagedWidget( "Clean-up", xmLabelGadgetClass, rend_child, NULL );
     XtVaGetValues( widg, XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
 
-    util_render_btns[CLEAN_SELECT] = XtVaCreateManagedWidget(
-                                         "Clear select", xmPushButtonGadgetClass, rend_child,
-                                         NULL );
+    util_render_btns[CLEAN_SELECT] = XtVaCreateManagedWidget( "Clear select", xmPushButtonGadgetClass, rend_child, NULL );
     XtVaGetValues( util_render_btns[CLEAN_SELECT], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
     static int btn_clearselect = BTN_CLEARSELECT;
-    XtAddCallback( util_render_btns[CLEAN_SELECT], XmNactivateCallback,
-                   menu_CB, &btn_clearselect );
+    XtAddCallback( util_render_btns[CLEAN_SELECT], XmNactivateCallback, menu_CB, &btn_clearselect );
 
-    util_render_btns[CLEAN_HILITE] = XtVaCreateManagedWidget(
-                                         "Clear hilite", xmPushButtonGadgetClass, rend_child,
-                                         NULL );
+    util_render_btns[CLEAN_HILITE] = XtVaCreateManagedWidget( "Clear hilite", xmPushButtonGadgetClass, rend_child, NULL );
     XtVaGetValues( util_render_btns[CLEAN_HILITE], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
     static int btn_clearhilite = BTN_CLEARHILITE ;
-    XtAddCallback( util_render_btns[CLEAN_HILITE], XmNactivateCallback,
-                   menu_CB, &btn_clearhilite );
+    XtAddCallback( util_render_btns[CLEAN_HILITE], XmNactivateCallback, menu_CB, &btn_clearhilite );
 
-    util_render_btns[CLEAN_NEARFAR] = XtVaCreateManagedWidget(
-                                          "Set near/far", xmPushButtonGadgetClass, rend_child,
-                                          NULL );
+    util_render_btns[CLEAN_NEARFAR] = XtVaCreateManagedWidget( "Set near/far", xmPushButtonGadgetClass, rend_child, NULL );
     XtVaGetValues( util_render_btns[CLEAN_NEARFAR], XmNwidth, &width, NULL );
     if ( width > child_width )
         child_width = width;
     static int btn_adjustnf = BTN_ADJUSTNF;
-    XtAddCallback( util_render_btns[CLEAN_NEARFAR], XmNactivateCallback,
-                   menu_CB, &btn_adjustnf );
+    XtAddCallback( util_render_btns[CLEAN_NEARFAR], XmNactivateCallback, menu_CB, &btn_adjustnf );
 
     /*
      * Finalize the column width for all the buttons.
@@ -5530,8 +2940,7 @@ create_utility_panel( Widget main_widg )
 
     rc_width = 10 * margin_width + 3 * spacing + 4 * child_width;
 
-    XtVaSetValues( util_render_ctl,
-                   XmNrightOffset, -((int) (rc_width / 2)), NULL );
+    XtVaSetValues( util_render_ctl, XmNrightOffset, -((int) (rc_width / 2)), NULL );
 
     return util_panel_main;
 }
@@ -5544,42 +2953,29 @@ create_utility_panel( Widget main_widg )
  * classes for pick actions.
  */
 static Widget
-create_pick_menu( Widget parent, int *btn_type,
-                  char *cascade_name )
+create_pick_menu( Widget parent, int * btn_type, char * cascade_name )
 {
-    int n;
     Arg args[5];
-    Widget pick_menu;
-    Widget menu, initial_class_btn;
 
-    pick_menu = create_pick_submenu( parent, btn_type, cascade_name,
-                                     &initial_class_btn );
-
-    n = 0;
-    XtSetArg( args[n], XmNtearOffModel, XmTEAR_OFF_ENABLED );
-    n++;
-    XtSetArg( args[n], XmNsubMenuId, pick_menu );
-    n++;
-
+    Widget initial_class_btn;
+    Widget pick_menu = create_pick_submenu( parent, btn_type, cascade_name, &initial_class_btn );
+    XtSetArg( args[0], XmNtearOffModel, XmTEAR_OFF_ENABLED );
+    XtSetArg( args[1], XmNsubMenuId, pick_menu );
+    Widget menu;
     if ( cascade_name == NULL )
     {
         /* Create an option menu. */
-        XtSetArg( args[n], XmNmenuHistory, initial_class_btn );
-        n++;
-        XtSetArg( args[n], XmNmarginHeight, 0 );
-        n++;
-        XtSetArg( args[n], XmNmarginWidth, 0 );
-        n++;
-        menu = XmCreateOptionMenu( parent, "pick_option", args, n );
+        XtSetArg( args[2], XmNmenuHistory, initial_class_btn );
+        XtSetArg( args[3], XmNmarginHeight, 0 );
+        XtSetArg( args[4], XmNmarginWidth, 0 );
+        menu = XmCreateOptionMenu( parent, "pick_option", args, 5 );
     }
     else
     {
         /* Create a cascade menu. */
-        menu = XmCreateCascadeButton( parent, cascade_name, args, n );
+        menu = XmCreateCascadeButton( parent, cascade_name, args, 2 );
     }
-
     XtManageChild( menu );
-
     return menu;
 }
 
@@ -5591,8 +2987,7 @@ create_pick_menu( Widget parent, int *btn_type,
  * select mesh object classes for pick actions.
  */
 static Widget
-create_pick_submenu( Widget parent, int *btn_type,
-                     char *cascade_name, Widget *p_initial_button )
+create_pick_submenu( Widget parent, int *btn_type, char *cascade_name, Widget *p_initial_button )
 {
     int n, i, j;
     int *nbtn_type = (int*)btn_type;
@@ -5636,9 +3031,7 @@ create_pick_submenu( Widget parent, int *btn_type,
      */
 
     /*
-     * If a preferred class has already been defined for the button,
-     * that class will be sought as the initial option for the button,
-     * otherwise the first class of the preferred superclass will be the
+     * If a preferred class has already been defined for the button, * that class will be sought as the initial option for the button, * otherwise the first class of the preferred superclass will be the
      * initial menu item selected for the button.
      */
 
@@ -5666,17 +3059,13 @@ create_pick_submenu( Widget parent, int *btn_type,
                         != 0 )
                     continue;
 
-                button = XmCreatePushButtonGadget( pick_submenu,
-                                                   p_mo_classes[j]->long_name,
-                                                   args, n );
+                button = XmCreatePushButtonGadget( pick_submenu, p_mo_classes[j]->long_name, args, n );
                 XtManageChild( button );
 
                 if ( cascade_name == NULL )
-                    XtAddCallback( button, XmNactivateCallback, util_render_CB,
-                                   nbtn_type );
+                    XtAddCallback( button, XmNactivateCallback, util_render_CB, nbtn_type );
                 else
-                    XtAddCallback( button, XmNactivateCallback, menu_setpick_CB,
-                                   nbtn_type );
+                    XtAddCallback( button, XmNactivateCallback, menu_setpick_CB, nbtn_type );
 
                 /*
                  * For option menu, save button for user-specified class
@@ -5713,8 +3102,7 @@ create_pick_submenu( Widget parent, int *btn_type,
  * Create a cascade menu to select pre-defined colormap.
  */
 static Widget
-create_colormap_menu( Widget parent, Util_panel_button_type dummp,
-                      char *cascade_name )
+create_colormap_menu( Widget parent, Util_panel_button_type dummp, char *cascade_name )
 {
     int n;
     Arg args[5];
@@ -5723,8 +3111,7 @@ create_colormap_menu( Widget parent, Util_panel_button_type dummp,
     colormap_type btn_type=CM_JET;
 
     /* Create a cascade menu. */
-    colormap_menu = create_colormap_submenu( parent, btn_type,
-                    &p_initial_btn );
+    colormap_menu = create_colormap_submenu( parent, btn_type, &p_initial_btn );
     n = 0;
     XtSetArg( args[n], XmNsubMenuId, colormap_menu );
     n++;
@@ -5745,8 +3132,7 @@ create_colormap_menu( Widget parent, Util_panel_button_type dummp,
  * colormap.
  */
 static Widget
-create_colormap_submenu( Widget parent, colormap_type btn_type,
-                         Widget *p_initial_button )
+create_colormap_submenu( Widget parent, colormap_type btn_type, Widget *p_initial_button )
 {
     int n, i, j;
     Arg args[5];
@@ -5761,87 +3147,60 @@ create_colormap_submenu( Widget parent, colormap_type btn_type,
 
     btn_type = CM_INVERSE;
     static int cm_inverse = CM_INVERSE;
-    button = XmCreatePushButtonGadget( pick_submenu,
-                                       "Inverse Colormap",
-                                       args, n );
+    button = XmCreatePushButtonGadget( pick_submenu, "Inverse Colormap", args, n );
     XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   &cm_inverse );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB, &cm_inverse );
 
     button = XmCreateSeparatorGadget( pick_submenu, "separator", args, n );
     XtManageChild( button );
 
     btn_type = CM_COOL;
     static int cm_cool = CM_COOL;
-    button = XmCreatePushButtonGadget( pick_submenu,
-                                       "Cool",
-                                       args, n );
+    button = XmCreatePushButtonGadget( pick_submenu, "Cool", args, n );
     XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   &cm_cool );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB, &cm_cool );
 
     btn_type = CM_DEFAULT;
     static int cm_default = CM_DEFAULT;
-    button = XmCreatePushButtonGadget( pick_submenu,
-                                       "Hotmap(default)",
-                                       args, n );
+    button = XmCreatePushButtonGadget( pick_submenu, "Hotmap(default)", args, n );
     XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   &cm_default );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB, &cm_default );
 
     btn_type = CM_GRAYSCALE;
     static int cm_grayscale = CM_GRAYSCALE;
-    button = XmCreatePushButtonGadget( pick_submenu,
-                                       "GrayScale",
-                                       args, n );
+    button = XmCreatePushButtonGadget( pick_submenu, "GrayScale", args, n );
     XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   &cm_grayscale );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB, &cm_grayscale );
 
     btn_type = CM_INVERSE_GRAYSCALE;
     static int cm_inverse_grayscale = CM_INVERSE_GRAYSCALE;
-    button = XmCreatePushButtonGadget( pick_submenu,
-                                       "Inverse GrayScale",
-                                       args, n );
+    button = XmCreatePushButtonGadget( pick_submenu, "Inverse GrayScale", args, n );
     XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   &cm_inverse_grayscale );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB, &cm_inverse_grayscale );
 
     btn_type = CM_HSV;
     static int cm_hsv = CM_HSV;
-    button = XmCreatePushButtonGadget( pick_submenu,
-                                       "HSV",
-                                       args, n );
+    button = XmCreatePushButtonGadget( pick_submenu, "HSV", args, n );
     XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   &cm_hsv );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB, &cm_hsv );
 
     btn_type = CM_JET;
     static int cm_jet = CM_JET;
-    button = XmCreatePushButtonGadget( pick_submenu,
-                                       "Jet",
-                                       args, n );
+    button = XmCreatePushButtonGadget( pick_submenu, "Jet", args, n );
     XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   &cm_jet );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB, &cm_jet );
 
     btn_type = CM_PRISM;
     static int cm_prism = CM_PRISM;
-    button = XmCreatePushButtonGadget( pick_submenu,
-                                       "Prism",
-                                       args, n );
+    button = XmCreatePushButtonGadget( pick_submenu, "Prism", args, n );
     XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   &cm_prism );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB, &cm_prism );
 
     btn_type = CM_WINTER;
     static int cm_winter = CM_WINTER;
-    button = XmCreatePushButtonGadget( pick_submenu,
-                                       "Winter",
-                                       args, n );
+    button = XmCreatePushButtonGadget( pick_submenu, "Winter", args, n );
     XtManageChild( button );
-    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB,
-                   &cm_winter );
+    XtAddCallback( button, XmNactivateCallback, menu_setcolormap_CB, &cm_winter );
 
     return pick_submenu;
 }
@@ -5894,13 +3253,11 @@ get_pick_superclass( Util_panel_button_type btn_type, int *p_superclass )
     */
     static int b2_pref_order[] =
     {
-        G_QUAD, G_BEAM, G_UNIT, G_TET, G_TRI, G_TRUSS, G_WEDGE, G_PYRAMID,
-        G_HEX, G_NODE, G_SURFACE, G_PARTICLE
+        G_QUAD, G_BEAM, G_UNIT, G_TET, G_TRI, G_TRUSS, G_WEDGE, G_PYRAMID, G_HEX, G_NODE, G_SURFACE, G_PARTICLE
     };
     static int b3_pref_order[] =
     {
-        G_HEX, G_PYRAMID, G_WEDGE, G_TRUSS, G_TRI, G_TET, G_BEAM, G_QUAD,
-        G_NODE, G_UNIT, G_SURFACE, G_PARTICLE
+        G_HEX, G_PYRAMID, G_WEDGE, G_TRUSS, G_TRI, G_TET, G_BEAM, G_QUAD, G_NODE, G_UNIT, G_SURFACE, G_PARTICLE
     };
 
     p_mesh = MESH_P( env.curr_analy );
@@ -5957,13 +3314,11 @@ regenerate_pick_menus( void )
 
     /* Get the Picking menu, which is the parent of the setpick menus. */
     menu = NULL;
-    find_labelled_child( menu_widg, "Picking", &child, &position );
-    XtVaGetValues( child, XmNsubMenuId, &menu, NULL );
+    int idx = -1;
+    find_labelled_child( menu_widg, "Picking", &child, &idx );
 
     /* Destroy the existing setpick1 menu. */
-    XtVaGetValues( setpick_menu1_widg,
-                   XmNsubMenuId, &submenu,
-                   NULL );
+    XtVaGetValues( setpick_menu1_widg, XmNsubMenuId, &submenu, NULL );
     XtDestroyWidget( submenu );
 
     /* Create new setpick1 menu and assign it. */
@@ -5972,9 +3327,7 @@ regenerate_pick_menus( void )
     XtVaSetValues( setpick_menu1_widg, XmNsubMenuId, submenu, NULL );
 
     /* Destroy the existing setpick2 menu. */
-    XtVaGetValues( setpick_menu2_widg,
-                   XmNsubMenuId, &submenu,
-                   NULL );
+    XtVaGetValues( setpick_menu2_widg, XmNsubMenuId, &submenu, NULL );
     XtDestroyWidget( submenu );
 
     /* Create new setpick2 menu and assign it. */
@@ -5983,9 +3336,7 @@ regenerate_pick_menus( void )
     XtVaSetValues( setpick_menu2_widg, XmNsubMenuId, submenu, NULL );
 
     /* Destroy the existing setpick3 menu. */
-    XtVaGetValues( setpick_menu3_widg,
-                   XmNsubMenuId, &submenu,
-                   NULL );
+    XtVaGetValues( setpick_menu3_widg, XmNsubMenuId, &submenu, NULL );
     XtDestroyWidget( submenu );
 
     /* Create new setpick3 menu and assign it. */
@@ -5994,131 +3345,6 @@ regenerate_pick_menus( void )
     XtVaSetValues( setpick_menu3_widg, XmNsubMenuId, submenu, NULL );
 }
 
-
-/*****************************************************************
- * TAG( init_gui )
- *
- * This routine is called upon start-up of the gui.  It initializes
- * the GL window.
- */
-static void
-init_gui( void )
-{
-    FILE *test_file;
-    char *init_file;
-    char *home, home_path[512], home_hist[512];
-
-    char init_cmd[100];
-    if(MESH(env.curr_analy).material_qty == 0)
-    {
-        env.curr_analy->draw_wireframe = TRUE;
-        env.curr_analy->mesh_view_mode = RENDER_WIREFRAME;
-    }
-
-
-    /*
-        GLXwinset( XtDisplay(w), XtWindow(w) );
-    */
-    init_mesh_window( env.curr_analy );
-
-    /* Set error handler so that rgb dump errors don't cause an exit. */
-    i_seterror( do_nothing_stub );
-
-    /*
-     * Read in the start-up history file.  First check in current
-     * directory, then in directory specified in environment path.
-     */
-
-    /* First read an init file from home directory */
-    home = getenv( "HOME" );
-    strcpy(home_hist, "h ");
-    strcpy(home_path, home);
-    strcat(home_path, "/grizinit");
-
-    if ( ( test_file = fopen( home_path, "r" ) ) != NULL )
-    {
-        fclose( test_file );
-        strcat(home_hist, home_path);
-        parse_command( home_hist, env.curr_analy );
-    }
-    else
-    {
-        init_file = getenv( "GRIZINIT" );
-        if ( init_file != NULL )
-        {
-            strcpy( init_cmd, "h " );
-            strcat( init_cmd, init_file );
-            if ( ( test_file = fopen( init_file, "r" ) ) != NULL )
-            {
-                fclose( test_file );
-                parse_command( init_cmd, env.curr_analy );
-            }
-        }
-    }
-
-    /* Now read init file from local directory */
-    if ( ( test_file = fopen( "grizinit", "r" ) ) != NULL )
-    {
-        fclose( test_file );
-        parse_command( "h grizinit", env.curr_analy );
-    }
-
-
-    /* Now read from local directory - problem specific init file = grizinit.<plotfile_name> */
-    strcpy(home_path, "grizinit.");
-    strcat(home_path, env.plotfile_name);
-    strcpy(home_hist, "h ");
-    strcat(home_hist, home_path);
-
-    if ( ( test_file = fopen( home_path, "r" ) ) != NULL )
-    {
-        fclose( test_file );
-        parse_command( home_hist, env.curr_analy );
-    }
-
-}
-
-
-/* ARGSUSED 3 */
-/*****************************************************************
- * TAG( update_gui )
- *
- * Update gui callbacks and resources for render mode changes.
- */
-void
-update_gui( Analysis *analy, Render_mode_type new_rmode,
-            Render_mode_type old_rmode )
-{
-    if ( new_rmode != RENDER_PLOT )
-    {
-        if ( old_rmode == RENDER_PLOT )
-        {
-#ifdef WANT_PLOT_CALLBACK
-            XtRemoveCallback( ogl_widg[MESH_VIEW], GLwNinputCallback,
-                              plot_input_CB, 0 );
-#endif
-            XtAddCallback( ogl_widg[MESH_VIEW], GLwNinputCallback, input_CB,
-                           NULL );
-
-            manage_plot_cursor_display( analy->show_plot_coords, new_rmode,
-                                        old_rmode );
-        }
-    }
-    else
-    {
-        if ( old_rmode == RENDER_MESH_VIEW )
-        {
-            XtRemoveCallback( ogl_widg[MESH_VIEW], GLwNinputCallback,
-                              input_CB, 0 );
-#ifdef WANT_PLOT_CALLBACK
-            XtAddCallback( ogl_widg[MESH_VIEW], GLwNinputCallback,
-                           plot_input_CB, NULL );
-#endif
-            manage_plot_cursor_display( analy->show_plot_coords, new_rmode,
-                                        old_rmode );
-        }
-    }
-}
 
 
 /* ARGSUSED 0 */
@@ -6130,15 +3356,12 @@ update_gui( Analysis *analy, Render_mode_type new_rmode,
 static void
 remove_plot_coords_display( void )
 {
-    XtRemoveEventHandler( ogl_widg[MESH_VIEW], PointerMotionMask, False,
-                          plot_cursor_EH, NULL );
+    XtRemoveEventHandler( ogl_widg[MESH_VIEW], PointerMotionMask, False, plot_cursor_EH, NULL );
 
     XtUnmanageChild( plot_coord_widg );
 
     /* Attach the bottom of the rendering window to the Form */
-    XtVaSetValues( ogl_widg[MESH_VIEW],
-                   XmNbottomOffset, 0,
-                   NULL );
+    XtVaSetValues( ogl_widg[MESH_VIEW], XmNbottomOffset, 0, NULL );
 }
 
 
@@ -6154,22 +3377,17 @@ install_plot_coords_display( void )
     Dimension pc_height;
 
     pc_height = 0;
-    XtVaGetValues( plot_coord_widg,
-                   XmNheight, &pc_height,
-                   NULL );
+    XtVaGetValues( plot_coord_widg, XmNheight, &pc_height, NULL );
 
     /*
      * Attach the bottom of the rendering window to the top of the
      * plot coordinates display.
      */
-    XtVaSetValues( ogl_widg[MESH_VIEW],
-                   XmNbottomOffset, pc_height,
-                   NULL );
+    XtVaSetValues( ogl_widg[MESH_VIEW], XmNbottomOffset, pc_height, NULL );
 
     XtManageChild( plot_coord_widg );
 
-    XtAddEventHandler( ogl_widg[MESH_VIEW], PointerMotionMask,
-                       False, plot_cursor_EH, NULL );
+    XtAddEventHandler( ogl_widg[MESH_VIEW], PointerMotionMask, False, plot_cursor_EH, NULL );
 }
 
 
@@ -6184,8 +3402,7 @@ install_plot_coords_display( void )
  * the "suppress" flag and expose_resize_CB()).
  */
 void
-manage_plot_cursor_display( Bool_type turn_on, Render_mode_type new_rmode,
-                            Render_mode_type old_rmode )
+manage_plot_cursor_display( Bool_type turn_on, Render_mode_type new_rmode, Render_mode_type old_rmode )
 {
     Boolean managed;
 
@@ -6236,8 +3453,7 @@ manage_plot_cursor_display( Bool_type turn_on, Render_mode_type new_rmode,
  * Save plotting window bounds.
  */
 void
-set_plot_win_params( float ll_x, float ll_y, float ur_x, float ur_y,
-                     float *ax_mins, float *ax_maxs )
+set_plot_win_params( float ll_x, float ll_y, float ur_x, float ur_y, float *ax_mins, float *ax_maxs )
 {
     win_xmin = ll_x;
     win_ymin = ll_y;
@@ -6311,9 +3527,7 @@ update_cursor_vals( void )
         find_ancestral_root_child( rendershell_widg, &render_top_win );
 
     /* Get cursor location. */
-    on_screen = XQueryPointer( dpy, render_top_win, &root_win, &win,
-                               &root_x, &root_y, &top_win_x, &top_win_y,
-                               &masks );
+    on_screen = XQueryPointer( dpy, render_top_win, &root_win, &win, &root_x, &root_y, &top_win_x, &top_win_y, &masks );
 
     if ( win == None || !on_screen )
         /* Send values which will not be in the plot area. */
@@ -6321,14 +3535,11 @@ update_cursor_vals( void )
     else
     {
         win = XtWindow( ogl_widg[MESH_VIEW] );
-        XTranslateCoordinates( dpy, render_top_win, win, top_win_x, top_win_y,
-                               &win_x, &win_y, &render_win );
+        XTranslateCoordinates( dpy, render_top_win, win, top_win_x, top_win_y, &win_x, &win_y, &render_win );
         set_plot_cursor_display( win_x, win_y );
     }
 }
 
-
-/* ARGSUSED 1 */
 /*****************************************************************
  * TAG( suppress_display_updates )
  *
@@ -6340,61 +3551,6 @@ suppress_display_updates( Bool_type suppress )
     suppress_updates = suppress;
 }
 
-
-#ifdef USE_OLD_CALLBACKS
-
-/* ARGSUSED 0 */
-/*****************************************************************
- * TAG( expose_CB )
- *
- * Called when expose events occur.  Redraws the mesh window.
- */
-static void
-expose_CB( Widget w, XtPointer client_data, XtPointer call_data )
-{
-    OpenGL_win save_win;
-
-    save_win = cur_opengl_win;
-    switch_opengl_win( MESH_VIEW );
-
-    if ( !suppress_updates )
-        env.curr_analy->update_display( env.curr_analy );
-    if ( save_win != MESH_VIEW )
-        switch_opengl_win( save_win );
-}
-
-
-/* ARGSUSED 1 */
-/*****************************************************************
- * TAG( resize_CB )
- *
- * Called when resize events occur.  Resets the GL window size.
- */
-static void
-resize_CB( Widget w, XtPointer client_data, XtPointer call_data )
-{
-    Dimension width, height;
-
-
-    /* Don't use OpenGL until window is realized! */
-    if ( XtIsRealized(w) )
-    {
-        XtVaGetValues( w, XmNwidth, &width, XmNheight, &height, NULL );
-
-        /* Set viewport to fill the OpenGL window. */
-        glViewport( 0, 0, (GLint)width, (GLint)height );
-        set_mesh_view();
-        resize_in_progress = TRUE;
-        if ( !suppress_updates )
-            env.curr_analy->update_display( env.curr_analy );
-    }
-}
-
-
-#else
-
-
-/* ARGSUSED 5 */
 /*****************************************************************
  * TAG( get_last_renderable_event )
  *
@@ -6406,8 +3562,7 @@ resize_CB( Widget w, XtPointer client_data, XtPointer call_data )
  * Parameter p_xe must point to the valid address of an XEvent structure.
  */
 static Bool_type
-get_last_renderable_event( Window win, XEvent *p_xe, Bool_type *p_resize,
-                           Dimension *p_width, Dimension *p_height )
+get_last_renderable_event( Window win, XEvent *p_xe, Bool_type *p_resize, Dimension *p_width, Dimension *p_height )
 {
     long evt_mask;
     Bool_type found_either, found_resize;
@@ -6438,7 +3593,7 @@ get_last_renderable_event( Window win, XEvent *p_xe, Bool_type *p_resize,
     return found_either;
 }
 
-
+//#region[ rgba(0,255,255,0.2) ]
 /* ARGSUSED 3 */
 /*****************************************************************
  * TAG( expose_resize_CB )
@@ -6463,8 +3618,7 @@ expose_resize_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     widg_win = XtWindow( w );
 
-    if ( get_last_renderable_event( widg_win, &last_event, &resize, &width,
-                                    &height ) )
+    if ( get_last_renderable_event( widg_win, &last_event, &resize, &width, &height ) )
     {
         if ( resize && XtIsRealized( w ) )
         {
@@ -6478,14 +3632,12 @@ expose_resize_CB( Widget w, XtPointer client_data, XtPointer call_data )
         }
         else
         {
-            GLwDrawingAreaCallbackStruct *p_cbs
-            = (GLwDrawingAreaCallbackStruct *) call_data;
+            GLwDrawingAreaCallbackStruct *p_cbs = (GLwDrawingAreaCallbackStruct *) call_data;
 
             if ( p_cbs->reason == GLwCR_RESIZE && XtIsRealized( w ) )
             {
                 /*
-                 * There were additional events but not for resize.  However,
-                 * the event prompting this callback was a resize; update...
+                 * There were additional events but not for resize.  However, * the event prompting this callback was a resize; update...
                  */
 
                 glViewport( 0, 0, (GLint) p_cbs->width, (GLint) p_cbs->height );
@@ -6495,8 +3647,7 @@ expose_resize_CB( Widget w, XtPointer client_data, XtPointer call_data )
     }
     else
     {
-        GLwDrawingAreaCallbackStruct *p_cbs
-        = (GLwDrawingAreaCallbackStruct *) call_data;
+        GLwDrawingAreaCallbackStruct *p_cbs = (GLwDrawingAreaCallbackStruct *) call_data;
 
         if ( p_cbs->reason == GLwCR_RESIZE && XtIsRealized( w ) )
         {
@@ -6510,7 +3661,7 @@ expose_resize_CB( Widget w, XtPointer client_data, XtPointer call_data )
         {
             glViewport( 0, 0, (GLint) p_cbs->width, (GLint) p_cbs->height );
             set_mesh_view();
-            suppress_updates = FALSE; 
+            suppress_updates = FALSE;
         } else
         {
             suppress_updates = FALSE;
@@ -6526,9 +3677,6 @@ expose_resize_CB( Widget w, XtPointer client_data, XtPointer call_data )
 }
 
 
-#endif
-
-
 /*****************************************************************
  * TAG( res_menu_CB )
  *
@@ -6541,9 +3689,19 @@ res_menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
     Widget hist_list;
     char com_str[200];
     char *com;
+    Result_table_type table;
+    result_CB_data* cb_data;
 
-    /* The result title is passed in the client_data. */
-    com = (char *)client_data;
+    /* The result title and table type is passed in the client_data. */
+    cb_data = (result_CB_data *) client_data;
+    com = cb_data->show_name;
+    table = cb_data->table;
+
+    // Set result source to derived or primal
+    env.curr_analy->prev_result_source = env.curr_analy->result_source;
+    env.curr_analy->result_source = table;
+
+    // Process show_command
     sprintf( com_str, "show \"%s\"", com );
     text = XmStringCreateSimple( com_str );
     parse_command( com_str, env.curr_analy );
@@ -6565,8 +3723,7 @@ res_menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
  * NOTE:
  *      In the parallel griz case, there are some cases functions
  *      being disable because some information may not available
- *      on the client side (the master) such as the switch flag,
- *      env.curr_analy->show_tim etc.           Yuen L. Lee
+ *      on the client side (the master) such as the switch flag, *      env.curr_analy->show_tim etc.           Yuen L. Lee
  *
  *      id      : A request protocol, it services as a image refreshing
  *                request or a command request.  If id > 2 it services
@@ -6602,20 +3759,17 @@ menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
         break;
 
     case BTN_SAVE_SESSION_GLOBAL:
-        write_griz_session_file( env.curr_analy, session, ".griz_session",
-                                 env.griz_id, TRUE );
+        write_griz_session_file( env.curr_analy, session, ".griz_session", env.griz_id, TRUE );
         break;
 
     case BTN_SAVE_SESSION_PLOT:
         update_session( PUT, NULL );
 
-        write_griz_session_file( env.curr_analy, session, ".plot_session",
-                                 env.griz_id, FALSE );
+        write_griz_session_file( env.curr_analy, session, ".plot_session", env.griz_id, FALSE );
         break;
 
     case BTN_LOAD_SESSION_GLOBAL:
-        status = read_griz_session_file( session, ".griz_session", env.griz_id,
-                                         TRUE );
+        status = read_griz_session_file( session, ".griz_session", env.griz_id, TRUE );
 
         if ( status==OK )
             put_griz_session( env.curr_analy, session );
@@ -6628,8 +3782,7 @@ menu_CB( Widget w, XtPointer client_data, XtPointer call_data )
         break;
 
     case BTN_LOAD_SESSION_PLOT:
-        status = read_griz_session_file( session, ".plot_session",
-                                         env.griz_id, FALSE );
+        status = read_griz_session_file( session, ".plot_session", env.griz_id, FALSE );
         break;
 
     case BTN_QUIT:
@@ -7011,9 +4164,7 @@ void select_mat_mgr_button_by_elem_class_ident(MO_class_data *p_class, int label
         int mat_id = p_class->objects.elems->mat[class_label_index];
 
         Htable_entry *tempEnt;
-        htable_search(env.curr_analy->mat_labels,
-                        env.curr_analy->sorted_labels[mat_id],
-                        FIND_ENTRY, &tempEnt);
+        htable_search(env.curr_analy->mat_labels, env.curr_analy->sorted_labels[mat_id], FIND_ENTRY, &tempEnt);
 
         if(tempEnt != NULL){
             mat_number = atoi((char*)tempEnt->data);
@@ -7116,15 +4267,10 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
                 mode = RB_MOVE;
 
                 /* Determine the extents of the render window */
-                XtVaGetValues( w,
-                               XmNx, &ctl_x,
-                               XmNy, &ctl_y,
-                               XmNwidth, &ctl_width,
-                               XmNheight, &ctl_height,
-                               NULL );
+                XtVaGetValues( w, XmNx, &ctl_x, XmNy, &ctl_y, XmNwidth, &ctl_width, XmNheight, &ctl_height, NULL );
                 break;
 
-            // ctrl+button2 (scroll wheel click) 
+            // ctrl+button2 (scroll wheel click)
             // Centers the view on the closest node to click location
             case Button2:
                 mode = RB_STATIC;
@@ -7229,17 +4375,10 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
             lastX  = cb_data->event->xbutton.x;
             lastY  = cb_data->event->xbutton.y;
 
-            XDrawRectangle( XtDisplay ( w ), XtWindow ( w ), gc_rubber,
-                            MIN(startX,lastX), MIN(startY,lastY),
-                            ABS(lastX-startX), ABS(lastY-startY) );
+            XDrawRectangle( XtDisplay ( w ), XtWindow ( w ), gc_rubber, MIN(startX,lastX), MIN(startY,lastY), ABS(lastX-startX), ABS(lastY-startY) );
 
             /* Determine the extents of the render window */
-            XtVaGetValues( w,
-                           XmNx, &ctl_x,
-                           XmNy, &ctl_y,
-                           XmNwidth, &ctl_width,
-                           XmNheight, &ctl_height,
-                           NULL );
+            XtVaGetValues( w, XmNx, &ctl_x, XmNy, &ctl_y, XmNwidth, &ctl_width, XmNheight, &ctl_height, NULL );
 
             rb_x    = lastX - startX;
             rb_y    = lastY - startY;
@@ -7261,8 +4400,7 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
             p_class =
                 ((MO_class_data **) p_mesh->classes_by_sclass[G_NODE].list)[0];
 
-            rb_node_num = select_item( p_class, rb_center_x, rb_center_y, identify_only,
-                                       analy );
+            rb_node_num = select_item( p_class, rb_center_x, rb_center_y, identify_only, analy );
 
             /* Save the original scale setting in position 0 of the history variable */
 
@@ -7292,8 +4430,7 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
             if ( scale[0] == scale[1] && scale[1] == scale[2] )
                 sprintf( str, "scale %f", scale[0] );
             else
-                sprintf( str, "scalax %f %f %f", scale[0],
-                         scale[1], scale[2] );
+                sprintf( str, "scalax %f %f %f", scale[0], scale[1], scale[2] );
             history_command( str );
 
             if (scale[0]<=0) scale[0] = 1.0;
@@ -7390,16 +4527,12 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
             glDepthRange( 0, .1 );
 
-            XDrawRectangle( XtDisplay ( w ), XtWindow ( w ), gc_rubber,
-                            MIN(startX,lastX), MIN(startY,lastY),
-                            ABS(lastX-startX), ABS(lastY-startY) );
+            XDrawRectangle( XtDisplay ( w ), XtWindow ( w ), gc_rubber, MIN(startX,lastX), MIN(startY,lastY), ABS(lastX-startX), ABS(lastY-startY) );
 
             lastX  = cb_data->event->xbutton.x;
             lastY  = cb_data->event->xbutton.y;
 
-            XDrawRectangle( XtDisplay ( w ), XtWindow ( w ), gc_rubber,
-                            MIN(startX,lastX), MIN(startY,lastY),
-                            ABS(lastX-startX), ABS(lastY-startY) );
+            XDrawRectangle( XtDisplay ( w ), XtWindow ( w ), gc_rubber, MIN(startX,lastX), MIN(startY,lastY), ABS(lastX-startX), ABS(lastY-startY) );
 
             /* Remove depth bias. */
             glDepthRange( 0, 1 );
@@ -7434,19 +4567,16 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
             angle = (posx - orig_posx) / 10.0;
             sprintf( str, "ry %f", angle );
             history_command( str );
-            inc_mesh_rot( 0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
-                          DEG_TO_RAD(angle) );
+            inc_mesh_rot( 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, DEG_TO_RAD(angle) );
 
             angle = (posy - orig_posy) / 10.0;
             sprintf( str, "rx %f", angle );
             history_command( str );
-            inc_mesh_rot( 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
-                          DEG_TO_RAD(angle) );
+            inc_mesh_rot( 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, DEG_TO_RAD(angle) );
 
             /*
              * Put this call within each block so if we do have
-             * Button 1 motion but out-of-plane rotations are turned off,
-             * we don't extraneously get the edge-view anyway.
+             * Button 1 motion but out-of-plane rotations are turned off, * we don't extraneously get the edge-view anyway.
              */
             quick_draw_mesh_view( analy );
         }
@@ -7463,8 +4593,7 @@ input_CB( Widget w, XtPointer client_data, XtPointer call_data )
             if ( scale[0] == scale[1] && scale[1] == scale[2] )
                 sprintf( str, "scale %f", scale[0] );
             else
-                sprintf( str, "scalax %f %f %f", scale[0],
-                         scale[1], scale[2] );
+                sprintf( str, "scalax %f %f %f", scale[0], scale[1], scale[2] );
             history_command( str );
             set_mesh_scale( scale[0], scale[1], scale[2] );
 
@@ -7533,9 +4662,7 @@ plot_input_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     case ButtonRelease:
         if ( mode == MOUSE_STATIC )
-            popup_dialog( INFO_POPUP, "Plot win coords: %f %f %f %f",
-                          win_xmin, win_ymin,
-                          win_xman, win_ymax );
+            popup_dialog( INFO_POPUP, "Plot win coords: %f %f %f %f", win_xmin, win_ymin, win_xman, win_ymax );
     }
 }
 #endif
@@ -7547,8 +4674,7 @@ plot_input_CB( Widget w, XtPointer client_data, XtPointer call_data )
  * Event handler for updating the plot cursor values display.
  */
 static void
-plot_cursor_EH( Widget w, XtPointer client_data, XEvent *event,
-                Boolean *continue_dispatch )
+plot_cursor_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch )
 {
     set_plot_cursor_display( event->xmotion.x, event->xmotion.y );
 }
@@ -7561,8 +4687,7 @@ plot_cursor_EH( Widget w, XtPointer client_data, XEvent *event,
  * rendering window.
  */
 static void
-enter_render_EH( Widget w, XtPointer client_data, XEvent *event,
-                 Boolean *continue_dispatch )
+enter_render_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch )
 {
     if(XmIsTraversable(command_widg))
     {
@@ -7580,25 +4705,19 @@ enter_render_EH( Widget w, XtPointer client_data, XEvent *event,
  * correct.  Kind of a hack...
  */
 static void
-stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
-               Boolean *continue_dispatch )
+stack_init_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch )
 {
     int* swtype;
 
     swtype = (int *) client_data;
 
-    static int render_shell_win = RENDER_SHELL_WIN,
-    		      util_panel_shell_win = UTIL_PANEL_SHELL_WIN,
-    		      mtl_mgr_shell_win = MTL_MGR_SHELL_WIN,
-    		      surf_mgr_shell_win = SURF_MGR_SHELL_WIN,
-    		      control_shell_win = CONTROL_SHELL_WIN;
+    static int render_shell_win = RENDER_SHELL_WIN, util_panel_shell_win = UTIL_PANEL_SHELL_WIN, mtl_mgr_shell_win = MTL_MGR_SHELL_WIN, surf_mgr_shell_win = SURF_MGR_SHELL_WIN, control_shell_win = CONTROL_SHELL_WIN;
 
     switch ( *swtype )
     {
     case RENDER_SHELL_WIN:
         /* Remove self. */
-        XtRemoveEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False,
-                              stack_init_EH, &render_shell_win );
+        XtRemoveEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False, stack_init_EH, &render_shell_win );
 
         /*
          * Now add the event handler on the top-level visible widgets
@@ -7606,27 +4725,17 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
          */
 
         /* Rendering window widget. */
-        XtAddEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False,
-                           stack_window_EH, &render_shell_win );
+        XtAddEventHandler( ogl_widg[MESH_VIEW], ExposureMask, False, stack_window_EH, &render_shell_win );
 
         /* Control window widgets. */
-        XtAddEventHandler( menu_widg, ExposureMask, False,
-                           stack_window_EH, &control_shell_win );
-        XtAddEventHandler( monitor_widg, ExposureMask, False,
-                           stack_window_EH, &control_shell_win );
-        XtAddEventHandler( command_widg, ExposureMask, False,
-                           stack_window_EH, &control_shell_win );
+        XtAddEventHandler( menu_widg, ExposureMask, False, stack_window_EH, &control_shell_win );
+        XtAddEventHandler( monitor_widg, ExposureMask, False, stack_window_EH, &control_shell_win );
+        XtAddEventHandler( command_widg, ExposureMask, False, stack_window_EH, &control_shell_win );
         if ( util_panel_widg != NULL && include_util_panel )
         {
-            XtAddEventHandler( util_panel_main, ExposureMask, False,
-                               stack_window_EH,
-                               &control_shell_win );
-            XtAddEventHandler( util_render_ctl, ExposureMask, False,
-                               stack_window_EH,
-                               &util_panel_shell_win );
-            XtAddEventHandler( util_state_ctl, ExposureMask, False,
-                               stack_window_EH,
-                               &util_panel_shell_win );
+            XtAddEventHandler( util_panel_main, ExposureMask, False, stack_window_EH, &control_shell_win );
+            XtAddEventHandler( util_render_ctl, ExposureMask, False, stack_window_EH, &util_panel_shell_win );
+            XtAddEventHandler( util_state_ctl, ExposureMask, False, stack_window_EH, &util_panel_shell_win );
         }
         break;
 
@@ -7643,20 +4752,12 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
         util_panel_top_win = 0;
 
         /* Remove self. */
-        XtRemoveEventHandler( util_panel_widg, StructureNotifyMask, False,
-                              stack_init_EH,
-                              &util_panel_shell_win );
+        XtRemoveEventHandler( util_panel_widg, StructureNotifyMask, False, stack_init_EH, &util_panel_shell_win );
 
         /* Add handlers to cover the face of the Utility Panel. */
-        XtAddEventHandler( util_panel_main, ExposureMask, False,
-                           stack_window_EH,
-                           &util_panel_shell_win );
-        XtAddEventHandler( util_render_ctl, ExposureMask, False,
-                           stack_window_EH,
-                           &util_panel_shell_win );
-        XtAddEventHandler( util_state_ctl, ExposureMask, False,
-                           stack_window_EH,
-                           &util_panel_shell_win );
+        XtAddEventHandler( util_panel_main, ExposureMask, False, stack_window_EH, &util_panel_shell_win );
+        XtAddEventHandler( util_render_ctl, ExposureMask, False, stack_window_EH, &util_panel_shell_win );
+        XtAddEventHandler( util_state_ctl, ExposureMask, False, stack_window_EH, &util_panel_shell_win );
         break;
 
     case MTL_MGR_SHELL_WIN:
@@ -7670,17 +4771,11 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
         mtl_mgr_top_win = 0;
 
         /* Remove self. */
-        XtRemoveEventHandler( mtl_mgr_widg, StructureNotifyMask, False,
-                              stack_init_EH,
-                              &mtl_mgr_shell_win );
+        XtRemoveEventHandler( mtl_mgr_widg, StructureNotifyMask, False, stack_init_EH, &mtl_mgr_shell_win );
 
         /* Add handlers to cover the face of the Material Manager. */
-        XtAddEventHandler( mtl_base, ExposureMask, False,
-                           stack_window_EH,
-                           &mtl_mgr_shell_win );
-        XtAddEventHandler( color_editor, ExposureMask, False,
-                           stack_window_EH,
-                           &mtl_mgr_shell_win );
+        XtAddEventHandler( mtl_base, ExposureMask, False, stack_window_EH, &mtl_mgr_shell_win );
+        XtAddEventHandler( color_editor, ExposureMask, False, stack_window_EH, &mtl_mgr_shell_win );
         break;
 
     case SURF_MGR_SHELL_WIN:
@@ -7688,14 +4783,10 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
         surf_mgr_top_win = 0;
 
         /* Remove self. */
-        XtRemoveEventHandler( surf_mgr_widg, StructureNotifyMask, False,
-                              stack_init_EH,
-                              &surf_mgr_shell_win );
+        XtRemoveEventHandler( surf_mgr_widg, StructureNotifyMask, False, stack_init_EH, &surf_mgr_shell_win );
 
         /* Add handlers to cover the face of the Surface Manager. */
-        XtAddEventHandler( surf_base, ExposureMask, False,
-                           stack_window_EH,
-                           &surf_mgr_shell_win );
+        XtAddEventHandler( surf_base, ExposureMask, False, stack_window_EH, &surf_mgr_shell_win );
     }
 }
 
@@ -7707,8 +4798,7 @@ stack_init_EH( Widget w, XtPointer client_data, XEvent *event,
  * client data is unused, consider removing
  */
 static void
-stack_window_EH( Widget w, XtPointer client_data, XEvent *event,
-                 Boolean *continue_dispatch )
+stack_window_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch )
 {
     static Window win_list[5];
     Window wins[sizeof( win_list ) / sizeof( win_list[0] )];
@@ -7731,8 +4821,7 @@ stack_window_EH( Widget w, XtPointer client_data, XEvent *event,
     outrootwin = 0;
     parentwin = 0;
     inrootwin = RootWindow( dpy, DefaultScreen( dpy ) );
-    XQueryTree( dpy, inrootwin, &outrootwin, &parentwin, &children,
-                &child_qty );
+    XQueryTree( dpy, inrootwin, &outrootwin, &parentwin, &children, &child_qty );
 
     /* Make sure we have the child-of-root ancestor window for each widget. */
     if ( rendershell_widg != NULL && render_top_win == 0 )
@@ -7961,8 +5050,8 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
     Material_list_obj *p_mtl;
     Material_list_obj *temp_mtl;
     Mesh_data *p_mesh;
-	char* tempName;
-	Htable_entry *tempEnt;
+    char* tempName;
+    Htable_entry *tempEnt;
 
     p_mesh = env.curr_analy->mesh_table;
     qty_mtls = p_mesh->material_qty;
@@ -8040,171 +5129,171 @@ mtl_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
         if ( vis_set && enable_set )
         {
-        	p_mtl = mtl_deselect_list;
-        	int i = 0;
-        	while(p_mtl != NULL){
-        		i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( !mtl_invis[mat_num-1] && !mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-        	}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( !mtl_invis[mat_num-1] && !mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( vis_set && disable_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( !mtl_invis[mat_num-1] && mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( !mtl_invis[mat_num-1] && mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( invis_set && enable_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( mtl_invis[mat_num-1] && !mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( mtl_invis[mat_num-1] && !mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( invis_set && disable_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( mtl_invis[mat_num-1] && mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( mtl_invis[mat_num-1] && mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( vis_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( !mtl_invis[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( !mtl_invis[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( invis_set )
         {
-        	p_mtl = mtl_deselect_list;
-			i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( mtl_invis[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( mtl_invis[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( enable_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( !mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( !mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else if ( disable_set )
         {
-        	p_mtl = mtl_deselect_list;
-			int i = 0;
-			while(p_mtl != NULL){
-				i = p_mtl->mtl;
-				htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
-				int mat_num = atoi((char*)tempEnt->data);
-				if ( mtl_disable[mat_num-1] ){
-					XtVaSetValues( children[i-1], XmNset, True, NULL );
-					temp_mtl = p_mtl->next;
-					UNLINK( p_mtl, mtl_deselect_list );
-					INSERT( p_mtl, mtl_select_list );
-					p_mtl = temp_mtl;
-				}
-				else{
-					XtVaSetValues( children[i-1], XmNset, False, NULL );
-					p_mtl = p_mtl->next;
-				}
-			}
+            p_mtl = mtl_deselect_list;
+            int i = 0;
+            while(p_mtl != NULL){
+                i = p_mtl->mtl;
+                htable_search(env.curr_analy->mat_labels,env.curr_analy->sorted_labels[i-1],FIND_ENTRY,&tempEnt);
+                int mat_num = atoi((char*)tempEnt->data);
+                if ( mtl_disable[mat_num-1] ){
+                    XtVaSetValues( children[i-1], XmNset, True, NULL );
+                    temp_mtl = p_mtl->next;
+                    UNLINK( p_mtl, mtl_deselect_list );
+                    INSERT( p_mtl, mtl_select_list );
+                    p_mtl = temp_mtl;
+                }
+                else{
+                    XtVaSetValues( children[i-1], XmNset, False, NULL );
+                    p_mtl = p_mtl->next;
+                }
+            }
         }
         else{
             /* Set all if color function selected, else unset all. */
@@ -8397,7 +5486,7 @@ init_swatch_CB( Widget w, XtPointer client_data, XtPointer call_data )
     main_win = (Widget) client_data;
 
     /* Create an OpenGL rendering context. */
-    swatch_ctx = glXCreateContext( XtDisplay(main_win), vi, None, GL_TRUE );
+    swatch_ctx = glXCreateContext( XtDisplay(main_win), visual_info, None, GL_TRUE );
     if ( swatch_ctx == NULL )
         popup_fatal( "Could not create swatch rendering context.\n" );
 
@@ -8518,8 +5607,7 @@ mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     switch_opengl_win( MESH_VIEW );
 
-    /* memset( mtl_mgr_cmd, 0,
-            128 + env.curr_analy->mesh_table[0].material_qty * 4 ); */
+    /* memset( mtl_mgr_cmd, 0, 128 + env.curr_analy->mesh_table[0].material_qty * 4 ); */
     memset(mtl_mgr_cmd, 0, sizeof(mtl_mgr_cmd));
 
     /* Command always starts with "mtl ". */
@@ -8606,62 +5694,6 @@ mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     break;
             }
         }
-//        Boolean visset;
-//        Boolean invisset;
-//        Boolean enableset;
-//        Boolean disableset;
-//        XtVaGetValues( mtl_mgr_func_toggles[VIS], XmNset, &visset, NULL );
-//		XtVaGetValues( mtl_mgr_func_toggles[INVIS], XmNset, &invisset, NULL );
-//		XtVaGetValues( mtl_mgr_func_toggles[ENABLE], XmNset, &enableset, NULL );
-//		XtVaGetValues( mtl_mgr_func_toggles[DISABLE], XmNset, &disableset, NULL );
-//
-//        if( ((visset)||(invisset))&&((enableset)||(disableset)) ){
-//        	// we have 2 commands to fire off
-//        	//init command strings
-//        	char* vis_cmd;
-//        	vis_cmd = (char*)malloc(sizeof(mtl_mgr_cmd));
-//        	int vis_cnt;
-//        	char* enable_cmd;
-//        	enable_cmd = (char*)malloc(sizeof(mtl_mgr_cmd));
-//        	int enable_cnt;
-//        	vis_cnt = 0;
-//        	enable_cnt = 0;
-//            memset(vis_cmd, 0, sizeof(mtl_mgr_cmd));
-//            memset(enable_cmd, 0, sizeof(mtl_mgr_cmd));
-//            //init finished
-//            //add on command string
-//            if(visset){
-//                for ( p_dest = vis_cmd, p_src = "mtl vis "; *p_dest = *p_src; p_src++, p_dest++ );
-//                vis_cnt+=2;
-//            }
-//            else{
-//                for ( p_dest = vis_cmd, p_src = "mtl invis "; *p_dest = *p_src; p_src++, p_dest++ );
-//                vis_cnt+=2;
-//            }
-//            //add on arguments
-//            len = load_selected_mtls( p_dest, &t_cnt );
-//            p_dest += len;
-//            token_cnt += t_cnt;
-//            //send
-//            send_mtl_cmd( vis_cmd, vis_cnt );
-//            if(enableset){
-//                for ( p_dest = enable_cmd, p_src = "mtl enable "; *p_dest = *p_src; p_src++, p_dest++ );
-//                enable_cnt+=2;
-//            }
-//            else{
-//                for ( p_dest = enable_cmd, p_src = "mtl disable "; *p_dest = *p_src; p_src++, p_dest++ );
-//                enable_cnt+=2;
-//            }
-//            //add on arguments
-//            len = load_selected_mtls( p_dest, &t_cnt );
-//            p_dest += len;
-//            token_cnt += t_cnt;
-//            //send
-//            send_mtl_cmd( enable_cmd, enable_cnt );
-//        }
-//        else{
-//        	send_mtl_cmd( mtl_mgr_cmd, token_cnt );
-//        }
 
         send_mtl_cmd( mtl_mgr_cmd, token_cnt );
 
@@ -8703,8 +5735,7 @@ mtl_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
         break;
 
     default:
-        popup_dialog( INFO_POPUP,
-                      "Unknown Material Manager operation; ignored" );
+        popup_dialog( INFO_POPUP, "Unknown Material Manager operation; ignored" );
     }
 
     update_actions_sens();
@@ -8743,36 +5774,36 @@ destroy_mtl_mgr_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     /*if (mtl_mgr_func_toggles)
         free( mtl_mgr_func_toggles );
-    */    
+    */
     //mtl_mgr_func_toggles = NULL;
 
     /*if ( op_buttons)
         free( op_buttons );
-       
-    op_buttons = NULL; 
+
+    op_buttons = NULL;
     */
     if (mtl_select_list)
         DELETE_LIST( mtl_select_list );
     if (mtl_deselect_list)
         DELETE_LIST( mtl_deselect_list );
     mtl_select_list = NULL;
-    mtl_deselect_list = NULL; 
+    mtl_deselect_list = NULL;
 
     if ( mtl_mgr_cmd)
         free( mtl_mgr_cmd );
-    mtl_mgr_cmd = NULL; 
+    mtl_mgr_cmd = NULL;
 
     //if ( mtl_check)
     //    XFreePixmap( dpy, mtl_check );
-    //mtl_check = (Pixmap)NULL; 
+    //mtl_check = (Pixmap)NULL;
 
-    mtl_mgr_top_win = 0; 
+    mtl_mgr_top_win = 0;
     XtDestroyWidget( mtl_mgr_widg );
     mtl_mgr_widg = NULL;
 
     session->win_mtl_active = 0;
-    
-    //destroy_mtl_mgr(); 
+
+    //destroy_mtl_mgr();
 
 
 }
@@ -8839,8 +5870,7 @@ surf_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     switch_opengl_win( MESH_VIEW );
 
-    memset( surf_mgr_cmd, 0,
-            128 + env.curr_analy->mesh_table[0].surface_qty * 4 );
+    memset( surf_mgr_cmd, 0, 128 + env.curr_analy->mesh_table[0].surface_qty * 4 );
 
     /* Command always starts with "surf ". */
     for ( p_dest = surf_mgr_cmd, p_src = "surf "; *p_dest = *p_src;
@@ -8878,8 +5908,7 @@ surf_func_operate_CB( Widget w, XtPointer client_data, XtPointer call_data )
         break;
 
     default:
-        popup_dialog( INFO_POPUP,
-                      "Unknown Surface Manager operation; ignored" );
+        popup_dialog( INFO_POPUP, "Unknown Surface Manager operation; ignored" );
     }
 
     update_surf_actions_sens();
@@ -8966,8 +5995,7 @@ surf_quick_select_CB( Widget w, XtPointer client_data, XtPointer call_data )
                     p_surf = p_surf->next;
                 }
                 else
-                    popup_dialog( WARNING_POPUP,
-                                  "Surface selection list does not match set state." );
+                    popup_dialog( WARNING_POPUP, "Surface selection list does not match set state." );
             }
         }
     }
@@ -9391,14 +6419,12 @@ util_render_CB( Widget w, XtPointer client_data, XtPointer call_data )
     case BTN3_PICK:
         XtVaGetValues( w, XmNlabelString, &label, NULL );
         string_convert( label, cbuf );
-        p_mo_class = find_class_by_long_name( MESH_P( env.curr_analy ),
-                                              cbuf );
+        p_mo_class = find_class_by_long_name( MESH_P( env.curr_analy ), cbuf );
         if ( p_mo_class != NULL )
         {
             btn_num = ( *btn == BTN1_PICK ) ? 1 :
                       (( *btn == BTN2_PICK ) ? 2 : 3);
-            sprintf( cmdbuf, "setpick %d %s", btn_num,
-                     p_mo_class->short_name );
+            sprintf( cmdbuf, "setpick %d %s", btn_num, p_mo_class->short_name );
             util_panel_CB_active = TRUE;
             text[item_cnt] = XmStringCreateSimple( cmdbuf );
             item_cnt++;
@@ -9406,8 +6432,7 @@ util_render_CB( Widget w, XtPointer client_data, XtPointer call_data )
             util_panel_CB_active = FALSE;
         }
         else
-            popup_dialog( WARNING_POPUP,
-                          "Unable to find designated pick class." );
+            popup_dialog( WARNING_POPUP, "Unable to find designated pick class." );
         break;
     }
     if( item_cnt > 0 )
@@ -9435,7 +6460,7 @@ step_CB( Widget w, XtPointer client_data, XtPointer call_data )
     Analysis *analy;
     int st_num;
     char cmd[16];
-    
+
     btn = (int*) client_data;
     analy = env.curr_analy;
 
@@ -9557,20 +6582,17 @@ menu_setpick_CB( Widget w, XtPointer client_data, XtPointer call_data )
 
     XtVaGetValues( w, XmNlabelString, &label, NULL );
     string_convert( label, cbuf );
-    p_mo_class = find_class_by_long_name( MESH_P( env.curr_analy ),
-                                          cbuf );
+    p_mo_class = find_class_by_long_name( MESH_P( env.curr_analy ), cbuf );
     if ( p_mo_class != NULL )
     {
         btn_num = ( *btn == BTN1_PICK ) ? 1 :
                   (( *btn == BTN2_PICK ) ? 2 : 3);
-        sprintf( cmdbuf, "setpick %d %s", btn_num,
-                 p_mo_class->short_name );
+        sprintf( cmdbuf, "setpick %d %s", btn_num, p_mo_class->short_name );
         text = XmStringCreateSimple( cmdbuf );
         parse_command( cmdbuf, env.curr_analy );
     }
     else
-        popup_dialog( WARNING_POPUP,
-                      "Unable to find designated pick class." );
+        popup_dialog( WARNING_POPUP, "Unable to find designated pick class." );
     if( text != NULL )
     {
         hist_list=XmCommandGetChild(command_widg, XmDIALOG_HISTORY_LIST);
@@ -9611,7 +6633,7 @@ menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
         strcpy( cmd, "hotmap" );
         break;
     case CM_COOL:
-    	parse_command( "coolmap", analy );
+        parse_command( "coolmap", analy );
         strcpy( cmd, "coolmap" );
         break;
     case CM_GRAYSCALE:
@@ -9623,19 +6645,19 @@ menu_setcolormap_CB( Widget w, XtPointer client_data, XtPointer call_data )
         strcpy( cmd, "igrmap" );
         break;
     case CM_HSV:
-    	parse_command( "hsvmap", analy );
+        parse_command( "hsvmap", analy );
         strcpy( cmd, "hsvmap" );
         break;
     case CM_JET:
-    	parse_command( "jetmap", analy );
+        parse_command( "jetmap", analy );
         strcpy( cmd, "jetmap" );
         break;
     case CM_PRISM:
-    	parse_command( "prismmap", analy );
+        parse_command( "prismmap", analy );
         strcpy( cmd, "prismmap" );
         break;
     case CM_WINTER:
-    	parse_command( "wintermap", analy );
+        parse_command( "wintermap", analy );
         strcpy( cmd, "wintermap" );
         break;
     }
@@ -9684,8 +6706,7 @@ static void load_colormap( Analysis *analy, char *colormap )
             XmStringFree( text );
         }
         else
-            popup_dialog( WARNING_POPUP,
-                          "Unable to find designated colormap [%s].", file_spec );
+            popup_dialog( WARNING_POPUP, "Unable to find designated colormap [%s].", file_spec );
 
         if ( griz_home_set )
             free( griz_home );
@@ -9757,8 +6778,7 @@ create_app_widg( Btn_type btn )
         /* Add the creation translations to the app widget. */
         /*
                 XtVaGetValues( *app_widg, XmNchildren, &children, NULL );
-                XtOverrideTranslations( children[0],
-                                        XtParseTranslationTable( action_spec ) );
+                XtOverrideTranslations( children[0], XtParseTranslationTable( action_spec ) );
         */
     }
     else
@@ -9785,6 +6805,8 @@ update_util_panel( Util_panel_button_type button, MO_class_data *p_mo_class )
     Widget pulldown, new_class;
     int position;
     char stride_str[8];
+    int idx = -1;
+
 
     /*
      * If utility panel not up or this called as a result of
@@ -9809,52 +6831,41 @@ update_util_panel( Util_panel_button_type button, MO_class_data *p_mo_class )
         XmTextSetString( stride_label, stride_str );
         break;
     case VIEW_SOLID:
-        XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set,
-                       NULL );
+        XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set, NULL );
         if ( set )
-            XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False, NULL );
         else
         {
-            XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set,
-                           NULL );
+            XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, NULL );
             if ( set )
             {
-                /*XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False,
-                               NULL );*/
+                /*XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, NULL );*/
                 parse_command( "off edges", env.curr_analy );
             }
         }
         break;
     case VIEW_WIREFRAME:
         if ( env.curr_analy->draw_wireframe )
-            XtVaSetValues( util_render_btns[VIEW_WIREFRAME], XmNset, True,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_WIREFRAME], XmNset, True, NULL );
         else
-            XtVaSetValues( util_render_btns[VIEW_WIREFRAME], XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_WIREFRAME], XmNset, False, NULL );
         break;
     case VIEW_GS:
         if ( env.curr_analy->material_greyscale )
-            XtVaSetValues( util_render_btns[VIEW_GS], XmNset, True,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_GS], XmNset, True, NULL );
         else
-            XtVaSetValues( util_render_btns[VIEW_GS], XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_GS], XmNset, False, NULL );
         break;
     case VIEW_SOLID_MESH:
         XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
         if ( set )
-            XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, NULL );
         else
         {
-            XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set,
-                           NULL );
+            XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, NULL );
             if ( set )
             {
-                /*XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False,
-                               NULL );*/
+                /*XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, NULL );*/
                 parse_command( "off edges", env.curr_analy );
             }
         }
@@ -9871,129 +6882,94 @@ update_util_panel( Util_panel_button_type button, MO_class_data *p_mo_class )
                 && env.curr_analy->show_edges )
         {
             if ( !set )
-                XtVaSetValues( util_render_btns[VIEW_EDGES],
-                               XmNset, True,
-                               NULL );
+                XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, True, NULL );
 
             /* Unset "Solid" or "Solid Mesh" buttons if either set. */
             XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
             if ( set )
-                XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False,
-                               NULL );
+                XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, NULL );
             else
             {
-                XtVaGetValues( util_render_btns[VIEW_SOLID_MESH],
-                               XmNset, &set,
-                               NULL );
+                XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set, NULL );
                 if ( set )
-                    XtVaSetValues( util_render_btns[VIEW_SOLID_MESH],
-                                   XmNset, False,
-                                   NULL );
+                    XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False, NULL );
             }
         }
         else
         {
             if ( set )
-                XtVaSetValues( util_render_btns[VIEW_EDGES],
-                               XmNset, False,
-                               NULL );
+                XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, NULL );
         }
         break;
     case VIEW_POINT_CLOUD:
         XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
         if ( set )
-            XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, NULL );
 
-        XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set,
-                       NULL );
+        XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set, NULL );
         if ( set )
-            XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False, NULL );
 
         XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, NULL );
         if ( set )
-            XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, NULL );
         break;
     case VIEW_NONE:
         XtVaGetValues( util_render_btns[VIEW_SOLID], XmNset, &set, NULL );
         if ( set )
-            XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_SOLID], XmNset, False, NULL );
 
-        XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set,
-                       NULL );
+        XtVaGetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, &set, NULL );
         if ( set )
-            XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_SOLID_MESH], XmNset, False, NULL );
 
         XtVaGetValues( util_render_btns[VIEW_EDGES], XmNset, &set, NULL );
         if ( set )
-            XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[VIEW_EDGES], XmNset, False, NULL );
 
         /* Check for possible "Edges only" state. */
         update_util_panel( VIEW_EDGES, p_mo_class );
         break;
     case PICK_MODE_SELECT:
-        XtVaGetValues( util_render_btns[PICK_MODE_HILITE], XmNset, &set,
-                       NULL );
+        XtVaGetValues( util_render_btns[PICK_MODE_HILITE], XmNset, &set, NULL );
         if ( set )
-            XtVaSetValues( util_render_btns[PICK_MODE_HILITE],
-                           XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[PICK_MODE_HILITE], XmNset, False, NULL );
         break;
     case PICK_MODE_HILITE:
-        XtVaGetValues( util_render_btns[PICK_MODE_SELECT], XmNset, &set,
-                       NULL );
+        XtVaGetValues( util_render_btns[PICK_MODE_SELECT], XmNset, &set, NULL );
         if ( set )
-            XtVaSetValues( util_render_btns[PICK_MODE_SELECT],
-                           XmNset, False,
-                           NULL );
+            XtVaSetValues( util_render_btns[PICK_MODE_SELECT], XmNset, False, NULL );
         break;
     case BTN1_PICK:
         pulldown = NULL;
-        XtVaGetValues( util_render_btns[BTN1_PICK], XmNsubMenuId, &pulldown,
-                       NULL );
-        ok = find_labelled_child( pulldown, p_mo_class->long_name,
-                                  &new_class, &position );
-        if ( ok )
-            XtVaSetValues( util_render_btns[BTN1_PICK], XmNmenuHistory,
-                           new_class, NULL );
+        XtVaGetValues( util_render_btns[BTN1_PICK], XmNsubMenuId, &pulldown, NULL );
+        find_labelled_child( pulldown, p_mo_class->long_name, &new_class, &idx );
+        if ( new_class != NULL )
+            XtVaSetValues( util_render_btns[BTN1_PICK], XmNmenuHistory, new_class, NULL );
         else
-            popup_dialog( WARNING_POPUP,
-                          "Unable to update utility panel pick class." );
+            popup_dialog( WARNING_POPUP, "Unable to update utility panel pick class." );
         break;
     case BTN2_PICK:
         pulldown = NULL;
-        XtVaGetValues( util_render_btns[BTN2_PICK], XmNsubMenuId, &pulldown,
-                       NULL );
-        ok = find_labelled_child( pulldown, p_mo_class->long_name,
-                                  &new_class, &position );
-        if ( ok )
-            XtVaSetValues( util_render_btns[BTN2_PICK], XmNmenuHistory,
-                           new_class, NULL );
+        XtVaGetValues( util_render_btns[BTN2_PICK], XmNsubMenuId, &pulldown, NULL );
+        find_labelled_child( pulldown, p_mo_class->long_name, &new_class, &idx );
+        if ( new_class != NULL )
+            XtVaSetValues( util_render_btns[BTN2_PICK], XmNmenuHistory, new_class, NULL );
         else
-            popup_dialog( WARNING_POPUP,
-                          "Unable to update utility panel pick class." );
+            popup_dialog( WARNING_POPUP, "Unable to update utility panel pick class." );
         break;
     case BTN3_PICK:
         pulldown = NULL;
-        XtVaGetValues( util_render_btns[BTN3_PICK], XmNsubMenuId, &pulldown,
-                       NULL );
-        ok = find_labelled_child( pulldown, p_mo_class->long_name,
-                                  &new_class, &position );
-        if ( ok )
-            XtVaSetValues( util_render_btns[BTN3_PICK], XmNmenuHistory,
-                           new_class, NULL );
+        XtVaGetValues( util_render_btns[BTN3_PICK], XmNsubMenuId, &pulldown, NULL );
+        find_labelled_child( pulldown, p_mo_class->long_name, &new_class, &idx );
+        if ( new_class != NULL )
+            XtVaSetValues( util_render_btns[BTN3_PICK], XmNmenuHistory, new_class, NULL );
         else
-            popup_dialog( WARNING_POPUP,
-                          "Unable to update utility panel pick class." );
+            popup_dialog( WARNING_POPUP, "Unable to update utility panel pick class." );
         break;
     }
 }
-
+//#endregion
 
 /*****************************************************************
  * TAG( select_mtl_mgr_mtl )
@@ -10031,9 +7007,7 @@ select_mtl_mgr_mtl( int mtl )
 
         if ( p_mtl == NULL )
         {
-            popup_dialog( WARNING_POPUP,
-                          "Material toggle selection state inconsistent\n%s",
-                          "with selection list." );
+            popup_dialog( WARNING_POPUP, "Material toggle selection state inconsistent\n%s", "with selection list." );
             return;
         }
 
@@ -10284,10 +7258,7 @@ set_rgb_scales( GLfloat col[4] )
 
     for ( i = 0; i < 3; i++ )
     {
-        XtVaGetValues( col_ed_scales[0][i],
-                       XmNminimum, &min,
-                       XmNmaximum, &max,
-                       NULL );
+        XtVaGetValues( col_ed_scales[0][i], XmNminimum, &min, XmNmaximum, &max, NULL );
         sprintf( valbuf, "%4.2f", col[i] );
         sval = XmStringCreateLocalized( valbuf );
         ival = (int) ((float) min + col[i] * (max - min) + 0.5);
@@ -10314,18 +7285,11 @@ set_shininess_scale( GLfloat shine )
     char valbuf[5];
     int min, max;
 
-    XtVaGetValues( col_ed_scales[0][SHININESS_SCALE],
-                   XmNminimum, &min,
-                   XmNmaximum, &max,
-                   NULL );
+    XtVaGetValues( col_ed_scales[0][SHININESS_SCALE], XmNminimum, &min, XmNmaximum, &max, NULL );
     sprintf( valbuf, "%d", (int) shine );
     sval = XmStringCreateLocalized( valbuf );
-    XtVaSetValues( col_ed_scales[0][SHININESS_SCALE],
-                   XmNvalue, (int) shine,
-                   NULL );
-    XtVaSetValues( col_ed_scales[1][SHININESS_SCALE],
-                   XmNlabelString, sval,
-                   NULL );
+    XtVaSetValues( col_ed_scales[0][SHININESS_SCALE], XmNvalue, (int) shine, NULL );
+    XtVaSetValues( col_ed_scales[1][SHININESS_SCALE], XmNlabelString, sval, NULL );
     XmStringFree( sval );
 }
 
@@ -10333,8 +7297,7 @@ set_shininess_scale( GLfloat shine )
 /*****************************************************************
  * TAG( send_mtl_cmd )
  *
- * Call parse_command on the material manager command string,
- * subdividing if necessary to avoid exceeding the maximum number
+ * Call parse_command on the material manager command string, * subdividing if necessary to avoid exceeding the maximum number
  * of tokens.
  */
 static void
@@ -10412,8 +7375,7 @@ send_mtl_cmd( char *cmd, int tok_qty )
 /*****************************************************************
  * TAG( send_surf_cmd )
  *
- * Call parse_command on the surface manager command string,
- * subdividing if necessary to avoid exceeding the maximum number
+ * Call parse_command on the surface manager command string, * subdividing if necessary to avoid exceeding the maximum number
  * of tokens.
  */
 static void
@@ -10520,37 +7482,37 @@ load_mtl_mgr_funcs( char *p_buf, int *p_token_cnt )
         for ( p_src = "mat "; *p_dest = *p_src; i++, p_src++, p_dest++ );
     }
     else{
-    	if(visset && enableset){
-			t_cnt++;
-			for ( p_src = "include "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-    	}
-    	else if(invisset && disableset){
-			t_cnt++;
-			for ( p_src = "exclude "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-    	}
-    	else{
-			if ( visset )
-			{
-				t_cnt++;
-				for ( p_src = "vis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-			}
-			if ( invisset )
-			{
-				t_cnt++;
-				for ( p_src = "invis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-			}
-			if ( enableset )
-			{
-				t_cnt++;
-				for ( p_src = "enable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-			}
+        if(visset && enableset){
+            t_cnt++;
+            for ( p_src = "include "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+        }
+        else if(invisset && disableset){
+            t_cnt++;
+            for ( p_src = "exclude "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+        }
+        else{
+            if ( visset )
+            {
+                t_cnt++;
+                for ( p_src = "vis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+            }
+            if ( invisset )
+            {
+                t_cnt++;
+                for ( p_src = "invis "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+            }
+            if ( enableset )
+            {
+                t_cnt++;
+                for ( p_src = "enable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+            }
 
-			if ( disableset )
-			{
-				t_cnt++;
-				for ( p_src = "disable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
-			}
-    	}
+            if ( disableset )
+            {
+                t_cnt++;
+                for ( p_src = "disable "; *p_dest = *p_src; i++, p_src++, p_dest++ );
+            }
+        }
     }
 
     *p_token_cnt = t_cnt;
@@ -10627,8 +7589,7 @@ load_selected_mtls( char *p_buf, int *p_tok_cnt )
 
     if ( mtl_select_list != NULL && mtl_deselect_list == NULL )
     {
-        /* If mtl_deselect_list is NULL then all materials are selected,
-         * this is the equivalent of "all"
+        /* If mtl_deselect_list is NULL then all materials are selected, * this is the equivalent of "all"
          */
         sprintf( p_dest, "%s", "all");
         p_dest += strlen( p_dest );
@@ -10725,8 +7686,7 @@ load_mtl_properties( char *p_buf, int *p_tok_cnt )
             {
                 /*
                  * If ambient, diffuse, specular, or emissive property
-                 * is the currently selected property and hasn't changed,
-                 * read it from the global cur_color array.
+                 * is the currently selected property and hasn't changed, * read it from the global cur_color array.
                  */
                 if ( !prop_val_changed[i] )
                     p_prop_val = cur_color;
@@ -10736,9 +7696,7 @@ load_mtl_properties( char *p_buf, int *p_tok_cnt )
                 /*
                  * These properties each have three values.
                  */
-                sprintf( p_dest, "%s %4.2f %4.2f %4.2f ", name[i],
-                         p_prop_val[0], p_prop_val[1],
-                         p_prop_val[2] );
+                sprintf( p_dest, "%s %4.2f %4.2f %4.2f ", name[i], p_prop_val[0], p_prop_val[1], p_prop_val[2] );
                 t_cnt += 4;
                 c_add = strlen( name[i] ) + 1 + 3 * 5;
                 c_cnt += c_add;
@@ -10907,8 +7865,7 @@ update_surf_actions_sens( void )
  * manager to set the proper rendering context and window.
  */
 static void
-gress_mtl_mgr_EH( Widget w, XtPointer client_data, XEvent *event,
-                  Boolean *continue_dispatch )
+gress_mtl_mgr_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch )
 {
     if ( event->xcrossing.type == EnterNotify && XtIsSensitive( color_editor ) )
         switch_opengl_win( SWATCH );
@@ -10923,8 +7880,7 @@ gress_mtl_mgr_EH( Widget w, XtPointer client_data, XEvent *event,
  * manager to set the proper rendering context and window.
  */
 static void
-gress_surf_mgr_EH( Widget w, XtPointer client_data, XEvent *event,
-                   Boolean *continue_dispatch )
+gress_surf_mgr_EH( Widget w, XtPointer client_data, XEvent *event, Boolean *continue_dispatch )
 {
     switch_opengl_win( MESH_VIEW );
 }
@@ -10943,8 +7899,7 @@ action_create_app_widg( Widget w, XEvent *event, String params[], int *qty )
 
     if ( *qty != 1 )
     {
-        popup_dialog( WARNING_POPUP,
-                      "Invalid args to action_create_app_widg()." );
+        popup_dialog( WARNING_POPUP, "Invalid args to action_create_app_widg()." );
         return;
     }
     else
@@ -10963,34 +7918,23 @@ action_create_app_widg( Widget w, XEvent *event, String params[], int *qty )
 static void
 resize_mtl_scrollwin( Widget w, XtPointer client_data, XtPointer reason )
 {
-    
+
     Dimension button_width, margin_width, spacing, scrollbar_width;
-    
-    
+
+
     WidgetList children;
     Widget row_col, scroll;
     int width;
     short max_cols, rows;
 
     XtVaGetValues( w, XmNwidth, &width, NULL);
-    XtVaGetValues( w,
-                   XmNworkWindow, &row_col,
-                   XmNverticalScrollBar, &scroll,
-                   NULL );
+    XtVaGetValues( w, XmNworkWindow, &row_col, XmNverticalScrollBar, &scroll, NULL );
 
-    XtVaGetValues( row_col,
-                   XmNchildren, &children,
-                   XmNmarginWidth, &margin_width,
-                   XmNspacing, &spacing,
-                   NULL );
+    XtVaGetValues( row_col, XmNchildren, &children, XmNmarginWidth, &margin_width, XmNspacing, &spacing, NULL );
 
-    XtVaGetValues( children[0],
-                   XmNwidth, &button_width,
-                   NULL );
+    XtVaGetValues( children[0], XmNwidth, &button_width, NULL );
 
-    XtVaGetValues( scroll,
-                   XmNwidth, &scrollbar_width,
-                   NULL );
+    XtVaGetValues( scroll, XmNwidth, &scrollbar_width, NULL );
 
     max_cols = (width - 2.0 * margin_width - scrollbar_width - 4 + spacing)
                / (float) (button_width + spacing);
@@ -11018,24 +7962,13 @@ resize_surf_scrollwin( Widget w, XEvent *event, String params[], int qty )
     cevent = (XConfigureEvent *) event;
     width = cevent->width;
 
-    XtVaGetValues( w,
-                   XmNworkWindow, &row_col,
-                   XmNverticalScrollBar, &scroll,
-                   NULL );
+    XtVaGetValues( w, XmNworkWindow, &row_col, XmNverticalScrollBar, &scroll, NULL );
 
-    XtVaGetValues( row_col,
-                   XmNchildren, &children,
-                   XmNmarginWidth, &margin_width,
-                   XmNspacing, &spacing,
-                   NULL );
+    XtVaGetValues( row_col, XmNchildren, &children, XmNmarginWidth, &margin_width, XmNspacing, &spacing, NULL );
 
-    XtVaGetValues( children[0],
-                   XmNwidth, &button_width,
-                   NULL );
+    XtVaGetValues( children[0], XmNwidth, &button_width, NULL );
 
-    XtVaGetValues( scroll,
-                   XmNwidth, &scrollbar_width,
-                   NULL );
+    XtVaGetValues( scroll, XmNwidth, &scrollbar_width, NULL );
 
     max_cols = (width - 2.0 * margin_width - scrollbar_width - 4 + spacing)
                / (float) (button_width + spacing);
@@ -11068,8 +8001,7 @@ string_convert( XmString str, char *buf )
 
     p = buf;
 
-    while ( XmStringGetNextSegment( context, &text, &charset, &direction,
-                                    &separator ) )
+    while ( XmStringGetNextSegment( context, &text, &charset, &direction, &separator ) )
     {
         size += strlen(text);
         if(size < 198)
@@ -11336,12 +8268,10 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     int  particle_count=0;
 
     int block_label_start, block_label_end;
-    int block_start, block_end, block_count=0,
-                                num_blocks=0;
+    int block_start, block_end, block_count=0, num_blocks=0;
     int *blocks;
 
-    int num_class_blocks=0, qty_objects=0,
-        temp_label, block_total;
+    int num_class_blocks=0, qty_objects=0, temp_label, block_total;
 
     Bool_type labels_found=FALSE;
 
@@ -11355,8 +8285,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     };
     static char *labels[] =
     {
-        "Unit", "Node", "Truss", "Beam", "Tri", "Quad", "Tet", "Pyramid",
-        "Wedge", "Hex"
+        "Unit", "Node", "Truss", "Beam", "Tri", "Quad", "Tet", "Pyramid", "Wedge", "Hex"
     };
 
     Mesh_data *p_mesh;
@@ -11391,8 +8320,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
     sprintf( temp_text, "\nData file: %s\n", env.curr_analy->root_name );
     start_text[cnt++] = (char *) strdup(temp_text) ;
 
-    rval = analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL,
-                            (void *) &qty_states );
+    rval = analy->db_query( analy->db_ident, QRY_QTY_STATES, NULL, NULL, (void *) &qty_states );
     if ( rval == OK )
     {
         sprintf( temp_text, "Number of states: %d\n", qty_states );
@@ -11400,17 +8328,14 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
         if ( qty_states > 0 )
         {
             first = 1;
-            rval = analy->db_query( db_ident, QRY_STATE_TIME, (void *) &first,
-                                    NULL, (void *) &start_t );
+            rval = analy->db_query( db_ident, QRY_STATE_TIME, (void *) &first, NULL, (void *) &start_t );
             if ( rval == OK )
             {
                 sprintf( temp_text, "Start time: %.4e\n", start_t );
                 start_text[cnt++] = (char *) strdup(temp_text) ;
             }
 
-            rval = analy->db_query( db_ident, QRY_STATE_TIME,
-                                    (void *) &qty_states, NULL,
-                                    (void *) &end_t );
+            rval = analy->db_query( db_ident, QRY_STATE_TIME, (void *) &qty_states, NULL, (void *) &end_t );
             if ( rval == OK )
             {
                 sprintf( temp_text, "End time: %.4e\n", end_t );
@@ -11461,16 +8386,12 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
         {
             if ( type == G_HEX || type == G_TET )
             {
-                sprintf( temp_text,
-                         "Number of %s faces to render: \t%d\n", labels[type],
-                         sum );
+                sprintf( temp_text, "Number of %s faces to render: \t%d\n", labels[type], sum );
                 start_text[cnt++] = (char *) strdup(temp_text) ;
             }
             else
             {
-                sprintf( temp_text,
-                         "Number of %s's to render: \t\t%d\n", labels[type],
-                         sum );
+                sprintf( temp_text, "Number of %s's to render: \t\t%d\n", labels[type], sum );
                 start_text[cnt++] = (char *) strdup(temp_text) ;
             }
         }
@@ -11483,8 +8404,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
         if ( is_particle_class( analy, class_ptr->superclass, class_ptr->short_name ))
         {
             particle_count = class_ptr->qty;
-            sprintf( temp_text,
-                     "Number of Particles[%s] to render: \t%d\n", class_ptr->short_name, particle_count );
+            sprintf( temp_text, "Number of Particles[%s] to render: \t%d\n", class_ptr->short_name, particle_count );
             start_text[cnt++] = (char *) strdup(temp_text) ;
         }
     }
@@ -11495,8 +8415,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
         if ( is_particle_class( analy, class_ptr->superclass, class_ptr->short_name ))
         {
             particle_count = class_ptr->qty;
-            sprintf( temp_text,
-                     "Number of Particles[%s] to render: \t%d\n", class_ptr->short_name, particle_count );
+            sprintf( temp_text, "Number of Particles[%s] to render: \t%d\n", class_ptr->short_name, particle_count );
             start_text[cnt++] = (char *) strdup(temp_text) ;
         }
     }
@@ -11510,8 +8429,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
         {
             analy->cur_state = 0;
 
-            analy->db_get_state( analy, 0, analy->state_p, &analy->state_p,
-                                 &st_qty );
+            analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, &st_qty );
 
             /* Loop over classes */
             for ( j = 0;
@@ -11525,9 +8443,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                 qty_objects     = 0;
                 num_blocks      = 0;
 
-                class_ptr = get_blocking_info( analy, class_name, sclass,
-                                               &qty_objects,
-                                               &num_blocks, &blocks );
+                class_ptr = get_blocking_info( analy, class_name, sclass, &qty_objects, &num_blocks, &blocks );
 
                 if ( qty_objects==0 )
                     continue;
@@ -11560,14 +8476,9 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                             block_end   = qty_objects;
 
                             if ( block_start!=block_end )
-                                sprintf( temp_text,
-                                         "\tblock[%d]: %d-%d\n", 1,
-                                         block_start,
-                                         block_end );
+                                sprintf( temp_text, "\tblock[%d]: %d-%d\n", 1, block_start, block_end );
                             else
-                                sprintf( temp_text,
-                                         "\tblock[%d]: %d\n", 1,
-                                         block_start);
+                                sprintf( temp_text, "\tblock[%d]: %d\n", 1, block_start);
                             start_text[cnt++] = (char *) strdup(temp_text) ;
                         }
                         else
@@ -11586,16 +8497,9 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                              */
 
                             if ( block_label_start!=block_label_end )
-                                sprintf( temp_text,
-                                         "\tblock[%d]: %d-%d (Labels: %d-%d)\n", 1,
-                                         1,
-                                         qty_objects,
-                                         block_label_start,
-                                         block_label_end);
+                                sprintf( temp_text, "\tblock[%d]: %d-%d (Labels: %d-%d)\n", 1, 1, qty_objects, block_label_start, block_label_end);
                             else
-                                sprintf( temp_text,
-                                         "\tblock[%d]: %d (Label: %d)\n", 1,
-                                         block_start, block_label_start );
+                                sprintf( temp_text, "\tblock[%d]: %d (Label: %d)\n", 1, block_start, block_label_start );
                             start_text[cnt++] = (char *) strdup(temp_text) ;
                         }
                     }
@@ -11629,10 +8533,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
                                 block_start       = blocks[block_index] ;
                                 block_end         = blocks[block_index+1] ;
 
-                                sprintf( temp_text,
-                                         "\tblock[%d]: %d-%d\n", block_count++,
-                                         block_start,
-                                         block_end );
+                                sprintf( temp_text, "\tblock[%d]: %d-%d\n", block_count++, block_start, block_end );
 
                                 start_text[cnt++] = (char *) strdup(temp_text) ;
                                 block_index+=2;
@@ -11669,18 +8570,13 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 
                                 block_start       = blocks[block_index] ;
                                 block_end         = blocks[block_index+1] ;
-                                /* Unfortunately this is one spot that I am stuck leaving a -1 for the 
+                                /* Unfortunately this is one spot that I am stuck leaving a -1 for the
                                 *  indexing.  It derives from the blocking which 1 based.
                                 */
                                 block_label_start = get_class_label( class_ptr, block_start-1 );
                                 block_label_end   = get_class_label( class_ptr, block_end-1 );
 
-                                sprintf( temp_text,
-                                         "\tblock[%d]: %d-%d (Labels: %d-%d)\n", block_count++,
-                                         block_start,
-                                         block_end,
-                                         block_label_start,
-                                         block_label_end);
+                                sprintf( temp_text, "\tblock[%d]: %d-%d (Labels: %d-%d)\n", block_count++, block_start, block_end, block_label_start, block_label_end);
 
                                 start_text[cnt++] = (char *) strdup(temp_text) ;
                                 block_index+=2;
@@ -11702,12 +8598,12 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
 
 
     if ((cnt + analy->num_messages + 1) <= (MAX_DBTEXT_LINES-5)){
-    	start_text[cnt++] = (char *) strdup("\n");
-    	int pos = 0;
-		for(pos = 0; pos < analy->num_messages; pos++){
-			start_text[cnt++] = (char *) strdup(analy->conflict_messages[pos]) ;
-			//wrt_text();
-		}
+        start_text[cnt++] = (char *) strdup("\n");
+        int pos = 0;
+        for(pos = 0; pos < analy->num_messages; pos++){
+            start_text[cnt++] = (char *) strdup(analy->conflict_messages[pos]) ;
+            //wrt_text();
+        }
     }
 
     strcat( temp_text, "\n" );
@@ -11755,9 +8651,7 @@ wrt_standard_db_text( Analysis *analy, Bool_type advance )
  * Construct an array of the blocking for an sclass type.
  */
 MO_class_data *
-assemble_blocking( Analysis *analy, int sclass, char *class_name,
-                   int *qty_objects, int *label_block_qty,
-                   int *total_blocks, int *blocks, int *blocks_labels )
+assemble_blocking( Analysis *analy, int sclass, char *class_name, int *qty_objects, int *label_block_qty, int *total_blocks, int *blocks, int *blocks_labels )
 {
     int st_qty;
 
@@ -11789,8 +8683,7 @@ assemble_blocking( Analysis *analy, int sclass, char *class_name,
 
     analy->cur_state = 0;
 
-    analy->db_get_state( analy, 0, analy->state_p, &analy->state_p,
-                         &st_qty );
+    analy->db_get_state( analy, 0, analy->state_p, &analy->state_p, &st_qty );
     for ( j = 0;
             j < p_state_rec->qty;
             j++ )
@@ -11871,9 +8764,7 @@ assemble_blocking( Analysis *analy, int sclass, char *class_name,
  * Get basic info for object blocking.
  */
 MO_class_data *
-get_blocking_info( Analysis *analy,   char *class_name, int sclass,
-                   int *qty_objects,
-                   int *total_blocks, int **blocks )
+get_blocking_info( Analysis *analy,   char *class_name, int sclass, int *qty_objects, int *total_blocks, int **blocks )
 {
     MO_class_data *class_ptr;
     State_rec_obj *p_state_rec;
@@ -12154,8 +9045,7 @@ popup_dialog( int dtype, ... )
 
 
     /*
-     * Process the arguments. "dtype" will always be the first argument,
-     * so when converting to ANSI C and stdargs, it should be listed
+     * Process the arguments. "dtype" will always be the first argument, * so when converting to ANSI C and stdargs, it should be listed
      * explicitly in the argument list as the first argument.
      */
 
@@ -12231,12 +9121,7 @@ popup_dialog( int dtype, ... )
         Position ctl_x, ctl_y;
         Dimension ctl_width, ctl_height;
 
-        XtVaGetValues( ctl_shell_widg,
-                       XmNx, &ctl_x,
-                       XmNy, &ctl_y,
-                       XmNwidth, &ctl_width,
-                       XmNheight, &ctl_height,
-                       NULL );
+        XtVaGetValues( ctl_shell_widg, XmNx, &ctl_x, XmNy, &ctl_y, XmNwidth, &ctl_width, XmNheight, &ctl_height, NULL );
 
         first_popup_x = ctl_x + ctl_width / 2 - 100;
         first_popup_y = ctl_y + ctl_height / 2 - 100;
@@ -12245,8 +9130,7 @@ popup_dialog( int dtype, ... )
     /* Allocate list node to hold popup dialog handle. */
     p_wlo = NEW( Widget_list_obj, "Warning popup node" );
 
-    dialog_string = XmStringCreateLtoR( dialog_msg,
-                                        XmSTRING_DEFAULT_CHARSET );
+    dialog_string = XmStringCreateLtoR( dialog_msg, XmSTRING_DEFAULT_CHARSET );
 
     /* Create the widget. */
     n = 0;
@@ -12258,17 +9142,13 @@ popup_dialog( int dtype, ... )
     n++;
     p_wlo->handle = ( dtype == WARNING_POPUP )
                     ? XmCreateWarningDialog( ctl_shell_widg, "Warning", args, n )
-                    : XmCreateInformationDialog( ctl_shell_widg, "Information",
-                            args, n );
+                    : XmCreateInformationDialog( ctl_shell_widg, "Information", args, n );
 
     /* ...make it look and act right */
-    XtAddCallback( p_wlo->handle, XmNokCallback,
-                   (XtCallbackProc) remove_widget_CB, p_wlo );
+    XtAddCallback( p_wlo->handle, XmNokCallback, (XtCallbackProc) remove_widget_CB, p_wlo );
 
-    XtUnmanageChild( XmMessageBoxGetChild( p_wlo->handle,
-                                           XmDIALOG_CANCEL_BUTTON ));
-    XtUnmanageChild( XmMessageBoxGetChild( p_wlo->handle,
-                                           XmDIALOG_HELP_BUTTON ));
+    XtUnmanageChild( XmMessageBoxGetChild( p_wlo->handle, XmDIALOG_CANCEL_BUTTON ));
+    XtUnmanageChild( XmMessageBoxGetChild( p_wlo->handle, XmDIALOG_HELP_BUTTON ));
 
     XmStringFree( dialog_string );
 
@@ -12360,8 +9240,7 @@ popup_fatal( char *message )
     XtSetArg( args[n], XmNdeleteResponse, XmDO_NOTHING );
     n++;
     error_dialog = XmCreateErrorDialog( ctl_shell_widg, "error", args, n );
-    XtAddCallback( error_dialog, XmNokCallback, (XtCallbackProc) exit_CB,
-                   NULL );
+    XtAddCallback( error_dialog, XmNokCallback, (XtCallbackProc) exit_CB, NULL );
 
     /*
      * Link the window manager "close" function to the exit callback to
@@ -12369,11 +9248,8 @@ popup_fatal( char *message )
      * and then trying to continue with GRIZ.
      */
     dialog_shell = XtParent( error_dialog );
-    WM_DELETE_WINDOW = XmInternAtom( XtDisplay( ctl_shell_widg ),
-                                     "WM_DELETE_WINDOW", FALSE );
-    XmAddWMProtocolCallback( dialog_shell, WM_DELETE_WINDOW,
-                             (XtCallbackProc) exit_CB,
-                             (XtPointer)error_dialog );
+    WM_DELETE_WINDOW = XmInternAtom( XtDisplay( ctl_shell_widg ), "WM_DELETE_WINDOW", FALSE );
+    XmAddWMProtocolCallback( dialog_shell, WM_DELETE_WINDOW, (XtCallbackProc) exit_CB, (XtPointer)error_dialog );
 
     XtUnmanageChild(
         XmMessageBoxGetChild( error_dialog, XmDIALOG_CANCEL_BUTTON ) );
@@ -12398,10 +9274,8 @@ void
 reset_window_titles( void )
 {
     char title[100];
-    Analysis *p_analy;
-    p_analy = get_analy_ptr();
-
-    init_griz_name( p_analy );
+    Analysis *p_analy = get_analy_ptr();
+    char * path_string = make_path_str( p_analy );
 
     if ( env.bname )
         sprintf( title, "Control:  %s%s", path_string, env.bname );
@@ -12414,6 +9288,7 @@ reset_window_titles( void )
     else
         sprintf( title, "Render:  %s%s", path_string, env.plotfile_name );
     XtVaSetValues( rendershell_widg, XmNtitle, title, NULL );
+    free( path_string );
 
     if ( util_panel_widg )
     {
@@ -12448,6 +9323,10 @@ action_quit( Widget w, XEvent *event, String params[], int *qty )
 }
 
 
+void x11_signal( int code )
+{
+    exit( code );
+}
 /*****************************************************************
  * TAG( quit )
  *
@@ -12456,15 +9335,13 @@ action_quit( Widget w, XEvent *event, String params[], int *qty )
 void
 quit( int return_code )
 {
-    int i=1;
-
     (void) signal( SIGFPE, x11_signal );
 
     close_history_file();
     close_analysis( env.curr_analy );
     env.curr_analy->db_close( env.curr_analy );
 
-    if ( return_code !=0 )
+    if ( return_code != 0 )
         printf("\n\n Griz Completed with return code = %d\n", return_code);
     else
         printf("\n\n ** Griz Completed Normally **\n");
@@ -12476,7 +9353,7 @@ quit( int return_code )
 #ifdef SERIAL_BATCH
     exit(1);
 #else
-    /* XtDestroyWidget( ctl_shell_widg ); */
+
     exit( -1 );
 #endif
 }
@@ -12495,12 +9372,10 @@ switch_opengl_win( OpenGL_win opengl_win )
     case MESH_VIEW:
         if ( cur_opengl_win != MESH_VIEW )
         {
-            glXMakeCurrent( dpy, XtWindow( ogl_widg[MESH_VIEW] ),
-                            render_ctx );
+            glXMakeCurrent( dpy, XtWindow( ogl_widg[MESH_VIEW] ), render_ctx );
             cur_opengl_win = MESH_VIEW;
         }
         break;
-
     case SWATCH:
         if ( cur_opengl_win != SWATCH )
         {
@@ -12508,11 +9383,9 @@ switch_opengl_win( OpenGL_win opengl_win )
             cur_opengl_win = SWATCH;
         }
         break;
-
     default:
-        popup_dialog( WARNING_POPUP,
-                      "Attempt to make invalid OpenGL window current." );
-        glXMakeCurrent( dpy, XtWindow( ogl_widg[MESH_VIEW] ), render_ctx);
+        popup_dialog( WARNING_POPUP, "Attempt to make invalid OpenGL window current." );
+        glXMakeCurrent( dpy, XtWindow( ogl_widg[MESH_VIEW] ), render_ctx );
         cur_opengl_win = MESH_VIEW;
     }
 }
@@ -12544,20 +9417,16 @@ set_alt_cursor( Cursor_type cursor_type )
     popup_fatal( "set_alt_cursor:  Attempt to execute procedure in batch mode." );
 #else
 
-    XDefineCursor( dpy, XtWindow( ogl_widg[MESH_VIEW] ),
-                   alt_cursors[cursor_type] );
+    XDefineCursor( dpy, XtWindow( ogl_widg[MESH_VIEW] ), alt_cursors[cursor_type] );
     XDefineCursor( dpy, XtWindow( ctl_shell_widg ), alt_cursors[cursor_type] );
 
     /* Also set for Material Manager and (standalone) Utility Panel. */
     if ( mtl_mgr_widg != NULL )
-        XDefineCursor( dpy, XtWindow( ctl_shell_widg ),
-                       alt_cursors[cursor_type] );
+        XDefineCursor( dpy, XtWindow( ctl_shell_widg ), alt_cursors[cursor_type] );
     if ( surf_mgr_widg != NULL )
-        XDefineCursor( dpy, XtWindow( ctl_shell_widg ),
-                       alt_cursors[cursor_type] );
+        XDefineCursor( dpy, XtWindow( ctl_shell_widg ), alt_cursors[cursor_type] );
     if ( !include_util_panel && util_panel_widg != NULL )
-        XDefineCursor( dpy, XtWindow( util_panel_widg ),
-                       alt_cursors[cursor_type] );
+        XDefineCursor( dpy, XtWindow( util_panel_widg ), alt_cursors[cursor_type] );
 
     XFlush( dpy );
 
@@ -12794,10 +9663,7 @@ write_history_text( char * command, Bool_type hilite_text )
     Widget hist_list;
 
 #ifndef IRIX
-    text = XmStringGenerate( command,
-                             NULL,
-                             XmCHARSET_TEXT,
-                             NULL) ;
+    text = XmStringGenerate( command, NULL, XmCHARSET_TEXT, NULL) ;
 #endif
 
     if( text != NULL )
@@ -12895,40 +9761,38 @@ void popUpAllWindows( Display* dpy )
     }
 }
 
+
 /*****************************************************************
- * TAG( init_griz_name )
+ * TAG( make_path_str )
  *
- * Updates griz name and path info.
+ * Updates griz path info.
  *
  */
-void
-init_griz_name( Analysis *analy )
+char * make_path_str( Analysis * analy )
 {
-    size_t namlen;
-    char *name = "GRIZ ";
-    char beta_release[40];
+    size_t path_len = strlen(analy->root_name) + strlen(analy->path_name) + 4;
+    char * path_string = NEW_N( char, path_len, "Griz path string" );
+    sprintf( path_string, "[%s] %s", analy->root_name, analy->path_name );
+    return path_string;
+}
 
-    strcpy( path_string, "[" );
-    strcat( path_string, analy->root_name );
-    strcat( path_string, "] " );
-    strcat( path_string, analy->path_name );
-
-    /* Initialize the name string. */
-
-    /* Check for Alpha or Beta release of the code and
-     * build appropriate info message.
-     */
-    beta_release[0] = '\0';
-
+/*****************************************************************
+ * TAG( make_griz_name )
+ *
+ * Updates griz name.
+ *
+ */
+char * make_griz_name( Analysis *analy, char * vstr )
+{
+    /* Check for Alpha or Beta release of the code and build appropriate info message. */
+    char * release = NULL;
     if (env.run_alpha_version != 0.)
-        strcpy(beta_release, "** Alpha Release **");
+        release = "** Alpha Release **";
     if (env.run_beta_version != 0.)
-        strcpy(beta_release, "** Beta Release **");
-
-    if ( griz_name==NULL )
-    {
-        namlen = strlen( name ) + strlen( griz_version ) + strlen( beta_release ) + 1;
-        griz_name = NEW_N( char, namlen, "Griz name string" );
-        sprintf( griz_name, "%s%s%s", name, griz_version, beta_release );
-    }
+        release = "** Beta Release **";
+    char * name = "GRIZ ";
+    size_t name_len = strlen( name ) + strlen( vstr ) + strlen( release ) + 1;
+    char * griz_name = NEW_N( char, name_len, "Griz name string" );
+    sprintf( griz_name, "%s%s%s", name, vstr, release );
+    return griz_name;
 }

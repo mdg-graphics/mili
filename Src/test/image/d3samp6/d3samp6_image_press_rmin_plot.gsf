@@ -42,6 +42,7 @@ sw interp
 clrsel
 select brick 1 8 10 14 27 36 18 20-24 30
 select shell 3
+set_ipt 1 1
 
 # Test rmin/tmin & tmin/tmax with variable press
 sw mstat

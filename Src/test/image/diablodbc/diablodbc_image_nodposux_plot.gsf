@@ -42,7 +42,7 @@ select mat 1
 # Images for variable nodposux
 show nodpos[ux]
 l
-sw noterp
+sw interp
 outjpeg diablodbc_image_nodposux_plot.answ.jpg
 
 # EndCase 

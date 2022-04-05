@@ -12,6 +12,8 @@ alias OUTPUT outth ml40_th.jansw cur
 on thsinglecol
 on tha
 
+on pn
+
 # Plot for variable eps
 clrsel 
 select ml 1 667 963 1010

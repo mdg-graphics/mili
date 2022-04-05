@@ -1,0 +1,13 @@
+# dtshell image test problem
+# Set viewing
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+
+# Object selection
+select tshell 1-6
+set_ipt 1
+
+# Show result and output image
+show eps
+plot
+outjpeg dtshell_image_eps_th.answ.jpg

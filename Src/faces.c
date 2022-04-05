@@ -3242,11 +3242,6 @@ get_tri_verts_2d( int elem, MO_class_data *p_tri_class, Analysis *analy,
  * Return the vertices of a quad element.
  */
 void
-/*** ORIGINAL:
-get_quad_verts_3d( int elem, MO_class_data *p_quad_class, Analysis *analy,
-                   float verts[][3] )
-***/
-
 get_quad_verts_3d( int elem, int *p_connectivity, int mesh_id, Analysis *analy,
                    float verts[][3] )
 {
@@ -3255,19 +3250,9 @@ get_quad_verts_3d( int elem, int *p_connectivity, int mesh_id, Analysis *analy,
     GVec3D *nodes, *onodes;
     int (*connects)[4];
 
-    /*
-     * ORIGINAL:
-    connects = (int (*)[4]) p_quad_class->objects.elems->nodes;
-     */
-
     connects = (int (*)[4]) p_connectivity;
     nodes = analy->state_p->nodes.nodes3d;
     onodes = (GVec3D *) analy->cur_ref_state_data;
-
-    /*
-     * ORIGINAL:
-    p_node_geom = analy->mesh_table[p_quad_class->mesh_id].node_geom;
-     */
 
     for ( i = 0; i < 4; i++ )
     {

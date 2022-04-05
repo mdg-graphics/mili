@@ -43,7 +43,7 @@ on num
 # Images for variable dispr
 state 11;p;p;p
 show dispr
-sw noterp
+sw interp
 outjpeg bending-71_image_dispr_plot.answ.jpg
 
 # EndCase 

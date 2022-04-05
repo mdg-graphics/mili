@@ -43,7 +43,7 @@ anim
 show nodpos[ux]
 state 20
 state 75
-sw noterp
+sw interp
 outjpeg bar71_image_nodposux_plot.answ.jpg
 
 # EndCase 
