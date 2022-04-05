@@ -3323,7 +3323,7 @@ regenerate_pick_menus( void )
 
     /* Create new setpick1 menu and assign it. */
     static int btn1_pick = BTN1_PICK;
-    submenu = create_pick_submenu( menu, &btn1_pick, "Set Btn 1 Pick", NULL );
+    submenu = create_pick_submenu( child, &btn1_pick, "Set Btn 1 Pick", NULL );
     XtVaSetValues( setpick_menu1_widg, XmNsubMenuId, submenu, NULL );
 
     /* Destroy the existing setpick2 menu. */
@@ -3332,7 +3332,7 @@ regenerate_pick_menus( void )
 
     /* Create new setpick2 menu and assign it. */
     static int btn2_pick = BTN2_PICK;
-    submenu = create_pick_submenu( menu, &btn2_pick, "Set Btn 2 Pick", NULL );
+    submenu = create_pick_submenu( child, &btn2_pick, "Set Btn 2 Pick", NULL );
     XtVaSetValues( setpick_menu2_widg, XmNsubMenuId, submenu, NULL );
 
     /* Destroy the existing setpick3 menu. */
@@ -3341,7 +3341,7 @@ regenerate_pick_menus( void )
 
     /* Create new setpick3 menu and assign it. */
     static int btn3_pick = BTN3_PICK;
-    submenu = create_pick_submenu( menu, &btn3_pick, "Set Btn 3 Pick", NULL );
+    submenu = create_pick_submenu( child, &btn3_pick, "Set Btn 3 Pick", NULL );
     XtVaSetValues( setpick_menu3_widg, XmNsubMenuId, submenu, NULL );
 }
 
