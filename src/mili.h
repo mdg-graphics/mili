@@ -745,6 +745,10 @@ mc_load_conn_labels(       /* Read element labels into memory. */
    int  *labels );        /* (output) Destination buffer for element labels */
 
 Return_value
+mc_reload_states( 
+   Famid famid );
+
+Return_value
 mc_load_surface(           /* Read surface connectivities into memory. */
    Famid fam_id,          /* Mili family identifier */
    int mesh_id,           /* Ident of mesh to which surface belongs */
