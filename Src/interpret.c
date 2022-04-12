@@ -1823,11 +1823,11 @@ parse_single_command( char *buf, Analysis *analy )
 		}
 		else if ( strcmp( tokens[0], "reload" ) == 0 )
 		{
-			//if ( !load_analysis(  env.plotfile_name, analy, TRUE ) )
-			sprintf(filename_with_path,"%s%s",analy->path_name,env.plotfile_name);
-			if ( !load_analysis( filename_with_path, analy, TRUE ) )
-				return;
-			redraw = BINDING_MESH_VISUAL;
+            // There is no reason to load_analysis.  
+            // Really just need to get the current states.
+            rval = mc_reload_states( analy->db_ident);
+            
+            redraw = BINDING_MESH_VISUAL;
 		}
 		else if ( strcmp( tokens[0], "bufqty" ) == 0 )
 		{
