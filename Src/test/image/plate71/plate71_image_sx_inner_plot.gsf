@@ -1,0 +1,47 @@
+# plate71
+# Title: Pressure loaded plate, shell elements
+# Material Model: 71
+# Units: gm-cm-ms
+# End Time: 500000 (State 101)
+# Griz Script File: plate71_sx_plot.gsf
+# Min/Max Switch: global
+
+# Setup
+# alias chgst f;n;n;l // Enable after Release 13.1
+alias min 1
+alias max 101
+alias staterange minst min; maxst max
+clrsel 
+switch mglob
+# staterange; chgst // Enable after Release 13.1
+minst 1
+maxst 101
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; on box; on minmax
+off path
+rview; ry -140; rz -140
+zf 1.2
+ty .2
+refstate 10
+dscal 1.5
+
+# Object selection 
+select shell 1 100 91 56 10 35 50-51 76
+select mat 1
+
+# Images for variable sx
+sw inner
+show sx
+state 20
+maxst 95
+stride 10
+anim
+sw noterp
+outjpeg plate71_image_sx_inner_plot.answ.jpg
+
+# EndCase 
+
