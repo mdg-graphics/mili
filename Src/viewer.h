@@ -747,7 +747,8 @@ typedef enum
     NO_CENTER = 0,
     HILITE,
     NODE,
-    POINT
+    POINT,
+    SELECT
 } Center_view_sel_type;
 
 
