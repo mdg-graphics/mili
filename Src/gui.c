@@ -1403,7 +1403,7 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
                     sprintf( label_buffer, "%s[%s]", p_pr->short_name, comp_svar->short_name );
                     griz_str_dup( &analy->component_menu_specs[analy->component_spec_qty], label_buffer );
                     sprintf( label_buffer, "%s (%s)", comp_svar->long_name, comp_svar->short_name );
-                    add_show_button( result_menu, label_buffer, comp_svar->short_name, PRIMAL );
+                    add_show_button( result_menu, label_buffer, analy->component_menu_specs[analy->component_spec_qty], PRIMAL );
                     analy->component_spec_qty++;
                 }
             }

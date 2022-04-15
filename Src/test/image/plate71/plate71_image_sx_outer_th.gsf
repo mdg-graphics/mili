@@ -3,7 +3,7 @@
 # Material Model: 71
 # Units: gm-cm-ms
 # End Time: 500000 (State 101)
-# Griz Script File: plate71_sx_plot.gsf
+# Griz Script File: plate71_sx_th.gsf
 # Min/Max Switch: global
 
 # Setup
@@ -23,24 +23,17 @@ jpegqual 100
 # Set viewing 
 off all; on cmap; on title; on time; on coord; on box; on minmax
 off path
-rview; ry -140; rz -140
-zf 1.2
-ty .2
 refstate 10
-dscal 1.5
 
 # Object selection 
-select shell 1 100 91 56 10 35 50-51 76
+select shell all
 select mat 1
 
-# Images for variable sx
+# Image (TH) for variable sx
+sw outer
 show sx
-state 20
-maxst 95
-stride 10
-anim
-sw noterp
-outjpeg plate71_image_sx_plot.answ.jpg
+plot
+outjpeg plate71_image_sx_outer_th.answ.jpg
 
 # EndCase 
 

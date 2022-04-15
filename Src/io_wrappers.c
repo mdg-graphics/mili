@@ -1809,6 +1809,8 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
     analy->num_bad_subrecs=0;
     analy->bad_subrecs=NULL;
 
+    analy->old_shell_stresses = FALSE;
+
     /* Get state record format count for this database. */
     rval = mc_query_family( fid, QTY_SREC_FMTS, NULL, NULL,
                             (void *) &srec_qty );
@@ -1981,6 +1983,10 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
 
                 create_primal_result( p_mesh, i, subrec_index, p_subrecs + subrec_index, p_primal_ht,
                                       srec_qty, svar_names[k], p_sv_ht, analy );
+                
+                // Check for old shell stresses
+                if(!strcmp(svar_names[k], "stress_in") || !strcmp(svar_names[k], "stress_mid") || !strcmp(svar_names[k], "stress_out"))
+                    analy->old_shell_stresses = TRUE;
 
                 // If this result is a vector or a vector-array, create a primal result
                 // for each vector component and record the associated vector name

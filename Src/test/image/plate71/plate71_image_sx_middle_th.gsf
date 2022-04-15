@@ -30,9 +30,10 @@ select shell all
 select mat 1
 
 # Image (TH) for variable sx
+sw middle
 show sx
 plot
-outjpeg plate71_image_sx_th.answ.jpg
+outjpeg plate71_image_sx_middle_th.answ.jpg
 
 # EndCase 
 

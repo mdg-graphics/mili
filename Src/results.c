@@ -1624,7 +1624,7 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
     int *p_i;
     List_head *srec_map;
     Subrecord *p_s;
-    int i;
+    int i, j;
     p_dr = NULL;
     p_pr = NULL;
 
@@ -1769,32 +1769,35 @@ find_result( Analysis *analy, Result_table_type table, Bool_type cur_srec_only,
              * format, unlike p_result->name, which is used to make
              * db requests.
              */
-            if(p_pr->owning_vector_result[0] != NULL)
-            {
-                strcpy( p_result->title, p_pr->owning_vector_result[0]->long_name);
-                strcat( p_result->title, "[" );
-                if ( index_qty > 0 )
-                {
-                    sprintf( str, "%d", indices[index_qty - 1] );
-                    strcat( p_result->title, str );
-                }
-                for ( i = index_qty - 2; i >= 0; i-- )
-                {
-                    sprintf( str, ", %d", indices[i] );
-                    strcat( p_result->title, str );
-                }
+            if( p_pr->owning_vec_count > 0 ){
+                for( j = 0; j < p_pr->owning_vec_count; j++ ){
+                    if( strcmp(p_result->root, p_pr->owning_vector_result[j]->short_name) == 0 ){
+                        strcpy( p_result->title, p_pr->owning_vector_result[j]->long_name);
+                        strcat( p_result->title, "[" );
+                        if ( index_qty > 0 )
+                        {
+                            sprintf( str, "%d", indices[index_qty - 1] );
+                            strcat( p_result->title, str );
+                        }
+                        for ( i = index_qty - 2; i >= 0; i-- )
+                        {
+                            sprintf( str, ", %d", indices[i] );
+                            strcat( p_result->title, str );
+                        }
 
-                if ( index_qty > 0 )
-                    sprintf( str, ", %s", p_pr->long_name );
-                else
-                    strcpy( str, p_pr->long_name );
-                strcat( p_result->title, str );
+                        if ( index_qty > 0 )
+                            sprintf( str, ", %s", p_pr->long_name );
+                        else
+                            strcpy( str, p_pr->long_name );
+                        strcat( p_result->title, str );
 
-                strcat( p_result->title, "]" );
-            }
-            else
-            {
-                strcpy( p_result->title, p_pr->long_name );
+                        strcat( p_result->title, "]" );
+                        break;
+                    }
+                }
+                if( j == p_pr->owning_vec_count ){
+                    strcpy( p_result->title, p_pr->long_name );
+                }
             }
         }
         else
@@ -2451,6 +2454,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     char *primals[2];
     char primal_spec[32];
     char name[64];
+    char target[15];
     p_result = analy->cur_result;
     index = analy->result_index;
     subrec = p_result->subrecs[index];
@@ -2460,6 +2464,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     obj_qty = p_subrec->subrec.qty_objects;
     float * activity;
     Bool_type found = FALSE;
+    Bool_type is_old_shell_stress_result = FALSE;
     Primal_result* primal_result;
     Htable_entry *table_result;
 
@@ -2470,37 +2475,96 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
         primal_result = (Primal_result*)table_result->data;
     }
 
+    /* Check if we are trying to show an old shell stress result. */
+    if( analy->old_shell_stresses && primal_result->owning_vec_count > 0 ){
+        for( i = 0; i < primal_result->owning_vec_count; i++ ){
+            char* short_name = primal_result->owning_vector_result[i]->short_name;
+            if(!strcmp(short_name, "stress_in") || !strcmp(short_name, "stress_mid") || !strcmp(short_name, "stress_out") ){
+                is_old_shell_stress_result = TRUE;
+            }
+        }
+    }
+
     if( primal_result->owning_vec_count > 0){
         found = FALSE;
-        for( i = 0; i < primal_result->owning_vec_count; i++){
-            int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
-            for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
-            {
-                if(list[j] == subrec){
-                    found = TRUE;
-                    break;
+        if( is_old_shell_stress_result ){
+            /* 2 Possibilities:
+             *    1. asked for stress_[in|mid|out][component]
+             *    2. asked for stress component and need to check reference surface
+             */
+            if(!strcmp(p_result->root, "stress_in") || !strcmp(p_result->root, "stress_mid") || !strcmp(p_result->root, "stress_out") ){
+                strcpy(target, p_result->root);
+            }
+            else{
+                switch(analy->ref_surf){
+                    case INNER:
+                        strcpy(target, "stress_in");
+                        break;
+                    case MIDDLE:
+                        strcpy(target, "stress_mid");
+                        break;
+                    case OUTER:
+                        strcpy(target, "stress_out");
+                        break;
+                }
+                // Update reference surface flags for the result
+                p_result->modifiers.use_flags.use_ref_surface = 1;
+                p_result->modifiers.ref_surf = analy->ref_surf;
+                p_result->modifiers.use_flags.use_ref_frame = 1;
+                p_result->modifiers.ref_frame = analy->ref_frame;
+            }
+
+            for( i = 0; i < primal_result->owning_vec_count; i++){
+                if( !strcmp(target, primal_result->owning_vector_result[i]->short_name) ){
+                    int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
+                    for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
+                    {
+                        if( list[j] == subrec ){
+                            found = TRUE;
+                            break;
+                        }
+                    }
+                    if(found)
+                        break;
                 }
             }
-            if(found)
-                break;
         }
-
-        strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
-        if(p_subrec->element_set)
-        {
-            if(p_subrec->element_set->tempIndex < 0)
-            {
-                sprintf(primal_spec, "%s[%d,%s]", primal_spec,
-                        p_subrec->element_set->current_index+1, p_result->name);
-            }else
-            {
-                sprintf(primal_spec,"%s[%d,%s]" , primal_spec,
-                        p_subrec->element_set->tempIndex+1, p_result->name);
+        else{
+            for( i = 0; i < primal_result->owning_vec_count; i++){
+                int *list = (int*)primal_result->owning_vector_result[i]->srec_map->list;
+                for(j = 0; j < primal_result->owning_vector_result[i]->srec_map->qty; j++)
+                {
+                    if( list[j] == subrec ){
+                        found = TRUE;
+                        break;
+                    }
+                }
+                if(found)
+                    break;
             }
         }
-        else
-        {
-            sprintf(primal_spec,"%s[%s]" ,primal_spec, p_result->name);
+
+        if( found ){
+            strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+            if(p_subrec->element_set)
+            {
+                if(p_subrec->element_set->tempIndex < 0)
+                {
+                    sprintf(primal_spec, "%s[%d,%s]", primal_spec,
+                            p_subrec->element_set->current_index+1, p_result->name);
+                }else
+                {
+                    sprintf(primal_spec,"%s[%d,%s]" , primal_spec,
+                            p_subrec->element_set->tempIndex+1, p_result->name);
+                }
+            }
+            else
+            {
+                sprintf(primal_spec,"%s[%s]" ,primal_spec, p_result->name);
+            }
+        }
+        else{
+            sprintf(primal_spec, "%s", p_result->name);
         }
         primals[0] = primal_spec;
     }

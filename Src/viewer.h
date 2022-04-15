@@ -1459,6 +1459,8 @@ typedef struct _Analysis
  *   Added February , 2014:  WBO Switch to turn off auto gray
  *  */
     Bool_type auto_gray;
+
+    Bool_type old_shell_stresses;
 }
 Analysis;
 
