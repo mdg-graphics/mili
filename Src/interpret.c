@@ -9217,14 +9217,16 @@ parse_vcent( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
         center_view( analy );
         *p_redraw = BINDING_MESH_VISUAL;
     }
+    else if ( token_cnt > 1 && strcmp( tokens[1], "sel" ) == 0){
+		analy->center_view = SELECT;
+        center_view( analy );
+        *p_redraw = BINDING_MESH_VISUAL;
+	}
     else if ( token_cnt > 1
               && ( strcmp( tokens[1], "n" ) == 0
                    || strcmp( tokens[1], "node" ) == 0 ) )
     {
         ival = atoi( tokens[2] );
-        /*if ( ival < 1 || ival > MESH( analy ).node_geom->labels_max )
-            popup_dialog( INFO_POPUP,
-                          "Invalid node specified for view center" ); */
         ival = get_class_label_index(MESH(analy).node_geom, ival);
         if( ival == M_INVALID_LABEL)
             popup_dialog( INFO_POPUP,
@@ -9232,9 +9234,6 @@ parse_vcent( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
         else
         {
             analy->center_view = NODE;
-            /*analy->center_node = ival - 1;
-            analy->center_node = ival - MESH( analy ).node_geom->labels_min; */
-            //ival -= 1;
             analy->center_node = ival;
             center_view( analy );
             *p_redraw = BINDING_MESH_VISUAL;
@@ -9250,8 +9249,9 @@ parse_vcent( Analysis *analy, char tokens[MAXTOKENS][TOKENLENGTH],
         *p_redraw = BINDING_MESH_VISUAL;
     }
     else
-        popup_dialog( USAGE_POPUP, "vcent off\n%s\n%s\n%s",
+        popup_dialog( USAGE_POPUP, "vcent off\n%s\n%s\n%s\n%s",
                       "vcent hi",
+                      "vcent sel",
                       "vcent n|node <node_number>",
                       "vcent <x> <y> <z>" );
 }

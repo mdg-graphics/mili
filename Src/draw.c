@@ -3015,6 +3015,8 @@ center_view( Analysis *analy )
     Transf_mat view_trans;
     float ctr_pt[3], opt[3];
     float *pt, *factors;
+    float temp_pt[3], temp_opt[3];
+    int selected_obj_count = 0;
     int hi_num;
     int node;
     int i, j;
@@ -3024,6 +3026,7 @@ center_view( Analysis *analy )
     MO_class_data *p_mo_class;
     int *connects;
     Bool_type dscale=FALSE;
+    Specified_obj *p_so;
 
     pt = analy->view_center;
     dim = analy->dimension;
@@ -3109,6 +3112,71 @@ center_view( Analysis *analy )
         /* Do nothing, coords already in pt (i.e., analy->view_center). */
         if ( dscale )
             VEC_SET( opt, 0.0, 0.0, 0.0 );
+        break;
+
+    case SELECT:
+        if ( analy->selected_objects == NULL )
+            return;
+        VEC_SET( pt, 0.0, 0.0, 0.0 );
+        if ( dscale ){
+            VEC_SET( opt, 0.0, 0.0, 0.0 );
+        }
+        for( p_so = analy->selected_objects; p_so != NULL; NEXT( p_so ) ){
+            p_mo_class = p_so->mo_class;
+            switch(p_so->mo_class->superclass){
+                case G_NODE:
+                    selected_obj_count += 1;
+                    for ( i = 0; i < dim; i++ )
+                    {
+                        pt[i] += coords[p_so->ident * dim + i];
+                        if ( dscale )
+                            opt[i] += ocoords[p_so->ident * dim + i];
+                    }
+                    break;
+
+                case G_TRUSS:
+                case G_BEAM:
+                case G_TRI:
+                case G_QUAD:
+                case G_TET:
+                case G_PYRAMID:
+                case G_WEDGE:
+                case G_HEX:
+                case G_SURFACE:
+                case G_PARTICLE:
+                    selected_obj_count += 1;
+                    connects = p_mo_class->objects.elems->nodes;
+                    node_qty = qty_connects[p_mo_class->superclass];
+                    VEC_SET( temp_pt, 0.0, 0.0, 0.0 );
+                    if( dscale )
+                        VEC_SET( temp_opt, 0.0, 0.0, 0.0 );
+                    for ( i = 0; i < node_qty; i++ ){
+                        for ( j = 0; j < dim; j++ )
+                        {
+                            node = connects[p_so->ident * node_qty + i];
+                            temp_pt[j] += coords[node * dim + j];
+
+                            if ( dscale )
+                                temp_opt[j] += ocoords[node * dim + j] ;
+                        }
+                    }
+                    // Add to total position for selected objects
+                    for( j =0; j < dim; j++ ){
+                        pt[j] += temp_pt[j] / (float) node_qty;
+                        if( dscale )
+                            opt[j] += temp_opt[j] / (float) node_qty;
+                    }
+                    break;
+                default:
+                    return;
+            }
+        }
+
+        for( j = 0; j < dim; j++){
+            pt[j] = pt[j] / (float) selected_obj_count;
+            if( dscale )
+                opt[j] = opt[j] / (float) selected_obj_count;
+        }
         break;
 
     default:

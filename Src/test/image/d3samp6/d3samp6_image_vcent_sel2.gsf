@@ -1,0 +1,33 @@
+# d3samp6
+# Title: Beam element example quarter model INGDY6.dat (in.sec.lb-s^2/in)
+# End Time: 1.0e-3
+# Griz Script File: d3samp6_image_vcent_sel2.gsf
+# Min/Max Switch: global
+
+# Setup
+alias min 1
+alias max 81
+alias staterange minst 1; maxst 100
+clrsel 
+switch mglob
+
+minst 1
+maxst 100
+on thsinglecol
+fracsz 8
+jpegqual 100
+
+# Set viewing 
+off all; on cmap; on title; on time; on coord; off box; on minmax
+off path
+rview; ry 100; rx -30
+zf 1.15
+
+# Test vcent sel command
+select brick 17 24 1
+vcent sel
+state 66
+outjpeg d3samp6_image_vcent_sel2.answ.jpg
+
+# EndCase  
+
