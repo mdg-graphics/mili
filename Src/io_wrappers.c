@@ -1988,64 +1988,6 @@ mili_db_get_st_descriptors( Analysis *analy, int dbid )
                 if(!strcmp(svar_names[k], "stress_in") || !strcmp(svar_names[k], "stress_mid") || !strcmp(svar_names[k], "stress_out"))
                     analy->old_shell_stresses = TRUE;
 
-                // If this result is a vector or a vector-array, create a primal result
-                // for each vector component and record the associated vector name
-                rval = htable_search(p_primal_ht,svar_names[k], FIND_ENTRY,&p_hte );
-                if(rval == OK)
-                {
-                    Primal_result *p_pr = (Primal_result *)p_hte->data;
-                    if(p_pr->owning_vec_count == 0)
-                    {
-                        p_pr->owning_vector_result = NEW_N(struct _primal_result*,1,"New Primal Result");
-                        p_pr->owning_vector_result[0] = NULL;
-                    }else
-                    {
-                        p_pr->owning_vector_result = RENEW_N(struct _primal_result*,p_pr->owning_vector_result,
-                                                                      p_pr->owning_vec_count, 1,"Extending vector results");
-                        p_pr->owning_vector_result[p_pr->owning_vec_count] = NULL;
-                    }
-                    if ( p_svar->agg_type == VECTOR || p_svar->agg_type == VEC_ARRAY)
-                    {
-                        Primal_result *owning_pr = p_pr;
-                        int vec_index;
-                        // Loop over vector components and create primal results
-                        for(vec_index = 0; vec_index< p_svar->vec_size; vec_index++)
-                        {
-                            create_primal_result( p_mesh, i, subrec_index, p_subrecs + subrec_index,
-                                                p_primal_ht, srec_qty, p_svar->components[vec_index],
-                                                p_sv_ht, analy );
-
-                            // Lookup newly created primal result and record owning vector or vector-array result
-                            rval = htable_search(p_primal_ht,p_svar->components[vec_index], FIND_ENTRY,&p_hte );
-                            if(rval == OK)
-                            {
-                                p_pr = (Primal_result *)p_hte->data;
-                                if(p_pr->owning_vec_count == 0)
-                                {
-                                    p_pr->owning_vector_result = NEW_N(struct _primal_result*,1,"New Primal Result");
-                                    p_pr->owning_vector_result[0] = (struct _primal_result*)owning_pr;
-                                    p_pr->owning_vec_count++;
-                                }else
-                                {
-                                    /* Check if owning_pr already recorded */
-                                    for( l = 0; l < p_pr->owning_vec_count; l++){
-                                        if( p_pr->owning_vector_result[l] == owning_pr)
-                                            break;
-                                    }
-                                    /* If not, add it */
-                                    if( l == p_pr->owning_vec_count){
-                                        p_pr->owning_vector_result = RENEW_N(struct _primal_result*,p_pr->owning_vector_result,
-                                                                                p_pr->owning_vec_count, 1,
-                                                                                "Extending vector results");
-                                        p_pr->owning_vector_result[p_pr->owning_vec_count] = (struct _primal_result*)owning_pr;
-                                        p_pr->owning_vec_count++;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
                 if ( nodal )
                 {
                     if ( strcmp( svar_names[k], "nodpos" ) == 0 )
@@ -2310,7 +2252,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
     Primal_result *p_pr;
     ES_in_menu *p_es;
     Subrec_obj **p_subrec;
-    int i, j, size;
+    int i, j, l, size;
     int *p_i;
     int superclass;
     char *p_sand_var;
@@ -2351,6 +2293,8 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         /* Get the State_variable for it. */
         p_pr->var = p_sv;
 
+        p_pr->in_element_set = FALSE;
+
         /* Assign appropriate long/short name to Primal_result. */
         if(es_short_name == NULL){
             /* Not an element set, use existing short/long name */
@@ -2361,7 +2305,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         }
         else{
             /* Is an element set, check for stress/strain */
-            rval3 = attach_element_set(analy,p_subr_obj,p_name);
+            attach_element_set( analy, p_subr_obj, p_name );
             p_pr->short_name = (char*)calloc(sizeof(char),strlen(es_short_name)+1);
             strcpy(p_pr->short_name, es_short_name);
             p_pr->long_name = calloc(sizeof(char),7);
@@ -2428,9 +2372,8 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
             p_hte3->data = (void *) p_pr;
         }
 
-        /* Make sure to attach element set to this subrecord, if one exists. */
-        if(es_short_name != NULL)
-            attach_element_set(analy, p_subr_obj, p_name);
+        if( es_short_name != NULL )
+            attach_element_set( analy, p_subr_obj, p_name );
 
         if ( p_pr->srec_map[srec_id].list == NULL )
         {
@@ -2521,6 +2464,10 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         }
     }
 
+    /* If this is a vector array result, attach element set */
+    if( p_pr->var->agg_type == VEC_ARRAY )
+        attach_element_set( analy, p_subr_obj, p_pr->short_name );
+
     /* Check for sand flag. */
     p_sand_var = ( db_type == EXODUS ) ? "STATUS" : "sand";
     if( strncmp( p_name, p_sand_var, 4 ) == 0
@@ -2530,6 +2477,61 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
 
         if ( ((Primal_result *) (p_hte->data))->var->num_type == M_FLOAT8 )
             p_mesh->double_precision_sand = TRUE;
+    }
+
+    // Handle vector and vector array results and their component svars
+    if(p_pr->owning_vec_count == 0)
+    {
+        p_pr->owning_vector_result = NEW_N(struct _primal_result*,1,"New Primal Result");
+        p_pr->owning_vector_result[0] = NULL;
+    }else
+    {
+        p_pr->owning_vector_result = RENEW_N(struct _primal_result*,p_pr->owning_vector_result,
+                                                        p_pr->owning_vec_count, 1,"Extending vector results");
+        p_pr->owning_vector_result[p_pr->owning_vec_count] = NULL;
+    }
+    if ( p_sv->agg_type == VECTOR || p_sv->agg_type == VEC_ARRAY)
+    {
+        Primal_result *owning_pr = p_pr;
+        int vec_index;
+        // Loop over vector components and create primal results
+        for(vec_index = 0; vec_index< p_sv->vec_size; vec_index++)
+        {
+            create_primal_result( p_mesh, srec_id, subrec_id, p_subr_obj,
+                                  p_primal_ht, qty_srec_fmts, p_sv->components[vec_index],
+                                  p_sv_ht, analy );
+
+            // Lookup newly created primal result and record owning vector or vector-array result
+            rval = htable_search(p_primal_ht, p_sv->components[vec_index], FIND_ENTRY,&p_hte );
+            if(rval == OK)
+            {
+                p_pr = (Primal_result *)p_hte->data;
+                if(p_pr->owning_vec_count == 0)
+                {
+                    p_pr->owning_vector_result = NEW_N(struct _primal_result*,1,"New Primal Result");
+                    p_pr->owning_vector_result[0] = (struct _primal_result*)owning_pr;
+                    p_pr->owning_vec_count++;
+                }else
+                {
+                    /* Check if owning_pr already recorded */
+                    for( l = 0; l < p_pr->owning_vec_count; l++){
+                        if( p_pr->owning_vector_result[l] == owning_pr)
+                            break;
+                    }
+                    /* If not, add it */
+                    if( l == p_pr->owning_vec_count){
+                        p_pr->owning_vector_result = RENEW_N(struct _primal_result*,p_pr->owning_vector_result,
+                                                                p_pr->owning_vec_count, 1,
+                                                                "Extending vector results");
+                        p_pr->owning_vector_result[p_pr->owning_vec_count] = (struct _primal_result*)owning_pr;
+                        p_pr->owning_vec_count++;
+                    }
+                }
+                // If owning primal result is an element set mark this result as being in an element set
+                if( strncmp(owning_pr->short_name, "es_", 3) == 0 )
+                    p_pr->in_element_set = TRUE;
+            }
+        }
     }
 
     return OK;

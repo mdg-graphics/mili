@@ -1372,8 +1372,13 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
     else
         XtVaGetValues( submenu_cascade, XmNsubMenuId, &submenu, NULL );
 
-    /* Now add the new primal result button. */
-    if( p_pr->owning_vec_count == 0 ) // don't add buttons for terms contained in other terms as they should be added by vec/vec_array/array?
+    /* Now add the new primal result button.
+     *
+     * We don't add buttons for terms contained in vec/vec_array/array as they are added when
+     * the button is created for the vec/vec_array/array.
+     * We don't add buttons for element sets, just the results contained in the element sets.
+     */
+    if( p_pr->owning_vec_count == 0 || p_pr->in_element_set)
     {
         if ( p_pr->var->agg_type == SCALAR )
         {
@@ -1620,6 +1625,9 @@ create_primal_res_menu( Analysis * analy, Widget parent )
             Primal_result * p_pr = (Primal_result *) p_pr_data[ii];
             // Don't put string results data in the menu
             if ( p_pr->var->num_type == M_STRING )
+                continue;
+            // Don't put element sets in the menu
+            if ( strncmp(p_pr->short_name, "es_", 3) == 0 )
                 continue;
             if ( !p_pr->in_menu )
             {
