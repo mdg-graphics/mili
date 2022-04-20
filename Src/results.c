@@ -2448,7 +2448,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     int subrec, srec;
     int obj_qty, len;
     int es_qty;
-    int index, j;
+    int index, j, k;
     int *object_ids;
     Subrec_obj *p_subrec;
     char *primals[2];
@@ -2465,6 +2465,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     float * activity;
     Bool_type found = FALSE;
     Bool_type is_old_shell_stress_result = FALSE;
+    Bool_type use_original_name = FALSE;
     Primal_result* primal_result;
     Htable_entry *table_result;
 
@@ -2545,17 +2546,43 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
         }
 
         if( found ){
-            strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+            /* Check for element set containing the owning vector of the current result. */
+            use_original_name = FALSE;
+            found = FALSE;
+            if( primal_result->owning_vector_result[i]->in_element_set ){
+                for( k = 0; k < primal_result->owning_vector_result[i]->owning_vec_count; k++ ){
+                    int *list = (int*) primal_result->owning_vector_result[i]->owning_vector_result[k]->srec_map->list;
+                    for( j = 0; j < primal_result->owning_vector_result[i]->owning_vector_result[k]->srec_map->qty; j++ ){
+                        if( list[j] == subrec ){
+                            found = TRUE;
+                            break;
+                        }
+                    }
+                    if(found)
+                        break;
+                }
+                strcpy(primal_spec, primal_result->owning_vector_result[i]->owning_vector_result[k]->original_names_per_subrec[j]);
+                use_original_name = TRUE;
+            }
+            else{
+                strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+            }
+
+            /* Construct result to query in Mili. */
             if(p_subrec->element_set)
             {
                 if(p_subrec->element_set->tempIndex < 0)
                 {
-                    sprintf(primal_spec, "%s[%d,%s]", primal_spec,
-                            p_subrec->element_set->current_index+1, p_result->name);
+                    if( use_original_name)
+                        sprintf(primal_spec, "%s[%d,%s]", primal_spec, p_subrec->element_set->current_index+1, p_result->original_name);
+                    else
+                        sprintf(primal_spec, "%s[%d,%s]", primal_spec, p_subrec->element_set->current_index+1, p_result->name);
                 }else
                 {
-                    sprintf(primal_spec,"%s[%d,%s]" , primal_spec,
-                            p_subrec->element_set->tempIndex+1, p_result->name);
+                    if( use_original_name )
+                        sprintf(primal_spec,"%s[%d,%s]" , primal_spec, p_subrec->element_set->tempIndex+1, p_result->original_name);
+                    else
+                        sprintf(primal_spec,"%s[%d,%s]" , primal_spec, p_subrec->element_set->tempIndex+1, p_result->name);
                 }
             }
             else

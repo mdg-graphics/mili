@@ -158,6 +158,7 @@ typedef struct _primal_result
     Subrec_obj **subrecs;         // List of Subrec_objs
     int qty_subrecs;
     Bool_type is_shared;        // Is the result shared by multiple element classes
+    Bool_type in_element_set;   // Is the result in an element set. Used when creating menus.
     int owning_vec_count;
     struct _primal_result **owning_vector_result;
     char **original_names_per_subrec;
