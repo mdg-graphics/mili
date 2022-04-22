@@ -2243,8 +2243,9 @@ map_subset_spec( Svar *p_svar, int indices[], int index_qty, char *component,
                  int comp_index, char *sub_component, 
                  int sub_comp_index, Translated_ref *p_tref )
 {
-   int i;
+   int i, j;
    int svar_dims[M_MAX_ARRAY_DIMS + 1];
+   int vec_array_comp_offset[M_MAX_ARRAY_DIMS + 1];
    int svar_dim_sizes[M_MAX_ARRAY_DIMS + 1];
    int svar_rank;
    int dim_size;
@@ -2291,14 +2292,29 @@ map_subset_spec( Svar *p_svar, int indices[], int index_qty, char *component,
                return MALFORMED_SUBSET;
             }
          }
+
          //Adding one for the number of vector components
          svar_rank = *p_svar->order + 1;  
-         svar_dims[svar_rank - 1] = *p_svar->list_size;
-         if(have_subcomponent)
-         {
-            svar_dims[svar_rank - 1] += *sub_p_svar->list_size -1;
+
+         svar_dims[svar_rank - 1] = 0;
+         for( i = 0; i < *p_svar->list_size; i++ ){
+            vec_array_comp_offset[i] = svar_dims[svar_rank-1];
+            switch(*p_svar->svars[i]->agg_type){
+               case SCALAR:
+                  svar_dims[svar_rank-1] += 1;
+                  break;
+               case ARRAY:
+                  for( j = 0; j < *p_svar->svars[i]->order; j++){
+                     svar_dims[svar_rank-1] += p_svar->svars[i]->dims[j];
+                  }
+                  break;
+               case VECTOR:
+                  svar_dims[svar_rank-1] += *p_svar->svars[i]->list_size;
+                  break;
+            }
          }
          svar_dim_sizes[svar_rank - 1] = 1;
+
          for ( i = svar_rank - 2, dim_size = svar_dims[svar_rank - 1]; i > -1; i-- )
          {
             svar_dims[i] = p_svar->dims[i];
@@ -2328,7 +2344,11 @@ map_subset_spec( Svar *p_svar, int indices[], int index_qty, char *component,
    if ( *component != '\0' )
    {
       spec_rank++;
-      spec_indices[i] = comp_index;  
+      if(*p_svar->agg_type == VEC_ARRAY)
+         spec_indices[i] = vec_array_comp_offset[comp_index];
+      else 
+         spec_indices[i] = comp_index;
+      // Offset to subcomponent if necessary
       if(*sub_component != '\0')
       {
         spec_indices[i] += sub_comp_index;
