@@ -282,7 +282,6 @@ build:  mililibcheck.txt update_objects $(OBJS)
 		$(LD) $(CC_FLAGS) $(LDFLAGS_EXTRA) -o $(GRIZ_EXE) $(OBJS) $(MILILIBPATH) $(MILILIB) $(LIBS)
 		@ -mv $(ROOT_DIR)/src/*.o $(OBJS_PATH)
 		mv $(GRIZ_EXE) $(EXEC_PATH)/$(GRIZ_EXE)
-		-cp ../Doc/griz_start_text $(EXEC_PATH)/. ;
 		if test -e ../Doc/Griz-Manual-$(GRIZ_VERSION)/GrizUsersGuide-$(GRIZ_VERSION).pdf; then \
 			cp ../Doc/Griz-Manual-$(GRIZ_VERSION)/GrizUsersGuide-$(GRIZ_VERSION).pdf $(EXEC_PATH)/.; \
 			ln -sf GrizUsersGuide-$(GRIZ_VERSION).pdf $(EXEC_PATH)/griz_manual.pdf; \
