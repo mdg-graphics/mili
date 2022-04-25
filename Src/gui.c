@@ -1378,7 +1378,7 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
      * the button is created for the vec/vec_array/array.
      * We don't add buttons for element sets, just the results contained in the element sets.
      */
-    if( p_pr->owning_vec_count == 0 || p_pr->in_element_set)
+    if( p_pr->owning_vec_count == 0 || p_pr->in_vector_array)
     {
         if ( p_pr->var->agg_type == SCALAR )
         {
@@ -1423,9 +1423,9 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
                     for ( i = 0; i < p_pr->var->dims[0]; i++ )
                     {
                         analy->component_menu_specs = RENEW_N( char *, analy->component_menu_specs, analy->component_spec_qty, 1, "Extend menu specs" );
-                        sprintf( label_buffer, "%s[%s]", p_pr->short_name, i+1 );
+                        sprintf( label_buffer, "%s[%d]", p_pr->short_name, i+1 );
                         griz_str_dup( &analy->component_menu_specs[analy->component_spec_qty], label_buffer );
-                        sprintf( label_buffer, "[%s]", i+1 );
+                        sprintf( label_buffer, "[%d]", i+1 );
                         add_show_button( result_menu, label_buffer, analy->component_menu_specs[analy->component_spec_qty], PRIMAL );
                         analy->component_spec_qty++;
                     }
@@ -1434,7 +1434,7 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
                 {
                     for ( i = 0; i < p_pr->var->dims[1]; i++ )
                     {
-                        sprintf( label_buffer, "[%s]", i + 1 );
+                        sprintf( label_buffer, "[%d]", i + 1 );
                         Widget result_submenu = add_pulldown_submenu( result_menu, label_buffer );
                         for ( j = 0; j < p_pr->var->dims[0]; j++ )
                         {
@@ -1444,7 +1444,7 @@ add_primal_result_button( Analysis * analy, Widget parent, Primal_result *p_pr )
                             analy->component_menu_specs = RENEW_N( char *, analy->component_menu_specs, analy->component_spec_qty, 1, "Extend menu specs" );
                             sprintf( label_buffer, "%s[%d,%d]", p_pr->short_name, i + 1, j + 1 );
                             griz_str_dup( &analy->component_menu_specs[analy->component_spec_qty], label_buffer );
-                            sprintf( label_buffer, "[%s]", j + 1 );
+                            sprintf( label_buffer, "[%d]", j + 1 );
                             add_show_button( result_menu, label_buffer, analy->component_menu_specs[analy->component_spec_qty], PRIMAL );
                             analy->component_spec_qty++;
                         }
@@ -1615,28 +1615,50 @@ create_primal_res_menu( Analysis * analy, Widget parent )
     if ( p_pr_ht == NULL )
         return;
     void ** p_pr_data = NULL;
-    int qty_pr = 0;
-    int rval = htable_get_data( p_pr_ht, &p_pr_data, &qty_pr );
-    if ( rval == OK )
-    {
-        int ii = 0;
-        for( ii = 0; ii < qty_pr; ++ii )
-        {
-            Primal_result * p_pr = (Primal_result *) p_pr_data[ii];
-            // Don't put string results data in the menu
-            if ( p_pr->var->num_type == M_STRING )
-                continue;
-            // Don't put element sets in the menu
-            if ( strncmp(p_pr->short_name, "es_", 3) == 0 )
-                continue;
-            if ( !p_pr->in_menu )
-            {
-                add_primal_result_button( analy, primal_menu_widg, p_pr );
-                p_pr->in_menu = TRUE;
+
+    Primal_result *p_pr, *p_pr_es_component;
+    Subrec_obj* p_subrec;
+    Htable_entry* p_hte;
+    int i, j, k, l, rval;
+
+    /* We loop over the subrecords here instead of the primal result hashtable in order
+     * to mimic the order in which the simulation codes output the results in Griz's
+     * primal menu. This leads to results being grouped together in a more consistant, logical way. */
+    for( i = 0; i < analy->qty_srec_fmts; i++ ){
+        for( j = 0; j < analy->srec_tree[i].qty; j++ ){
+            p_subrec = analy->srec_tree[i].subrecs + j;
+            for( k = 0; k < p_subrec->subrec.qty_svars; k++ ){
+                rval = htable_search( p_pr_ht, p_subrec->subrec.svar_names[k], FIND_ENTRY, &p_hte );
+                if( rval == OK ){
+                    p_pr = (Primal_result*) p_hte->data;
+                    // Don't put string results data in the menu
+                    if ( p_pr->var->num_type == M_STRING )
+                        continue;
+                    // Don't put element sets in the menu, just there components
+                    if ( strncmp(p_pr->short_name, "es_", 3) == 0 ){
+                        for( l = 0; l < p_pr->var->vec_size; l++ ){
+                            rval = htable_search( p_pr_ht, p_pr->var->components[l], FIND_ENTRY, &p_hte );
+                            if(rval == OK){
+                                p_pr_es_component = (Primal_result*) p_hte->data;
+                                if( !p_pr_es_component->in_menu ){
+                                    add_primal_result_button( analy, primal_menu_widg, p_pr_es_component );
+                                    p_pr_es_component->in_menu = TRUE;
+                                }
+                            }
+
+                        }
+                    }
+                    else{
+                        if ( !p_pr->in_menu )
+                        {
+                            add_primal_result_button( analy, primal_menu_widg, p_pr );
+                            p_pr->in_menu = TRUE;
+                        }
+                    }
+                }
             }
         }
     }
-    free(p_pr_data);
 }
 
 

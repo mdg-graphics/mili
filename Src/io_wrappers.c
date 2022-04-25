@@ -2252,12 +2252,13 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
     Primal_result *p_pr;
     ES_in_menu *p_es;
     Subrec_obj **p_subrec;
-    int i, j, l, size;
+    int i, j, k, l, array_index, dim_index, size;
     int *p_i;
     int superclass;
     char *p_sand_var;
     const char * es_short_name = NULL;
     static int first = 0;
+    char label[M_MAX_NAME_LEN];
 
 
     // Look up state variable by name and check if it is an element set.
@@ -2293,7 +2294,7 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
         /* Get the State_variable for it. */
         p_pr->var = p_sv;
 
-        p_pr->in_element_set = FALSE;
+        p_pr->in_vector_array = FALSE;
 
         /* Assign appropriate long/short name to Primal_result. */
         if(es_short_name == NULL){
@@ -2529,7 +2530,38 @@ create_primal_result( Mesh_data *p_mesh, int srec_id, int subrec_id,
                 }
                 // If owning primal result is an element set mark this result as being in an element set
                 if( strncmp(owning_pr->short_name, "es_", 3) == 0 )
-                    p_pr->in_element_set = TRUE;
+                    p_pr->in_vector_array = TRUE;
+            }
+        }
+    }else if ( p_sv->agg_type == ARRAY)
+    {
+        // We just need to make sure that the show string given from the 
+        // from the menu callback and the input line
+        if(p_sv->rank == 1)
+        {
+             for(array_index = 0 ; array_index < p_sv->dims[0]; array_index++)
+             {
+                 sprintf(label, "%s[%d]", p_name, array_index+1);
+                 rval = htable_search( p_primal_ht, label, ENTER_UNIQUE, &p_hte4 );
+                 if(rval == OK)
+                 {
+                     p_hte4->data = p_pr;
+                 }
+             }
+        }else
+        {
+            for ( dim_index = 0; dim_index < p_pr->var->dims[0]; dim_index++ )
+            {
+                for ( array_index = 0; array_index < p_pr->var->dims[0]; array_index++ )
+                {
+                    sprintf( label, "%s[%d,%d]", p_pr->short_name, dim_index + 1, array_index + 1 );
+                    rval = htable_search( p_primal_ht, label, ENTER_UNIQUE, &p_hte4);
+                    
+                    if(rval == OK)
+                    {
+                        p_hte4->data = p_pr;
+                    }
+                }
             }
         }
     }

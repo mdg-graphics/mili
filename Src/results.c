@@ -2549,7 +2549,7 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
         if( found ){
             /* Check for vector array containing the owning vector of the current result. */
             found = FALSE;
-            if( primal_result->owning_vector_result[i]->in_element_set ){
+            if( primal_result->owning_vector_result[i]->in_vector_array ){
                 for( k = 0; k < primal_result->owning_vector_result[i]->owning_vec_count; k++ ){
                     int *list = (int*) primal_result->owning_vector_result[i]->owning_vector_result[k]->srec_map->list;
                     for( l = 0; l < primal_result->owning_vector_result[i]->owning_vector_result[k]->srec_map->qty; l++ ){
@@ -2588,6 +2588,10 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
             sprintf(primal_spec, "%s", p_result->name);
         }
         primals[0] = primal_spec;
+    }
+    else if(primal_result->var->agg_type == ARRAY)
+    {
+        primals[0] = analy->cur_result->name;
     }
     else
     {
