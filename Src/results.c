@@ -2448,7 +2448,8 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
     int subrec, srec;
     int obj_qty, len;
     int es_qty;
-    int index, j, k;
+    int index, j, k, l;
+    int ipt_index;
     int *object_ids;
     Subrec_obj *p_subrec;
     char *primals[2];
@@ -2546,14 +2547,13 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
         }
 
         if( found ){
-            /* Check for element set containing the owning vector of the current result. */
-            use_original_name = FALSE;
+            /* Check for vector array containing the owning vector of the current result. */
             found = FALSE;
             if( primal_result->owning_vector_result[i]->in_element_set ){
                 for( k = 0; k < primal_result->owning_vector_result[i]->owning_vec_count; k++ ){
                     int *list = (int*) primal_result->owning_vector_result[i]->owning_vector_result[k]->srec_map->list;
-                    for( j = 0; j < primal_result->owning_vector_result[i]->owning_vector_result[k]->srec_map->qty; j++ ){
-                        if( list[j] == subrec ){
+                    for( l = 0; l < primal_result->owning_vector_result[i]->owning_vector_result[k]->srec_map->qty; l++ ){
+                        if( list[l] == subrec ){
                             found = TRUE;
                             break;
                         }
@@ -2561,32 +2561,26 @@ load_primal_result( Analysis *analy, float *resultArr, Bool_type interpolate )
                     if(found)
                         break;
                 }
-                strcpy(primal_spec, primal_result->owning_vector_result[i]->owning_vector_result[k]->original_names_per_subrec[j]);
-                use_original_name = TRUE;
-            }
-            else{
-                strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
-            }
-
-            /* Construct result to query in Mili. */
-            if(p_subrec->element_set)
-            {
+                strcpy(primal_spec, primal_result->owning_vector_result[i]->owning_vector_result[k]->original_names_per_subrec[l]);
                 if(p_subrec->element_set->tempIndex < 0)
-                {
-                    if( use_original_name)
-                        sprintf(primal_spec, "%s[%d,%s]", primal_spec, p_subrec->element_set->current_index+1, p_result->original_name);
-                    else
-                        sprintf(primal_spec, "%s[%d,%s]", primal_spec, p_subrec->element_set->current_index+1, p_result->name);
-                }else
-                {
-                    if( use_original_name )
-                        sprintf(primal_spec,"%s[%d,%s]" , primal_spec, p_subrec->element_set->tempIndex+1, p_result->original_name);
-                    else
-                        sprintf(primal_spec,"%s[%d,%s]" , primal_spec, p_subrec->element_set->tempIndex+1, p_result->name);
-                }
+                    ipt_index = p_subrec->element_set->current_index+1;
+                else
+                    ipt_index = p_subrec->element_set->tempIndex+1;
+                sprintf(primal_spec,"%s[%d,%s[%s]]" , primal_spec, ipt_index,
+                        primal_result->owning_vector_result[i]->original_names_per_subrec[j], primal_result->short_name);
             }
+            else if(p_subrec->element_set){
+                strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
+                if(p_subrec->element_set->tempIndex < 0)
+                    ipt_index = p_subrec->element_set->current_index+1;
+                else
+                    ipt_index = p_subrec->element_set->tempIndex+1;
+                sprintf(primal_spec,"%s[%d,%s]" , primal_spec, ipt_index, p_result->name);
+            }
+            /* If this is not an element set, we need to add in result name */
             else
             {
+                strcpy(primal_spec, primal_result->owning_vector_result[i]->original_names_per_subrec[j]);
                 sprintf(primal_spec,"%s[%s]" ,primal_spec, p_result->name);
             }
         }
