@@ -1926,33 +1926,37 @@ static void get_min_max( Analysis *, Bool_type, float *, float * );
 /*static void draw_grid( Analysis * );
 static void draw_grid_2d( Analysis * ); */
 
-static void draw_hexs( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                       char* , Analysis * );
+static void draw_hexs( Bool_type, Bool_type, Bool_type, Bool_type,
+                       MO_class_data *, char* , Analysis * );
 
-static void draw_pyramids( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                           char* , Analysis * );
+static void draw_pyramids( Bool_type, Bool_type, Bool_type, Bool_type,
+                           MO_class_data *, char* , Analysis * );
 
 static void draw_wedges( Bool_type, Bool_type, Bool_type, MO_class_data *,
                          Analysis * );
 
-static void draw_tets( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                       char*, Analysis * );
+static void draw_tets( Bool_type, Bool_type, Bool_type, Bool_type,
+                       MO_class_data *, char*, Analysis * );
 
-static void draw_quads_2d( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                           char*, Analysis * );
-static void draw_quads_3d( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                           char*, Analysis * );
+static void draw_quads_2d( Bool_type, Bool_type, Bool_type, Bool_type,
+                           MO_class_data *, char*, Analysis * );
+static void draw_quads_3d( Bool_type, Bool_type, Bool_type, Bool_type,
+                           MO_class_data *, char*, Analysis * );
 
-static void draw_tris_2d( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                          char*, Analysis * );
-static void draw_tris_3d( Bool_type, Bool_type, Bool_type, MO_class_data *,
-                          char*, Analysis * );
+static void draw_tris_2d( Bool_type, Bool_type, Bool_type, Bool_type,
+                          MO_class_data *, char*, Analysis * );
+static void draw_tris_3d( Bool_type, Bool_type, Bool_type, Bool_type,
+                          MO_class_data *, char*, Analysis * );
 
-static void draw_beams_2d( Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
-static void draw_beams_3d( Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
+static void draw_beams_2d( Bool_type, Bool_type, Bool_type, Bool_type,
+                           MO_class_data *, char*, Analysis * );
+static void draw_beams_3d( Bool_type, Bool_type, Bool_type, Bool_type,
+                           MO_class_data *, char*, Analysis * );
 
-static void draw_truss_2d( Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
-static void draw_truss_3d( Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
+static void draw_truss_2d( Bool_type, Bool_type, Bool_type, Bool_type,
+                           MO_class_data *, char*, Analysis * );
+static void draw_truss_3d( Bool_type, Bool_type, Bool_type, Bool_type,
+                           MO_class_data *, char*, Analysis * );
 
 static void draw_surfaces_2d( Color_property *, Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
 static void draw_surfaces_3d( Color_property *, Bool_type, Bool_type, Bool_type, MO_class_data *, char*, Analysis * );
@@ -4029,6 +4033,7 @@ draw_grid( Analysis *analy )
     Surface_data *p_sd;
     Bool_type show_node_result, show_mesh_result, showgs=FALSE;
     Bool_type show_mat_result, show_surf_result;
+    Bool_type show_particle_result;
     Bool_type composite_show;
     float verts[4][3];
     float norms[4][3];
@@ -4073,6 +4078,18 @@ draw_grid( Analysis *analy )
                        analy );
     show_surf_result = result_has_superclass( analy->cur_result, G_SURFACE, analy );
 
+    /* Check if the current result is for particles */
+    show_particle_result = FALSE;
+    if(analy->cur_result != NULL && analy->particle_nodes_enabled){
+        for( i = 0; i < analy->cur_result->qty; i++){
+            int subrec_id = analy->cur_result->subrecs[i];
+            int superclass = analy->srec_tree->subrecs[subrec_id].p_object_class->superclass;
+            char* class_name = analy->srec_tree->subrecs[subrec_id].p_object_class->short_name;
+
+            if(is_particle_class(analy, superclass, class_name))
+                show_particle_result = TRUE;
+        }
+    }
     /*
      * Draw iso-surfaces.
      */
@@ -4228,7 +4245,7 @@ draw_grid( Analysis *analy )
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_HEX].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_hexs( show_node_result, show_mat_result, show_mesh_result,
-                   mo_classes[i], selected_materials, analy );
+                   show_particle_result, mo_classes[i], selected_materials, analy );
 
     if ( analy->ei_result && analy->result_active )
         show_mat_result = TRUE;
@@ -4238,7 +4255,7 @@ draw_grid( Analysis *analy )
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TET].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_tets( show_node_result, show_mat_result, show_mesh_result,
-                   mo_classes[i], selected_materials, analy );
+                   show_particle_result, mo_classes[i], selected_materials, analy );
 
     glEnable( GL_POLYGON_OFFSET_FILL );
 
@@ -4249,7 +4266,7 @@ draw_grid( Analysis *analy )
     {
         glPolygonOffset( analy->z_poly_offset * ( i + 1 ), analy->z_poly_offset * ( i + 1 ) );
         draw_quads_3d( show_node_result, show_mat_result, show_mesh_result,
-                       mo_classes[i], selected_materials, analy );
+                       show_particle_result, mo_classes[i], selected_materials, analy );
         glPolygonOffset( 0.0, 0.0 );
     }
 
@@ -4260,7 +4277,7 @@ draw_grid( Analysis *analy )
     {
         glPolygonOffset( analy->z_poly_offset * ( i + 1 ), analy->z_poly_offset * ( i + 1 ) );
         draw_tris_3d( show_node_result, show_mat_result, show_mesh_result,
-                      mo_classes[i], selected_materials, analy );
+                      show_particle_result, mo_classes[i], selected_materials, analy );
         glPolygonOffset( 0.0, 0.0 );
     }
 
@@ -4269,7 +4286,7 @@ draw_grid( Analysis *analy )
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_PYRAMID].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_pyramids( show_node_result, show_mat_result, show_mesh_result,
-                       mo_classes[i], selected_materials, analy );
+                       show_particle_result, mo_classes[i], selected_materials, analy );
 
     /* Turn lighting off (back to the default). */
     if ( v_win->lighting )
@@ -4283,22 +4300,20 @@ draw_grid( Analysis *analy )
     qty_classes = p_mesh->classes_by_sclass[G_BEAM].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_beams_3d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
-                       selected_materials, analy );
+        draw_beams_3d( show_node_result, show_mat_result, show_mesh_result,
+                       show_particle_result, mo_classes[i], selected_materials, analy );
 
     /* Discrete element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_TRUSS].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRUSS].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_truss_3d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
-                       selected_materials, analy );
-
+        draw_truss_3d( show_node_result, show_mat_result, show_mesh_result,
+                       show_particle_result, mo_classes[i], selected_materials, analy );
 
     /*  Set glMaterial to draw from the correct color property data base */
     if ( MESH_P( analy )->classes_by_sclass[G_SURFACE].qty > 0 )
     {
-        change_current_color_property( &v_win->surfaces,
-                                       v_win->surfaces.current_index );
+        change_current_color_property( &v_win->surfaces, v_win->surfaces.current_index );
     }
 
     /* Surface element classes. */
@@ -4440,6 +4455,7 @@ draw_grid_2d( Analysis *analy )
     int qty_classes;
     Mesh_data *p_mesh;
     Bool_type show_node_result, show_mat_result, show_mesh_result;
+    Bool_type show_particle_result;
     Bool_type show_surf_result;
     Htable_entry *p_hte;
     int rval;
@@ -4459,33 +4475,36 @@ draw_grid_2d( Analysis *analy )
     show_mat_result = result_has_superclass( analy->cur_result, G_MAT, analy );
     show_mesh_result = result_has_superclass( analy->cur_result, G_MESH, analy );
 
+    /* Check if there is a result being shown for a particle class. */
+    show_particle_result = FALSE;
+
     /* Quad element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_QUAD].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_QUAD].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_quads_2d( show_node_result, show_mat_result, show_mesh_result,
-                       mo_classes[i], selected_materials, analy );
+                       show_particle_result, mo_classes[i], selected_materials, analy );
 
     /* Triangle element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_TRI].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_TRI].list;
     for ( i = 0; i < qty_classes; i++ )
         draw_tris_2d( show_node_result, show_mat_result, show_mesh_result,
-                      mo_classes[i], selected_materials, analy );
+                      show_particle_result, mo_classes[i], selected_materials, analy );
 
     /* Beam element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_BEAM].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_beams_2d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
-                       selected_materials, analy );
+        draw_beams_2d( show_node_result, show_mat_result, show_mesh_result,
+                       show_particle_result, mo_classes[i], selected_materials, analy );
 
     /* Discrete Element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_BEAM].qty;
     mo_classes = (MO_class_data **) p_mesh->classes_by_sclass[G_BEAM].list;
     for ( i = 0; i < qty_classes; i++ )
-        draw_truss_2d( show_node_result, show_mat_result, show_mesh_result, mo_classes[i],
-                       selected_materials, analy );
+        draw_truss_2d( show_node_result, show_mat_result, show_mesh_result,
+                       show_particle_result, mo_classes[i], selected_materials, analy );
 
     /* Surface element classes. */
     qty_classes = p_mesh->classes_by_sclass[G_SURFACE].qty;
@@ -4705,8 +4724,8 @@ get_min_max( Analysis *analy, Bool_type no_interp, float *p_min, float *p_max )
  */
 static void
 draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
-           Bool_type show_mesh_result, MO_class_data *p_hex_class,
-           char* selected_materials, Analysis *analy )
+           Bool_type show_mesh_result, Bool_type show_particle_result,
+           MO_class_data *p_hex_class, char* selected_materials, Analysis *analy )
 {
     Bool_type show_result;
     float verts[4][3];
@@ -4745,13 +4764,14 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
     result_exists_for_hex = result_has_class( analy->cur_result, p_hex_class, analy );
 
     show_result = show_node_result
+                  || show_particle_result
                   || result_exists_for_hex
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_particle_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
     }
 
@@ -4818,7 +4838,7 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
                       p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         p_index_source = &mesh_idx;
     }
-    else if ( analy->interp_mode == NO_INTERP && !show_node_result )
+    else if ( analy->interp_mode == NO_INTERP && (!show_node_result && !show_particle_result) )
     {
         data_array = p_hex_class->data_buffer;
         p_index_source = &el;
@@ -5042,8 +5062,8 @@ draw_hexs( Bool_type show_node_result, Bool_type show_mat_result,
  */
 static void
 draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
-           Bool_type show_mesh_result, MO_class_data *p_tet_class,
-           char* selected_materials, Analysis *analy )
+           Bool_type show_mesh_result, Bool_type show_particle_result,
+           MO_class_data *p_tet_class, char* selected_materials, Analysis *analy )
 {
     Bool_type show_result, showgs=FALSE;
     float verts[3][3];
@@ -5078,13 +5098,14 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
     result_exists_for_tet = result_has_class( analy->cur_result, p_tet_class, analy);
 
     show_result = show_node_result
+                  || show_particle_result
                   || result_exists_for_tet
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_particle_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
     }
 
@@ -5139,7 +5160,7 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
                       p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         p_index_source = &mesh_idx;
     }
-    else if ( analy->interp_mode == NO_INTERP && !show_node_result )
+    else if ( analy->interp_mode == NO_INTERP && (!show_node_result && !show_particle_result) )
     {
         data_array = p_tet_class->data_buffer;
         p_index_source = &el;
@@ -5314,8 +5335,8 @@ draw_tets( Bool_type show_node_result, Bool_type show_mat_result,
  */
 static void
 draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
-               Bool_type show_mesh_result, MO_class_data *p_quad_class,
-               char* selected_materials, Analysis *analy )
+               Bool_type show_mesh_result, Bool_type show_particle_result,
+               MO_class_data *p_quad_class, char* selected_materials, Analysis *analy )
 {
     Bool_type show_result, showgs=FALSE;
     Bool_type has_degen;
@@ -5352,13 +5373,14 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
 
     result_exists_for_quad = result_has_class( analy->cur_result, p_quad_class, analy );
     show_result = show_node_result
+                  || show_particle_result
                   || result_exists_for_quad
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_particle_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
     }
 
@@ -5416,7 +5438,7 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
                       p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         p_index_source = &mesh_idx;
     }
-    else if ( analy->interp_mode == NO_INTERP && !show_node_result )
+    else if ( analy->interp_mode == NO_INTERP && (!show_node_result && !show_particle_result) )
     {
         data_array = p_quad_class->data_buffer;
         p_index_source = &i;
@@ -5579,8 +5601,8 @@ draw_quads_3d( Bool_type show_node_result, Bool_type show_mat_result,
  */
 static void
 draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
-              Bool_type show_mesh_result, MO_class_data *p_tri_class,
-              char* selected_materials, Analysis *analy )
+              Bool_type show_mesh_result, Bool_type show_particle_result,
+              MO_class_data *p_tri_class, char* selected_materials, Analysis *analy )
 {
     Bool_type show_result, showgs=FALSE;
     float *activity;
@@ -5615,13 +5637,14 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
 
     result_exists_for_tri = result_has_class( analy->cur_result, p_tri_class, analy );
     show_result = show_node_result
+                  || show_particle_result
                   || result_exists_for_tri
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_particle_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
     }
 
@@ -5678,7 +5701,7 @@ draw_tris_3d( Bool_type show_node_result, Bool_type show_mat_result,
                       p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         p_index_source = &mesh_idx;
     }
-    else if ( analy->interp_mode == NO_INTERP && !show_node_result )
+    else if ( analy->interp_mode == NO_INTERP && (!show_node_result && !show_particle_result) )
     {
         data_array = p_tri_class->data_buffer;
         p_index_source = &i;
@@ -5836,7 +5859,8 @@ static Bool_type bad_node_warn_once=TRUE;
  * Draw the beam elements in the model.
  */
 static void
-draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
+draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result,
+               Bool_type show_mesh_result, Bool_type show_particle_result,
                MO_class_data *p_beam_class, char* selected_materials, Analysis *analy )
 {
     Bool_type verts_ok, show_result, showgs;
@@ -5866,13 +5890,14 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     result_exists_for_beam = result_has_class( analy->cur_result, p_beam_class, analy );
     show_result = result_exists_for_beam
+                  || show_particle_result
                   || show_node_result
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_particle_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
     }
 
@@ -6036,7 +6061,8 @@ draw_beams_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
  * Draw the truss elements in the model.
  */
 static void
-draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
+draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result,
+               Bool_type show_mesh_result, Bool_type show_particle_result,
                MO_class_data *p_truss_class, char* selected_materials, Analysis *analy )
 {
     Bool_type verts_ok, show_result, showgs=FALSE;
@@ -6066,13 +6092,14 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     result_exists_for_truss = result_has_class( analy->cur_result, p_truss_class, analy );
     show_result = show_node_result
+                  || show_particle_result
                   || result_exists_for_truss
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_particle_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
     }
 
@@ -6245,8 +6272,8 @@ draw_truss_3d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
  */
 static void
 draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
-               Bool_type show_mesh_result, MO_class_data *p_pyramid_class,
-               char* selected_materials, Analysis *analy )
+               Bool_type show_mesh_result, Bool_type show_particle_result,
+               MO_class_data *p_pyramid_class, char* selected_materials, Analysis *analy )
 {
     Bool_type show_result;
     float verts[4][3];
@@ -6285,13 +6312,14 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
 
     result_exists_for_pyramid = result_has_class( analy->cur_result, p_pyramid_class, analy );
     show_result = show_node_result
+                  || show_particle_result
                   || result_exists_for_pyramid
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_particle_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
     }
 
@@ -6365,7 +6393,7 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
                       p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         p_index_source = &mesh_idx;
     }
-    else if ( analy->interp_mode == NO_INTERP && !show_node_result )
+    else if ( analy->interp_mode == NO_INTERP && (!show_node_result && !show_particle_result) )
     {
         data_array = p_pyramid_class->data_buffer;
         p_index_source = &el;
@@ -6457,6 +6485,21 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
             showgs = TRUE;
         else
             showgs = FALSE;
+
+        hidden_poly_mat = hide_mtl[matl];
+
+        hidden_poly_elem = hide_by_object_type( p_pyramid_class, matl, el, analy, data_array );
+        if ( analy->mesh_view_mode == RENDER_WIREFRAMETRANS )
+            hidden_poly_elem_wft = disable_flag;
+
+        if ( hidden_poly_mat || hidden_poly_elem || hidden_poly_elem_wft )
+            hidden_poly = TRUE;
+        else
+            hidden_poly = FALSE;
+
+        if ( analy->particle_nodes_hide_background && p_mats )
+            if ( p_mats[matl] )
+                hidden_poly = TRUE;
 
         hidden_poly_mat = hide_mtl[matl];
 
@@ -6576,8 +6619,8 @@ draw_pyramids( Bool_type show_node_result, Bool_type show_mat_result,
  */
 static void
 draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
-               Bool_type show_mesh_result, MO_class_data *p_quad_class,
-               char* selected_materials, Analysis *analy )
+               Bool_type show_mesh_result, Bool_type show_particle_result,
+               MO_class_data *p_quad_class, char* selected_materials, Analysis *analy )
 {
     int i, j, k, nd, matl;
     Mesh_data *p_mesh;
@@ -6611,13 +6654,14 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
 
     result_exists_for_quad = result_has_class( analy->cur_result, p_quad_class, analy );
     show_result = show_node_result
+                  || show_particle_result
                   || result_exists_for_quad
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_particle_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
     }
 
@@ -6677,7 +6721,7 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
                       p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         p_index_source = &mesh_idx;
     }
-    else if ( analy->interp_mode == NO_INTERP && !show_node_result )
+    else if ( analy->interp_mode == NO_INTERP && (!show_node_result && !show_particle_result) )
     {
         data_array = p_quad_class->data_buffer;
         p_index_source = &i;
@@ -6902,8 +6946,8 @@ draw_quads_2d( Bool_type show_node_result, Bool_type show_mat_result,
  */
 static void
 draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
-              Bool_type show_mesh_result, MO_class_data *p_tri_class,
-              char* selected_materials, Analysis *analy )
+              Bool_type show_mesh_result, Bool_type show_particle_result,
+              MO_class_data *p_tri_class, char* selected_materials, Analysis *analy )
 {
     int i, j, k, nd, matl;
     Mesh_data *p_mesh;
@@ -6939,13 +6983,14 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
 
     result_exists_for_tri = result_has_class( analy->cur_result, p_tri_class, analy );
     show_result = show_node_result
+                  || show_particle_result
                   || result_exists_for_tri
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_particle_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
     }
 
@@ -7009,7 +7054,7 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
                       p_mesh->classes_by_sclass[G_MESH].list)[0]->data_buffer;
         p_index_source = &mesh_idx;
     }
-    else if ( analy->interp_mode == NO_INTERP && !show_node_result )
+    else if ( analy->interp_mode == NO_INTERP && (!show_node_result && !show_particle_result) )
     {
         data_array = p_tri_class->data_buffer;
         p_index_source = &i;
@@ -7232,7 +7277,8 @@ draw_tris_2d( Bool_type show_node_result, Bool_type show_mat_result,
  * Draw the beam elements in the model.
  */
 static void
-draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
+draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result,
+               Bool_type show_mesh_result, Bool_type show_particle_result,
                MO_class_data *p_beam_class, char* selected_materials, Analysis *analy )
 {
     int i, j, k, nd, matl, mesh_idx;
@@ -7262,13 +7308,14 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     result_exists_for_beam = result_has_class( analy->cur_result, p_beam_class, analy );
     show_result = result_exists_for_beam
+                  || show_particle_result
                   || show_node_result
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_particle_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
     }
 
@@ -7435,7 +7482,8 @@ draw_beams_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
  * Draw the beam elements in the model.
  */
 static void
-draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type show_mesh_result,
+draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result,
+               Bool_type show_mesh_result, Bool_type show_particle_result,
                MO_class_data *p_truss_class, char* selected_materials, Analysis *analy )
 {
     int i, j, k, nd, matl, mesh_idx;
@@ -7465,13 +7513,14 @@ draw_truss_2d( Bool_type show_node_result, Bool_type show_mat_result, Bool_type 
 
     result_exists_for_truss = result_has_class( analy->cur_result, p_truss_class, analy );
     show_result = show_node_result
+                  || show_particle_result
                   || result_exists_for_truss
                   || show_mat_result
                   || show_mesh_result;
 
     /* Check if gray out feature should be disabled. */
     is_unit_result = result_has_superclass( analy->cur_result, M_UNIT, analy );
-    if(show_node_result || show_mesh_result || is_unit_result){
+    if(show_node_result || show_particle_result || show_mesh_result || is_unit_result){
         disable_gray = TRUE;
     }
 
@@ -7674,10 +7723,6 @@ draw_nodes_2d_3d( MO_class_data *p_node_class, Analysis *analy )
 
     if ( analy->dimension == 3 )
     {
-        /* glEnable( GL_POINT_SMOOTH );
-           glEnable( GL_BLEND );
-           glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-        */
         coords3 = analy->state_p->nodes.nodes3d;
         if ( analy->point_diam>0.0 )
         {
@@ -7727,7 +7772,6 @@ draw_nodes_2d_3d( MO_class_data *p_node_class, Analysis *analy )
                 color_lookup( col, nodal_data[i], analy->result_mm[0],
                               analy->result_mm[1], analy->zero_result, -1,
                               analy->logscale, analy->material_greyscale );
-
 
             glColor3fv( col );
             glVertex2fv( pt );
@@ -14716,20 +14760,20 @@ copyright( void )
     hcharstr( "Authors:" );
     pos[1] -= 1.5*text_height;
     hmove( pos[0], pos[1], pos[2] );
-    hcharstr( "Don Dovey" );
+    hcharstr( "Kevin Durrenberger" );
     pos[1] -= 1.5*text_height;
     hmove( pos[0], pos[1], pos[2] );
-    hcharstr( "Tom Spelce" );
+    hcharstr( "Ryan Hathaway" );
     pos[1] -= 1.5*text_height;
     hmove( pos[0], pos[1], pos[2] );
-    hcharstr( "Doug Speck" );
+    hcharstr( "Bill Tobin" );
 
     pos[1] -= 3.0*text_height;
     hmove( pos[0], pos[1], pos[2] );
     text_height = 14.0 * vp_to_world_y;
     htextsize( text_height, text_height );
     hcharstr(
-        "Copyright (c) 1992-2009 Lawrence Livermore National Laboratory");
+        "Copyright (c) 1992-2021 Lawrence Livermore National Laboratory");
     hcentertext( FALSE );
 
     antialias_lines( FALSE, 0 );
@@ -17628,7 +17672,7 @@ is_particle_class( Analysis *analy, int superclass, char *class_name )
          class_name_upper[M_MAX_NAME_LEN];
     int i;
 
-    if ( superclass==G_PARTICLE )
+    if ( superclass == G_PARTICLE )
         return( TRUE );
 
     strcpy( short_name, class_name );
@@ -17637,7 +17681,7 @@ is_particle_class( Analysis *analy, int superclass, char *class_name )
 
     string_to_upper( short_name, short_name_upper );
 
-    if ( analy->mesh_table->num_particle_classes==0 )
+    if ( analy->mesh_table->num_particle_classes == 0 )
     {
         if ( !strcmp( short_name_upper, "PARTICLE" )       ||
                 !strcmp( short_name_upper, "PARTICLE_ELEM" )  ||
@@ -17648,9 +17692,7 @@ is_particle_class( Analysis *analy, int superclass, char *class_name )
         return ( FALSE );
     }
 
-    for ( i=0;
-            i<analy->mesh_table->num_particle_classes;
-            i++ )
+    for ( i = 0; i < analy->mesh_table->num_particle_classes; i++ )
     {
         string_to_upper( analy->mesh_table->particle_class_names[i], class_name_upper );
         if ( !strcmp( short_name_upper, class_name_upper ) )
