@@ -1,0 +1,67 @@
+
+# Append output to TH file
+on tha
+on thsinglecol
+
+# Shell SX - integration point 1
+clrsel
+select shell 1, 3
+set_ipt 1
+show sx
+outth shear2t_va.jansw
+
+# Shell SY - integration point 1
+clrsel
+select shell 1, 3
+set_ipt 1
+show sy
+outth shear2t_va.jansw
+
+# Shell SXY - integration point 1
+clrsel
+select shell 1, 3
+set_ipt 1
+show sxy
+outth shear2t_va.jansw
+
+# Shell sig3_th - integration point 1
+clrsel
+select shell 1, 3
+set_ipt 1
+show sig3_th
+outth shear2t_va.jansw
+
+# Shell DGXX - integration point 1
+clrsel
+select shell 1, 3
+set_ipt 1
+show dgxx
+outth shear2t_va.jansw
+
+# Shell DGYY - integration point 1
+clrsel
+select shell 1, 3
+set_ipt 1
+show dgyy
+outth shear2t_va.jansw
+
+# Shell EY - integration point 1
+clrsel
+select shell 1, 3
+set_ipt 1
+show ey
+outth shear2t_va.jansw
+
+# Shell EXY - integration point 1
+clrsel
+select shell 1, 3
+set_ipt 1
+show exy
+outth shear2t_va.jansw
+
+# Shell EDRATE - integration point 1
+clrsel
+select shell 1, 3
+set_ipt 1
+show edrate
+outth shear2t_va.jansw

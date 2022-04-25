@@ -11381,7 +11381,7 @@ setElementSet_integration_point(ElementSet* element_set,int selection,
             element_set->current_index = element_set->middle_index;
             break;
         case(2):
-            element_set->current_index = element_set->size-2;
+            element_set->current_index = element_set->size-1;
             break;
         case(3):
             // It is not inner, middle, or outer
@@ -11545,6 +11545,7 @@ int select_integration_pts(char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
                     return_status = setElementSet_integration_point(element_set, selection, 0, pt);
                     if(return_status == OK)
                     {
+                        pt = element_set->integration_points[element_set->current_index];
                         sprintf(update_msg, "\n  Material %d integration point set to: %d\n", j, pt);
                         wrt_text(update_msg);
                     }
@@ -11591,6 +11592,7 @@ int select_integration_pts(char tokens[MAXTOKENS][TOKENLENGTH], int token_cnt,
                 return_status = setElementSet_integration_point(element_set, selection, 0, pt);
                 if(return_status == OK)
                 {
+                    pt = element_set->integration_points[element_set->current_index];
                     sprintf(update_msg, "\n  Material %d integration point set to: %d\n", element_set->material_number, pt);
                     wrt_text(update_msg);
                 }
