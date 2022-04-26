@@ -92,6 +92,8 @@ SRC_TEST_DIR	=	src_test
 CC = @CC@ 
 FC = @F77@
 
+coverage ?= false
+
 fortran ?= true
 
 CONFIG_STRING=@CONFIG_OPTIONS@
@@ -134,7 +136,9 @@ HDF_LIB     = @HDF_LIB@
 HDF_INC_DIR = @HDF_INC_DIR@
 HDF_LIB_DIR = @HDF_LIB_DIR@
 
-
+ifeq ($(coverage),true)
+COVERAGE_FLAG = -prof-gen=srcpos
+endif
 
 # Suffix rule to create the object files.
 # rules to automatically generate dependency makefiles
@@ -178,6 +182,7 @@ MILI_C_OBJS = \
     wrap_c.o \
     write_db.o \
     mr_funcs.o
+
 
 
 ifeq ($(fortran),true)                                                                                
@@ -254,8 +259,8 @@ opt:        LIB_PATH  = lib_opt/
 opt:        OBJS_PATH = objs_opt/
 opt:		mili_build
 
-debug:		CC_FLAGS  = @CC_FLAGS_DEBUG@
-debug:		FC_FLAGS  = @FC_FLAGS_DEBUG@
+debug:		CC_FLAGS  = @CC_FLAGS_DEBUG@ $(COVERAGE_FLAG)
+debug:		FC_FLAGS  = @FC_FLAGS_DEBUG@ $(COVERAGE_FLAG)
 debug:      LIB_PATH  = lib_debug/
 debug:      OBJS_PATH = objs_debug/
 debug:		mili_build
@@ -270,8 +275,8 @@ utilsopt:	$(XMOBJS)
 utilsopt:	MILI_UTILS_PATH = bin_utils_opt
 utilsopt:   md tipart MiliReader ti_strings makemili_driver xmilics
 
-utilsdebug:	CC_FLAGS  = @CC_FLAGS_DEBUG@
-utilsdebug:	FC_FLAGS  = @FC_FLAGS_DEBUG@
+utilsdebug:	CC_FLAGS  = @CC_FLAGS_DEBUG@ $(COVERAGE_FLAG)
+utilsdebug:	FC_FLAGS  = @FC_FLAGS_DEBUG@ $(COVERAGE_FLAG)
 utilsdebug: LIB_PATH  = lib_debug
 utilsdebug: OBJS_PATH = objs_debug/
 utilsopt:	mili_build 
