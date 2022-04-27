@@ -221,6 +221,9 @@ mc_check_subrec_start(Famid fam_id, int srec_id)
       middle = (top + pos)/2;
    }while(pos < top);
    
+   fprintf(stderr, "Subrecord %s failed to align with the current write position\n",psr->subrecs[top]->name);
+   fprintf(stderr, "The previous subrecord name is %s\n" , psr->subrecs[top-1]->name);
+   
    return SUBRECORD_ALIGN_ERROR;
 }
 /*****************************************************************
