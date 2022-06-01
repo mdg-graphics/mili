@@ -54,13 +54,20 @@ BINTEST_PATH=@BINTEST_PATH@
 
 CDEMOS = \
         del_test \
-        del_test2_p \
-        del_test2_s \
-        mixdb \
+        mixdb_wrt_stream \
+        mixdb_wrt_subrec \
+        mixdb_mixed_subrecords \
         mode_test \
         titest \
-	     MiliDiff \
-        value_change 
+	    MiliDiff \
+        value_change \
+        restart \
+		restart_zero \
+		restart_past_last_state \
+		restart_statelimit_a \
+		restart_statelimit_b \
+		restart_statelimit_c \
+		state_write_check
  
 FDEMOS = \
         GenFaceDB \
@@ -82,12 +89,8 @@ FDEMOS = \
         qnost \
         quaddb \
         shelldb \
-        shellrw \
-        shellrw_b \
-        shellrw_c \
         surfdb \
-        tridb \
-	timedepStringdb
+        tridb
 
 DEMOS = ${CDEMOS} ${FDEMOS}
 

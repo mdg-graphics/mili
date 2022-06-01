@@ -64,7 +64,7 @@ main( int argc, char *argv[] )
    char *pc, *pc1;
    int *pi, *pi1;
    int i;
-   size_t len;
+   LONGLONG len;
    IO_mem_store *pioms;
    char *test1 = "0123456789012345678901234567890123456789";
    char *test2 = "B7e7t7w7e7e7n7 77777777t7h7e7 7l7i7n7e7s";
@@ -110,7 +110,7 @@ main( int argc, char *argv[] )
    ios_output( mfam, ofile, pioms, &num_written );
    fflush( ofile );
 
-   pc = ios_alloc( (size_t) 3 * ALLOC_UNITS, pioms );
+   pc = ios_alloc( (LONGLONG) 3 * ALLOC_UNITS, pioms );
    for ( pc1 = pc; pc1 < pc + 3 * ALLOC_UNITS; *pc1++ = '7' );
    ios_output( mfam, ofile, pioms, &num_written );
    fflush( ofile );
@@ -118,7 +118,7 @@ main( int argc, char *argv[] )
    ios_destroy( pioms );
 
    pioms = ios_create( M_INT );
-   pi = ios_alloc( (size_t) 128, pioms );
+   pi = ios_alloc( (LONGLONG) 128, pioms );
    for ( pi1 = pi, i = 0; pi1 < pi + 128; *pi1++ = i++ );
    ios_output( mfam, ofile, pioms, &num_written );
    fflush( ofile );
@@ -225,12 +225,12 @@ ios_create_empty()
  * Load an I/O memory store from a file.
  */
 Return_value
-ios_input( Mili_family *fam, int datatype, size_t qty_units,
+ios_input( Mili_family *fam, int datatype, LONGLONG qty_units,
            IO_mem_store *pioms, void **new_data )
 {
    IO_mem_buffer *piomb = NULL;
-   size_t rd_cnt;
-   size_t index;
+   LONGLONG rd_cnt;
+   LONGLONG index;
 
    pioms->type = datatype;
 
@@ -315,12 +315,12 @@ ios_input( Mili_family *fam, int datatype, size_t qty_units,
  * Load an I/O memory store from a TI file.
  */
 Return_value
-ti_ios_input( Mili_family *fam, int datatype, size_t qty_units,
+ti_ios_input( Mili_family *fam, int datatype, LONGLONG qty_units,
               IO_mem_store *pioms, void **new_data )
 {
    IO_mem_buffer *piomb = NULL;
-   size_t rd_cnt;
-   size_t index;
+   LONGLONG rd_cnt;
+   LONGLONG index;
 
    pioms->type = datatype;
 
@@ -407,7 +407,7 @@ ti_ios_input( Mili_family *fam, int datatype, size_t qty_units,
 void
 ios_destroy( IO_mem_store *pioms )
 {
-   size_t i;
+   LONGLONG i;
    IO_mem_buffer *piomb;
 
    for ( i = 0; i < pioms->current_index + 1; i++ )
@@ -441,12 +441,12 @@ ios_destroy( IO_mem_store *pioms )
  * floats) requested, not the number of bytes.
  */
 void *
-ios_alloc( size_t qty, IO_mem_store *pioms )
+ios_alloc( LONGLONG qty, IO_mem_store *pioms )
 {
    void *mem_address = NULL;
    IO_mem_buffer *piomb = NULL;
    Bool_type alloc_data;
-   size_t new_size = 0;
+   LONGLONG new_size = 0;
 
    /* Sanity check. */
    if ( qty == 0 )
@@ -461,7 +461,7 @@ ios_alloc( size_t qty, IO_mem_store *pioms )
    if ( piomb->used + qty > piomb->size )
    {
       new_size = ALLOC_UNITS;
-      while ( new_size < (size_t) qty )
+      while ( new_size < (LONGLONG) qty )
       {
          new_size += ALLOC_UNITS;
       }
@@ -536,7 +536,7 @@ ios_alloc( size_t qty, IO_mem_store *pioms )
    }
 
    /* Track allocation. */
-   piomb->used += (size_t) qty;
+   piomb->used += (LONGLONG) qty;
 
    return mem_address;
 }
@@ -553,7 +553,7 @@ Return_value
 ios_unalloc( void *pmem, int qty_units, IO_mem_store *pioms )
 {
    int unit_size;
-   size_t start, stop;
+   LONGLONG start, stop;
    IO_mem_buffer *piomb = NULL;
    IO_mem_buffer **ppiomb, **bound;
    Return_value rval;
@@ -656,7 +656,7 @@ ios_unalloc( void *pmem, int qty_units, IO_mem_store *pioms )
 int
 ios_str_dup( char **ppcopy, char *pstring, IO_mem_store *pioms )
 {
-   size_t len_with_null;
+   LONGLONG len_with_null;
    char *pc, *psrc, *pdest;
 
    /* Count the string with its terminator. */
@@ -695,12 +695,10 @@ ios_output( Mili_family *fam, FILE *ofile, IO_mem_store *pioms,
             int *num_items_written )
 {
    IO_mem_buffer *piomb;
-   size_t unit_size, start_unit, i;
-   size_t (*ofunc)();
+   LONGLONG unit_size, start_unit, i;
+   LONGLONG (*ofunc)();
    int dtype;
-   size_t write_ct;
-
-   char *test;
+   LONGLONG write_ct;
 
    *num_items_written = 0;
 
@@ -741,8 +739,6 @@ ios_output( Mili_family *fam, FILE *ofile, IO_mem_store *pioms,
 
       if ( piomb->invalid == NULL )
       {
-         test = (char *) piomb->data;
-
          /* No invalid units - write all fresh data out. */
          write_ct = (*ofunc)(ofile,
                              (char *) piomb->data + piomb->output * unit_size,
@@ -774,12 +770,12 @@ ios_output( Mili_family *fam, FILE *ofile, IO_mem_store *pioms,
          start_unit = piomb->output;
          for ( pir = piomb->invalid->blocks; pir != NULL; pir = pir->next )
          {
-            if ( (size_t) pir->start > start_unit )
+            if ( (LONGLONG) pir->start > start_unit )
             {
                /* There's fresh data preceding this invalid range. */
                write_ct = (*ofunc)(ofile,
                                    (char *) piomb->data + start_unit * unit_size,
-                                   (size_t) pir->start - start_unit );
+                                   (LONGLONG) pir->start - start_unit );
                if (write_ct != pir->start - start_unit)
                {
                   return SHORT_WRITE;
@@ -818,7 +814,7 @@ ios_output( Mili_family *fam, FILE *ofile, IO_mem_store *pioms,
  *
  * Return the quantity of un-written units in an I/O store.
  */
-size_t
+LONGLONG
 ios_get_fresh( IO_mem_store *pioms )
 {
    IO_mem_buffer *piomb;
@@ -907,7 +903,7 @@ ios_traverse_init( IO_mem_store *pioms, int last )
    }
    else if ( last > 0 )
    {
-      size_t idx = pioms->current_index;
+      LONGLONG idx = pioms->current_index;
 
       pioms->traverse_index = idx;
       if ( pioms->data_buffers[idx] == NULL )
@@ -949,7 +945,7 @@ ios_traverse_init( IO_mem_store *pioms, int last )
  * Needs to be fixed to account for invalid data in the store.
  */
 Return_value
-ios_int_traverse( IO_mem_store *pioms, size_t size, int **pp_data )
+ios_int_traverse( IO_mem_store *pioms, LONGLONG size, int **pp_data )
 {
    IO_mem_buffer *piomb;
 
@@ -1018,7 +1014,7 @@ ios_int_traverse( IO_mem_store *pioms, size_t size, int **pp_data )
 Return_value
 ios_string_traverse( IO_mem_store *pioms, char **pp_data )
 {
-   size_t slen, rem, idx;
+   LONGLONG slen, rem, idx;
 
    *pp_data = pioms->traverse_next;
 

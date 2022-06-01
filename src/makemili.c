@@ -33,8 +33,10 @@
 #include "mili_enum.h"
 #include "misc.h"
 #include "parson.h"
+#include <math.h>
 #include <stdio.h>
 #include <errno.h>
+
 
 
  
@@ -86,7 +88,8 @@ ElementSet *elementSets;
 int elementSetCount;
 int numProcessors;
 int xmilicsFile = 0;
-
+int subrecord_count = 0;
+char *subrec_string = NULL;
 int
 mc_activate_visit_file(Famid database_id, int on)
 {
@@ -115,19 +118,15 @@ mc_activate_visit_file(Famid database_id, int on)
 static void
 writeVariable_json(char* var_elem, Variable *variable,JSON_Object *root_object)
 {
-   char variable_string[1024];
-   char components[512];
-   char subrecs[256];
+   char variable_string[2048];
+   char components[1024];
    char number[10];
    char *numbers = NULL;
    int i;
-   State_variable *component_sv;
-   Return_value rval;
    State_variable *sv;
    variable_string[0] = '\0';
    components[0] = '\0';
    number[0] = '\0';
-   subrecs[0] = '\0';
    
    sv=variable->state_var;
    if(var_elem == NULL || sv == NULL)
@@ -191,7 +190,9 @@ writeVariable_json(char* var_elem, Variable *variable,JSON_Object *root_object)
          sprintf(components,"%s","[");
          for( i=0; i<sv->vec_size; i++)
 		   {
-            sprintf(components,"%s\"%s\"",components,sv->components[i]);
+            strcat(components,"\"");
+            strcat(components,sv->components[i]);
+            strcat(components,"\"");
                
             if(i < sv->vec_size-1)
             {
@@ -223,34 +224,45 @@ writeVariable_json(char* var_elem, Variable *variable,JSON_Object *root_object)
          strcat(numbers,"]");
          json_object_dotset_value(root_object,variable_string,
                             json_parse_string(numbers));
+         free (numbers);
          break;
       default:
          break;
    }
    
    sprintf(variable_string,"%s.%s",var_elem,"subrecords");
-         
-   for(i=0;i<variable->subrec_count;i++)
+   //fprintf(stderr, "%d %d\n\n", variable->subrec_count,((int)log10( variable->subrec_count+1))+1);
+   if(!subrec_string  && subrecord_count >0)
    {
-      if(i==0)
+      int sub_size = subrecord_count*(((int)log10( variable->subrec_count+1))+4);
+      subrec_string = NEW_N(char ,sub_size,"subrecs in writeVariable_json" );
+   }   
+   if(variable->subrec_count > 0)
+   {
+      subrec_string[0] = '\0';
+      for(i=0;i<variable->subrec_count;i++)
       {
-         strcat(subrecs, "[");
-      }
+         if(i==0)
+         {
+            strcat(subrec_string, "[");
+         }
       
       
-      if(i < variable->subrec_count-1)
-      {
-         sprintf(number ,"%d,", variable->subrec_ids[i]);
-      }else
-      {
-         sprintf(number ,"%d", variable->subrec_ids[i]);
+         if(i < variable->subrec_count-1)
+         {
+            sprintf(number ,"%d,", variable->subrec_ids[i]);
+         }else
+         {
+            sprintf(number ,"%d", variable->subrec_ids[i]);
+         }
+         strcat(subrec_string,number);
       }
-      strcat(subrecs,number);
+      strcat(subrec_string, "]");
    }
-   strcat(subrecs, "]");
+   
    json_object_dotset_value(root_object,variable_string,
-                            json_parse_string(subrecs));
-     
+                            json_parse_string(subrec_string));
+    
 }
 /**
  *  This function goes adds the variables to the hashtable for additional processing later.
@@ -271,8 +283,6 @@ add_variables(Famid database_id, Hash_table *variable_ht,
       int i;
       char variable_string[1024];
       char components[512];
-      char number[10];
-      char *numbers = NULL;
       Htable_entry *entry;
       Variable *component_sv;
       Return_value rval = OK;
@@ -341,7 +351,6 @@ process_state_variables(Famid database_id,Hash_table *classTable )
 {
    int i,j,k,l;
    int srec_qty =0;
-   int subrecord_count = 0;
    Return_value rval = OK;
    Htable_entry *entry;
    Hash_table *variable_ht = htable_create(5009);
@@ -367,6 +376,12 @@ process_state_variables(Famid database_id,Hash_table *classTable )
        // various codes.
        if(rval == OK)
        {
+         if(!subrec_string)
+         {
+           int sub_size = subrecord_count*(((int)log10( subrecord_count+1))+4);
+           subrec_string = NEW_N(char ,sub_size,
+                                 "subrec_string in process_state_variables" );
+         }
          Subrecord sr;
          for (j = 0 ; j < subrecord_count ; j++)
          {
@@ -375,7 +390,6 @@ process_state_variables(Famid database_id,Hash_table *classTable )
            rval = mc_get_subrec_def(database_id, i, j, &sr);
            if(rval==OK)
            {
-             State_variable *sv;                   
              Variable *var;
              for(k=0;k<sr.qty_svars;k++)
              {
@@ -710,7 +724,7 @@ cleanVariableTable(Hash_table *table)
 static int 
 gather_parameters(Famid database_id )
 {
-   char **parameters,**parameters_next;
+   char **parameters_next;
    char title[36];
    int i,j,parameter_count = 0;
    Mili_family* fam;  //This is the Mili database plot file
@@ -748,9 +762,10 @@ gather_parameters(Famid database_id )
          }
          status = htable_search( fam->param_table, parameters_next[i], 
                                FIND_ENTRY, &entry );
-                               
+         
          free(parameters_next[i]);
          parameters_next[i] = NULL;
+         
       }
    }
    int currentElementSet = 0;
@@ -810,7 +825,6 @@ write_state_variables_json(Hash_table *variable_ht, JSON_Object *root_object)
    Htable_entry * entry;
    Variable *sv;
    int header_written = 0;
-   int rval;
    char var_elem[64];
    
    for(cur_table_entry=0; 
@@ -903,7 +917,6 @@ readClasses(Famid database_id, Hash_table *classes, Mili_Class *classes_array )
    Htable_entry *entry = NULL;
    int i;
    int status = OK;
-   int header_written =0;
    int stop_ident = 0, start_ident = 0;
    int int_args[2];
    char short_name[255];
@@ -996,11 +1009,10 @@ writeClasses_json(Hash_table *classTable,Mili_Class *miliClasses, JSON_Object *r
    int qty_written = 0;
    char class_elem[64];
    char class_elem_variable[72];
-   char class_elem_variables[2024];
+   char class_elem_variables[2048];
    char class_elem_count[100];
    int i,j;
    Hash_table *variables;
-   Variable *var;
    Htable_entry *next;
    qty_classes = classTable->qty_entries;
    json_object_dotset_number(root_object, "Classes.count",qty_classes);
@@ -1028,24 +1040,25 @@ writeClasses_json(Hash_table *classTable,Mili_Class *miliClasses, JSON_Object *r
             {
                continue;
             }
+            strcat(class_elem_variables,"\"");
+            strcat(class_elem_variables,variables->table[j]->key);
+            strcat(class_elem_variables,"\"");
             if(qty_written < variables->qty_entries-1)
             {
-               sprintf(class_elem_variables,"%s\"%s\",",class_elem_variables,variables->table[j]->key);
-            }else
-            {
-               sprintf(class_elem_variables,"%s\"%s\"",class_elem_variables,variables->table[j]->key);
+               strcat(class_elem_variables,",");
             }
+            
             qty_written++;
             
             next = variables->table[j]->next;
             while(next != NULL)
             {
+               strcat(class_elem_variables,"\"");
+               strcat(class_elem_variables,next->key);
+               strcat(class_elem_variables,"\"");
                if(qty_written < variables->qty_entries-1)
-               {
-                  sprintf(class_elem_variables,"%s\"%s\",",class_elem_variables,next->key);
-               }else
-               {
-                  sprintf(class_elem_variables,"%s\"%s\"",class_elem_variables,next->key);
+               { 
+                  strcat(class_elem_variables,",");
                }
                qty_written++;
                next = next->next;
@@ -1053,7 +1066,7 @@ writeClasses_json(Hash_table *classTable,Mili_Class *miliClasses, JSON_Object *r
             
          }
           
-         sprintf(class_elem_variables,"%s]",class_elem_variables);
+         strcat(class_elem_variables,"]");
          sprintf(class_elem_variable,"%s.%s",class_elem,"variables");
          
          json_object_dotset_value(root_object,class_elem_variable,
@@ -1227,39 +1240,44 @@ writeMaterials_json(Famid database_id, JSON_Object *root_object)
 *    @param JSON_Object  JSON element which to write timesteps
 */
 static void
-write_steps_json(Famid database_id,JSON_Object *root_object)
+write_steps_json(Famid database_id)
 {
   Mili_family* fam;  //This is the Mili database plot file
-  char file_name[512];
+  char time_string[512];
   char* timesteps;
-  int i,size;
-  int float_size;
-  float time;
-  
+  int i;
+  JSON_Object *root_object;
+  float time; 
   if(database_id >= fam_qty || database_id <0)
   {
     return;
   }
   
-  
   fam = fam_list[database_id];
   
-  
-  json_object_dotset_number(root_object, "States.count",fam->state_qty);
+  root_object = fam->root_object;
+  if(JSONFailure == json_object_dotset_number(root_object, "States.count",fam->state_qty))
+  {
+      return;
+  }
   if(!fam->state_map)
   {
       return;
   }
   timesteps = (char*)malloc(fam->state_qty*20);
   i=0;
-  sprintf(timesteps,"[%1.6g", fam->state_map[i].time);
+  sprintf(timesteps,"[%1.7g", fam->state_map[i].time);
   for(i=1; i<fam->state_qty;i++)
   {
+      strcat(timesteps,",");
+      time_string[0]='\0';
       time = fam->state_map[i].time;
-      sprintf(timesteps,"%s,%1.6g",timesteps,time);
+      
+      sprintf(time_string,"%1.7g",time);
+      strcat(timesteps,time_string);
       
   }
-  sprintf(timesteps,"%s]",timesteps);
+  strcat(timesteps,"]");
   
   json_object_dotset_value(root_object,"States.times",json_parse_string(timesteps));
   free(timesteps);
@@ -1358,7 +1376,7 @@ write_database_metadata_json(Famid database_id, JSON_Object *root_object)
   
   rval = mc_read_string( database_id, "xmilics version", xmilics_version ); 
   
-  if(strlen(xmilics_version) >0)
+  if(rval == OK && strlen(xmilics_version) >0)
   {
      // We set this due to the fact that the combined file will 
      // list the number of processors that the simulation used 
@@ -1367,8 +1385,12 @@ write_database_metadata_json(Famid database_id, JSON_Object *root_object)
      xmilicsFile = 1;
   }else
   {
-     //Get the number of processors from the mili database    
-     numProcessors = fam->num_procs;
+     //Get the number of processors from the mili database 
+     numProcessors = fam->num_procs ; 
+     if(numProcessors == 0 )
+     {
+         numProcessors = 1;
+     }
   }
   
   json_object_set_number( root_object,"Domains",numProcessors);
@@ -1442,18 +1464,32 @@ write_mili_metadata(Famid database_id, int global)
     }
     JSON_Value *root_value = json_value_init_object();
     JSON_Object *root_object = json_value_get_object(root_value); 
+    
+    if(root_value == NULL || root_object == NULL)
+    {
+        return OK;
+    }
+    
+    fam->root_object = root_object;
+    fam->root_value = root_value;
+    
     json_object_set_string(root_object,"fileType","processor");
     
     status = write_database_metadata_json(database_id, root_object);
+    
     if(status != OK)
     {
         mc_print_error("Function: write_database_metadata_json()",status);
+        return status;
     }
     
     writeMaterials_json(database_id, root_object);
     
     parameter_count = gather_parameters(database_id);
-
+    if (parameter_count == 0)
+    {
+        return OK;
+    }
     writeElementSets_json(root_object);
     
     class_count = countClasses(database_id);
@@ -1462,6 +1498,7 @@ write_mili_metadata(Famid database_id, int global)
     {
        return NO_CLASS;
     }
+    
     miliClasses = NEW_N(Mili_Class, class_count, "Mili_Class");
      
     status = readClasses(database_id, classTable, miliClasses);
@@ -1472,7 +1509,8 @@ write_mili_metadata(Famid database_id, int global)
     
     writeClasses_json(classTable, miliClasses,root_object); 
     
-    write_steps_json(database_id,root_object);
+    write_steps_json(database_id);
+    
     serialized_string = json_serialize_to_string_pretty(root_value);
     
     fprintf(OUTFILE,"%s\n", serialized_string);
@@ -1480,7 +1518,7 @@ write_mili_metadata(Famid database_id, int global)
     fclose(OUTFILE);
     free(serialized_string);
     cleanVariableTable(table);
-    json_value_free(root_value);
+    root_object = NULL;
     for(i=0;i<class_count;i++)
     {
        if(miliClasses[i].variables != NULL)
@@ -1489,6 +1527,11 @@ write_mili_metadata(Famid database_id, int global)
        }
     }
     free(miliClasses);
+    if(subrec_string)
+    {
+       free (subrec_string);
+       subrec_string = NULL;
+    }
     htable_delete(classTable,NULL,0);
     for(i=0;i<elementSetCount;i++)
     {
@@ -1515,7 +1558,7 @@ mc_create_metadata(char* db_name)
     char *file_name;
     //We will need to search the string for a path.
     file_path[0]='\0';
-    path_index = rindex(db_name,'/');
+    path_index = strrchr(db_name,'/');
     index = path_index - db_name;
     if(path_index)
     {
@@ -1545,48 +1588,6 @@ mc_write_mili_metadata(Famid database_id)
 int 
 update_visit_file(char * database_name, Famid database_id)
 {
-   FILE *OUTFILE;
-   
-   JSON_Value *user_data = json_parse_file(database_name);
-   
-   char *serialized_string;
-   
-   if(user_data == NULL)
-   {
-      return INVALID_VISIT_JSON_FILE;
-   }
-   
-   if (json_object_remove(json_object(user_data),"States") != JSONSuccess)
-   {
-      fprintf(stderr,"Unable to remove timesteps\n");
-   }
-   write_steps_json(database_id,json_object(user_data));
-   
-   OUTFILE = fopen(database_name, "w+");
-   
-   serialized_string = json_serialize_to_string_pretty(user_data);
-    
-   fprintf(OUTFILE,"%s\n", serialized_string);
-   
-   fclose(OUTFILE);
-   free(serialized_string);
-   json_value_free(user_data);
-   return OK;
-}
-/**
-*  TAG (mc_update_visit_file)
-*  Function to update an existing file json file. 
-*  @param Famid database   database id for this processor
-*  @param int process_id the parallel process identifier.
-*/
-int 
-mc_update_visit_file(Famid database_id)
-{
-   Return_value rval = OK;
-   char MetaDataFile[256];
-   FILE *OUTFILE;
-   char *serialized_string = NULL;
-   
    Mili_family* fam;  //This is the Mili database plot file
   
    if(database_id >= fam_qty || database_id <0)
@@ -1596,6 +1597,54 @@ mc_update_visit_file(Famid database_id)
     
    fam = fam_list[database_id];
    
+   FILE *OUTFILE;
+   
+   JSON_Value *user_data = fam->root_value;
+   JSON_Object *root_object = fam->root_object;
+   
+   char *serialized_string;
+   
+   if (json_object_remove(root_object,"States") != JSONSuccess)
+   {
+      fprintf(stderr,"Unable to remove timesteps\n");
+   }
+   
+   write_steps_json(database_id);
+   
+   OUTFILE = fopen(database_name, "w+");
+   
+   serialized_string = json_serialize_to_string_pretty(user_data);
+    
+   fprintf(OUTFILE,"%s\n", serialized_string);
+   
+   fclose(OUTFILE);
+   free(serialized_string);
+   user_data = NULL;
+   return OK;
+}
+/**
+*  TAG (mc_update_visit_file)
+*  Function to update an existing file json file. 
+*  @param Famid database   database id for this processor
+*/
+int 
+mc_update_visit_file(Famid database_id)
+{
+   Return_value rval = OK;
+   char MetaDataFile[256];
+   
+   Mili_family* fam;  //This is the Mili database plot file
+  
+   if(database_id >= fam_qty || database_id <0)
+   {
+     return BAD_FAMILY;
+   }
+    
+   fam = fam_list[database_id];
+   if(database_id == 0)
+   {
+       rval = OK;
+   }
    if(!fam->visit_file_on)
    {
        return OK;
@@ -1622,7 +1671,8 @@ merge_element_sets(JSON_Object *base, const JSON_Object *incoming)
     char path[64];
     char *base_path = "Element_Sets.";
     JSON_Value *adding_value;
-    
+    JSON_Status status;
+    JSON_Object *test, *in_object;
     JSON_Value *in_element_sets = json_object_get_value(incoming, "Element_Sets");
     
     //If the incoming JSON has no Element sets the just return
@@ -1639,9 +1689,9 @@ merge_element_sets(JSON_Object *base, const JSON_Object *incoming)
         base_object = json_object(base_element_sets);
     }
     
-    JSON_Object *in_object = json_object(in_element_sets);
+    in_object = json_object(in_element_sets);
     
-    size_t count = json_object_get_count(in_object);
+    LONGLONG count = json_object_get_count(in_object);
     
     for(i=0; i<count; i++)
     {
@@ -1652,22 +1702,22 @@ merge_element_sets(JSON_Object *base, const JSON_Object *incoming)
         }
         if(has_element_sets)
         {
-            JSON_Object *test =  json_object_get_object(base_object,
+            test =  json_object_get_object(base_object,
                                                         element_set_name);
             if(test)
             {
                 continue;
             }
             adding_value = json_value_deep_copy(json_object_get_value_at(in_object,i));
-            JSON_Status status = json_object_set_value(base_object,
-                                                      element_set_name,
-                                                      adding_value);
+            status = json_object_set_value(base_object,
+                                           element_set_name,
+                                           adding_value);
         }else
         {
             sprintf(path,"%s%s", base_path, element_set_name);
             adding_value = json_value_deep_copy(json_object_get_value_at(in_object,i));
             
-            JSON_Status status = json_object_dotset_value(base,path,adding_value);
+            status = json_object_dotset_value(base,path,adding_value);
         }
     }
 }
@@ -1677,11 +1727,12 @@ remove_subrecords(JSON_Object *base)
 {
     int i;
     const char *var_name;
+    JSON_Status rval;
     
     JSON_Value *base_variables = json_object_get_value(base,"Variables");
     JSON_Object *base_object = json_object(base_variables); 
     
-    size_t count = json_object_get_count(base_object);
+    LONGLONG count = json_object_get_count(base_object);
     
     for(i=0; i< count; i++)
     {
@@ -1694,7 +1745,13 @@ remove_subrecords(JSON_Object *base)
         
         JSON_Object *test =  json_object_get_object(base_object,var_name);
         
-        JSON_Status rval = json_object_remove(test, "subrecords");
+        rval = json_object_remove(test, "subrecords");
+        
+        if(!rval)
+        {
+            // Did not delete subrecords object, but it is not the 
+            // that crucial.
+        }
     }
     
 }
@@ -1705,14 +1762,14 @@ merge_variables( JSON_Object *base, const JSON_Object *incoming)
 {
     int i;
     const char *var_name;
-    
+    JSON_Status status;
     JSON_Value *in_variables = json_object_get_value(incoming, "Variables");
     JSON_Value *base_variables = json_object_get_value(base,"Variables");
     
     JSON_Object *in_object = json_object(in_variables); 
     JSON_Object *base_object = json_object(base_variables); 
     
-    size_t count = json_object_get_count(in_object);
+    LONGLONG count = json_object_get_count(in_object);
     
     for(i=0; i<count; i++)
     {
@@ -1733,7 +1790,12 @@ merge_variables( JSON_Object *base, const JSON_Object *incoming)
         
         JSON_Value *adding_value = json_value_deep_copy(json_object_get_value_at(in_object,i));
         json_object_remove(json_object(adding_value),"subrecords");
-        JSON_Status status = json_object_set_value(base_object,var_name,adding_value);
+        status = json_object_set_value(base_object,var_name,adding_value);
+        if(!status)
+        {
+            //Failed to add variable to json.  Will need to revisit and 
+            //determine how we want to handle this situation.
+        }
     }
     
 }
@@ -1744,13 +1806,14 @@ get_processor_id( char* file_name, int *num_length)
     int pos=0;
     int process_number;
     *num_length = 0;
+    char digits[6]; digits[0] = '\0';
     
     pos = strlen(file_name)-1 ;
     
     while( file_name[pos] >= '0' && file_name[pos] <= '9')
     {
-        pos--;
         *num_length = *num_length + 1 ;
+        pos--;
     }
     
     if(pos == strlen(file_name) -1)
@@ -1758,8 +1821,8 @@ get_processor_id( char* file_name, int *num_length)
         return -1;
     }
     
-    
-    process_number = atoi(file_name + pos);
+    strcpy(digits, file_name+pos+1);
+    process_number = atoi(digits);
     
     return process_number;
 }
@@ -1770,24 +1833,32 @@ remove_element_counts(JSON_Object *base)
 {
     int i;
     const char *var_name;
-    
+    JSON_Status rval;
+    JSON_Object *test;
     JSON_Value *base_variables = json_object_get_value(base,"Variables");
     JSON_Object *base_object = json_object(base_variables); 
     
-    size_t count = json_object_get_count(base_object);
+    LONGLONG count = json_object_get_count(base_object);
     
     for(i=0; i< count; i++)
     {
         var_name =  json_object_get_name(base_object, i);
         
+        //We need to ignore the count object
         if(!strcmp(var_name,"count"))
         {
             continue;
         }
         
-        JSON_Object *test =  json_object_get_object(base_object,var_name);
+        test =  json_object_get_object(base_object,var_name);
         
-        JSON_Status rval = json_object_remove(test, "ElementCount");
+        rval = json_object_remove(test, "ElementCount");
+        
+        if (!rval)
+        {
+            // We did not remove the ElementCount object, 
+            // however it is not crucial that it is deleted.
+        }
     }
 }
 
@@ -1797,16 +1868,14 @@ merge_classes( JSON_Object *base, const JSON_Object *incoming)
 {
     int i,j,k;
     const char *var_name;
-    
+    JSON_Status status;
     JSON_Value *in_variables = json_object_get_value(incoming, "Classes");
     JSON_Value *base_variables = json_object_get_value(base,"Classes");
     
     JSON_Object *in_object = json_object(in_variables); 
     JSON_Object *base_object = json_object(base_variables);
     
-    char *base_var; 
-    
-    size_t count = json_object_get_count(in_object);
+    LONGLONG count = json_object_get_count(in_object);
     
     for(i=0; i<count; i++)
     {
@@ -1822,17 +1891,21 @@ merge_classes( JSON_Object *base, const JSON_Object *incoming)
         if(!test)
         {
             JSON_Value *adding_value = json_value_deep_copy(json_object_get_value_at(in_object,i));
-            JSON_Status rval = json_object_remove(json_object(adding_value), "ElementCount");
-            JSON_Status status = json_object_set_value(base_object,var_name,adding_value);
+            if(adding_value)
+            {
+                status = json_object_remove(json_object(adding_value), "ElementCount");
+                
+                status = json_object_set_value(base_object,var_name,adding_value);
+            }
         }else
         {
             JSON_Object *class_object = json_object_get_object(in_object,var_name);
-            JSON_Status rval = json_object_remove(test, "ElementCount");
-            JSON_Array  *array = json_object_get_array(class_object, "variable");
+            status = json_object_remove(test, "ElementCount");
+            JSON_Array  *array = json_object_get_array(class_object, "variables");
             int var_count = json_array_get_count(array);
             
-            JSON_Array  *base_array = json_object_get_array(test, "variable");
-            int base_var_count = json_array_get_count(array);
+            JSON_Array  *base_array = json_object_get_array(test, "variables");
+            int base_var_count = json_array_get_count(base_array);
             
             for(j=0;j<var_count;j++)
             {
@@ -1866,7 +1939,7 @@ merge_classes( JSON_Object *base, const JSON_Object *incoming)
 static void
 fix_count(JSON_Object *base_object, char *target)
 {
-    size_t count;
+    LONGLONG count;
     JSON_Object *temp_object = json_object_get_object(base_object,target);
     JSON_Value *count_object = json_object_get_value(temp_object,"count");
     if(count_object)
@@ -1894,11 +1967,9 @@ mc_write_global_metadata(Famid database_id)
     char *serialized_string = NULL;
     int processors;
     int i;
-    int rval; 
     char database_name[256];
     char base_name_without_path[128];
     char base_name[128];
-    char base[128];
     char db_with_path[512];
     char *domain_base = "Domain_files.";
     char domain_path[64]; 
@@ -1910,8 +1981,10 @@ mc_write_global_metadata(Famid database_id)
     JSON_Object *base_object;
     JSON_Object *incoming_object;
     int status;  // Used for the removing of the .mili file
+    Return_value rval;
     database_name[0] = '\0';
-    base_name_without_path['\0'];
+    base_name_without_path[0] = '\0';
+    base_name[0] = '\0';
     Mili_family* fam;  //This is the Mili database plot file.
   
     if(database_id >= fam_qty || database_id <0)
@@ -1949,7 +2022,7 @@ mc_write_global_metadata(Famid database_id)
     
     rval = mc_read_scalar(database_id,"nproc", (void*)(&processors));
     
-    if(processors == 1)
+    if(rval == OK && processors == 1)
     {
         //This is not a "global" file as it only had one processor 
         return OK;
@@ -1968,7 +2041,7 @@ mc_write_global_metadata(Famid database_id)
     strncpy(base_name, fam->root, strlen(fam->root)-num_length);
     
     files_processed[file_id] = 1;
-    char * start_pos = rindex(base_name,'/')+1;
+    char * start_pos = strrchr(base_name,'/')+1;
     sprintf(domain_path, "%s%d", domain_base,file_id);
     sprintf(base_name_without_path,"%s.mili",fam->file_root);
     base_object = json_object(user_data);
@@ -2032,8 +2105,6 @@ mc_update_global_times(Famid database_id)
 {
    Return_value rval = OK;
    char GlobalMetaDataFile[256];
-   FILE *OUTFILE;
-   char *serialized_string = NULL;
    
    Mili_family* fam;  //This is the Mili database plot file
   

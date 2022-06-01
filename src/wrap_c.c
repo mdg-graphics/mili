@@ -99,6 +99,8 @@
 #define mc_new_state_               MC_NEW_STATE
 #define mc_restart_at_state_        MC_RESTART_AT_STATE
 #define mc_restart_at_file_         MC_RESTART_AT_FILE
+#define mc_set_subrec_check_        MC_SET_SUBREC_CHECK
+#define mc_check_subrec_start_      MC_CHECK_SUBREC_START
 #define mc_wrt_stream_              MC_WRT_STREAM
 #define mc_wrt_subrec_              MC_WRT_SUBREC
 #define mc_rewrite_subrec_          MC_REWRITE_SUBREC
@@ -188,6 +190,8 @@
 #define mc_wrt_stream_              MC_WRT_STREAM
 #define mc_wrt_subrec_              MC_WRT_SUBREC
 #define mc_rewrite_subrec_          MC_REWRITE_SUBREC
+#define mc_set_subrec_check_        MC_SET_SUBREC_CHECK
+#define mc_check_subrec_start_      MC_CHECK_SUBREC_START
 #define mc_read_results_            MC_READ_RESULTS
 #define mc_get_svar_size_           MC_GET_SVAR_SIZE
 #define mc_get_svar_mo_ids_on_class_ MC_GET_SVAR_MO_IDS_ON_CLASS
@@ -281,6 +285,8 @@
 #define mc_wrt_stream_              MC_WRT_STREAM
 #define mc_wrt_subrec_              MC_WRT_SUBREC
 #define mc_rewrite_subrec_          MC_REWRITE_SUBREC
+#define mc_set_subrec_check_        MC_SET_SUBREC_CHECK
+#define mc_check_subrec_start_      MC_CHECK_SUBREC_START
 #define mc_read_results_            MC_READ_RESULTS
 #define mc_get_svar_size_           MC_GET_SVAR_SIZE
 #define mc_get_svar_mo_ids_on_class_ MC_GET_SVAR_MO_IDS_ON_CLASS
@@ -354,6 +360,8 @@
 #define mc_def_vec_arr_svar_        MC_DEF_VEC_ARR_SVAR_
 #define mc_open_srec_               MC_OPEN_SREC_
 #define mc_def_subrec_              MC_DEF_SUBREC_
+#define mc_set_subrec_check_        MC_SET_SUBREC_CHECK
+#define mc_check_subrec_start_      MC_CHECK_SUBREC_START
 #define mc_def_surf_subrec_         MC_DEF_SURF_SUBREC_  /* JAL */
 #define mc_close_srec_              MC_CLOSE_SREC_
 #define mc_flush_                   MC_FLUSH_
@@ -433,8 +441,17 @@
 
 #include "mili_internal.h"
 
-int fortran_api = 0;
+Return_value
+mc_set_subrec_check_(Famid *fam_id, int *flag)
+{
+   return mc_set_subrec_check(*fam_id, *flag);
+}
 
+Return_value
+mc_check_subrec_start_(Famid *fam_id , int *srec_id )
+{
+    return mc_check_subrec_start(*fam_id , *srec_id );
+}
 Return_value
 mc_end_state_( Famid *fam_id , int *srec_id )
 {
@@ -1062,13 +1079,9 @@ mc_def_subrec_( Famid *fam_id, int *srec_id, CHAR_DESCR subrec_name,
    c_svar_names = CHAR_CONV_F2C( svar_names );
    c_subclass = CHAR_CONV_F2C( subclass );
 
-   fortran_api = 1;
-
    rval =  mc_def_subrec( *fam_id, *srec_id, c_subrec_name, *data_org,
                           *qty_svars, c_svar_names, *name_stride,
                           c_subclass, *format, *qty, mo_ids, flag );
-
-   fortran_api = 0;
 
    return rval;
 }
@@ -1122,7 +1135,6 @@ mc_wrt_subrec_( Famid *fam_id, CHAR_DESCR subrec_name, int *p_start,
    return mc_wrt_subrec( *fam_id, c_subrec_name, *p_start, *p_stop, data );
 }
 
-
 Return_value
 mc_rewrite_subrec_( Famid *fam_id, CHAR_DESCR subrec_name, int *p_start,
 		    int *p_stop, void *data, int *st_index )
@@ -1133,7 +1145,6 @@ mc_rewrite_subrec_( Famid *fam_id, CHAR_DESCR subrec_name, int *p_start,
 
    return mc_rewrite_subrec( *fam_id, c_subrec_name, *p_start, *p_stop, data, *st_index );
 }
-
 
 Return_value
 mc_read_results_( Famid *fam_id, int *p_state, int *p_subrec_id, int *p_qty,
@@ -1297,7 +1308,7 @@ mc_get_svar_size_(Famid *p_fam_id, CHAR_DESCR class_name, CHAR_DESCR var_name,
    c_class_name = CHAR_CONV_F2C(class_name);
    c_var_name   = CHAR_CONV_F2C(var_name);
 
-   rval = mc_get_svar_size(*p_fam_id, c_class_name, var_name,
+   rval = mc_get_svar_size(*p_fam_id, c_class_name, c_var_name,
                            p_num_blocks, p_size, p_type);
 
    return rval;

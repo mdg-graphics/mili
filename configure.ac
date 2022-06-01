@@ -1,3 +1,4 @@
+
 #	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #	+                                                               +
 #	+                       Copyright (c) 2004                      +
@@ -35,9 +36,9 @@
 #############################################################################
 
 m4_define(MILI_NAME_M4, Mili)
-m4_define(MILI_VERSION_M4, V21_01)
-m4_define(MILI_DATE_M4, 10/13/2021)
-m4_define(MILI_TIME_M4, 09:00:00)
+m4_define(MILI_VERSION_M4, V22_01)
+m4_define(MILI_DATE_M4, 5/19/2022)
+m4_define(MILI_TIME_M4, 08:00:00)
 m4_define(MILI_DATETIME_M4, [MILI_DATE_M4 MILI_TIME_M4])
 m4_define(MILI_BUGS_M4,durrenberger1@llnl.gov)
 m4_define(MILI_TOP_SRC_DIR_M4, `pwd`)

@@ -127,7 +127,6 @@ static Return_value delete_family( char *, char * );
 static Return_value write_header( Mili_family *fam );
 static Return_value load_descriptors( Mili_family *fam );
 static Return_value commit_non_state( Mili_family *fam );
-static Return_value mc_ti_init_header( Mili_family *fam );
 static Return_value ti_read_header( Mili_family *fam );
 static Return_value set_defaults( char *root_name, char *path,
                                   Mili_family* fam, char *control_string,
@@ -158,15 +157,6 @@ int fam_qty;
  * The length of fam_list.
  */
 int fam_array_length;
-
-
-/*****************************************************************
- * TAG( host_index )
- *
- * Zero-based indicator of the current host.
- */
-int host_index;
-
 
 /*****************************************************************
  * TAG( internal_sizes )
@@ -302,6 +292,7 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    fam->cur_st_index    = -1;
    fam->cur_file        = NULL;
    fam->directory       = NULL;
+   fam->svar_table       = NULL;
 
    /* Initialize TI variables */
    fam->ti_cur_index          = -1;
@@ -328,6 +319,7 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    fam->state_closed = 0;
    fam->hide_states = FALSE;
    fam->state_dirty = 0;
+   fam->subrec_start_check = FALSE;
    fam->visit_file_on = 0;
    /* State data file pointer. */
    fam->cur_st_file = NULL;
@@ -488,7 +480,6 @@ mc_open( char *root_name, char *path, char *control_string, Famid *p_fam_id )
    Return_value rval;
    Bool_type create_db;
    int fam_id;
-   int wrt_flag = 0;
 
 #ifdef SILOENABLED
    if (milisilo)
@@ -1131,6 +1122,8 @@ open_family( Famid fam_id )
    fam = fam_list[fam_id];
 
    fam->my_id = fam_id;
+   
+   fam->state_closed = 1;
 
    /**/
    /* Need to initialize all of fam */
@@ -1454,7 +1447,7 @@ read_header( Mili_family *fam )
    char fname[M_MAX_NAME_LEN];
    char header[CHAR_HEADER_SIZE];
    FILE *p_f;
-   size_t nitems;
+   LONGLONG nitems;
    int i;
    int status;
    struct stat sbuf;
@@ -2242,10 +2235,6 @@ Return_value
 mc_get_metadata( Famid fam_id, char *mili_version, char *host,
                  char *arch,   char *timestamp, char *xmilics_version )
 {
-   Mili_family *fam;
-
-   fam = fam_list[fam_id];
-
    mili_version[0]    = '\0';
    host[0]            = '\0';
    arch[0]            = '\0';
@@ -2275,7 +2264,6 @@ mc_close( Famid fam_id )
    Return_value rval;
    char fname[M_MAX_NAME_LEN];
    int state_qty=0;
-   int wrt_flag=0;
    State_descriptor *p_sd;
 #ifdef SILOENABLED
    if (milisilo)
@@ -2292,7 +2280,6 @@ mc_close( Famid fam_id )
    }
 
    fam = fam_list[fam_id];
-   
    /*
     * Reset the non-state file count to 1 for taurus databases.
     * There may be more than one physical file for all the non-state
@@ -2303,6 +2290,8 @@ mc_close( Famid fam_id )
       fam->file_count = 1;
    }
 
+   json_value_free(fam->root_value);
+   
    if ( fam->cur_file != NULL )
    {
       
@@ -2472,7 +2461,7 @@ mc_limit_states( Famid fam_id, int states_per_file )
  * given a requested filesize.
  */
 Return_value
-mc_limit_filesize( Famid fam_id, long filesize )
+mc_limit_filesize( Famid fam_id, LONGLONG filesize )
 {
    Mili_family *fam;
    Return_value rval = OK;
@@ -2900,6 +2889,7 @@ test_open_next( Mili_family *fam, Bool_type *open_next )
    Return_value rval = OK;
 
    *open_next = FALSE;
+   
    if(fam->cur_st_file == NULL)
    {
       *open_next = TRUE;
@@ -3031,6 +3021,13 @@ prep_for_new_data( Mili_family *fam, int ftype )
          }
          if ( open_next )
          {
+            fam->file_map = RENEWC_N( State_file_descriptor, fam->file_map,
+                                      fam->st_file_count, 1,
+                                      "New file map entry" );
+            if (fam->file_map == NULL)
+            {
+               return ALLOC_FAILED;
+            }
             /* Open a new file. */
             rval = state_file_open( fam, fam->st_file_count,
                                     fam->access_mode );
@@ -3041,13 +3038,7 @@ prep_for_new_data( Mili_family *fam, int ftype )
             fam->file_st_qty = 0;
             fam->cur_st_offset = 0;
             fam->st_file_count++;
-            fam->file_map = RENEWC_N( State_file_descriptor, fam->file_map,
-                                      fam->st_file_count, 1,
-                                      "New file map entry" );
-            if (fam->file_map == NULL)
-            {
-               return ALLOC_FAILED;
-            }
+            
          }
          else
          {
@@ -3056,8 +3047,11 @@ prep_for_new_data( Mili_family *fam, int ftype )
              * defined data, not state "header" (time and srec_id) written
              * by Mili.
              */
+            fam->cur_st_offset = fam->state_map[fam->file_st_qty-1].offset;
+            fam->cur_st_offset += sizeof(int)+sizeof(float);
             fam->cur_st_offset += fam->srecs[fam->cur_srec_id]->size;
-
+            
+            
             /* Position file pointer (for mc_wrt_st_stream()). */
             rval = seek_state_file( fam->cur_st_file, fam->cur_st_offset );
             if ( rval != OK )
@@ -3502,7 +3496,7 @@ seek_state_file( FILE *cur_st_file, LONGLONG offset )
 {
    int stat;
 
-   stat = fseek( cur_st_file, (long)offset, SEEK_SET );
+   stat = fseek( cur_st_file, offset, SEEK_SET );
 
    return stat ? SEEK_FAILED : OK;
 }
@@ -3736,70 +3730,6 @@ ti_file_open( Famid fam_id, int index, char mode )
       }
    }
    return rval;
-}
-
-
-/*****************************************************************
- * TAG( mc_ti_init_header ) LOCAL
- *
- * Initialize the TI file family header.
- */
-static Return_value
-mc_ti_init_header( Mili_family *fam )
-{
-   int write_ct;
-
-   /* Allocate space for the character header data. */
-   fam->char_header = NEW_N( char, CHAR_HEADER_SIZE, "Family char header" );
-   if (fam->char_header == NULL)
-   {
-      return ALLOC_FAILED;
-   }
-
-   /* Fill character header fields. */
-   strncpy( &fam->char_header[MILI_MAGIC_NUMBER_IDX], "mili", 4 );
-   fam->char_header[HDR_VERSION_IDX] = header_version;
-   fam->char_header[DIR_VERSION_IDX] = directory_version;
-   if ( fam->swap_bytes )
-   {
-      if ( BIG_ENDIAN_HOST )
-      {
-         fam->char_header[ENDIAN_IDX] = (char) MILI_LITTLE_ENDIAN;
-      }
-      else
-      {
-         fam->char_header[ENDIAN_IDX] = (char) MILI_BIG_ENDIAN;
-      }
-   }
-   else
-   {
-      if ( BIG_ENDIAN_HOST )
-      {
-         fam->char_header[ENDIAN_IDX] = (char) MILI_BIG_ENDIAN;
-      }
-      else
-      {
-         fam->char_header[ENDIAN_IDX] = (char) MILI_LITTLE_ENDIAN;
-      }
-   }
-   fam->char_header[PRECISION_LIMIT_IDX] = (char) fam->precision_limit;
-
-   fam->char_header[ST_FILE_SUFFIX_WIDTH_IDX] = (char) fam->st_suffix_width;
-
-   fam->char_header[PARTITION_SCHEME_IDX] = (char) fam->partition_scheme;
-
-   /* Write it out (even if incomplete) to allocate space in the file. */
-   write_ct = fam->write_funcs[M_STRING]( fam->ti_cur_file, fam->char_header,
-                                          CHAR_HEADER_SIZE );
-   if (write_ct != CHAR_HEADER_SIZE)
-   {
-      return SHORT_WRITE;
-   }
-
-   /* Init the next free location in the current file. */
-   fam->ti_next_free_byte  = CHAR_HEADER_SIZE;
-
-   return OK;
 }
 
 
@@ -4169,7 +4099,7 @@ ti_read_header( Mili_family *fam )
    char fname[M_MAX_NAME_LEN];
    char header[CHAR_HEADER_SIZE];
    FILE *p_f;
-   size_t nitems;
+   LONGLONG nitems;
    int i;
    int status;
    struct stat sbuf;
@@ -4520,10 +4450,10 @@ mc_get_next_famid( void )
  * This function calculates and returns the number of bytes of
  * data for a give datatype.
  */
-int
-mc_calc_bytecount( int datatype, int size )
+LONGLONG
+mc_calc_bytecount( int datatype, LONGLONG size )
 {
-   int byte_count=0;
+   LONGLONG byte_count=0;
 
    switch (datatype)
    {

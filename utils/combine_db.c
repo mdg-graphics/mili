@@ -591,10 +591,10 @@ mc_copy_geometry(Mili_analysis **in_db, Mili_analysis *out_db,TILabels *labels) 
        conn_size = -1,
        label_size = -1,
        conns,
-       node_offset,
        position,
        num_procs = labels->num_procs;
-	long current_offset;
+   LONGLONG current_offset,
+         node_offset;
    Label *iter,*nodeLabel= NULL;
    float *temp_coords=NULL;
    int *temp_conns=NULL,
@@ -747,8 +747,7 @@ mc_copy_geometry(Mili_analysis **in_db, Mili_analysis *out_db,TILabels *labels) 
          for(i=0;i< iter->num_per_processors[cur_proc]; i++){
             position = iter->map[current_offset+i]*(conns+2);
             for(j=0 ;j<conns;j++) {
-               out_conns[position+j] = 
-                   nodeLabel->map[node_offset+temp_conns[(i*conns)+j]]+1;
+               out_conns[position+j] = nodeLabel->map[node_offset+temp_conns[(i*conns)+j]]+1;
             }
             out_conns[position+j] = temp_mats[i]+1;
             out_conns[position+j+1] = temp_parts[i]+1;
@@ -1717,7 +1716,9 @@ merge_state_data(int proc,
    Htable_entry *subrec_entry, *class_entry;
    Mesh_object_class_data *p_mocd;
    Svar *out_svar, *in_svar;
-	size_t state_size;
+   size_t state_size;
+   LONGLONG out_offset,
+            in_offset;
    int state_qty,
        i,j,k,ii,kk,jj,ll,
        srec_id,
@@ -1729,13 +1730,11 @@ merge_state_data(int proc,
        qty_out_svars,
        iorder,
        stype,
-       out_offset,
        num_type,
        atom_size,
        in_round, 
        out_round,
        agg_type,
-       in_offset,
        step,
        iprec;
    char *subrec_name,

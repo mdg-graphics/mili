@@ -1,0 +1,648 @@
+
+
+# MiliParameters
+  title  Restart Test
+
+
+# StateVariableInfo ux
+  short_name  ux
+  long_name  X Position
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo uy
+  short_name  uy
+  long_name  Y Position
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo uz
+  short_name  uz
+  long_name  Z Position
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo nodpos
+  short_name  nodpos
+  long_name  Node Position
+  aggregate_type  1
+  data_type  2
+  list_size  3
+  order 0
+  dims 
+  svars ux,uy,uz
+
+
+# StateVariableInfo v1
+  short_name  v1
+  long_name  Var 1
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo v2
+  short_name  v2
+  long_name  Var 2
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo v3
+  short_name  v3
+  long_name  Var 3
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo v4
+  short_name  v4
+  long_name  Var 4
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo v5
+  short_name  v5
+  long_name  Var 5
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo v6
+  short_name  v6
+  long_name  Var 6
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo sx
+  short_name  sx
+  long_name  SX
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo sy
+  short_name  sy
+  long_name  SY
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo sz
+  short_name  sz
+  long_name  SZ
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo sxy
+  short_name  sxy
+  long_name  SXY
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo syz
+  short_name  syz
+  long_name  SYX
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo szx
+  short_name  szx
+  long_name  SZX
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo eps
+  short_name  eps
+  long_name  EPS
+  aggregate_type  0
+  data_type  2
+  list_size  0
+  order 0
+  dims 
+  svars 
+
+
+# StateVariableInfo stress
+  short_name  stress
+  long_name  Stress
+  aggregate_type  1
+  data_type  2
+  list_size  7
+  order 0
+  dims 
+  svars sx,sy,sz,sxy,syz,szx,eps
+
+
+# SubrecordDefinition NodeSubrec
+  name  NodeSubrec
+  class_name  node
+  organization  0
+  qty_svars  1
+  svar_names  nodpos
+  qty_blocks  1
+  mo_blocks  1,35
+  mo_qty  35
+  offset  0
+  size  420
+
+
+# SubrecordDefinition TrussSubrec
+  name  TrussSubrec
+  class_name  truss
+  organization  1
+  qty_svars  2
+  svar_names  v5,v6
+  qty_blocks  1
+  mo_blocks  1,4
+  mo_qty  4
+  offset  420
+  size  32
+
+
+# SubrecordDefinition TetSubrec
+  name  TetSubrec
+  class_name  t
+  organization  1
+  qty_svars  5
+  svar_names  v1,v2,v3,v4,v5
+  qty_blocks  1
+  mo_blocks  1,4
+  mo_qty  4
+  offset  452
+  size  80
+
+
+# SubrecordDefinition ShellStressSubrec
+  name  ShellStressSubrec
+  class_name  shell
+  organization  1
+  qty_svars  1
+  svar_names  stress
+  qty_blocks  1
+  mo_blocks  1,5
+  mo_qty  5
+  offset  532
+  size  140
+
+
+# InitialNodalPosition node_1
+  node_label  1
+  X_position  0.000000
+  Y_position  0.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_2
+  node_label  2
+  X_position  0.000000
+  Y_position  1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_3
+  node_label  3
+  X_position  0.000000
+  Y_position  1.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_4
+  node_label  4
+  X_position  0.000000
+  Y_position  0.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_5
+  node_label  5
+  X_position  1.000000
+  Y_position  0.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_6
+  node_label  6
+  X_position  1.000000
+  Y_position  1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_7
+  node_label  7
+  X_position  1.000000
+  Y_position  1.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_8
+  node_label  8
+  X_position  1.000000
+  Y_position  0.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_9
+  node_label  9
+  X_position  2.000000
+  Y_position  0.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_10
+  node_label  10
+  X_position  2.000000
+  Y_position  1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_11
+  node_label  11
+  X_position  2.000000
+  Y_position  1.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_12
+  node_label  12
+  X_position  2.000000
+  Y_position  0.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_13
+  node_label  13
+  X_position  3.000000
+  Y_position  0.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_14
+  node_label  14
+  X_position  3.000000
+  Y_position  1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_15
+  node_label  15
+  X_position  3.000000
+  Y_position  1.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_16
+  node_label  16
+  X_position  3.000000
+  Y_position  0.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_17
+  node_label  17
+  X_position  4.000000
+  Y_position  0.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_18
+  node_label  18
+  X_position  4.000000
+  Y_position  1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_19
+  node_label  19
+  X_position  4.000000
+  Y_position  1.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_20
+  node_label  20
+  X_position  4.000000
+  Y_position  0.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_21
+  node_label  21
+  X_position  5.000000
+  Y_position  0.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_22
+  node_label  22
+  X_position  5.000000
+  Y_position  1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_23
+  node_label  23
+  X_position  5.000000
+  Y_position  1.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_24
+  node_label  24
+  X_position  5.000000
+  Y_position  0.000000
+  Z_position  1.000000
+
+
+# InitialNodalPosition node_25
+  node_label  25
+  X_position  0.500000
+  Y_position  0.500000
+  Z_position  2.000000
+
+
+# InitialNodalPosition node_26
+  node_label  26
+  X_position  1.500000
+  Y_position  0.500000
+  Z_position  2.000000
+
+
+# InitialNodalPosition node_27
+  node_label  27
+  X_position  2.500000
+  Y_position  0.500000
+  Z_position  2.000000
+
+
+# InitialNodalPosition node_28
+  node_label  28
+  X_position  3.500000
+  Y_position  0.500000
+  Z_position  2.000000
+
+
+# InitialNodalPosition node_29
+  node_label  29
+  X_position  4.500000
+  Y_position  0.500000
+  Z_position  2.000000
+
+
+# InitialNodalPosition node_30
+  node_label  30
+  X_position  0.000000
+  Y_position  -1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_31
+  node_label  31
+  X_position  1.000000
+  Y_position  -1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_32
+  node_label  32
+  X_position  2.000000
+  Y_position  -1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_33
+  node_label  33
+  X_position  3.000000
+  Y_position  -1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_34
+  node_label  34
+  X_position  4.000000
+  Y_position  -1.000000
+  Z_position  0.000000
+
+
+# InitialNodalPosition node_35
+  node_label  35
+  X_position  5.000000
+  Y_position  -1.000000
+  Z_position  0.000000
+
+
+# ElementClassNames
+   1  h
+   2  mat
+   3  mesh
+   4  node
+   5  shell
+   6  t
+   7  truss
+
+
+# ElementLabels node
+      1
+      2
+      3
+      4
+      5
+      6
+      7
+      8
+      9
+     10
+     11
+     12
+     13
+     14
+     15
+     16
+     17
+     18
+     19
+     20
+     21
+     22
+     23
+     24
+     25
+     26
+     27
+     28
+     29
+     30
+     31
+     32
+     33
+     34
+     35
+
+
+# ElementLabels truss
+      1
+      2
+      3
+      4
+
+
+# ElementLabels shell
+      1
+      2
+      3
+      4
+      5
+
+
+# ElementLabels t
+      1
+      2
+      3
+      4
+
+
+# ElementLabels h
+      1
+      2
+      3
+      4
+      5
+
+
+# ElementLabels mesh
+      1
+
+
+# ElementLabels mat
+      1
+      2
+      3
+      4
+
+
+# ElementConnectivity truss
+     1  25,26
+     2  26,27
+     3  27,28
+     4  28,29
+
+
+# ElementConnectivity shell
+     1  1,5,6,2
+     2  5,9,10,6
+     3  9,13,14,10
+     4  13,17,18,14
+     5  17,21,22,18
+
+
+# ElementConnectivity t
+     1  25,26,8,7
+     2  26,27,12,11
+     3  27,28,16,15
+     4  28,29,20,19
+
+
+# ElementConnectivity h
+     1  1,5,6,2,4,8,7,3
+     2  5,9,10,6,8,12,11,7
+     3  9,13,14,10,12,16,15,11
+     4  13,17,18,14,16,20,19,15
+     5  17,21,22,18,20,24,23,19
+
+
+# MaterialElements 4
+  truss_1
+  truss_2
+  truss_3
+  truss_4
+
+
+# MaterialElements 1
+  shell_1
+  shell_2
+  shell_3
+  shell_4
+  shell_5
+
+
+# MaterialElements 3
+  t_1
+  t_2
+  t_3
+  t_4
+
+
+# MaterialElements 2
+  h_1
+  h_2
+  h_3
+  h_4
+  h_5

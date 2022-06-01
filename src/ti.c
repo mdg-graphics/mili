@@ -86,20 +86,7 @@ extern int fam_qty;
  * The length of fam_list.
  */
 extern int fam_array_length;
-/*
-static Return_value ti_read_scalar( Famid fam_id, Param_ref *p_pr,
-                                    void *p_value );
-static Return_value ti_read_string( Famid fam_id, Param_ref *p_pr,
-                                    char *p_value );
-static Return_value ti_write_scalar( Famid fam_id, int type, char *name,
-                                     void *data, Dir_entry_type etype );
-static Return_value ti_write_string( Famid fam_id, char *name, char *value,
-                                     Dir_entry_type etype );
-static Return_value ti_write_array( Famid fam_id, int type, char *name,
-                                    int order, int *dimensions, void *data,
-                                    Dir_entry_type etype );
 
-*/
 
 /*****************************************************************
  * TAG( ti_file_seek ) PRIVATE
@@ -145,7 +132,7 @@ ti_read_scalar( Famid fam_id, Param_ref *p_pr, void *p_value )
    int file, entry_idx;
    LONGLONG offset;
    Return_value rval;
-   size_t nitems;
+   LONGLONG nitems;
    LONGLONG *entry;
    int numtype;
    Mili_family *fam;
@@ -247,7 +234,6 @@ Return_value
 mc_ti_wrt_scalar( Famid fam_id, int type, char *name, void *p_value )
 {
    Mili_family *fam;
-   char new_name[M_MAX_NAME_LEN];
    
    if ( name == NULL || *name == '\0' )
    {
@@ -279,7 +265,7 @@ ti_read_string( Famid fam_id, Param_ref *p_pr, char *p_value )
    int file, entry_idx;
    LONGLONG offset;
    Return_value rval;
-   size_t nitems, length;
+   LONGLONG nitems, length;
    LONGLONG *entry;
 
    Mili_family *fam;
@@ -298,7 +284,7 @@ ti_read_string( Famid fam_id, Param_ref *p_pr, char *p_value )
    }
 
    offset = entry[OFFSET_IDX];
-   length = (size_t)entry[LENGTH_IDX];
+   length = (LONGLONG)entry[LENGTH_IDX];
 
    if ( fam->ti_file_count >=0 )
    {
@@ -382,8 +368,6 @@ Return_value
 mc_ti_wrt_string( Famid fam_id, char *name, char *value )
 {
    Mili_family *fam;
-   char new_name[128];
-   Return_value status;
    
    if ( name == NULL || *name == '\0' )
    {
@@ -413,13 +397,12 @@ read_htable_array(Famid fam_id, char *name, void **p_data,
    Hash_table *table;
    Param_ref *p_pr;
    Mili_family *fam = fam_list[fam_id];
-   char new_name[128];
    Return_value status = OK;
    LONGLONG *dir_ent;
    int file, entry_idx, num_type, cell_qty;
-   int group_num_type,i;
+   int i;
    LONGLONG offset;
-   size_t nitems, length;
+   LONGLONG nitems, length;
    int *idata = NULL;
    LONGLONG *lidata= NULL;
    float *fdata= NULL;
@@ -436,7 +419,8 @@ read_htable_array(Famid fam_id, char *name, void **p_data,
    }
    next = phte;
    
-   while(next){
+   while(next)
+   {
       if(strcmp(name,next->key) != 0){
          next = next->next;
          continue;
@@ -448,10 +432,9 @@ read_htable_array(Famid fam_id, char *name, void **p_data,
       
       /* Get file offset and length of data. */
       offset   = dir_ent[OFFSET_IDX];
-      length   = (size_t)dir_ent[LENGTH_IDX];
+      length   = (LONGLONG)dir_ent[LENGTH_IDX];
       num_type = dir_ent[MODIFIER1_IDX];
       if(first_ppr){
-         group_num_type = num_type;
          first_ppr=0;
       }
       if ( fam->file_count >=0 )
@@ -484,8 +467,8 @@ read_htable_array(Famid fam_id, char *name, void **p_data,
          return ALLOC_FAILED;
       }
       nitems = (fam->read_funcs[M_INT])( fam->cur_file, p_pr->dims,
-                                      (size_t) p_pr->rank );
-      if ( nitems != (size_t)p_pr-> rank )
+                                      (LONGLONG) p_pr->rank );
+      if ( nitems != (LONGLONG)p_pr-> rank )
       {
          free( p_pr->dims );
          return SHORT_READ;
@@ -515,7 +498,7 @@ read_htable_array(Famid fam_id, char *name, void **p_data,
             }
             
             nitems = (fam->read_funcs[M_INT])( fam->cur_file, idata+current_count,
-                                            (size_t) cell_qty );
+                                            (LONGLONG) cell_qty );
             length/=4;
             break;
 
@@ -533,7 +516,7 @@ read_htable_array(Famid fam_id, char *name, void **p_data,
             }
             
             nitems = (fam->read_funcs[M_INT8])( fam->cur_file, lidata+current_count,
-                                             (size_t) cell_qty );
+                                             (LONGLONG) cell_qty );
             length/=8;
             break;
 
@@ -552,7 +535,7 @@ read_htable_array(Famid fam_id, char *name, void **p_data,
             }
             
             nitems = (fam->read_funcs[M_FLOAT])( fam->cur_file, fdata+current_count,
-                                              (size_t) cell_qty );
+                                              (LONGLONG) cell_qty );
             length=(length/4)-2;
             break;
 
@@ -570,14 +553,14 @@ read_htable_array(Famid fam_id, char *name, void **p_data,
             }
             
             nitems = (fam->read_funcs[M_FLOAT8])( fam->cur_file, ddata+current_count,
-                                               (size_t) cell_qty );
+                                               (LONGLONG) cell_qty );
             length/=8;
             break;
 
       }
       current_count += cell_qty; 
       next = next->next;
-		free( p_pr->dims );
+      free( p_pr->dims );
    
    }
    switch( num_type )
@@ -585,16 +568,20 @@ read_htable_array(Famid fam_id, char *name, void **p_data,
       case M_INT:
       case M_INT4:
          p_data[0] = (void *)idata;
+         idata = NULL;
          break;
       case M_INT8:
          p_data[0] = (void *)lidata;
+         lidata = NULL;
          break;
       case M_FLOAT:
       case M_FLOAT4:
          p_data[0] = (void *)fdata;
+         fdata = NULL;
          break;
       case M_FLOAT8:
          p_data[0] = (void *)ddata;
+         ddata = NULL;
          break;
    }
       
@@ -616,7 +603,7 @@ ti_read_array( Famid fam_id, Param_ref *p_pr, void **p_data,
    int cell_qty;
    int i;
    LONGLONG offset;
-   size_t nitems, length;
+   LONGLONG nitems, length;
    int num_type;
    LONGLONG *dir_ent;
    int *idata;
@@ -625,15 +612,9 @@ ti_read_array( Famid fam_id, Param_ref *p_pr, void **p_data,
    double *ddata;
    Return_value rval;
    Mili_family *fam;
-   Param_ref *next_pr;
    
    fam = fam_list[fam_id];
-   next_pr = p_pr;
-   /*
-   while(next_pr){
-      next_pr=next_pr->next;
-      
-   }*/
+   
    /* Get directory entry. */
    file = p_pr->file_index;
    entry_idx = p_pr->entry_index;
@@ -643,7 +624,7 @@ ti_read_array( Famid fam_id, Param_ref *p_pr, void **p_data,
 
    /* Get file offset and length of data. */
    offset   = dir_ent[OFFSET_IDX];
-   length   = (size_t)dir_ent[LENGTH_IDX];
+   length   = (LONGLONG)dir_ent[LENGTH_IDX];
    num_type = dir_ent[MODIFIER1_IDX];
    
    if ( fam->ti_file_count >=0 )
@@ -679,8 +660,8 @@ ti_read_array( Famid fam_id, Param_ref *p_pr, void **p_data,
    }
 
    nitems = (fam->read_funcs[M_INT])( fam->ti_cur_file, p_pr->dims,
-                                      (size_t) p_pr->rank );
-   if ( nitems != (size_t)p_pr-> rank )
+                                      (LONGLONG) p_pr->rank );
+   if ( nitems != (LONGLONG)p_pr-> rank )
    {
       free( p_pr->dims );
       return SHORT_READ;
@@ -707,7 +688,7 @@ ti_read_array( Famid fam_id, Param_ref *p_pr, void **p_data,
          }
          p_data[0] = (void *)idata;
          nitems = (fam->read_funcs[M_INT])( fam->ti_cur_file, idata,
-                                            (size_t) cell_qty );
+                                            (LONGLONG) cell_qty );
          length/=4;
          break;
 
@@ -720,7 +701,7 @@ ti_read_array( Famid fam_id, Param_ref *p_pr, void **p_data,
          }
          p_data[0] = (void *)lidata;
          nitems = (fam->read_funcs[M_INT8])( fam->ti_cur_file, lidata,
-                                             (size_t) cell_qty );
+                                             (LONGLONG) cell_qty );
          length/=8;
          break;
 
@@ -734,7 +715,7 @@ ti_read_array( Famid fam_id, Param_ref *p_pr, void **p_data,
          }
          p_data[0] = (void *)fdata;
          nitems = (fam->read_funcs[M_FLOAT])( fam->ti_cur_file, fdata,
-                                              (size_t) cell_qty );
+                                              (LONGLONG) cell_qty );
          length=(length/4)-2;
          break;
 
@@ -747,7 +728,7 @@ ti_read_array( Famid fam_id, Param_ref *p_pr, void **p_data,
          }
          p_data[0] = (void *)ddata;
          nitems = (fam->read_funcs[M_FLOAT8])( fam->ti_cur_file, ddata,
-                                               (size_t) cell_qty );
+                                               (LONGLONG) cell_qty );
          length/=8;
          break;
 
@@ -818,102 +799,6 @@ mc_ti_read_array( Famid fam_id, char *name, void **p_data,
    return ti_read_array( fam_id, (Param_ref *) phte->data,
                          p_data, num_items_read );
 }
-
-
-/*****************************************************************
- * TAG( ti_write_array ) LOCAL
- *
- * Write a parameter array into the referenced family.
- */
-static Return_value
-ti_write_array( Famid fam_id, int type, char *name, int order,
-                int *dimensions, void *data, Dir_entry_type etype )
-{
-   int i;
-   int atoms;
-   int *i_buf;
-   size_t outbytes;
-   Return_value rval = OK;
-   Param_ref *ppr;
-   int fidx;
-   size_t write_ct;
-
-   Mili_family *fam;
-   fam = fam_list[fam_id];
-
-   /* Ensure file is open and positioned. */
-   if ( (rval = prep_for_new_data( fam, TI_DATA )) != OK )
-   {
-      return rval;
-   }
-
-   /* Calc number of entries in array. */
-   for ( i = 0, atoms = 1; i < order; i++ )
-   {
-      if ( dimensions[i]>0 )
-      {
-         atoms *= dimensions[i];
-      }
-   }
-
-   /* Load integer descriptors into an output buffer. */
-   i_buf = NEW_N( int, order + 1, "App array descr buf" );
-   if (order + 1 > 0 && i_buf == NULL)
-   {
-      return ALLOC_FAILED;
-   }
-   i_buf[0] = order;
-   for ( i = 0; i < order; i++ )
-   {
-      i_buf[i + 1] = dimensions[i];
-   }
-
-   /* Add entry into directory. */
-   outbytes = ((order + 1) * EXT_SIZE( fam, M_INT ))
-              + atoms * EXT_SIZE( fam, type );
-   rval = add_ti_dir_entry( fam, etype, type, ARRAY, 1, &name,
-                            fam->ti_next_free_byte, outbytes );
-   if ( rval != OK )
-   {
-      return rval;
-   }
-
-   /* Write it out... */
-   write_ct = fam->write_funcs[M_INT]( fam->ti_cur_file, i_buf, order + 1 );
-   if (write_ct != (order + 1))
-   {
-      return SHORT_WRITE;
-   }
-   write_ct = (fam->write_funcs[type])( fam->ti_cur_file, data,
-                                        (size_t) atoms );
-   if (write_ct != atoms)
-   {
-      return SHORT_WRITE;
-   }
-
-   fam->ti_next_free_byte += outbytes;
-
-   free( i_buf );
-
-   /* Now create entry for the param table. */
-   ppr = NEW( Param_ref, "Param table entry - array" );
-   if (ppr == NULL)
-   {
-      return ALLOC_FAILED;
-   }
-   fidx = fam->ti_cur_index;
-   ppr->file_index = fidx;
-   ppr->entry_index = fam->ti_directory[fidx].qty_entries - 1;
-   rval = ti_htable_add_entry_data( fam->ti_param_table, name,
-                                    ENTER_ALWAYS, ppr );
-   if (rval != OK)
-   {
-      free(ppr);
-   }
-
-   return rval;
-}
-
 
 
 /*****************************************************************
@@ -1366,7 +1251,7 @@ mc_ti_verify_var_name( Famid fam_id, char *name )
    }
    status = ti_htable_search( table, name, FIND_ENTRY, &phte );
 
-   if ( phte == NULL )
+   if ( status != OK && phte == NULL )
    {
         return FALSE;
    }
@@ -1646,7 +1531,7 @@ mc_ti_get_material_from_name( char *name )
 Return_value
 mc_ti_get_data_len( Famid fam_id, char *name, int *datatype, int *datalength )
 {
-   Htable_entry *phte, *temp_phte ;
+   Htable_entry *phte;
    Hash_table *table;
    Param_ref *p_pr;
    LONGLONG  *entry;

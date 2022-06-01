@@ -54,7 +54,7 @@ Label* create_label(char* shortname, int nproc,int sclass, int mesh_id,
    strcat(label->sname,shortname);
    label->num_per_processors = 
                   (long *) calloc( nproc,sizeof(long) );
-   label->offset_per_processor = (long*) calloc(nproc,sizeof(long) );
+   label->offset_per_processor = (LONGLONG*) calloc(nproc,sizeof(LONGLONG) );
 
    
 
@@ -644,11 +644,6 @@ filter_count(Label *label,int proc_count) {
    label->labels[0]= (-1);
    size = 0;
    while(heap_size){
-/*
-      fprintf(stderr, "label: %d , proc: %d , proc_position: %d map_position: %d\n", 
-               arr[1].label_id, arr[1].proc, 
-               arr[1].proc_position,label->offset_per_processor[arr[1].proc]+arr[1].proc_position);
-*/       
       
       if(arr[1].label_id != label->labels[label_index]) {
          if((label_index == 0 && label->labels[label_index] != -1) || label_index != 0) {
@@ -666,8 +661,6 @@ filter_count(Label *label,int proc_count) {
       heap_size--; 
       for(now = 1; now*2 <= heap_size; now = child) {
          child = now*2;
-         /*child!=heapSize beacuse heap[heapSize+1] does not exist, which means it has only one 
-           child */
          if(child != heap_size && arr[child+1].label_id < arr[child].label_id ) 
          {
             child++;
@@ -703,47 +696,6 @@ filter_count(Label *label,int proc_count) {
 
 }
 
-void
-process_node_labels(Label *label)
-{
-    int i;
-    Htable_entry *label_entry;
-    Hash_table *label_store = htable_create( 5009 );
-    char number[20];
-    int rval;
-    int current_global = 0;
-    label->map = (int*)calloc(sizeof(int), label->size);
-    for(i=0; i< label->size; i++)
-    {
-        sprintf(number, "%i", label->labels[i]);
-        rval = htable_search(label_store,number,ENTER_UNIQUE,&label_entry); 
-        if(rval == ENTRY_EXISTS)
-        {
-            rval = htable_search(label_store,number,FIND_ENTRY,&label_entry);
-            label->map[i] = ((int*)label_entry->data)[0];
-        }else
-        {
-            int *entry = calloc(sizeof(int),1);
-            label->map[i] = current_global;
-            *entry = current_global++;
-            label_entry->data = (void*)entry;
-        }
-    }
-    label->filtered_size = current_global;
-    return;
-}
-
-void
-filter_count_simple(Label *label) {
-   int i;
-     
-   label->map = (int*) calloc(label->size,sizeof(int));
-   
-   for(i = 0; i < label->size; i++) {
-       label->map[i] = i;
-   }
-}
-
 /****************************************************************
  *  Function:: Constructs the partition map from nodal and
  *  element labels.
@@ -753,15 +705,9 @@ int
 build_cmap_from_labels( Mili_analysis **in_db, int nproc, TILabels *labels )
 {
    Label *working_label;
-   for(working_label=labels->labels;working_label != NULL;working_label= working_label->next) 
-   {
-      if(working_label->sclass == M_NODE){
-          process_node_labels(working_label);
-          //filter_count(working_label,nproc);  
+   for(working_label=labels->labels;working_label != NULL;working_label= working_label->next) {
+      filter_count(working_label,nproc);  
           
-      }else{
-          filter_count_simple(working_label);
-      }
    }
    return OK;
    

@@ -1,0 +1,2 @@
+Caught expected short state write error : Mili - Failed to write out complete state.
+Caught expected long state write error : Mili - Wrote past the end of the state.

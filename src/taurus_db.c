@@ -137,7 +137,6 @@ Return_value taurus_load_descriptors( Mili_family *fam, Famid fam_id,
                                       int ctl[], int *p_srec_id );
 static void taurus_cleanse( Mili_family *fam );
 
-void fix_title( char * );
 /*****************************************************************
  * TAG( fam_list )
  *
@@ -423,7 +422,7 @@ taurus_open_family( Mili_family *fam, Famid fam_id, char *mode )
 Return_value
 taurus_load_direc( Mili_family *fam, int ctl[] )
 {
-   size_t c_qty;
+   LONGLONG c_qty;
    Param_ref *ppr;
    int fidx;
    char *title;

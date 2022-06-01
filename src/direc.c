@@ -92,8 +92,8 @@ valid_dir_entry_data( Dir_entry_type etype, int string_qty, char **strings )
  */
 Return_value
 add_dir_entry( Mili_family *fam, Dir_entry_type etype, int modifier1,
-               int modifier2, int string_qty, char **strings, off_t offset,
-               off_t length )
+               int modifier2, int string_qty, char **strings, LONGLONG offset,
+               LONGLONG length )
 {
    LONGLONG *entry;
    File_dir *p_fd;
@@ -185,10 +185,10 @@ add_dir_entry( Mili_family *fam, Dir_entry_type etype, int modifier1,
 Return_value
 commit_dir( Mili_family *fam )
 {
-   size_t words;
+   LONGLONG words;
    int dir_header[QTY_DIR_HEADER_FIELDS];
    File_dir *p_fd;
-   size_t char_qty, round_qty;
+   LONGLONG char_qty, round_qty;
    void *pmem;
    int num_written;
    Return_value rval;
@@ -250,14 +250,14 @@ commit_dir( Mili_family *fam )
       }
       if(fam->char_header[DIR_VERSION_IDX]==1){
          num_written = fam->write_funcs[M_INT]( fam->cur_file, dir_header,
-                                               (size_t) QTY_DIR_HEADER_FIELDS-1 );
+                                               (LONGLONG) QTY_DIR_HEADER_FIELDS-1 );
          if (num_written != QTY_DIR_HEADER_FIELDS-1)
          {
             return SHORT_WRITE;
          }
       }else {
          num_written = fam->write_funcs[M_INT]( fam->cur_file, dir_header,
-                                               (size_t) QTY_DIR_HEADER_FIELDS );
+                                               (LONGLONG) QTY_DIR_HEADER_FIELDS );
          if (num_written != QTY_DIR_HEADER_FIELDS)
          {
             return SHORT_WRITE;
@@ -332,16 +332,16 @@ load_directories( Mili_family *fam )
 {
    int fcnt;
    int fnum;
-   int qty_ent, qty_states, qty_nam;
+   int qty_ent=0, qty_states=0, qty_nam=0;
    FILE *p_f;
    char fname[M_MAX_NAME_LEN];
    int header[QTY_DIR_HEADER_FIELDS];
    int nnames;
-   size_t nitems, nbytes;
+   LONGLONG nitems, nbytes;
    long offset;
    File_dir *p_fd;
    Dir_entry *p_de;
-   TempDir_entry *temp_p_de;
+	TempDir_entry *temp_p_de;
    int fd;
    Return_value rval;
    Bool_type active;
@@ -351,7 +351,6 @@ load_directories( Mili_family *fam )
    Dir_entry_type etype;
    char *p_name;
    int status;
-   int size = sizeof(Dir_entry);
    active = fam->active_family;
    offset = 0;
 
@@ -421,12 +420,14 @@ load_directories( Mili_family *fam )
           ( !active || fcnt <= fnum ) )
    {
       fam->cur_file = p_f;
-
+      offset = 0;
       /* Seek to end of file and read directory "header". */
-      if(fam->char_header[DIR_VERSION_IDX]==1){
-         offset = -(QTY_DIR_HEADER_FIELDS-1) * EXT_SIZE( fam, M_INT );
-      }else if(fam->char_header[DIR_VERSION_IDX]>=2){
-         offset = -(QTY_DIR_HEADER_FIELDS) * EXT_SIZE( fam, M_INT );
+      if(fam->char_header[DIR_VERSION_IDX]==1)
+      {
+         offset -= (QTY_DIR_HEADER_FIELDS-1) * EXT_SIZE( fam, M_INT );
+      }else if(fam->char_header[DIR_VERSION_IDX]>=2)
+      {
+         offset = -(QTY_DIR_HEADER_FIELDS * EXT_SIZE( fam, M_INT ));
       }
       status = fseek( p_f, offset, SEEK_END );
       if ( status != 0 )
@@ -435,24 +436,33 @@ load_directories( Mili_family *fam )
          return SEEK_FAILED;
       }
       
-      if(fam->char_header[DIR_VERSION_IDX]==1){
+      if(fam->char_header[DIR_VERSION_IDX]==1)
+      {
          nitems = fam->read_funcs[M_INT]( p_f, header, QTY_DIR_HEADER_FIELDS-1 );
          if ( nitems != QTY_DIR_HEADER_FIELDS-1 )
          {
             fclose( p_f );
             return BAD_LOAD_READ;
          }
-      } else {
+      } else 
+      {
          nitems = fam->read_funcs[M_INT]( p_f, header, QTY_DIR_HEADER_FIELDS );
          if ( nitems != QTY_DIR_HEADER_FIELDS )
          {
             fclose( p_f );
             return BAD_LOAD_READ;
          }
+         qty_states = header[QTY_STATES_IDX];
+         
       }
       
       qty_ent = header[QTY_ENTRIES_IDX];
-      qty_states = header[QTY_STATES_IDX];
+      if(qty_ent < 1)
+      {
+          fclose( p_f );
+          return DIR_ZERO_COUNT;
+      }
+      
 
       /* Allocate storage for current non-state file's directory. */
       fam->directory = RENEW_N( File_dir, fam->directory, fcnt, 1,
@@ -462,8 +472,10 @@ load_directories( Mili_family *fam )
          fclose( p_f );
          return ALLOC_FAILED;
       }
+      
       p_fd = fam->directory + fcnt;
       p_de = NEW_N( Dir_entry, qty_ent, "Load dir entries" );
+      
       if (qty_ent > 0 && p_de == NULL)
       {
          free( fam->directory );
@@ -473,194 +485,206 @@ load_directories( Mili_family *fam )
       }
 
       /* Seek to beginning of directory entries and read all at once. */
-      if(fam->char_header[DIR_VERSION_IDX]==1){
+      if(fam->char_header[DIR_VERSION_IDX]==1)
+      {
          offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT ) ;
-      }else if(fam->char_header[DIR_VERSION_IDX]==2){
+      }else if(fam->char_header[DIR_VERSION_IDX]==2)
+      {
          offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT ) +
                    qty_states * 20; /*20 is the size af a statemap*/ 
       }else // Added version 3 to handle long size offsets
-		{
-			offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT8 ) +
+      {
+          offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT8 ) +
                    qty_states * 20; /*20 is the size af a statemap*/
-		}
+      }
       status = fseek( p_f, offset, SEEK_END );
-		if(fam->char_header[DIR_VERSION_IDX]>=3){
-      	nitems = fam->read_funcs[M_INT8]( p_f, p_de, QTY_ENTRY_FIELDS*qty_ent );
-		}else{
-			temp_p_de= NEW_N( TempDir_entry, qty_ent, "Load dir entries" );
-			nitems = fam->read_funcs[M_INT]( p_f, temp_p_de, QTY_ENTRY_FIELDS*qty_ent );
-			for(i=0; i<qty_ent;i++)
-			{
-				for(j=0;j<QTY_ENTRY_FIELDS;j++)
-				{
-					p_de[i][j] = (LONGLONG)temp_p_de[i][j];
-				}
-			}
-			free(temp_p_de);
-		}
-
-      if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS )
+      if(fam->char_header[DIR_VERSION_IDX]>=3)
       {
-         free( fam->directory );
-         fam->directory = NULL;
-         free( p_de );
-         fclose( p_f );
-         return BAD_LOAD_READ;
-      }
-
-      /* Calculate quantity of strings in directory. */
-      qty_nam = 0;
-      for ( i = 0; i < qty_ent; i++ )
+          nitems = fam->read_funcs[M_INT8]( p_f, p_de, QTY_ENTRY_FIELDS*qty_ent );
+		  if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS)
+          {
+              free( fam->directory );
+              fam->directory = NULL;
+              free( p_de );
+              fclose( p_f );
+              return BAD_LOAD_READ;
+          }
+      }else
       {
-         qty_nam += p_de[i][STRING_QTY_IDX];
-      }
+          TempDir_entry *temp_p_de = NEW_N( TempDir_entry, qty_ent, "Load dir entries" );
+          nitems = fam->read_funcs[M_FLOAT4]( p_f, (void*)temp_p_de, QTY_ENTRY_FIELDS*qty_ent );
+			
+          if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS)
+          {
+              free( fam->directory );
+              fam->directory = NULL;
+              free( p_de );
+              fclose( p_f );
+              return BAD_LOAD_READ;
+          }
+          for(i=0; i<qty_ent;i++)
+          {
+              for(j=0; j<QTY_ENTRY_FIELDS; j++)
+              {
+                  p_de[i][j] = (LONGLONG)temp_p_de[i][j];
+              }
+          }
+          free(temp_p_de);
+       }
 
-      /* Fill in the file's File_dir. */
-      p_fd->dir_entries = p_de;
-      p_fd->commit_count = header[COMMIT_COUNT_IDX];
-      p_fd->qty_entries = qty_ent;
-      p_fd->qty_names = qty_nam;
-      p_fd->names = NEW_N( char *, qty_nam, "File_dir entry names" );
-      if (qty_nam > 0 && p_fd->names == NULL)
-      {
-         free( fam->directory );
-         fam->directory = NULL;
-         free( p_de );
-         fclose( p_f );
-         return ALLOC_FAILED;
-      }
+       /* Calculate quantity of strings in directory. */
+       qty_nam = 0;
+       for ( i = 0; i < qty_ent; i++ )
+       {
+           qty_nam += p_de[i][STRING_QTY_IDX];
+       }
 
-      if ( fam->commit_count < header[COMMIT_COUNT_IDX] )
-      {
-         fam->commit_count = header[COMMIT_COUNT_IDX];
-      }
+       /* Fill in the file's File_dir. */
+       p_fd->dir_entries = p_de;
+       p_fd->commit_count = header[COMMIT_COUNT_IDX];
+       p_fd->qty_entries = qty_ent;
+       p_fd->qty_names = qty_nam;
+       p_fd->names = NEW_N( char *, qty_nam, "File_dir entry names" );
+       if (qty_nam > 0 && p_fd->names == NULL)
+       {
+           free( fam->directory );
+           fam->directory = NULL;
+           free( p_de );
+           fclose( p_f );
+           return ALLOC_FAILED;
+       }
 
-      /*
-       * Now seek and read entry names if they exist.  Store references
-       * to parameters in the param table.
-       */
-      nitems = header[NAMES_LEN_IDX];
-      if ( nitems > 0 )
-      {
-         offset -= nitems;
-         status = fseek( p_f, offset, SEEK_END );
+       if ( fam->commit_count < header[COMMIT_COUNT_IDX] )
+       {
+           fam->commit_count = header[COMMIT_COUNT_IDX];
+       }
 
-         /* Names go in an IO Store. */
-         pioms = ios_create_empty();
-         if (pioms == NULL)
-         {
-            free(p_fd->names);
-            free( fam->directory );
-            fam->directory = NULL;
-            free( p_de );
-            fclose( p_f );
-            return IOS_ALLOC_FAILED;
-         }
-         rval = ios_input( fam, M_STRING, nitems, pioms, NULL );
-         if (rval != OK)
-         {
-            free(pioms);
-            free(p_fd->names);
-            free( fam->directory );
-            fam->directory = NULL;
-            free( p_de );
-            fclose( p_f );
-            return rval;
-         }
-         p_fd->name_data = pioms;
-         rval = ios_traverse_init( pioms, 1 );
-         if (rval != OK)
-         {
-            free(pioms);
-            free(p_fd->names);
-            free( fam->directory );
-            fam->directory = NULL;
-            free( p_de );
-            fclose( p_f );
-            return rval;
-         }
+       /*
+        * Now seek and read entry names if they exist.  Store references
+        * to parameters in the param table.
+        */
+       nitems = header[NAMES_LEN_IDX];
+       if ( nitems > 0 )
+       {
+           offset -= nitems;
+           status = fseek( p_f, offset, SEEK_END );
 
-         /* Create the param table if necessary. */
-         if ( fam->param_table == NULL )
-         {
-            fam->param_table = htable_create( DEFAULT_HASH_TABLE_SIZE );
-            if (fam->param_table == NULL ||
-                  fam->param_table->table == NULL)
-            {
+           /* Names go in an IO Store. */
+           pioms = ios_create_empty();
+           if (pioms == NULL)
+           {
+              free(p_fd->names);
+              free( fam->directory );
+              fam->directory = NULL;
+              free( p_de );
+              fclose( p_f );
+              return IOS_ALLOC_FAILED;
+           }
+           rval = ios_input( fam, M_STRING, nitems, pioms, NULL );
+           if (rval != OK)
+           {
                free(pioms);
                free(p_fd->names);
                free( fam->directory );
                fam->directory = NULL;
                free( p_de );
                fclose( p_f );
-               return ALLOC_FAILED;
-            }
-         }
+               return rval;
+           }
+           p_fd->name_data = pioms;
+           rval = ios_traverse_init( pioms, 1 );
+           if (rval != OK)
+           {
+               free(pioms);
+               free(p_fd->names);
+               free( fam->directory );
+               fam->directory = NULL;
+               free( p_de );
+               fclose( p_f );
+               return rval;
+           }
 
-         /* Traverse through the entries for this file's directory. */
-         nnames = 0;
-         for ( i = 0; i < qty_ent; i++ )
-         {
-            /* If entry has associated strings, copy them */
-            p_name = NULL;
-            for ( j = 0; j < p_de[i][STRING_QTY_IDX]; j++ )
-            {
-               /* Get next name from directory name data. */
-               rval = ios_string_traverse( pioms, &p_name );
-               if (rval != OK)
+           /* Create the param table if necessary. */
+           if ( fam->param_table == NULL )
+           {
+               fam->param_table = htable_create( DEFAULT_HASH_TABLE_SIZE );
+               if (fam->param_table == NULL ||
+                   fam->param_table->table == NULL)
                {
-                  free(pioms);
-                  free(p_fd->names);
-                  free( fam->directory );
-                  fam->directory = NULL;
-                  free( p_de );
-                  fclose( p_f );
-                  return rval;
+                   free(pioms);
+                   free(p_fd->names);
+                   free( fam->directory );
+                   fam->directory = NULL;
+                   free( p_de );
+                   fclose( p_f );
+                   return ALLOC_FAILED;
                }
-               p_fd->names[nnames + j] = p_name;
-            }
+           }
 
-            nnames += p_de[i][STRING_QTY_IDX];
+           /* Traverse through the entries for this file's directory. */
+           nnames = 0;
+           for ( i = 0; i < qty_ent; i++ )
+           {
+               /* If entry has associated strings, copy them */
+               p_name = NULL;
+               for ( j = 0; j < p_de[i][STRING_QTY_IDX]; j++ )
+               {
+                   /* Get next name from directory name data. */
+                   rval = ios_string_traverse( pioms, &p_name );
+                   if (rval != OK)
+                   {
+                       free(pioms);
+                       free(p_fd->names);
+                       free( fam->directory );
+                       fam->directory = NULL;
+                       free( p_de );
+                       fclose( p_f );
+                       return rval;
+                   }
+                   p_fd->names[nnames + j] = p_name;
+               }
 
-            /* If entry is a parameter... */
-            etype = (Dir_entry_type) p_de[i][TYPE_IDX];
-            if ( etype == MILI_PARAM || etype == APPLICATION_PARAM || 
-                (fam->char_header[DIR_VERSION_IDX]>=2 && etype == TI_PARAM))
-            {
-               if (p_name == NULL)
+               nnames += p_de[i][STRING_QTY_IDX];
+
+               /* If entry is a parameter... */
+               etype = (Dir_entry_type) p_de[i][TYPE_IDX];
+               if ( etype == MILI_PARAM || etype == APPLICATION_PARAM || 
+                   (fam->char_header[DIR_VERSION_IDX]>=2 && etype == TI_PARAM))
                {
-                  return NOT_OK;
+                   if (p_name == NULL)
+                   {
+                       return NOT_OK;
+                   }
+                   /* Create an entry in the param table. */
+                   ppr = NEW( Param_ref, "Param table entry - string" );
+                   if (ppr == NULL)
+                   {
+                       free(pioms);
+                       free(p_fd->names);
+                       free( fam->directory );
+                       fam->directory = NULL;
+                       free( p_de );
+                       fclose( p_f );
+                       return ALLOC_FAILED;
+                   }
+                   ppr->file_index = fcnt;
+                   ppr->entry_index = i;
+                   /* All parameters will have names. */
+                   rval = htable_add_entry_data( fam->param_table, p_name,
+                                                 ENTER_ALWAYS, ppr );
+                   if (rval != OK)
+                   {
+                       free(ppr);
+                       free(pioms);
+                       free(p_fd->names);
+                       free( fam->directory );
+                       fam->directory = NULL;
+                       free( p_de );
+                       fclose( p_f );
+                       return rval;
+                   }
                }
-               /* Create an entry in the param table. */
-               ppr = NEW( Param_ref, "Param table entry - string" );
-               if (ppr == NULL)
-               {
-                  free(pioms);
-                  free(p_fd->names);
-                  free( fam->directory );
-                  fam->directory = NULL;
-                  free( p_de );
-                  fclose( p_f );
-                  return ALLOC_FAILED;
-               }
-               ppr->file_index = fcnt;
-               ppr->entry_index = i;
-               /* All parameters will have names. */
-               rval = htable_add_entry_data( fam->param_table, p_name,
-                                             ENTER_ALWAYS, ppr );
-               if (rval != OK)
-               {
-                  free(ppr);
-                  free(pioms);
-                  free(p_fd->names);
-                  free( fam->directory );
-                  fam->directory = NULL;
-                  free( p_de );
-                  fclose( p_f );
-                  return rval;
-               }
-            }
-         }
+           }
       }
 
       /* Prepare to access next file in family. */

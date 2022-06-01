@@ -110,7 +110,6 @@ static int all_class_count;
 static Mesh_object_class_data **class_data = NULL;
 
 static int SDTLIBCC mc_compare_labels( const void *label1, const void *label2 );
-static int SDTLIBCC mc_compare_label_blocks( Label_block *block1, Label_block *block2 );
 static Return_value make_umesh( Mili_family *fam, Bool_type initial_create,
                                 char *mesh_name, int *p_mesh_id );
 static Return_value update_nodes_def( Mili_family *fam, int mesh_id,
@@ -242,7 +241,11 @@ mc_is_particle_class( Famid fam_id, char *class_name )
 	     i++ )
       {
 	     status = mc_ti_read_string( fam_id, wildcard_list[i], particle_class_name );
-	     if ( !strcmp( particle_class_name, class_name ) ) {
+	     if(status != OK)
+         {
+            continue;
+         }
+         if ( !strcmp( particle_class_name, class_name ) ) {
 	          htable_delete_wildcard_list( num_entries, wildcard_list );
 		  return TRUE;
 	     }
@@ -562,7 +565,7 @@ mc_def_class( Famid fam_id, int mesh_id, int superclass, char *short_name,
       names[0] = short_name;
       names[1] = long_name;
       rval = add_dir_entry( fam, CLASS_DEF, mesh_id, superclass, 2, names,
-                            (off_t) DONT_CARE, (off_t) DONT_CARE );
+                            (LONGLONG) DONT_CARE, (LONGLONG) DONT_CARE );
    }
 
    return rval;
@@ -582,7 +585,7 @@ Return_value
 mc_def_class_idents( Famid fam_id, int mesh_id, char *short_name, int start,
                      int stop )
 {
-   off_t rec_size;
+   LONGLONG rec_size;
    Mesh_descriptor *mesh;
    Mili_family *fam;
    Return_value rval;
@@ -654,7 +657,7 @@ mc_def_class_idents( Famid fam_id, int mesh_id, char *short_name, int start,
     * Write it out.
     */
    num_items_written = fam->write_funcs[M_INT]( fam->cur_file, entry,
-                       (size_t) QTY_IDENT_ENTRY_FIELDS );
+                       (LONGLONG) QTY_IDENT_ENTRY_FIELDS );
    if (num_items_written != QTY_IDENT_ENTRY_FIELDS)
    {
       return SHORT_WRITE;
@@ -667,7 +670,7 @@ mc_def_class_idents( Famid fam_id, int mesh_id, char *short_name, int start,
 
 
 /*****************************************************************
- * TAG( mc_def_node ) PUBLIC
+ * TAG( mc_def_nodes ) PUBLIC
  *
  * Define coordinates for a continuously-numbered sequence of nodes.
  * Logic assumes the sequence is ascending.
@@ -676,8 +679,8 @@ Return_value
 mc_def_nodes( Famid fam_id, int mesh_id, char *short_name, int start_node,
               int stop_node, float *coords )
 {
-   off_t rec_size;
-   size_t data_words;
+   LONGLONG rec_size;
+   LONGLONG data_words;
    Mesh_descriptor *mesh;
    int tags[QTY_NODE_TAGS];
    Mili_family *fam;
@@ -793,9 +796,7 @@ mc_def_node_labels( Famid fam_id, int mesh_id, char *short_name,
         superclass_name[32],
         label_descriptor[96];
    int temp_mesh_id=mesh_id, superclass;
-   int state;
    Return_value status;
-   state = 0;
    fam = fam_list[fam_id];
 
    CHECK_WRITE_ACCESS( fam )
@@ -828,7 +829,7 @@ mc_def_node_labels( Famid fam_id, int mesh_id, char *short_name,
    {
       return status;
    }
-   status = ti_make_label_description( mesh_id,1,superclass_name, 
+   status = ti_make_label_description( mesh_id,(int) -1,superclass_name, 
                                        short_name,  label_descriptor);
    /*status = mc_ti_def_class( fam_id, mesh_id, state, (int) -1,
                              superclass_name, TRUE, TRUE,
@@ -869,7 +870,7 @@ update_nodes_def( Mili_family *fam, int mesh_id, char *class_name,
                   int start, int stop, float *coords )
 {
    int i, j, ent_qty, node_qty, name_cnt;
-   size_t read_cnt, data_words, write_cnt;
+   LONGLONG read_cnt, data_words, write_cnt;
    Dir_entry *p_de;
    char **names;
    int range[QTY_NODE_TAGS];
@@ -1010,12 +1011,12 @@ Return_value
 mc_def_conn_seq( Famid fam_id, int mesh_id, char *short_name,
                  int start_el, int stop_el, int *data )
 {
-   off_t rec_size;
+   LONGLONG rec_size;
    Mesh_descriptor *mesh;
    int *tags;
    Mili_family *fam;
    Return_value rval;
-   size_t ibuf_len, data_words;
+   LONGLONG ibuf_len, data_words;
    int superclass;
    int num_items_written;
 
@@ -1123,8 +1124,8 @@ Return_value
 mc_def_conn_arb( Famid fam_id, int mesh_id, char *short_name,
                  int el_qty, int *elem_ids, int *data )
 {
-   off_t rec_size;
-   size_t data_words;
+   LONGLONG rec_size;
+   LONGLONG data_words;
    Mesh_descriptor *mesh;
    int tags[QTY_CONN_HEADER_FIELDS];
    Mili_family *fam;
@@ -1209,7 +1210,7 @@ mc_def_conn_arb( Famid fam_id, int mesh_id, char *short_name,
       return SHORT_WRITE;
    }
    num_items_written = fam->write_funcs[M_INT]( fam->cur_file, p_int_blk,
-                       (size_t) blk_qty * 2 );
+                       (LONGLONG) blk_qty * 2 );
    if (num_items_written != (blk_qty * 2))
    {
       return SHORT_WRITE;
@@ -1359,7 +1360,6 @@ mc_get_globals_and_locals(Famid fam_id, int mesh_id,  char* class_name ,
 {
    Mili_family *fam;
    Return_value status = OK;
-   char label_name[128];
    char new_name[128];
    char final_name[128];
    char final_local_name[128];
@@ -1368,11 +1368,8 @@ mc_get_globals_and_locals(Famid fam_id, int mesh_id,  char* class_name ,
    int param_array_type;
    int param_array_len;
    int current_size = 0;
-   char ** wildcardlist;
    int *trash_pointer;
    int *trash_local_pointer;
-   
-   int *temp_array = NEW_N(int, total_count, "Temp array to hold for globals");
    
    sprintf(new_name,"GLOBAL_IDS[/Mesh-%d/Sname-%s/DEF-",
            mesh_id, class_name);
@@ -1380,7 +1377,6 @@ mc_get_globals_and_locals(Famid fam_id, int mesh_id,  char* class_name ,
          
    count = htable_search_wildcard( fam->param_table, count,
                         FALSE, new_name, "NULL","NULL" ,NULL );
-   wildcardlist = NEW_N(char *, count,"ids of matching stuff");
    for(i=0; i<count;i++)
    {
       sprintf(final_name,"GLOBAL_IDS[/Mesh-%d/Sname-%s/DEF-%d]",
@@ -1429,8 +1425,6 @@ mc_def_global_ids( Famid fam_id, int mesh_id, char *short_name,
    int i;
    int cur_local_count = 0;
    char *fixed_local_count = "LOCAL_COUNT-";
-   Htable_entry *htable_entry;
-   Param_ref * param_ref;
    
    fam = fam_list[fam_id];
    
@@ -1594,9 +1588,6 @@ Return_value
 mc_def_seq_global_ids( Famid fam_id, int mesh_id, char *short_name,
                                    int start_el, int stop_el,int* global_ids)
 {
-   Mili_family *fam;
-   Return_value status = OK;
-   
    int i,
        qty,
        element_id;
@@ -1616,7 +1607,7 @@ mc_def_seq_global_ids( Famid fam_id, int mesh_id, char *short_name,
    return mc_def_global_ids( fam_id, mesh_id, short_name,
                              qty, element_ids, global_ids );
    
-   free(element_ids);
+   
 }
 /*****************************************************************
  * TAG( mc_def_conn_seq_labels_global_ids ) PUBLIC
@@ -1650,9 +1641,6 @@ Return_value
 mc_def_seq_labels( Famid fam_id, int mesh_id, char *short_name,
                                    int start_el, int stop_el,int* labels)
 {
-   Mili_family *fam;
-   Return_value status = OK;
-   
    int i,
        qty,
        element_id;
@@ -1753,8 +1741,7 @@ mc_def_conn_labels( Famid fam_id, int mesh_id, char *short_name,
    }
    else
    {
-      str_dup (&(fam->label_class_list[fam->num_label_classes].mclass),
-               short_name);
+      str_dup (&(fam->label_class_list[fam->num_label_classes].mclass),short_name);
       fam->label_class_list[fam->num_label_classes].last_matid = 0;
       class_index = fam->num_label_classes;
       fam->num_label_classes++;
@@ -2796,7 +2783,7 @@ mc_get_node_label_info(Famid fam_id, int mesh_id, char *short_name,
          	                   short_name, short_name);		
    }else
 	{
-		status = ti_make_label_description( mesh_id, 1, superclass_name, 
+		status = ti_make_label_description( mesh_id, (int) -1, superclass_name, 
                                        short_name,  label_descriptor);		
 	}
 	if (status != OK) {
@@ -2935,7 +2922,7 @@ mc_load_node_labels( Famid fam_id, int mesh_id, char *short_name,
    {
       return status;
    }
-   status = ti_make_label_description( mesh_id, 1, superclass_name, 
+   status = ti_make_label_description( mesh_id, (int) -1, superclass_name, 
                                        short_name,  label_descriptor);
    /*
    status = mc_ti_def_class( fam_id, mesh_id, state, 0,
@@ -3173,7 +3160,7 @@ load_conn_def( Mili_family *fam, int file_idx, Dir_entry dir_ent,
    int blk_qty, elem_qty, word_qty, conn_qty;
    int superclass;
    int offset, mat_offset;
-   size_t read_cnt;
+   LONGLONG read_cnt;
    int *conns, *conns_dest, *mats, *mats_dest, *parts, *parts_dest;
    int i, j;
    Return_value rval;
@@ -3346,7 +3333,7 @@ load_nodes_def( Mili_family *fam, int file_idx, Dir_entry dir_ent,
                 void *coords )
 {
    int node_hdr[QTY_NODE_TAGS];
-   size_t float_qty, read_cnt;
+   LONGLONG float_qty, read_cnt;
    float *dest;
    Return_value rval;
 
@@ -3920,7 +3907,6 @@ mc_get_class_info_by_name( Famid fam_id, int *mesh_id, const char *in_short_name
 	int args[2];
 	int ngroups;
 	int nelems; 
-	int found =0;
 	char short_name[1024];
    char long_name[1024];
 	Return_value status;
@@ -4506,7 +4492,7 @@ add_mesh( Mili_family *fam, Dir_entry dir_ent, char *name_handle )
    {
       rval = OK;
 
-      mname = NEW_N( char, (size_t)dir_ent[LENGTH_IDX], "Mesh name buf" );
+      mname = NEW_N( char, (LONGLONG)dir_ent[LENGTH_IDX], "Mesh name buf" );
       if (dir_ent[LENGTH_IDX] > 0 && mname == NULL)
       {
          rval = ALLOC_FAILED;
@@ -4549,7 +4535,7 @@ dump_nodes( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
    int lcnt, off;
    int num_written;
    Return_value rval;
-   size_t read_ct;
+   LONGLONG read_ct;
 
    offset = dir_ent[OFFSET_IDX];
    hi = head_indent + 1;
@@ -4733,7 +4719,7 @@ dump_elem_conns( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
    int *conn;
    int num_written;
    Return_value rval;
-   size_t read_ct;
+   LONGLONG read_ct;
 
    offset = dir_ent[OFFSET_IDX];
    hi = head_indent + 1;
@@ -4975,7 +4961,7 @@ dump_surface_conns( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
    int *conn;
    int num_written;
    Return_value rval;
-   size_t read_ct;
+   LONGLONG read_ct;
 
    offset = dir_ent[OFFSET_IDX];
    hi = head_indent + 1;
@@ -5150,7 +5136,7 @@ dump_class_idents( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
    int start, stop;
    int num_written;
    Return_value rval;
-   size_t read_ct;
+   LONGLONG read_ct;
 
    offset = dir_ent[OFFSET_IDX];
    hi = head_indent + 1;
@@ -5208,27 +5194,6 @@ mc_compare_labels( const void *label1, const void *label2 )
    return 0;
 }
 
-
-/************************************************************
- * TAG( mc_compare_label_blocks ) LOCAL
- *
- * Used by the qsort routine to sort Mili Label Blocks.
- */
-static int SDTLIBCC
-mc_compare_label_blocks( Label_block *block1, Label_block *block2 )
-{
-   if ( block1->start_of_block < block2->start_of_block )
-   {
-      return -1;
-   }
-
-   if ( block1->start_of_block > block2->start_of_block )
-   {
-      return 1;
-   }
-
-   return ( 0 );
-}
 
 
 /*****************************************************************

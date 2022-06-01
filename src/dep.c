@@ -62,20 +62,20 @@
 #include "mili_internal.h"
 
 /* Specific low level IO functions. */
-static size_t rd_byte( FILE *file, void *data, size_t qty );
-static size_t wrt_byte( FILE *file, void *data, size_t qty );
-static size_t rd_4byte( FILE *file, void *data, size_t qty );
-static size_t wrt_4byte( FILE *file, void *data, size_t qty );
-static size_t rd_4byte_swap( FILE *file, void *data, size_t qty );
-static size_t wrt_4byte_swap( FILE *file, void *data, size_t qty );
-static size_t rd_8byte( FILE *file, void *data, size_t qty );
-static size_t wrt_8byte( FILE *file, void *data, size_t qty );
-static size_t rd_8byte_swap( FILE *file, void *data, size_t qty );
-static size_t wrt_8byte_swap( FILE *file, void *data, size_t qty );
-static size_t rd_bytes_swap( FILE *file, void *data,
-                             size_t qty, size_t chunk_size);
-static size_t wrt_bytes_swap( FILE *file, void *data,
-                              size_t qty, size_t chunk_size);
+static LONGLONG rd_byte( FILE *file, void *data, LONGLONG qty );
+static LONGLONG wrt_byte( FILE *file, void *data, LONGLONG qty );
+static LONGLONG rd_4byte( FILE *file, void *data, LONGLONG qty );
+static LONGLONG wrt_4byte( FILE *file, void *data, LONGLONG qty );
+static LONGLONG rd_4byte_swap( FILE *file, void *data, LONGLONG qty );
+static LONGLONG wrt_4byte_swap( FILE *file, void *data, LONGLONG qty );
+static LONGLONG rd_8byte( FILE *file, void *data, LONGLONG qty );
+static LONGLONG wrt_8byte( FILE *file, void *data, LONGLONG qty );
+static LONGLONG rd_8byte_swap( FILE *file, void *data, LONGLONG qty );
+static LONGLONG wrt_8byte_swap( FILE *file, void *data, LONGLONG qty );
+static LONGLONG rd_bytes_swap( FILE *file, void *data,
+                             LONGLONG qty, LONGLONG chunk_size);
+static LONGLONG wrt_bytes_swap( FILE *file, void *data,
+                              LONGLONG qty, LONGLONG chunk_size);
 
 
 /*****************************************************************
@@ -277,8 +277,8 @@ Return_value
 set_state_data_io_routines( Mili_family *fam )
 {
    Return_value rval;
-   size_t (**rf)();
-   size_t (**wf)();
+   LONGLONG (**rf)();
+   LONGLONG (**wf)();
 
    rval = OK;
    rf = fam->state_read_funcs;
@@ -299,14 +299,14 @@ set_state_data_io_routines( Mili_family *fam )
  *
  * Buffered I/O on character or byte data from/to a file.
  */
-static size_t
-rd_byte( FILE *file, void *data, size_t qty )
+static LONGLONG
+rd_byte( FILE *file, void *data, LONGLONG qty )
 {
    return fread( data, 1, qty, file );
 }
 
-static size_t
-wrt_byte( FILE *file, void *data, size_t qty )
+static LONGLONG
+wrt_byte( FILE *file, void *data, LONGLONG qty )
 {
    return fwrite( data, 1, qty, file );
 }
@@ -317,14 +317,14 @@ wrt_byte( FILE *file, void *data, size_t qty )
  *
  * Buffered I/O on four-byte chunks of un-translated data from/to a file.
  */
-static size_t
-rd_4byte( FILE *file, void *data, size_t qty )
+static LONGLONG
+rd_4byte( FILE *file, void *data, LONGLONG qty )
 {
    return fread( data, 4, qty, file );
 }
 
-static size_t
-wrt_4byte( FILE *file, void *data, size_t qty )
+static LONGLONG
+wrt_4byte( FILE *file, void *data, LONGLONG qty )
 {
    return fwrite( data, 4, qty, file );
 }
@@ -336,14 +336,14 @@ wrt_4byte( FILE *file, void *data, size_t qty )
  * Buffered I/O on four-byte chunks of un-translated data from/to
  * a file with byte-order swap.
  */
-static size_t
-rd_4byte_swap( FILE *file, void *data, size_t qty )
+static LONGLONG
+rd_4byte_swap( FILE *file, void *data, LONGLONG qty )
 {
    return rd_bytes_swap( file, data, qty, 4 );
 }
 
-static size_t
-wrt_4byte_swap( FILE *file, void *data, size_t qty )
+static LONGLONG
+wrt_4byte_swap( FILE *file, void *data, LONGLONG qty )
 {
    return wrt_bytes_swap( file, data, qty, 4 );
 }
@@ -354,14 +354,14 @@ wrt_4byte_swap( FILE *file, void *data, size_t qty )
  *
  * Buffered I/O on eight-byte chunks of untranslated data from/to a file.
  */
-static size_t
-rd_8byte( FILE *file, void *data, size_t qty )
+static LONGLONG
+rd_8byte( FILE *file, void *data, LONGLONG qty )
 {
    return fread( data, 8, qty, file );
 }
 
-static size_t
-wrt_8byte( FILE *file, void *data, size_t qty )
+static LONGLONG
+wrt_8byte( FILE *file, void *data, LONGLONG qty )
 {
    return fwrite( data, 8, qty, file );
 }
@@ -373,14 +373,14 @@ wrt_8byte( FILE *file, void *data, size_t qty )
  * Buffered I/O on eight-byte chunks of byte-swapped data from/to
  * a file.
  */
-static size_t
-rd_8byte_swap( FILE *file, void *data, size_t qty )
+static LONGLONG
+rd_8byte_swap( FILE *file, void *data, LONGLONG qty )
 {
    return rd_bytes_swap( file, data, qty, 8 );
 }
 
-static size_t
-wrt_8byte_swap( FILE *file, void *data, size_t qty )
+static LONGLONG
+wrt_8byte_swap( FILE *file, void *data, LONGLONG qty )
 {
    return wrt_bytes_swap( file, data, qty, 8 );
 }
@@ -392,10 +392,10 @@ wrt_8byte_swap( FILE *file, void *data, size_t qty )
  * Buffered I/O on chunks of chunk_size byte-swapped data from/to 
  * a file.
  */
-static size_t
-rd_bytes_swap( FILE *file, void *data, size_t qty, size_t chunk_size )
+static LONGLONG
+rd_bytes_swap( FILE *file, void *data, LONGLONG qty, LONGLONG chunk_size )
 {
-   size_t nitems;
+   LONGLONG nitems;
    unsigned char *rawdata;
 
    rawdata = NEW_N( unsigned char, qty * chunk_size, "swapbuf" );
@@ -416,10 +416,10 @@ rd_bytes_swap( FILE *file, void *data, size_t qty, size_t chunk_size )
    return nitems;
 }
 
-static size_t
-wrt_bytes_swap( FILE *file, void *data, size_t qty, size_t chunk_size )
+static LONGLONG
+wrt_bytes_swap( FILE *file, void *data, LONGLONG qty, LONGLONG chunk_size )
 {
-   size_t nitems;
+   LONGLONG nitems;
    unsigned char *swapdata;
 
    swapdata = NEW_N( unsigned char, qty * chunk_size, "swapbuf" );

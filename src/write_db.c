@@ -118,7 +118,7 @@ write_state_data( int state_num, Mili_analysis *out_db )
       return rval;
    }
 
-   if ( (fam->partition_scheme == STATE_COUNT ) && (state_num == 0 ) ) {
+   if ( (fam->partition_scheme == STATE_COUNT ) && (state_num == 1 ) ) {
       rval = mc_query_family( fam_id, QTY_STATES, NULL, NULL,
                               &qty_states );
       states_per_file = fam->states_per_file;
@@ -145,7 +145,7 @@ write_state_data( int state_num, Mili_analysis *out_db )
    p_sr = fam->srecs[srec_id];
    subrec_qty = p_sr->qty_subrecs;
 
-   st_time = out_db->state_times[state_num];
+   st_time = out_db->state_times[state_num-1];
 
    p_file_suffix = ST_FILE_SUFFIX( fam, fam->cur_st_index );
    p_file_state_index = fam->file_st_qty - 1;

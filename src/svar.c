@@ -58,6 +58,8 @@ static char *agg_names[AGG_TYPE_CNT] =
 };
 
 static Return_value create_svar( Mili_family *fam, char *name, Svar **ppsv );
+static Return_value input_svars( Mili_family *fam, int file_index,
+                                 LONGLONG file_offset );
 static Return_value find_delete_svar( Mili_family *fam, char *name );
 static Return_value get_svar_info(Famid fam_id, char *class_name,
                                   char *var_name, int *num_blocks, int *size,
@@ -187,7 +189,6 @@ mc_def_svars( Famid fam_id, int qty, char *names, int name_stride,
    fam = fam_list[fam_id];
    p_name = names;
    p_title = titles;
-   
    for ( i = 0; i < qty; i++, p_name += name_stride, p_title += title_stride )
    {
       if ( valid_svar_data( SCALAR, p_name, types[i], 0, NULL, 0, NULL ) )
@@ -215,14 +216,14 @@ mc_def_svars( Famid fam_id, int qty, char *names, int name_stride,
             }
 
             psv->agg_type = (Aggregate_type *)
-                            ios_alloc( (size_t) 1, fam->svar_i_ios );
+                            ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
             if (psv->agg_type == NULL)
             {
                return IOS_ALLOC_FAILED;
             }
             *psv->agg_type = SCALAR;
 
-            psv->data_type = (int *) ios_alloc( (size_t) 1,
+            psv->data_type = (int *) ios_alloc( (LONGLONG) 1,
                                                 fam->svar_i_ios );
             if ( psv->data_type == NULL )
             {
@@ -261,8 +262,29 @@ mc_def_svars( Famid fam_id, int qty, char *names, int name_stride,
 
    return OK;
 }
-
-
+Return_value
+validate_vector_decl(char *name,int size,char **field_names,Svar *existing_data)
+{
+   int index;
+   if(existing_data->agg_type[0] != VECTOR && existing_data->agg_type[0] != VEC_ARRAY)
+   {
+       return VARIABLE_AGG_TYPE_ERROR;
+   }
+   if(existing_data->list_size[0] != size)
+   {
+       return VECTOR_REDECLARATION_ERROR;
+   }else
+   {
+      for(index = 0; index < size; index++)
+      {
+         if(strcmp(field_names[index], existing_data->svars[index]->name))
+         {
+            return VECTOR_REDECLARATION_ERROR;
+         }
+      }
+   }
+   return OK;
+}
 /*****************************************************************
  * TAG( mc_def_vec_svar ) PUBLIC
  *
@@ -286,7 +308,11 @@ mc_def_vec_svar( Famid fam_id, int type, int size, char *name, char *title,
    {
       return INVALID_SVAR_DATA;
    }
-
+//   Work in progress
+   if(fam->svar_table != NULL && htable_search( fam->svar_table, name, FIND_ENTRY, &var_entry) == OK )
+   {
+      return validate_vector_decl(name,size,field_names,(Svar*)(var_entry->data));
+   }
    status = create_svar( fam, name, &psv );
    if ( status == OK )
    {
@@ -309,21 +335,21 @@ mc_def_vec_svar( Famid fam_id, int type, int size, char *name, char *title,
          return IOS_STR_DUP_FAILED;
       }
 
-      psv->agg_type = (Aggregate_type *) ios_alloc( (size_t) 1,
+      psv->agg_type = (Aggregate_type *) ios_alloc( (LONGLONG) 1,
                       fam->svar_i_ios );
       if (psv->agg_type == NULL)
       {
          return IOS_ALLOC_FAILED;
       }
       *psv->agg_type = VECTOR;
-      psv->data_type = (int *) ios_alloc( (size_t) 1, fam->svar_i_ios );
+      psv->data_type = (int *) ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
       if ( psv->data_type == NULL )
       {
          return IOS_ALLOC_FAILED;
       }
       *psv->data_type = fam->external_type[type];
 
-      psv->list_size = (int *) ios_alloc( (size_t) 1, fam->svar_i_ios );
+      psv->list_size = (int *) ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
       if ( psv->list_size == NULL )
       {
          return IOS_ALLOC_FAILED;
@@ -400,14 +426,14 @@ mc_def_vec_svar( Famid fam_id, int type, int size, char *name, char *title,
             }
 
             psv2->agg_type = (Aggregate_type *)
-                             ios_alloc( (size_t) 1, fam->svar_i_ios );
+                             ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
             if ( psv2->agg_type == NULL )
             {
                return IOS_ALLOC_FAILED;
             }
             *psv2->agg_type = SCALAR;
 
-            psv2->data_type = (int *) ios_alloc( (size_t) 1,
+            psv2->data_type = (int *) ios_alloc( (LONGLONG) 1,
                                                  fam->svar_i_ios );
             if ( psv2->data_type == NULL )
             {
@@ -492,28 +518,28 @@ mc_def_arr_svar( Famid fam_id, int rank, int dims[], char *name,
       }
 
       psv->agg_type = (Aggregate_type *)
-                      ios_alloc( (size_t) 1, fam->svar_i_ios );
+                      ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
       if ( psv->agg_type == NULL )
       {
          return IOS_ALLOC_FAILED;
       }
       *psv->agg_type = ARRAY;
 
-      psv->data_type = (int *) ios_alloc( (size_t) 1, fam->svar_i_ios );
+      psv->data_type = (int *) ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
       if ( psv->data_type == NULL )
       {
          return IOS_ALLOC_FAILED;
       }
       *psv->data_type = fam->external_type[type];
 
-      psv->order = (int *) ios_alloc( (size_t) 1, fam->svar_i_ios );
+      psv->order = (int *) ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
       if ( psv->order == NULL )
       {
          return IOS_ALLOC_FAILED;
       }
       *psv->order = rank;
 
-      psv->dims = (int *) ios_alloc( (size_t) rank, fam->svar_i_ios );
+      psv->dims = (int *) ios_alloc( (LONGLONG) rank, fam->svar_i_ios );
       if ( psv->dims == NULL )
       {
          return IOS_ALLOC_FAILED;
@@ -549,7 +575,7 @@ mc_def_vec_arr_svar( Famid fam_id, int rank, int dims[], char *name,
    Htable_entry *var_entry;
    int i;
    int len;
-   int *dumint;  //adding this as the idiots who devoped this originally were ignorant
+   
    Return_value status;
 
    fam = fam_list[fam_id];
@@ -559,7 +585,10 @@ mc_def_vec_arr_svar( Famid fam_id, int rank, int dims[], char *name,
    {
       return INVALID_SVAR_DATA;
    }
-
+   if(fam->svar_table != NULL && htable_search( fam->svar_table, name, FIND_ENTRY, &var_entry) == OK )
+   {
+       return validate_vector_decl(name,size,field_names,(Svar*)(var_entry->data));
+   }
    status = create_svar( fam, name, &psv );
    if ( status == OK )
    {
@@ -582,7 +611,7 @@ mc_def_vec_arr_svar( Famid fam_id, int rank, int dims[], char *name,
          return IOS_STR_DUP_FAILED;
       }
 
-      psv->agg_type = (Aggregate_type *) ios_alloc( (size_t) 1,
+      psv->agg_type = (Aggregate_type *) ios_alloc( (LONGLONG) 1,
                       fam->svar_i_ios );
       if ( psv->agg_type == NULL )
       {
@@ -590,28 +619,28 @@ mc_def_vec_arr_svar( Famid fam_id, int rank, int dims[], char *name,
       }
       *psv->agg_type = VEC_ARRAY;
 
-      psv->data_type = (int *) ios_alloc( (size_t) 1, fam->svar_i_ios );
+      psv->data_type = (int *) ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
       if ( psv->data_type == NULL )
       {
          return IOS_ALLOC_FAILED;
       }
       *psv->data_type = fam->external_type[type];
 
-      psv->order = (int *) ios_alloc( (size_t) 1, fam->svar_i_ios );
+      psv->order = (int *) ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
       if ( psv->order == NULL )
       {
          return IOS_ALLOC_FAILED;
       }
       *psv->order = rank;
 
-      psv->dims = (int *) ios_alloc( (size_t) rank, fam->svar_i_ios );
+      psv->dims = (int *) ios_alloc( (LONGLONG) rank, fam->svar_i_ios );
       if ( psv->dims == NULL )
       {
          return IOS_ALLOC_FAILED;
       }
       memcpy( (char *) psv->dims, (char *) dims, rank * sizeof( int ) );
 
-      psv->list_size = (int *) ios_alloc( (size_t) 1, fam->svar_i_ios );
+      psv->list_size = (int *) ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
       if ( psv->list_size == NULL )
       {
          return IOS_ALLOC_FAILED;
@@ -695,14 +724,14 @@ mc_def_vec_arr_svar( Famid fam_id, int rank, int dims[], char *name,
             }
 
             psv2->agg_type = (Aggregate_type *)
-                             ios_alloc( (size_t) 1, fam->svar_i_ios );
+                             ios_alloc( (LONGLONG) 1, fam->svar_i_ios );
             if ( psv2->agg_type == NULL )
             {
                return IOS_ALLOC_FAILED;
             }
             *psv2->agg_type = SCALAR;
 
-            psv2->data_type = (int *) ios_alloc( (size_t) 1,
+            psv2->data_type = (int *) ios_alloc( (LONGLONG) 1,
                                                  fam->svar_i_ios );
             if ( psv2->data_type == NULL )
             {
@@ -780,7 +809,7 @@ create_svar( Mili_family *fam, char *name, Svar **ppsv )
        * the integer output buffer so the header will be first in a
        * subsequent output operation.
        */
-      fam->svar_hdr = (int *) ios_alloc( (size_t) QTY_SVAR_HEADER_FIELDS,
+      fam->svar_hdr = (int *) ios_alloc( (LONGLONG) QTY_SVAR_HEADER_FIELDS,
                                          fam->svar_i_ios );
       if (fam->svar_hdr == NULL)
       {
@@ -859,6 +888,7 @@ mc_get_svar_def( Famid fam_id, char *svar_name, State_variable *p_stvar )
 
    p_stvar->rank     = 1;
    p_stvar->vec_size = 1;
+   p_stvar->dims     = NULL;
    if ( p_stvar->agg_type != SCALAR )
    {
       if ( p_stvar->agg_type != VECTOR )
@@ -949,10 +979,7 @@ find_delete_svar( Mili_family *fam, char *name )
 Return_value
 commit_svars( Mili_family *fam )
 {
-   size_t int_qty, 
-          char_qty, 
-          round_qty, 
-          outbytes;
+   LONGLONG int_qty, char_qty, round_qty, outbytes;
    int num_written;
    Return_value rval;
 
@@ -978,7 +1005,6 @@ commit_svars( Mili_family *fam )
       /* Get amount of character data for output. Round up if necessary. */
       char_qty = ios_get_fresh( fam->svar_c_ios );
       round_qty = ROUND_UP_INT( char_qty, 4 );
-      
       if ( round_qty != char_qty )
       {
          if (ios_alloc( round_qty - char_qty, fam->svar_c_ios ) == NULL)
@@ -1015,7 +1041,7 @@ commit_svars( Mili_family *fam )
 
       /* Update for subsequent file operations. */
       fam->next_free_byte += outbytes;
-      fam->svar_hdr = ios_alloc( (size_t) QTY_SVAR_HEADER_FIELDS,
+      fam->svar_hdr = ios_alloc( (LONGLONG) QTY_SVAR_HEADER_FIELDS,
                                  fam->svar_i_ios );
       if (fam->svar_hdr == NULL)
       {
@@ -1152,6 +1178,63 @@ delete_svar_with_ios( Svar *psv, IO_mem_store *pcioms, IO_mem_store *piioms )
    return OK;
 }
 
+
+/*****************************************************************
+ * TAG( load_svars ) PRIVATE
+ *
+ * Load state variable definitions from a Mili database.
+ */
+Return_value
+load_svars( Mili_family *fam )
+{
+   File_dir *p_fd;
+   int i, j;
+   LONGLONG *entry;
+   Return_value rval;
+
+   /*
+    * Search the family directory for STATE_VAR_DICT entries and
+    * load the contents of each into the state variable hash table.
+    */
+   for ( i = 0; i < fam->file_count; i++ )
+   {
+      p_fd = fam->directory + i;
+      for ( j = 0; j < p_fd->qty_entries; j++ )
+      {
+         entry = p_fd->dir_entries[j];
+
+         if ( entry[TYPE_IDX] == STATE_VAR_DICT )
+         {
+            /* Svar dictionary data found. */
+            rval = input_svars( fam, i, entry[OFFSET_IDX] );
+            if (rval != OK)
+            {
+               return rval;
+            }
+         }
+      }
+   }
+
+   /*
+    * If this process has write access, allocate space for an svar entry
+    * header now that all extant svar entries have been read in.  This
+    * is to prepare for any subsequent new svar definitions.
+    */
+   if ( fam->svar_table != NULL &&
+         ( fam->access_mode == 'w' || fam->access_mode == 'a' ) )
+   {
+      fam->svar_hdr = (int *)ios_alloc( (LONGLONG) QTY_SVAR_HEADER_FIELDS,
+                                        fam->svar_i_ios );
+      if (fam->svar_hdr == NULL)
+      {
+         return IOS_ALLOC_FAILED;
+      }
+   }
+
+   return OK;
+}
+
+
 /*****************************************************************
  * TAG( input_svars ) LOCAL
  *
@@ -1198,28 +1281,26 @@ input_svars( Mili_family *fam, int file_index, LONGLONG file_offset )
    {
       return status;
    }
-   
    status = non_state_file_seek( fam, file_offset );
-   
    if (status != OK)
    {
       return status;
    }
 
    /* Load the data into the IO Stores. */
-   status = ios_input( fam, M_INT, (size_t) QTY_SVAR_HEADER_FIELDS,
+   status = ios_input( fam, M_INT, (LONGLONG) QTY_SVAR_HEADER_FIELDS,
                        fam->svar_i_ios, (void **) &header );
    if (status != OK)
    {
       return status;
    }
-   status = ios_input( fam, M_INT, (size_t) header[SVAR_QTY_INT_WORDS_IDX] - QTY_SVAR_HEADER_FIELDS,
+   status = ios_input( fam, M_INT, (LONGLONG) header[SVAR_QTY_INT_WORDS_IDX] - QTY_SVAR_HEADER_FIELDS,
                        fam->svar_i_ios, (void **) &svar_i );
    if (status != OK)
    {
       return status;
    }
-   status = ios_input( fam, M_STRING, (size_t) header[SVAR_QTY_BYTES_IDX],
+   status = ios_input( fam, M_STRING, (LONGLONG) header[SVAR_QTY_BYTES_IDX],
                        fam->svar_c_ios, (void **) &svar_c );
    if (status != OK)
    {
@@ -1371,62 +1452,6 @@ input_svars( Mili_family *fam, int file_index, LONGLONG file_offset )
    return OK;
 }
 
-/*****************************************************************
- * TAG( load_svars ) PRIVATE
- *
- * Load state variable definitions from a Mili database.
- */
-Return_value
-load_svars( Mili_family *fam )
-{
-   File_dir *p_fd;
-   int i, j;
-   LONGLONG *entry;
-   Return_value rval;
-
-   /*
-    * Search the family directory for STATE_VAR_DICT entries and
-    * load the contents of each into the state variable hash table.
-    */
-   for ( i = 0; i < fam->file_count; i++ )
-   {
-      p_fd = fam->directory + i;
-      for ( j = 0; j < p_fd->qty_entries; j++ )
-      {
-         entry = p_fd->dir_entries[j];
-
-         if ( entry[TYPE_IDX] == STATE_VAR_DICT )
-         {
-            /* Svar dictionary data found. */
-            rval = input_svars( fam, i, entry[OFFSET_IDX] );
-            if (rval != OK)
-            {
-               return rval;
-            }
-         }
-      }
-   }
-
-   /*
-    * If this process has write access, allocate space for an svar entry
-    * header now that all extant svar entries have been read in.  This
-    * is to prepare for any subsequent new svar definitions.
-    */
-   if ( fam->svar_table != NULL &&
-         ( fam->access_mode == 'w' || fam->access_mode == 'a' ) )
-   {
-      fam->svar_hdr = (int *)ios_alloc( (size_t) QTY_SVAR_HEADER_FIELDS,
-                                        fam->svar_i_ios );
-      if (fam->svar_hdr == NULL)
-      {
-         return IOS_ALLOC_FAILED;
-      }
-   }
-
-   return OK;
-}
-
-
 
 /*****************************************************************
  * TAG( dump_state_var_dict ) PRIVATE
@@ -1446,14 +1471,18 @@ dump_state_var_dict( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
    int *idata, *p_i, *ibound;
    int svar_header[QTY_SVAR_HEADER_FIELDS];
    Aggregate_type agg;
-   int dtype, rank, list_size;
-   char *name, *title;
+#ifdef HAVE_EPRINT
+   int dtype;
+   char *title;
+#endif
+   int rank, list_size;
+   char *name;
    char handle[64];
    char *p_tail;
    int i;
    int outlen;
    Return_value rval;
-   size_t read_ct;
+   LONGLONG read_ct;
 
    hi = head_indent + 1;
    bi = body_indent + 1;
@@ -1521,10 +1550,14 @@ dump_state_var_dict( Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
    while ( p_i < ibound )
    {
       agg = (Aggregate_type) *p_i++;
+#ifdef HAVE_EPRINT
       dtype = *p_i++;
+#endif
       name = p_c;
       ADVANCE_STRING( p_c, cbound );
+#ifdef HAVE_EPRINT
       title = p_c;
+#endif
       ADVANCE_STRING( p_c, cbound );
 
       if ( agg != SCALAR )
