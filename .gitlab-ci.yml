@@ -1,0 +1,61 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "web"
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TITLE =~ /^(\[Draft\]|\(Draft\)|Draft:)/
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+    - when: never
+
+stages:
+  - config
+  - build
+  - test
+
+before_script:
+ - pwd # just for sanity
+ - git rev-parse HEAD
+ - git fetch origin refs/tags/*:refs/tags/* # workaround for https://gitlab.com/gitlab-org/gitaly/issues/2221 (also fetch ONLY tags, not tags in addion to normal fetch)
+
+config:
+  stage: config
+  tags:
+    - rzgenie
+    - shell
+  script:
+    - ./configure
+
+build:
+  needs:
+    - config
+  stage: build
+  tags:
+    - rzgenie
+    - shell
+  script:
+    - ./configure
+    - cd MILI-toss_3_x86_64_ib-RZGENIE
+    - salloc -n 16 -t 3 -p pdebug make -j 16 debug
+    - salloc -n 16 -t 3 -p pdebug make -j 16 opt
+
+test:
+  needs:
+    - build
+  stage: test
+  tags:
+    - rzgenie
+    - shell
+  script:
+    - ./configure
+    - cd MILI-toss_3_x86_64_ib-RZGENIE
+    - salloc -n 16 -t 3 -p pdebug make -j 16 debug
+    - salloc -n 16 -t 3 -p pdebug make -j 16 opt
+    - cvs co -d scripts Dyna3dx/CheckOut/scripts
+    - cd scripts
+    - salloc -n 4 -t 5 -p pdebug ./Test.py -e mililib_env -c ../lib_debug/ -I ../include/ -p 1 -basedir ../../test/ -s all > test_debug.out
+    - salloc -n 4 -t 5 -p pdebug ./Test.py -e mililib_env -c ../lib_opt/ -I ../include/ -p 1 -basedir ../../test/ -s all > test_opt.out
+    - num_debug_failed=$( grep -c failed test_debug.out ) || true
+    - num_opt_failed=$( grep -c failed test_opt.out ) || true
+    - num_failed=$(( $num_debug_failed + $num_opt_failed ))
+    - exit $num_failed
