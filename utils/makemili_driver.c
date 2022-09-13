@@ -3,7 +3,7 @@
 #include <dirent.h>
 
 #include "mili.h"
-
+#include "mili_config.h"
 
 char directory[512];
 char plotfile_name[512];
@@ -123,7 +123,7 @@ find_pad_count(char* input_file_name)
  * @return  int  
  */
 int 
-processSingleFile(char* file_name)
+processSingleFile(char* file_name , int close, int* fam_id)
 {
     Famid famid;
     int status;
@@ -139,8 +139,11 @@ processSingleFile(char* file_name)
     mc_activate_visit_file(famid, 1);
     
     status = mc_write_mili_metadata(famid);
-    
-    status = mc_close(famid);
+    *fam_id = famid;
+    if(close)
+    {
+        status = mc_close(famid);
+    }
     
     return status;
     
@@ -161,43 +164,54 @@ write_multi_processor_files(int padding)
     char temp_name[512];
     int name_length;
     int status = OK;
-    Famid famid;
+    Famid famid, *ids;
     a_file_count = scandir(directory, &namelist, (void *)file_select, alphasort);
-    
+    ids = calloc(sizeof(int), a_file_count);
     // Run over each named file discovered by scandir function
     for(i=0;i<a_file_count;i++)
     {
         name_length = strlen(namelist[i]->d_name)-1;
         strncpy(temp_name, namelist[i]->d_name,name_length);
-        status = processSingleFile( temp_name);
+        status = processSingleFile( temp_name, 0, &famid);
         if(status != OK)
         {
             fprintf(stderr, "Error processing file %s.\n",temp_name);
             return status; 
         }
+        ids[i] = famid;
+        
     }
     // We any file to write the global information
-    status = mc_open(temp_name,directory,"Ar",&famid);
+    //status = mc_open(temp_name,directory,"Ar",&famid);
     if(status != OK)
     {
         mc_print_error("mc_open for globalfile write.\n",status);
         return status;
     }
     
-    status = mc_activate_visit_file(famid, 1);
+    status = mc_activate_visit_file(ids[0], 1);
     if(status != OK)
     {
         mc_print_error("Could not activate visit file writing.\n",status);
         return status;
     }
     
-    status = mc_write_global_metadata(famid);
+    status = mc_write_global_metadata(ids[0]);
     if(status != OK)
     {
         mc_print_error("Failed to write globalfile for plotfile.\n",status);
         return status;
     }
-    status = mc_close(famid);
+    for(i=0; i<a_file_count; i++)
+    {
+         status = mc_close(ids[i]);
+         if(status != OK)
+         {
+              mc_print_error("mc_close to single files in global write.\n",status);
+              return status;
+         }
+    }
+    //status = mc_close(famid);
     if(status != OK)
     {
         mc_print_error("mc_close to close in global write.\n",status);
@@ -212,13 +226,16 @@ main( int argc, char *argv[] )
     
     int pad;
     int status;
+    int famid;
     
     if(argc != 2)
     {
         fprintf(stderr, "Usage: makemili_driver base_filename\n");
         return 101;
     }
-    
+    fprintf(stderr, "\n\n");                                               ;
+   fprintf(stderr, "\n\t Running Makemili_driver Version: %s(%s)", PACKAGE_VERSION,PACKAGE_DATE);
+   fprintf(stderr, "\n\n");
     pad = find_pad_count(argv[1]);
     
     // The pad will tell us what kind of file this is.
@@ -230,7 +247,7 @@ main( int argc, char *argv[] )
         case 0:
             //Generate for a single plot file.
             fprintf(stderr, "Single processor %s.\n", plotfile_name);
-            status = processSingleFile(plotfile_name);
+            status = processSingleFile(plotfile_name,1,&famid);
             break;
         default:
             //Must have multiple processors
