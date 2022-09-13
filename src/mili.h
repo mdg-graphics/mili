@@ -200,7 +200,7 @@ typedef enum
 /*
  * Miscellaneous limits
  */
-#define M_MAX_NAME_LEN   (300) /* Longest name length */
+#define M_MAX_NAME_LEN   (4096) /* Longest name length */
 #define M_MAX_ARRAY_DIMS (6)   /* Maximum number of array dimensions */
 #define M_MAX_STRING_LEN (512) /* Maximum string length */
 

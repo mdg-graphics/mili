@@ -2664,15 +2664,15 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 # Variable Initialization
 
-$as_echo "#define PACKAGE_DATE \"5/19/2022\"" >>confdefs.h
+$as_echo "#define PACKAGE_DATE \"9/1/2022\"" >>confdefs.h
 
 
 $as_echo "#define PACKAGE_TIME \"08:00:00\"" >>confdefs.h
 
 
-$as_echo "#define PACKAGE_DATETIME \"5/19/2022 08:00:00\"" >>confdefs.h
+$as_echo "#define PACKAGE_DATETIME \"9/1/2022 08:00:00\"" >>confdefs.h
 
-PACKAGE_DATETIME="5/19/2022 08:00:00"
+PACKAGE_DATETIME="9/1/2022 08:00:00"
 
 
 #############################################################################
