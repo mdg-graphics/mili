@@ -172,6 +172,7 @@ write_multi_processor_files(int padding)
     {
         name_length = strlen(namelist[i]->d_name)-1;
         strncpy(temp_name, namelist[i]->d_name,name_length);
+        temp_name[name_length] ='\0';
         status = processSingleFile( temp_name, 0, &famid);
         if(status != OK)
         {
