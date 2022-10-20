@@ -495,9 +495,6 @@ AC_DEFUN([CONFIGURE_COMPILER_FLAGS],
     if test "$PROCESSOR_TYPE" != "ppc64"; then
       CC_INCLUDE_PATHS=""
     fi
-    if test "$PROCESSOR_TYPE" != "x86_64"; then 
-      CC_DEFINES="-DNOOPTERON $CC_DEFINES"
-    fi
     if test $ac_cv_sizeof_long = 8;then
         CC_DEFINES="-DHAVEINT8 $CC_DEFINES"
     fi

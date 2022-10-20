@@ -2664,15 +2664,15 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 # Variable Initialization
 
-$as_echo "#define PACKAGE_DATE \"9/1/2022\"" >>confdefs.h
+$as_echo "#define PACKAGE_DATE \"10/20/2022\"" >>confdefs.h
 
 
 $as_echo "#define PACKAGE_TIME \"08:00:00\"" >>confdefs.h
 
 
-$as_echo "#define PACKAGE_DATETIME \"9/1/2022 08:00:00\"" >>confdefs.h
+$as_echo "#define PACKAGE_DATETIME \"10/20/2022 08:00:00\"" >>confdefs.h
 
-PACKAGE_DATETIME="9/1/2022 08:00:00"
+PACKAGE_DATETIME="10/20/2022 08:00:00"
 
 
 #############################################################################
@@ -5309,9 +5309,6 @@ fi
 
     if test "$PROCESSOR_TYPE" != "ppc64"; then
       CC_INCLUDE_PATHS=""
-    fi
-    if test "$PROCESSOR_TYPE" != "x86_64"; then
-      CC_DEFINES="-DNOOPTERON $CC_DEFINES"
     fi
     if test $ac_cv_sizeof_long = 8;then
         CC_DEFINES="-DHAVEINT8 $CC_DEFINES"
