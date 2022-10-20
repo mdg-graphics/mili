@@ -674,7 +674,7 @@ void get_mili_version( char *mili_version_ptr );
 /* dep.c - routines for handling architecture dependencies. */
 Return_value set_default_io_routines( Mili_family *fam );
 Return_value set_state_data_io_routines( Mili_family *fam );
-void (*write_funcs[QTY_PD_ENTRY_TYPES + 1])();
+extern void (*write_funcs[QTY_PD_ENTRY_TYPES + 1])();
 
 /* svar.c - routines for managing state variables. */
 Bool_type valid_svar_data( Aggregate_type atype, char *name,
