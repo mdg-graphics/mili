@@ -68,11 +68,11 @@ Bool_type is_known_db( char *fname, Database_type *p_db_type );
  */
 typedef struct {
   
-   char input_file_name[100];
-   char output_file_name[100];
+   char input_file_name[1024];
+   char output_file_name[1024];
    char partfile_name_c[100];
    char partfile_name_s[100];
-   char plotfile_name[100];
+   char plotfile_name[512];
    char user_name[30];
    char date[20];
    int pad;
