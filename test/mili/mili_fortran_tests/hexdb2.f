@@ -213,7 +213,7 @@ c.....Hex 1:3 connectivities; 8 nodes, 1 material, 1 part
      +    2, 3, 7, 6, 10, 11, 15, 14, 1, 1,
      +    3, 4, 8, 7, 11, 12, 16, 15, 1, 1/
      +    hex_list/ 1, 3, 2 /
-     +    hex_labels / 1, 3, 2 /
+     +    hex_labels / 1, 2, 3 /
 
 c.....Total quantity of materials, rigid walls
       integer qty_materials

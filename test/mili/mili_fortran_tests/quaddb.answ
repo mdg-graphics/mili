@@ -243,9 +243,7 @@
   organization  0
   qty_svars  4
   svar_names  nodpos,nodvel,nodacc,temp
-  qty_blocks  1
-  mo_blocks  1,8
-  mo_qty  8
+  mo_blocks  0,8
   offset  0
   size  224
 
@@ -256,9 +254,7 @@
   organization  1
   qty_svars  2
   svar_names  stress,eps
-  qty_blocks  1
-  mo_blocks  1,3
-  mo_qty  3
+  mo_blocks  0,3
   offset  224
   size  84
 
@@ -326,6 +322,16 @@
    4  s
 
 
+# ElementLabels g
+      1
+
+
+# ElementLabels m
+      1
+      2
+      3
+
+
 # ElementLabels node
       1
       2
@@ -338,16 +344,6 @@
 
 
 # ElementLabels s
-      1
-      2
-      3
-
-
-# ElementLabels g
-      1
-
-
-# ElementLabels m
       1
       2
       3

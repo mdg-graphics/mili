@@ -67,6 +67,16 @@
    4  s
 
 
+# ElementLabels g
+      1
+
+
+# ElementLabels m
+      1
+      2
+      3
+
+
 # ElementLabels node
       1
       2
@@ -79,16 +89,6 @@
 
 
 # ElementLabels s
-      1
-      2
-      3
-
-
-# ElementLabels g
-      1
-
-
-# ElementLabels m
       1
       2
       3

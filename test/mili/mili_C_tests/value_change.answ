@@ -100,9 +100,7 @@
   organization  1
   qty_svars  1
   svar_names  nodpos
-  qty_blocks  1
-  mo_blocks  1,24
-  mo_qty  24
+  mo_blocks  0,24
   offset  0
   size  288
 
@@ -113,9 +111,7 @@
   organization  1
   qty_svars  1
   svar_names  temp
-  qty_blocks  1
-  mo_blocks  1,7
-  mo_qty  7
+  mo_blocks  0,7
   offset  288
   size  28
 
@@ -126,9 +122,7 @@
   organization  1
   qty_svars  1
   svar_names  temp
-  qty_blocks  1
-  mo_blocks  8,15
-  mo_qty  8
+  mo_blocks  7,15
   offset  316
   size  32
 
@@ -308,6 +302,14 @@
    4  node_contact
 
 
+# ElementLabels mesh
+      1
+
+
+# ElementLabels mat
+      1
+
+
 # ElementLabels node
       1
       2
@@ -351,14 +353,6 @@
      13
      14
      15
-
-
-# ElementLabels mesh
-      1
-
-
-# ElementLabels mat
-      1
 
 
 # ElementConnectivity node_contact

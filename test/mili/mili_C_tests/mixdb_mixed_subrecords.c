@@ -375,9 +375,9 @@ float state_data[] = {
     1.0, 3.0, 5.0, 2.0, 4.0, 6.0, // pvar1 - elems 1,3,5,2,4,6
     21.0, 23.0, 25.0, 22.0, 24.0, 26.0, // pvar2 - elems 1,3,5,2,4,6
 // Truss State variables
-    30.0, 40.0, 10.0, 20.0, 50.0, 60.0,
-    300.0, 400.0, 100.0, 200.0, 500.0, 600.0,
-    3000.0, 4000.0, 1000.0, 2000.0, 5000.0, 6000.0,
+    10.0, 30.0, 40.0, 20.0, 50.0, 60.0,
+    100.0, 300.0, 400.0, 200.0, 500.0, 600.0,
+    1000.0, 3000.0, 4000.0, 2000.0, 5000.0, 6000.0,
 // Tet vec array values
     10.0, 100.0, 20.0, 200.0, 30.0, 300.0, 40.0, 400.0,
 // Beam axial stress values
@@ -760,7 +760,7 @@ void define_subrecords(Famid fam_id, int srec_id) {
                          "pyramid", M_BLOCK_OBJ_FMT, 3, pyramid_subrecord_2_mo_ids, 0);
     standard_error_check(fam_id, stat, "mc_def_subrec (PyramidVar2Subrec1)");
 
-    int truss_subrecord_1_mo_ids[] = { 3, 4, 1, 1 };
+    int truss_subrecord_1_mo_ids[] = { 1, 1, 3, 4 };
     int truss_subrecord_2_mo_ids[] = { 2, 2, 5, 6 };
     //Define Subrecords for Truss variables 1-3 
     stat = mc_def_subrec(fam_id, srec_id, "TrussVar1Subrec1", OBJECT_ORDERED, 1, truss_svar_names[0], MAX_RNAME_LEN,

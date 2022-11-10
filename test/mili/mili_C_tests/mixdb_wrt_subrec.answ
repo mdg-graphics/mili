@@ -421,9 +421,7 @@
   organization  1
   qty_svars  1
   svar_names  nodpos
-  qty_blocks  1
-  mo_blocks  1,71
-  mo_qty  71
+  mo_blocks  0,71
   offset  0
   size  852
 
@@ -434,9 +432,7 @@
   organization  1
   qty_svars  1
   svar_names  nodvel
-  qty_blocks  1
-  mo_blocks  1,71
-  mo_qty  71
+  mo_blocks  0,71
   offset  852
   size  852
 
@@ -447,9 +443,7 @@
   organization  1
   qty_svars  1
   svar_names  nodacc
-  qty_blocks  1
-  mo_blocks  1,71
-  mo_qty  71
+  mo_blocks  0,71
   offset  1704
   size  852
 
@@ -460,9 +454,7 @@
   organization  1
   qty_svars  1
   svar_names  stress
-  qty_blocks  1
-  mo_blocks  1,8
-  mo_qty  8
+  mo_blocks  0,8
   offset  2556
   size  192
 
@@ -473,9 +465,7 @@
   organization  1
   qty_svars  1
   svar_names  pvar1
-  qty_blocks  1
-  mo_blocks  1,6
-  mo_qty  6
+  mo_blocks  0,6
   offset  2748
   size  24
 
@@ -486,9 +476,7 @@
   organization  1
   qty_svars  1
   svar_names  pvar2
-  qty_blocks  1
-  mo_blocks  1,6
-  mo_qty  6
+  mo_blocks  0,6
   offset  2772
   size  24
 
@@ -499,9 +487,7 @@
   organization  1
   qty_svars  1
   svar_names  trussvar1
-  qty_blocks  1
-  mo_blocks  1,6
-  mo_qty  6
+  mo_blocks  0,6
   offset  2796
   size  24
 
@@ -512,9 +498,7 @@
   organization  1
   qty_svars  1
   svar_names  trussvar2
-  qty_blocks  1
-  mo_blocks  1,6
-  mo_qty  6
+  mo_blocks  0,6
   offset  2820
   size  24
 
@@ -525,9 +509,7 @@
   organization  1
   qty_svars  1
   svar_names  trussvar3
-  qty_blocks  1
-  mo_blocks  1,6
-  mo_qty  6
+  mo_blocks  0,6
   offset  2844
   size  24
 
@@ -538,9 +520,7 @@
   organization  1
   qty_svars  1
   svar_names  es_1a
-  qty_blocks  1
-  mo_blocks  1,2
-  mo_qty  2
+  mo_blocks  0,2
   offset  2868
   size  32
 
@@ -551,9 +531,7 @@
   organization  1
   qty_svars  1
   svar_names  axf
-  qty_blocks  1
-  mo_blocks  1,12
-  mo_qty  12
+  mo_blocks  0,12
   offset  2900
   size  48
 
@@ -564,9 +542,7 @@
   organization  1
   qty_svars  1
   svar_names  triVar
-  qty_blocks  1
-  mo_blocks  1,4
-  mo_qty  4
+  mo_blocks  0,4
   offset  2948
   size  16
 
@@ -577,9 +553,7 @@
   organization  1
   qty_svars  1
   svar_names  quadVar
-  qty_blocks  1
-  mo_blocks  1,4
-  mo_qty  4
+  mo_blocks  0,4
   offset  2964
   size  16
 
@@ -590,9 +564,7 @@
   organization  1
   qty_svars  1
   svar_names  wedgeVar
-  qty_blocks  1
-  mo_blocks  1,4
-  mo_qty  4
+  mo_blocks  0,4
   offset  2980
   size  16
 
@@ -1108,6 +1080,26 @@
   11  wedge
 
 
+# ElementLabels mesh
+      1
+
+
+# ElementLabels mat
+      1
+      2
+      3
+      4
+      5
+      6
+      7
+      8
+      9
+     10
+     11
+     12
+     13
+
+
 # ElementLabels node
       1
       2
@@ -1252,26 +1244,6 @@
      14
 
 
-# ElementLabels mesh
-      1
-
-
-# ElementLabels mat
-      1
-      2
-      3
-      4
-      5
-      6
-      7
-      8
-      9
-     10
-     11
-     12
-     13
-
-
 # ElementConnectivity brick
      1  1,2,3,4,5,6,7,8
      2  2,9,10,3,6,11,12,7
@@ -1362,9 +1334,9 @@
   brick_8
 
 
-# MaterialElements 7
-  pyramid_1
-  pyramid_4
+# MaterialElements 5
+  pyramid_3
+  pyramid_5
 
 
 # MaterialElements 6
@@ -1372,9 +1344,9 @@
   pyramid_6
 
 
-# MaterialElements 5
-  pyramid_3
-  pyramid_5
+# MaterialElements 7
+  pyramid_1
+  pyramid_4
 
 
 # MaterialElements 8

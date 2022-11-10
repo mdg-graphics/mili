@@ -153,9 +153,7 @@
   organization  1
   qty_svars  4
   svar_names  partpos,temp,ke,pe
-  qty_blocks  1
-  mo_blocks  1,3
-  mo_qty  3
+  mo_blocks  0,3
   offset  0
   size  60
 
@@ -196,6 +194,14 @@
    5  quad
 
 
+# ElementLabels mesh
+      1
+
+
+# ElementLabels mat
+      1
+
+
 # ElementLabels node
       1
       2
@@ -204,14 +210,6 @@
 
 
 # ElementLabels quad
-      1
-
-
-# ElementLabels mesh
-      1
-
-
-# ElementLabels mat
       1
 
 

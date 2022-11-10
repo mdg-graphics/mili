@@ -56,9 +56,7 @@
   organization  0
   qty_svars  1
   svar_names  temp
-  qty_blocks  4
-  mo_blocks  11,16,1,1,4,5,8,10
-  mo_qty  12
+  mo_blocks  0,1,3,5,7,10,10,16
   offset  0
   size  48
 
@@ -182,6 +180,14 @@
    4  node
 
 
+# ElementLabels g
+      1
+
+
+# ElementLabels m
+      1
+
+
 # ElementLabels node
       1
       2
@@ -205,14 +211,6 @@
      11
      12
      13
-
-
-# ElementLabels g
-      1
-
-
-# ElementLabels m
-      1
 
 
 # ElementConnectivity h
