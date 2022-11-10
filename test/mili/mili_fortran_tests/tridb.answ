@@ -166,9 +166,7 @@
   organization  0
   qty_svars  3
   svar_names  nodpos,nodvel,nodacc
-  qty_blocks  1
-  mo_blocks  1,9
-  mo_qty  9
+  mo_blocks  0,9
   offset  0
   size  216
 
@@ -179,9 +177,7 @@
   organization  1
   qty_svars  2
   svar_names  tvar1,tvar2
-  qty_blocks  1
-  mo_blocks  1,8
-  mo_qty  8
+  mo_blocks  0,8
   offset  216
   size  64
 
@@ -256,6 +252,16 @@
    4  t
 
 
+# ElementLabels g
+      1
+
+
+# ElementLabels m
+      1
+      2
+      3
+
+
 # ElementLabels node
       1
       2
@@ -277,16 +283,6 @@
       6
       7
       8
-
-
-# ElementLabels g
-      1
-
-
-# ElementLabels m
-      1
-      2
-      3
 
 
 # ElementConnectivity t

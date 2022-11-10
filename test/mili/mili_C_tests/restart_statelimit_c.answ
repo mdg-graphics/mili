@@ -208,9 +208,7 @@
   organization  0
   qty_svars  1
   svar_names  nodpos
-  qty_blocks  1
-  mo_blocks  1,35
-  mo_qty  35
+  mo_blocks  0,35
   offset  0
   size  420
 
@@ -221,9 +219,7 @@
   organization  1
   qty_svars  2
   svar_names  v5,v6
-  qty_blocks  1
-  mo_blocks  1,4
-  mo_qty  4
+  mo_blocks  0,4
   offset  420
   size  32
 
@@ -234,9 +230,7 @@
   organization  1
   qty_svars  5
   svar_names  v1,v2,v3,v4,v5
-  qty_blocks  1
-  mo_blocks  1,4
-  mo_qty  4
+  mo_blocks  0,4
   offset  452
   size  80
 
@@ -247,9 +241,7 @@
   organization  1
   qty_svars  1
   svar_names  stress
-  qty_blocks  1
-  mo_blocks  1,5
-  mo_qty  5
+  mo_blocks  0,5
   offset  532
   size  140
 
@@ -509,6 +501,17 @@
    7  truss
 
 
+# ElementLabels mesh
+      1
+
+
+# ElementLabels mat
+      1
+      2
+      3
+      4
+
+
 # ElementLabels node
       1
       2
@@ -575,17 +578,6 @@
       3
       4
       5
-
-
-# ElementLabels mesh
-      1
-
-
-# ElementLabels mat
-      1
-      2
-      3
-      4
 
 
 # ElementConnectivity truss

@@ -69,26 +69,26 @@ c     specified below.
       real state_record1(12)
       data state_record1 /
 c                                                       Node Temperatures
-     +    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 200.0, 0.0, 200.0, 0.0, 0.0, 0.0
+     +    200.0, 0.0, 200.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
      +    /
 
       real state_record2(12)
       data state_record2 /
 c                                                       Node Temperatures
-     +    0.0, 0.0, 200.0, 0.0, 0.0, 0.0, 200.0, 0.0, 200.0, 0.0,
-     +    200.0, 0.0 /
+     +    200.0, 0.0, 200.0, 0.0,
+     +    200.0, 0.0, 0.0, 0.0, 200.0, 0.0, 0.0, 0.0 /
 
       real state_record3(12)
       data state_record3 /
 c                                                       Node Temperatures
-     +    0.0, 0.0, 200.0, 200.0, 0.0, 0.0, 200.0, 0.0, 200.0, 0.0,
-     +    200.0, 200.0 /
+     +    200.0, 0.0, 200.0, 0.0,
+     +    200.0, 200.0, 0.0, 0.0, 200.0, 200.0, 0.0, 0.0 /
 
       real state_record4(12)
       data state_record4 /
 c                                                       Node Temperatures
-     +    200.0, 0.0, 200.0, 200.0, 200.0, 0.0, 200.0, 200.0, 200.0,
-     +    200.0, 200.0, 200.0 /
+     +    200.0, 200.0, 200.0,
+     +    200.0, 200.0, 200.0, 200.0, 0.0, 200.0, 200.0, 200.0, 0.0 /
 
       real state_record5(12)
       data state_record5 /
@@ -308,14 +308,14 @@ c.....Create a state record format descriptor
       call mf_print_error( 'mf_open_srec', stat )
 
 c.....Nodal data
-      obj_blocks(1,1) = 11
-      obj_blocks(2,1) = 16
-      obj_blocks(1,2) = 1
-      obj_blocks(2,2) = 1
-      obj_blocks(1,3) = 4
-      obj_blocks(2,3) = 5
-      obj_blocks(1,4) = 8
-      obj_blocks(2,4) = 10
+      obj_blocks(1,1) = 1
+      obj_blocks(2,1) = 1
+      obj_blocks(1,2) = 4
+      obj_blocks(2,2) = 5
+      obj_blocks(1,3) = 8
+      obj_blocks(2,3) = 10
+      obj_blocks(1,4) = 11
+      obj_blocks(2,4) = 16
       call mf_def_subrec( fid, srec_id, nodal_l, m_result_ordered, 1, 
      +                    nodal_short(13), nodal_s, m_block_obj_fmt, 4, 
      +                    obj_blocks, stat )
