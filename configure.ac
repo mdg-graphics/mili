@@ -36,8 +36,8 @@
 #############################################################################
 
 m4_define(MILI_NAME_M4, Mili)
-m4_define(MILI_VERSION_M4, V22_01_01)
-m4_define(MILI_DATE_M4, 11/08/2022)
+m4_define(MILI_VERSION_M4, V22_02_00)
+m4_define(MILI_DATE_M4, 12/012/2022)
 
 m4_define(MILI_TIME_M4, 08:00:00)
 m4_define(MILI_DATETIME_M4, [MILI_DATE_M4 MILI_TIME_M4])

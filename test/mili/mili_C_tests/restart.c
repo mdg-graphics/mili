@@ -23,30 +23,30 @@
  * MILI families.
  */
 extern Mili_family **fam_list;
- 
 
-char *nnames[] = 
+
+char *nnames[] =
 {
     "nodpos", "ux", "uy", "uz"
 };
-char *ntitles[] = 
+char *ntitles[] =
 {
     "Node Position", "X Position", "Y Position", "Z Position"
 };
 
-char *names[] = 
+char *names[] =
 {
     "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9"
 };
-char *titles[] = 
+char *titles[] =
 {
-    "Var 0", "Var 1", "Var 2", "Var 3", "Var 4", "Var 5", 
+    "Var 0", "Var 1", "Var 2", "Var 3", "Var 4", "Var 5",
     "Var 6", "Var 7", "Var 8", "Var 9"
 };
-int types[] = 
-{ 
-    M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT, 
-    M_FLOAT, M_FLOAT 
+int types[] =
+{
+    M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT,
+    M_FLOAT, M_FLOAT
 };
 
 char *rnames[] =
@@ -80,28 +80,28 @@ char *vtitles[] =
 };
 
 int shells[][6] = {                                        /* shells 0:4 */
-    {1, 5, 6, 2, 1, 1}, {5, 9, 10, 6, 1, 1}, {9, 13, 14, 10, 1, 1}, 
+    {1, 5, 6, 2, 1, 1}, {5, 9, 10, 6, 1, 1}, {9, 13, 14, 10, 1, 1},
     {13, 17, 18, 14, 1, 1}, {17, 21, 22, 18, 1, 1}
 };
 int shell_labels[] = {1, 2, 3, 4, 5};
 
 int hexs[][10] = {                                         /* bricks 0:4 */
-    {1, 5, 6, 2, 4, 8, 7, 3, 2, 1}, {5, 9, 10, 6, 8, 12, 11, 7, 2, 1}, 
-    {9, 13, 14, 10, 12, 16, 15, 11, 2, 1}, 
-    {13, 17, 18, 14, 16, 20, 19, 15, 2, 1}, 
+    {1, 5, 6, 2, 4, 8, 7, 3, 2, 1}, {5, 9, 10, 6, 8, 12, 11, 7, 2, 1},
+    {9, 13, 14, 10, 12, 16, 15, 11, 2, 1},
+    {13, 17, 18, 14, 16, 20, 19, 15, 2, 1},
     {17, 21, 22, 18, 20, 24, 23, 19, 2, 1}
 };
 int hex_labels[] = {1,2,3,4,5};
 
 int tets[][6] = {                                          /* tets 0:3 */
-    {25, 26, 8, 7, 3, 1}, {26, 27, 12, 11, 3, 1}, {27, 28, 16, 15, 3, 1}, 
+    {25, 26, 8, 7, 3, 1}, {26, 27, 12, 11, 3, 1}, {27, 28, 16, 15, 3, 1},
     {28, 29, 20, 19, 3, 1}
 };
 int tet_labels[] = {1,2,3,4};
 
 int pyras[][7] = {                                         /* pyramids 0:4 */
-    {3, 7, 6, 2, 24, 5, 1}, {7, 11, 10, 6, 25, 5, 1}, 
-    {11, 15, 14, 10, 26, 5, 1}, {15, 19, 18, 14, 27, 5, 1}, 
+    {3, 7, 6, 2, 24, 5, 1}, {7, 11, 10, 6, 25, 5, 1},
+    {11, 15, 14, 10, 26, 5, 1}, {15, 19, 18, 14, 27, 5, 1},
     {19, 23, 22, 18, 28, 5, 1}
 };
 int pyramid_labels[] = {1,2,3,4,5};
@@ -112,23 +112,23 @@ int trusses[][4] = {                                       /* trusses 0:3 */
 };
 
 int wedges[][8] = {                                        /* wedges 0:4 */
-    {29, 30, 4, 0, 3, 7, 6, 1}, {30, 31, 8, 4, 7, 11, 6, 1}, 
-    {31, 32, 12, 8, 11, 15, 6, 1}, {32, 33, 16, 12, 15, 19, 6, 1}, 
+    {29, 30, 4, 0, 3, 7, 6, 1}, {30, 31, 8, 4, 7, 11, 6, 1},
+    {31, 32, 12, 8, 11, 15, 6, 1}, {32, 33, 16, 12, 15, 19, 6, 1},
     {33, 34, 20, 16, 19, 23, 6, 1}
 };
 int wedge_labels[] = {1,2,3,4,5};
 
-float st_rec[] = 
+float st_rec[] =
 {
     /* node data */
-    0, 0, 0,  0, 1, 0,  0, 1, 1,  0, 0, 1, /* 12 fields */  
-    1, 0, 0,  1, 1, 0,  1, 1, 1,  1, 0, 1,  
-    2, 0, 0,  2, 1, 0,  2, 1, 1,  2, 0, 1,  
-    3, 0, 0,  3, 1, 0,  3, 1, 1,  3, 0, 1,  
-    4, 0, 0,  4, 1, 0,  4, 1, 1,  4, 0, 1,  
-    5, 0, 0,  5, 1, 0,  5, 1, 1,  5, 0, 1, 
-    .5, .5, 2,  1.5, .5, 2,  2.5, .5, 2,  3.5, .5, 2,  
-    4.5, .5, 2,  0, -1, 0,  1, -1, 0,  2, -1, 0,  
+    0, 0, 0,  0, 1, 0,  0, 1, 1,  0, 0, 1, /* 12 fields */
+    1, 0, 0,  1, 1, 0,  1, 1, 1,  1, 0, 1,
+    2, 0, 0,  2, 1, 0,  2, 1, 1,  2, 0, 1,
+    3, 0, 0,  3, 1, 0,  3, 1, 1,  3, 0, 1,
+    4, 0, 0,  4, 1, 0,  4, 1, 1,  4, 0, 1,
+    5, 0, 0,  5, 1, 0,  5, 1, 1,  5, 0, 1,
+    .5, .5, 2,  1.5, .5, 2,  2.5, .5, 2,  3.5, .5, 2,
+    4.5, .5, 2,  0, -1, 0,  1, -1, 0,  2, -1, 0,
     3, -1, 0,  4, -1, 0,  5, -1, 0,
 
     /* truss data */
@@ -142,7 +142,7 @@ float st_rec[] =
     20, 200, 2000, 20000, 200000,
     30, 300, 3000, 30000, 300000,
     40, 400, 4000, 40000, 400000,
-    
+
     /* Shell stress data */
     0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
     0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2,
@@ -152,7 +152,7 @@ float st_rec[] =
 };
 
 static int create_mesh( int fid, int *mid );
-static void writeStates( int fid, int sid, int stop_state, 
+static void writeStates( int fid, int sid, int stop_state,
                          float start_time, float time_increment);
 
 
@@ -168,7 +168,7 @@ main( int argc, char *argv[] )
     float time;
     int file_suffix, state_index, qty;
     int num_bytes = 0, num_domains=0;
-  
+
     /* Added test for really long filenames */
     char fname[1000];
     //strcpy(fname, "rgrido.mod.plt_c");
@@ -183,8 +183,8 @@ main( int argc, char *argv[] )
         mc_print_error( "mc_open()", stat );
         exit( -1 );
     }
-    
-    
+
+
     mc_limit_filesize( fid, 10000000 );
     mc_limit_states( fid, 10000 );
     mc_activate_visit_file(fid,0);
@@ -195,18 +195,18 @@ main( int argc, char *argv[] )
         mc_print_error("mc_wrt_string (title)", stat);
         exit(-1);
     }
-    
-    
+
+
     /*
      * Create a mesh.
      */
     stat = create_mesh( fid, &mid );
-    
+
     /*
      * Define state variables.
      */
-    
-    stat = mc_def_vec_svar( fid, M_FLOAT, 3, nnames[0], ntitles[0], 
+
+    stat = mc_def_vec_svar( fid, M_FLOAT, 3, nnames[0], ntitles[0],
                             nnames + 1, ntitles + 1 );
     if ( stat != 0 )
     {
@@ -214,7 +214,7 @@ main( int argc, char *argv[] )
         mc_print_error( "mc_def_vec_svar (nodpos)", stat );
         exit( -1 );
     }
-    
+
     qty = sizeof( names ) / sizeof( names[0] );
 
     for ( i = 0; i < qty; i++ )
@@ -223,7 +223,7 @@ main( int argc, char *argv[] )
         strcpy( sv_titles[i], titles[i] );
     }
 
-    stat = mc_def_svars( fid, qty, (char *) sv_names, MAX_RNAME_LEN, 
+    stat = mc_def_svars( fid, qty, (char *) sv_names, MAX_RNAME_LEN,
                          (char *) sv_titles, MAX_RNAME_LEN, types );
     if ( stat != 0 )
     {
@@ -231,7 +231,7 @@ main( int argc, char *argv[] )
         mc_print_error( "mc_def_svars", stat );
         exit( -1 );
     }
-    stat = mc_def_vec_svar( fid, M_FLOAT, 7, "stress", "Stress", 
+    stat = mc_def_vec_svar( fid, M_FLOAT, 7, "stress", "Stress",
                             vnames, vtitles );
     if ( stat != 0 )
     {
@@ -276,7 +276,7 @@ main( int argc, char *argv[] )
    mc_get_global_class_count(fid,  "truss", &global_class_count);
    global_class_count=0;
    mc_get_local_class_count(fid, "truss", &global_class_count);
-   
+
     /*
      * Define and populate a shell class.
      */
@@ -305,7 +305,7 @@ main( int argc, char *argv[] )
         mc_print_error( "mc_def_class (t)", stat );
         exit( -1 );
     }
-        
+
     stat = mc_def_conn_seq_labels( fid, mid, "t", 1, 4, tet_labels, (int *) tets );
     if ( stat != 0 )
     {
@@ -344,7 +344,7 @@ main( int argc, char *argv[] )
     mo_ids[0] = 1;
     mo_ids[1] = 35;
     stat = mc_def_subrec( fid, sid, "NodeSubrec", RESULT_ORDERED, 1,
-                          sv_names[0], MAX_RNAME_LEN, "node", 
+                          sv_names[0], MAX_RNAME_LEN, "node",
                           M_BLOCK_OBJ_FMT, 1, mo_ids, 0 );
     if ( stat != 0 )
     {
@@ -352,11 +352,11 @@ main( int argc, char *argv[] )
         mc_print_error( "mc_def_subrec (NodeSubrec)", stat );
         exit( -1 );
     }
-    
+
     mo_ids[0] = 1;
     mo_ids[1] = 4;
     stat = mc_def_subrec( fid, sid, "TrussSubrec", OBJECT_ORDERED, 2,
-                          sv_names[5], MAX_RNAME_LEN, "truss", 
+                          sv_names[5], MAX_RNAME_LEN, "truss",
                           M_BLOCK_OBJ_FMT, 1, mo_ids, 0 );
     if ( stat != 0 )
     {
@@ -364,11 +364,11 @@ main( int argc, char *argv[] )
         mc_print_error( "mc_def_subrec (TetSubrec)", stat );
         exit( -1 );
     }
-    
+
     mo_ids[0] = 1;
     mo_ids[1] = 4;
     stat = mc_def_subrec( fid, sid, "TetSubrec", OBJECT_ORDERED, 5,
-                          sv_names[1], MAX_RNAME_LEN, "t", 
+                          sv_names[1], MAX_RNAME_LEN, "t",
                           M_BLOCK_OBJ_FMT, 1, mo_ids, 0 );
     if ( stat != 0 )
     {
@@ -379,7 +379,7 @@ main( int argc, char *argv[] )
     mo_ids[0] = 1;
     mo_ids[1] = 5;
     stat = mc_def_subrec( fid, sid, "ShellStressSubrec", OBJECT_ORDERED, 1,
-                          "stress", MAX_RNAME_LEN, "shell", 
+                          "stress", MAX_RNAME_LEN, "shell",
                           M_BLOCK_OBJ_FMT, 1, mo_ids, 0 );
     if ( stat != 0 )
     {
@@ -403,17 +403,17 @@ main( int argc, char *argv[] )
         mc_print_error( "mc_flush", stat );
         exit( -1 );
     }
-    
+
     writeStates( fid, sid, MAX_STATES, 0.0, 0.1);
-    
+
     stat = mc_close( fid );
-    
+
     if ( stat != 0 )
     {
         mc_print_error( "mc_close", stat );
         exit( -1 );
     }
-    
+
     /* Restart Test */
     stat = mc_open( fname, ".", "AaPdEn", &fid );
     if ( stat != 0 )
@@ -423,22 +423,22 @@ main( int argc, char *argv[] )
     }
 
     stat = mc_restart_at_state( fid, 0, RESTART_STATE );
-    
+
     if ( stat != 0 )
-    { 
+    {
         mc_print_error( "mc_restart_at_state", stat );
         exit( -1 );
     }
 
     writeStates(fid, sid,  10, 0.7, 0.1);
-    
+
     stat = mc_close( fid );
     if ( stat != 0 )
     {
         mc_print_error( "mc_close", stat );
         exit( -1 );
     }
-    
+
     /* Restart Test */
     stat = mc_open( fname, ".", "AaPdEn", &fid );
     if ( stat != 0 )
@@ -448,15 +448,15 @@ main( int argc, char *argv[] )
     }
 
     stat = mc_restart_at_state( fid, 0, 8);
-    
+
     if ( stat != 0 )
-    { 
+    {
         mc_print_error( "mc_restart_at_state", stat );
         exit( -1 );
     }
 
     writeStates(fid, sid,  50, 0.2, 0.1);
-    
+
     stat = mc_close( fid );
     if ( stat != 0 )
     {
@@ -467,15 +467,15 @@ main( int argc, char *argv[] )
     exit( 0 );
 }
 void writeStates( int fid, int sid, int stop_state, float start_time, float time_increment)
-{  
+{
     float time = start_time;
     int i, j, k;
-    int state_index; 
-    int file_suffix; 
-    int stat; 
-    
-    for ( i = 1, time = start_time; 
-	  i <= stop_state; 
+    int state_index;
+    int file_suffix;
+    int stat;
+
+    for ( i = 1, time = start_time;
+	  i <= stop_state;
 	  time += time_increment, i++ )
     {
         stat = mc_new_state( fid, sid, time, &file_suffix, &state_index );
@@ -519,30 +519,30 @@ void writeStates( int fid, int sid, int stop_state, float start_time, float time
             mc_print_error( "mc_wrt_stream", stat );
             exit( -1 );
         }
-    
+
         mc_end_state(fid,sid);
 
 	    /* Update State Data so not constant over all time steps */
         // Update node positions
-	    for ( j=0; j<105; j+=3 ) 
+	    for ( j=0; j<105; j+=3 )
         {
 	        st_rec[j] += .01;
 	    }
 
-        // Update Truss data 
-        for ( j=105; j<113; j++ ) 
+        // Update Truss data
+        for ( j=105; j<113; j++ )
         {
             st_rec[j] += 10000;
         }
 
-        // Update Tet data   
-        for ( j=113; j<133; j++ ) 
+        // Update Tet data
+        for ( j=113; j<133; j++ )
         {
 	        st_rec[j] += 10;
         }
- 
+
         // Update Shell stresses
-        for ( j=133; j<168; j++ ) 
+        for ( j=133; j<168; j++ )
         {
 	        st_rec[j] += .1;
         }
@@ -559,11 +559,11 @@ int create_mesh( int fid, int *mid )
 int stat=0;
 
 float ncoords1[][3] = {                                    /* nodes 0:23 */
-    {0, 0, 0}, {0, 1, 0}, {0, 1, 1}, {0, 0, 1}, 
-    {1, 0, 0}, {1, 1, 0}, {1, 1, 1}, {1, 0, 1}, 
-    {2, 0, 0}, {2, 1, 0}, {2, 1, 1}, {2, 0, 1}, 
-    {3, 0, 0}, {3, 1, 0}, {3, 1, 1}, {3, 0, 1}, 
-    {4, 0, 0}, {4, 1, 0}, {4, 1, 1}, {4, 0, 1}, 
+    {0, 0, 0}, {0, 1, 0}, {0, 1, 1}, {0, 0, 1},
+    {1, 0, 0}, {1, 1, 0}, {1, 1, 1}, {1, 0, 1},
+    {2, 0, 0}, {2, 1, 0}, {2, 1, 1}, {2, 0, 1},
+    {3, 0, 0}, {3, 1, 0}, {3, 1, 1}, {3, 0, 1},
+    {4, 0, 0}, {4, 1, 0}, {4, 1, 1}, {4, 0, 1},
     {5, 0, 0}, {5, 1, 0}, {5, 1, 1}, {5, 0, 1}
 };
 
@@ -585,7 +585,7 @@ int node_labels[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23
     {
         mc_close( fid );
         mc_print_error( "mc_make_umesh", stat );
-        exit( -1 ); 
+        exit( -1 );
     }
 
     /*

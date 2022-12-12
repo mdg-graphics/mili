@@ -55,7 +55,7 @@ test:
     - cd scripts
     - salloc -n 4 -t 5 -p pdebug ./Test.py -e mililib_env -c ../lib_debug/ -I ../include/ -p 1 -basedir ../../test/ -s all > test_debug.out
     - salloc -n 4 -t 5 -p pdebug ./Test.py -e mililib_env -c ../lib_opt/ -I ../include/ -p 1 -basedir ../../test/ -s all > test_opt.out
-    - num_debug_failed=$( grep -c failed test_debug.out ) || true
-    - num_opt_failed=$( grep -c failed test_opt.out ) || true
+    - num_debug_failed=$( grep -c -e failed -e "did not run correctly" test_debug.out ) || true
+    - num_opt_failed=$( grep -c -e failed -e "did not run correctly" test_opt.out ) || true
     - num_failed=$(( $num_debug_failed + $num_opt_failed ))
     - exit $num_failed
