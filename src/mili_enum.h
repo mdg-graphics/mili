@@ -1,28 +1,28 @@
 /*
- Copyright (c) 2016, Lawrence Livermore National Security, LLC. 
- Produced at the Lawrence Livermore National Laboratory. Written 
- by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056. 
+ Copyright (c) 2016, Lawrence Livermore National Security, LLC.
+ Produced at the Lawrence Livermore National Laboratory. Written
+ by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056.
  All rights reserved.
 
- This file is part of Mili. For details, see <URL describing code 
+ This file is part of Mili. For details, see <URL describing code
  and how to download source>.
 
- Please also read this link-- Our Notice and GNU Lesser General 
+ Please also read this link-- Our Notice and GNU Lesser General
  Public License.
 
- This program is free software; you can redistribute it and/or modify 
- it under the terms of the GNU General Public License (as published by 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License (as published by
  the Free Software Foundation) version 2.1 dated February 1999.
 
- This program is distributed in the hope that it will be useful, but 
- WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF 
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms 
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms
  and conditions of the GNU General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public License 
- along with this program; if not, write to the Free Software Foundation, 
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- 
+
  * Enumerated types for Mili.
  *
  *
@@ -208,7 +208,7 @@ enum File_dir_indices
    NAMES_LEN_IDX,              /* Qty of bytes occupied by null-term'd names */
    COMMIT_COUNT_IDX,           /* Number of commit that output this dir */
    QTY_ENTRIES_IDX,            /* Qty of entries in this directory */
-   QTY_STATES_IDX,             /* Number of timesteps written thus far*/
+   QTY_STATES_IDX,             /* Number of timesteps written thus far, only in mili file version 2*/
    QTY_DIR_HEADER_FIELDS
 };
 
@@ -426,13 +426,13 @@ typedef enum
  */
 enum Char_header_indices
 {
-   MILI_MAGIC_NUMBER_IDX = 0,  /* Mili database id, allow 4-bytes */
-   HDR_VERSION_IDX = 4,        /* Header format version */
-   DIR_VERSION_IDX,            /* Directory format version */
-   ENDIAN_IDX,                 /* Database endianness */
-   PRECISION_LIMIT_IDX,        /* Max precision of data written to family */
-   ST_FILE_SUFFIX_WIDTH_IDX,   /* Numeric suffix width for state-data files */
-   PARTITION_SCHEME_IDX,       /* File partitioning scheme for family */
+   MILI_MAGIC_NUMBER_IDX = 0,    /* Mili database id, allow 4-bytes */
+   HDR_VERSION_IDX = 4,          /* Header format version */
+   DIR_VERSION_IDX = 5,          /* Directory format version index 5*/
+   ENDIAN_IDX = 6,               /* Database endianness index 6*/
+   PRECISION_LIMIT_IDX = 7,      /* Max precision of data written to family index 7 */
+   ST_FILE_SUFFIX_WIDTH_IDX = 8, /* Numeric suffix width for state-data files index 8*/
+   PARTITION_SCHEME_IDX = 9,    /* File partitioning scheme for family index 9*/
    /* Qty of additional 4-char fields following */
    ADDL_FIELDS_IDX = CHAR_HEADER_SIZE - 1
 };
