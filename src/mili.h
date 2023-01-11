@@ -188,6 +188,7 @@ typedef enum
 #define STATE_DATA      (0)
 #define NON_STATE_DATA  (1)
 #define TAURUS_DATA     (2)
+#define STATE_MAPS      (3)
 #define TI_DATA         (10) /* New for time-invarient data */
 
 

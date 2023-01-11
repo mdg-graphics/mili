@@ -1,28 +1,28 @@
 /*
- Copyright (c) 2016, Lawrence Livermore National Security, LLC. 
- Produced at the Lawrence Livermore National Laboratory. Written 
- by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056. 
+ Copyright (c) 2016, Lawrence Livermore National Security, LLC.
+ Produced at the Lawrence Livermore National Laboratory. Written
+ by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056.
  All rights reserved.
 
- This file is part of Mili. For details, see <URL describing code 
+ This file is part of Mili. For details, see <URL describing code
  and how to download source>.
 
- Please also read this link-- Our Notice and GNU Lesser General 
+ Please also read this link-- Our Notice and GNU Lesser General
  Public License.
 
- This program is free software; you can redistribute it and/or modify 
- it under the terms of the GNU General Public License (as published by 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License (as published by
  the Free Software Foundation) version 2.1 dated February 1999.
 
- This program is distributed in the hope that it will be useful, but 
- WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF 
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms 
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms
  and conditions of the GNU General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public License 
- along with this program; if not, write to the Free Software Foundation, 
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- 
+
  * Routines for managing the file directory, which is written at
  * the end of a file.
  *
@@ -226,13 +226,13 @@ commit_dir( Mili_family *fam )
    dir_header[COMMIT_COUNT_IDX] = p_fd->commit_count;
    /* Copy entry count into buffer. */
    dir_header[QTY_ENTRIES_IDX] = p_fd->qty_entries;
-   if(fam->char_header[DIR_VERSION_IDX]>=2){
+   if(fam->char_header[DIR_VERSION_IDX] > 1 )
+   {
       /* Copy the number of states should be zero at this point for A file. */
       dir_header[QTY_STATES_IDX] = 0;
-      
    }
-   
-   
+
+
    /*
     * Write out the names, the entries, then the header, so that the header
     * will always be at the end of the file.
@@ -263,7 +263,7 @@ commit_dir( Mili_family *fam )
             return SHORT_WRITE;
          }
       }
-      
+
       if(fam->char_header[DIR_VERSION_IDX]==1){
          fam->next_free_byte += (words + QTY_DIR_HEADER_FIELDS-1)
                              * EXT_SIZE( fam, M_INT );
@@ -334,6 +334,7 @@ load_directories( Mili_family *fam )
    int fnum;
    int qty_ent=0, qty_states=0, qty_nam=0;
    FILE *p_f;
+   FILE *p_t;
    char fname[M_MAX_NAME_LEN];
    int header[QTY_DIR_HEADER_FIELDS];
    int nnames;
@@ -416,26 +417,27 @@ load_directories( Mili_family *fam )
    fcnt = 0;
    make_fnam( NON_STATE_DATA, fam, fcnt, fname );
 
-   while( (p_f = fopen( fname, "rb" )) != NULL &&
-          ( !active || fcnt <= fnum ) )
+   while( (p_f = fopen( fname, "rb" )) != NULL && ( !active || fcnt <= fnum ) )
    {
       fam->cur_file = p_f;
       offset = 0;
       /* Seek to end of file and read directory "header". */
-      if(fam->char_header[DIR_VERSION_IDX]==1)
-      {
-         offset -= (QTY_DIR_HEADER_FIELDS-1) * EXT_SIZE( fam, M_INT );
-      }else if(fam->char_header[DIR_VERSION_IDX]>=2)
+      if(fam->char_header[DIR_VERSION_IDX] > 1)
       {
          offset = -(QTY_DIR_HEADER_FIELDS * EXT_SIZE( fam, M_INT ));
       }
+      else
+      {
+         offset = -(QTY_DIR_HEADER_FIELDS-1) * EXT_SIZE( fam, M_INT );
+      }
+
       status = fseek( p_f, offset, SEEK_END );
       if ( status != 0 )
       {
          fclose(p_f);
          return SEEK_FAILED;
       }
-      
+
       if(fam->char_header[DIR_VERSION_IDX]==1)
       {
          nitems = fam->read_funcs[M_INT]( p_f, header, QTY_DIR_HEADER_FIELDS-1 );
@@ -444,7 +446,7 @@ load_directories( Mili_family *fam )
             fclose( p_f );
             return BAD_LOAD_READ;
          }
-      } else 
+      } else
       {
          nitems = fam->read_funcs[M_INT]( p_f, header, QTY_DIR_HEADER_FIELDS );
          if ( nitems != QTY_DIR_HEADER_FIELDS )
@@ -452,30 +454,40 @@ load_directories( Mili_family *fam )
             fclose( p_f );
             return BAD_LOAD_READ;
          }
-         qty_states = header[QTY_STATES_IDX];
-         
+         if (fam->char_header[HDR_VERSION_IDX] > 2)
+         {
+            strcpy(fname, fam->root);
+            strcat(fname, "T");
+            p_t = fopen( fname, "rb" );
+            fseek(p_t, -1, SEEK_END);
+            qty_states = ftell(p_t) / 20;
+            fclose( p_t );
+         }
+         else
+         {
+            qty_states = header[QTY_STATES_IDX];
+         }
       }
-      
+
       qty_ent = header[QTY_ENTRIES_IDX];
       if(qty_ent < 1)
       {
           fclose( p_f );
           return DIR_ZERO_COUNT;
       }
-      
+
 
       /* Allocate storage for current non-state file's directory. */
-      fam->directory = RENEW_N( File_dir, fam->directory, fcnt, 1,
-                                "Load dir File_dir" );
+      fam->directory = RENEW_N( File_dir, fam->directory, fcnt, 1, "Load dir File_dir" );
       if (fam->directory == NULL)
       {
          fclose( p_f );
          return ALLOC_FAILED;
       }
-      
+
       p_fd = fam->directory + fcnt;
       p_de = NEW_N( Dir_entry, qty_ent, "Load dir entries" );
-      
+
       if (qty_ent > 0 && p_de == NULL)
       {
          free( fam->directory );
@@ -485,51 +497,57 @@ load_directories( Mili_family *fam )
       }
 
       /* Seek to beginning of directory entries and read all at once. */
+      int states_size = qty_states * 20; /* 20 is the size af a statemap. */
+      if( fam->char_header[HDR_VERSION_IDX] > 2 )
+      {
+         states_size = 0;
+      }
       if(fam->char_header[DIR_VERSION_IDX]==1)
       {
          offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT ) ;
-      }else if(fam->char_header[DIR_VERSION_IDX]==2)
+      }
+      else if(fam->char_header[DIR_VERSION_IDX]==2)
       {
-         offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT ) +
-                   qty_states * 20; /*20 is the size af a statemap*/ 
-      }else // Added version 3 to handle long size offsets
+         offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT ) + states_size;
+      }
+      else // Added version 3 to handle long size offsets
       {
-          offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT8 ) +
-                   qty_states * 20; /*20 is the size af a statemap*/
+          offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE( fam, M_INT8 ) + states_size;
       }
       status = fseek( p_f, offset, SEEK_END );
-      if(fam->char_header[DIR_VERSION_IDX]>=3)
+      if( fam->char_header[DIR_VERSION_IDX] > 2 )
       {
-          nitems = fam->read_funcs[M_INT8]( p_f, p_de, QTY_ENTRY_FIELDS*qty_ent );
-		  if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS)
-          {
-              free( fam->directory );
-              fam->directory = NULL;
-              free( p_de );
-              fclose( p_f );
-              return BAD_LOAD_READ;
-          }
-      }else
+         nitems = fam->read_funcs[M_INT8]( p_f, p_de, QTY_ENTRY_FIELDS * qty_ent );
+         if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS)
+         {
+            free( fam->directory );
+            fam->directory = NULL;
+            free( p_de );
+            fclose( p_f );
+            return BAD_LOAD_READ;
+         }
+      }
+      else
       {
-          TempDir_entry *temp_p_de = NEW_N( TempDir_entry, qty_ent, "Load dir entries" );
-          nitems = fam->read_funcs[M_FLOAT4]( p_f, (void*)temp_p_de, QTY_ENTRY_FIELDS*qty_ent );
-			
-          if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS)
-          {
-              free( fam->directory );
-              fam->directory = NULL;
-              free( p_de );
-              fclose( p_f );
-              return BAD_LOAD_READ;
-          }
-          for(i=0; i<qty_ent;i++)
-          {
-              for(j=0; j<QTY_ENTRY_FIELDS; j++)
-              {
-                  p_de[i][j] = (LONGLONG)temp_p_de[i][j];
-              }
-          }
-          free(temp_p_de);
+         TempDir_entry *temp_p_de = NEW_N( TempDir_entry, qty_ent, "Load dir entries" );
+         nitems = fam->read_funcs[M_FLOAT4]( p_f, (void*)temp_p_de, QTY_ENTRY_FIELDS*qty_ent );
+
+         if ( nitems != (size_t) qty_ent * QTY_ENTRY_FIELDS)
+         {
+            free( fam->directory );
+            fam->directory = NULL;
+            free( p_de );
+            fclose( p_f );
+            return BAD_LOAD_READ;
+         }
+         for(i=0; i<qty_ent;i++)
+         {
+            for(j=0; j<QTY_ENTRY_FIELDS; j++)
+            {
+               p_de[i][j] = (LONGLONG)temp_p_de[i][j];
+            }
+         }
+         free(temp_p_de);
        }
 
        /* Calculate quantity of strings in directory. */
@@ -648,7 +666,7 @@ load_directories( Mili_family *fam )
 
                /* If entry is a parameter... */
                etype = (Dir_entry_type) p_de[i][TYPE_IDX];
-               if ( etype == MILI_PARAM || etype == APPLICATION_PARAM || 
+               if ( etype == MILI_PARAM || etype == APPLICATION_PARAM ||
                    (fam->char_header[DIR_VERSION_IDX]>=2 && etype == TI_PARAM))
                {
                    if (p_name == NULL)

@@ -1,28 +1,28 @@
 /*
- Copyright (c) 2016, Lawrence Livermore National Security, LLC. 
- Produced at the Lawrence Livermore National Laboratory. Written 
- by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056. 
+ Copyright (c) 2016, Lawrence Livermore National Security, LLC.
+ Produced at the Lawrence Livermore National Laboratory. Written
+ by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056.
  All rights reserved.
 
- This file is part of Mili. For details, see <URL describing code 
+ This file is part of Mili. For details, see <URL describing code
  and how to download source>.
 
- Please also read this link-- Our Notice and GNU Lesser General 
+ Please also read this link-- Our Notice and GNU Lesser General
  Public License.
 
- This program is free software; you can redistribute it and/or modify 
- it under the terms of the GNU General Public License (as published by 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License (as published by
  the Free Software Foundation) version 2.1 dated February 1999.
 
- This program is distributed in the hope that it will be useful, but 
- WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF 
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms 
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms
  and conditions of the GNU General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public License 
- along with this program; if not, write to the Free Software Foundation, 
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- 
+
  * Mesh I/O Library source code.
  *
  ************************************************************************
@@ -188,14 +188,14 @@ int mili_verbose = FALSE;
  *
  * The current version of the header format.
  */
-static unsigned char header_version = 2;
+static unsigned char header_version = 3;
 
 
 /*****************************************************************
  * TAG( directory_version )
  *
  * The current version of the directory format.
- * Version 2 was created to allow for the storing of state map 
+ * Version 2 was created to allow for the storing of state map
  * info in the Metadata file.
  */
 static unsigned char directory_version = 3;
@@ -244,7 +244,7 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    int root_len, path_len, pos;
    char *lpath, *ctl_str;
    Return_value rval;
-   
+
    root_len = (int) strlen( root_name );
 
    set_path( path, &lpath, &path_len );
@@ -274,7 +274,7 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    {
        return ALLOC_FAILED;
    }
-   
+
    fam->aFile[0] ='\0';
    strcat(fam->aFile,fam->root);
    strcat(fam->aFile,"A");
@@ -294,6 +294,18 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    fam->directory       = NULL;
    fam->svar_table       = NULL;
 
+   /* State data file pointer. */
+   fam->cur_st_file          = NULL;
+   fam->time_state_file      = NULL;
+   fam->time_file_name       = NULL;
+   fam->cur_st_file_size     = 0;
+   fam->st_file_count        = 0;
+   fam->st_file_index_offset = 0;
+   fam->cur_st_offset        = 0;
+   fam->file_st_qty          = 0;
+   fam->cur_srec_id          = 0;
+   fam->state_qty            = 0;
+   fam->state_end_marker     ='~';
    /* Initialize TI variables */
    fam->ti_cur_index          = -1;
    fam->ti_cur_st_index       = -1;
@@ -321,8 +333,6 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    fam->state_dirty = 0;
    fam->subrec_start_check = FALSE;
    fam->visit_file_on = 0;
-   /* State data file pointer. */
-   fam->cur_st_file = NULL;
 
    /* Parse the control string and initialize the header. */
    rval = parse_control_string( ctl_str, fam, create_db );
@@ -330,7 +340,7 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    {
       return rval;
    }
-   
+
    pos= fam_qty;
    if(fam_qty <fam_array_length)
    {
@@ -346,8 +356,8 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    if(pos < fam_array_length){
       fam_list[pos] = fam;
       *fam_id = pos;
-          
-   } else 
+
+   } else
    {
       /* Need this stuff if open_family() is called. */
       fam_list = RENEW_N( Mili_family *, fam_list, pos, 1,
@@ -357,8 +367,8 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
          return ALLOC_FAILED;
       }
       fam_list[fam_qty] = fam;
-      *fam_id = fam_qty;     
-      fam_array_length++; 
+      *fam_id = fam_qty;
+      fam_array_length++;
    }
 
 
@@ -366,7 +376,7 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    fam->my_id = *fam_id;
 
    fam->lock_file_descriptor = 0;
-   
+
    fam->ti_enable      = ti_enable;
    fam->ti_only        = ti_only;       /* If true,then only TI files are read and written */
    fam->ti_data_found  = ti_data_found;
@@ -384,7 +394,7 @@ void delete_fam(Mili_family *fam)
 /*****************************************************************
  * TAG( mc_quick_open ) PUBLIC
  *
- * Open a Mesh I/O library file family for quick access, 
+ * Open a Mesh I/O library file family for quick access,
  * returning a family identifier to caller.
  */
 Return_value
@@ -420,19 +430,19 @@ mc_quick_open(char *root_name, char *path,
 
    rval = set_defaults(root_name, path, fam, control_string,
                        &create_db, &fam_id);
-   
+
    if(create_db || rval != OK) {
       cleanse( fam );
       free( fam );
       return FAMILY_NOT_FOUND;
    }
    if(fam->char_header[DIR_VERSION_IDX] ==1)
-   {   
+   {
       fam->hide_states = 1;
    }
-   
+
    rval = open_family( fam_id );
-   
+
 #if TIMER
    stop = clock();
    cumalative =((double)(stop - start))/CLOCKS_PER_SEC;
@@ -497,8 +507,7 @@ mc_open( char *root_name, char *path, char *control_string, Famid *p_fam_id )
    /* Before we do anything, check environment for verbose setting. */
    verbosity( getenv( "MILI_VERBOSE" ) != NULL );
 
-   rval = set_defaults(root_name, path, fam, control_string,
-                       &create_db, &fam_id);
+   rval = set_defaults(root_name, path, fam, control_string, &create_db, &fam_id);
    if (rval != OK)
    {
       return rval;
@@ -539,7 +548,7 @@ mc_open( char *root_name, char *path, char *control_string, Famid *p_fam_id )
       cleanse( fam );
       fam_qty--;
       fam_array_length--;
-      free( fam_list[fam_qty] );           
+      free( fam_list[fam_qty] );
       *p_fam_id = ID_FAIL;
       return rval;
    }
@@ -551,9 +560,9 @@ mc_open( char *root_name, char *path, char *control_string, Famid *p_fam_id )
       fam->pid = (long) getpid();
 #endif
       *p_fam_id = fam_id;
-      
+
       return OK;
-      
+
    }
 }
 
@@ -586,7 +595,7 @@ set_path( char *in_path, char **out_path, int *out_path_len )
  * Detect possible old format values of an mc_open() control
  * string and pass back a pointer to an equivalent new format
  * string.
- * Changed behavior to always be double precision 
+ * Changed behavior to always be double precision
  */
 Bool_type
 match_old_control_string_format( char *control_string, char **ctl_str )
@@ -1116,19 +1125,19 @@ open_family( Famid fam_id )
    int fnum;
    Return_value rval;
    int write_ct;
-   int limit;  // limit is used in calculating the length of the state 
+   int limit;  // limit is used in calculating the length of the state
                // file name string
 
    fam = fam_list[fam_id];
 
    fam->my_id = fam_id;
-   
+
    fam->state_closed = 1;
 
    /**/
    /* Need to initialize all of fam */
    /*
-   * Adding a check for a really old mili file format 
+   * Adding a check for a really old mili file format
    */
    make_fnam( TI_DATA, fam, 0, fname );
    if((p_f = fopen( fname, "rb" )) == NULL && fam->char_header[DIR_VERSION_IDX]==1)
@@ -1276,7 +1285,7 @@ open_family( Famid fam_id )
    if(status != OK){
       fam->bytes_per_file_limit=0;
    }
-   
+
    status = OK;
    status = mc_read_scalar( fam_id, "post_modified",
                             &fam->post_modified);
@@ -1304,7 +1313,7 @@ open_family( Famid fam_id )
          return status;
       }
    }
-   
+
    status = mc_read_scalar( fam_id, "nproc", &fam->num_procs );
    if (status != OK)
    {
@@ -1317,7 +1326,7 @@ open_family( Famid fam_id )
          status = OK;
       }
    }
-   
+
    if ( fam->access_mode == 'a' && fam->st_file_count > 0 )
    {
       /*
@@ -1340,7 +1349,7 @@ open_family( Famid fam_id )
       {
          memset( p_fname, (int) '\0', M_MAX_NAME_LEN );
          fnum = ST_FILE_SUFFIX( fam, fam->st_file_count - 1 );
-         
+
          limit = M_MAX_NAME_LEN - 1 - strlen(fam->root);
          if (fnum >0 && log10(fnum) > limit)
          {
@@ -1704,6 +1713,30 @@ test_write_lock( Mili_family *fam )
    return;
 }
 
+static Return_value
+init_tfile( Mili_family * fam )
+{
+   char fname[M_MAX_NAME_LEN];
+   if ( fam->char_header[HDR_VERSION_IDX] > 2 )
+   {
+      strcpy(fname, fam->root);
+      strcat(fname, "T");
+      fam->time_state_file = fopen(fname, "w+b");
+      if ( fam->time_state_file == NULL )
+      {
+         return UNABLE_TO_STAT_FILE;
+      }
+      fam->write_funcs[M_STRING](fam->time_state_file, &fam->state_end_marker, 1);
+      int rval = fclose( fam->time_state_file );
+      if ( rval != 0 )
+      {
+         return UNABLE_TO_CLOSE_FILE;
+      }
+      fam->time_state_file = NULL;
+   }
+   return OK;
+}
+
 
 /*****************************************************************
  * TAG( create_family ) LOCAL
@@ -1712,7 +1745,7 @@ test_write_lock( Mili_family *fam )
  * initializing the table of contents and metadata dictionary.
  */
 static Return_value
-create_family( Mili_family *fam )
+create_family( Mili_family * fam )
 {
    Return_value rval;
 
@@ -1739,10 +1772,10 @@ create_family( Mili_family *fam )
       return rval;
    }
 
-   fam->st_suffix_width  = DEFAULT_SUFFIX_WIDTH;
+   fam->st_suffix_width = DEFAULT_SUFFIX_WIDTH;
    fam->partition_scheme = DEFAULT_PARTITION_SCHEME;
-   fam->states_per_file  = 0;
-   fam->bytes_per_file_limit   = 0;
+   fam->states_per_file = 0;
+   fam->bytes_per_file_limit = 0;
    fam->post_modified = 0;
 
    fam->st_file_count = 0;
@@ -1750,8 +1783,8 @@ create_family( Mili_family *fam )
    fam->cur_index = -1;
    fam->commit_max = -1;
 
-   fam->ti_cur_index     = -1;
-   fam->ti_file_count    = 0;
+   fam->ti_cur_index = -1;
+   fam->ti_file_count = 0;
 
    if ( (rval = set_default_io_routines( fam )) != OK )
    {
@@ -1775,13 +1808,18 @@ create_family( Mili_family *fam )
       {
          return rval;
       }
+      rval = init_tfile( fam );
+      if (rval != OK)
+      {
+         return rval;
+      }
       rval = mc_init_metadata( fam->my_id );
    }
    else
    {
       rval = ALLOC_FAILED;
    }
-   
+
    return rval;
 }
 
@@ -2091,8 +2129,7 @@ init_header( Mili_family *fam )
    fam->char_header[PARTITION_SCHEME_IDX] = (char) fam->partition_scheme;
 
    /* Write it out (even if incomplete) to allocate space in the file. */
-   write_ct = fam->write_funcs[M_STRING]( fam->cur_file, fam->char_header,
-                                          CHAR_HEADER_SIZE );
+   write_ct = fam->write_funcs[M_STRING]( fam->cur_file, fam->char_header, CHAR_HEADER_SIZE );
    if (write_ct != CHAR_HEADER_SIZE)
    {
       return SHORT_WRITE;
@@ -2103,7 +2140,6 @@ init_header( Mili_family *fam )
 
    return OK;
 }
-
 
 /*****************************************************************
  * TAG( mc_init_metadata ) PUBLIC
@@ -2136,9 +2172,8 @@ mc_init_metadata( Famid fam_id )
 
    get_mili_version( mili_version );
 
-   rval = write_string( fam, "lib version", (char *) mili_version,
-                        MILI_PARAM );
-   
+   rval = write_string( fam, "lib version", (char *) mili_version, MILI_PARAM );
+
    if (rval != OK)
    {
       return rval;
@@ -2149,7 +2184,7 @@ mc_init_metadata( Famid fam_id )
    {
       return rval;
    }
-   
+
    mc_wrt_scalar(fam_id,M_INT,"post_modified",(void*)&(fam->post_modified));
    if (rval != OK)
    {
@@ -2176,8 +2211,7 @@ mc_init_metadata( Famid fam_id )
    {
       return BAD_SYSTEM_INFO;
    }
-   alloc_size = strlen(sysdata.sysname) + 3 + strlen(sysdata.release) +
-                strlen(sysdata.nodename) + 1;
+   alloc_size = strlen(sysdata.sysname) + 3 + strlen(sysdata.release) + strlen(sysdata.nodename) + 1;
    archbuf = NEW_N(char, alloc_size, "Architecture string buffer.");
    if (alloc_size > 0 && archbuf == NULL)
    {
@@ -2206,8 +2240,7 @@ mc_init_metadata( Famid fam_id )
    }
 
    /* Default (initial) quantity of states-per-file for partitioning. */
-   rval = write_scalar( fam, M_INT, name_states_per_file,
-                        &fam->states_per_file, MILI_PARAM );
+   rval = write_scalar( fam, M_INT, name_states_per_file, &fam->states_per_file, MILI_PARAM );
    if (rval != OK)
    {
       return rval;
@@ -2219,7 +2252,9 @@ mc_init_metadata( Famid fam_id )
    if (user_info != NULL)
    {
       rval = write_string( fam, "username", user_info, MILI_PARAM );
-   }else{
+   }
+   else
+   {
       rval = write_string( fam, "username", "undefined", MILI_PARAM );
    }
    return rval;
@@ -2291,10 +2326,10 @@ mc_close( Famid fam_id )
    }
 
    json_value_free(fam->root_value);
-   
+
    if ( fam->cur_file != NULL )
    {
-      
+
       rval = mc_flush( fam_id, NON_STATE_DATA );
       if (rval != OK && rval != BAD_ACCESS_TYPE)
       {
@@ -2314,7 +2349,14 @@ mc_close( Famid fam_id )
          update_static_map(fam_id,p_sd);
       }
    }
-   
+
+   if(fam->time_state_file != NULL)
+   {
+      fflush(fam->time_state_file);
+      fclose(fam->time_state_file);
+      fam->time_state_file = NULL;
+   }
+
    if ( fam->ti_cur_file != NULL )
    {
       rval = mc_flush( fam_id, TI_DATA );
@@ -2561,7 +2603,7 @@ mc_flush( Famid fam_id, int data_type )
          return rval;
       }
 
-      /* Flush the TI Data if present 
+      /* Flush the TI Data if present
       if ( fam->ti_enable )
       {
          if (COMMIT_TI( fam ) )
@@ -2889,7 +2931,7 @@ test_open_next( Mili_family *fam, Bool_type *open_next )
    Return_value rval = OK;
 
    *open_next = FALSE;
-   
+
    if(fam->cur_st_file == NULL)
    {
       *open_next = TRUE;
@@ -3038,7 +3080,7 @@ prep_for_new_data( Mili_family *fam, int ftype )
             fam->file_st_qty = 0;
             fam->cur_st_offset = 0;
             fam->st_file_count++;
-            
+
          }
          else
          {
@@ -3050,8 +3092,8 @@ prep_for_new_data( Mili_family *fam, int ftype )
             fam->cur_st_offset = fam->state_map[fam->file_st_qty-1].offset;
             fam->cur_st_offset += sizeof(int)+sizeof(float);
             fam->cur_st_offset += fam->srecs[fam->cur_srec_id]->size;
-            
-            
+
+
             /* Position file pointer (for mc_wrt_st_stream()). */
             rval = seek_state_file( fam->cur_st_file, fam->cur_st_offset );
             if ( rval != OK )
@@ -3109,7 +3151,7 @@ gen_next_state_loc( Mili_family *fam, int in_file, int in_state,
          {
             if ( sidx == fam->file_map[fidx].state_qty - 1 )
             {
-            
+
                /*
                 * Input is last extant state in family - must determine
                 * if a file partition is imminent.  If so, increment
@@ -3175,7 +3217,7 @@ gen_next_state_loc( Mili_family *fam, int in_file, int in_state,
 void
 cleanse( Mili_family *fam )
 {
-   
+
    int i;
    free( fam->root );
    free( fam->char_header );
@@ -3235,7 +3277,7 @@ cleanse( Mili_family *fam )
    for ( i=0;
       i<fam->num_label_classes;
       i++ )
-      free (fam->label_class_list[fam->num_label_classes].mclass); 
+      free (fam->label_class_list[fam->num_label_classes].mclass);
 }
 
 
@@ -3320,7 +3362,12 @@ state_file_open( Mili_family *fam, int index, char mode )
    return rval;
 }
 
-
+Return_value
+state_map_file_open ( Mili_family *fam, char mode)
+{
+    Return_value rval = OK;
+    return rval;
+}
 /*****************************************************************
  * TAG( non_state_file_open ) PRIVATE
  *
@@ -3357,9 +3404,7 @@ non_state_file_open( Mili_family *fam, int index, char mode )
       }
 
       set_file_access( mode, fcnt > index, access );
-
-      rval = open_buffered( fname, access, &fam->cur_file,
-                            &fam->cur_file_size );
+      rval = open_buffered( fname, access, &fam->cur_file, &fam->cur_file_size );
       /**/
       /* "next_free_byte" is managed as "cur_file_size" should be, and the two
        * should probably be consolidated, but need to check libtaurus's
@@ -3374,8 +3419,7 @@ non_state_file_open( Mili_family *fam, int index, char mode )
 
          if ( index == fcnt )
          {
-            fam->directory = RENEW_N( File_dir, fam->directory, fcnt, 1,
-                                      "File dir head" );
+            fam->directory = RENEW_N( File_dir, fam->directory, fcnt, 1, "File dir head" );
             if (fam->directory == NULL)
             {
                rval = ALLOC_FAILED;
@@ -3427,7 +3471,7 @@ set_file_access( char fam_access, Bool_type file_exists, char *file_access )
  * Open a file for buffered I/O access.
  */
 Return_value
-open_buffered( char *fname, char *mode, FILE **p_file_descr, 
+open_buffered( char *fname, char *mode, FILE **p_file_descr,
                LONGLONG *p_size )
 {
    FILE *p_f;
@@ -3453,8 +3497,7 @@ open_buffered( char *fname, char *mode, FILE **p_file_descr,
       {
          if ( mili_verbose )
          {
-            fprintf( stderr, "Mili warning - unable to obtain file "
-                     "size.\n" );
+            fprintf( stderr, "Mili warning - unable to obtain file size.\n" );
          }
          rval = UNABLE_TO_STAT_FILE;
       }
@@ -3549,7 +3592,7 @@ state_file_close( Mili_family *fam )
 
    if(!fam){
       return OK;
-   } 
+   }
    if( !(fam->cur_st_file)){
       return OK;
    }
@@ -3985,7 +4028,7 @@ mc_ti_init_metadata( Famid fam_id )
    }else{
       rval = mc_ti_wrt_string( fam_id, "username", "undefined" );
    }
-   
+
    return rval;
 }
 
@@ -4207,35 +4250,35 @@ ti_read_header( Mili_family *fam )
  */
 static int
 is_correct_param_type(int fam_id,char *param_name, int type){
-   
+
    Mili_family *fam;
    int i,name_idx,fidx,qty_entries;
    fam = fam_list[fam_id];
    name_idx=0;
-    
+
    for( fidx=0; fidx < fam->file_count; fidx++ )
    {
       qty_entries = fam->directory[fidx].qty_entries;
- 		
+
       for (i=0; i<qty_entries; i++)
       {
-			
+
          if ( !strcmp(fam->directory[fidx].names[name_idx], param_name) )
          {
-				
+
             if(fam->directory[fidx].dir_entries[i][TYPE_IDX]== type)
             {
                return 1;
             }else{
                return 0;
             }
-            
+
          }
          name_idx += fam->directory[fidx].dir_entries[i][STRING_QTY_IDX];
       }
    }
    return 0;
-          
+
 }
 /*****************************************************************
  * TAG( mc_htable_search_wildcard ) PUBLIC
@@ -4270,13 +4313,13 @@ mc_htable_search_wildcard( int fid, int list_len, Bool_type allow_duplicates,
    if(count > 0 )
    {
       temp_list = (char **) malloc(count*sizeof(char *));
-   
+
       count = 0;
-   
+
       count = htable_search_wildcard( table, list_len, allow_duplicates,
                                       key1, key2, key3,
                                       temp_list );
-                                      
+
       /**
       Need to Check if these are actually TI parameters.
       */
@@ -4332,19 +4375,19 @@ mc_ti_htable_search_wildcard( int fid, int list_len,
       table = fam->ti_param_table;
 		old_ti_file = 1;
    }else
-   {  
+   {
       table = fam->param_table;
    }
    count = htable_search_wildcard( table, list_len, allow_duplicates,
                                     key1, key2, key3,
                                     temp_list );
-												
+
 	if(count > 0 )
    {
       temp_list = (char **) malloc(count*sizeof(char *));
-   
+
       count = 0;
-   
+
       count = htable_search_wildcard( table, list_len, allow_duplicates,
                                       key1, key2, key3,
                                       temp_list );
@@ -4361,7 +4404,7 @@ mc_ti_htable_search_wildcard( int fid, int list_len,
                  //strcpy(return_list[pos] ,temp_list[i]);
             }
             pos++;
-         }else 
+         }else
 			{
 				if(return_list != NULL)
             {
@@ -4373,7 +4416,7 @@ mc_ti_htable_search_wildcard( int fid, int list_len,
       free(temp_list);
       count = pos;
    }
-   
+
    return ( count );
 }
 
