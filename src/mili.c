@@ -284,7 +284,19 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
       /* Didn't match as old format, so parse control string as is. */
       ctl_str = control_string;
    }
-
+   
+   fam->time_file_name  = malloc(strlen(fam->root)+strlen(fam->path)+3);
+   if(fam->time_file_name == NULL)
+   {
+       return ALLOC_FAILED;
+   }
+   
+   fam->time_file_name[0] ='\0';
+   strcat(fam->time_file_name,fam->root);
+   strcat(fam->time_file_name,"T");
+   
+   fam->time_state_file      = NULL;
+   
 
    /* Initialize file indices. */
    fam->char_header = NULL;
@@ -296,8 +308,6 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
 
    /* State data file pointer. */
    fam->cur_st_file          = NULL;
-   fam->time_state_file      = NULL;
-   fam->time_file_name       = NULL;
    fam->cur_st_file_size     = 0;
    fam->st_file_count        = 0;
    fam->st_file_index_offset = 0;
@@ -376,6 +386,7 @@ set_defaults( char *root_name, char *path, Mili_family* fam,
    fam->my_id = *fam_id;
 
    fam->lock_file_descriptor = 0;
+   fam->write_tfile = TRUE;
 
    fam->ti_enable      = ti_enable;
    fam->ti_only        = ti_only;       /* If true,then only TI files are read and written */
@@ -723,15 +734,8 @@ parse_control_string( char *ctl_str, Mili_family *fam, Bool_type *p_create )
                   fam->access_mode = *p_c;
                   rval = OK;
 
-                  if ( !fam->ti_only )
-                  {
-                     rval = read_header( fam );
-                  }
-                  else
-                  {
-                     rval = ti_read_header( fam );
-                  }
-
+                  rval = read_header( fam );
+                  
                   if ( rval == FAMILY_NOT_FOUND && *p_c == 'a' )
                   {
                      /* Opened with "append", but must be created. */
@@ -1103,6 +1107,84 @@ parse_control_string( char *ctl_str, Mili_family *fam, Bool_type *p_create )
    return rval;
 }
 
+/*****************************************************************
+ * TAG( mc_is_tfile_on ) PRIVATE
+ *
+ * @param Fam_id fid Family integer identifier
+ * @return int  zero for false anything else is true. 
+ */
+int
+mc_is_tfile_on(Famid fid)
+{
+  return fam_list[fid]->write_tfile;
+}
+/*****************************************************************
+ * TAG( determine_map_mode ) PRIVATE
+ *
+ * Check if in append mode which output to do.  The only real 
+ * concern is when the HDR_VERSION is greater than 2.   
+ */
+Return_value
+determine_map_mode(Mili_family *fam)
+{
+  int status = OK;
+  if(fam->char_header[HDR_VERSION_IDX] < 3)
+  {
+    fam->write_tfile = FALSE;
+  }else
+  {
+    Bool_type default_tfile = FALSE;
+    
+    if(fam->time_state_file == NULL)
+    {
+      fam->time_state_file = fopen(fam->time_file_name, "r");
+    }
+  
+    if(fam->time_state_file)
+    {
+      fam->write_tfile = TRUE;
+    }else
+    {
+      if( fam->access_mode == 'r')
+      {
+        fam->write_tfile = FALSE;
+      }else if(fam->access_mode == 'w')
+      {
+        fam->write_tfile = default_tfile;
+      }else
+      {
+        fam->write_tfile = FALSE;
+      }
+    }
+  
+    if(fam->time_state_file)
+    {
+      fclose(fam->time_state_file );
+      fam->time_state_file  = NULL;
+    }
+  
+    if(fam->write_tfile)
+    {
+      if( fam->access_mode == 'w')
+      {
+        fam->time_state_file = fopen(fam->time_file_name, "w+b");
+        if ( fam->time_state_file == NULL )
+        {
+          return UNABLE_TO_STAT_FILE;
+        }
+        fam->write_funcs[M_STRING](fam->time_state_file, &fam->state_end_marker, 1);
+      
+      }else
+      {
+        fam->time_state_file = fopen(fam->time_file_name, "r+b");
+      }
+    }
+  }
+  
+  return status;
+}
+
+
 
 /*****************************************************************
  * TAG( open_family ) PRIVATE
@@ -1187,7 +1269,9 @@ open_family( Famid fam_id )
          return HEADER_WRITE_CONFLICT;
       }
    }
-
+   
+   status = determine_map_mode(fam);
+      
    /* Traverse non-state data files and load directories. */
    if (!fam->ti_only)
    {
@@ -1713,31 +1797,6 @@ test_write_lock( Mili_family *fam )
    return;
 }
 
-static Return_value
-init_tfile( Mili_family * fam )
-{
-   char fname[M_MAX_NAME_LEN];
-   if ( fam->char_header[HDR_VERSION_IDX] > 2 )
-   {
-      strcpy(fname, fam->root);
-      strcat(fname, "T");
-      fam->time_state_file = fopen(fname, "w+b");
-      if ( fam->time_state_file == NULL )
-      {
-         return UNABLE_TO_STAT_FILE;
-      }
-      fam->write_funcs[M_STRING](fam->time_state_file, &fam->state_end_marker, 1);
-      int rval = fclose( fam->time_state_file );
-      if ( rval != 0 )
-      {
-         return UNABLE_TO_CLOSE_FILE;
-      }
-      fam->time_state_file = NULL;
-   }
-   return OK;
-}
-
-
 /*****************************************************************
  * TAG( create_family ) LOCAL
  *
@@ -1754,7 +1813,7 @@ create_family( Mili_family * fam )
    {
       return rval;
    }
-
+   
    /* Remove extant family of same name. */
    if ( !fam->ti_only )
    {
@@ -1802,17 +1861,6 @@ create_family( Mili_family * fam )
    if ( fam->param_table != NULL )
    {
       fam->file_count++;
-
-      rval = init_header( fam );
-      if (rval != OK)
-      {
-         return rval;
-      }
-      rval = init_tfile( fam );
-      if (rval != OK)
-      {
-         return rval;
-      }
       rval = mc_init_metadata( fam->my_id );
    }
    else
@@ -2083,7 +2131,8 @@ delete_family( char *root, char *path )
  * TAG( init_header ) LOCAL
  *
  * Initialize the file family header.
- */
+ *****************************************************************/
+
 static Return_value
 init_header( Mili_family *fam )
 {
@@ -2169,7 +2218,20 @@ mc_init_metadata( Famid fam_id )
    fam = fam_list[fam_id];
 
    /* Library version. */
-
+   rval = init_header(fam);
+   
+   if (rval != OK)
+   {
+      return rval;
+   }
+   
+   rval = determine_map_mode(fam);
+   
+   if (rval != OK)
+   {
+     mc_print_error("T file setup failed in mc_init_metadata.\n",rval);
+     return rval;
+   }
    get_mili_version( mili_version );
 
    rval = write_string( fam, "lib version", (char *) mili_version, MILI_PARAM );
@@ -3081,6 +3143,28 @@ prep_for_new_data( Mili_family *fam, int ftype )
             fam->cur_st_offset = 0;
             fam->st_file_count++;
 
+            if(fam->write_tfile)
+            {
+              if(!fam->time_state_file)
+              {
+                fam->time_state_file = fopen(fam->time_file_name, "a+b");
+                
+                fseek(fam->time_state_file,0,SEEK_END);
+                if(!ftell(fam->time_state_file))
+                {
+                   rval = fam->write_funcs[M_STRING](fam->time_state_file, 
+                                        &fam->state_end_marker, 1);
+                
+                  if(rval != 1)
+                  {
+                    fclose(fam->time_state_file);
+                    fam->time_state_file  = NULL;
+                    return MAP_FILE_CREATION_ERROR;
+                  }
+                }
+              }
+            }
+  
          }
          else
          {

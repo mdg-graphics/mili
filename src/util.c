@@ -2412,6 +2412,14 @@ mc_print_error( char *preamble, int rval )
          fprintf( stderr, "%sMili - The A file to output state map info is missing.\n",
                   pre );
          break;
+      case (int)MAP_FILE_CREATION_ERROR:
+          fprintf( stderr, "%sMili - State map file error.\n",
+                   pre );
+          break;
+      case (int)TFILE_HEADER_VERSION_ERROR:
+          fprintf( stderr, "%sMili - T File cannot be interacted with a below 3 header version.\n",
+                   pre );
+          break;
       default:
          fprintf( stderr, "%sUnknown return status.\n", pre );
          break;

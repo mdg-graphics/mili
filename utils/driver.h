@@ -114,6 +114,7 @@ typedef struct {
    Bool_type batch;
    Bool_type force_partition;
    Bool_type newfile;
+   Bool_type write_tfile;
 
    /* TI Input Variables */
    char ti_mili_version[64], ti_host[64], ti_arch[64],

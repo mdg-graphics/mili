@@ -119,6 +119,8 @@
 #define mc_read_param_array_        MC_READ_PARAM_ARRAY
 #define mc_write_global_metadata_   MC_WRITE_GLOBAL_METADATA
 #define mc_update_global_times_     MC_UPDATE_GLOBAL_TIMES
+#define mc_set_state_map_file_on_   MC_SET_STATE_MAP_FILE_ON
+
 
 /************************************************************************
  *
@@ -205,6 +207,7 @@
 #define mc_get_simple_class_info_   MC_GET_SIMPLE_CLASS_INFO
 #define mc_set_buffer_qty_          MC_SET_BUFFER_QTY
 #define mc_read_param_array_        MC_READ_PARAM_ARRAY
+#define mc_set_state_map_file_on_   MC_SET_STATE_MAP_FILE_ON
 
 /************************************************************************
  *
@@ -304,6 +307,7 @@
 #define mc_write_global_metadata_   MC_WRITE_GLOBAL_METADATA
 #define mc_update_global_times_     MC_UPDATE_GLOBAL_TIMES
 #define mc_activate_visit_file_     MC_ACTIVATE_VISIT_FILE
+#define mc_set_state_map_file_on_   MC_SET_STATE_MAP_FILE_ON
 
 /************************************************************************
  *
@@ -386,6 +390,7 @@
 #define mc_read_param_array_        MC_READ_PARAM_ARRAY_
 #define mc_get_metadata_            MC_GET_METADATA_   /* JAL */
 #define mc_write_global_metadata_   MC_WRITE_GLOBAL_METADATA_
+#define mc_set_state_map_file_on_   MC_SET_STATE_MAP_FILE_ON_
 
 #define mc_ti_undef_class_         MC_TI_UNDEF_CLASS_
 #define mc_ti_def_class_           MC_TI_DEF_CLASS_
@@ -404,6 +409,7 @@
 #define mc_ti_check_arch_          MC_TI_CHECK_ARCH_
 #define mc_ti_check_if_data_found_ MC_TI_CHECK_IF_DATA_FOUND_  /* JAL */
 #define mc_ti_get_data_attribites_ MC_TI_GET_DATA_ATTRIBUTES_
+
 
 #define mc_def_conn_labels_         MC_DEF_CONN_LABELS_
 #define mc_def_node_labels_         MC_DEF_NODE_LABELS_
@@ -440,6 +446,12 @@
 
 
 #include "mili_internal.h"
+
+Return_value
+mc_set_state_map_file_on_(Famid *fam_id, int *flag)
+{
+  mc_set_state_map_file_on(*fam_id, *flag);
+}
 
 Return_value
 mc_set_subrec_check_(Famid *fam_id, int *flag)

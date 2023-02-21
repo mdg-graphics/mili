@@ -939,7 +939,13 @@ mc_new_state(              /* Set family to receive data for a new state */
    float time,            /* Simulation time for new state */
    int *p_file_suffix,    /* Output - numeric suffix of file receiving state */
    int *p_file_st_index );/* Output - zero-based index of state within file */
-
+int
+mc_is_tfile_on(           /* Check tfile status */
+   Famid fid);           /* Integer family id */
+Return_value
+mc_set_state_map_file_on( 
+   Famid fam_id,          /* Mili family identifier */
+   Bool_type on);         /* Flag to turn on and off Tfile output.*/
 Return_value
 mc_end_state(              /* Tell mili that this is the end of state data to flush the last state map */
    Famid fam_id,           /* Mili family identifier*/

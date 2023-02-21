@@ -224,6 +224,7 @@ c  FORTRAN/C calling convention stuff...  More in wrap_c.c.
 #define mc_write_global_metadata mc_write_global_metadata_
 #define mc_update_global_times mc_update_global_times_
 #define mc_activate_visit_file mc_activate_visit_file_
+#define mc_set_state_map_file_on mc_set_state_map_file_on_
 
 c Labels
 #define mc_def_conn_labels  mc_def_conn_labels_
@@ -267,6 +268,22 @@ c ************************************************************************
 #define mc_check_subrec_start                 mc_check_subrec_start_
 #endif
 
+      subroutine mf_set_state_map_file_on( fam_id, flag, rval)
+      
+      implicit none
+      
+      integer fam_id
+      integer flag
+      integer rval 
+      
+      external mc_set_state_map_file_on
+      integer  mc_set_state_map_file_on
+      include "mili_fparam.h"
+      rval =  mc_set_state_map_file_on(fam_id, flag)
+      
+      return
+      end
+      
       subroutine mf_set_subrec_check( fam_id, flag, rval)
       
       implicit none
