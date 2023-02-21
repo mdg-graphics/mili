@@ -464,7 +464,9 @@ typedef struct _mili_family
    int state_qty;
    short state_closed;
    short state_dirty;
+   /* NEW state map file parameters */
    FILE *time_state_file;
+   Bool_type write_tfile;
    char state_end_marker;
    char *time_file_name;
    State_file_descriptor *file_map;
@@ -597,7 +599,8 @@ Bool_type match_old_control_string_format( char *control_string,
 Return_value open_family( Famid fam_id );
 int mc_get_next_fid( void );
 Return_value className_to_classEnum( char *className, int *classEnum );
-
+Return_value
+determine_map_mode(Mili_family *fam);
 /*
  * File locking enable/disable functions.
  */

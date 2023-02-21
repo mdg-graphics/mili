@@ -266,6 +266,74 @@ make_srec(Mili_family *fam, int mesh_id, int *srec_id)
   return rval;
 }
 
+static void 
+delete_tfile(Mili_family *fam)
+{
+  FILE *fp;
+  if(!fam->write_tfile)
+  {
+    if(fam->time_state_file)
+    {
+      fp = fam->time_state_file;
+    }else
+    {
+      fp = fopen(fam->time_file_name, "r");
+    }
+    if(fp)
+    {
+      fclose(fp);
+      fp = NULL;
+      fam->time_state_file = NULL;
+      unlink(fam->time_file_name);
+    }
+  }
+  return;
+}
+/*****************************************************************
+ * TAG( set_state_map_on ) PUBLIC
+ *
+ * Turn on the or off the new state map files.  Function must be called at creation 
+ * time of the mili files. Cannot change once the run begins.
+ * 
+ * @Famid fam_id Int value of the database to set
+ * @param Bool_type on zero for off. Any other number for on default is off
+ * 
+ */ 
+
+Return_value
+mc_set_state_map_file_on( Famid fam_id, Bool_type on)
+{
+  Mili_family *fam;
+  fam = fam_list[fam_id];
+  if(fam->access_mode == 'r' && fam->state_qty >0 || fam->state_dirty || fam->char_header[HDR_VERSION_IDX]  <3)
+  {
+    return MAP_FILE_CREATION_ERROR;
+  }
+  fam->write_tfile = on;
+  
+  if(!on)
+  {
+    delete_tfile(fam);
+  }else
+  {
+    if(fam->time_state_file == NULL)
+    {
+      fam->time_state_file = fopen(fam->time_file_name, "r");
+    }
+    
+    if(fam->time_state_file)
+    {
+      fclose(fam->time_state_file);
+      fam->time_state_file = fopen(fam->time_file_name, "r+b");
+    }else
+    {
+      fam->time_state_file = fopen(fam->time_file_name, "w+b");
+    }  
+  }
+  return OK;
+}
+
+
 /*****************************************************************
  * TAG( mc_open_srec ) PUBLIC
  *
@@ -3221,20 +3289,11 @@ load_static_maps(Mili_family *fam, Bool_type initial_build)
   char check;
   char fname[1024];
 
-  if (fam->char_header[HDR_VERSION_IDX] > 2)
+  if (fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile)
   {
     if (fam->time_state_file == NULL)
     {
-      strcpy(fname, fam->root);
-      strcat(fname, "T");
-      if (fam->access_mode == 'r')
-      {
-        fam->time_state_file = fopen(fname, "rb");
-      }
-      else
-      {
-        fam->time_state_file = fopen(fname, "r+b");
-      }
+      fam->time_state_file = fopen(fam->time_file_name, "r+b");
     }
     fp = fam->time_state_file;
   }
@@ -3242,7 +3301,7 @@ load_static_maps(Mili_family *fam, Bool_type initial_build)
   {
     if (fam->access_mode == 'r')
     {
-      fp = fopen(fam->aFile, "rb");
+      fp = fopen(fam->aFile, "r+b");
     }
     else
     {
@@ -3251,7 +3310,7 @@ load_static_maps(Mili_family *fam, Bool_type initial_build)
   }
   if (fp)
   {
-    if (fam->char_header[HDR_VERSION_IDX] > 2)
+    if (fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile)
     {
       offset = -1;
     }
@@ -3265,7 +3324,7 @@ load_static_maps(Mili_family *fam, Bool_type initial_build)
       fclose(fp);
       return SEEK_FAILED;
     }
-    if (fam->char_header[HDR_VERSION_IDX] > 2)
+    if (fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile)
     {
       nitems = fam->read_funcs[M_STRING](fp, &check, 1);
       if (nitems != 1 || check != fam->state_end_marker)
@@ -3284,6 +3343,8 @@ load_static_maps(Mili_family *fam, Bool_type initial_build)
       state_count = ftell(fp) / 20;
       // seek to the start of the file to parse state maps
       fseek(fp, 0, SEEK_SET);
+      
+      status = ftell(fp);
       if (status != 0)
       {
         fclose(fp);
@@ -3364,6 +3425,7 @@ mc_reload_states(Famid famid)
  *  Before mili file version 3, this writes to the A-file
  *  Starting in mili file version 3, this writes to the T-file
  */
+
 Return_value
 update_static_map(Famid fam_id, State_descriptor *p_sd)
 {
@@ -3389,13 +3451,11 @@ update_static_map(Famid fam_id, State_descriptor *p_sd)
   FILE *fp = NULL;
   char fname[1024];
 
-  if (fam->char_header[HDR_VERSION_IDX] > 2)
+  if (fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile)
   {
     if (fam->time_state_file == NULL)
     {
-      strcpy(fname, fam->root);
-      strcat(fname, "T");
-      fam->time_state_file = fopen(fname, "r+b");
+      fam->time_state_file = fopen(fam->time_file_name, "r+b");
     }
     fp = fam->time_state_file;
   }
@@ -3406,9 +3466,16 @@ update_static_map(Famid fam_id, State_descriptor *p_sd)
 
   if (fp)
   {
-    if (fam->char_header[HDR_VERSION_IDX] > 2)
+    if (fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile)
     {
-      offset = -1;
+      fseek(fp , 0,  SEEK_END);
+      if(ftell(fp))
+      {
+        offset = -1;
+      }else 
+      {
+        offset = 0;
+      }
     }
     else
     {
@@ -3421,18 +3488,25 @@ update_static_map(Famid fam_id, State_descriptor *p_sd)
       return SEEK_FAILED;
     }
     // Write it the tfile instead of the afile
-    if (fam->char_header[HDR_VERSION_IDX] > 2)
+    if (fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile)
     {
+      
       state_count = ftell(fp) / 20;
-      num_items = fam->read_funcs[M_STRING](fp, &check, 1);
-      if (num_items != 1 || check != fam->state_end_marker)
+      if(state_count>0)
       {
-        // Can try a repair at this point if needed.
-        fclose(fp);
-        mc_print_error("Standalone state file corrupted ", CORRUPTED_FILE);
+        num_items = fam->read_funcs[M_STRING](fp, &check, 1);
+       
+      
+        if (num_items != 1 || check != fam->state_end_marker)
+        {
+          // Can try a repair at this point if needed.
+          fclose(fp);
+        
+          mc_print_error("Standalone state file corrupted ", CORRUPTED_FILE);
+        }
+      
+        offset = -1;
       }
-      // offset = -ftell(fp);
-      offset = -1;
     }
     else
     {
@@ -3453,7 +3527,7 @@ update_static_map(Famid fam_id, State_descriptor *p_sd)
     fam->write_funcs[M_FLOAT](fp, &(p_sd->time), 1);
     fam->write_funcs[M_INT](fp, &(p_sd->srec_format), 1);
 
-    if (fam->char_header[HDR_VERSION_IDX] > 2)
+    if (fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile)
     {
       fam->write_funcs[M_STRING](fp, &fam->state_end_marker, 1);
     }
@@ -3464,10 +3538,13 @@ update_static_map(Famid fam_id, State_descriptor *p_sd)
       {
         return SHORT_WRITE;
       }
+      if(fp)
+      {
+        fclose(fp);
+      }
     }
-    fclose(fp);
     fp = NULL;
-    fam->time_state_file = NULL;
+    state_count = state_count +1;
     mc_wrt_scalar(fam_id, M_INT, "state_count", (void *)&state_count);
   }
   else
@@ -3968,13 +4045,11 @@ truncate_family(Mili_family *p_fam, int st_index)
   /* Clean up the state maps, in mili file version < 3 these are in the A-file, thereafter they are in the T-file */
   if (p_fam->char_header[DIR_VERSION_IDX] > 1)
   {
-    if (p_fam->char_header[HDR_VERSION_IDX] > 2)
+    if (p_fam->char_header[HDR_VERSION_IDX] > 2 && p_fam->write_tfile)
     {
       if (p_fam->time_state_file == NULL)
       {
-        strcpy(fname, p_fam->root);
-        strcat(fname, "T");
-        p_fam->time_state_file = fopen(fname, "r+b");
+        p_fam->time_state_file = fopen(p_fam->time_file_name, "r+b");
       }
       fp = p_fam->time_state_file;
     }
@@ -3985,7 +4060,7 @@ truncate_family(Mili_family *p_fam, int st_index)
 
     if (fp)
     {
-      if (p_fam->char_header[HDR_VERSION_IDX] > 2)
+      if (p_fam->char_header[HDR_VERSION_IDX] > 2 && p_fam->write_tfile)
       {
         offset = -1;
       }
@@ -3999,7 +4074,7 @@ truncate_family(Mili_family *p_fam, int st_index)
         fclose(fp);
         return SEEK_FAILED;
       }
-      if (p_fam->char_header[HDR_VERSION_IDX] > 2)
+      if (p_fam->char_header[HDR_VERSION_IDX] > 2 && p_fam->write_tfile)
       {
         num_items = p_fam->read_funcs[M_STRING](fp, &check, 1);
         if (num_items != 1 || check != p_fam->state_end_marker)
@@ -4017,7 +4092,7 @@ truncate_family(Mili_family *p_fam, int st_index)
           return BAD_LOAD_READ;
         }
       }
-      if (p_fam->char_header[HDR_VERSION_IDX] > 2)
+      if (p_fam->char_header[HDR_VERSION_IDX] > 2 && p_fam->write_tfile)
       {
         offset = 0;
         status = fseek(fp, offset, SEEK_SET);
@@ -4036,15 +4111,14 @@ truncate_family(Mili_family *p_fam, int st_index)
 
       fclose(fp);
       fp = NULL;
-      if (p_fam->char_header[HDR_VERSION_IDX] > 2)
+      if (p_fam->char_header[HDR_VERSION_IDX] > 2 && p_fam->write_tfile)
       {
         p_fam->time_state_file = NULL;
       }
 #if !(defined(_WIN32) || defined(WIN32))
-      if (p_fam->char_header[HDR_VERSION_IDX] > 2)
+      if (p_fam->char_header[HDR_VERSION_IDX] > 2 && p_fam->write_tfile)
       {
-        strcpy(fname, p_fam->root);
-        strcat(fname, "T");
+        strcpy(fname, p_fam->time_file_name);
       }
       else
       {
@@ -4052,16 +4126,14 @@ truncate_family(Mili_family *p_fam, int st_index)
       }
       truncate(fname, offset);
 #endif
-      if (p_fam->char_header[HDR_VERSION_IDX] > 2)
+      if (p_fam->char_header[HDR_VERSION_IDX] > 2 && p_fam->write_tfile)
       {
         if (p_fam->time_state_file == NULL)
         {
-          strcpy(fname, p_fam->root);
-          strcat(fname, "T");
-          p_fam->time_state_file = fopen(fname, "r+b");
+          p_fam->time_state_file = fopen(p_fam->time_file_name, "r+b");
         }
         fp = p_fam->time_state_file;
-        fseek( fp, st_index * 20, SEEK_SET );
+        fseek( fp, 0, SEEK_END );
         p_fam->write_funcs[M_STRING](fp, &p_fam->state_end_marker, 1);
       }
       else

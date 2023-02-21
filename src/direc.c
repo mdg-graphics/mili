@@ -454,14 +454,15 @@ load_directories( Mili_family *fam )
             fclose( p_f );
             return BAD_LOAD_READ;
          }
-         if (fam->char_header[HDR_VERSION_IDX] > 2)
+         
+         if (fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile)
          {
-            strcpy(fname, fam->root);
-            strcat(fname, "T");
-            p_t = fopen( fname, "rb" );
-            fseek(p_t, -1, SEEK_END);
-            qty_states = ftell(p_t) / 20;
-            fclose( p_t );
+            if(!fam->time_state_file)
+            {
+              fam->time_state_file = fopen( fam->time_file_name, "r+b" );
+            }
+            fseek(fam->time_state_file, -1, SEEK_END);
+            qty_states = ftell(fam->time_state_file) / 20;
          }
          else
          {
@@ -470,6 +471,7 @@ load_directories( Mili_family *fam )
       }
 
       qty_ent = header[QTY_ENTRIES_IDX];
+      
       if(qty_ent < 1)
       {
           fclose( p_f );
@@ -479,6 +481,7 @@ load_directories( Mili_family *fam )
 
       /* Allocate storage for current non-state file's directory. */
       fam->directory = RENEW_N( File_dir, fam->directory, fcnt, 1, "Load dir File_dir" );
+      
       if (fam->directory == NULL)
       {
          fclose( p_f );
@@ -498,7 +501,7 @@ load_directories( Mili_family *fam )
 
       /* Seek to beginning of directory entries and read all at once. */
       int states_size = qty_states * 20; /* 20 is the size af a statemap. */
-      if( fam->char_header[HDR_VERSION_IDX] > 2 )
+      if( fam->char_header[HDR_VERSION_IDX] > 2 &&fam->write_tfile)
       {
          states_size = 0;
       }

@@ -642,7 +642,18 @@ main( int argc, char *argv[] )
             }
             start = 0;
          }
-                                    
+         if( !env.write_tfile)/*default should be off*/
+         {
+           status = mc_set_state_map_file_on(out_db[0]->db_ident,mc_is_tfile_on(in_db[env.start_proc]->db_ident));
+         }else // User has turned on the output of tfiles
+         {
+           status = mc_set_state_map_file_on(out_db[0]->db_ident, env.write_tfile);
+           if(status)
+           {
+             mc_print_error("Trying to alter output time stamp version of existing database. \nAppending in existing output's format." , status);
+           }
+         } 
+                                   
          
 #if TIMER
    stop_time = clock();
@@ -1236,6 +1247,7 @@ scan_args( int argc, char *argv[] )
    env.matproc_selected = FALSE;
    env.wait_time = 30;
    env.restart = 0;
+   env.write_tfile = 0;
 
    for ( i = 1; i < argc; i++ ) {
       if ( strcmp( argv[i], "-i" ) == 0 ) {
@@ -1394,6 +1406,9 @@ scan_args( int argc, char *argv[] )
             env.stop_state=0;
          }
          env.start_state=env.stop_state;
+      } else if ( strcmp( argv[i], "-tfile" ) == 0 ) {
+         /* Enable batch mode */
+         env.write_tfile = TRUE;
       } else if ( strcmp( argv[i], "-batch_overwrite" ) == 0 ) {
          /* Enable batch mode */
          env.batch_overwrite = TRUE;
@@ -1671,11 +1686,15 @@ usage( void )
    printf("  ###    Run in batch mode but overwrite the      ###\n");
    printf("  ###    existing file.                           ###\n");
    printf("\n");
+   printf("  [-tfile]\n");
+   printf("  ###    output timesteps to a T file             ###\n");
+   printf("  ###    Default is the incoming header version.  ###\n");
+   printf("\n");
    printf("  [-newfile]\n");
    printf("  ###    Do not append - create new file          ###\n");
    printf("  [-seqnum] <n output sequence number to append to output file> \n");
-   printf("  ###  This is used to create unique files for output ###\n");
-   printf("  ###  when running parallel Xmilics jobs.           ###\n");
+   printf("  ###  This is used to create unique files for    ###\n");
+   printf("  ###  output when running parallel Xmilics jobs. ###\n");
    printf("\n");
    printf("  [-V]   Display build stats (version-info)\n ");
 }

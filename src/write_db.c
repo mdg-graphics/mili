@@ -216,7 +216,7 @@ write_state_data( int state_num, Mili_analysis *out_db )
                                              result_size, state_out );         
       }
    }
-
+   rval = mc_end_state(fam_id,srec_id);
    return rval;
 }
 
