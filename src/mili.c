@@ -3147,7 +3147,7 @@ prep_for_new_data( Mili_family *fam, int ftype )
             {
               if(!fam->time_state_file)
               {
-                fam->time_state_file = fopen(fam->time_file_name, "a+b");
+                fam->time_state_file = fopen(fam->time_file_name, "r+b");
                 
                 fseek(fam->time_state_file,0,SEEK_END);
                 if(!ftell(fam->time_state_file))

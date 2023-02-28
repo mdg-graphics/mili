@@ -1152,14 +1152,14 @@ my_realloc( void *ptr, long size, long add, char *descr )
 void *
 mili_recalloc( void *ptr, long size, long add, char *descr )
 {
-   unsigned char *new;
+   unsigned char *new_arr;
    long new_size;
 
    new_size = size + add;
 
-   new = (unsigned char *) realloc( ptr, new_size );
+   new_arr = (unsigned char *) realloc( ptr, new_size );
 
-   if ( new == NULL )
+   if ( new_arr == NULL )
    {
       if ( mili_verbose )
       {
@@ -1167,7 +1167,7 @@ mili_recalloc( void *ptr, long size, long add, char *descr )
       }
    }
 
-   memset( new + size, 0, add );
+   memset( new_arr + size, 0, add );
 
 #ifdef DEBUG_MEM
    _mem_total += add;
@@ -1176,7 +1176,7 @@ mili_recalloc( void *ptr, long size, long add, char *descr )
             descr, add, _mem_total / 1024 );
 #endif
 
-   return (void *) new;
+   return (void *) new_arr;
 }
 
 

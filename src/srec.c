@@ -3267,6 +3267,161 @@ mc_wrt_subrec(Famid fam_id, char *subrec_name, int start, int stop,
   return OK;
 }
 
+static Return_value
+rebuild_state_tfile(Mili_family *fam)
+{
+  if(!fam->write_tfile){return OK;}
+  
+  State_file_descriptor *p_fmap = NULL;
+  int index;
+  LONGLONG offset;
+  LONGLONG(*readi)();
+  LONGLONG(*readf)();
+  float st_time;
+  int srec_id;
+  int state_qty;
+  int hdr_size;
+  Return_value rval;
+  State_descriptor *p_sd;
+  int wrt_size = 0;
+  
+  offset = 0;
+  
+  if( !fam->time_state_file)
+  {
+    fam->time_state_file = fopen(fam->time_file_name, "w+");
+    if(fam->time_state_file == NULL)
+    {
+      return MAP_FILE_CREATION_ERROR;
+    }
+  }
+  if(fam->file_map){ free(fam->file_map);}
+  fam->file_map = NULL;
+  
+  if(fam->state_map){ free(fam->state_map);}
+  fam->state_map = NULL;
+  
+  readi = fam->state_read_funcs[M_INT];
+  readf = fam->state_read_funcs[M_FLOAT];
+  
+  hdr_size = EXT_SIZE(fam, M_INT) + EXT_SIZE(fam, M_FLOAT);
+  
+  rval = OK;
+  index = 0;
+  state_qty = 0;
+
+  /* Count offset through mapped states in known last file. */
+  offset = 0;
+  
+  fam->file_st_qty = 0;
+  
+  /* Traverse the state data files. */
+  while (state_file_open(fam, index, 'r') == OK)
+  {
+    if(fam->file_map == NULL)
+    {
+      fam->file_map = NEW_N(State_file_descriptor, 1, 
+                     "Allocating state file descriptor in rebuild_state_tfile");
+      if(!fam->file_map) { return ALLOC_FAILED;} 
+    }else
+    {
+      fam->file_map = RENEW_N(State_file_descriptor, p_fmap,index, 1, 
+                       "Reallocating state file descriptor in rebuild_state_tfile");
+      if(!fam->file_map) { return ALLOC_FAILED;}
+    }
+    /* Traverse the state records within the current file. */
+    while (offset < fam->cur_st_file_size &&
+           seek_state_file(fam->cur_st_file, offset) == OK)
+    {
+      
+      /* Read the header - time and format. */
+      if (readf(fam->cur_st_file, &st_time, 1) != 1)
+      {
+        rval = SHORT_READ;
+        break;
+      }
+
+      if (readi(fam->cur_st_file, &srec_id, 1) != 1)
+      {
+        rval = SHORT_READ;
+        break;
+      }
+      
+      /* Add a new entry in the state map. */
+      if(fam->state_map == NULL)
+      {
+        fam->state_map = NEW_N(State_descriptor,1, 
+                       "Allocate state descriptor in rebuild_state_tfile");
+        if(!fam->state_map) { return ALLOC_FAILED;}
+      }else
+      {
+        fam->state_map = RENEWC_N(State_descriptor, fam->state_map, state_qty, 1, 
+                         "Reallocating state file descriptor in rebuild_state_tfile");
+        if(!fam->state_map) { return ALLOC_FAILED;}
+      }
+      
+
+      fam->state_map[state_qty].file = index;
+      fam->state_map[state_qty].offset = offset;
+      fam->state_map[state_qty].time = st_time;
+      fam->state_map[state_qty].srec_format = srec_id;
+      
+      wrt_size = fam->write_funcs[M_INT](fam->time_state_file,(void*)&index,1);
+      if(wrt_size != 1)
+      {
+        rval = SHORT_WRITE;
+      }
+      wrt_size = fam->write_funcs[M_FLOAT8](fam->time_state_file,(void*)&offset,1);
+      if(wrt_size != 1)
+      {
+        rval = SHORT_WRITE;
+      }
+      wrt_size = fam->write_funcs[M_FLOAT](fam->time_state_file,(void*)&st_time,1);
+      if(wrt_size != 1)
+      {
+        rval = SHORT_WRITE;
+      }
+      wrt_size = fam->write_funcs[M_INT](fam->time_state_file,(void*)&srec_id,1);
+      if(wrt_size != 1)
+      {
+        rval = SHORT_WRITE;
+      }
+      if(rval != OK)
+      {
+        return rval;
+      }
+      /* Update stuff... */
+      offset += fam->srecs[srec_id]->size + hdr_size;
+      
+      fam->cur_st_offset = offset;
+      state_qty++;
+      fam->state_qty = state_qty;
+      fam->file_st_qty++;
+    }
+
+    index++;
+
+    if (offset == 0 || rval != OK)
+    {
+      rval = state_file_close(fam);
+      break;
+    }
+    fam->st_file_count = index;
+  }
+  
+  if(rval == OK)
+  {
+    index = fam->write_funcs[M_STRING](fam->time_state_file, "~", 1);
+    if(index != 1)
+    {
+      rval = SHORT_WRITE;
+    }
+  }
+  
+  
+  return rval;
+}
+
 /*****************************************************************
  * TAG( load_static_map ) PRIVATE
  *
@@ -3330,7 +3485,13 @@ load_static_maps(Mili_family *fam, Bool_type initial_build)
       if (nitems != 1 || check != fam->state_end_marker)
       {
         fclose(fp);
-        mc_print_error("Standalone state file corrupted ", CORRUPTED_FILE);
+        fp = fam->time_state_file = NULL;
+        if(rebuild_state_tfile(fam) != OK)
+        {
+          mc_print_error("Standalone state file corrupted ", CORRUPTED_FILE);
+          return CORRUPTED_FILE;
+        }
+        fp = fam->time_state_file;
       }
       // seek to last byte of the file '~' as confirmed above
       fseek(fp, offset, SEEK_END);
