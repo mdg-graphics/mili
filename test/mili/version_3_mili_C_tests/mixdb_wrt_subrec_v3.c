@@ -459,7 +459,7 @@ int main(int argc, char *argv[]) {
     int mo_ids[2];
     Famid fam_id;
     char database_name[MAX_STRING_LENGTH];
-    strcpy(database_name, "mixdb_wrt_stream.plt");
+    strcpy(database_name, "mixdb_wrt_subrec_v3.plt");
 
     // Create the Mili database.
     stat = mc_open(database_name, ".", "AwPdEn", &fam_id);
@@ -468,19 +468,20 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    mc_set_state_map_file_on(fam_id, 1);
     mc_limit_filesize(fam_id, MAX_FILE_SIZE);
     mc_limit_states(fam_id, MAX_STATES);
     mc_activate_visit_file(fam_id, TRUE);
 
     // Write out database title
-    stat = mc_wrt_string(fam_id, "title", "Mixdb Test Using mc_wrt_stream");
+    stat = mc_wrt_string(fam_id, "title", "Mixdb Test Using mc_wrt_subrec");
     standard_error_check(fam_id, stat, "mc_wrt_scalar (title)");
 
     // Define State Variables
     define_all_state_variables(fam_id);
 
     // Create a mesh.
-    stat = mc_make_umesh(fam_id, "mixdb_wrt_stream", 3, &mesh_id);
+    stat = mc_make_umesh(fam_id, "mixdb_wrt_subrec", 3, &mesh_id);
     standard_error_check(fam_id, stat, "mc_make_umesh");
 
     // Define Mesh object classes 
@@ -686,15 +687,82 @@ void write_states(Famid fam_id, int srec_id, int state_count, float start_time, 
         stat = mc_new_state(fam_id, srec_id, time, &file_suffix, &state_index);
         standard_error_check(fam_id, stat, "mc_new_state");
 
-        stat = mc_wrt_stream(fam_id, M_FLOAT, state_data_size, state_data);
+        // Write Node position subrecord
+        offset = 0;
+        stat = mc_wrt_subrec(fam_id, "NodePosSubrec", 1, NUM_NODES, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (NodePosSubrec)");
+
+        // Write Node velocity subrecord
+        offset = 3 * NUM_NODES;
+        stat = mc_wrt_subrec(fam_id, "NodeVelSubrec", 1, NUM_NODES, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (NodeVelSubrec)");
+
+        // Write Node acceleration subrecord
+        offset = 6 * NUM_NODES;
+        stat = mc_wrt_subrec(fam_id, "NodeAccSubrec", 1, NUM_NODES, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (NodeAccSubrec)");
+
+        // Write Hex stress subrecord
+        offset = start_hex_elems;
+        stat = mc_wrt_subrec(fam_id, "HexStressSubrec", 1, NUM_BRICKS, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (HexStressSubrec)");
+
+        // Write Pyramid var1 subrecord
+        offset = start_pyramid_elems;
+        stat = mc_wrt_subrec(fam_id, "PyramidVar1Subrec", 1, NUM_PYRAMIDS, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (PyramidVar1Subrec)");
+
+        // Write Pyramid var2 subrecord
+        offset = start_pyramid_elems + NUM_PYRAMIDS;
+        stat = mc_wrt_subrec(fam_id, "PyramidVar2Subrec", 1, NUM_PYRAMIDS, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (PyramidVar2Subrec)");
+
+        //Write Truss var1 subrecord
+        offset = start_truss_elems;
+        stat = mc_wrt_subrec(fam_id, "TrussVar1Subrec", 1, NUM_TRUSS, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (TrussVar1Subrec)");
+
+        //Write Truss var2 subrecord
+        offset = start_truss_elems + (NUM_TRUSS);
+        stat = mc_wrt_subrec(fam_id, "TrussVar2Subrec", 1, NUM_TRUSS, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (TrussVar2Subrec)");
+
+        //Write Truss var3 subrecord
+        offset = start_truss_elems + (NUM_TRUSS*2);
+        stat = mc_wrt_subrec(fam_id, "TrussVar3Subrec", 1, NUM_TRUSS, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (TrussVar3Subrec)");
+
+        // Write Tet stress subrecord
+        offset = start_tet_elems;
+        stat = mc_wrt_subrec(fam_id, "TetVecArrSubrec", 1, NUM_TETS, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (TetVecArrSubrec)");
+        
+        // Write Beam axf subrecord
+        offset = start_beam_elems;
+        stat = mc_wrt_subrec(fam_id, "BeamAxfSubrec", 1, NUM_BEAMS, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (BeamAxfSubrec)");
+
+        // Write Tri var subrecord
+        offset = start_tri_elems;
+        stat = mc_wrt_subrec(fam_id, "TriVarSubrec", 1, NUM_TRIS, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (TriVarSubrec)");
+
+        // Write Quad var subrecord
+        offset = start_quad_elems;
+        stat = mc_wrt_subrec(fam_id, "QuadVarSubrec", 1, NUM_QUADS, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (QuadVarSubrec)");
+
+        // Write Wedge var subrecord
+        offset = start_wedge_elems;
+        stat = mc_wrt_subrec(fam_id, "WedgeVarSubrec", 1, NUM_WEDGES, state_data+offset);
+        standard_error_check(fam_id, stat, "mc_wrt_subrec (WedgeVarSubrec)");
 
         stat = mc_end_state(fam_id, srec_id);
         standard_error_check(fam_id, stat, "mc_end_state");
 
-        //Increment state variable data so that it does not remain constant
-        float data_increment = 0.01;
+        // Increment state variable data so that it does not remain constant
         for(j = start_hex_elems; j < state_data_size; j++) {
-            state_data[j] += data_increment;
+            state_data[j] += 0.01;
         }
     }    
 }

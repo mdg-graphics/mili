@@ -459,7 +459,7 @@ int main(int argc, char *argv[]) {
     int mo_ids[2];
     Famid fam_id;
     char database_name[MAX_STRING_LENGTH];
-    strcpy(database_name, "mixdb_wrt_stream.plt");
+    strcpy(database_name, "mixdb_wrt_stream_v3.plt");
 
     // Create the Mili database.
     stat = mc_open(database_name, ".", "AwPdEn", &fam_id);
@@ -468,6 +468,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    mc_set_state_map_file_on(fam_id, 1);
     mc_limit_filesize(fam_id, MAX_FILE_SIZE);
     mc_limit_states(fam_id, MAX_STATES);
     mc_activate_visit_file(fam_id, TRUE);
