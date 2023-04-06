@@ -9,53 +9,57 @@ workflow:
     - when: never
 
 stages:
-  - config
-  - build
   - test
 
-before_script:
- - pwd # just for sanity
- - git rev-parse HEAD
- - git fetch origin refs/tags/*:refs/tags/* # workaround for https://gitlab.com/gitlab-org/gitaly/issues/2221 (also fetch ONLY tags, not tags in addion to normal fetch)
+variables:
+  GIT_SUBMODULE_STRATEGY: normal
 
-config:
-  stage: config
-  tags:
-    - rzgenie
-    - shell
+.slurm-defaults:
+  variables:
+    NNODES: 1
+    NPROCS: 16
+    QUEUE: pdebug
+    INTEG_WALL_TIME: 5
+
+.slurm:
+  variables:
+    LLNL_SLURM_SCHEDULER_PARAMETERS: "-N $NNODES -n $NPROCS -p $QUEUE -t $INTEG_WALL_TIME"
+
+.build-mili-xmilics:
+  variables:
+    BUILD_DIR: MILI-toss_3_x86_64_ib-RZGENIE
   script:
-    - ./configure
+    - configure
+    - cd $BUILD_DIR
+    - gmake -j opt
+    - gmake utilsopt
+    - cd -
 
-build:
-  needs:
-    - config
-  stage: build
-  tags:
-    - rzgenie
-    - shell
+.run-tests:
   script:
-    - ./configure
-    - cd MILI-toss_3_x86_64_ib-RZGENIE
-    - salloc -n 16 -t 3 -p pdebug make -j 16 debug
-    - salloc -n 16 -t 3 -p pdebug make -j 16 opt
+    - cd test/
+    - mdgtest/Test.py -e mililib_env -c ../MILI-toss_3_x86_64_ib-RZGENIE/lib_opt -I ../MILI-toss_3_x86_64_ib-RZGENIE/include -n1 -p1 -s all > test_mili.out
+    - num_mili_failed=$( grep -c -e failed -e "did not run correctly" test_mili.out ) || true
+    - mdgtest/Test.py -e xmilics_env -c ../MILI-toss_3_x86_64_ib-RZGENIE/bin_utils_opt/xmilics -n1 -p1 -s all > test_xmilics.out
+    - num_xmilics_failed=$( grep -c -e failed -e "did not run correctly" test_xmilics.out ) || true
+    - num_failed=$(( $num_mili_failed + $num_xmilics_failed ))
+    - exit $num_failed
 
-test:
-  needs:
-    - build
+.toss3-intel:
+  before_script:
+    module load intel/2022.1
+
+toss3_intel_slurm_mili:
   stage: test
   tags:
     - rzgenie
-    - shell
+    - slurm
+    - batch
+  extends:
+    - .toss3-intel
+    - .slurm-defaults
+    - .slurm
+    - .build-mili-xmilics
   script:
-    - ./configure
-    - cd MILI-toss_3_x86_64_ib-RZGENIE
-    - salloc -n 16 -t 3 -p pdebug make -j 16 debug
-    - salloc -n 16 -t 3 -p pdebug make -j 16 opt
-    - cvs co -d scripts Dyna3dx/CheckOut/scripts
-    - cd scripts
-    - salloc -n 4 -t 5 -p pdebug ./Test.py -e mililib_env -c ../lib_debug/ -I ../include/ -p 1 -basedir ../../test/ -s all > test_debug.out
-    - salloc -n 4 -t 5 -p pdebug ./Test.py -e mililib_env -c ../lib_opt/ -I ../include/ -p 1 -basedir ../../test/ -s all > test_opt.out
-    - num_debug_failed=$( grep -c -e failed -e "did not run correctly" test_debug.out ) || true
-    - num_opt_failed=$( grep -c -e failed -e "did not run correctly" test_opt.out ) || true
-    - num_failed=$(( $num_debug_failed + $num_opt_failed ))
-    - exit $num_failed
+    - !reference [ .build-mili-xmilics, script ]
+    - !reference [ .run-tests, script ]
