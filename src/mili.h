@@ -959,6 +959,14 @@ mc_wrt_stream(             /* Write a sequential stream of state data words */
    void *data );          /* Data to be written to family */
 
 Return_value
+mc_rewrite_subrec( 
+   Famid fam_id,          /* Mili family identifier */
+   char *subrec_name,     /* Subrecord identifier for data being written */
+   int p_start,           /* First lump (state vector or result array) index */
+   int p_stop,            /* Last lump (state vector or result array) index */
+   void *data,            /* Data (a sequence of lumps) to be written */
+   int st_index );        /* Time state of the data to rewite */ 
+Return_value
 mc_wrt_subrec(             /* Write an indexed subset of a subrecord's data */
    Famid fam_id,          /* Mili family identifier */
    char *subrec_name,     /* Subrecord identifier for data being written */

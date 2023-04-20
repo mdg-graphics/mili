@@ -164,6 +164,89 @@ mc_combine_classes(Mili_family *in_fam,Mili_family *out_fam) {
    }
    return rval;
 }
+
+Return_value
+define_variable(Mili_family* in, Mili_family *out, char *variable_name)
+{
+  State_variable state_var;
+  Return_value rval;
+  int idx;
+  int in_fam_id = in->my_id;
+  int out_fam_id = out->my_id;
+  Htable_entry *phte;
+  
+  rval = mc_get_svar_def(in_fam_id,
+                         variable_name,
+                         &state_var);
+  
+  
+  
+  if(rval != OK) {
+    mc_print_error("mc_get_svar_def:" ,rval);
+    return rval;
+  }
+  
+  int types[1];
+
+  switch (state_var.agg_type) {
+    case (SCALAR):
+      types[0] = state_var.num_type;
+      rval = mc_def_svars(out_fam_id,1,
+                          state_var.short_name,0,
+                          state_var.long_name,0,
+                          types);
+      break;
+    case (ARRAY):
+      rval = mc_def_arr_svar(out_fam_id,
+                             state_var.rank,
+                             state_var.dims,
+                             state_var.short_name,
+                             state_var.long_name,
+                             state_var.num_type);
+      break;
+    case (VECTOR):
+      for( idx=0; idx < state_var.vec_size; idx++)
+      {
+        rval = define_variable(in, out, state_var.components[idx]);
+        if(rval != OK)
+        {
+          return rval;
+        }
+      }
+      rval = mc_def_vec_svar(out_fam_id,
+                             state_var.num_type,
+                             state_var.vec_size,
+                             state_var.short_name,
+                             state_var.long_name,
+                             state_var.components,
+                             state_var.component_titles);
+      break;
+    case(VEC_ARRAY):
+      for( idx=0; idx < state_var.vec_size; idx++)
+      {
+        rval = define_variable(in, out, state_var.components[idx]);
+        if(rval != OK)
+        {
+          return rval;
+        }
+      }
+      rval = mc_def_vec_arr_svar(out_fam_id,
+                                 state_var.rank,
+                                 state_var.dims,
+                                 state_var.short_name,
+                                 state_var.long_name,
+                                 state_var.vec_size,
+                                 state_var.components,
+                                 state_var.component_titles,
+                                 state_var.num_type);
+      break;
+    default:
+      break;
+  }//End switch/case
+  
+  mc_cleanse_st_variable(&state_var);
+}
+
 Return_value 
 mc_combine_svars(Mili_family* in, Mili_family *out) {
    /*  Need to compiled as non-parallel
@@ -181,8 +264,7 @@ mc_combine_svars(Mili_family* in, Mili_family *out) {
    Return_value rval=(Return_value)OK;
    Return_value status;
    Srec *base_psr;
-   Htable_entry *phte;
-
+   
    for(; cur_srec< srec_qty; cur_srec = cur_srec+1) {
       base_psr = in->srecs[cur_srec];
       subrec_qty = base_psr->qty_subrecs;
@@ -195,64 +277,10 @@ mc_combine_svars(Mili_family* in, Mili_family *out) {
 
          if(rval == OK) {
             for(cur_svar =0; cur_svar<subrecord.qty_svars; cur_svar++) {
-               State_variable state_var;
                
-               rval = mc_get_svar_def(in->my_id,
-                                      subrecord.svar_names[cur_svar],
-                                      &state_var);
-               mc_print_error("mc_get_svar_def:" ,rval);
-               status = htable_search(  out->svar_table, subrecord.svar_names[cur_svar],
-                                       FIND_ENTRY, &phte);
-               if(status == OK) {
-                  mc_cleanse_st_variable(&state_var);
-                  continue;
-               }
-               if(rval == OK ) {
-                  int types[1];
-
-                  switch (state_var.agg_type) {
-                     case (VECTOR):
-                        rval = mc_def_vec_svar(out->my_id,
-                                               state_var.num_type,
-                                               state_var.vec_size,
-                                               state_var.short_name,
-                                               state_var.long_name,
-                                               state_var.components,
-                                               state_var.component_titles);
-                        break;
-                     case (SCALAR):
-                        types[0] = state_var.num_type;
-                        rval = mc_def_svars(out->my_id,1,
-                                            state_var.short_name,0,
-                                            state_var.long_name,0,
-                                            types);
-                        break;
-                     case (ARRAY):
-                        rval = mc_def_arr_svar(out->my_id,
-                                               state_var.rank,
-                                               state_var.dims,
-                                               state_var.short_name,
-                                               state_var.long_name,
-                                               state_var.num_type);
-                        break;
-                     case(VEC_ARRAY):
-                        rval = mc_def_vec_arr_svar(out->my_id,
-                                                   state_var.rank,
-                                                   state_var.dims,
-                                                   state_var.short_name,
-                                                   state_var.long_name,
-                                                   state_var.vec_size,
-                                                   state_var.components,
-                                                   state_var.component_titles,
-                                                   state_var.num_type);
-                        break;
-                     default:
-                        break;
-                  }
-               } else {
-                  mc_print_error("Load State Variable:" ,rval);
-               }
-               mc_cleanse_st_variable(&state_var);
+              rval = define_variable(in, out, subrecord.svar_names[cur_svar]);
+              if(rval != OK) return rval;
+               
             }
          } else {
             mc_print_error("Load Subrecord:" ,rval);

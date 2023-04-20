@@ -5,36 +5,6 @@
  *
  */
 
-/*
-*****************************************************************************
-* Modifications:
-*
-*  I. R. Corey - October 2,  2006: Added functions for merging TI files.
-*  I. R. Corey - June    20, 2008: Perform sanity check of input variables.
-*
-*  I. R. Corey - April   29, 2009: Fixed bug with combining TH databases
-*                        when appending.
-*                        SCR#: 600
-*
-*  K. Durrenberger - Sept 08, 2009: Changed the file checking to fix a bug
-*                        where the person combines a file using a partition
-*                        file in the local directory and then tries to combine
-*                        again. The TI and A files were mismatched in count
-*                        were failing.
-*
-*  I. R. Corey - November 16, 2009:  Added combining and writing labels
-*                        for meshless elements (ML).
-*
-*  I. R. Corey - March 12, 2010: Added capability to combine selected
-*                        processors or materials.
-*                        SCR#: 673
-*
-*  K. Durrenberger - May 17, 2010: Added a check when we open the directory
-*                        it is valid. If not we exit. This was causing a core
-*                        dump.
-****************************************************************************
-*/
-
 /* #define DEBUG 1 */
 
 #include "driver.h"

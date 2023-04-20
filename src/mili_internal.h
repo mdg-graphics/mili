@@ -26,39 +26,6 @@
  * Internal use header file for mili database.
  */
 
-/*
-************************************************************************
-* Modifications:
-*
-*  I. R. Corey - April 4, 2006: Added new record type for time invarent
-*                data (TI). This data will be written to a new file
-*                trype and is not tied to a specific state.
-*                See SCR #298.
-*
-*  I. R. Corey - September 15, 2006: Added functions to enable and
-*                disable file locking.
-*
-*  I. R. Corey - August 16, 2007: Added field for TI vars to note if
-*                nodal or element result.
-*
-*  I. R. Corey - August 16, 2008: Added Analysis/Mesh structures to
-*                support a generic reader (see read_db.c).
-*
-*  I. R. Corey - March 20, 2009: Added support for WIN32 for use with
-*                with Visit.
-*                See SCR #587.
-*
-*  I. R. Corey - May 28, 2009: Added fields for storing temporary mo_ids
-*                that are created to remap new IDs for mesh objects that
-*                are not represented in the process map.
-*                with Visit.
-*                See SCR 607.
-*
-*  I. R. Corey - February 19, 2010: Changed default for max states per
-*                file - 100 was too low for TH runs.
-*                SCR #663
- ************************************************************************
-*/
 
 #ifndef MILI_INTERNAL_H
 #define MILI_INTERNAL_H
