@@ -25,24 +25,6 @@
 
  * Mesh I/O Library source code.
  *
- ************************************************************************
- * Modifications:
- *  I. R. Corey - Augist 18, 2006: Added flag for determing if we are to
- *  branch to the Silo file version of Mili.
- *
- *  I. R. Corey - August 16, 2007: Added field for TI vars to note if
- *                nodal or element result.
- *
- *  I. R. Corey - March 20, 2009: Added support for WIN32 for use with
- *                with Visit.
- *                See SCR #587.
- *
- *  I. R. Corey - February 19, 2010: Changed default for max states per
- *                file - was too low for TH runs. Fixed problem with
- *                not initializing fam->bytes_per_file_current when
- *                state limit reached.
- *                SCR #663
- ************************************************************************
  */
 
 #include <sys/types.h>
@@ -2572,7 +2554,7 @@ mc_limit_filesize( Famid fam_id, LONGLONG filesize )
    if( filesize > ABSOLUTE_MAX_FILE_SIZE)
    {
       filesize = ABSOLUTE_MAX_FILE_SIZE;
-      printf("Adjusted file size to Mili internal maximum of %d.\n",
+      printf("Adjusted file size to Mili internal maximum of %zu.\n",
              ABSOLUTE_MAX_FILE_SIZE);
    }
 

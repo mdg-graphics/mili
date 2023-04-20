@@ -450,7 +450,7 @@
 Return_value
 mc_set_state_map_file_on_(Famid *fam_id, int *flag)
 {
-  mc_set_state_map_file_on(*fam_id, *flag);
+  return mc_set_state_map_file_on(*fam_id, *flag);
 }
 
 Return_value

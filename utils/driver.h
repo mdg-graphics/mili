@@ -234,7 +234,8 @@ scan_args( int argc, char *argv[] );
 static void 
 pf_name( char *root_name, int fnum, char *fname );
 static void usage( void );
-
+static int 
+wait_for_restart(Mili_analysis ** anal, int current_state);
 /**
 * From read_db.c
 */

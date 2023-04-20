@@ -23,23 +23,6 @@
  along with this program; if not, write to the Free Software Foundation, 
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  
- * gahl - Great, another hash library.
- *        Originated as Mili's hash.c 1.5.
- *
- ************************************************************************
- * Modifications:
- *
- *  I. R. Corey - September 28, 2006: Added a wildcard search function.
- *
- *  I. R. Corey - March 20, 2009: Added support for WIN32 for use with
- *                with Visit.
- *                See SCR #587.
- *
- *  I. R. Corey - May 19, 2010: Incorporated more changes from
- *                Sebastian at IABG to support building under Windows.
- *                SCR #679.
- *
- ************************************************************************
  */
 
 
