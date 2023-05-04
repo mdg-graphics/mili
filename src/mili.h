@@ -70,7 +70,7 @@ typedef int Famid;
 #include "mili_enum.h"
 
 #ifndef MILI_VERSION
-#define MILI_VERSION "V21_02"
+#define MILI_VERSION "V23_02"
 #endif
 
 #if defined(_WIN32) || defined(WIN32)
