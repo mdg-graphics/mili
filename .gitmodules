@@ -1,3 +1,6 @@
 [submodule "test/mdgtest"]
 	path = test/mdgtest
 	url = ssh://git@rzgitlab.llnl.gov:7999/mdg/mdgtest.git
+[submodule "cmake/blt"]
+	path = cmake/blt
+	url = https://github.com/LLNL/blt.git

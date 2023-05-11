@@ -248,14 +248,11 @@ load_ti_labels( Mili_analysis **in_db, int nproc, TILabels *labels )
       }
       
       /* Collect the remainder of all TI variables on this processor */
-      wildcard_count = htable_search_wildcard(table, 0, FALSE,"*", 
-                                              "NULL", "NULL",0);
+      wildcard_count = htable_search_wildcard(table, 0, FALSE,"*", "NULL", "NULL",0);
       
       wildcard_list=(char**) malloc( wildcard_count*sizeof(char *));
       
-      wildcard_count = 
-         htable_search_wildcard(table,0, FALSE,"*", "NULL",
-                                "NULL",wildcard_list );
+      wildcard_count = htable_search_wildcard(table,0, FALSE,"*", "NULL", "NULL",wildcard_list );
 
       /* Check to see if we have any labels - if not then exit */
       for (i=0; i<wildcard_count; i++) {
@@ -300,16 +297,10 @@ load_ti_labels( Mili_analysis **in_db, int nproc, TILabels *labels )
             int start_offset = working_label->offset_per_processor[proc];
             switch (datatype) {
                case (M_INT):
-                  /* Allocate temporary memory for this processor's TI variable */
-                  /*temp_int = (int *) malloc( datalength*sizeof(int) ) ;*/
-
                   status = mc_ti_read_array( fam_id, wildcard_list[i], (void **) &temp_int, &num_items_read ) ;
                   break;
 
                case (M_INT8):
-                  /* Allocate temporary memory for this processor's TI variable */
-                  /*temp_long = (long *) malloc( datalength*sizeof(long) ) ;*/
-
                   status = mc_ti_read_array( fam_id, wildcard_list[i], (void **) &temp_long, &num_items_read ) ;
                   break;
             } /* end switch */

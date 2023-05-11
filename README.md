@@ -60,36 +60,35 @@ git config --global submodule.recurse true
 
 ## Configuration
 
-To configure mili use the command:
+Mili's BLT/Cmake-based build system is largely modeled after Diablo's build system, providing a `configure.py` script to automate the configuration and setup of build and install directories based upon an input host-config file. A handful of example host-config files are provided for reference, consistent with the standard build options used by Mili on TOSS3 and TOSS4 machines.
+
+Mili requires CMake version 3.18 or later. On LLNL machines, the user's local version of CMake can be updated using the module load command, e.g.:
 ```
-cd mili/
-configure
+module load cmake/3.18.0
 ```
-This will generate a new build directory starting with `MILI`, for example: `MILI-toss_3_x86_64_ib-RZGENIE`
+
+> For convenience, the `module load` command above may be added to the user's local `.cshrc` or `.bashrc` file to avoid having to re-load the correct CMake module after login.
+
+Specific builds are configured via:
+```
+configure.py -hc host-configs/<host_config_file_name>.cmake -bt <build_type>
+```
+which generates corresponding `build-<host_config_file_name>-<build_type>` and `install-<host_config_file_name>-<build_type>` subdirectories, and uses CMake to generate a Makefile in the `build` directory.
+
+The `<build_type>` can be any one of the following:
+|Build Type     |Compiler Flags|
+|---------------|--------------|
+|Debug          |`-g`          |
+|Release        |`-O3`         |
+|RelWithDebInfo |`-g -O3`      |
+
+The default build type is currently set to `RelWithDebInfo`.
 
 ## Compilation
 
-Once the build directory has been generated using `configure`, the code is compiled within this new directory using the `gmake` utility.
-
-There are currently 4 standard builds that are commonly made:
-
-|Build Type     |Description|
-|---------------|--------------|
-|debug          |Debug version of Mili Library        |
-|opt            |Optimized version of Mili Library    |
-|utilsdebug     |Debug version of Mili utilities      |
-|utilsopt       |Optimized version of Mili utilities  |
-
-These are compiled by running the command:
-
+Once a particular build directory has been generated using the `configure.py` script, the code is compiled within this new directory using the standard `make` utility, e.g. to compile the code:
 ```
-gmake <build>
-```
-
-For example:
-
-```
-gmake debug; gmake opt; gmake utilsdebug; gmake utilsopt
+make
 ```
 
 ## Testing  (**LLNL Specific**)

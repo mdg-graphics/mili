@@ -62,16 +62,16 @@
 #include <ctype.h>
 #include "mili_internal.h"
 
-
 #ifndef NULL
 #define NULL ((void *) 0)
 #endif
 
-
+/* Declared external functions to avoid compiler warnings */
 extern int taurus_count_node_entries( Mili_family *, int, char * );
 extern Return_value taurus_get_class_qty( Mili_family *, int *, int * );
-extern Return_value taurus_get_elem_qty_in_def( Mili_family *, int *, char *,
-      int * );
+extern Return_value taurus_get_elem_qty_in_def( Mili_family *, int *, char *, int * );
+extern Return_value taurus_get_node_block_size( Mili_family*, int*, char*, int* );
+extern int taurus_count_elem_conn_defs( Mili_family *, int, char* );
 
 /*****************************************************************
  * TAG( fam_list )
@@ -108,8 +108,7 @@ void to_base26( int num, Bool_type upper, char *base26_rep );
  * Request information about a family.
  */
 int
-taurus_query_family( Famid fam_id, int which, void *num_args, char *char_args,
-                     void *p_info )
+taurus_query_family( Famid fam_id, int which, void *num_args, char *char_args, void *p_info )
 {
    Mili_family *fam;
    int rval, status;
