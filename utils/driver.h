@@ -25,7 +25,6 @@
 #include "gahl.h"
 #include "mili_internal.h"
 #include "mili_config.h"
-#include "buildinfo.h"
 #ifdef TIMER
 #undef TIMER
 #endif

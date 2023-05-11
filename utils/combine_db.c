@@ -150,12 +150,9 @@ mc_combine_classes(Mili_family *in_fam,Mili_family *out_fam) {
                    superclass == M_MESH  ||
                    superclass == M_SURFACE ){
                    
-                     rval = (Return_value)mc_get_class_idents(in_fam->my_id,i,short_name,
-                                             &id_blocks,&ids);
-                     rval = mc_def_class_idents(out_fam->my_id,i,short_name,
-                                             ids[0],ids[1]);
+                     rval = (Return_value) mc_get_class_idents(in_fam->my_id,i,short_name, &id_blocks,&ids);
+                     rval = mc_def_class_idents(out_fam->my_id,i,short_name, ids[0],ids[1]);
                      free(ids);
-                     
                   }
                }
             }
@@ -175,11 +172,7 @@ define_variable(Mili_family* in, Mili_family *out, char *variable_name)
   int out_fam_id = out->my_id;
   Htable_entry *phte;
   
-  rval = mc_get_svar_def(in_fam_id,
-                         variable_name,
-                         &state_var);
-  
-  
+  rval = mc_get_svar_def(in_fam_id, variable_name, &state_var);
   
   if(rval != OK) {
     mc_print_error("mc_get_svar_def:" ,rval);
@@ -245,15 +238,12 @@ define_variable(Mili_family* in, Mili_family *out, char *variable_name)
   }//End switch/case
   
   mc_cleanse_st_variable(&state_var);
+
+  return rval;
 }
 
 Return_value 
 mc_combine_svars(Mili_family* in, Mili_family *out) {
-   /*  Need to compiled as non-parallel
-     if(!in || !out) {
-         return 1;
-     }
-   */
    int svar_count=0,
        cur_srec=0,
        cur_subrec=0,
@@ -272,15 +262,12 @@ mc_combine_svars(Mili_family* in, Mili_family *out) {
 
       for(; cur_subrec<subrec_qty; cur_subrec = cur_subrec+1) {
          Subrecord subrecord;
-         rval = mc_get_subrec_def( in->my_id, cur_srec, cur_subrec,
-                                   &subrecord);
+         rval = mc_get_subrec_def( in->my_id, cur_srec, cur_subrec, &subrecord );
 
          if(rval == OK) {
-            for(cur_svar =0; cur_svar<subrecord.qty_svars; cur_svar++) {
-               
+            for(cur_svar = 0; cur_svar < subrecord.qty_svars; cur_svar++) {
               rval = define_variable(in, out, subrecord.svar_names[cur_svar]);
               if(rval != OK) return rval;
-               
             }
          } else {
             mc_print_error("Load Subrecord:" ,rval);
@@ -1684,20 +1671,15 @@ combine_non_state_definitions(Mili_analysis **in_db, Mili_analysis *out_db,TILab
             
    }
    mc_read_scalar(out_db->db_ident, "mesh dimensions" , &(labels->dimensions));
-   for(cur_proc = 0 ; cur_proc <num_procs; cur_proc++) { 
+   for(cur_proc = 0 ; cur_proc < num_procs; cur_proc++) {
       if(env.num_selected_procs>0 && !env.selected_proc_list[cur_proc]) {
          continue;
       }
-      status = mc_combine_classes( fam_list[in_db[cur_proc]->db_ident],
-                                 fam_list[out_db->db_ident]);
-                                 
-      mc_print_error("mc_combine_svars:",status); 
+      status = mc_combine_classes( fam_list[in_db[cur_proc]->db_ident], fam_list[out_db->db_ident] );
+      mc_print_error("mc_combine_classes:", status);
       
-      status = mc_combine_svars( fam_list[in_db[cur_proc]->db_ident],
-                                 fam_list[out_db->db_ident]); 
-                                  
-      mc_print_error("mc_combine_svars:",status);
-       
+      status = mc_combine_svars( fam_list[in_db[cur_proc]->db_ident], fam_list[out_db->db_ident] );
+      mc_print_error("mc_combine_svars:", status);
    }
 #if TIMER
    clock_t start,stop;
@@ -1723,12 +1705,9 @@ combine_non_state_definitions(Mili_analysis **in_db, Mili_analysis *out_db,TILab
 }
 
 Return_value 
-merge_state_data(int proc,
-                 TILabels *in_labels,
-                 Mili_analysis *in_db,
-                 Mili_analysis *out_db ) {
-   
-   Return_value rval= (Return_value)OK;
+merge_state_data(int proc, TILabels *in_labels, Mili_analysis *in_db, Mili_analysis *out_db )
+{
+   Return_value rval = (Return_value)OK;
    
    if(in_labels == NULL) {
       return NOT_OK;

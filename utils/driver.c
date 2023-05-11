@@ -19,7 +19,6 @@ Database_type db_type;
 
 static int wait_time = 300;
 
-
 int get_max_state( Mili_analysis *analy );
 int load_ti_nprocs( Mili_analysis *in_db );
 int load_ti_labels( Mili_analysis **in_db, int nproc, TILabels *labels );
@@ -27,12 +26,24 @@ int build_cmap_from_labels( Mili_analysis **in_db, int nproc, TILabels *labels )
 void VersionInfo(void);
 int file_select(struct dirent   *entry);
 int ti_file_select(struct dirent   *entry);
-void set_timesteps(Mili_analysis *in_db, Mili_analysis *out_db ,int *
-                   start_state , int *stop_state);
+void set_timesteps(Mili_analysis *in_db, Mili_analysis *out_db ,int * start_state , int *stop_state);
+int end_of_run();
+int wait_for_first_state();
+int wait_for_start(char*);
+int check_all_state_files();
+int get_next_state(Mili_analysis**);
 
+/* Declare external functions to avoid compiler warnings */
+extern Return_value combine_non_state_definitions(Mili_analysis **, Mili_analysis *,TILabels *);
+extern Return_value get_subrec_contributions(Mili_analysis **, Mili_analysis *, TILabels *);
+extern Return_value merge_state_data(int proc, TILabels *in_labels, Mili_analysis *in_db, Mili_analysis *out_db );
 
 Bool_type xmilics_labels_found = FALSE;
 
+/************************************************************
+ * TAG( delete_labels )
+ *
+ */
 void delete_labels(TILabels *labels){
    if(labels->subrec_contributions != NULL) {
       free(labels->subrec_contributions);
@@ -58,15 +69,15 @@ void delete_labels(TILabels *labels){
       iter = temp;
    }
 }
+
 /************************************************************
- * TAG( usage )
+ * TAG( parse_procmat_select_list )
  *
  * Parse a list of processor or material numbers and load
  * proc or material array with list of selected items.
  */
 Return_value
-parse_procmat_select_list( char *list_string, Bool_type procmat,
-                           int  select_len,   short *select_list )
+parse_procmat_select_list( char *list_string, Bool_type procmat, int  select_len,   short *select_list )
 {
    int i, j;
    int begin, end;
@@ -951,8 +962,9 @@ int wait_for_restart(Mili_analysis ** anal, int current_state){
    return status;
       
 }
-int
-get_next_state(Mili_analysis ** anal){
+
+int get_next_state(Mili_analysis ** anal)
+{
   int state,
       status,
       i,

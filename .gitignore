@@ -1,4 +1,3 @@
 #build directories
-MILI-*
-config.log
-autom4te.cache
+build-*
+install-*

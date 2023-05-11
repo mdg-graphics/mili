@@ -34,34 +34,23 @@
 
 #define QTY_NODE_TAGS (2)
 
-/**/
-/*
-#define OVERLAP( min, max, tmin, tmax ) ( tmin >= min && tmin <= max         \
-                                          || tmax >= min && tmax <= max      \
-                                          || tmin < min && tmax > max )
-*/
 #define OVERLAP( min, max, tmin, tmax ) ( !( tmax < min || tmin > max ) )
 
-
 extern int taurus_class_data_mesh_id = -1;
-extern Return_value taurus_non_state_file_open( Mili_family *fam, int index,
-      char mode);
+extern Return_value taurus_non_state_file_open( Mili_family *fam, int index, char mode);
 extern Return_value taurus_reset_class_data( Mili_family *, int, Bool_type );
 
 static Mili_family *taurus_class_data_fam = NULL;
 static int taurus_all_class_count;
 static Mesh_object_class_data **taurus_class_data = NULL;
-static Return_value add_geom( Mesh_descriptor *mesh, char *short_name,
-                              int start_mo, int stop_mo );
+static Return_value add_geom( Mesh_descriptor *mesh, char *short_name, int start_mo, int stop_mo );
 
 
 static Return_value taurus_load_nodes_def( Mili_family *fam, int file_idx,
       Dir_entry dir_ent, void *coords );
 static Return_value taurus_load_conn_def( Mili_family *fam, int *file_idx,
-      int superclass, Dir_entry dir_ent,
-      void *conns, int *p_max_mat );
-static int taurus_get_max_material( Famid fam_id, int mesh_id,
-                                    char **short_name );
+      int superclass, Dir_entry dir_ent, void *conns, int *p_max_mat );
+static int taurus_get_max_material( Famid fam_id, int mesh_id, char **short_name );
 static void taurus_delete_mo_data( void *ptr_mo_data );
 
 
@@ -1149,8 +1138,7 @@ taurus_count_node_entries( Mili_family *fam, int mesh_id, char *class_name )
  * directory from the beginning at each call.
  */
 Return_value
-taurus_get_node_block_size( Mili_family *fam, int *modifiers,
-                            char *class_name, int *blk_size )
+taurus_get_node_block_size( Mili_family *fam, int *modifiers, char *class_name, int *blk_size )
 {
    Mili_family *last_fam = NULL;
    static int mesh_id = -1;
