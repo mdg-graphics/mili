@@ -19,7 +19,7 @@ variables:
   rule:
     if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     when: always
-    when: never
+    -when: never
   script: 
     eval $(ssh-agent -s)
     echo "$SSH_KEY_GITHUB_ACCESS" | tr -d '\r' | ssh-add - > /dev/null
