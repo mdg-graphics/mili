@@ -43,7 +43,6 @@ variables:
   variables:
     BUILD_SPEC: ${SYS_TYPE}-${COMPILER_SPEC}
   script:
-    - module load cmake/3.23.1
     - configure.py -hc host-configs/toss_3_x86_64_ib-intel@2021.4.cmake -bt RelWithDebInfo
     - cd build-${BUILD_SPEC}-relwithdebinfo
     - make -j
@@ -68,6 +67,7 @@ variables:
   variables:
     COMPILER_SPEC: intel@2021.4
   before_script:
+    - module load cmake/3.23.1
     - module load intel/2021.4
     - module load python/3.7.2
 
