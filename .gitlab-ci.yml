@@ -16,11 +16,11 @@ variables:
   GIT_SUBMODULE_STRATEGY: normal
 
 .run-github_push:
-  script: 
-    eval $(ssh-agent -s)
-    echo "$SSH_KEY_GITHUB_ACCESS" | tr -d '\r' | ssh-add - > /dev/null
-    ssh-add -L
-    git push --repo=git@github.com:MDG-Graphics/mili --force
+  script:
+    - eval $(ssh-agent -s)
+    - echo "$SSH_KEY_GITHUB_ACCESS" | tr -d '\r' | ssh-add - > /dev/null
+    - ssh-add -L
+    - git push --repo=git@github.com:MDG-Graphics/mili --force
 
 
 
