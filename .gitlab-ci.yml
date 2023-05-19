@@ -10,9 +10,23 @@ workflow:
 
 stages:
   - test
+  - github_push
 
 variables:
   GIT_SUBMODULE_STRATEGY: normal
+
+.github_push:
+  rule:
+    if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    when: always
+    when: never
+  script: 
+    eval $(ssh-agent -s)
+    echo "$SSH_KEY_GITHUB_ACCESS" | tr -d '\r' | ssh-add - > /dev/null
+    ssh-add -L
+    git push --repo=git@github.com:MDG-Graphics/mili --force
+
+
 
 .slurm-defaults:
   variables:
