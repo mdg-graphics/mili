@@ -9,13 +9,13 @@ workflow:
     - when: never
 
 stages:
-  - test
   - github_push
 
 variables:
   GIT_SUBMODULE_STRATEGY: normal
 
-.run-github_push:
+github_transfer:
+  stage: github_base
   script:
     - eval $(ssh-agent -s)
     - echo "$SSH_KEY_GITHUB_ACCESS" | tr -d '\r' | ssh-add - > /dev/null
