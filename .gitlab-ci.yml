@@ -9,7 +9,6 @@ workflow:
     - when: always
 
 stages:
-  - test
   - github_base
 
 variables:
