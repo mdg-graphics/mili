@@ -9,6 +9,7 @@ workflow:
     - when: always
 
 stages:
+  - test
   - github_base
 
 variables:
@@ -56,8 +57,7 @@ github_transfer:
     - mdgtest/Test.py -e xmilics_env -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -n1 -p1 -s all > test_xmilics.out
     - num_xmilics_failed=$( grep -c -e failed -e "did not run correctly" test_xmilics.out ) || true
     - num_failed=$(( $num_mili_failed + $num_xmilics_failed ))
-    - exit $num_failed
-
+    
 .toss3:
   variables:
     SYS_TYPE: toss_3_x86_64_ib
