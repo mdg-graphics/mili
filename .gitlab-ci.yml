@@ -6,9 +6,10 @@ workflow:
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
-    - when: never
+    - when: always
 
 stages:
+  - test
   - github_base
 
 variables:
@@ -20,6 +21,7 @@ variables:
     - echo "$SSH_KEY_GITHUB_ACCESS" | tr -d '\r' | ssh-add - > /dev/null
     - ssh-add -L
     - git push --repo=git@github.com:MDG-Graphics/mili --force
+
 github_transfer:
   stage: github_base
   extends:
