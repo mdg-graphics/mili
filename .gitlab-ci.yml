@@ -27,9 +27,6 @@ github_transfer:
     .github_push
   script:
     - !reference [ .github_push, script ]
-  
-
-
 
 .slurm-defaults:
   variables:
@@ -75,7 +72,7 @@ github_transfer:
     - module load python/3.7.2
 
 toss3_intel_slurm_mili:
-  stage: testing
+  stage: blah
   tags:
     - rzgenie
     - slurm
