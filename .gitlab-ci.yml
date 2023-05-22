@@ -10,24 +10,9 @@ workflow:
 
 stages:
   - test
-  - github_base
 
 variables:
   GIT_SUBMODULE_STRATEGY: normal
-
-.github_push:
-  script:
-    - eval $(ssh-agent -s)
-    - echo "$SSH_KEY_GITHUB_ACCESS" | tr -d '\r' | ssh-add - > /dev/null
-    - ssh-add -L
-    - git push --repo=git@github.com:MDG-Graphics/mili --force
-
-github_transfer:
-  stage: github_base
-  extends:
-    .github_push
-  script:
-    - !reference [ .github_push, script ]
 
 .slurm-defaults:
   variables:
