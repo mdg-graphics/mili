@@ -4,9 +4,6 @@
  */
 
 
-
-
-
 #ifndef MILI_H
 #define MILI_H
 /*The following is for bookkeeping only*/

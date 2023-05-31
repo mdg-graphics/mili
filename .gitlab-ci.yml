@@ -6,27 +6,13 @@ workflow:
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
-    - when: never
+    - when: always
 
 stages:
   - test
-  - github_push
 
 variables:
   GIT_SUBMODULE_STRATEGY: normal
-
-.github_push:
-  rule:
-    if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    when: always
-    when: never
-  script: 
-    eval $(ssh-agent -s)
-    echo "$SSH_KEY_GITHUB_ACCESS" | tr -d '\r' | ssh-add - > /dev/null
-    ssh-add -L
-    git push --repo=git@github.com:MDG-Graphics/mili --force
-
-
 
 .slurm-defaults:
   variables:
@@ -56,8 +42,7 @@ variables:
     - mdgtest/Test.py -e xmilics_env -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -n1 -p1 -s all > test_xmilics.out
     - num_xmilics_failed=$( grep -c -e failed -e "did not run correctly" test_xmilics.out ) || true
     - num_failed=$(( $num_mili_failed + $num_xmilics_failed ))
-    - exit $num_failed
-
+    
 .toss3:
   variables:
     SYS_TYPE: toss_3_x86_64_ib
@@ -67,6 +52,7 @@ variables:
   variables:
     COMPILER_SPEC: intel@2021.4
   before_script:
+    - module load cmake/3.23.1
     - module load intel/2021.4
     - module load python/3.7.2
 
