@@ -552,6 +552,14 @@ mc_def_class(              /* Define a new mesh oject class */
    char *long_name );     /* Long name (title) of new class */
 
 Return_value
+mc_get_class_idents( 
+   Famid fam_id,          /* Mili family identifier */
+   int mesh_id,           /* Ident of mesh that objects belong to */
+   char *class_name,      /* Name of class to which nodes belong */
+   int *num_blocks,       /* Number of block created */
+   int **idents );        /* Array to be filled.*/
+   
+Return_value
 mc_def_class_idents(       /* Define object identifiers for a class */
    Famid fam_id,          /* Mili family identifier */
    int mesh_id,           /* Ident of mesh that objects belong to */
