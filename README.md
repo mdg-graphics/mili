@@ -84,6 +84,10 @@ The `<build_type>` can be any one of the following:
 
 The default build type is currently set to `RelWithDebInfo`.
 
+## Style/Formatting
+
+Mili uses `clang-format` to maintain a consistant style and format throughout the code. The style rules can be found in the file `clang-format.yaml` in the directory `griz/scripts/style/`. To use clang-format you must configure using the toss3 host-config file which sets up clang-format for you. To style your code run `make clangformat_style` and to check if you code matches the style guide run `clangformat_check`.
+
 ## Compilation
 
 Once a particular build directory has been generated using the `configure.py` script, the code is compiled within this new directory using the standard `make` utility, e.g. to compile the code:

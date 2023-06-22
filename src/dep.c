@@ -1,29 +1,29 @@
 /* Architecture dependent code.
  *
- Copyright (c) 2016, Lawrence Livermore National Security, LLC. 
- Produced at the Lawrence Livermore National Laboratory. Written 
- by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056. 
+ Copyright (c) 2016, Lawrence Livermore National Security, LLC.
+ Produced at the Lawrence Livermore National Laboratory. Written
+ by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056.
  All rights reserved.
 
- This file is part of Mili. For details, see <URL describing code 
+ This file is part of Mili. For details, see <URL describing code
  and how to download source>.
 
- Please also read this link-- Our Notice and GNU Lesser General 
+ Please also read this link-- Our Notice and GNU Lesser General
  Public License.
 
- This program is free software; you can redistribute it and/or modify 
- it under the terms of the GNU General Public License (as published by 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License (as published by
  the Free Software Foundation) version 2.1 dated February 1999.
 
- This program is distributed in the hope that it will be useful, but 
- WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF 
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms 
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms
  and conditions of the GNU General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public License 
- along with this program; if not, write to the Free Software Foundation, 
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- 
+
  * This work was produced at the University of California, Lawrence
  * Livermore National Laboratory (UC LLNL) under contract no.
  * W-7405-ENG-48 (Contract 48) between the U.S. Department of Energy
@@ -62,21 +62,18 @@
 #include "mili_internal.h"
 
 /* Specific low level IO functions. */
-static LONGLONG rd_byte( FILE *file, void *data, LONGLONG qty );
-static LONGLONG wrt_byte( FILE *file, void *data, LONGLONG qty );
-static LONGLONG rd_4byte( FILE *file, void *data, LONGLONG qty );
-static LONGLONG wrt_4byte( FILE *file, void *data, LONGLONG qty );
-static LONGLONG rd_4byte_swap( FILE *file, void *data, LONGLONG qty );
-static LONGLONG wrt_4byte_swap( FILE *file, void *data, LONGLONG qty );
-static LONGLONG rd_8byte( FILE *file, void *data, LONGLONG qty );
-static LONGLONG wrt_8byte( FILE *file, void *data, LONGLONG qty );
-static LONGLONG rd_8byte_swap( FILE *file, void *data, LONGLONG qty );
-static LONGLONG wrt_8byte_swap( FILE *file, void *data, LONGLONG qty );
-static LONGLONG rd_bytes_swap( FILE *file, void *data,
-                             LONGLONG qty, LONGLONG chunk_size);
-static LONGLONG wrt_bytes_swap( FILE *file, void *data,
-                              LONGLONG qty, LONGLONG chunk_size);
-
+static LONGLONG rd_byte(FILE *file, void *data, LONGLONG qty);
+static LONGLONG wrt_byte(FILE *file, void *data, LONGLONG qty);
+static LONGLONG rd_4byte(FILE *file, void *data, LONGLONG qty);
+static LONGLONG wrt_4byte(FILE *file, void *data, LONGLONG qty);
+static LONGLONG rd_4byte_swap(FILE *file, void *data, LONGLONG qty);
+static LONGLONG wrt_4byte_swap(FILE *file, void *data, LONGLONG qty);
+static LONGLONG rd_8byte(FILE *file, void *data, LONGLONG qty);
+static LONGLONG wrt_8byte(FILE *file, void *data, LONGLONG qty);
+static LONGLONG rd_8byte_swap(FILE *file, void *data, LONGLONG qty);
+static LONGLONG wrt_8byte_swap(FILE *file, void *data, LONGLONG qty);
+static LONGLONG rd_bytes_swap(FILE *file, void *data, LONGLONG qty, LONGLONG chunk_size);
+static LONGLONG wrt_bytes_swap(FILE *file, void *data, LONGLONG qty, LONGLONG chunk_size);
 
 /*****************************************************************
  * TAG( set_default_io_routines ) PRIVATE
@@ -84,188 +81,186 @@ static LONGLONG wrt_bytes_swap( FILE *file, void *data,
  * Initialize pointers to the various i/o routines in the family
  * struct on the basis of target file precision and host architecture.
  */
-Return_value
-set_default_io_routines( Mili_family *fam )
+Return_value set_default_io_routines(Mili_family *fam)
 {
 #if TIMER
-   clock_t start,stop;
-   double cumalative=0.0;
-   start = clock();
+    clock_t start, stop;
+    double cumalative = 0.0;
+    start = clock();
 #endif
-   Return_value rval;
+    Return_value rval;
 
-   rval = OK;
+    rval = OK;
 
-   switch ( fam->precision_limit )
-   {
-      /*
-       * Single precision - change formats as required.
-       */
-      case PREC_LIMIT_SINGLE:
-         /* Initialize external sizes and types of internal data types. */
-         fam->external_size[M_STRING] = 1;
-         fam->external_size[M_INT] = 4;
-         fam->external_size[M_FLOAT] = 4;
-         fam->external_size[M_INT4] = 4;
-         fam->external_size[M_INT8] = 8;
-         fam->external_size[M_FLOAT4] = 4;
-         fam->external_size[M_FLOAT8] = 8;
-
-         fam->external_type[M_STRING] = M_STRING;
-         fam->external_type[M_INT] = M_INT;
-         fam->external_type[M_FLOAT] = M_FLOAT;
-         fam->external_type[M_INT4] = M_INT;
-         fam->external_type[M_INT8] = M_INT8;
-         fam->external_type[M_FLOAT4] = M_FLOAT;
-         fam->external_type[M_FLOAT8] = M_FLOAT8;
-
-         /* Writing to an already existing single precision database from
-          * double precision hardware is problematic as there is no guarantee
-          * that the double precision data that we want to write can be
-          * represented as single precision values.  Since we will never
-          * write M_INT8 or M_FLOAT8 data to a single precision database
-          * those write function pointers will never be accessed for a
-          * single precision database and will be set to NULL below.
-          *
-         if ((internal_sizes[M_FLOAT8] > fam->external_size[M_FLOAT8]) &&
-             (fam->access_mode == 'a'))
-         {
-            return DATA_PRECISION_MISMATCH;
-         }
+    switch ( fam->precision_limit )
+    {
+        /*
+         * Single precision - change formats as required.
          */
+        case PREC_LIMIT_SINGLE:
+            /* Initialize external sizes and types of internal data types. */
+            fam->external_size[M_STRING] = 1;
+            fam->external_size[M_INT] = 4;
+            fam->external_size[M_FLOAT] = 4;
+            fam->external_size[M_INT4] = 4;
+            fam->external_size[M_INT8] = 8;
+            fam->external_size[M_FLOAT4] = 4;
+            fam->external_size[M_FLOAT8] = 8;
 
-         /* Initialize write and read routines. */    
-         if ( fam->swap_bytes )
-         {
-            fam->write_funcs[M_STRING] = wrt_byte;
-            fam->write_funcs[M_INT4] = wrt_4byte_swap;
-            fam->write_funcs[M_INT8] = wrt_8byte_swap;
-            fam->write_funcs[M_FLOAT4] = wrt_4byte_swap;
-            fam->write_funcs[M_FLOAT8] = wrt_8byte_swap;
-            fam->write_funcs[M_INT] = wrt_4byte_swap;
-            fam->write_funcs[M_FLOAT] = wrt_4byte_swap;
+            fam->external_type[M_STRING] = M_STRING;
+            fam->external_type[M_INT] = M_INT;
+            fam->external_type[M_FLOAT] = M_FLOAT;
+            fam->external_type[M_INT4] = M_INT;
+            fam->external_type[M_INT8] = M_INT8;
+            fam->external_type[M_FLOAT4] = M_FLOAT;
+            fam->external_type[M_FLOAT8] = M_FLOAT8;
 
-            fam->read_funcs[M_STRING] = rd_byte;
-            fam->read_funcs[M_INT4] = rd_4byte_swap;
-            fam->read_funcs[M_INT8] = rd_8byte_swap;
-            fam->read_funcs[M_FLOAT4] = rd_4byte_swap;
-            fam->read_funcs[M_FLOAT8] = rd_8byte_swap;
-            fam->read_funcs[M_INT] = rd_4byte_swap;
-            fam->read_funcs[M_FLOAT] = rd_4byte_swap;
-         }
-         else
-         {
-            fam->write_funcs[M_STRING] = wrt_byte;
-            fam->write_funcs[M_INT4] = wrt_4byte;
-            fam->write_funcs[M_INT8] = wrt_8byte;
-            fam->write_funcs[M_FLOAT4] = wrt_4byte;
-            fam->write_funcs[M_FLOAT8] = wrt_8byte;
-            fam->write_funcs[M_INT] = wrt_4byte;
-            fam->write_funcs[M_FLOAT] = wrt_4byte;
+            /* Writing to an already existing single precision database from
+             * double precision hardware is problematic as there is no guarantee
+             * that the double precision data that we want to write can be
+             * represented as single precision values.  Since we will never
+             * write M_INT8 or M_FLOAT8 data to a single precision database
+             * those write function pointers will never be accessed for a
+             * single precision database and will be set to NULL below.
+             *
+            if ((internal_sizes[M_FLOAT8] > fam->external_size[M_FLOAT8]) &&
+                (fam->access_mode == 'a'))
+            {
+               return DATA_PRECISION_MISMATCH;
+            }
+            */
 
-            fam->read_funcs[M_STRING] = rd_byte;
-            fam->read_funcs[M_INT4] = rd_4byte;
-            fam->read_funcs[M_INT8] = rd_8byte;
-            fam->read_funcs[M_FLOAT4] = rd_4byte;
-            fam->read_funcs[M_FLOAT8] = rd_8byte;
-            fam->read_funcs[M_INT] = rd_4byte;
-            fam->read_funcs[M_FLOAT] = rd_4byte;
-         }
-         break;
+            /* Initialize write and read routines. */
+            if ( fam->swap_bytes )
+            {
+                fam->write_funcs[M_STRING] = wrt_byte;
+                fam->write_funcs[M_INT4] = wrt_4byte_swap;
+                fam->write_funcs[M_INT8] = wrt_8byte_swap;
+                fam->write_funcs[M_FLOAT4] = wrt_4byte_swap;
+                fam->write_funcs[M_FLOAT8] = wrt_8byte_swap;
+                fam->write_funcs[M_INT] = wrt_4byte_swap;
+                fam->write_funcs[M_FLOAT] = wrt_4byte_swap;
 
-      /* Double precision - any size OK; format changes may be required. */
-      case PREC_LIMIT_DOUBLE:
-         /* Initialize external sizes and types of internal data types. */
-         fam->external_size[M_STRING] = 1;
-         fam->external_size[M_INT] = 4;
-         fam->external_size[M_FLOAT] = 4;
-         fam->external_size[M_INT4] = 4;
-         fam->external_size[M_INT8] = 8;
-         fam->external_size[M_FLOAT4] = 4;
-         fam->external_size[M_FLOAT8] = 8;
+                fam->read_funcs[M_STRING] = rd_byte;
+                fam->read_funcs[M_INT4] = rd_4byte_swap;
+                fam->read_funcs[M_INT8] = rd_8byte_swap;
+                fam->read_funcs[M_FLOAT4] = rd_4byte_swap;
+                fam->read_funcs[M_FLOAT8] = rd_8byte_swap;
+                fam->read_funcs[M_INT] = rd_4byte_swap;
+                fam->read_funcs[M_FLOAT] = rd_4byte_swap;
+            }
+            else
+            {
+                fam->write_funcs[M_STRING] = wrt_byte;
+                fam->write_funcs[M_INT4] = wrt_4byte;
+                fam->write_funcs[M_INT8] = wrt_8byte;
+                fam->write_funcs[M_FLOAT4] = wrt_4byte;
+                fam->write_funcs[M_FLOAT8] = wrt_8byte;
+                fam->write_funcs[M_INT] = wrt_4byte;
+                fam->write_funcs[M_FLOAT] = wrt_4byte;
 
-         fam->external_type[M_STRING] = M_STRING;
-         fam->external_type[M_INT] = M_INT;
-         fam->external_type[M_FLOAT] = M_FLOAT;
-         fam->external_type[M_INT4] = M_INT;
-         fam->external_type[M_INT8] = M_INT8;
-         fam->external_type[M_FLOAT4] = M_FLOAT;
-         fam->external_type[M_FLOAT8] = M_FLOAT8;
+                fam->read_funcs[M_STRING] = rd_byte;
+                fam->read_funcs[M_INT4] = rd_4byte;
+                fam->read_funcs[M_INT8] = rd_8byte;
+                fam->read_funcs[M_FLOAT4] = rd_4byte;
+                fam->read_funcs[M_FLOAT8] = rd_8byte;
+                fam->read_funcs[M_INT] = rd_4byte;
+                fam->read_funcs[M_FLOAT] = rd_4byte;
+            }
+            break;
 
-         /* Reading an already existing double precision database from
-          * single precision hardware is problematic as there is no gaurantee
-          * that the double precision data in the database can be represented
-          * internally as single precision values.
-          *
-         * 
-         This check should occur in the functions to read and write. Not 
-         here as although it is probably not a good idea to open an 8 byte
-         mili database on a 4 byte machine, all the data stored internally 
-         may be only 4 byte data.
-         if ((internal_sizes[M_FLOAT8] < fam->external_size[M_FLOAT8]) &&
-             (fam->access_mode == 'r'))
-         {
-            return DATA_PRECISION_MISMATCH;
-         }
-         */
+        /* Double precision - any size OK; format changes may be required. */
+        case PREC_LIMIT_DOUBLE:
+            /* Initialize external sizes and types of internal data types. */
+            fam->external_size[M_STRING] = 1;
+            fam->external_size[M_INT] = 4;
+            fam->external_size[M_FLOAT] = 4;
+            fam->external_size[M_INT4] = 4;
+            fam->external_size[M_INT8] = 8;
+            fam->external_size[M_FLOAT4] = 4;
+            fam->external_size[M_FLOAT8] = 8;
 
-         /* Initialize write and read routines. */    
-         if ( fam->swap_bytes )
-         {
-            fam->write_funcs[M_STRING] = wrt_byte;
-            fam->write_funcs[M_INT4] = wrt_4byte_swap;
-            fam->write_funcs[M_INT8] = wrt_8byte_swap;
-            fam->write_funcs[M_FLOAT4] = wrt_4byte_swap;
-            fam->write_funcs[M_FLOAT8] = wrt_8byte_swap;
-            fam->write_funcs[M_INT] = wrt_4byte_swap;
-            fam->write_funcs[M_FLOAT] = wrt_4byte_swap;
+            fam->external_type[M_STRING] = M_STRING;
+            fam->external_type[M_INT] = M_INT;
+            fam->external_type[M_FLOAT] = M_FLOAT;
+            fam->external_type[M_INT4] = M_INT;
+            fam->external_type[M_INT8] = M_INT8;
+            fam->external_type[M_FLOAT4] = M_FLOAT;
+            fam->external_type[M_FLOAT8] = M_FLOAT8;
 
-            fam->read_funcs[M_STRING] = rd_byte;
-            fam->read_funcs[M_INT4] = rd_4byte_swap;
-            fam->read_funcs[M_INT8] = rd_8byte_swap;
-            fam->read_funcs[M_FLOAT4] = rd_4byte_swap;
-            fam->read_funcs[M_FLOAT8] = rd_8byte_swap;
-            fam->read_funcs[M_INT] = rd_4byte_swap;
-            fam->read_funcs[M_FLOAT] = rd_4byte_swap;
-         }
-         else
-         {
-            fam->write_funcs[M_STRING] = wrt_byte;
-            fam->write_funcs[M_INT4] = wrt_4byte;
-            fam->write_funcs[M_INT8] = wrt_8byte;
-            fam->write_funcs[M_FLOAT4] = wrt_4byte;
-            fam->write_funcs[M_FLOAT8] = wrt_8byte;
-            fam->write_funcs[M_INT] = wrt_4byte;
-            fam->write_funcs[M_FLOAT] = wrt_4byte;
+            /* Reading an already existing double precision database from
+             * single precision hardware is problematic as there is no gaurantee
+             * that the double precision data in the database can be represented
+             * internally as single precision values.
+             *
+            *
+            This check should occur in the functions to read and write. Not
+            here as although it is probably not a good idea to open an 8 byte
+            mili database on a 4 byte machine, all the data stored internally
+            may be only 4 byte data.
+            if ((internal_sizes[M_FLOAT8] < fam->external_size[M_FLOAT8]) &&
+                (fam->access_mode == 'r'))
+            {
+               return DATA_PRECISION_MISMATCH;
+            }
+            */
 
-            fam->read_funcs[M_STRING] = rd_byte;
-            fam->read_funcs[M_INT4] = rd_4byte;
-            fam->read_funcs[M_INT8] = rd_8byte;
-            fam->read_funcs[M_FLOAT4] = rd_4byte;
-            fam->read_funcs[M_FLOAT8] = rd_8byte;
-            fam->read_funcs[M_INT] = rd_4byte;
-            fam->read_funcs[M_FLOAT] = rd_4byte;
-         }
-         break;
+            /* Initialize write and read routines. */
+            if ( fam->swap_bytes )
+            {
+                fam->write_funcs[M_STRING] = wrt_byte;
+                fam->write_funcs[M_INT4] = wrt_4byte_swap;
+                fam->write_funcs[M_INT8] = wrt_8byte_swap;
+                fam->write_funcs[M_FLOAT4] = wrt_4byte_swap;
+                fam->write_funcs[M_FLOAT8] = wrt_8byte_swap;
+                fam->write_funcs[M_INT] = wrt_4byte_swap;
+                fam->write_funcs[M_FLOAT] = wrt_4byte_swap;
 
-      default:
-         rval = UNKNOWN_PRECISION;
-         break;
-   }
+                fam->read_funcs[M_STRING] = rd_byte;
+                fam->read_funcs[M_INT4] = rd_4byte_swap;
+                fam->read_funcs[M_INT8] = rd_8byte_swap;
+                fam->read_funcs[M_FLOAT4] = rd_4byte_swap;
+                fam->read_funcs[M_FLOAT8] = rd_8byte_swap;
+                fam->read_funcs[M_INT] = rd_4byte_swap;
+                fam->read_funcs[M_FLOAT] = rd_4byte_swap;
+            }
+            else
+            {
+                fam->write_funcs[M_STRING] = wrt_byte;
+                fam->write_funcs[M_INT4] = wrt_4byte;
+                fam->write_funcs[M_INT8] = wrt_8byte;
+                fam->write_funcs[M_FLOAT4] = wrt_4byte;
+                fam->write_funcs[M_FLOAT8] = wrt_8byte;
+                fam->write_funcs[M_INT] = wrt_4byte;
+                fam->write_funcs[M_FLOAT] = wrt_4byte;
 
-   if ( rval == OK )
-   {
-      /* Initialize the state data I/O routines. */
-      rval = set_state_data_io_routines( fam );
-   }
+                fam->read_funcs[M_STRING] = rd_byte;
+                fam->read_funcs[M_INT4] = rd_4byte;
+                fam->read_funcs[M_INT8] = rd_8byte;
+                fam->read_funcs[M_FLOAT4] = rd_4byte;
+                fam->read_funcs[M_FLOAT8] = rd_8byte;
+                fam->read_funcs[M_INT] = rd_4byte;
+                fam->read_funcs[M_FLOAT] = rd_4byte;
+            }
+            break;
+
+        default:
+            rval = UNKNOWN_PRECISION;
+            break;
+    }
+
+    if ( rval == OK )
+    {
+        /* Initialize the state data I/O routines. */
+        rval = set_state_data_io_routines(fam);
+    }
 #if TIMER
-   stop = clock();
-   cumalative =((double)(stop - start))/CLOCKS_PER_SEC;
-   printf("Function set_default_io_routines()\nTime is: %f\n",cumalative);
+    stop = clock();
+    cumalative = ((double)(stop - start)) / CLOCKS_PER_SEC;
+    printf("Function set_default_io_routines()\nTime is: %f\n", cumalative);
 #endif
-   return rval;
+    return rval;
 }
-
 
 /*****************************************************************
  * TAG( set_state_data_io_routines ) PRIVATE
@@ -273,62 +268,52 @@ set_default_io_routines( Mili_family *fam )
  * Initialize pointers to the state data i/o routines in the family
  * struct on the basis of target file precision and host architecture.
  */
-Return_value
-set_state_data_io_routines( Mili_family *fam )
+Return_value set_state_data_io_routines(Mili_family *fam)
 {
-   Return_value rval;
-   LONGLONG (**rf)();
-   LONGLONG (**wf)();
+    Return_value rval;
+    LONGLONG (**rf)();
+    LONGLONG (**wf)();
 
-   rval = OK;
-   rf = fam->state_read_funcs;
-   wf = fam->state_write_funcs;
+    rval = OK;
+    rf = fam->state_read_funcs;
+    wf = fam->state_write_funcs;
 
-   /* Just copy the non-state I/O function references. */
-   memcpy( rf, fam->read_funcs,
-           QTY_PD_ENTRY_TYPES * sizeof( (void *) NULL ) );
-   memcpy( wf, fam->write_funcs,
-           QTY_PD_ENTRY_TYPES * sizeof( (void *) NULL ) );
+    /* Just copy the non-state I/O function references. */
+    memcpy(rf, fam->read_funcs, QTY_PD_ENTRY_TYPES * sizeof((void *)NULL));
+    memcpy(wf, fam->write_funcs, QTY_PD_ENTRY_TYPES * sizeof((void *)NULL));
 
-   return rval;
+    return rval;
 }
-
 
 /*****************************************************************
  * TAG( rd_byte, wrt_byte ) LOCAL
  *
  * Buffered I/O on character or byte data from/to a file.
  */
-static LONGLONG
-rd_byte( FILE *file, void *data, LONGLONG qty )
+static LONGLONG rd_byte(FILE *file, void *data, LONGLONG qty)
 {
-   return fread( data, 1, qty, file );
+    return fread(data, 1, qty, file);
 }
 
-static LONGLONG
-wrt_byte( FILE *file, void *data, LONGLONG qty )
+static LONGLONG wrt_byte(FILE *file, void *data, LONGLONG qty)
 {
-   return fwrite( data, 1, qty, file );
+    return fwrite(data, 1, qty, file);
 }
-
 
 /*****************************************************************
  * TAG( rd_4byte, wrt_4byte ) LOCAL
  *
  * Buffered I/O on four-byte chunks of un-translated data from/to a file.
  */
-static LONGLONG
-rd_4byte( FILE *file, void *data, LONGLONG qty )
+static LONGLONG rd_4byte(FILE *file, void *data, LONGLONG qty)
 {
-   return fread( data, 4, qty, file );
+    return fread(data, 4, qty, file);
 }
 
-static LONGLONG
-wrt_4byte( FILE *file, void *data, LONGLONG qty )
+static LONGLONG wrt_4byte(FILE *file, void *data, LONGLONG qty)
 {
-   return fwrite( data, 4, qty, file );
+    return fwrite(data, 4, qty, file);
 }
-
 
 /*****************************************************************
  * TAG( rd_4byte_swap, wrt_4byte_swap ) LOCAL
@@ -336,36 +321,30 @@ wrt_4byte( FILE *file, void *data, LONGLONG qty )
  * Buffered I/O on four-byte chunks of un-translated data from/to
  * a file with byte-order swap.
  */
-static LONGLONG
-rd_4byte_swap( FILE *file, void *data, LONGLONG qty )
+static LONGLONG rd_4byte_swap(FILE *file, void *data, LONGLONG qty)
 {
-   return rd_bytes_swap( file, data, qty, 4 );
+    return rd_bytes_swap(file, data, qty, 4);
 }
 
-static LONGLONG
-wrt_4byte_swap( FILE *file, void *data, LONGLONG qty )
+static LONGLONG wrt_4byte_swap(FILE *file, void *data, LONGLONG qty)
 {
-   return wrt_bytes_swap( file, data, qty, 4 );
+    return wrt_bytes_swap(file, data, qty, 4);
 }
-
 
 /*****************************************************************
  * TAG( rd_8byte, wrt_8byte ) LOCAL
  *
  * Buffered I/O on eight-byte chunks of untranslated data from/to a file.
  */
-static LONGLONG
-rd_8byte( FILE *file, void *data, LONGLONG qty )
+static LONGLONG rd_8byte(FILE *file, void *data, LONGLONG qty)
 {
-   return fread( data, 8, qty, file );
+    return fread(data, 8, qty, file);
 }
 
-static LONGLONG
-wrt_8byte( FILE *file, void *data, LONGLONG qty )
+static LONGLONG wrt_8byte(FILE *file, void *data, LONGLONG qty)
 {
-   return fwrite( data, 8, qty, file );
+    return fwrite(data, 8, qty, file);
 }
-
 
 /*****************************************************************
  * TAG( rd_8byte_swap, wrt_8byte_swap ) LOCAL
@@ -373,69 +352,62 @@ wrt_8byte( FILE *file, void *data, LONGLONG qty )
  * Buffered I/O on eight-byte chunks of byte-swapped data from/to
  * a file.
  */
-static LONGLONG
-rd_8byte_swap( FILE *file, void *data, LONGLONG qty )
+static LONGLONG rd_8byte_swap(FILE *file, void *data, LONGLONG qty)
 {
-   return rd_bytes_swap( file, data, qty, 8 );
+    return rd_bytes_swap(file, data, qty, 8);
 }
 
-static LONGLONG
-wrt_8byte_swap( FILE *file, void *data, LONGLONG qty )
+static LONGLONG wrt_8byte_swap(FILE *file, void *data, LONGLONG qty)
 {
-   return wrt_bytes_swap( file, data, qty, 8 );
+    return wrt_bytes_swap(file, data, qty, 8);
 }
-
 
 /*****************************************************************
  * TAG( rd_bytes_swap, wrt_bytes_swap ) LOCAL
  *
- * Buffered I/O on chunks of chunk_size byte-swapped data from/to 
+ * Buffered I/O on chunks of chunk_size byte-swapped data from/to
  * a file.
  */
-static LONGLONG
-rd_bytes_swap( FILE *file, void *data, LONGLONG qty, LONGLONG chunk_size )
+static LONGLONG rd_bytes_swap(FILE *file, void *data, LONGLONG qty, LONGLONG chunk_size)
 {
-   LONGLONG nitems;
-   unsigned char *rawdata;
+    LONGLONG nitems;
+    unsigned char *rawdata;
 
-   rawdata = NEW_N( unsigned char, qty * chunk_size, "swapbuf" );
-   if (rawdata != NULL)
-   {
+    rawdata = NEW_N(unsigned char, qty *chunk_size, "swapbuf");
+    if ( rawdata != NULL )
+    {
+        nitems = fread((void *)rawdata, chunk_size, qty, file);
 
-      nitems = fread( (void *) rawdata, chunk_size, qty, file );
+        swap_bytes(nitems, chunk_size, (void *)rawdata, data);
 
-      swap_bytes( nitems, chunk_size, (void *) rawdata, data );
+        free(rawdata);
+    }
+    else
+    {
+        nitems = 0;
+    }
 
-      free( rawdata );
-   }
-   else
-   {
-      nitems = 0;
-   }
-
-   return nitems;
+    return nitems;
 }
 
-static LONGLONG
-wrt_bytes_swap( FILE *file, void *data, LONGLONG qty, LONGLONG chunk_size )
+static LONGLONG wrt_bytes_swap(FILE *file, void *data, LONGLONG qty, LONGLONG chunk_size)
 {
-   LONGLONG nitems;
-   unsigned char *swapdata;
+    LONGLONG nitems;
+    unsigned char *swapdata;
 
-   swapdata = NEW_N( unsigned char, qty * chunk_size, "swapbuf" );
-   if (swapdata != NULL)
-   {
+    swapdata = NEW_N(unsigned char, qty *chunk_size, "swapbuf");
+    if ( swapdata != NULL )
+    {
+        swap_bytes(qty, chunk_size, data, (void *)swapdata);
 
-      swap_bytes( qty, chunk_size, data, (void *) swapdata );
+        nitems = fwrite((void *)swapdata, chunk_size, qty, file);
 
-      nitems = fwrite( (void *) swapdata, chunk_size, qty, file );
+        free(swapdata);
+    }
+    else
+    {
+        nitems = 0;
+    }
 
-      free( swapdata );
-   }
-   else
-   {
-      nitems = 0;
-   }
-
-   return nitems;
+    return nitems;
 }

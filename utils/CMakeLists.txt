@@ -88,3 +88,18 @@ if( ENABLE_UTILITIES )
     )
 
 endif()
+
+##------------------------------------------------------------------------------
+## Set up Code Style checking using clang-format
+##------------------------------------------------------------------------------
+
+if( CLANGFORMAT_FOUND )
+
+    blt_add_code_checks(
+        PREFIX util_format_checks
+        SOURCES ${XMILICS_SOURCE_FILES} ${XMILICS_HEADER_FILES} ${MD_SOURCE_FILES} ${TIPART_SOURCE_FILES}
+                ${MILIREADER_SOURCE_FILES} ${TI_STRINGS_SOURCE_FILES} ${MAKEMILI_DRIVER_SOURCE_FILES}
+        CLANGFORMAT_CFG_FILE ${PROJECT_SOURCE_DIR}/scripts/style/clang-format.yaml
+    )
+
+endif()

@@ -21,7 +21,7 @@ def main( args ):
   # Set up argument parser
   parser = argparse.ArgumentParser( description = "Configure mili library"  )
   parser.add_argument('-hc', "--hostconfig", type = str, help = "A host-config file to initialize the cmake cache.", default=host_config_default )
-  build_type_options = ["Debug","Release","RelWithDebInfo"]
+  build_type_options = ["Debug","Release","RelWithDebInfo","RelCleanup"]
   parser.add_argument('-bt', "--buildtype", type = str, help = "Build type", choices = build_type_options, default = "RelWithDebInfo" )
   parser.add_argument('-id', '--install-dir', type = str, help = "Installation directory", default = None)
   parser.add_argument('-so','--suppress-output', action="store_true", default=False )

@@ -139,3 +139,25 @@ if( ENABLE_EPRINTF )
     # Current Mili build system doesn't have this and it breaks build, will fix later.
     #add_compile_definitions( HAVE_EPRINT )
 endif()
+
+
+##------------------------------------------------------------------------------
+## Set up Code Style checking using clang-format
+##------------------------------------------------------------------------------
+
+if( CLANGFORMAT_FOUND )
+
+    # Don't format mili_config.h, f_util.f, wrap_f.F, mili_fparam.h
+    set( MILI_HEADERS_TO_FORMAT ${MILI_HEADER_FILES})
+    list( REMOVE_ITEM MILI_HEADERS_TO_FORMAT ${CMAKE_BINARY_DIR}/include/mili_config.h )
+    list( REMOVE_ITEM MILI_HEADERS_TO_FORMAT ${CMAKE_CURRENT_LIST_DIR}/f_util.f )
+    list( REMOVE_ITEM MILI_HEADERS_TO_FORMAT ${CMAKE_CURRENT_LIST_DIR}/wrap_f.F )
+    list( REMOVE_ITEM MILI_HEADERS_TO_FORMAT ${CMAKE_CURRENT_LIST_DIR}/mili_fparam.h )
+
+    blt_add_code_checks(
+        PREFIX mili_format_checks
+        SOURCES ${MILI_SOURCE_FILES} ${MILI_HEADERS_TO_FORMAT} ${TAURUS_SOURCE_FILES} ${TAURUS_HEADER_FILES}
+        CLANGFORMAT_CFG_FILE ${PROJECT_SOURCE_DIR}/scripts/style/clang-format.yaml
+    )
+
+endif()
