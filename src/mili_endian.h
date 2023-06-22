@@ -1,28 +1,28 @@
 /*
- Copyright (c) 2016, Lawrence Livermore National Security, LLC. 
- Produced at the Lawrence Livermore National Laboratory. Written 
- by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056. 
+ Copyright (c) 2016, Lawrence Livermore National Security, LLC.
+ Produced at the Lawrence Livermore National Laboratory. Written
+ by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056.
  All rights reserved.
 
- This file is part of Mili. For details, see <URL describing code 
+ This file is part of Mili. For details, see <URL describing code
  and how to download source>.
 
- Please also read this link-- Our Notice and GNU Lesser General 
+ Please also read this link-- Our Notice and GNU Lesser General
  Public License.
 
- This program is free software; you can redistribute it and/or modify 
- it under the terms of the GNU General Public License (as published by 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License (as published by
  the Free Software Foundation) version 2.1 dated February 1999.
 
- This program is distributed in the hope that it will be useful, but 
- WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF 
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms 
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms
  and conditions of the GNU General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public License 
- along with this program; if not, write to the Free Software Foundation, 
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- 
+
  * Data and macro definition to evaluate endianness of host. This
  * header should be included in source files that need to
  * evaluate the host endian format.
@@ -63,9 +63,7 @@
 #ifndef MILI_ENDIAN_H
 #define MILI_ENDIAN_H
 
-
 static unsigned int mili_endian_dummy = 1;
-
 
 /*****************************************************************
  * TAG( BIG_ENDIAN_HOST ) LOCAL
@@ -73,8 +71,7 @@ static unsigned int mili_endian_dummy = 1;
  * A macro used as a logical; TRUE if this host uses big endian
  * byte ordering.
  */
-#define BIG_ENDIAN_HOST ( *((unsigned char *) &mili_endian_dummy) == 0 )
-
+#define BIG_ENDIAN_HOST (*((unsigned char *)&mili_endian_dummy) == 0)
 
 /*****************************************************************
  * TAG( LITTLE_ENDIAN_HOST ) LOCAL
@@ -82,7 +79,6 @@ static unsigned int mili_endian_dummy = 1;
  * A macro used as a logical; TRUE if this host uses little endian
  * byte ordering.
  */
-#define LITTLE_ENDIAN_HOST ( *((unsigned char *) &mili_endian_dummy) == 1 )
-
+#define LITTLE_ENDIAN_HOST (*((unsigned char *)&mili_endian_dummy) == 1)
 
 #endif

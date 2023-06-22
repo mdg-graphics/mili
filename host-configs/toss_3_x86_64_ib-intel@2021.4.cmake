@@ -38,3 +38,7 @@ set( ENABLE_TAURUS TRUE CACHE BOOL "" )
 set( ENABLE_EPRINTF TRUE CACHE BOOL "" )
 set( ENABLE_XMILICS TRUE CACHE BOOL "" )
 set( ENABLE_UTILITIES TRUE CACHE BOOL "" )
+
+# Path to clang for Clang Format
+set( CLANG_TOOLS_PREFIX "/usr/tce/packages/clang/clang-13.0.0" CACHE PATH "" )
+set( CLANGFORMAT_EXECUTABLE "${CLANG_TOOLS_PREFIX}/bin/clang-format" CACHE PATH "" )

@@ -1,28 +1,28 @@
 /*
- Copyright (c) 2016, Lawrence Livermore National Security, LLC. 
- Produced at the Lawrence Livermore National Laboratory. Written 
- by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056. 
+ Copyright (c) 2016, Lawrence Livermore National Security, LLC.
+ Produced at the Lawrence Livermore National Laboratory. Written
+ by Kevin Durrenberger: durrenberger1@llnl.gov. CODE-OCEC-16-056.
  All rights reserved.
 
- This file is part of Mili. For details, see <URL describing code 
+ This file is part of Mili. For details, see <URL describing code
  and how to download source>.
 
- Please also read this link-- Our Notice and GNU Lesser General 
+ Please also read this link-- Our Notice and GNU Lesser General
  Public License.
 
- This program is free software; you can redistribute it and/or modify 
- it under the terms of the GNU General Public License (as published by 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License (as published by
  the Free Software Foundation) version 2.1 dated February 1999.
 
- This program is distributed in the hope that it will be useful, but 
- WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF 
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms 
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms
  and conditions of the GNU General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public License 
- along with this program; if not, write to the Free Software Foundation, 
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software Foundation,
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- 
+
  * sarray.h - Header file for the StringArray library, containing
  *            functions and macros to use and manage StringArrays.
  *
@@ -156,27 +156,25 @@
 
 typedef unsigned short SAIntType;
 
-typedef char * StringArray;
+typedef char *StringArray;
 
 enum Reserved_ints
 {
-   SA_LEN_IDX = 0,
-   SA_QTY_IDX,
-   SA_SUSED_IDX,
-   SA_ALLOC_SZ_IDX, /* _Always_ last, so the field it indexes will
-                        immediately precede the offset array */
-   RESERVED_INT_QTY
+    SA_LEN_IDX = 0,
+    SA_QTY_IDX,
+    SA_SUSED_IDX,
+    SA_ALLOC_SZ_IDX, /* _Always_ last, so the field it indexes will
+                         immediately precede the offset array */
+    RESERVED_INT_QTY
 };
 
-
 /* Function prototypes. */
-Return_value sa_add( StringArray *, char *, int * );
-void sa_sort( StringArray, int );
+Return_value sa_add(StringArray *, char *, int *);
+void sa_sort(StringArray, int);
 /*
 int sa_remove_s( StringArray, char * );
 int sa_remove_i( StringArray, int );
 */
-
 
 /*****************************************************************
  * TAG( SAI )
@@ -184,8 +182,7 @@ int sa_remove_i( StringArray, int );
  * Cast a StringArray as a pointer to SAIntType for array-type
  * access to numeric descriptors at front of buffer.
  */
-#define SAI( l ) ((SAIntType *) (l))
-
+#define SAI(l) ((SAIntType *)(l))
 
 /*****************************************************************
  * TAG( SALEN SAQTY SAUSED SAASIZE )
@@ -194,11 +191,10 @@ int sa_remove_i( StringArray, int );
  * length of buffer portion storing null-terminated strings, and initial
  * allocation size, respectively, of a StringArray.
  */
-#define SALEN( l ) SAI( l )[SA_LEN_IDX]
-#define SAQTY( l ) SAI( l )[SA_QTY_IDX]
-#define SAUSED( l ) SAI( l )[SA_SUSED_IDX]
-#define SAASIZE( l ) SAI( l )[SA_ALLOC_SZ_IDX]
-
+#define SALEN(l) SAI(l)[SA_LEN_IDX]
+#define SAQTY(l) SAI(l)[SA_QTY_IDX]
+#define SAUSED(l) SAI(l)[SA_SUSED_IDX]
+#define SAASIZE(l) SAI(l)[SA_ALLOC_SZ_IDX]
 
 /*****************************************************************
  * TAG( SANEWS )
@@ -212,27 +208,24 @@ int sa_remove_i( StringArray, int );
  * StringArray, which will be the right thing for the sa_add()
  * function's calculation of empty space available.
  */
-#define SANEWS( h, s )                                                       \
-    (h) = (StringArray) calloc( (s), 1 ); SALEN( h ) = (s);                  \
-    SAASIZE( h ) = (s);
-
+#define SANEWS(h, s)                   \
+    (h) = (StringArray)calloc((s), 1); \
+    SALEN(h) = (s);                    \
+    SAASIZE(h) = (s);
 
 /*****************************************************************
  * TAG( SANEW )
  *
  * Allocate and initialize a new StringArray of default size.
  */
-#define SANEW( h ) SANEWS( h, DEFAULT_SIZE )
-
+#define SANEW(h) SANEWS(h, DEFAULT_SIZE)
 
 /*****************************************************************
  * TAG( SASTRING )
  *
  * Return the address of an indexed string in a StringArray.
  */
-#define SASTRING( a, i )                                                     \
-    ( (((StringArray) (a)) + ((SAIntType *) (a))[RESERVED_INT_QTY + (i)]) )
-
+#define SASTRING(a, i) ((((StringArray)(a)) + ((SAIntType *)(a))[RESERVED_INT_QTY + (i)]))
 
 /*****************************************************************
  * TAG( SASORT )
@@ -242,8 +235,7 @@ int sa_remove_i( StringArray, int );
  * parameter "a" is non-zero, the strings will be referenced in
  * ascending order following the sort.
  */
-#define SASORT( s, a ) sa_sort( s, a )
-
+#define SASORT(s, a) sa_sort(s, a)
 
 /*****************************************************************
  * TAG( SAREMS ) NOT IMPLEMENTED
@@ -253,7 +245,6 @@ int sa_remove_i( StringArray, int );
 
 #define SAREMS( a, s ) sa_remove_s( (StringArray) (a), (char *) (s) )
  */
-
 
 /*****************************************************************
  * TAG( SAREMI ) NOT IMPLEMENTED
