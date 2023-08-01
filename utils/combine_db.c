@@ -266,7 +266,7 @@ Return_value mc_combine_svars(Mili_family *in, Mili_family *out)
 void mc_copy_metadata(Mili_family *fam, Mili_family *in_fam)
 {
     int rval;
-    char title_bufr[128];
+    char title_bufr[512];
     char mili_version[64], xmilics_version[64], timestamp[64], host[64], arch[256], username[32];
 
     Famid outdbid = fam->my_id;
