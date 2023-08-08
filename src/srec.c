@@ -3637,13 +3637,7 @@ Return_value mc_end_state(Famid fam_id, int srec_id)
         }
         fseek(fam->cur_st_file, 0, SEEK_END);
     }
-    position = ftell(fam->cur_st_file);
-    target = fam->state_map[fam->state_qty - 1].offset + fam->srecs[0]->size + sizeof(int) * 2;
-
-    if ( position != target )
-    {
-        return position < target ? INVALID_SR_OFFSET_UNDER : INVALID_SR_OFFSET_OVER;
-    }
+    
     /* Add a new entry in the state map. */
     state_qty = fam->state_qty;
     if ( fam->char_header[DIR_VERSION_IDX] > 1 )
@@ -3660,6 +3654,15 @@ Return_value mc_end_state(Famid fam_id, int srec_id)
         fam->state_closed = 1;
         mc_update_visit_file(fam_id);
     }
+    
+    position = ftell(fam->cur_st_file);
+    target = fam->state_map[fam->state_qty - 1].offset + fam->srecs[0]->size + sizeof(int) * 2;
+
+    if ( position != target )
+    {
+        return position < target ? INVALID_SR_OFFSET_UNDER : INVALID_SR_OFFSET_OVER;
+    }
+    
     return rval;
 }
 /*****************************************************************
