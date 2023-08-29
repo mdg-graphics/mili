@@ -118,6 +118,8 @@ if( ENABLE_MILI )
         HEADERS ${MILI_HEADER_FILES}
     )
     target_include_directories( mili PUBLIC ${CMAKE_BINARY_DIR}/include )
+    install( FILES ${MILI_HEADER_FILES} DESTINATION include )
+    install( TARGETS mili LIBRARY DESTINATION lib ARCHIVE DESTINATION lib )
 endif()
 
 # Create Taurus Library
@@ -127,6 +129,8 @@ if( ENABLE_TAURUS )
         SOURCES ${TAURUS_SOURCE_FILES}
         HEADERS ${TAURUS_HEADER_FILES}
     )
+    install( FILES ${TAURUS_HEADER_FILES} DESTINATION include )
+    install( TARGETS taurus LIBRARY DESTINATION lib ARCHIVE DESTINATION lib )
 endif()
 
 # Create eprtf Library
@@ -138,6 +142,8 @@ if( ENABLE_EPRINTF )
     )
     # Current Mili build system doesn't have this and it breaks build, will fix later.
     #add_compile_definitions( HAVE_EPRINT )
+    install( FILES ${EPRTF_HEADER_FILES} DESTINATION include )
+    install( TARGETS eprtf LIBRARY DESTINATION lib ARCHIVE DESTINATION lib )
 endif()
 
 
