@@ -87,6 +87,7 @@ int numProcessors;
 int xmilicsFile = 0;
 int subrecord_count = 0;
 char *subrec_string = NULL;
+
 int mc_activate_visit_file(Famid database_id, int on)
 {
     Mili_family *fam;  // This is the Mili database plot file
@@ -1082,10 +1083,10 @@ static int writeMaterials_json(Famid database_id, JSON_Object *root_object)
     int int_args[2];
     int mesh_id;
     int cur_material;
-    char base_name[20];
+    char base_name[100];
     char result_name[100];
     char color_string[100];
-    int items_read;
+    int items_read,written;
     int status, status2;
     float *colors;
 
@@ -1127,42 +1128,70 @@ static int writeMaterials_json(Famid database_id, JSON_Object *root_object)
     for ( cur_material = 1; cur_material <= highestMat; cur_material++ )
     {
         base_name[0] = '\0';
+        result_name[0] = '\0';
+        color_string[0] = '\0';
         items_read = 0;
         // Check for a name
-        sprintf(base_name, "MAT_NAME_%d", cur_material);
-        result_name[0] = '\0';
+        written = sprintf(base_name, "MAT_NAME_%d", cur_material);
+        
         status = mc_ti_read_string(database_id, base_name, (void *)&result_name);
+        // Reset the base name
         base_name[0] = '\0';
-        color_string[0] = '\0';
+        
         // Check for colors
-        sprintf(base_name, "SetRGB_%d", cur_material);
+        written = sprintf(base_name, "SetRGB_%d", cur_material);
         status2 = mc_ti_read_array(database_id, base_name, (void **)&colors, &items_read);
 
         // If we found a name then use it otherwise just assign the number as the name
+        base_name[0] = '\0';
         if ( status == OK )
         {
-            base_name[0] = '\0';
-
-            sprintf(base_name, "Materials.%d.name", cur_material);
+            written = sprintf(base_name, "Materials.%d.name", cur_material);
             json_object_dotset_string(root_object, base_name, result_name);
         }
         else
         {
-            base_name[0] = '\0';
-
-            sprintf(base_name, "Materials.%d.%d", cur_material, cur_material);
+            written = sprintf(base_name, "Materials.%d.%d", cur_material, cur_material);
             json_object_dotset_string(root_object, base_name, result_name);
         }
+        
         // If we found colors then use them, otherwise just end the line.
         if ( status2 == OK )
         {
             base_name[0] = '\0';
 
-            sprintf(base_name, "Materials.%d.COLOR", cur_material);
-            sprintf(color_string, "[%.3f,%.3f,%.3f]", colors[0], colors[1], colors[2]);
+            written = sprintf(base_name, "Materials.%d.COLOR", cur_material);
+            written = sprintf(color_string, "[%.3f,%.3f,%.3f]", colors[0], colors[1], colors[2]);
             json_object_dotset_value(root_object, base_name, json_parse_string(color_string));
             free(colors);
         }
+        
+        // Now we check if this material is a slide surface.
+        base_name[0] = '\0';
+        result_name[0] = '\0';
+        
+        written =  sprintf(base_name, "part_title_%d",cur_material);
+        status = mc_ti_read_string(database_id, base_name, (void *)&result_name);
+        
+        if(status == OK && strlen(result_name)>0)
+        {
+            base_name[0] = '\0';
+            written = sprintf(base_name, "Materials.%d.surface_relation",cur_material);
+            if( strstr(result_name,"master")>0)
+            {
+                json_object_dotset_string(root_object, base_name, "master");
+            }else if( strstr(result_name, "slave"))
+            {
+                json_object_dotset_string(root_object, base_name, "slave");
+            }else continue;
+            
+            base_name[0] = '\0';
+            written = sprintf(base_name, "Materials.%d.surface_title",cur_material);
+            json_object_dotset_string(root_object, base_name, result_name);
+            base_name[0] = '\0';
+            written = sprintf(base_name, "Materials.%d.surface_type",cur_material);
+            json_object_dotset_string(root_object, base_name, "slide");
+        }        
     }
     return OK;
 }
@@ -1181,7 +1210,7 @@ static void write_steps_json(Famid database_id)
     char *timesteps;
     int i;
     JSON_Object *root_object;
-    float time;
+    float time = 0.0;
     if ( database_id >= fam_qty || database_id < 0 )
     {
         return;
@@ -1190,6 +1219,30 @@ static void write_steps_json(Famid database_id)
     fam = fam_list[database_id];
 
     root_object = fam->root_object;
+    timesteps = (char *)malloc(fam->state_qty * 40);
+    
+    for ( i = 0; i < fam->state_qty; i++ )
+    {
+        
+        time_string[0] = '\0';
+        time = fam->state_map[i].time;
+        if(i == 0)
+        {
+            sprintf(timesteps, "[%1.7g", fam->state_map[i].time);
+        }else 
+        {
+            strcat(timesteps, ",");
+            sprintf(time_string, "%1.7g", time);
+        }
+        
+        strcat(timesteps, time_string);
+    }
+    if(i > 0)
+    {
+        strcat(timesteps, "]");
+    }
+
+    json_object_dotset_value(root_object, "States.times", json_parse_string(timesteps));
     if ( JSONFailure == json_object_dotset_number(root_object, "States.count", fam->state_qty) )
     {
         return;
@@ -1198,21 +1251,7 @@ static void write_steps_json(Famid database_id)
     {
         return;
     }
-    timesteps = (char *)malloc(fam->state_qty * 20);
-    i = 0;
-    sprintf(timesteps, "[%1.7g", fam->state_map[i].time);
-    for ( i = 1; i < fam->state_qty; i++ )
-    {
-        strcat(timesteps, ",");
-        time_string[0] = '\0';
-        time = fam->state_map[i].time;
-
-        sprintf(time_string, "%1.7g", time);
-        strcat(timesteps, time_string);
-    }
-    strcat(timesteps, "]");
-
-    json_object_dotset_value(root_object, "States.times", json_parse_string(timesteps));
+    
     free(timesteps);
 }
 
@@ -1322,6 +1361,7 @@ static int write_database_metadata_json(Famid database_id, JSON_Object *root_obj
     }
 
     json_object_set_number(root_object, "Domains", numProcessors);
+    json_object_dotset_number(root_object, "Domain_files.count", numProcessors);
 
     // Write the mesh dimensions
     json_object_set_number(root_object, "Dimensions", fam->dimensions);
@@ -1440,6 +1480,7 @@ Return_value write_mili_metadata(Famid database_id, int global)
     serialized_string = json_serialize_to_string_pretty(root_value);
 
     fprintf(OUTFILE, "%s\n", serialized_string);
+    
     // Time to clean up
     fclose(OUTFILE);
     free(serialized_string);
@@ -1463,7 +1504,10 @@ Return_value write_mili_metadata(Famid database_id, int global)
     {
         free(elementSets[i].integrationPoints);
     }
-    free(elementSets);
+    if(elementSetCount>0)
+    {
+        free(elementSets);
+    }
     return rval;
 }
 
@@ -1562,10 +1606,7 @@ int mc_update_visit_file(Famid database_id)
     }
 
     fam = fam_list[database_id];
-    if ( database_id == 0 )
-    {
-        rval = OK;
-    }
+    
     if ( !fam->visit_file_on )
     {
         return OK;
@@ -1961,7 +2002,7 @@ int mc_write_global_metadata(Famid database_id)
             continue;
         }
 
-        sprintf(database_name, "%s%0*d.mili", base_name, num_length, i);
+        sprintf(database_name, "%s%d", domain_path,i);
         sprintf(domain_path, "%s%d", domain_base, i);
 
         sprintf(base_name_without_path, "%s%0*d.mili", start_pos, num_length, i);
