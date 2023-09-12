@@ -166,22 +166,27 @@ int write_multi_processor_files(int padding)
     char temp_name[512];
     int name_length;
     int status = OK;
-    Famid famid, *ids;
+    Famid famid, zero_id;
     a_file_count = scandir(directory, &namelist, (void *)file_select, alphasort);
-    ids = calloc(sizeof(int), a_file_count);
     // Run over each named file discovered by scandir function
     for ( i = 0; i < a_file_count; i++ )
     {
         name_length = strlen(namelist[i]->d_name) - 1;
         strncpy(temp_name, namelist[i]->d_name, name_length);
         temp_name[name_length] = '\0';
-        status = processSingleFile(temp_name, 0, &famid);
+        if(i == 0)
+        {
+            status = processSingleFile(temp_name, 0, &zero_id);
+        }else
+        {
+            status = processSingleFile(temp_name, 1, &famid);
+        }
+        
         if ( status != OK )
         {
             fprintf(stderr, "Error processing file %s.\n", temp_name);
             return status;
-        }
-        ids[i] = famid;
+        }        
     }
     // We any file to write the global information
     // status = mc_open(temp_name,directory,"Ar",&famid);
@@ -191,33 +196,24 @@ int write_multi_processor_files(int padding)
         return status;
     }
 
-    status = mc_activate_visit_file(ids[0], 1);
+    status = mc_activate_visit_file(zero_id, 1);
     if ( status != OK )
     {
         mc_print_error("Could not activate visit file writing.\n", status);
         return status;
     }
 
-    status = mc_write_global_metadata(ids[0]);
+    status = mc_write_global_metadata(zero_id);
     if ( status != OK )
     {
         mc_print_error("Failed to write globalfile for plotfile.\n", status);
         return status;
     }
-    for ( i = 0; i < a_file_count; i++ )
-    {
-        status = mc_close(ids[i]);
-        if ( status != OK )
-        {
-            mc_print_error("mc_close to single files in global write.\n", status);
-            return status;
-        }
-    }
-    // status = mc_close(famid);
+    status = mc_close(zero_id);
+    
     if ( status != OK )
     {
         mc_print_error("mc_close to close in global write.\n", status);
-        return status;
     }
     return status;
 }

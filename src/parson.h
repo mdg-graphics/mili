@@ -146,6 +146,8 @@ extern "C"
     JSON_Status json_object_set_number(JSON_Object *object, const char *name, double number);
     JSON_Status json_object_set_boolean(JSON_Object *object, const char *name, int boolean);
     JSON_Status json_object_set_null(JSON_Object *object, const char *name);
+    JSON_Status json_object_set_string_at(JSON_Object *object, const char *name, const char *string, int);
+    
 
     /* Works like dotget functions, but creates whole hierarchy if necessary.
      * json_object_dotset_value does not copy passed value so it shouldn't be freed afterwards. */
