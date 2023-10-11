@@ -2002,7 +2002,7 @@ int mc_write_global_metadata(Famid database_id)
             continue;
         }
 
-        sprintf(database_name, "%s%d", domain_path,i);
+        sprintf(database_name, "%s%0*d.mili", base_name,num_length,i);
         sprintf(domain_path, "%s%d", domain_base, i);
 
         sprintf(base_name_without_path, "%s%0*d.mili", start_pos, num_length, i);
