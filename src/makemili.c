@@ -1362,7 +1362,7 @@ static int write_database_metadata_json(Famid database_id, JSON_Object *root_obj
 
     json_object_set_number(root_object, "Domains", numProcessors);
     json_object_dotset_number(root_object, "Domain_files.count", numProcessors);
-
+    
     // Write the mesh dimensions
     json_object_set_number(root_object, "Dimensions", fam->dimensions);
 
@@ -1985,7 +1985,8 @@ int mc_write_global_metadata(Famid database_id)
 
     file_id = get_processor_id(fam->root, &num_length);
 
-    strncpy(base_name, fam->root, strlen(fam->root) - num_length);
+    strcpy(base_name, fam->root);
+    base_name[strlen(base_name) - num_length] = '\0';
 
     files_processed[file_id] = 1;
     char *start_pos = strrchr(base_name, '/') + 1;

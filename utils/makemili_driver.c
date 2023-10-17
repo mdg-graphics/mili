@@ -167,6 +167,7 @@ int write_multi_processor_files(int padding)
     int name_length;
     int status = OK;
     Famid famid, zero_id;
+    temp_name[0] = '\0';
     a_file_count = scandir(directory, &namelist, (void *)file_select, alphasort);
     // Run over each named file discovered by scandir function
     for ( i = 0; i < a_file_count; i++ )
