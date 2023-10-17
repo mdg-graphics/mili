@@ -4,9 +4,13 @@ workflow:
       when: always
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TITLE =~ /^(\[Draft\]|\(Draft\)|Draft:)/
       when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TITLE =~ /^(\[Doc\]|\(Doc\)|Doc:)/
+      when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
-    - when: always
+    - if: $CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE != "merge_request_event"
+      when: always  # Runs tests when changes are committed to master
+    - when: never
 
 stages:
   - test
@@ -29,7 +33,7 @@ variables:
   variables:
     BUILD_SPEC: ${SYS_TYPE}-${COMPILER_SPEC}
   script:
-    - configure.py -hc host-configs/toss_3_x86_64_ib-intel@2021.4.cmake -bt RelWithDebInfo
+    - configure.py
     - cd build-${BUILD_SPEC}-relwithdebinfo
     - make -j
     - cd -
@@ -43,27 +47,27 @@ variables:
     - num_xmilics_failed=$( grep -c -e failed -e "did not run correctly" test_xmilics.out ) || true
     - num_failed=$(( $num_mili_failed + $num_xmilics_failed ))
     
-.toss3:
+.toss4:
   variables:
-    SYS_TYPE: toss_3_x86_64_ib
+    SYS_TYPE: toss_4_x86_64_ib
 
-.toss3-intel:
-  extends: .toss3
+.toss4-intel:
+  extends: .toss4
   variables:
-    COMPILER_SPEC: intel@2021.4
+    COMPILER_SPEC: intel_classic@2021.6.0
   before_script:
     - module load cmake/3.23.1
-    - module load intel/2021.4
-    - module load python/3.7.2
+    - module load intel-classic/2021.6.0
+    - module load python/3.9.12
 
-toss3_intel_slurm_mili:
+toss4_intel_slurm_mili:
   stage: test
   tags:
-    - rzgenie
+    - rzwhippet
     - slurm
     - batch
   extends:
-    - .toss3-intel
+    - .toss4-intel
     - .slurm-defaults
     - .slurm
     - .build-mili-xmilics
