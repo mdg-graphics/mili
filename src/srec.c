@@ -4245,7 +4245,14 @@ static Return_value truncate_family(Mili_family *p_fam, int st_index)
             else
             {
                 p_fam->state_qty = st_index;
-                p_fam->file_st_qty = ((p_fam->state_map[st_index - 1].offset) / (p_fam->srecs[0]->size + 8)) + 1;
+                int file_st_idx = st_index;
+                int file_st_cnt = 0;
+                while( p_fam->state_map[ file_st_idx - 1 ].file == p_fam->state_map[ st_index - 1 ].file )
+                {
+                    file_st_cnt += 1;
+                    file_st_idx -= 1;
+                }
+                p_fam->file_st_qty = file_st_cnt;
                 p_fam->file_map[p_fam->state_map[st_index - 1].file].state_qty = p_fam->file_st_qty;
             }
         }
