@@ -3624,7 +3624,8 @@ Return_value mc_end_state(Famid fam_id, int srec_id)
 
     fam = fam_list[fam_id];
 
-    if ( srec_id < 0 || srec_id >= fam->qty_srecs )
+    // srec_id can't be negative, and can't be greater or equal to the number of srecs (unless both are 0).
+    if ( srec_id < 0 || srec_id > fam->qty_srecs || ( srec_id == fam->qty_srecs && fam->qty_srecs != 0 ) )
     {
         return INVALID_SREC_INDEX;
     }
@@ -3637,7 +3638,7 @@ Return_value mc_end_state(Famid fam_id, int srec_id)
         }
         fseek(fam->cur_st_file, 0, SEEK_END);
     }
-    
+
     /* Add a new entry in the state map. */
     state_qty = fam->state_qty;
     if ( fam->char_header[DIR_VERSION_IDX] > 1 )
@@ -3654,15 +3655,22 @@ Return_value mc_end_state(Famid fam_id, int srec_id)
         fam->state_closed = 1;
         mc_update_visit_file(fam_id);
     }
-    
+
     position = ftell(fam->cur_st_file);
-    target = fam->state_map[fam->state_qty - 1].offset + fam->srecs[0]->size + sizeof(int) * 2;
+    if ( fam->qty_srecs != 0 )
+    {
+        target = fam->state_map[fam->state_qty - 1].offset + fam->srecs[0]->size + sizeof(int) * 2;
+    }
+    else // this database has no srecs
+    {
+        target = fam->state_map[fam->state_qty - 1].offset + sizeof(int) * 2;
+    }
 
     if ( position != target )
     {
         return position < target ? INVALID_SR_OFFSET_UNDER : INVALID_SR_OFFSET_OVER;
     }
-    
+
     return rval;
 }
 /*****************************************************************
@@ -3685,7 +3693,8 @@ Return_value mc_new_state(Famid fam_id, int srec_id, float time, int *p_file_suf
 
     fam = fam_list[fam_id];
 
-    if ( srec_id < 0 || srec_id >= fam->qty_srecs )
+    // srec_id can't be negative, and can't be greater or equal to the number of srecs (unless both are 0).
+    if ( srec_id < 0 || srec_id > fam->qty_srecs || ( srec_id == fam->qty_srecs && fam->qty_srecs != 0 ) )
     {
         return INVALID_SREC_INDEX;
     }
