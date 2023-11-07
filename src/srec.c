@@ -4247,7 +4247,7 @@ static Return_value truncate_family(Mili_family *p_fam, int st_index)
                 p_fam->state_qty = st_index;
                 int file_st_idx = st_index;
                 int file_st_cnt = 0;
-                while( p_fam->state_map[ file_st_idx - 1 ].file == p_fam->state_map[ st_index - 1 ].file )
+                while( file_st_idx > 0 && p_fam->state_map[ file_st_idx - 1 ].file == p_fam->state_map[ st_index - 1 ].file )
                 {
                     file_st_cnt += 1;
                     file_st_idx -= 1;
