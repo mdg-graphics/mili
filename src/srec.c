@@ -3450,7 +3450,7 @@ Return_value load_static_maps(Mili_family *fam, Bool_type initial_build)
         fclose(fp);
         fam->time_state_file = NULL;
     }
-    if ( state_count > 0 )
+    if ( state_count > 0 && fam->access_mode != 'r')
     {
         rval = state_file_open(fam, fam->st_file_count - 1, fam->access_mode);
         if ( rval != OK )
