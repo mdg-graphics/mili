@@ -8,8 +8,8 @@ workflow:
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
-    - if: $CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE != "merge_request_event"
-      when: always  # Runs tests when changes are committed to master
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE != "merge_request_event"
+      when: always  # Runs tests when changes are committed to main
     - when: never
 
 stages:
@@ -18,10 +18,10 @@ stages:
 variables:
   GIT_SUBMODULE_STRATEGY: normal
 
-.slurm-defaults:
+.slurm-toss-4:
   variables:
     NNODES: 1
-    NPROCS: 16
+    NPROCS: 56
     QUEUE: pdebug
     INTEG_WALL_TIME: 5
 
@@ -41,17 +41,17 @@ variables:
 .run-tests:
   script:
     - cd test/
-    - mdgtest/Test.py -e mililib_env -c ../build-${BUILD_SPEC}-relwithdebinfo/lib -I ../build-${BUILD_SPEC}-relwithdebinfo/include -n1 -p1 -s all > test_mili.out
+    - mdgtest/Test.py -e mili_test_definitions -c ../build-${BUILD_SPEC}-relwithdebinfo/lib -I ../build-${BUILD_SPEC}-relwithdebinfo/include -n1 -p1 -s all > test_mili.out
     - num_mili_failed=$( grep -c -e failed -e "did not run correctly" test_mili.out ) || true
-    - mdgtest/Test.py -e xmilics_env -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -n1 -p1 -s all > test_xmilics.out
+    - mdgtest/Test.py -e xmilics_test_definitions -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -n1 -p1 -s all > test_xmilics.out
     - num_xmilics_failed=$( grep -c -e failed -e "did not run correctly" test_xmilics.out ) || true
     - num_failed=$(( $num_mili_failed + $num_xmilics_failed ))
-    
+
 .toss4:
   variables:
     SYS_TYPE: toss_4_x86_64_ib
 
-.toss4-intel:
+.toss4-intel-classic:
   extends: .toss4
   variables:
     COMPILER_SPEC: intel_classic@2021.6.0
@@ -60,15 +60,15 @@ variables:
     - module load intel-classic/2021.6.0
     - module load python/3.9.12
 
-toss4_intel_slurm_mili:
+toss4_intel_classic_slurm_mili:
   stage: test
   tags:
     - rzwhippet
     - slurm
     - batch
   extends:
-    - .toss4-intel
-    - .slurm-defaults
+    - .toss4-intel-classic
+    - .slurm-toss-4
     - .slurm
     - .build-mili-xmilics
   script:
