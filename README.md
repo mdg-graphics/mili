@@ -116,6 +116,78 @@ mdgtest/Test.py -e mililib_env -c <path-to-code> -I <include-dir> -n1 -p1 -q -s 
 mdgtest/Test.py -e xmilics_env -c <path-to-code> -n1 -p1 -q -s all
 ```
 
+## Deployment on OCF (**LLNL Specific**)
+
+To do deploy Mili on the OCF perform the following steps
+
+### 1. Update Version
+
+In the directory `mili`, edit the top level `CMakeLists.txt` and change the following
+
+- If we are changing the version, change appropriately
+```
+# Build version
+set( major_version 23 )
+set( minor_version 02 )
+set( patch_version 03 )
+string( CONCAT PACKAGE_VERSION "${major_version}_${minor_version}_${patch_version}" )
+```
+
+### 2. Configure and Build
+
+Build the release version of Mili:
+
+```
+configure.py -bt Release
+cd <build-directory>
+make -j
+```
+
+This will build:
+- The Mili library files in the directory `<build-dir>/lib`
+- The Mili include files in `<build-dir>/include`
+- Xmilics and other tools in `<build-dir>/bin`
+
+### 3. Give files to mdgadmin
+
+```
+give mdgadmin lib/libmili.a lib/libtaurus.a lib/libeprtf.a
+```
+
+### 4. Login as mdgadmin
+
+```
+xsu mdgadmin
+```
+
+### If creating a NEW version
+
+If this is a new version then we need to create a new directory. Follow the steps below:
+
+5. `cd /collab/usr/apps/mdg/archive/milidir`
+6. `cp -p -r [Last Version Directory name (i.e V16_01)] [New version name]`
+7. `rm lib.alpha`
+8. `ln -sf [New version name] lib.alpha`
+9. `cd lib.alpha/lib`
+10. `take -f <your username>`
+11. `chmod g+rx libeprtf.a libmili.a libtaurus.a`
+
+### NOT a new version
+
+5. `cd /collab/usr/apps/mdg/archive/milidir/[lib.alpha|lib.production|V23_02]/lib`
+6. `mkdir mili-MM.DD.YYYY` (MM.DD.YYYY should be date of version being moved)
+7. `mv libmili.a libtaurus.a lib eprtf.a mili-MM.DD.YYYY/`
+8. `take -f <your username>`
+9. `chmod g+rx libeprtf.a libmili.a libtaurus.a`
+
+### Install new include files
+
+Any new include files should be added in the directory `/collab/usr/apps/mdg/archive/milidir/<version-dir>/include`.
+
+### Installing Xmilics
+
+Similar steps can be followed to install new version of Xmilics or makemili in `/collab/usr/apps/mdg/archive/militools`.
+
 ### Licences
 
 SPDX-License-Identifier: LGPL-2.1-or-later
