@@ -108,12 +108,12 @@ You can now run the test suite as shown below:
 
 ### Mili Library
 ```
-mdgtest/Test.py -e mililib_env -c <path-to-code> -I <include-dir> -n1 -p1 -q -s all
+mdgtest/Test.py -e mili_test_definitions -c <path-to-code> -I <include-dir> -n1 -p1 -q -s all
 ```
 
 ### Xmilics
 ```
-mdgtest/Test.py -e xmilics_env -c <path-to-code> -n1 -p1 -q -s all
+mdgtest/Test.py -e xmilics_test_definitions -c <path-to-code> -n1 -p1 -q -s all
 ```
 
 ## Deployment on OCF (**LLNL Specific**)
