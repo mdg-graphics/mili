@@ -150,4 +150,6 @@ static char *sand_db_short[] = {"sand", NULL};
 static char *sand_db_long[] = {"Brick Sand", "Beam Sand", "Shell Sand", "Thick Shell Sand", "Discrete Sand", NULL};
 static int types[] = {M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT, M_FLOAT};
 
+int taurus_open(char *root_name, char *path, char *mode, Famid *fam_id);
+
 #endif /* TAURUS_DB_H */

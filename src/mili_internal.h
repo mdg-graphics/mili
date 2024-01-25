@@ -651,6 +651,7 @@ void delete_meshes(Mili_family *fam);
 void delete_mo_data(void *ptr_mo_data);
 Return_value insert_range(Block_list *p_bl, int start, int stop);
 Return_value get_class_qty(Mili_family *fam, int *modifiers, int *class_qty);
+void get_elem_conn_classes_names(Mili_family *fam, int mesh_id, int *count, char ***out_names);
 int count_elem_conn_defs(Mili_family *fam, int mesh_id, char *class_name);
 Return_value get_elem_qty_in_def(Mili_family *fam, int *int_args, char *class_name, int *elem_qty);
 int count_node_entries(Mili_family *fam, int mesh_id, char *class_name);

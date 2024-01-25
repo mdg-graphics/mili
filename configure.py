@@ -8,13 +8,15 @@ import subprocess
 
 def main( args ):
 
-  sys_type = os.environ.get('SYS_TYPE', 'unknown')
+  sys_type = os.environ.get('SYS_TYPE', 'default')
   print( f"Detected system type: {sys_type}" )
   # Use system information to determine default host-config file
   default_host_config_by_system = {
     "toss_3_x86_64_ib": "host-configs/toss_3_x86_64_ib-intel@2021.4.cmake",
     "toss_4_x86_64_ib": "host-configs/toss_4_x86_64_ib-intel_classic@2021.6.0.cmake",
-    "unknown": None
+    "blueos_3_ppc64le_ib_p9": "host-configs/blueos_3_ppc64le_ib_p9-nvhpc@23.11.cmake",
+    "toss_4_x86_64_ib_cray": "host-configs/toss_4_x86_64_ib_cray-craype@2.7.30.cmake",
+    "default": "host-configs/default_config.cmake"
   }
   host_config_default = default_host_config_by_system[sys_type]
 
@@ -46,11 +48,10 @@ def main( args ):
   hostconfig_filename = os.path.split(args.hostconfig)[1]
   if hostconfig_filename.endswith(".cmake"):
     hostconfig_filename = hostconfig_filename[:-6]
-  compiler_name = hostconfig_filename.split("-")[1]
 
   full_host_config = os.path.realpath( args.hostconfig )
 
-  install_dir_format = [ "install", sys_type, compiler_name, args.buildtype.lower() ]
+  install_dir_format = [ "install", hostconfig_filename, args.buildtype.lower() ]
   if args.install_dir == None:
     install_dir = "-".join( install_dir_format )
   else:
@@ -61,7 +62,7 @@ def main( args ):
     shutil.rmtree( install_dir )
   os.makedirs( install_dir )
 
-  config_dir_list = [ "build", sys_type, compiler_name, args.buildtype.lower() ]
+  config_dir_list = [ "build", hostconfig_filename, args.buildtype.lower() ]
   config_dir = "-".join( config_dir_list )
 
   config_dir = os.path.abspath( config_dir )

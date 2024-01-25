@@ -42,14 +42,14 @@ static Return_value (*dump_funcs[QTY_DIR_ENTRY_TYPES])() = {
  * Dynamically allocated array of pointers to all currently open
  * MILI families.
  */
-Mili_family **fam_list;
+extern Mili_family **fam_list;
 
 /*****************************************************************
  * TAG( fam_qty )
  *
  * The actual number of all currently open MILI families.
  */
-int fam_qty;
+extern int fam_qty;
 
 /*****************************************************************
  * TAG( Level ) LOCAL
@@ -84,7 +84,7 @@ static int indents[LEVEL_QTY] = {0, 4, 8, 12, 16, 20, 24, 28, 32, 36};
  * Open a Mili file family for read access and dump its contents
  * to standard output.
  */
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     Mili_family *fam;
     int fam_id;
@@ -289,7 +289,7 @@ main(int argc, char *argv[])
 
     cleanse(fam);
 
-    exit(0);
+    return 0;
 }
 
 /*****************************************************************
