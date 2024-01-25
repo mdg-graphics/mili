@@ -5,7 +5,7 @@ set( MILI_INSTALL_BINDIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "" )
 set( MILI_INSTALL_INCLUDEDIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "" )
 set( MILI_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE PATH "" )
 
-project( MILI LANGUAGES Fortran C CXX )
+project( MILI LANGUAGES Fortran C )
 
 set( CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH} )
 
@@ -38,16 +38,16 @@ include( cmake/blt/SetupBLT.cmake )
 set( CMAKE_POSITION_INDEPENDENT_CODE )
 
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
-    set( CMAKE_C_FLAGS_DEBUG " -g -diag-disable=266" )
+    set( CMAKE_C_FLAGS_DEBUG " -g" )
     set( CMAKE_Fortran_FLAGS_DEBUG " -g" )
 elseif (CMAKE_BUILD_TYPE STREQUAL Release)
-    set( CMAKE_C_FLAGS_RELEASE " -O3 -diag-disable=266" )
+    set( CMAKE_C_FLAGS_RELEASE " -O3" )
     set( CMAKE_Fortran_FLAGS_RELEASE " -O3" )
 elseif (CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
-    set( CMAKE_C_FLAGS_RELWITHDEBINFO " -g -O3 -diag-disable=266" )
+    set( CMAKE_C_FLAGS_RELWITHDEBINFO " -g -O3" )
     set( CMAKE_Fortran_FLAGS_RELWITHDEBINFO " -g -O3" )
 elseif (CMAKE_BUILD_TYPE STREQUAL RelCleanup)
-    set( CMAKE_C_FLAGS_RELCLEANUP " -g -O3 -Wunused-variable -Wunused-function -diag-disable=266" )
+    set( CMAKE_C_FLAGS_RELCLEANUP " -g -O3 -Wunused-variable -Wunused-function" )
     set( CMAKE_Fortran_FLAGS_RELCLEANUP " -g -O3" )
 endif()
 
@@ -141,7 +141,7 @@ set( COMPILE_CMD "${CMAKE_C_COMPILER}" )
 foreach( def ${mili_compile_definitions} )
     set( COMPILE_CMD "${COMPILE_CMD} -D${def}")
 endforeach()
-set( COMPILE_CMD "${COMPILE_CMD} ${CMAKE_C_FLAGS_${CMAKE_UPPER_BUILD_TYPE}}" )
+set( COMPILE_CMD "${COMPILE_CMD} ${CMAKE_C_FLAGS_${CMAKE_UPPER_BUILD_TYPE}} ${ADDITIONAL_C_COMPILE_FLAGS}" )
 set( LINK_CMD " " )
 
 ##------------------------------------------------------------------------------

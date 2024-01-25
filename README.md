@@ -60,7 +60,7 @@ git config --global submodule.recurse true
 
 ## Configuration
 
-Mili's BLT/Cmake-based build system is largely modeled after Diablo's build system, providing a `configure.py` script to automate the configuration and setup of build and install directories based upon an input host-config file. A handful of example host-config files are provided for reference, consistent with the standard build options used by Mili on TOSS3 and TOSS4 machines.
+Mili's BLT/Cmake-based build system is largely modeled after Diablo's build system, providing a `configure.py` script to automate the configuration and setup of build and install directories based upon an input host-config file. A handful of example host-config files are provided for reference, consistent with the standard build options used by Mili on various machines.
 
 Mili requires CMake version 3.18 or later. On LLNL machines, the user's local version of CMake can be updated using the module load command, e.g.:
 ```
@@ -83,6 +83,24 @@ The `<build_type>` can be any one of the following:
 |RelWithDebInfo |`-g -O3`      |
 
 The default build type is currently set to `RelWithDebInfo`.
+
+It is also possible to run just the command `configure.py` without a specified host-config file. The configure script has various default host-config files for specific LLNL systems.
+
+### Non LLNL Builds
+
+If you are building Mili on a non LLNL machine then the host config files will likely not work for you. When the `configure.py` script is unable to find a host-config it uses `host-configs/default_config.cmake`. This host config uses the following methods to find the C and Fortran compilers it uses:
+
+1. If the environment variables `CC` or `FC` are set, use them.
+2. If the CMake variables `CC` or `FC` are set, use them.
+3. Use whatever C and Fortran compilers CMake finds.
+
+The following are a few examples of building with the default host config file:
+
+- `CC=icc FC=ifort configure.py -hc host-configs/default_config.cmake`
+- `CC=gcc FC=ifort configure.py` (If you are on a non LLNL system, you don't need to specify the host config)
+- `configure.py -DCC=icc -DFC=ifort`
+
+If you would like to create your own host-config file instead, an example is provided at `host-configs/example_host_config.cmake`. You will just need to set the paths to the C and Fortran compilers.
 
 ## Style/Formatting
 

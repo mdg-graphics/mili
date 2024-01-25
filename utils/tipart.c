@@ -27,7 +27,7 @@ static void create_mili_filename(int nproc, int procnum, char *mili_file_by_proc
 
 static char mili_file[128];
 
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int i;
     int matid = 0, meshid = 1;
@@ -262,7 +262,7 @@ main(int argc, char *argv[])
 
 #endif
 
-    exit(1);
+    return 0;
 }
 
 /*****************************************************************

@@ -1,9 +1,9 @@
 #------------------------------------------------------------------------------
-# Host-config file for the TOSS 4 machines at LLNL
+# Host-config file for the blueos 3 machines at LLNL
 #------------------------------------------------------------------------------
 #
 # This file provides CMake with paths / details for:
-#  C/Fortran:   Intel classic 2021.6.0
+#  C/Fortran:   NVHPC 23.11
 #
 #------------------------------------------------------------------------------
 
@@ -11,10 +11,10 @@
 # Compilers
 #---------------------------------------
 
-set( MILI_SYS_TYPE toss_4_x86_64_ib CACHE STRING "" )
-set( MILI_COMPILER_FAMILY intel-classic  CACHE STRING "" )
+set( MILI_SYS_TYPE blueos_3_ppc64le_ib_p9 CACHE STRING "" )
+set( MILI_COMPILER_FAMILY nvhpc  CACHE STRING "" )
 
-set( MILI_COMPILER_VERSION 2021.6.0 )
+set( MILI_COMPILER_VERSION 23.11 )
 
 set( MILI_COMPILER_NAME ${MILI_COMPILER_FAMILY}-${MILI_COMPILER_VERSION} CACHE STRING "" )
 
@@ -28,8 +28,8 @@ endif( )
 
 set( MILI_COMPILER_PREFIX "/usr/tce/packages/${MILI_COMPILER_FAMILY}/${MILI_COMPILER_NAME}/bin" CACHE PATH "" )
 
-set( CMAKE_C_COMPILER "${MILI_COMPILER_PREFIX}/icc" CACHE PATH "" )
-set( CMAKE_Fortran_COMPILER "${MILI_COMPILER_PREFIX}/ifort" CACHE PATH "" )
+set( CMAKE_C_COMPILER "${MILI_COMPILER_PREFIX}/nvc" CACHE PATH "" )
+set( CMAKE_Fortran_COMPILER "${MILI_COMPILER_PREFIX}/nvfortran" CACHE PATH "" )
 
 set( ENABLE_MILI TRUE CACHE BOOL "Turn on/off building of Mili Library" )
 set( ENABLE_TAURUS TRUE CACHE BOOL "Turn on/off building of Taurus Library" )

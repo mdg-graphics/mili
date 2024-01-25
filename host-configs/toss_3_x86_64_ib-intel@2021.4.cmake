@@ -3,8 +3,8 @@
 #------------------------------------------------------------------------------
 #
 # This file provides CMake with paths / details for:
-#  C/C++/Fortran:   Intel 2021.4
-# 
+#  C/Fortran:   Intel 2021.4
+#
 #------------------------------------------------------------------------------
 
 #---------------------------------------
@@ -17,7 +17,6 @@ set( MILI_COMPILER_FAMILY intel  CACHE STRING "" )
 set( MILI_COMPILER_VERSION 2021.4 )
 
 set( MILI_COMPILER_NAME ${MILI_COMPILER_FAMILY}-${MILI_COMPILER_VERSION} CACHE STRING "" )
-set( MILI_PREFER_STATIC TRUE CACHE BOOL "" )
 
 if( DEFINED ENV{SYS_TYPE} )
   set( ENV_SYS_TYPE $ENV{SYS_TYPE} )
@@ -30,14 +29,13 @@ endif( )
 set( MILI_COMPILER_PREFIX "/usr/tce/packages/${MILI_COMPILER_FAMILY}/${MILI_COMPILER_NAME}/bin" CACHE PATH "" )
 
 set( CMAKE_C_COMPILER "${MILI_COMPILER_PREFIX}/icc" CACHE PATH "" )
-set( CMAKE_CXX_COMPILER "${MILI_COMPILER_PREFIX}/icpc" CACHE PATH "" )
 set( CMAKE_Fortran_COMPILER "${MILI_COMPILER_PREFIX}/ifort" CACHE PATH "" )
 
-set( ENABLE_MILI TRUE CACHE BOOL "" )
-set( ENABLE_TAURUS TRUE CACHE BOOL "" )
-set( ENABLE_EPRINTF TRUE CACHE BOOL "" )
-set( ENABLE_XMILICS TRUE CACHE BOOL "" )
-set( ENABLE_UTILITIES TRUE CACHE BOOL "" )
+set( ENABLE_MILI TRUE CACHE BOOL "Turn on/off building of Mili Library" )
+set( ENABLE_TAURUS TRUE CACHE BOOL "Turn on/off building of Taurus Library" )
+set( ENABLE_EPRINTF TRUE CACHE BOOL "Turn on/off building of Extended printf Library" )
+set( ENABLE_XMILICS TRUE CACHE BOOL "Turn on/off building of Xmilics" )
+set( ENABLE_UTILITIES TRUE CACHE BOOL "Turn on/off building of Mili Utilities (md, tipart, MiliReader, ti_strings, makemili_driver)" )
 
 # Path to clang for Clang Format
 set( CLANG_TOOLS_PREFIX "/usr/tce/packages/clang/clang-13.0.0" CACHE PATH "" )

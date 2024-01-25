@@ -11,6 +11,7 @@
  * Copyright (c) 1997 Regents of the University of California
  */
 #include <stdlib.h>
+#include "taurus_db.h"
 #include "driver.h"
 
 /************************************************************

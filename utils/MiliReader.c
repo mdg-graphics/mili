@@ -46,7 +46,7 @@ static int result_class_set = FALSE, result_var_set = FALSE;
 static int start_state = 1, stop_state = 1, single_state = 1;
 static int max_states_per_file = 1000000;
 
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int i, j, k, l;
     int dbid = 0;
@@ -622,7 +622,7 @@ main(int argc, char *argv[])
 
     printf("\n\n");
 
-    exit(OK);
+    return OK;
 }
 
 /************************************************************
