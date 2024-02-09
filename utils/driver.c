@@ -40,42 +40,137 @@ extern Return_value merge_state_data(int proc, TILabels *in_labels, Mili_analysi
 
 Bool_type xmilics_labels_found = FALSE;
 
-/************************************************************
- * TAG( delete_labels )
+/*****************************************************************
+ * TAG( pf_name )
  *
- */
-void delete_labels(TILabels *labels)
+ * Get the plot file name for the given file number.
+ *
+ *****************************************************************/
+static void pf_name(char *root_name, int fnum, char *fname)
 {
-    if ( labels->subrec_contributions != NULL )
+    if ( env.pad == 0 )
     {
-        free(labels->subrec_contributions);
+        fname[0] = '\0';
     }
-    Label *iter, *temp;
-    iter = labels->labels;
-    while ( iter != NULL )
+    else
     {
-        if ( iter->num_per_processors != NULL )
-        {
-            free(iter->num_per_processors);
-        }
-        if ( iter->offset_per_processor != NULL )
-        {
-            free(iter->offset_per_processor);
-        }
-        if ( iter->labels != NULL )
-        {
-            free(iter->labels);
-        }
-        if ( iter->map != NULL )
-        {
-            free(iter->map);
-        }
-        temp = iter->next;
-        free(iter);
-        iter = temp;
+        sprintf(fname, "%s%0*d", root_name, env.pad, fnum);
     }
+    return;
 }
 
+/************************************************************
+ * TAG( usage )
+ *
+ * Write out command-line syntax.
+ */
+static void usage(void)
+{
+    printf("\n");
+    printf("Usage: \n");
+    printf("  xmilics -i <input_base_name> [-o <output_base_name>]\n\n");
+    printf("  ###    Read serial Taurus or parallel Mili database, ###\n");
+    printf("  ###    Write serial Mili database                    ###\n");
+    printf("\n");
+    printf("OPTIONS:\n\n");
+    printf("  [-o]  <output file name>\n");
+    printf("  ###   Create output file using this name.           ###\n");
+    printf("  ###   default output file name: {input_base_name}_c ###\n\n");
+    printf("\n");
+    /*
+    printf("  ****deprecated as of version 10.1 ***\n");
+    printf("  [-c]  <input_partition_file_name>\n");
+    printf("  ###    Use specified partition file to combine  ###\n");
+    printf("  ###    plot files. Disables using the TI files  ###\n");
+    printf("  ###    Write Mili database                      ###\n");
+    printf("  ****deprecated as of version 10.1 ***\n");
+    printf("\n");
+    */
+    printf("  [-l]  <file size in megabytes>\n");
+    printf("  ###    Limit file size of combined database     ###\n");
+    printf("\n");
+    printf("  [-s]  <number of states per file>\n");
+    printf("  ###    Limit number of states per file in       ###\n");
+    printf("  ###    combined database                        ###\n");
+    printf("  ###    NOTE:  the -s option will override       ###\n");
+    printf("  ###    the -l option                            ###\n");
+    printf("\n");
+    printf("  [-start]  <state to begin at>\n");
+    printf("  ###    Limit states per file with non-zero      ###\n");
+    printf("  ###    starting state. When appending this is   ###\n");
+    printf("  ###    set to the last time of output file if   ###\n");
+    printf("  ###    starting state is less than the end      ###\n");
+    printf("  ###    state of the output database.            ###\n");
+    printf("\n");
+    printf("  [-stop]  <state to end at>\n");
+    printf("  ###    Limit states per file with an ending     ###\n");
+    printf("  ###    states. This is ignored if less the last  ###\n");
+    printf("  ###    time in the output file when appending   ###\n");
+    printf("\n");
+    printf("  [-proc] <processor list to combine>\n");
+    printf("  ###       Single Processor Format = -proc 10 \n");
+    printf("  ###       OR Tuple Format (NO SPACES!) = -proc 1-5,10 n\n");
+    printf("\n");
+    printf("  [-pstart]  <processor to begin at>\n");
+    printf("  ###    Limit procs per file with non-zero       ###\n");
+    printf("  ###    starting proc.                           ###\n");
+    printf("\n");
+    printf("  [-pstop]  <processor to end at>\n");
+    printf("  ###    Limit  procs per file with an ending     ###\n");
+    printf("  ###    proc.                                    ###\n");
+    printf("\n");
+    printf("  [-wait] <minutes to wait>\n");
+    printf("  ###    Wait for the files to be written.        ###\n");
+    printf("  ###    default is 30 minutes.                   ###\n");
+    printf("\n");
+    printf("  [-pt] <check file wait time in seconds>\n");
+    printf("  ###    Value te pass to wait() function.        ###\n");
+    printf("  ###    default is 300 seconds.                  ###\n");
+    printf("\n");
+    printf("  [-restart] \n");
+    printf("  ###    This tell Xmilics that it is awaiting    ###\n");
+    printf("  ###    a restart by paradyn. It will wait the   ###\n");
+    printf("  ###    time specified by the -wait flag.        ###\n");
+    printf("\n");
+#ifdef PROC_MAT_SELECT
+    printf("  [-mat] <material list to combine>\n");
+    printf("  ###       Single Material Format = -mat 10 \n");
+    printf("  ###       OR Tuple Format (NO SPACES!) = -mat 1-5,10 n\n");
+    printf("\n");
+    printf("  [-mstart]  <material to begin at>\n");
+    printf("  ###    Limit mats per file with non-zero       ###\n");
+    printf("  ###    starting mat.                           ###\n");
+    printf("\n");
+    printf("  [-mstop]  <material to end at>\n");
+    printf("  ###    Limit  mats per file with an ending     ###\n");
+    printf("  ###    mat.                                    ###\n");
+    printf("\n");
+#endif
+
+    printf("  [-append]  <state to end at>\n");
+    printf("  ###    Append a timestep to an existing         ###\n");
+    printf("  ###    database. This is overriden if a start   ###\n");
+    printf("  ###    or stop state are defined.               ###\n");
+    printf("\n");
+    printf("  [-batch]\n");
+    printf("  ###    Run in batch mode append to file.        ###\n");
+    printf("\n");
+    printf("  [-batch_overwrite]\n");
+    printf("  ###    Run in batch mode but overwrite the      ###\n");
+    printf("  ###    existing file.                           ###\n");
+    printf("\n");
+    printf("  [-tfile]\n");
+    printf("  ###    output timesteps to a T file             ###\n");
+    printf("  ###    Default is the incoming header version.  ###\n");
+    printf("\n");
+    printf("  [-newfile]\n");
+    printf("  ###    Do not append - create new file          ###\n");
+    printf("  [-seqnum] <n output sequence number to append to output file> \n");
+    printf("  ###  This is used to create unique files for    ###\n");
+    printf("  ###  output when running parallel Xmilics jobs. ###\n");
+    printf("\n");
+    printf("  [-V]   Display build stats (version-info)\n ");
+}
 /************************************************************
  * TAG( parse_procmat_select_list )
  *
@@ -85,7 +180,6 @@ void delete_labels(TILabels *labels)
 Return_value parse_procmat_select_list(char *list_string, Bool_type procmat, int select_len, short *select_list)
 {
     int i, j;
-    int begin, end;
     int len_list_string = 0;
     char num_string[32];
     Bool_type convert_num = FALSE, convert_num_range = FALSE;
@@ -197,6 +291,470 @@ Return_value parse_procmat_select_list(char *list_string, Bool_type procmat, int
     return (NOT_OK);
 }
 
+
+/************************************************************
+ * TAG( scan_args )
+ *
+ * Parse the program's command line arguments.
+ */
+static void scan_args(int argc, char *argv[])
+{
+    int i;
+    int inname_set;
+    int outname_set = 0;
+    time_t time_int;
+    struct tm *tm_struct;
+    char *name;
+    inname_set = FALSE;
+    int start_stop = 0;
+    char seqnum_char[32];
+
+    Return_value rval;
+
+    if ( argc < 2 )
+    {
+        usage();
+        exit(0);
+    }
+
+    /* Set defaults */
+    env.nprocs = 1;
+    env.nmats = 0;
+    env.num_selected_procs = 0;
+    env.num_selected_mats = 0;
+
+    env.combine = FALSE;
+    env.split = FALSE;
+    env.states_per_file = FALSE;
+
+    /* default file size of 10 Mb */
+    env.flsize = 0;
+
+    env.n_states = 1;
+    env.start_state = 0;
+    env.stop_state = 0;
+
+    env.start_proc = 0;
+    env.stop_proc = -1;
+    env.num_selected_procs = 0;
+
+    env.start_mat = -1;
+    env.stop_mat = -1;
+    env.num_selected_mats = 0;
+
+    env.force_partition = FALSE;
+    env.ti_enabled = TRUE;
+    env.append = FALSE;
+    env.newfile = FALSE;
+    env.batch = FALSE;
+    env.proc_seqnum = -1;
+    env.matproc_selected = FALSE;
+    env.wait_time = 30;
+    env.restart = 0;
+    env.write_tfile = 0;
+
+    for ( i = 1; i < argc; i++ )
+    {
+        if ( strcmp(argv[i], "-i") == 0 )
+        {
+            /* Olga's very first bug fix */
+            /* If i >= argc, then Griz just dumps core    */
+            /* User's don't like this and so now we check */
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            strcpy(env.input_file_name, argv[i]);
+            find_pad_count(env.input_file_name);
+            inname_set = TRUE;
+        }
+        else if ( strcmp(argv[i], "-o") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            strcpy(env.output_file_name, argv[i]);
+            outname_set = TRUE;
+        }
+
+        else if ( strcmp(argv[i], "-n") == 0 )
+        {
+            /* This will be deprecated and not needed in the future */
+
+            fprintf(stderr, "The -n option is deprecated and is not needed.");
+            i++;
+
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.nprocs = atoi(argv[i]);
+        }
+
+        else if ( strcmp(argv[i], "-c") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            strcpy(env.partfile_name_c, argv[i]);
+            fprintf(stderr, "\tThe -c option is deprecated as of Version 10.1.\n\tXmilics will ignore -c input.\n");
+            env.combine = FALSE;
+            env.force_partition = FALSE;
+        }
+        else if ( strcmp(argv[i], "-l") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.flsize = atoi(argv[i]);
+        }
+        else if ( strcmp(argv[i], "-s") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.states_per_file = TRUE;
+            env.n_states = atoi(argv[i]);
+        }
+        else if ( strcmp(argv[i], "-start") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.start_state = atoi(argv[i]);
+            if ( env.start_state < 0 )
+            {
+                env.start_state = 1;
+            }
+            start_stop = 1;
+        }
+        else if ( strcmp(argv[i], "-stop") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.stop_state = atoi(argv[i]);
+            if ( env.stop_state < 0 )
+            {
+                env.stop_state = 0;
+            }
+            start_stop = 1;
+        }
+        else if ( strcmp(argv[i], "-proc") == 0 || strcmp(argv[i], "-procs") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.matproc_selected = TRUE;
+            rval = parse_procmat_select_list(argv[i], PROC, MAX_PROC, env.selected_proc_list);
+        }
+        else if ( strcmp(argv[i], "-pstart") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.start_proc = atoi(argv[i]) - 1;
+
+            if ( env.start_proc < 0 )
+            {
+                env.start_proc = 1;
+            }
+        }
+        else if ( strcmp(argv[i], "-pstop") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.stop_proc = atoi(argv[i]) - 1;
+
+            if ( env.stop_proc < 0 )
+            {
+                env.stop_proc = 0;
+            }
+        }
+        else if ( strcmp(argv[i], "-mat") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.matproc_selected = TRUE;
+            rval = parse_procmat_select_list(argv[i], MAT, MAX_MAT, env.selected_mat_list);
+        }
+        else if ( strcmp(argv[i], "-mstart") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.start_mat = atoi(argv[i]) - 1;
+            env.stop_mat = env.start_mat;
+
+            if ( env.start_mat < 0 )
+            {
+                env.start_mat = 1;
+            }
+        }
+        else if ( strcmp(argv[i], "-mstop") == 0 )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.stop_mat = atoi(argv[i]) - 1;
+            env.stop_mat = env.stop_mat;
+
+            if ( env.stop_mat < 0 )
+            {
+                env.stop_mat = 0;
+            }
+        }
+        else if ( (strcmp(argv[i], "-append") == 0) && !start_stop )
+        {
+            i++;
+            if ( i >= argc )
+            {
+                usage();
+                exit(0);
+            }
+            env.stop_state = atoi(argv[i]);
+            if ( env.stop_state < 0 )
+            {
+                env.stop_state = 0;
+            }
+            env.start_state = env.stop_state;
+        }
+        else if ( strcmp(argv[i], "-tfile") == 0 )
+        {
+            /* Enable batch mode */
+            env.write_tfile = TRUE;
+        }
+        else if ( strcmp(argv[i], "-batch_overwrite") == 0 )
+        {
+            /* Enable batch mode */
+            env.batch_overwrite = TRUE;
+        }
+        else if ( strcmp(argv[i], "-batch") == 0 )
+        {
+            /* Enable batch mode */
+            env.batch = TRUE;
+        }
+        else if ( strcmp(argv[i], "-wait") == 0 )
+        {
+            /* Enable batch mode */
+            env.wait = TRUE;
+            if ( i < argc - 1 && argv[i + 1][0] != '-' )
+            {
+                i++;
+                env.wait_time = atoi(argv[i]);
+            }
+        }
+        else if ( strcmp(argv[i], "-pt") == 0 )
+        {
+            /* Enable batch mode */
+            env.wait = TRUE;
+            if ( i < argc - 1 && argv[i + 1][0] != '-' )
+            {
+                i++;
+                wait_time = atoi(argv[i]);
+            }
+        }
+        else if ( strcmp(argv[i], "-restart") == 0 )
+        {
+            /* Enable restart ode */
+            env.restart = TRUE;
+        }
+        else if ( strcmp(argv[i], "-newfile") == 0 )
+        {
+            env.newfile = TRUE;
+        }
+        else if ( strcmp(argv[i], "-seqnum") == 0 )
+        {
+            i++;
+            env.proc_seqnum = atoi(argv[i]);
+        }
+        else if ( strcmp(argv[i], "-V") == 0 )
+        {
+            VersionInfo();
+            if ( argc == 2 )
+            {
+                exit(0);
+            }
+        }
+    }
+
+    /* Perform sanity check of input variables */
+    if ( env.force_partition && !env.combine && !env.split )
+    {
+        printf("You need to include a partition file if you are using -c \n");
+        usage();
+        exit(1);
+    }
+    if ( !inname_set )
+    {
+        usage();
+        exit(0);
+    }
+    if ( env.nprocs == 0 && !env.combine )
+    {
+        usage();
+        exit(0);
+    }
+
+    /* Get today's date. */
+    time_int = time(NULL);
+    tm_struct = gmtime(&time_int);
+    strftime(env.date, 19, "%D", tm_struct);
+
+    /* Get user's name. */
+    name = getenv("LOGNAME");
+    strcpy(env.user_name, name);
+    if ( !outname_set )
+    {
+        char temp[80] = "";
+        char *loc = strrchr(env.input_file_name, '/');
+        if ( loc > 0 )
+        {
+            strcpy(temp, loc + 1);
+        }
+        else
+        {
+            strcpy(temp, env.input_file_name);
+        }
+        strcat(temp, "_c");
+        strcpy(env.output_file_name, temp);
+    }
+    /* Perform sanity check of input variables */
+
+    /* Append sequence number to output filename if requested */
+    if ( env.proc_seqnum >= 0 )
+    {
+        sprintf(seqnum_char, "%03d", env.proc_seqnum);
+        strcat(env.output_file_name, seqnum_char);
+    }
+}
+int wait_for_restart(Mili_analysis **anal, int current_state)
+{
+    int state, status = 1;
+    int stop_time = env.wait_time * 60;
+    int current = 0;
+    char file_name[128];
+    file_name[0] = '\0';
+    pf_name(env.input_file_name, 0, file_name);
+
+    do
+    {
+        Mili_family *fam = fam_list[anal[0]->db_ident];
+        state = fam->state_qty;
+
+        if ( state > current_state )
+        {
+            break;
+        }
+        else if ( end_of_run() )
+        {
+            status = 2;
+            break;
+        }
+
+        sleep(wait_time);
+
+        close_dbase(anal[0], 0);
+        current += wait_time;
+
+        status = open_input_dbase(file_name, anal[0]);
+        if ( !status )
+        {
+            break;
+        }
+
+    } while ( current < stop_time );
+
+    if ( status == 2 )
+    {
+        printf("\n\t* Run ended with no additional time steps added  *\n");
+    }
+    else if ( state < current_state )
+    {
+        fprintf(stderr, "\n\t* Timed out awaiting restart   *\n");
+        status = 0;
+    }
+    return status;
+}
+
+
+/************************************************************
+ * TAG( delete_labels )
+ *
+ */
+void delete_labels(TILabels *labels)
+{
+    if ( labels->subrec_contributions != NULL )
+    {
+        free(labels->subrec_contributions);
+    }
+    Label *iter, *temp;
+    iter = labels->labels;
+    while ( iter != NULL )
+    {
+        if ( iter->num_per_processors != NULL )
+        {
+            free(iter->num_per_processors);
+        }
+        if ( iter->offset_per_processor != NULL )
+        {
+            free(iter->offset_per_processor);
+        }
+        if ( iter->labels != NULL )
+        {
+            free(iter->labels);
+        }
+        if ( iter->map != NULL )
+        {
+            free(iter->map);
+        }
+        temp = iter->next;
+        free(iter);
+        iter = temp;
+    }
+}
+
 int main(int argc, char *argv[])
 {
 #if TIMER
@@ -206,10 +764,8 @@ int main(int argc, char *argv[])
     start_time = clock();
     static struct timeb wc1, wc2;
 #endif
-    Mili_analysis **in_db, **temp_db;
-    Mili_analysis **tmp_db;
+    Mili_analysis **in_db;
     Mili_analysis **out_db;
-    int in_dbid;
     env.hsp_done = FALSE;
     int proc, nprocs;
     FILE *p_f;
@@ -220,21 +776,15 @@ int main(int argc, char *argv[])
     int i, j;
     char answer[4] = " ";
     char file_name[100];
-    char elorder[32];
-
+    
     int ret;
     struct rlimit rl;
-    /* TI variables */
-    Bool_type alloc_mem = FALSE;
-
+    
     TILabels labels;
     labels.subrec_contributions = NULL;
     labels.dimensions = 0;
-    char ti_particle_name[256], particle_class[256];
 
-    char select_list[512];
-
-    int mat_id = 0, qty_mats = 0, qty_mats_found = 0;
+    int mat_id = 0, qty_mats_found = 0;
 
     /* Clear out the env struct just in case. */
     memset(&env, 0, sizeof(Environ));
@@ -365,9 +915,8 @@ int main(int argc, char *argv[])
         }
 
         struct dirent **namelist;
-        struct dirent **ti_namelist;
 
-        int an, tin;
+        int an;
 
         /* Scan for the "A" files */
         an = scandir(directory, &namelist, (void *)file_select, alphasort);
@@ -1046,55 +1595,6 @@ void find_pad_count(char *input_file_name)
     }
     closedir(dir);
 }
-int wait_for_restart(Mili_analysis **anal, int current_state)
-{
-    int state, status = 1, return_state = 0;
-    int stop_time = env.wait_time * 60;
-    int current = 0;
-    char file_name[128];
-    file_name[0] = '\0';
-    pf_name(env.input_file_name, 0, file_name);
-
-    do
-    {
-        Mili_family *fam = fam_list[anal[0]->db_ident];
-        state = fam->state_qty;
-
-        if ( state > current_state )
-        {
-            break;
-        }
-        else if ( end_of_run() )
-        {
-            status = 2;
-            break;
-        }
-
-        sleep(wait_time);
-
-        close_dbase(anal[0], 0);
-        current += wait_time;
-
-        status = open_input_dbase(file_name, anal[0]);
-        if ( !status )
-        {
-            break;
-        }
-
-    } while ( current < stop_time );
-
-    if ( status == 2 )
-    {
-        printf("\n\t* Run ended with no additional time steps added  *\n");
-    }
-    else if ( state < current_state )
-    {
-        fprintf(stderr, "\n\t* Timed out awaiting restart   *\n");
-        status = 0;
-    }
-    return status;
-}
-
 int get_next_state(Mili_analysis **anal)
 {
     int state, status, i, return_state;
@@ -1144,7 +1644,7 @@ int get_next_state(Mili_analysis **anal)
 
 int end_of_run()
 {
-    int term_count = 0, restart_count = 0;
+    int term_count = 0;
     FILE *checkfile;
     char *pointer;
     char buffer[128];
@@ -1155,7 +1655,6 @@ int end_of_run()
     if ( !env.hsp_done )
     {
         env.hsp_file_name[0] = '\0';
-        char buffer[128];
         pointer = strstr(env.input_file_name, ".plt");
         if ( pointer > 0 )
         {
@@ -1321,383 +1820,6 @@ int wait_for_start(char *input_file_name)
     return pad;
 }
 
-/************************************************************
- * TAG( scan_args )
- *
- * Parse the program's command line arguments.
- */
-static void scan_args(int argc, char *argv[])
-{
-    int i;
-    int inname_set;
-    int outname_set = 0;
-    time_t time_int;
-    struct tm *tm_struct;
-    char *name;
-    inname_set = FALSE;
-    int start_stop = 0;
-    char seqnum_char[32];
-
-    Return_value rval;
-
-    if ( argc < 2 )
-    {
-        usage();
-        exit(0);
-    }
-
-    /* Set defaults */
-    env.nprocs = 1;
-    env.nmats = 0;
-    env.num_selected_procs = 0;
-    env.num_selected_mats = 0;
-
-    env.combine = FALSE;
-    env.split = FALSE;
-    env.states_per_file = FALSE;
-
-    /* default file size of 10 Mb */
-    env.flsize = 0;
-
-    env.n_states = 1;
-    env.start_state = 0;
-    env.stop_state = 0;
-
-    env.start_proc = 0;
-    env.stop_proc = -1;
-    env.num_selected_procs = 0;
-
-    env.start_mat = -1;
-    env.stop_mat = -1;
-    env.num_selected_mats = 0;
-
-    env.force_partition = FALSE;
-    env.ti_enabled = TRUE;
-    env.append = FALSE;
-    env.newfile = FALSE;
-    env.batch = FALSE;
-    env.proc_seqnum = -1;
-    env.matproc_selected = FALSE;
-    env.wait_time = 30;
-    env.restart = 0;
-    env.write_tfile = 0;
-
-    for ( i = 1; i < argc; i++ )
-    {
-        if ( strcmp(argv[i], "-i") == 0 )
-        {
-            /* Olga's very first bug fix */
-            /* If i >= argc, then Griz just dumps core    */
-            /* User's don't like this and so now we check */
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            strcpy(env.input_file_name, argv[i]);
-            find_pad_count(env.input_file_name);
-            inname_set = TRUE;
-        }
-        else if ( strcmp(argv[i], "-o") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            strcpy(env.output_file_name, argv[i]);
-            outname_set = TRUE;
-        }
-
-        else if ( strcmp(argv[i], "-n") == 0 )
-        {
-            /* This will be deprecated and not needed in the future */
-
-            fprintf(stderr, "The -n option is deprecated and is not needed.");
-            i++;
-
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.nprocs = atoi(argv[i]);
-        }
-
-        else if ( strcmp(argv[i], "-c") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            strcpy(env.partfile_name_c, argv[i]);
-            fprintf(stderr, "\tThe -c option is deprecated as of Version 10.1.\n\tXmilics will ignore -c input.\n");
-            env.combine = FALSE;
-            env.force_partition = FALSE;
-        }
-        else if ( strcmp(argv[i], "-l") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.flsize = atoi(argv[i]);
-        }
-        else if ( strcmp(argv[i], "-s") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.states_per_file = TRUE;
-            env.n_states = atoi(argv[i]);
-        }
-        else if ( strcmp(argv[i], "-start") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.start_state = atoi(argv[i]);
-            if ( env.start_state < 0 )
-            {
-                env.start_state = 1;
-            }
-            start_stop = 1;
-        }
-        else if ( strcmp(argv[i], "-stop") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.stop_state = atoi(argv[i]);
-            if ( env.stop_state < 0 )
-            {
-                env.stop_state = 0;
-            }
-            start_stop = 1;
-        }
-        else if ( strcmp(argv[i], "-proc") == 0 || strcmp(argv[i], "-procs") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.matproc_selected = TRUE;
-            rval = parse_procmat_select_list(argv[i], PROC, MAX_PROC, env.selected_proc_list);
-        }
-        else if ( strcmp(argv[i], "-pstart") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.start_proc = atoi(argv[i]) - 1;
-
-            if ( env.start_proc < 0 )
-            {
-                env.start_proc = 1;
-            }
-        }
-        else if ( strcmp(argv[i], "-pstop") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.stop_proc = atoi(argv[i]) - 1;
-
-            if ( env.stop_proc < 0 )
-            {
-                env.stop_proc = 0;
-            }
-        }
-        else if ( strcmp(argv[i], "-mat") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.matproc_selected = TRUE;
-            rval = parse_procmat_select_list(argv[i], MAT, MAX_MAT, env.selected_mat_list);
-        }
-        else if ( strcmp(argv[i], "-mstart") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.start_mat = atoi(argv[i]) - 1;
-            env.stop_mat = env.start_mat;
-
-            if ( env.start_mat < 0 )
-            {
-                env.start_mat = 1;
-            }
-        }
-        else if ( strcmp(argv[i], "-mstop") == 0 )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.stop_mat = atoi(argv[i]) - 1;
-            env.stop_mat = env.stop_mat;
-
-            if ( env.stop_mat < 0 )
-            {
-                env.stop_mat = 0;
-            }
-        }
-        else if ( (strcmp(argv[i], "-append") == 0) && !start_stop )
-        {
-            i++;
-            if ( i >= argc )
-            {
-                usage();
-                exit(0);
-            }
-            env.stop_state = atoi(argv[i]);
-            if ( env.stop_state < 0 )
-            {
-                env.stop_state = 0;
-            }
-            env.start_state = env.stop_state;
-        }
-        else if ( strcmp(argv[i], "-tfile") == 0 )
-        {
-            /* Enable batch mode */
-            env.write_tfile = TRUE;
-        }
-        else if ( strcmp(argv[i], "-batch_overwrite") == 0 )
-        {
-            /* Enable batch mode */
-            env.batch_overwrite = TRUE;
-        }
-        else if ( strcmp(argv[i], "-batch") == 0 )
-        {
-            /* Enable batch mode */
-            env.batch = TRUE;
-        }
-        else if ( strcmp(argv[i], "-wait") == 0 )
-        {
-            /* Enable batch mode */
-            env.wait = TRUE;
-            if ( i < argc - 1 && argv[i + 1][0] != '-' )
-            {
-                i++;
-                env.wait_time = atoi(argv[i]);
-            }
-        }
-        else if ( strcmp(argv[i], "-pt") == 0 )
-        {
-            /* Enable batch mode */
-            env.wait = TRUE;
-            if ( i < argc - 1 && argv[i + 1][0] != '-' )
-            {
-                i++;
-                wait_time = atoi(argv[i]);
-            }
-        }
-        else if ( strcmp(argv[i], "-restart") == 0 )
-        {
-            /* Enable restart ode */
-            env.restart = TRUE;
-        }
-        else if ( strcmp(argv[i], "-newfile") == 0 )
-        {
-            env.newfile = TRUE;
-        }
-        else if ( strcmp(argv[i], "-seqnum") == 0 )
-        {
-            i++;
-            env.proc_seqnum = atoi(argv[i]);
-        }
-        else if ( strcmp(argv[i], "-V") == 0 )
-        {
-            VersionInfo();
-            if ( argc == 2 )
-            {
-                exit(0);
-            }
-        }
-    }
-
-    /* Perform sanity check of input variables */
-    if ( env.force_partition && !env.combine && !env.split )
-    {
-        printf("You need to include a partition file if you are using -c \n");
-        usage();
-        exit(1);
-    }
-    if ( !inname_set )
-    {
-        usage();
-        exit(0);
-    }
-    if ( env.nprocs == 0 && !env.combine )
-    {
-        usage();
-        exit(0);
-    }
-
-    /* Get today's date. */
-    time_int = time(NULL);
-    tm_struct = gmtime(&time_int);
-    strftime(env.date, 19, "%D", tm_struct);
-
-    /* Get user's name. */
-    name = getenv("LOGNAME");
-    strcpy(env.user_name, name);
-    if ( !outname_set )
-    {
-        char temp[80] = "";
-        char *loc = strrchr(env.input_file_name, '/');
-        if ( loc > 0 )
-        {
-            strcpy(temp, loc + 1);
-        }
-        else
-        {
-            strcpy(temp, env.input_file_name);
-        }
-        strcat(temp, "_c");
-        strcpy(env.output_file_name, temp);
-    }
-    /* Perform sanity check of input variables */
-
-    /* Append sequence number to output filename if requested */
-    if ( env.proc_seqnum >= 0 )
-    {
-        sprintf(seqnum_char, "%03d", env.proc_seqnum);
-        strcat(env.output_file_name, seqnum_char);
-    }
-}
 
 /************************************************************
  * TAG( file_select )
@@ -1777,134 +1899,4 @@ int ti_file_select(struct dirent *entry)
     }
 }
 
-/*****************************************************************
- * TAG( pf_name )
- *
- * Get the plot file name for the given file number.
- *
- *****************************************************************/
-static void pf_name(char *root_name, int fnum, char *fname)
-{
-    if ( env.pad == 0 )
-    {
-        fname[0] = '\0';
-    }
-    else
-    {
-        sprintf(fname, "%s%0*d", root_name, env.pad, fnum);
-    }
-    return;
-}
 
-/************************************************************
- * TAG( usage )
- *
- * Write out command-line syntax.
- */
-static void usage(void)
-{
-    printf("\n");
-    printf("Usage: \n");
-    printf("  xmilics -i <input_base_name> [-o <output_base_name>]\n\n");
-    printf("  ###    Read serial Taurus or parallel Mili database, ###\n");
-    printf("  ###    Write serial Mili database                    ###\n");
-    printf("\n");
-    printf("OPTIONS:\n\n");
-    printf("  [-o]  <output file name>\n");
-    printf("  ###   Create output file using this name.           ###\n");
-    printf("  ###   default output file name: {input_base_name}_c ###\n\n");
-    printf("\n");
-    /*
-    printf("  ****deprecated as of version 10.1 ***\n");
-    printf("  [-c]  <input_partition_file_name>\n");
-    printf("  ###    Use specified partition file to combine  ###\n");
-    printf("  ###    plot files. Disables using the TI files  ###\n");
-    printf("  ###    Write Mili database                      ###\n");
-    printf("  ****deprecated as of version 10.1 ***\n");
-    printf("\n");
-    */
-    printf("  [-l]  <file size in megabytes>\n");
-    printf("  ###    Limit file size of combined database     ###\n");
-    printf("\n");
-    printf("  [-s]  <number of states per file>\n");
-    printf("  ###    Limit number of states per file in       ###\n");
-    printf("  ###    combined database                        ###\n");
-    printf("  ###    NOTE:  the -s option will override       ###\n");
-    printf("  ###    the -l option                            ###\n");
-    printf("\n");
-    printf("  [-start]  <state to begin at>\n");
-    printf("  ###    Limit states per file with non-zero      ###\n");
-    printf("  ###    starting state. When appending this is   ###\n");
-    printf("  ###    set to the last time of output file if   ###\n");
-    printf("  ###    starting state is less than the end      ###\n");
-    printf("  ###    state of the output database.            ###\n");
-    printf("\n");
-    printf("  [-stop]  <state to end at>\n");
-    printf("  ###    Limit states per file with an ending     ###\n");
-    printf("  ###    states. This is ignored if less the last  ###\n");
-    printf("  ###    time in the output file when appending   ###\n");
-    printf("\n");
-    printf("  [-proc] <processor list to combine>\n");
-    printf("  ###       Single Processor Format = -proc 10 \n");
-    printf("  ###       OR Tuple Format (NO SPACES!) = -proc 1-5,10 n\n");
-    printf("\n");
-    printf("  [-pstart]  <processor to begin at>\n");
-    printf("  ###    Limit procs per file with non-zero       ###\n");
-    printf("  ###    starting proc.                           ###\n");
-    printf("\n");
-    printf("  [-pstop]  <processor to end at>\n");
-    printf("  ###    Limit  procs per file with an ending     ###\n");
-    printf("  ###    proc.                                    ###\n");
-    printf("\n");
-    printf("  [-wait] <minutes to wait>\n");
-    printf("  ###    Wait for the files to be written.        ###\n");
-    printf("  ###    default is 30 minutes.                   ###\n");
-    printf("\n");
-    printf("  [-pt] <check file wait time in seconds>\n");
-    printf("  ###    Value te pass to wait() function.        ###\n");
-    printf("  ###    default is 300 seconds.                  ###\n");
-    printf("\n");
-    printf("  [-restart] \n");
-    printf("  ###    This tell Xmilics that it is awaiting    ###\n");
-    printf("  ###    a restart by paradyn. It will wait the   ###\n");
-    printf("  ###    time specified by the -wait flag.        ###\n");
-    printf("\n");
-#ifdef PROC_MAT_SELECT
-    printf("  [-mat] <material list to combine>\n");
-    printf("  ###       Single Material Format = -mat 10 \n");
-    printf("  ###       OR Tuple Format (NO SPACES!) = -mat 1-5,10 n\n");
-    printf("\n");
-    printf("  [-mstart]  <material to begin at>\n");
-    printf("  ###    Limit mats per file with non-zero       ###\n");
-    printf("  ###    starting mat.                           ###\n");
-    printf("\n");
-    printf("  [-mstop]  <material to end at>\n");
-    printf("  ###    Limit  mats per file with an ending     ###\n");
-    printf("  ###    mat.                                    ###\n");
-    printf("\n");
-#endif
-
-    printf("  [-append]  <state to end at>\n");
-    printf("  ###    Append a timestep to an existing         ###\n");
-    printf("  ###    database. This is overriden if a start   ###\n");
-    printf("  ###    or stop state are defined.               ###\n");
-    printf("\n");
-    printf("  [-batch]\n");
-    printf("  ###    Run in batch mode append to file.        ###\n");
-    printf("\n");
-    printf("  [-batch_overwrite]\n");
-    printf("  ###    Run in batch mode but overwrite the      ###\n");
-    printf("  ###    existing file.                           ###\n");
-    printf("\n");
-    printf("  [-tfile]\n");
-    printf("  ###    output timesteps to a T file             ###\n");
-    printf("  ###    Default is the incoming header version.  ###\n");
-    printf("\n");
-    printf("  [-newfile]\n");
-    printf("  ###    Do not append - create new file          ###\n");
-    printf("  [-seqnum] <n output sequence number to append to output file> \n");
-    printf("  ###  This is used to create unique files for    ###\n");
-    printf("  ###  output when running parallel Xmilics jobs. ###\n");
-    printf("\n");
-    printf("  [-V]   Display build stats (version-info)\n ");
-}

@@ -39,7 +39,6 @@ extern Mili_family **fam_list;
 
 Label *create_label(char *shortname, int nproc, int sclass, int mesh_id, Bool_type isMeshVar, Bool_type isNodal)
 {
-    int proc;
     Label *label = NEW(Label, "Creating Label");
     label->next = NULL;
     label->sname[0] = '\0';
@@ -70,7 +69,6 @@ int load_ti_labels(Mili_analysis **in_db, int nproc, TILabels *labels)
     int i, j, k;
     int fam_id;
     int mesh_id;
-    char short_name[M_MAX_NAME_LEN], long_name[M_MAX_NAME_LEN];
     Bool_type status;
     Label *working_label, *last_label;
     /* TI variables */
@@ -86,12 +84,6 @@ int load_ti_labels(Mili_analysis **in_db, int nproc, TILabels *labels)
 
     char labels_class[128];
     int labels_meshid, labels_state, labels_matid, labels_superclass;
-
-    int *data_int, data_int_scalar;
-    long *data_long, data_long_scalar;
-    double *data_double, data_double_scalar;
-    float *data_float, data_float_scalar;
-    char *data_char, *out_data_char;
 
     Bool_type labels_isMeshvar, labels_isNodal;
 
@@ -595,14 +587,10 @@ void create_new_sorter(int proc, int position, int label, struct sorter *target,
  ************************************************************/
 void filter_count(Label *label, int proc_count)
 {
-    int limit = 2;
-    int proc = 0, num_items, status, index = 0, size = 0;
-    int i, j, k;
-    short finished = 0;
+    int proc = 0, size = 0;
+    int i;
     int child;
     int last_element_index = 1;
-    int last_label;
-    int unit_size = sizeof(int);
     int label_index = 0;
 
     size = 0;

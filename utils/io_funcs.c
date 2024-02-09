@@ -246,8 +246,7 @@ Bool_type open_output_dbase(char *path_root, Mili_analysis *dbase)
     char root[128];
     char path_text[256];
     int rval;
-    Mili_mesh_data *mesh_array;
-
+    
     /* Scan forward to end of name string. */
     for ( p_c = path_root; *p_c != '\0'; p_c++ )
     {

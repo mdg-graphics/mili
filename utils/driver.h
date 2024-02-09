@@ -218,10 +218,6 @@ Bool_type search_class_summary(int superclass, char *class_name);
 
 int get_mat_list_for_proc(Mili_analysis **in_db, int proc, short **mat_list);
 void find_pad_count(char *input_file_name);
-static void scan_args(int argc, char *argv[]);
-static void pf_name(char *root_name, int fnum, char *fname);
-static void usage(void);
-static int wait_for_restart(Mili_analysis **anal, int current_state);
 /**
  * From read_db.c
  */

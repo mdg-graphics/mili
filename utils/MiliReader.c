@@ -48,14 +48,12 @@ static int max_states_per_file = 1000000;
 
 int main(int argc, char *argv[])
 {
-    int i, j, k, l;
+    int i, j, k;
     int dbid = 0;
 
     /* Mili file variables */
-    Mili_analysis analy; /* Main mili file data structure */
     Mili_family *fam_in;
-    Database_type db_type;
-
+    
     /* Mili file metadata variables */
     char mili_version[64], host[64], arch[64], timestamp[64];
 
@@ -76,57 +74,32 @@ int main(int argc, char *argv[])
     /* For each element type: quantity, connectivity, materials, parts,
      * element ids, and element labels */
 
-    int qty_truss = 0, *conn_truss = NULL, *mat_truss = NULL, num_mats_truss, *mat_list_truss, *part_truss = NULL,
-        *elemIds_truss = NULL, *labels_truss = NULL;
     int qty_beam = 0, *conn_beam = NULL, *mat_beam = NULL, num_mats_beam, *mat_list_beam, *part_beam = NULL,
         *elemIds_beam = NULL, *labels_beam = NULL;
-    int qty_tri = 0, *conn_tri = NULL, *mat_tri = NULL, num_mats_tri, *mat_list_tri, *part_tri = NULL,
-        *elemIds_tri = NULL, *labels_tri = NULL;
     int qty_quad = 0, *conn_quad = NULL, *mat_quad = NULL, num_mats_quad, *mat_list_quad, *part_quad = NULL,
         *elemIds_quad = NULL, *labels_quad = NULL;
-    int qty_tet = 0, *conn_tet = NULL, *mat_tet = NULL, num_mats_tet, *mat_list_tet, *part_tet = NULL,
-        *elemIds_tet = NULL, *labels_tet = NULL;
     int qty_hex = 0, *conn_hex = NULL, *mat_hex = NULL, num_mats_hex, *mat_list_hex, *part_hex = NULL,
         *elemIds_hex = NULL, *labels_hex = NULL;
-    int qty_particle = 0, *conn_particle = NULL, *mat_particle = NULL, *part_particle = NULL, *elemIds_part = NULL,
-        *labels_particle = NULL;
-
-    int qty_vars_truss = 0, qty_vars_beam = 0;
-    char **vars_truss, **vars_beam, **vars_tri;
-
+    
     int qty = 0;
 
-    float *results_flt = NULL, result_flt;
-    double *results_dbl = NULL;
-    int *results_int = NULL;
-
     int total_zones = 0;
-
-    int obj_qty = 0, obj_index = 0, qty_classes = 0;
     int state, qty_states = 1;
-    float time = 0.0;
-
-    int matid, meshid, superclass;
 
     /* Variables used for labels */
-    int block_qty = 0, *block_list, block_index = 0;
-
-    /* Variables used for TI table searches */
-    int num_entries, tsize;
-    int num_items_read;
+    int block_qty = 0, *block_list;
 
     /* State record variables */
     int *subrec_qtys;
     int staterec_qty = 0, subrec_count = 0;
-    int block_id = 0, elem_id = 0;
-    Subrecord *p_subrec, *one_subrec;
-    int subrec_names_len = 0, subrec_vars_len = 0;
+    Subrecord *p_subrec;
+    int subrec_names_len = 0;
 
     /* State variable data */
     char svar_name[256];
     State_variable p_sv;
     int field_qty = 0;
-    char *field_names[256], subrec_name[256];
+    char *field_names[256];
 
     int subrec_vars_len_node = 0, subrec_vars_len_beam = 0, subrec_vars_len_brick = 0, subrec_vars_len_shell = 0;
 
@@ -136,8 +109,8 @@ int main(int argc, char *argv[])
     char **subrec_names_shell = NULL, **subrec_vars_shell = NULL;
 
     /* Result variables */
-    float *result[1];
-    int result_len = 0, result_veclen = 0, result_type = 0;
+    int result_veclen = 0, result_type = 0;
+    float *results_flt = NULL; 
 
     /* Mili parameter variables - constants and non time dependent variables */
     int num_params = 0, num_params_ti = 0;
@@ -147,20 +120,10 @@ int main(int argc, char *argv[])
     int *param_lens, *param_lens_ti;
     int *param_types, *param_types_ti;
 
-    /* Material Variables */
-    short *mat_list;
-    int *mat_zone_list;
-    int mat, matnum, num_mats;
-    int *mat_nums;
-    int mat_count = 0;
-    int *node_list, nl_length = 0, zone_cnt = 0;
-    char *mat_names[20], matname[64];
-
     int conn_count = 0;
 
     /* Element label variables */
-    int num_blocks, *block_range;
-
+    
     fprintf(stderr, "\n\n\n\n\t Running MiliReader Version: %s\n\n", MILI_VERSION);
 
     /* Scan the command-line arguments, other initialization. */

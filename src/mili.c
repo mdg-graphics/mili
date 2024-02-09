@@ -103,7 +103,6 @@ static Return_value delete_family(char *, char *);
 static Return_value write_header(Mili_family *fam);
 static Return_value load_descriptors(Mili_family *fam);
 static Return_value commit_non_state(Mili_family *fam);
-static Return_value ti_read_header(Mili_family *fam);
 static Return_value set_defaults(char *root_name, char *path, Mili_family *fam, char *control_string,
                                  Bool_type *create_db, Famid *fam_id);
 static Return_value test_open_next(Mili_family *fam, Bool_type *open_next);
@@ -4026,119 +4025,6 @@ Return_value mc_ti_check_arch(Famid fam_id)
     }
 }
 
-/*****************************************************************
- * TAG( ti_read_header ) LOCAL
- *
- * Read the family header from a TI file and initialize the fam struct.
- */
-static Return_value ti_read_header(Mili_family *fam)
-{
-    char fname[M_MAX_NAME_LEN];
-    char header[CHAR_HEADER_SIZE];
-    FILE *p_f;
-    LONGLONG nitems;
-    int i;
-    int status;
-    struct stat sbuf;
-    extern int errno;
-    Return_value rval;
-
-    if ( fam->char_header != NULL )
-    {
-        return MULTIPLE_HEADER_READ;
-    }
-
-    make_fnam(TI_DATA, fam, 0, fname);
-
-    /*
-     * Treat syscall "stat" failure with ENOENT as sufficient and necessary
-     * condition for determining that the file does not exist (which opens
-     * the door for application of write access in default case).
-     */
-    status = stat(fname, &sbuf);
-    if ( status == -1 )
-    {
-        if ( errno == ENOENT )
-        {
-            return FAMILY_NOT_FOUND;
-        }
-        else
-        {
-            return OPEN_FAILED;
-        }
-    }
-
-    /* Found the file; open it. */
-    p_f = fopen(fname, "rb");
-    if ( p_f == NULL )
-    {
-        return OPEN_FAILED;
-    }
-
-    /* Read in the header to verify compatibility and init family. */
-    nitems = fread((void *)header, 1, CHAR_HEADER_SIZE, p_f);
-
-    fclose(p_f);
-
-    if ( nitems != CHAR_HEADER_SIZE )
-    {
-        return SHORT_READ;
-    }
-
-    /* Check for old style header - bytes 5-9 will be ASCII upper case. */
-    rval = OK;
-    for ( i = 4; i < 9; i++ )
-    {
-        if ( header[i] < 65 )
-        {
-            break;
-        }
-    }
-    if ( i == 9 )
-    {
-        /* Map old header into new format. */
-        map_old_header(header);
-
-        /* OK to continue, but set status to show re-mapped header. */
-        rval = MAPPED_OLD_HEADER;
-    }
-
-    if ( header[HDR_VERSION_IDX] > header_version )
-    {
-        if ( mili_verbose )
-        {
-            fprintf(stderr,
-                    "Mili warning - family header version newer than "
-                    "library header version.\n");
-        }
-    }
-
-    if ( header[DIR_VERSION_IDX] > directory_version )
-    {
-        if ( mili_verbose )
-        {
-            fprintf(stderr,
-                    "Mili warning - family directory version newer "
-                    "than library directory version.\n");
-        }
-    }
-
-    fam->precision_limit = (Precision_limit_type)header[PRECISION_LIMIT_IDX];
-    fam->st_suffix_width = (int)header[ST_FILE_SUFFIX_WIDTH_IDX];
-    fam->partition_scheme = (File_partition_scheme)header[PARTITION_SCHEME_IDX];
-
-    /* Allocate space for the character header data. */
-    fam->char_header = NEW_N(char, CHAR_HEADER_SIZE, "Family char header");
-    if ( fam->char_header == NULL )
-    {
-        return ALLOC_FAILED;
-    }
-
-    /* Copy the header. */
-    memcpy(fam->char_header, header, CHAR_HEADER_SIZE);
-
-    return rval;
-}
 /*****************************************************************
  * TAG( is_correct_param_type ) PRIVATE
  *

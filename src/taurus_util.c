@@ -95,8 +95,6 @@ extern int fam_qty;
  */
 extern int fam_array_length;
 
-static int _mem_total = 0;
-
 void to_base26(int num, Bool_type upper, char *base26_rep);
 
 /*****************************************************************

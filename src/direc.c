@@ -319,7 +319,6 @@ Return_value load_directories(Mili_family *fam)
     int fnum;
     int qty_ent = 0, qty_states = 0, qty_nam = 0;
     FILE *p_f;
-    FILE *p_t;
     char fname[M_MAX_NAME_LEN];
     int header[QTY_DIR_HEADER_FIELDS];
     int nnames;
@@ -517,7 +516,7 @@ Return_value load_directories(Mili_family *fam)
         }
         else
         {
-            TempDir_entry *temp_p_de = NEW_N(TempDir_entry, qty_ent, "Load dir entries");
+            temp_p_de = NEW_N(TempDir_entry, qty_ent, "Load dir entries");
             nitems = fam->read_funcs[M_FLOAT4](p_f, (void *)temp_p_de, QTY_ENTRY_FIELDS * qty_ent);
 
             if ( nitems != (size_t)qty_ent * QTY_ENTRY_FIELDS )

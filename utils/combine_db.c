@@ -164,8 +164,7 @@ Return_value define_variable(Mili_family *in, Mili_family *out, char *variable_n
     int idx;
     int in_fam_id = in->my_id;
     int out_fam_id = out->my_id;
-    Htable_entry *phte;
-
+    
     rval = mc_get_svar_def(in_fam_id, variable_name, &state_var);
 
     if ( rval != OK )
@@ -222,9 +221,9 @@ Return_value define_variable(Mili_family *in, Mili_family *out, char *variable_n
 
 Return_value mc_combine_svars(Mili_family *in, Mili_family *out)
 {
-    int svar_count = 0, cur_srec = 0, cur_subrec = 0, srec_qty = in->qty_srecs, subrec_qty = 0, cur_svar = 0, error = 0;
+    int cur_srec = 0, cur_subrec = 0, srec_qty = in->qty_srecs, 
+        subrec_qty = 0, cur_svar = 0;
     Return_value rval = (Return_value)OK;
-    Return_value status;
     Srec *base_psr;
 
     for ( ; cur_srec < srec_qty; cur_srec = cur_srec + 1 )
@@ -320,7 +319,6 @@ Return_value mc_get_data_len(Famid fam_id, char *name, int *datatype, long *data
     int entry_idx, file;
     int len_bytes;
     Mili_family *fam;
-    int order = 1;
     Return_value status;
 
     fam = fam_list[fam_id];
@@ -378,8 +376,6 @@ Return_value add_parameter(int fam_id, int out_fam_id, char *name)
     Return_value status = (Return_value)OK;
     int datatype;
     long datalength;
-    int dims[3];
-    void *data;
     int *data_int = NULL;
     long *data_long = NULL;
     char *data_char = NULL;
@@ -583,7 +579,7 @@ Return_value add_ti_parameter(int fam_id, int fam_id_out, char *name)
 
 Return_value mc_copy_geometry(Mili_analysis **in_db, Mili_analysis *out_db, TILabels *labels)
 {
-    int cur_proc, i, j, dims = labels->dimensions, size, local_index, node_size = 0, conn_size = -1, label_size = -1,
+    int cur_proc, i, j, dims = labels->dimensions, size, node_size = 0, conn_size = -1, 
                         conns, position, num_procs = labels->num_procs;
     LONGLONG current_offset, node_offset;
     Label *iter, *nodeLabel = NULL;
@@ -856,7 +852,7 @@ Return_value convert_local_moids(int **global_ids, int *in_count, Subrecord *sub
 Return_value mc_merge_subrec_ids(Subrecord *out_subrec, Subrecord *in_subrec, int *in_ids, int count)
 {
     Return_value rval = (Return_value)OK;
-    int i = 0, j = 0, k = 0, new_count = 0, old_count = out_subrec->qty_blocks, last_value = 0;
+    int i = 0, j = 0, k = 0, old_count = out_subrec->qty_blocks, last_value = 0;
     int *combined;
     int *temp;
     combined = (int *)calloc((count + out_subrec->qty_blocks) * 2, sizeof(int));
@@ -1004,15 +1000,13 @@ Return_value get_subrec_contributions(Mili_analysis **in_db, Mili_analysis *out_
     SubrecContainer *subrec_container = NULL, *working_container = NULL, *last_container = NULL;
     Famid in_dbid;
 
-    int i, j, k, l, srec_id, out_srec_id, cur_proc, srec_qty, out_srec_qty = 0, count, mesh_id, out_subrec_qty = 0,
-                                                              subrec_qty, stype, found, name_stride = M_MAX_NAME_LEN,
-                                                              max_qty_svars = -1;
+    int i, j, srec_id, out_srec_id, cur_proc, 
+        srec_qty, out_srec_qty = 0, mesh_id, out_subrec_qty = 0,
+        subrec_qty, stype, found, max_qty_svars = -1;
 
-    Subrecord subrec, out_subrec, test_subrec;
+    Subrecord subrec;
 
-    Srec *p_sr, *out_psr;
-
-    char *subrec_name, *sv_name, *title;
+    Srec *p_sr;
 
     Return_value rval;
 
@@ -1186,17 +1180,13 @@ Return_value mc_combine_srecs(Mili_analysis **in_db, Mili_analysis *out_db, TILa
 
     SubrecContainer *subrec_container = NULL, *working_container = NULL, *last_container = NULL;
 
-    int i, j, k, l, srec_id, out_srec_id, cur_proc, srec_qty, out_srec_qty = 0, count, mesh_id, out_subrec_qty = 0,
-                                                              subrec_qty, stype, found, name_stride = M_MAX_NAME_LEN,
+    int i, j, srec_id, out_srec_id, cur_proc, srec_qty, out_srec_qty = 0, count, mesh_id, out_subrec_qty = 0,
+                                                              subrec_qty, stype, found, 
                                                               max_qty_svars = -1;
 
-    Sub_srec *out_psubrec;
+    Subrecord subrec;
 
-    Subrecord subrec, out_subrec, test_subrec;
-
-    Srec *p_sr, *out_psr;
-
-    char *subrec_name, *sv_name, *title;
+    Srec *p_sr;
 
     Return_value rval;
 
@@ -1206,8 +1196,6 @@ Return_value mc_combine_srecs(Mili_analysis **in_db, Mili_analysis *out_db, TILa
 
     out_dbid = out_db->db_ident;
     out_fam = fam_list[out_dbid];
-
-    char *pi, *temp_chars;
 
     int *global_ids = NULL;
 #if TIMER
@@ -1729,7 +1717,7 @@ Return_value merge_state_data(int proc, TILabels *in_labels, Mili_analysis *in_d
     char *out_buf, *in_buf, *inp_c, *outp_c;
     Label *iter;
     int *map = NULL, *temp_array = NULL;
-    int index_out = 0, in_index = 0, in_moid = 0, out_moid = 0, cur_in_moid_blck = 0, cur_out_moid_block = 0,
+    int index_out = 0, in_index = 0, in_moid = 0, cur_in_moid_blck = 0, cur_out_moid_block = 0,
         match_moid, temp_array_size = 0;
     out_dbid = out_db->db_ident;
     out_fam = fam_list[out_dbid];

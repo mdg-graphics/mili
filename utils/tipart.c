@@ -31,8 +31,7 @@ int main(int argc, char *argv[])
 {
     int i;
     int matid = 0, meshid = 1;
-    int state = 0;
-
+    
     Famid fid;
 
     int dims[3];
@@ -41,12 +40,6 @@ int main(int argc, char *argv[])
     Mili_family *fam;
 
     char **wildcard_list = NULL;
-
-    /* Metadata fields */
-
-    char mili_version[32], host[64], arch[32], timestamp[64], ti_user[32], xmilics_version[64], code_name[64];
-
-    char ti_mili_version[32], ti_host[64], ti_arch[32], ti_timestamp[64];
 
     /* Offsets into local to global mapping array */
     int offset_plt = 0;
@@ -61,8 +54,6 @@ int main(int argc, char *argv[])
     char partition_file[128], mili_file_by_processor[128];
 
     int status;
-
-    int ti_int;
 
     if ( argc < 2 )
     {

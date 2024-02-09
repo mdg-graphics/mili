@@ -119,7 +119,6 @@ extern void taurus_delete_mesh(Mili_family *fam);
 extern Return_value taurus_reset_class_data(Mili_family *, int, Bool_type);
 
 /* Local routines. */
-static Return_value open_taurus_family(Mili_family *fam, Famid fam_id, char *mode);
 static int taurus_open_family(Mili_family *fam, Famid fam_id, char *mode);
 Return_value taurus_load_direc(Mili_family *fam, int ctl[]);
 Return_value taurus_load_descriptors(Mili_family *fam, Famid fam_id, int ctl[], int *p_srec_id);
@@ -152,8 +151,6 @@ extern int fam_array_length;
  *
  * Short and long class names assigned to Taurus db data.
  */
-static char *mesh_long_name = "Mesh";
-static char *mesh_short_name = "mesh";
 
 static char *glob_long_name = "Global";
 static char *glob_short_name = "glob";
@@ -193,8 +190,7 @@ int taurus_open(char *root_name, char *path, char *mode, Famid *fam_id)
     int root_len, path_len;
     char *lpath;
     Return_value rval;
-    Bool_type unused_arg;
-
+    
     root_len = (int)strlen(root_name);
 
     if ( path != NULL && *path != '\0' )
@@ -1114,7 +1110,7 @@ Return_value taurus_load_descriptors(Mili_family *fam, Famid fam_id, int ctl[], 
 extern Return_value taurus_non_state_file_open(Mili_family *fam, int index, char mode)
 {
     char fname[128];
-    int fcnt, cur_qty;
+    int fcnt;
     Return_value rval;
     char access[4];
 

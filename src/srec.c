@@ -116,7 +116,6 @@ static Return_value set_metrics(Mili_family *fam, int data_org, Sub_srec *psubre
                                 LONGLONG *size);
 static Return_value get_start_index(Mili_family *fam);
 static Return_value truncate_family(Mili_family *p_fam, int st_index);
-static int find_file_index(Famid fam_id, int *global_state_index);
 static int svar_atom_qty(Svar *p_svar);
 
 /*****************************************************************
@@ -3162,7 +3161,6 @@ static Return_value rebuild_state_tfile(Mili_family *fam)
     int state_qty;
     int hdr_size;
     Return_value rval;
-    State_descriptor *p_sd;
     int wrt_size = 0;
 
     offset = 0;
@@ -3335,8 +3333,7 @@ Return_value load_static_maps(Mili_family *fam, Bool_type initial_build)
     float time;
     int file_count = -1;
     char check;
-    char fname[1024];
-
+    
     if ( fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile )
     {
         if ( fam->time_state_file == NULL )
@@ -3501,8 +3498,7 @@ Return_value update_static_map(Famid fam_id, State_descriptor *p_sd)
 
     Return_value rval = OK;
     FILE *fp = NULL;
-    char fname[1024];
-
+    
     if ( fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile )
     {
         if ( fam->time_state_file == NULL )
@@ -3786,44 +3782,6 @@ Return_value mc_new_state(Famid fam_id, int srec_id, float time, int *p_file_suf
     return OK;
 }
 
-/*****************************************************************
- * TAG( find_state_file_index ) LOCAL
- *
- * This function finds the file index based on the global state number.
- * It will return the state file index and set the global_state_index
- * to the file_state_index;
- */
-static int find_file_index(Famid fam_id, int *global_state_index)
-{
-    int global_index = *global_state_index;
-
-    int file_index = 0, current_count, i, j;
-
-    Mili_family *fam;
-    fam = fam_list[fam_id];
-
-    /* Sanity check - no states in family. */
-    if ( fam->st_file_count != 0 )
-    {
-        /* Can't permit a gap in state sequence. */
-        if ( global_index <= fam->state_qty )
-        {
-            current_count = fam->state_qty;
-            for ( i = fam->st_file_count - 1; i > 0 && current_count > global_index; i-- )
-            {
-                current_count -= fam->file_map[i].state_qty;
-            }
-            /*Check if we need to subtract out the previous states quantities*/
-            file_index = i;
-            for ( j = i - 1; j >= 0; j-- )
-            {
-                *global_state_index -= fam->file_map[j].state_qty;
-            }
-        }
-    }
-    return file_index;
-}
-
 int find_state_index(Mili_family *fam, int file_index, int local_index)
 {
     int index = 0;
@@ -3947,7 +3905,6 @@ Return_value mc_rewrite_subrec(Famid fid, char *subrec_name, int start, int stop
 
     Htable_entry *subrec_entry;
     Sub_srec *psubrec;
-    int found;
     Buffer_queue *bq;
 
     if ( INVALID_FAM_ID(fid) )
@@ -4014,9 +3971,6 @@ static Return_value truncate_family(Mili_family *p_fam, int st_index)
     int status = 0;
     int file_qty = 0;
     int state_qty = 0;
-    int remain_states = 0;
-    int cur_st_index = 0;
-    int cur_file = 0;
     int i = 0;
     long offset = 0;
     int header[QTY_DIR_HEADER_FIELDS];
