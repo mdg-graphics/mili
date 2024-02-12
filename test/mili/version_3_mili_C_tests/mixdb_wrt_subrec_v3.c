@@ -535,8 +535,8 @@ void define_all_state_variables(Famid fam_id) {
 
     //Define Tet vector array
     int dims = 2;
-    stat = mc_def_vec_arr_svar(fam_id, 1, &dims, "es_1a", "Element Set 1a", 2, tet_vec_array, tet_vec_array+2, M_FLOAT);
-    standard_error_check(fam_id, stat, "mc_def_vec_arr_svar (es_1a)");
+    stat = mc_def_vec_arr_svar(fam_id, 1, &dims, "es_9a", "Element Set 9a", 2, tet_vec_array, tet_vec_array+2, M_FLOAT);
+    standard_error_check(fam_id, stat, "mc_def_vec_arr_svar (es_9a)");
 
     // Define Pyramid state variables
     int qty = sizeof(pyramid_svar_names) / sizeof(pyramid_svar_names[0]);
@@ -826,15 +826,15 @@ void define_subrecords(Famid fam_id, int srec_id) {
     mo_ids[0] = 1;
     mo_ids[1] = NUM_TETS;
     // Define Subrecord for TET vec array
-    stat = mc_def_subrec(fam_id, srec_id, "TetVecArrSubrec", OBJECT_ORDERED, 1, "es_1a", MAX_RNAME_LEN,
+    stat = mc_def_subrec(fam_id, srec_id, "TetVecArrSubrec", OBJECT_ORDERED, 1, "es_9a", MAX_RNAME_LEN,
                          "tet", M_BLOCK_OBJ_FMT, 1, mo_ids, 0);
     standard_error_check(fam_id, stat, "mc_def_subrec (TetVecArraySubrec)");
 
-    char * elem_set_name = "IntLabel_es_1";
+    char * elem_set_name = "IntLabel_es_9";
     int int_points[] = {1, 2, 2};
     int int_point_dims = 3;
     stat = mc_ti_wrt_array(fam_id, M_INT, elem_set_name, 1, &int_point_dims, int_points);
-    standard_error_check(fam_id, stat, "mc_ti_wrt_array (IntLabel_es_1)");
+    standard_error_check(fam_id, stat, "mc_ti_wrt_array (IntLabel_es_9)");
 
 
     mo_ids[0] = 1;

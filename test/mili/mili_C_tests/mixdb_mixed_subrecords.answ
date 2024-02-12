@@ -217,9 +217,9 @@
   svars 
 
 
-# StateVariableInfo es_1a
-  short_name  es_1a
-  long_name  Element Set 1a
+# StateVariableInfo es_9a
+  short_name  es_9a
+  long_name  Element Set 9a
   aggregate_type  3
   data_type  2
   list_size  2
@@ -475,7 +475,7 @@
   class_name  tet
   organization  1
   qty_svars  1
-  svar_names  es_1a
+  svar_names  es_9a
   mo_blocks  0,2
   offset  1164
   size  32
