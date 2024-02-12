@@ -4075,7 +4075,7 @@ int mc_htable_search_wildcard(int fid, int list_len, Bool_type allow_duplicates,
     int old_ti_file = 0;
     pos = 0;
     fam = fam_list[fid];
-    if ( (!fam->db_type == TAURUS_DB_TYPE) && fam->char_header[DIR_VERSION_IDX] == 1 && fam->ti_enable )
+    if ( (fam->db_type != TAURUS_DB_TYPE) && fam->char_header[DIR_VERSION_IDX] == 1 && fam->ti_enable )
     {
         table = fam->ti_param_table;
         old_ti_file = 1;
