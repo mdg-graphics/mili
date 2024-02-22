@@ -69,12 +69,6 @@
  *        output produced by an erroneous regular format, but who really cares?
 
  ************************************************************************
- * Modifications:
- *
- *  I. R. Corey - March 20, 2009: Added support for WIN32 for use with
- *                with Visit.
- *                See SCR #587.
- ************************************************************************
  */
 
 #include <stdarg.h>
@@ -92,23 +86,24 @@
 #include "mili_enum.h"
 #include "eprtf.h"
 
+#ifdef HAVE_EPRINT
 static char destbuf[CMAX];
 static char *p_cur;
 static int cur_len;
 static va_list val;
-#ifdef HAVE_EPRINT
 static char *t_pattern = "%([0-9]+|[*])t";
 static regex_t all_re;
 static char *all_pattern = "%[0 -+#]*([0-9]*|[*])([.]([0-9]*|[*]))?[hlL]?[dioxXucsfeEgGpn%]";
-
-#endif
 static regex_t t_re;
 static regmatch_t t_match[1];
+#endif
 
 #ifdef NOOPTERON
 static regmatch_t all_match[1];
 #endif
 
+
+#ifdef HAVE_EPRINT
 /*****************************************************************
  * TAG( translate_segment )
  *
@@ -155,6 +150,7 @@ static void translate_segment(char *fmt)
         cur_len = trans_len;
     }
 }
+#endif
 
 #ifdef NOOPTERON
 /*****************************************************************

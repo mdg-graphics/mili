@@ -26,25 +26,6 @@
  * Mili Reader Funcions
  *
  ************************************************************************
- * Modifications:
- *  I. R. Corey - October 8, 2008: Created
- *
- *  I. R. Corey - March 20, 2009: Added support for WIN32 for use with
- *                with Visit.
- *                See SCR #587.
- *
- *  I. R. Corey - July 10, 2009: Cleaned-up and added element ids to
- *                get geom function. Also added a function to calculate
- *                the result length. Renamed functions from
- *                mr_ -> mc_mr_.
- *
- *  I. R. Corey - February 26, 2010: Fixed problem with mc_mr_get_result
- *                related to reading TH data and milti-dim fields..
- *
- *  I. R. Corey - October 18, 2012: Fixed problem with computing result
- *                length for TH data. Removed duplicates from svar list.
- *
- ************************************************************************
  */
 
 #include <stdio.h>
@@ -64,7 +45,7 @@ extern Mili_family **fam_list;
 Return_value mc_mr_get_geom(int dbid, int mesh_id, int superclass, int *qty_elems, int **conn, int **mat, int *num_mats,
                             int **mat_list, int **part, int **elem_ids, int **labels)
 {
-    int i, j;
+    int i;
     int int_args[2];
     int *conn_ptr = NULL, *mat_ptr = NULL, *part_ptr = NULL, *elems_ptr = NULL, *labels_ptr = NULL;
     int block_qty = 0, *block_range = NULL;
@@ -309,7 +290,6 @@ Return_value mc_mr_get_result(int dbid, int state, int subrec_qty, Subrecord *p_
     Subrecord *subrec_ptr;
 
     int *temp_block_list, *block_list_ptr;
-    int num_names = 0;
     int max_id = 0;
 
     Return_value status;
@@ -570,8 +550,7 @@ Return_value mc_mr_get_subrec_list(int dbid, int subrec_qty, Subrecord *p_subrec
                                    int *subrec_names_len, char **subrec_names)
 {
     int i, j;
-    int list_index = 0, name_index = 0;
-    int qty_names = 0;
+    int name_index = 0;
     char **temp_names;
     Bool_type name_found;
     *subrec_names_len = 0;
@@ -886,10 +865,12 @@ Return_value mc_mr_get_param_attributes(int dbid, char *param_name, Bool_type ti
  */
 Return_value mc_mr_get_param_data(int dbid, char *param_name, Bool_type ti_param, void **param_data)
 {
+#ifndef NEW
     int byte_count;
     int i;
     int fidx;
     int qty_entries;
+#endif
     Mili_family *fam;
 
     if ( strlen(param_name) == 0 )
