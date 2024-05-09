@@ -12,6 +12,10 @@ workflow:
       when: always  # Runs tests when changes are committed to main
     - when: never
 
+include:
+  - project: 'lc-templates/id_tokens'
+    file: 'id_tokens.yml'
+
 stages:
   - test
 
