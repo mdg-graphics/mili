@@ -2205,21 +2205,21 @@ static Return_value map_subset_spec(Svar *p_svar, int indices[], int index_qty, 
 {
     int i, j;
     int svar_dims[M_MAX_ARRAY_DIMS + 1];
-    int vec_array_comp_offset[M_MAX_ARRAY_DIMS + 1];
+    int *vec_array_comp_offset;
     int svar_dim_sizes[M_MAX_ARRAY_DIMS + 1];
     int svar_rank;
     int dim_size;
     int spec_indices[M_MAX_ARRAY_DIMS + 1];
     int spec_rank;
     int offset;
-    int have_subcomponent = 0;
-    Svar *sub_p_svar = 0;
+    Svar *p_component_svar = NULL;
+    Svar *p_subcomponent_svar = NULL;
+    Svar *p_use_size_of = NULL;
 
+    if ( *component != '\0')
+        p_component_svar = p_svar->svars[comp_index];
     if ( *sub_component != '\0' )
-    {
-        have_subcomponent = 1;
-        sub_p_svar = p_svar->svars[comp_index];
-    }
+        p_subcomponent_svar = p_component_svar->svars[sub_comp_index];
 
     /* First reduce aggregate svar to an array def. */
     switch ( *p_svar->agg_type )
@@ -2241,10 +2241,8 @@ static Return_value map_subset_spec(Svar *p_svar, int indices[], int index_qty, 
             break;
 
         case VEC_ARRAY:
-            /*
-             * First verify that if a component is specified, all vector
-             * array dimensions have been specified also.
-             */
+            /* First verify that if a component is specified, all vector
+             * array dimensions have been specified also. */
             if ( *component != '\0' )
             {
                 if ( index_qty != *p_svar->order )
@@ -2252,6 +2250,8 @@ static Return_value map_subset_spec(Svar *p_svar, int indices[], int index_qty, 
                     return MALFORMED_SUBSET;
                 }
             }
+
+            vec_array_comp_offset = NEW_N(int, *p_svar->list_size, "vector array component offsets");
 
             // Adding one for the number of vector components
             svar_rank = *p_svar->order + 1;
@@ -2276,7 +2276,25 @@ static Return_value map_subset_spec(Svar *p_svar, int indices[], int index_qty, 
                         break;
                 }
             }
-            svar_dim_sizes[svar_rank - 1] = 1;
+
+            p_use_size_of = p_subcomponent_svar;
+            if ( p_use_size_of == NULL )
+                p_use_size_of = p_component_svar;
+            if ( p_use_size_of != NULL )
+            {
+                switch ( *p_use_size_of->agg_type )
+                {
+                    case SCALAR:
+                        svar_dim_sizes[svar_rank - 1] = 1;
+                        break;
+                    case ARRAY:
+                        svar_dim_sizes[svar_rank - 1] = 1;
+                        break;
+                    case VECTOR:
+                        svar_dim_sizes[svar_rank - 1] = *p_use_size_of->list_size;
+                        break;
+                }
+            }
 
             for ( i = svar_rank - 2, dim_size = svar_dims[svar_rank - 1]; i > -1; i-- )
             {
@@ -2306,25 +2324,23 @@ static Return_value map_subset_spec(Svar *p_svar, int indices[], int index_qty, 
 
     if ( *component != '\0' )
     {
-        spec_rank++;
         if ( *p_svar->agg_type == VEC_ARRAY )
-            spec_indices[i] = vec_array_comp_offset[comp_index];
+            spec_indices[spec_rank] = vec_array_comp_offset[comp_index];
         else
-            spec_indices[i] = comp_index;
+            spec_indices[spec_rank] = comp_index;
         // Offset to subcomponent if necessary
         if ( *sub_component != '\0' )
         {
-            spec_indices[i] += sub_comp_index;
+            spec_indices[spec_rank] += sub_comp_index;
         }
+        spec_rank++;
     }
 
     /* Make sure the specification is within bounds. */
-
     if ( spec_rank > svar_rank )
     {
         return MALFORMED_SUBSET;
     }
-
     for ( i = 0; i < spec_rank; i++ )
     {
         if ( spec_indices[i] < 0 || spec_indices[i] > svar_dims[i] - 1 )
@@ -3333,7 +3349,7 @@ Return_value load_static_maps(Mili_family *fam, Bool_type initial_build)
     float time;
     int file_count = -1;
     char check;
-    
+
     if ( fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile )
     {
         if ( fam->time_state_file == NULL )
@@ -3498,7 +3514,7 @@ Return_value update_static_map(Famid fam_id, State_descriptor *p_sd)
 
     Return_value rval = OK;
     FILE *fp = NULL;
-    
+
     if ( fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile )
     {
         if ( fam->time_state_file == NULL )
