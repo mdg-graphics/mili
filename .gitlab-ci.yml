@@ -45,11 +45,11 @@ variables:
 .run-tests:
   script:
     - cd test/
-    - mdgtest/Test.py -e mili_test_definitions -c ../build-${BUILD_SPEC}-relwithdebinfo/lib -I ../build-${BUILD_SPEC}-relwithdebinfo/include -n1 -p1 -s all > test_mili.out
-    - num_mili_failed=$( grep -c -e failed -e "did not run correctly" test_mili.out ) || true
-    - mdgtest/Test.py -e xmilics_test_definitions -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -n1 -p1 -s all > test_xmilics.out
-    - num_xmilics_failed=$( grep -c -e failed -e "did not run correctly" test_xmilics.out ) || true
-    - num_failed=$(( $num_mili_failed + $num_xmilics_failed ))
+    - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo -s all
+    - any_mili_failed=$?
+    - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -s all
+    - any_xmilics_failed=$?
+    - any_failed=$(( $any_mili_failed + $any_xmilics_failed ))
 
 .toss4:
   variables:

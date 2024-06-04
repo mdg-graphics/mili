@@ -71,13 +71,17 @@ main( int argc, char *argv[] )
             rval = mc_delete_family( del_root, "data" );
             
             if ( rval == OK )
+            {
                 fprintf( stderr, "Error - child successfully deleted parent's "
                          "Mili family.\n" ); 
+                exit( 1 );
+            }
             else
+            {
                 mc_print_error( "Success - child unable to delete parent's "
                                 "Mili family",  rval );
-
-            exit( 0 );
+                exit( 0 );
+            }
         }
         else
         {
@@ -89,15 +93,23 @@ main( int argc, char *argv[] )
             rval = mc_delete_family( del_root, "." );
 
             if ( rval != OK )
+            {
                 mc_print_error( "Unable to delete family after child died", 
                                 rval );
+                exit(1);
+            }
             else
+            {
                 fprintf( stderr, "Parent successfully deleted family after "
                          "child died (or family did not exist).\n" );
+                exit(0);
+            }
         }
     }
     else
+    {
         mc_print_error( "Unable to open family to init test", rval );
-
+        exit(1);
+    }
     exit( 0 );
 }
