@@ -126,13 +126,29 @@ You can now run the test suite as shown below:
 
 ### Mili Library
 ```
-mdgtest/Test.py -e mili_test_definitions -c <path-to-code> -I <include-dir> -n1 -p1 -q -s all
+# All Suites/Tests
+mdgtest/RunTest.py -c <path-to-build-dir> -s all
+
+# One or More suites
+mdgtest/RunTest.py -c <path-to-build-dir> -s <suite-1> -s <suite-2>
+
+# One or More tests
+mdgtest/RunTest.py -c <path-to-build-dir> -t <test-1> -t <test-2>
 ```
 
 ### Xmilics
 ```
-mdgtest/Test.py -e xmilics_test_definitions -c <path-to-code> -n1 -p1 -q -s all
+# All Suites/Tests
+mdgtest/RunTest.py -c <path-to-code> -s all
+
+# One or More Suites
+mdgtest/RunTest.py -c <path-to-code> -s <suite-1> -s <suite-2>
+
+# One or More Tests
+mdgtest/RunTest.py -c <path-to-code> -t <test-1> -t <test-2>
 ```
+
+> **REBASELINING**: To rebaseline any failing tests/suites. Run the testing scrips as shown above with the added argument `-b` or `--rebaseline` on ONLY the tests/suites you wish to rebaseline.
 
 ## Deployment on OCF (**LLNL Specific**)
 
