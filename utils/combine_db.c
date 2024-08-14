@@ -164,7 +164,7 @@ Return_value define_variable(Mili_family *in, Mili_family *out, char *variable_n
     int idx;
     int in_fam_id = in->my_id;
     int out_fam_id = out->my_id;
-    
+
     rval = mc_get_svar_def(in_fam_id, variable_name, &state_var);
 
     if ( rval != OK )
@@ -221,7 +221,7 @@ Return_value define_variable(Mili_family *in, Mili_family *out, char *variable_n
 
 Return_value mc_combine_svars(Mili_family *in, Mili_family *out)
 {
-    int cur_srec = 0, cur_subrec = 0, srec_qty = in->qty_srecs, 
+    int cur_srec = 0, cur_subrec = 0, srec_qty = in->qty_srecs,
         subrec_qty = 0, cur_svar = 0;
     Return_value rval = (Return_value)OK;
     Srec *base_psr;
@@ -579,7 +579,7 @@ Return_value add_ti_parameter(int fam_id, int fam_id_out, char *name)
 
 Return_value mc_copy_geometry(Mili_analysis **in_db, Mili_analysis *out_db, TILabels *labels)
 {
-    int cur_proc, i, j, dims = labels->dimensions, size, node_size = 0, conn_size = -1, 
+    int cur_proc, i, j, dims = labels->dimensions, size, node_size = 0, conn_size = -1,
                         conns, position, num_procs = labels->num_procs;
     LONGLONG current_offset, node_offset;
     Label *iter, *nodeLabel = NULL;
@@ -1000,7 +1000,7 @@ Return_value get_subrec_contributions(Mili_analysis **in_db, Mili_analysis *out_
     SubrecContainer *subrec_container = NULL, *working_container = NULL, *last_container = NULL;
     Famid in_dbid;
 
-    int i, j, srec_id, out_srec_id, cur_proc, 
+    int i, j, srec_id, out_srec_id, cur_proc,
         srec_qty, out_srec_qty = 0, mesh_id, out_subrec_qty = 0,
         subrec_qty, stype, found, max_qty_svars = -1;
 
@@ -1181,7 +1181,7 @@ Return_value mc_combine_srecs(Mili_analysis **in_db, Mili_analysis *out_db, TILa
     SubrecContainer *subrec_container = NULL, *working_container = NULL, *last_container = NULL;
 
     int i, j, srec_id, out_srec_id, cur_proc, srec_qty, out_srec_qty = 0, count, mesh_id, out_subrec_qty = 0,
-                                                              subrec_qty, stype, found, 
+                                                              subrec_qty, stype, found,
                                                               max_qty_svars = -1;
 
     Subrecord subrec;
@@ -2093,7 +2093,7 @@ Return_value merge_state_data(int proc, TILabels *in_labels, Mili_analysis *in_d
                             switch ( agg_type )
                             {
                                 case SCALAR:
-                                    object_offset += iprec;
+                                    object_offset += 1;
                                     break;
                                 case ARRAY:
                                     step = 1;
@@ -2134,7 +2134,7 @@ Return_value merge_state_data(int proc, TILabels *in_labels, Mili_analysis *in_d
                                 {
                                     if ( (stype == M_UNIT) || (stype == M_MAT) || (stype == M_MESH) || (map == NULL) )
                                     {
-                                        index_out = ((*out_psubrec->lump_sizes / atom_size) * k) + object_offset;
+                                        index_out = ((*out_psubrec->lump_atoms) * k) + object_offset;
                                     }
                                     else
                                     {
