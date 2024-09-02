@@ -79,7 +79,7 @@ toss4_intel_classic_slurm_mili:
     - !reference [ .build-mili-xmilics, script ]
     - !reference [ .run-tests, script ]
 
-deploy_to_github:
+.deploy_to_github:
   stage: deploy
   script:
     - mkdir -p ~/.ssh
