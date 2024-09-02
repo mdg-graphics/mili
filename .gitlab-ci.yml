@@ -95,4 +95,4 @@ toss4_intel_classic_slurm_mili:
     - git push origin main# Add your deployment commands here
   only:
     - main
-  when: on_success
+  when: any_failed == 0
