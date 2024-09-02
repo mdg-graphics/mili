@@ -55,7 +55,7 @@ variables:
 .toss4:
   variables:
     SYS_TYPE: toss_4_x86_64_ib
-
+.
 .toss4-intel-classic:
   extends: .toss4
   variables:
@@ -76,11 +76,12 @@ toss4_intel_classic_slurm_mili:
     - .slurm-toss-4
     - .slurm
     - .build-mili-xmilics
+    - .deploy_to_github
   script:
     - !reference [ .build-mili-xmilics, script ]
     - !reference [ .run-tests, script ]
 
-deploy_to_github:
+.deploy_to_github:
   stage: deploy
   script:
     - mkdir -p ~/.ssh
