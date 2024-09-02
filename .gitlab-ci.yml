@@ -18,6 +18,7 @@ include:
 
 stages:
   - test
+  - deploy
 
 variables:
   GIT_SUBMODULE_STRATEGY: normal
