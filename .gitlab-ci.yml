@@ -90,7 +90,9 @@ toss4_intel_classic_slurm_mili:
     - ssh-keyscan github.com >> ~/.ssh/known_hosts
     - git clone git@github.com:username/repo.git
     - cd repo
-    - # Add your deployment commands here
+    - git add .
+    - git commit -m "Update from GitLab CI/CD"
+    - git push origin main# Add your deployment commands here
   only:
     - main
   when: on_success
