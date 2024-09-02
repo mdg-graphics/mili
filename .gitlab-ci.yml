@@ -55,7 +55,7 @@ variables:
 .toss4:
   variables:
     SYS_TYPE: toss_4_x86_64_ib
-.
+
 .toss4-intel-classic:
   extends: .toss4
   variables:
