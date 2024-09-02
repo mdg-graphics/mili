@@ -51,7 +51,7 @@ variables:
     - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -s all
     - any_xmilics_failed=$?
     - any_failed=$(( $any_mili_failed + $any_xmilics_failed ))
-    - echo any_failed
+    - echo "Any failed $any_failed"
 
 .toss4:
   variables:
