@@ -51,6 +51,7 @@ variables:
     - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -s all
     - any_xmilics_failed=$?
     - any_failed=$(( $any_mili_failed + $any_xmilics_failed ))
+    - echo any_failed
 
 .toss4:
   variables:
@@ -95,4 +96,4 @@ toss4_intel_classic_slurm_mili:
     - git push origin main# Add your deployment commands here
   only:
     - main
-  when: any_failed == 0
+  when: on_success
