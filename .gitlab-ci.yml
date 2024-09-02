@@ -86,6 +86,7 @@ toss4_intel_classic_slurm_mili:
 .deploy_to_github:
   stage: deploy
   script:
+    - echo "Deploying to github"
     - mkdir -p ~/.ssh
     - echo "$GITHUB_SSH_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
