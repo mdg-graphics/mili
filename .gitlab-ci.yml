@@ -81,6 +81,7 @@ toss4_intel_classic_slurm_mili:
   script:
     - !reference [ .build-mili-xmilics, script ]
     - !reference [ .run-tests, script ]
+    - !reference [ .deploy_to_github, script]
 
 .deploy_to_github:
   stage: deploy
