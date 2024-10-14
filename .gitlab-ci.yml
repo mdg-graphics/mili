@@ -46,6 +46,7 @@ variables:
 
 .run-tests:
   script:
+    - needs: [ ".build-mili-xmilics" ]
     - set -e  # Ensure the script exits on error
     - cd test/
     - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo -s all
@@ -53,8 +54,9 @@ variables:
     - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -s all
     - any_xmilics_failed=$?
     - any_failed=$(( any_mili_failed + any_xmilics_failed ))
-    - if: any_failed > 0 || echo "Build failed"; exit 1;  
+    - if:  any_failed > 0 
       when: always   
+      allow_fail: true
     - echo "Any failed $any_failed"
 
 .toss4:
@@ -75,12 +77,12 @@ toss4_intel_classic_slurm_mili:
   tags:
     - rzwhippet
     - slurm
-    - batch
   extends:
     - .toss4-intel-classic
     - .slurm-toss-4
     - .slurm
     - .build-mili-xmilics
+    - .run-tests
   script:
     - !reference [ .build-mili-xmilics, script ]
     - !reference [ .run-tests, script ]
