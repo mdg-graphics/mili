@@ -47,7 +47,6 @@ variables:
 .run-tests:
   script:
     - needs: [ ".build-mili-xmilics" ]
-    - set -e  # Ensure the script exits on error
     - cd test/
     - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo -s all
     - any_mili_failed=$?
