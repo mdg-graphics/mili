@@ -53,7 +53,8 @@ variables:
     - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -s all
     - any_xmilics_failed=$?
     - any_failed=$(( any_mili_failed + any_xmilics_failed ))
-    - if( any_failed > 0) || { echo "Build failed"; exit 1; }
+    - if: any_failed > 0 || echo "Build failed"; exit 1;  
+      when: always   
     - echo "Any failed $any_failed"
 
 .toss4:
