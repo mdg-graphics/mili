@@ -39,8 +39,7 @@ variables:
   script:
     - configure.py
     - cd build-${BUILD_SPEC}-relwithdebinfo
-    - make -j
-    - if [ $? -ne 0 ]; then echo "Build failed"; exit 1; fi
+    - make -j || { echo "Build failed"; exit 1; } 
     - cd -
 
 .run-tests:
