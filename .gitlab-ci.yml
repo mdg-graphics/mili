@@ -78,7 +78,6 @@ toss4_intel_classic_slurm_mili:
     - .slurm-toss-4
     - .slurm
     - .build-mili-xmilics
-    - .run-tests
   script:
     - !reference [ .build-mili-xmilics, script ]
     - !reference [ .run-tests, script ]
