@@ -37,7 +37,7 @@ variables:
   variables:
     BUILD_SPEC: ${SYS_TYPE}-${COMPILER_SPEC}
   script:
-    = set -e
+    - set -e
     - configure.py
     - cd build-${BUILD_SPEC}-relwithdebinfo
     - make -j 
