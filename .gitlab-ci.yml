@@ -37,22 +37,20 @@ variables:
   variables:
     BUILD_SPEC: ${SYS_TYPE}-${COMPILER_SPEC}
   script:
-    - set -e  # Ensure the script exits on error
     - configure.py
     - cd build-${BUILD_SPEC}-relwithdebinfo
     - make -j
+    - if [ $? -ne 0 ]; then echo "Build failed"; exit 1; fi
     - cd -
-    - echo "Completed build"
 
 .run-tests:
   script:
-    - needs: [ ".build-mili-xmilics" ]
     - cd test/
     - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo -s all
     - any_mili_failed=$?
     - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -s all
     - any_xmilics_failed=$?
-    - any_failed=$(( any_mili_failed + any_xmilics_failed ))   
+    - any_failed=$(( $any_mili_failed + $any_xmilics_failed ))
     - echo "Any failed $any_failed"
 
 .toss4:
@@ -73,22 +71,13 @@ toss4_intel_classic_slurm_mili:
   tags:
     - rzwhippet
     - slurm
+    - batch
   extends:
     - .toss4-intel-classic
     - .slurm-toss-4
     - .slurm
     - .build-mili-xmilics
-    - .run-tests
-  
+  script:
+    - !reference [ .build-mili-xmilics, script ]
+    - !reference [ .run-tests, script ]
 
-#toss4_intel_classic_slurm_mili:
-#  stage: test
-#  tags:
-#    - rzwhippet
-#    - slurm
-#  extends:
-#    - .toss4-intel-classic
-#    - .slurm-toss-4
-#    - .slurm
-#    - .build-mili-xmilics
-#    - .run-tests
