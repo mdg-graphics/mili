@@ -42,6 +42,7 @@ variables:
     - cd build-${BUILD_SPEC}-relwithdebinfo
     - make -j || { echo "Build failed"; exit 1; }
     - cd -
+    - echo "Completed build"
 
 .run-tests:
   script:
@@ -52,6 +53,7 @@ variables:
     - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -s all
     - any_xmilics_failed=$?
     - any_failed=$(( any_mili_failed + any_xmilics_failed ))
+    - if( any_failed > 0) || { echo "Build failed"; exit 1; }
     - echo "Any failed $any_failed"
 
 .toss4:
