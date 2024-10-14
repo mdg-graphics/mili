@@ -40,7 +40,7 @@ variables:
     - set -e  # Ensure the script exits on error
     - configure.py
     - cd build-${BUILD_SPEC}-relwithdebinfo
-    - make -j || { echo "Build failed"; exit 1; }
+    - make -j
     - cd -
     - echo "Completed build"
 
