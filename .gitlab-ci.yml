@@ -40,11 +40,10 @@ variables:
     - configure.py
     - cd build-${BUILD_SPEC}-relwithdebinfo
     - make -j
-    - exit $?
 
 .run-tests:
   script:
-    - cd test/
+    - cd ../test/
     - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo -s all
     - any_mili_failed=$?
     - mdgtest/RunTest.py -c ../build-${BUILD_SPEC}-relwithdebinfo/bin/xmilics -s all
