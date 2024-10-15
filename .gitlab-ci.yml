@@ -40,8 +40,7 @@ variables:
     - configure.py
     - cd build-${BUILD_SPEC}-relwithdebinfo
     - make -j
-    - if [ $? -ne 0 ]; then echo "Build failed"; exit 1; fi
-    - cd -
+    - exit $?
 
 .run-tests:
   script:
@@ -52,6 +51,7 @@ variables:
     - any_xmilics_failed=$?
     - any_failed=$(( $any_mili_failed + $any_xmilics_failed ))
     - echo "Any failed $any_failed"
+    - exit $any_failed
 
 .toss4:
   variables:
