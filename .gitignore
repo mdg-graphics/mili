@@ -1,3 +1,5 @@
 #build directories
 build-*
 install-*
+#local testing directories
+test/toss*

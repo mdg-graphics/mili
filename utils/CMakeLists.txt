@@ -23,9 +23,6 @@ set(XMILICS_HEADER_FILES
 # Source/Header files for md
 set( MD_SOURCE_FILES ${MD_SOURCE_FILES} ${CMAKE_CURRENT_LIST_DIR}/md.c )
 
-# Source/Header files for tipart
-set( TIPART_SOURCE_FILES ${TIPART_SOURCE_FILES} ${CMAKE_CURRENT_LIST_DIR}/tipart.c )
-
 # Source/Header files for MiliReader
 set( MILIREADER_SOURCE_FILES ${MILIREADER_SOURCE_FILES} ${CMAKE_CURRENT_LIST_DIR}/MiliReader.c )
 
@@ -56,13 +53,6 @@ if( ENABLE_UTILITIES )
     blt_add_executable(
         NAME md
         SOURCES ${MD_SOURCE_FILES}
-        DEPENDS_ON mili
-    )
-
-    # tipart
-    blt_add_executable(
-        NAME tipart
-        SOURCES ${TIPART_SOURCE_FILES}
         DEPENDS_ON mili
     )
 
@@ -97,7 +87,7 @@ if( CLANGFORMAT_FOUND )
 
     blt_add_code_checks(
         PREFIX util_format_checks
-        SOURCES ${XMILICS_SOURCE_FILES} ${XMILICS_HEADER_FILES} ${MD_SOURCE_FILES} ${TIPART_SOURCE_FILES}
+        SOURCES ${XMILICS_SOURCE_FILES} ${XMILICS_HEADER_FILES} ${MD_SOURCE_FILES} 
                 ${MILIREADER_SOURCE_FILES} ${TI_STRINGS_SOURCE_FILES} ${MAKEMILI_DRIVER_SOURCE_FILES}
         CLANGFORMAT_CFG_FILE ${PROJECT_SOURCE_DIR}/scripts/style/clang-format.yaml
     )
