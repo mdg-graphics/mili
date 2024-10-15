@@ -27,17 +27,17 @@ set(MILI_SOURCE_FILES
     ${CMAKE_CURRENT_LIST_DIR}/makemili.c
     ${CMAKE_CURRENT_LIST_DIR}/mesh_u.c
     ${CMAKE_CURRENT_LIST_DIR}/mili.c
+    ${CMAKE_CURRENT_LIST_DIR}/mili_statemap.c
+    ${CMAKE_CURRENT_LIST_DIR}/mili_util.c
     ${CMAKE_CURRENT_LIST_DIR}/mr_funcs.c
     ${CMAKE_CURRENT_LIST_DIR}/param.c
     ${CMAKE_CURRENT_LIST_DIR}/parson.c
-    ${CMAKE_CURRENT_LIST_DIR}/partition.c
     ${CMAKE_CURRENT_LIST_DIR}/read_db.c
     ${CMAKE_CURRENT_LIST_DIR}/sarray.c
     ${CMAKE_CURRENT_LIST_DIR}/srec.c
     ${CMAKE_CURRENT_LIST_DIR}/svar.c
     ${CMAKE_CURRENT_LIST_DIR}/ti.c
     ${CMAKE_CURRENT_LIST_DIR}/tidirc.c
-    ${CMAKE_CURRENT_LIST_DIR}/util.c
     ${CMAKE_CURRENT_LIST_DIR}/wrap_c.c
     ${CMAKE_CURRENT_LIST_DIR}/write_db.c
     ${CMAKE_CURRENT_LIST_DIR}/f_util.f
@@ -58,7 +58,6 @@ set(MILI_HEADER_FILES
     ${CMAKE_CURRENT_LIST_DIR}/misc.h
     ${CMAKE_CURRENT_LIST_DIR}/mr.h
     ${CMAKE_CURRENT_LIST_DIR}/parson.h
-    ${CMAKE_CURRENT_LIST_DIR}/partition.h
     ${CMAKE_CURRENT_LIST_DIR}/sarray.h
     ${CMAKE_BINARY_DIR}/include/mili_config.h
 )
