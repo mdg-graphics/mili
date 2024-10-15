@@ -71,7 +71,7 @@ typedef int Famid;
 #define M_TET (6)       /* 4 nodes */
 #define M_PYRAMID (7)   /* 5 nodes */
 #define M_WEDGE (8)     /* 6 nodes */
-//#define M_HEX (9)       /* 8 nodes */
+#define M_HEX (9)       /* 8 nodes */
 #define M_MAT (10)      /* Class for material state variables */
 #define M_MESH (11)     /* Class for global state variables */
 #define M_SURFACE (12)  /* Class for surfaces */
