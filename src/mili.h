@@ -77,16 +77,17 @@ typedef int Famid;
 #define M_SURFACE (12)  /* Class for surfaces */
 #define M_PARTICLE (13) /* Class for particles - 1 nodes */
 #define M_TET10 (14)    /* Class for 10 Node Tetrahedron */
-#define M_QTY_SUPERCLASS (15)
+#define M_INODE (15)
+#define M_QTY_SUPERCLASS (16)
 
 #define M_SHARED (100) /* Used to identify multi-superclass objects for TI results */
 #define M_ALL (200)
 #define M_INVALID_LABEL -1
 /* Make sure the following 2 static declarations are kept in sync with defines above. **/
 
-static const int conn_words[M_QTY_SUPERCLASS] = {0, 0, 4, 5, 5, 6, 6, 7, 8, 10, 0, 0, 0, 3, 12};
+static const int conn_words[M_QTY_SUPERCLASS] = {0, 0, 4, 5, 5, 6, 6, 7, 8, 10, 0, 0, 0, 3, 12, 3};
 
-static const int class_conns[M_QTY_SUPERCLASS] = {0, 0, 2, 3, 3, 4, 4, 5, 6, 8, 0, 0, 0, 1, 10};
+static const int class_conns[M_QTY_SUPERCLASS] = {0, 0, 2, 3, 3, 4, 4, 5, 6, 8, 0, 0, 0, 1, 10, 1};
 
 /*
  * Mili database query types.
