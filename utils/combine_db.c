@@ -1437,63 +1437,6 @@ Return_value mc_combine_srecs(Mili_analysis **in_db, Mili_analysis *out_db, TILa
         in_labels->subrec_contributions = (short *)calloc(num_procs * out_subrec_qty, sizeof(short));
     }
 
-    /*
-    Need to work this in at this point.  check to see if the subrec is subset of the domain it referes to
-    and if it is we need to create a sub-mapping, otherwise we can refer to the label->mapping.
-
-
-    if(out_psubrec->mo_qty != iter->size || sub_contibutions[contribute_subrec] >1) {
-                         index_out = 0;
-                         * There is a subset of the select object in this subrecord *
-                         if(temp_array == NULL || temp_array_size < in_psubrec->mo_qty) {
-                            if(temp_array != NULL) {
-                               free(temp_array);
-                               temp_array= NULL;
-                            }
-                            temp_array = (int *)calloc(in_psubrec->mo_qty, sizeof(int));
-                            temp_array_size = in_psubrec->mo_qty;
-                         }* else we just use what has already been created*
-                         in_index= 0;
-
-                         for(  cur_in_moid_blck =0;
-                               cur_in_moid_blck< in_psubrec->qty_id_blks;
-                               cur_in_moid_blck++) {
-                            for(  in_moid = in_psubrec->mo_id_blks[cur_in_moid_blck*2];
-                                  in_moid <= in_psubrec->mo_id_blks[cur_in_moid_blck*2+1];
-                                  in_moid++) {
-                               match_moid = map[in_moid-1]+1;
-                               index_out=0;
-                               for( cur_out_moid_block =0 ;
-                                     cur_out_moid_block< out_psubrec->qty_id_blks;
-                                     cur_out_moid_block++) {
-                                  if( out_psubrec->mo_id_blks[cur_out_moid_block*2] <= match_moid  && match_moid <=
-    out_psubrec->mo_id_blks[cur_out_moid_block*2+1]) { temp_array[in_index++] = index_out + match_moid -
-    out_psubrec->mo_id_blks[cur_out_moid_block*2]; break;
-                                  }
-                                  index_out += out_psubrec->mo_id_blks[cur_out_moid_block*2+1]
-    -out_psubrec->mo_id_blks[cur_out_moid_block*2]+1;
-                                  /*
-                                  for(  out_moid= out_psubrec->mo_id_blks[cur_out_moid_block*2];
-                                        out_moid <= out_psubrec->mo_id_blks[cur_out_moid_block*2+1];
-                                        out_moid++){
-
-                                     if(match_moid == out_moid){
-                                        temp_array[in_index++] = index_out;
-
-                                        break;
-                                     }
-                                     index_out++;
-
-                                  }
-                               }
-                            }
-
-                         }
-                         map = temp_array;
-
-
-                   }
-    */
     for ( srec_id = 0; srec_id < out_srec_qty; srec_id++ )
     {
         if ( srec_id > out_fam->qty_srecs - 1 )
@@ -1706,7 +1649,7 @@ Return_value merge_state_data(int proc, TILabels *in_labels, Mili_analysis *in_d
     Hash_table *srec_table;
     Srec *p_sr, *out_psr;
     Sub_srec *out_psubrec, *in_psubrec;
-    Htable_entry *subrec_entry, *class_entry;
+    Htable_entry *class_entry;
     Mesh_object_class_data *p_mocd;
     Svar *out_svar, *in_svar;
     size_t state_size;

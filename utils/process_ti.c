@@ -607,7 +607,7 @@ void filter_count(Label *label, int proc_count)
             heap_size++;
             if ( heap_size > label->size || heap_size < 1 )
             {
-                fprintf(stderr, "Too large proc: %d, offset: %d, heap size: %d, size: %d", proc,
+                fprintf(stderr, "Too large proc: %d, offset: %d, heap size: %d, size: %li", proc,
                         (int)label->offset_per_processor[proc] + i, heap_size, label->size);
             }
             create_new_sorter(proc, i, label->labels[label->offset_per_processor[proc] + i], arr, heap_size);
