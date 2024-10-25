@@ -19,7 +19,7 @@ typedef int Famid;
 #include "mili_enum.h"
 
 #ifndef MILI_VERSION
-#define MILI_VERSION "V23_02_4"
+#define MILI_VERSION "V24_01_00"
 #endif
 
 #if defined(_WIN32) || defined(WIN32)
@@ -77,7 +77,7 @@ typedef int Famid;
 #define M_SURFACE (12)  /* Class for surfaces */
 #define M_PARTICLE (13) /* Class for particles - 1 nodes */
 #define M_TET10 (14)    /* Class for 10 Node Tetrahedron */
-#define M_INODE (15)
+#define M_INODE (15)    /* Class for integrated nodes */
 #define M_QTY_SUPERCLASS (16)
 
 #define M_SHARED (100) /* Used to identify multi-superclass objects for TI results */
