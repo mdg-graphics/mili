@@ -91,7 +91,7 @@ set( SYSTEM_INFO_STRING "${BI_SYSTEM} ${BI_RELEASE} ${BI_VERSION} ${BI_PLATFORM}
 message( STATUS "System info: ${SYSTEM_INFO_STRING}")
 
 # Build version
-set( major_version 25 )
+set( major_version 24 )
 set( minor_version 01 )
 set( patch_version 00 )
 string( CONCAT PACKAGE_VERSION "${major_version}_${minor_version}_${patch_version}" )
