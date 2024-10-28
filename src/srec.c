@@ -1126,6 +1126,8 @@ Return_value mc_get_subrec_def(Famid fam_id, int srec_id, int subrec_id, Subreco
         case M_HEX:
         case M_MAT:
         case M_PARTICLE:
+        case M_TET10:
+        case M_INODE:
 
             p_subrec->qty_blocks = p_ssrec->qty_id_blks;
             id_cnt = 2 * p_subrec->qty_blocks;

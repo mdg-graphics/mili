@@ -57,7 +57,8 @@ enum
 /* Keep this in sync with object superclass defines in mili.h*/
 static const char *superclass_names[M_QTY_SUPERCLASS] = {"M_UNIT", "M_NODE", "M_TRUSS",   "M_BEAM",    "M_TRI",
                                                          "M_QUAD", "M_TET",  "M_PYRAMID", "M_WEDGE",   "M_HEX",
-                                                         "M_MAT",  "M_MESH", "M_SURFACE", "M_PARTICLE"};
+                                                         "M_MAT",  "M_MESH", "M_SURFACE", "M_PARTICLE", "M_TET10",
+                                                         "M_INODE"};
 
 /**/
 #define OVERLAP(min, max, tmin, tmax) (!(tmax < min || tmin > max))
@@ -186,6 +187,14 @@ Return_value className_to_classEnum(char *className, int *classEnum)
     else if ( !strcmp("M_PARTICLE", className) )
     {
         *classEnum = M_PARTICLE;
+    }
+    else if ( !strcmp("M_TET10", className) )
+    {
+        *classEnum = M_TET10;
+    }
+    else if ( !strcmp("M_INODE", className) )
+    {
+        *classEnum = M_INODE;
     }
 
     else
@@ -441,6 +450,8 @@ Return_value create_class_data(int superclass, char *short_name, char *long_name
         case M_MESH:
         case M_SURFACE:
         case M_PARTICLE:
+        case M_TET10:
+        case M_INODE:
             p_mocd->blocks = NEW(Block_list, "Class block list");
             if ( p_mocd->blocks == NULL )
             {
@@ -2239,7 +2250,7 @@ Return_value mc_load_conns(Famid fam_id, int mesh_id, char *short_name, int *con
         return rval;
     }
     else if ( ((Mesh_object_class_data *)p_hte->data)->superclass < M_TRUSS ||
-              ((Mesh_object_class_data *)p_hte->data)->superclass > M_PARTICLE )
+              ((Mesh_object_class_data *)p_hte->data)->superclass > M_INODE )
     {
         return INVALID_CLASS_OPERATION;
     }
@@ -5026,6 +5037,8 @@ void mili_delete_mo_class_data(void *p_data)
         case M_WEDGE:
         case M_HEX:
         case M_PARTICLE:
+        case M_TET10:
+        case M_INODE:
             p_ed = p_mocd->objects.elems;
             if ( p_ed != NULL )
             {
