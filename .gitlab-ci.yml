@@ -39,7 +39,7 @@ variables:
   script:
     - configure.py
     - cd build-${BUILD_SPEC}-relwithdebinfo
-    - make -j
+    - make
 
 .run-tests:
   script:
