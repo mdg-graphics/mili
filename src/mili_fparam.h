@@ -161,7 +161,8 @@
      &    m_string, m_int, m_real, m_int4, m_int8, m_real4,             &
      &    m_real8, m_unit, m_node, m_truss, m_beam, m_tri, m_quad,      &
      &    m_tet, m_pyramid, m_wedge, m_hex, m_mat, m_mesh, m_surf,      &
-     &    m_particle, m_inode, m_state_data, m_non_state_data,          &
+     &    m_particle, m_tet10, m_inode, m_class_count, m_state_data,    &
+     &    m_non_state_data,                                             &
      &    m_result_ordered, m_object_ordered,                           &
      &    m_qty_states, m_qty_dimensions, m_qty_meshes,                 &
      &    m_qty_srec_fmts, m_qty_subrecs, m_qty_subrec_svars,           &
@@ -190,8 +191,8 @@
 
      &    m_unit = 0, m_node = 1, m_truss = 2, m_beam = 3, m_tri = 4,   &
      &    m_quad = 5, m_tet = 6, m_pyramid = 7, m_wedge = 8, m_hex = 9, &
-     &    m_mat = 10, m_mesh = 11, m_surf = 12, m_particle =13,         &
-     &    m_tet10 =14, m_inode =15,                                     &
+     &    m_mat = 10, m_mesh = 11, m_surf = 12, m_particle = 13,        &
+     &    m_tet10 = 14, m_inode = 15, m_class_count = 16  ,             &
 
      &    m_result_ordered = 0, m_object_ordered = 1,                   &
 
