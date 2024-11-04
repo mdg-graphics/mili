@@ -87,7 +87,7 @@ typedef int Famid;
 
 static const int conn_words[M_QTY_SUPERCLASS] = {0, 0, 4, 5, 5, 6, 6, 7, 8, 10, 0, 0, 0, 3, 12, 3};
 
-static const int class_conns[M_QTY_SUPERCLASS] = {0, 0, 2, 3, 3, 4, 4, 5, 6, 8, 0, 0, 0, 1, 10, 1};
+static const int class_conns[M_QTY_SUPERCLASS] = {0, 1, 2, 3, 3, 4, 4, 5, 6, 8, 0, 0, 0, 1, 10, 1};
 
 /*
  * Mili database query types.
