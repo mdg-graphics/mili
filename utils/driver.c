@@ -776,10 +776,10 @@ int main(int argc, char *argv[])
     int i, j;
     char answer[4] = " ";
     char file_name[100];
-    
+
     int ret;
     struct rlimit rl;
-    
+
     TILabels labels;
     labels.subrec_contributions = NULL;
     labels.dimensions = 0;
@@ -1022,7 +1022,28 @@ int main(int argc, char *argv[])
                     do
                     {
                         fprintf(stderr, "\t Do you want to append to existing files? <yes> or <no> ");
-                        fgets(answer, 4, stdin);
+
+                        /* NOTE: The call to fgets is in a while loop to prevent potential issues
+                         * when running in a slurm allocation. Without the while loop, if the user
+                         * forgets the -batch or -batch_overwrite flags when the output database
+                         * already exists, then this loops forever printing the above message which
+                         * can create an output file that is huge. By having the while loop is makes
+                         * it more clear that xmilics is hanging and informs the user that they may
+                         * need to add the -batch or -batch_overwrite flag.
+                         */
+                        if ( fgets(answer, 4, stdin) == NULL )
+                        {
+                            fprintf(stderr, "\n\nWARNING: An error occurred while reading stdin.\n");
+                            fprintf(stderr, " If running in a slurm allocation, you will");
+                            fprintf(stderr, " need to add the flag -batch or -batch_overwrite to ");
+                            fprintf(stderr, "prevent Xmilics from hanging.\n");
+                            const int LIMIT = 3;
+                            i = 0;
+                            while ( fgets(answer, 4, stdin) == NULL && i < LIMIT )
+                                i++;
+                            if ( i == LIMIT )
+                                exit(1);
+                        }
 
                         if ( (strncmp(answer, "y", 1) == 0) || (strncmp(answer, "n", 1) == 0) )
                         {
