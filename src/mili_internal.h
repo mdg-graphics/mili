@@ -684,7 +684,7 @@ Return_value ios_traverse_init(IO_mem_store *pioms, int last);
 Return_value mc_get_class_info_by_index(Mili_family *in, int *mesh_id, int *index, int *superclass, char *short_name,
                                         char *long_name);
 /* mili_statemap.c - routines */
-Return_value load_static_maps(Mili_family *, Bool_type );
+Return_value load_static_maps(Mili_family *, Bool_type, Bool_type);
 Return_value rebuild_state_tfile(Mili_family *);
 /* read_db.c - routines for managing mesh object structs */
 void mili_delete_mo_class_data(void *p_data);

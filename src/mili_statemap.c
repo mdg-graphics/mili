@@ -24,7 +24,7 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
  */
- 
+
 #include "mili_internal.h"
 #ifndef _MSC_VER
 #include <unistd.h>
@@ -547,7 +547,7 @@ Return_value rebuild_state_tfile(Mili_family *fam)
  *
  * Build file/offset map of state-data records in family.
  */
-Return_value load_static_maps(Mili_family *fam, Bool_type initial_build)
+Return_value load_static_maps(Mili_family *fam, Bool_type initial_build, Bool_type force_reopen_state_file)
 {
     Return_value rval = OK;
     long offset = 0;
@@ -561,7 +561,7 @@ Return_value load_static_maps(Mili_family *fam, Bool_type initial_build)
     float time;
     int file_count = -1;
     char check;
-    
+
     if ( fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile )
     {
         if ( fam->time_state_file == NULL )
@@ -675,6 +675,19 @@ Return_value load_static_maps(Mili_family *fam, Bool_type initial_build)
         fclose(fp);
         fam->time_state_file = NULL;
     }
+
+    if ( force_reopen_state_file )
+    {
+        if ( fam->cur_st_file != NULL )
+            state_file_close(fam);
+
+        rval = state_file_open(fam, fam->state_map[ fam->state_qty-1 ].file, fam->access_mode);
+        if ( rval != OK )
+        {
+            return rval;
+        }
+    }
+
     if ( state_count > 0 && fam->access_mode != 'r')
     {
         rval = state_file_open(fam, fam->st_file_count - 1, fam->access_mode);
@@ -717,7 +730,7 @@ Return_value update_static_map(Famid fam_id, State_descriptor *p_sd)
 
     Return_value rval = OK;
     FILE *fp = NULL;
-    
+
     if ( fam->char_header[HDR_VERSION_IDX] > 2 && fam->write_tfile )
     {
         if ( fam->time_state_file == NULL )

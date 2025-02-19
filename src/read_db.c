@@ -170,7 +170,11 @@ Return_value read_state_data(int state_num, Mili_analysis *in_db)
             p_c = (char *)(in_db->result + offset);
             result_buf = (void *)p_c;
             /* Read the database. */
-            mc_read_results(fam_id, state_num, i, 1, primals, result_buf);
+            rval = mc_read_results(fam_id, state_num, i, 1, primals, result_buf);
+            if ( rval != OK )
+            {
+                mc_print_error("read_state_data calling mc_read_results - ", rval);
+            }
 
             if ( p_subrec->organization == RESULT_ORDERED )
             {
