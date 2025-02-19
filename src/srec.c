@@ -3069,7 +3069,7 @@ Return_value mc_wrt_subrec(Famid fam_id, char *subrec_name, int start, int stop,
  */
 Return_value mc_reload_states(Famid famid)
 {
-    return load_static_maps(fam_list[famid], 0);
+    return load_static_maps(fam_list[famid], 0, TRUE);
 }
 
 /*****************************************************************
@@ -3097,6 +3097,7 @@ Return_value mc_end_state(Famid fam_id, int srec_id)
     {
         return INVALID_SREC_INDEX;
     }
+
     if ( fam->cur_st_file == NULL )
     {
         rval = state_file_open(fam, fam->st_file_count - 1, fam->access_mode);
@@ -3106,6 +3107,13 @@ Return_value mc_end_state(Famid fam_id, int srec_id)
         }
         fseek(fam->cur_st_file, 0, SEEK_END);
     }
+
+    /* flush and fsync state file so we guarantee the state data is completely written before updating
+     * the state maps with the new state. This prevents issues when xmilics/griz try to read
+     * a database while it is being written.
+     */
+    fflush( fam->cur_st_file ); // Flush buffered state data to OS
+    fsync( fileno(fam->cur_st_file) ); // Tell OS to write the data to disk
 
     /* Add a new entry in the state map. */
     state_qty = fam->state_qty;
@@ -3462,7 +3470,7 @@ Return_value build_state_map(Mili_family *fam, Bool_type initial_build)
     offset = 0;
     if ( fam->char_header[DIR_VERSION_IDX] > 1 )
     {
-        return load_static_maps(fam, initial_build);
+        return load_static_maps(fam, initial_build, FALSE);
     }
 
     p_fmap = &fam->file_map;

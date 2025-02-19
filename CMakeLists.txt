@@ -93,7 +93,7 @@ message( STATUS "System info: ${SYSTEM_INFO_STRING}")
 # Build version
 set( major_version 24 )
 set( minor_version 01 )
-set( patch_version 00 )
+set( patch_version 01 )
 string( CONCAT PACKAGE_VERSION "${major_version}_${minor_version}_${patch_version}" )
 
 # Package name and developer
