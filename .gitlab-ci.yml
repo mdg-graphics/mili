@@ -67,6 +67,8 @@ variables:
 
 toss4_intel_classic_slurm_mili:
   stage: test
+  variables:
+   JACAMAR_SCHEDULER_DEBUG: true
   tags:
     - rzwhippet
     - slurm
