@@ -71,7 +71,7 @@ toss4_intel_classic_slurm_mili:
   variables:
    JACAMAR_SCHEDULER_DEBUG: true
   tags:
-    - rztrona
+    - rzhound
     - slurm
     - batch
   extends:
