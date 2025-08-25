@@ -38,7 +38,7 @@
  * Dynamically allocated array of pointers to all currently open
  * MILI families.
  */
-Mili_family **fam_list;
+extern Mili_family **fam_list;
 
 
 static void delete_tfile(Mili_family *fam)
