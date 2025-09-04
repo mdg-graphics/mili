@@ -3108,12 +3108,14 @@ Return_value mc_end_state(Famid fam_id, int srec_id)
         fseek(fam->cur_st_file, 0, SEEK_END);
     }
 
+#ifdef FSYNC_FFLUSH_END_STATE
     /* flush and fsync state file so we guarantee the state data is completely written before updating
      * the state maps with the new state. This prevents issues when xmilics/griz try to read
      * a database while it is being written.
      */
     fflush( fam->cur_st_file ); // Flush buffered state data to OS
     fsync( fileno(fam->cur_st_file) ); // Tell OS to write the data to disk
+#endif
 
     /* Add a new entry in the state map. */
     state_qty = fam->state_qty;
