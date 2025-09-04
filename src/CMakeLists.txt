@@ -106,6 +106,14 @@ if( ENABLE_EPRINTF )
 endif()
 
 ##------------------------------------------------------------------------------
+## Handle Mili compiler defines
+##------------------------------------------------------------------------------
+set( MILI_DEFINES "" )
+if ( DEFINED DOD_BUILD AND NOT DOD_BUILD )
+    set( MILI_DEFINES "FSYNC_FFLUSH_END_STATE" )
+endif()
+
+##------------------------------------------------------------------------------
 ## Add libraries as build targets
 ##------------------------------------------------------------------------------
 
@@ -115,6 +123,7 @@ if( ENABLE_MILI )
         NAME mili
         SOURCES ${MILI_SOURCE_FILES}
         HEADERS ${MILI_HEADER_FILES}
+        DEFINES ${MILI_DEFINES}
     )
     target_include_directories( mili PUBLIC ${CMAKE_BINARY_DIR}/include )
     install( FILES ${MILI_HEADER_FILES} DESTINATION include )

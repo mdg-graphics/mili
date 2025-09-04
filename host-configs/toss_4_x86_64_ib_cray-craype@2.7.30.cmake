@@ -31,6 +31,8 @@ set( MILI_COMPILER_PREFIX "/opt/cray/pe/${MILI_COMPILER_FAMILY}/${MILI_COMPILER_
 set( CMAKE_C_COMPILER "${MILI_COMPILER_PREFIX}/cc" CACHE PATH "" )
 set( CMAKE_Fortran_COMPILER "${MILI_COMPILER_PREFIX}/ftn" CACHE PATH "" )
 
+set( DOD_BUILD FALSE CACHE BOOL "" )
+
 set( ENABLE_MILI TRUE CACHE BOOL "Turn on/off building of Mili Library" )
 set( ENABLE_TAURUS TRUE CACHE BOOL "Turn on/off building of Taurus Library" )
 set( ENABLE_EPRINTF TRUE CACHE BOOL "Turn on/off building of Extended printf Library" )
