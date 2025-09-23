@@ -45,6 +45,7 @@ if( ENABLE_XMILICS )
         DEPENDS_ON mili taurus
     )
     target_include_directories( xmilics PUBLIC ${CMAKE_BINARY_DIR}/include )
+    install( TARGETS xmilics RUNTIME DESTINATION bin )
 endif()
 
 # Utilities
@@ -55,6 +56,7 @@ if( ENABLE_UTILITIES )
         SOURCES ${MD_SOURCE_FILES}
         DEPENDS_ON mili
     )
+    install( TARGETS md RUNTIME DESTINATION bin )
 
     # MiliReader
     blt_add_executable(
@@ -62,6 +64,7 @@ if( ENABLE_UTILITIES )
         SOURCES ${MILIREADER_SOURCE_FILES}
         DEPENDS_ON mili
     )
+    install( TARGETS MiliReader RUNTIME DESTINATION bin )
 
     # ti_strings
     blt_add_executable(
@@ -69,6 +72,7 @@ if( ENABLE_UTILITIES )
         SOURCES ${TI_STRINGS_SOURCE_FILES}
         DEPENDS_ON mili
     )
+    install( TARGETS ti_strings RUNTIME DESTINATION bin )
 
     # makemili_driver
     blt_add_executable(
@@ -76,6 +80,7 @@ if( ENABLE_UTILITIES )
         SOURCES ${MAKEMILI_DRIVER_SOURCE_FILES}
         DEPENDS_ON mili
     )
+    install( TARGETS makemili_driver RUNTIME DESTINATION bin )
 
 endif()
 
