@@ -13,37 +13,37 @@
 #define TOTAL_STATES 10
 #define TRUE 1
 #define FALSE 0
-#define MAX_RNAME_LEN (64)
+#define MAX_RNAME_LEN 64
 
-const int NUM_NODES = 71;
-const int NUM_NODAL_SVARS = 9;
+#define NUM_NODES 71
+#define NUM_NODAL_SVARS 9
 
-const int NUM_BRICKS = 8;
-const int NUM_BRICK_SVARS = 6;
+#define NUM_BRICKS 8
+#define NUM_BRICK_SVARS 6
 
-const int NUM_PYRAMIDS = 6;
-const int NUM_PYRAMID_SVARS = 2;
+#define NUM_PYRAMIDS 6
+#define NUM_PYRAMID_SVARS 2
 
-const int NUM_TRUSS = 6;
-const int NUM_TRUSS_SVARS = 3;
+#define NUM_TRUSS 6
+#define NUM_TRUSS_SVARS 3
 
-const int NUM_TETS = 2;
-const int NUM_TET_SVARS = 2;
-const int NUM_TET_INT_POINTS = 2;
+#define NUM_TETS 2
+#define NUM_TET_SVARS 2
+#define NUM_TET_INT_POINTS 2
 
-const int NUM_BEAMS = 12;
-const int NUM_BEAM_SVARS = 1;
+#define NUM_BEAMS 12
+#define NUM_BEAM_SVARS 1
 
-const int NUM_TRIS = 4;
-const int NUM_TRI_SVARS = 1;
+#define NUM_TRIS 4
+#define NUM_TRI_SVARS 1
 
-const int NUM_QUADS = 4;
-const int NUM_QUAD_SVARS = 1;
+#define NUM_QUADS 4
+#define NUM_QUAD_SVARS 1
 
-const int NUM_WEDGES = 4;
-const int NUM_WEDGE_SVARS = 1;
+#define NUM_WEDGES 4
+#define NUM_WEDGE_SVARS 1
 
-const int NUM_MATS = 13;
+#define NUM_MATS 13
 
 // Nodal State Variable Names
 char *node_svar_names[] = {
@@ -120,7 +120,7 @@ float node_positions[] = {
     0.0, 0.02, 0.01,
     0.0, 0.02, 0.02,
     0.01, 0.02, 00.01,
-    0.01, 0.02, 0.02, 
+    0.01, 0.02, 0.02,
     0.0, 0.02, 0.0,
     0.01, 0.02, 0.0,
     0.02, 0.0, 0.02,
@@ -147,9 +147,9 @@ float node_positions[] = {
     0.0, -0.04, 0.02,
     0.0, -0.04, 0.0,
     0.02, -0.04, 0.02,
-    0.02, -0.04, 0.00, 
+    0.02, -0.04, 0.00,
     0.02, 0.01, 0.06,
-    0.00, 0.01, 0.06, 
+    0.00, 0.01, 0.06,
     -0.04, 0.01, 0.0,
     -0.04, 0.01, 0.02,
     0.06, 0.01, 0.02,
@@ -231,7 +231,7 @@ int truss_labels[] = {
     10, 20, 30, 40, 50, 60
 };
 
-int tets[][6] = { 
+int tets[][6] = {
     40, 41, 43, 37, 9, 1,
     40, 42, 43, 37, 9, 1
 };
@@ -309,7 +309,7 @@ float state_data[] = {
     0.0, 0.02, 0.01,
     0.0, 0.02, 0.02,
     0.01, 0.02, 00.01,
-    0.01, 0.02, 0.02, 
+    0.01, 0.02, 0.02,
     0.0, 0.02, 0.0,
     0.01, 0.02, 0.0,
     0.02, 0.0, 0.02,
@@ -336,9 +336,9 @@ float state_data[] = {
     0.0, -0.04, 0.02,
     0.0, -0.04, 0.0,
     0.02, -0.04, 0.02,
-    0.02, -0.04, 0.00, 
+    0.02, -0.04, 0.00,
     0.02, 0.01, 0.06,
-    0.00, 0.01, 0.06, 
+    0.00, 0.01, 0.06,
     -0.04, 0.01, 0.0,
     -0.04, 0.01, 0.02,
     0.06, 0.01, 0.02,
@@ -430,7 +430,7 @@ float state_data[] = {
 // Tet vec array values
     10.0, 100.0, 20.0, 200.0, 30.0, 300.0, 40.0, 400.0,
 // Beam axial stress values
-   3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 
+   3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4,
 // Tri variables
     10.0, 10.0, 10.0, 10.0,
 // Quad variables
@@ -483,7 +483,7 @@ int main(int argc, char *argv[]) {
     stat = mc_make_umesh(fam_id, "mixdb_wrt_stream", 3, &mesh_id);
     standard_error_check(fam_id, stat, "mc_make_umesh");
 
-    // Define Mesh object classes 
+    // Define Mesh object classes
     define_all_mesh_object_classes(fam_id, mesh_id);
 
     // Create state record format descriptor
@@ -502,8 +502,8 @@ int main(int argc, char *argv[]) {
     float time_increment = 0.1;
     int state_count = 10;
     write_states(fam_id, srec_id, state_count, start_time, time_increment);
-    
-    stat = mc_close(fam_id); 
+
+    stat = mc_close(fam_id);
     standard_error_check(fam_id, stat, "mc_close");
 
     return 0;
@@ -599,7 +599,7 @@ void define_all_mesh_object_classes(Famid fam_id, int mesh_id) {
     // Define and populate a hex class.
     stat = mc_def_class(fam_id, mesh_id, M_HEX, "brick", "Brick");
     standard_error_check(fam_id, stat, "mc_def_class (M_HEX)");
-    
+
     stat = mc_def_conn_seq_labels(fam_id, mesh_id, "brick", 1, NUM_BRICKS, brick_labels, (int *) bricks);
     standard_error_check(fam_id, stat, "mc_def_conn_seq_labels (brick)");
 
@@ -696,7 +696,7 @@ void write_states(Famid fam_id, int srec_id, int state_count, float start_time, 
         for(j = start_hex_elems; j < state_data_size; j++) {
             state_data[j] += data_increment;
         }
-    }    
+    }
 }
 
 
@@ -742,7 +742,7 @@ void define_subrecords(Famid fam_id, int srec_id) {
 
     mo_ids[0] = 1;
     mo_ids[1] = NUM_TRUSS;
-    //Define Subrecord for Truss variables 1-3 
+    //Define Subrecord for Truss variables 1-3
     stat = mc_def_subrec(fam_id, srec_id, "TrussVar1Subrec", OBJECT_ORDERED, 1, truss_svar_names[0], MAX_RNAME_LEN,
                          "truss", M_BLOCK_OBJ_FMT, 1, mo_ids, 0);
     standard_error_check(fam_id, stat, "mc_def_subrec (TrussVar1Subrec)");
@@ -771,28 +771,28 @@ void define_subrecords(Famid fam_id, int srec_id) {
 
     mo_ids[0] = 1;
     mo_ids[1] = NUM_BEAMS;
-    //Define Subrecord for beam axf 
+    //Define Subrecord for beam axf
     stat = mc_def_subrec(fam_id, srec_id, "BeamAxfSubrec", OBJECT_ORDERED, 1, beam_svar_names[0], MAX_RNAME_LEN,
                          "beam", M_BLOCK_OBJ_FMT, 1, mo_ids, 0);
     standard_error_check(fam_id, stat, "mc_def_subrec (BeamAxfSubrec)");
 
     mo_ids[0] = 1;
     mo_ids[1] = NUM_TRIS;
-    //Define Subrecord for Tri state variable 
+    //Define Subrecord for Tri state variable
     stat = mc_def_subrec(fam_id, srec_id, "TriVarSubrec", OBJECT_ORDERED, 1, tri_svar_names[0], MAX_RNAME_LEN,
                          "tri", M_BLOCK_OBJ_FMT, 1, mo_ids, 0);
     standard_error_check(fam_id, stat, "mc_def_subrec (TriVarSubrec)");
 
     mo_ids[0] = 1;
     mo_ids[1] = NUM_QUADS;
-    //Define Subrecord for Quad state variable 
+    //Define Subrecord for Quad state variable
     stat = mc_def_subrec(fam_id, srec_id, "QuadVarSubrec", OBJECT_ORDERED, 1, quad_svar_names[0], MAX_RNAME_LEN,
                          "quad", M_BLOCK_OBJ_FMT, 1, mo_ids, 0);
     standard_error_check(fam_id, stat, "mc_def_subrec (QuadVarSubrec)");
 
     mo_ids[0] = 1;
     mo_ids[1] = NUM_WEDGES;
-    //Define Subrecord for Wedge state variable 
+    //Define Subrecord for Wedge state variable
     stat = mc_def_subrec(fam_id, srec_id, "WedgeVarSubrec", OBJECT_ORDERED, 1, wedge_svar_names[0], MAX_RNAME_LEN,
                          "wedge", M_BLOCK_OBJ_FMT, 1, mo_ids, 0);
     standard_error_check(fam_id, stat, "mc_def_subrec (WedgeVarSubrec)");

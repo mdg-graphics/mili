@@ -12,7 +12,6 @@ def main( args ):
   print( f"Detected system type: {sys_type}" )
   # Use system information to determine default host-config file
   default_host_config_by_system = {
-    "toss_3_x86_64_ib": "host-configs/toss_3_x86_64_ib-intel@2021.4.cmake",
     "toss_4_x86_64_ib": "host-configs/toss_4_x86_64_ib-intel_classic@2021.6.0.cmake",
     "blueos_3_ppc64le_ib_p9": "host-configs/blueos_3_ppc64le_ib_p9-nvhpc@23.11.cmake",
     "toss_4_x86_64_ib_cray": "host-configs/toss_4_x86_64_ib_cray-craype@2.7.30.cmake",
