@@ -18,6 +18,7 @@ include:
 
 stages:
   - test
+  - deploy
 
 variables:
   GIT_SUBMODULE_STRATEGY: normal
@@ -27,7 +28,7 @@ variables:
     NNODES: 1
     NPROCS: 56
     QUEUE: pdebug
-    INTEG_WALL_TIME: 5
+    INTEG_WALL_TIME: 15
 
 .slurm:
   variables:
@@ -110,3 +111,23 @@ toss4_gcc_slurm_mili:
   script:
     - !reference [ .build-mili-xmilics, script ]
     - !reference [ .run-tests, script ]
+
+github-sync:
+  variables:
+    GITHUB_REPO: git@github.com:mdg-graphics/mili.git
+    GITLAB_REMOTE: ssh://git@rzgitlab.llnl.gov:7999/mdg/mili/mili.git
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+      when: always
+    - when: never
+  stage: deploy
+  tags:
+    - rzwhippet
+    - batch
+  script:
+    - git clone $GITHUB_REPO
+    - cd mili
+    - git remote add gitlab $GITLAB_REMOTE
+    - git remote -v
+    - git pull gitlab main
+    - git push
