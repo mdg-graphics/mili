@@ -1,5 +1,8 @@
 #build directories
 build-*
 install-*
+
 #local testing directories
 test/toss*
+test/log.*
+test/test-timings.json
