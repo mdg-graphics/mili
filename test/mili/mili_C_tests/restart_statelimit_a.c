@@ -129,7 +129,7 @@ static void writeStates( int fid, int sid, int stop_state,
                          float start_time, float time_increment);
 
 
-main( int argc, char *argv[] )
+int main( int argc, char *argv[] )
 {
     int i, j, k;
     int mo_ids[2];

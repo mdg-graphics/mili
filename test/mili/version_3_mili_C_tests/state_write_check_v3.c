@@ -192,7 +192,7 @@ int writeLongState( int fid, int sid, int stop_state,
 
 
 
-main( int argc, char *argv[] )
+int main( int argc, char *argv[] )
 {
     int i, j, k;
     int mo_ids[2];

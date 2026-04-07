@@ -70,7 +70,7 @@ char *particle_long_vars[] = {"Nodal Temperature"};
 //static int create_mesh( int fid, int *mid );
 
 
-main( int argc, char *argv[] )
+int main( int argc, char *argv[] )
 {
     int i, j, k;
     int mo_ids[2];

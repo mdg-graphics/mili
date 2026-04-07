@@ -3,6 +3,8 @@
 #
 ifeq ($(COMPILER_FAM), gnu)
 COMPILER=gcc
+else ifeq ($(COMPILER_FAM), oneapi)
+COMPILER=icx
 else
 COMPILER=icc
 endif

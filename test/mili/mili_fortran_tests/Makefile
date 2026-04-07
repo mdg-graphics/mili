@@ -3,6 +3,8 @@
 #
 ifeq ($(COMPILER_FAM), gnu)
 COMPILER=gfortran
+else ifeq ($(COMPILER_FAM), oneapi)
+COMPILER=ifx
 else
 COMPILER=ifort
 endif
