@@ -51,7 +51,7 @@
 #endif
 
 
-main( int argc, char *argv[] )
+int main( int argc, char *argv[] )
 {
     Famid fid;
     int rval;

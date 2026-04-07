@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "mili_internal.h"
 #include "mili.h"
 

@@ -78,6 +78,16 @@ variables:
     - module load gcc/13.3.1
     - module load python/3.13.2
 
+.toss4-oneapi:
+  extends: .toss4
+  variables:
+    COMPILER_SPEC: intel@2025.3.1
+    COMPILER_FAMILY: oneapi
+  before_script:
+    - module load cmake/3.30.5
+    - module load intel/2025.3.1
+    - module load python/3.13.2
+
 toss4_intel_classic_slurm_mili:
   stage: test
   variables:
@@ -105,6 +115,23 @@ toss4_gcc_slurm_mili:
     - batch
   extends:
     - .toss4-gcc
+    - .slurm-toss-4
+    - .slurm
+    - .build-mili-xmilics
+  script:
+    - !reference [ .build-mili-xmilics, script ]
+    - !reference [ .run-tests, script ]
+
+toss4_oneapi_slurm_mili:
+  stage: test
+  variables:
+   JACAMAR_SCHEDULER_DEBUG: true
+  tags:
+    - rzhound
+    - slurm
+    - batch
+  extends:
+    - .toss4-oneapi
     - .slurm-toss-4
     - .slurm
     - .build-mili-xmilics
