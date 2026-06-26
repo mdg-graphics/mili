@@ -35,7 +35,7 @@ include( cmake/blt/SetupBLT.cmake )
 # Check build type and set compiler debug/optimization flags
 #------------------------------------------------------------------------------
 
-set( CMAKE_POSITION_INDEPENDENT_CODE )
+set( CMAKE_POSITION_INDEPENDENT_CODE TRUE )
 
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
     set( CMAKE_C_FLAGS_DEBUG " -g" )
