@@ -1466,7 +1466,11 @@ Return_value read_header(Mili_family *fam)
     LONGLONG nitems;
     int i;
     int status;
+#ifdef _WIN32
+    struct _stati64 sbuf;
+#else
     struct stat sbuf;
+#endif
     Return_value rval;
 
     if ( fam->char_header != NULL )
@@ -1488,7 +1492,11 @@ Return_value read_header(Mili_family *fam)
      * condition for determining that the file does not exist (which opens
      * the door for application of write access in default case).
      */
-    status = stat(fname, &sbuf);
+#ifdef _WIN32
+    status = _stati64( fname, &sbuf );
+#else
+    status = stat( fname, &sbuf );
+#endif
     if ( status == -1 )
     {
         if ( errno == ENOENT )
@@ -2792,7 +2800,11 @@ Return_value free_name_lock(Mili_family *fam, int ftype)
  */
 Return_value update_active_family(Mili_family *fam)
 {
+#ifdef _WIN32
+    struct _stati64 statbuf;
+#else
     struct stat statbuf;
+#endif
     Return_value rval;
 
     /* Update state record map. */
@@ -2808,7 +2820,11 @@ Return_value update_active_family(Mili_family *fam)
 
     /*** UNTESTED ***/
     /* If lock file has been unlinked, database is no longer active. */
-    if ( fstat(fam->lock_file_descriptor, &statbuf) == 0 )
+#ifdef _WIN32
+    if (_fstati64( fam->lock_file_descriptor, &statbuf ) == 0)
+#else
+    if (fstat( fam->lock_file_descriptor, &statbuf ) == 0)
+#endif
     {
         if ( statbuf.st_nlink == (short)0 )
         {
@@ -3403,7 +3419,11 @@ void set_file_access(char fam_access, Bool_type file_exists, char *file_access)
 Return_value open_buffered(char *fname, char *mode, FILE **p_file_descr, LONGLONG *p_size)
 {
     FILE *p_f;
+#ifdef _WIN32
+    struct _stati64 file_stat;
+#else
     struct stat file_stat;
+#endif
     int status;
     Return_value rval = OK;
 
@@ -3416,7 +3436,11 @@ Return_value open_buffered(char *fname, char *mode, FILE **p_file_descr, LONGLON
     }
     else
     {
-        status = stat(fname, &file_stat);
+#ifdef _WIN32
+        status = _stati64(fname, &file_stat);
+#else
+	    status = stat(fname, &file_stat);
+#endif
         if ( status == 0 )
         {
             *p_size = file_stat.st_size;
@@ -3448,8 +3472,11 @@ Return_value non_state_file_seek(Mili_family *fam, LONGLONG offset)
     {
         return SEEK_FAILED;
     }
-
-    stat = fseek(fam->cur_file, offset, SEEK_SET);
+#ifdef _WIN32
+    stat = _fseeki64(fam->cur_file, (LONGLONG)offset, SEEK_SET);
+#else
+    stat = fseek( fam->cur_file, offset, SEEK_SET );
+#endif
 
     return (stat == 0) ? OK : SEEK_FAILED;
 }
@@ -3462,8 +3489,11 @@ Return_value non_state_file_seek(Mili_family *fam, LONGLONG offset)
 Return_value seek_state_file(FILE *cur_st_file, LONGLONG offset)
 {
     int stat;
-
-    stat = fseek(cur_st_file, offset, SEEK_SET);
+#ifdef _WIN32
+    stat = _fseeki64(cur_st_file, (LONGLONG)offset, SEEK_SET);
+#else
+    stat = fseek( cur_st_file, offset, SEEK_SET );
+#endif
 
     return stat ? SEEK_FAILED : OK;
 }

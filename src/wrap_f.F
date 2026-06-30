@@ -221,6 +221,7 @@ c  FORTRAN/C calling convention stuff...  More in wrap_c.c.
 #define mc_get_simple_class_info mc_get_simple_class_info_
 #define mc_set_buffer_qty mc_set_buffer_qty_
 #define mc_get_metadata mc_get_metadata_
+#define mc_update_visit_file mc_update_visit_file_
 #define mc_write_global_metadata mc_write_global_metadata_
 #define mc_update_global_times mc_update_global_times_
 #define mc_activate_visit_file mc_activate_visit_file_
@@ -246,8 +247,8 @@ c ************************************************************************
 #define mc_ti_undef_class        mc_ti_undef_class_
 #define mc_ti_def_class          mc_ti_def_class_          
 #define mc_ti_set_class          mc_ti_set_class_       
-#define mc_ti_enable             mc_ti_enable
-#define mc_ti_disable            mc_ti_disable
+#define mc_ti_enable             mc_ti_enable_
+#define mc_ti_disable            mc_ti_disable_
 #define mc_ti_make_var_name      mc_ti_make_var_name_   
 #define mc_ti_wrt_scalar         mc_ti_wrt_scalar_       
 #define mc_ti_read_scalar        mc_ti_read_scalar_      

@@ -561,7 +561,11 @@ Return_value taurus_get_subrec_def(Famid fam_id, int srec_id, int subrec_id, Sub
  */
 int taurus_get_states_per_file(Mili_family *fam, int ctl[], int *file_sz)
 {
+#ifdef _WIN32
+    struct _stati64 statbuf;
+#else
     struct stat statbuf;
+#endif
     int num_files = 0, geom_sz = 0, state_sz = 0, num_states = 0;
     int sum = 0, sumsav = 0, max_st = 0;
     int ndim = 0, numnp = 0, icode = 0, nglbv = 0, it = 0, iu = 0, iv = 0, ia = 0, ixd = 0, xnd = 0, nvqty = 0;
@@ -577,7 +581,11 @@ int taurus_get_states_per_file(Mili_family *fam, int ctl[], int *file_sz)
      */
     i = 0;
     make_fnam(TAURUS_DATA, fam, i, fname);
-    while ( stat(fname, &statbuf) != -1 )
+#ifdef _WIN32
+    while ( _stati64( fname, &statbuf ) != -1 )
+#else
+    while ( stat( fname, &statbuf ) != -1 )
+#endif
     {
         i++;
         make_fnam(TAURUS_DATA, fam, i, fname);
@@ -587,7 +595,11 @@ int taurus_get_states_per_file(Mili_family *fam, int ctl[], int *file_sz)
     for ( i = 0; i < num_files; i++ )
     {
         make_fnam(TAURUS_DATA, fam, i, fname);
-        stat(fname, &statbuf);
+#ifdef _WIN32
+        _stati64( fname, &statbuf );
+#else
+        stat( fname, &statbuf );
+#endif
         file_sz[i] = (int)statbuf.st_size;
     }
 

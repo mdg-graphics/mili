@@ -414,8 +414,11 @@ Return_value load_directories(Mili_family *fam)
         {
             offset = -(QTY_DIR_HEADER_FIELDS - 1) * EXT_SIZE(fam, M_INT);
         }
-
-        status = fseek(p_f, offset, SEEK_END);
+#ifdef _WIN32
+	    status = _fseeki64(p_f, offset, SEEK_END);
+#else
+        status = fseek( p_f, offset, SEEK_END );
+#endif
         if ( status != 0 )
         {
             fclose(p_f);
@@ -501,7 +504,11 @@ Return_value load_directories(Mili_family *fam)
         {
             offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE(fam, M_INT8) + states_size;
         }
-        status = fseek(p_f, offset, SEEK_END);
+#ifdef _WIN32
+	    status = _fseeki64(p_f, offset, SEEK_END);
+#else
+        status = fseek( p_f, offset, SEEK_END );
+#endif
         if ( fam->char_header[DIR_VERSION_IDX] > 2 )
         {
             nitems = fam->read_funcs[M_INT8](p_f, p_de, QTY_ENTRY_FIELDS * qty_ent);
@@ -572,7 +579,11 @@ Return_value load_directories(Mili_family *fam)
         if ( nitems > 0 )
         {
             offset -= nitems;
-            status = fseek(p_f, offset, SEEK_END);
+#ifdef _WIN32
+		    status = _fseeki64(p_f, offset, SEEK_END);
+#else
+            status = fseek( p_f, offset, SEEK_END );
+#endif
 
             /* Names go in an IO Store. */
             pioms = ios_create_empty();

@@ -111,7 +111,11 @@ Return_value ti_file_seek(Famid fam_id, LONGLONG offset)
         return SEEK_FAILED;
     }
 
-    status = fseek(fam->ti_cur_file, (long)offset, SEEK_SET);
+#ifdef _WIN32
+    status = _fseeki64( fam->ti_cur_file, offset, SEEK_SET );
+#else
+    status = fseek( fam->ti_cur_file, (long)offset, SEEK_SET );
+#endif
 
     return (status == 0) ? OK : SEEK_FAILED;
 }
