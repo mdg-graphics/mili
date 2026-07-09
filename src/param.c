@@ -1187,8 +1187,11 @@ Return_value dump_param(Mili_family *fam, FILE *p_f, Dir_entry dir_ent, char **d
     Return_value rval;
 
     offset = dir_ent[OFFSET_IDX];
-
-    status = fseek(p_f, (long)offset, SEEK_SET);
+#ifdef _WIN32
+    status = _fseeki64( p_f, offset, SEEK_SET );
+#else
+    status = fseek( p_f, (long)offset, SEEK_SET );
+#endif
     if ( status != 0 )
     {
         return SEEK_FAILED;

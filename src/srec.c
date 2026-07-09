@@ -3715,7 +3715,11 @@ Return_value dump_state_rec_data(Mili_family *fam, FILE *p_f, Dir_entry dir_ent,
     indent3 = bi + bi - hi;
 
     /* Seek and read the element connectivity data header. */
-    status = fseek(p_f, offset, SEEK_SET);
+#ifdef _WIN32
+    status = _fseeki64( p_f, offset, SEEK_SET );
+#else
+    status = fseek( p_f, offset, SEEK_SET );
+#endif
     if ( status != 0 )
     {
         return SEEK_FAILED;

@@ -265,7 +265,11 @@ static int taurus_open_family(Mili_family *fam, Famid fam_id, char *mode)
     long int offset;
     int ctl[50];
     int p_srec_id;
+#ifdef _WIN32
+    struct _stati64 statbuf;
+#else
     struct stat statbuf;
+#endif
     int i;
     int ndim;
     int nel2;
@@ -296,7 +300,11 @@ static int taurus_open_family(Mili_family *fam, Famid fam_id, char *mode)
 
     /* Seek past the title bytes. */
     offset = 15 * sizeof(int);
-    rval = (Return_value)fseek(p_f, offset, SEEK_SET);
+#ifdef _WIN32
+    rval = (Return_value)_fseeki64( p_f, offset, SEEK_SET );
+#else
+    rval = (Return_value)fseek( p_f, (long)offset, SEEK_SET );
+#endif
     if ( rval != OK )
         return rval;
 
@@ -326,7 +334,11 @@ static int taurus_open_family(Mili_family *fam, Famid fam_id, char *mode)
      * Now reset the file pointer and read the whole header,
      * byte-swapping if necessary.
      */
-    rval = (Return_value)fseek(p_f, offset, SEEK_SET);
+#ifdef _WIN32
+    rval = (Return_value)_fseeki64( p_f, offset, SEEK_SET );
+#else
+    rval = (Return_value)fseek( p_f, (long)offset, SEEK_SET );
+#endif
     if ( rval != OK )
         return rval;
 
@@ -363,13 +375,21 @@ static int taurus_open_family(Mili_family *fam, Famid fam_id, char *mode)
 
     offset = 64 * EXT_SIZE(fam, M_INT) + (ndim * numnp + 9 * nel8 + 5 * nel4 + 6 * nel2) * EXT_SIZE(fam, M_FLOAT);
 
-    stat(fname, &statbuf);
+#ifdef _WIN32
+    _stati64( fname, &statbuf );
+#else
+    stat( fname, &statbuf );
+#endif
     offset -= statbuf.st_size;
     while ( offset >= 0 )
     {
         i++;
         make_fnam(TAURUS_DATA, fam, i, fname);
-        stat(fname, &statbuf);
+#ifdef _WIN32
+        _stati64( fname, &statbuf );
+#else
+        stat( fname, &statbuf );
+#endif
         offset -= statbuf.st_size;
         /*****
                 fam->file_count += 1;

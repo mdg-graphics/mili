@@ -366,9 +366,9 @@
 #define mc_def_vec_arr_svar_ MC_DEF_VEC_ARR_SVAR_
 #define mc_open_srec_ MC_OPEN_SREC_
 #define mc_def_subrec_ MC_DEF_SUBREC_
-#define mc_set_subrec_check_ MC_SET_SUBREC_CHECK
-#define mc_check_subrec_start_ MC_CHECK_SUBREC_START
-#define mc_def_surf_subrec_ MC_DEF_SURF_SUBREC_ /* JAL */
+#define mc_set_subrec_check_ MC_SET_SUBREC_CHECK_       /* JAL */
+#define mc_check_subrec_start_ MC_CHECK_SUBREC_START_   /* JAL */
+#define mc_def_surf_subrec_ MC_DEF_SURF_SUBREC_         /* JAL */
 #define mc_close_srec_ MC_CLOSE_SREC_
 #define mc_flush_ MC_FLUSH_
 #define mc_new_state_ MC_NEW_STATE_
@@ -393,7 +393,7 @@
 #define mc_get_metadata_ MC_GET_METADATA_ /* JAL */
 #define mc_write_global_metadata_ MC_WRITE_GLOBAL_METADATA_
 #define mc_set_state_map_file_on_ MC_SET_STATE_MAP_FILE_ON_
-
+#define mc_activate_visit_file_     MC_ACTIVATE_VISIT_FILE_
 #define mc_ti_undef_class_ MC_TI_UNDEF_CLASS_
 #define mc_ti_def_class_ MC_TI_DEF_CLASS_
 #define mc_ti_set_class_ MC_TI_SET_CLASS_

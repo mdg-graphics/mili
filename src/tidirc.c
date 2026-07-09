@@ -405,7 +405,11 @@ Return_value load_ti_directories(Mili_family *fam)
         {
             offset = -QTY_DIR_HEADER_FIELDS * EXT_SIZE(fam, M_INT);
         }
-        status = fseek(p_f, offset, SEEK_END);
+#ifdef _WIN32
+	    status = _fseeki64(p_f, offset, SEEK_END);
+#else
+        status = fseek( p_f, offset, SEEK_END );
+#endif
         if ( status != 0 )
         {
             fclose(p_f);
@@ -451,7 +455,11 @@ Return_value load_ti_directories(Mili_family *fam)
 
         /* Seek to beginning of directory entries and read all at once. */
         offset -= qty_ent * QTY_ENTRY_FIELDS * EXT_SIZE(fam, M_INT);
-        status = fseek(p_f, offset, SEEK_END);
+#ifdef _WIN32
+	    status = _fseeki64(p_f, offset, SEEK_END);
+#else
+        status = fseek( p_f, offset, SEEK_END );
+#endif
         if ( status != 0 )
         {
             free(fam->ti_directory);
@@ -460,7 +468,11 @@ Return_value load_ti_directories(Mili_family *fam)
             fclose(p_f);
             return SEEK_FAILED;
         }
-        status = fseek(p_f, offset, SEEK_END);
+#ifdef _WIN32
+	    status = _fseeki64(p_f, offset, SEEK_END);
+#else
+        status = fseek( p_f, offset, SEEK_END );
+#endif
 
         temp_p_de = NEW_N(TempDir_entry, qty_ent, "Load dir entries");
         nitems = fam->read_funcs[M_INT](p_f, temp_p_de, QTY_ENTRY_FIELDS * qty_ent);
@@ -516,7 +528,11 @@ Return_value load_ti_directories(Mili_family *fam)
         if ( nitems > 0 )
         {
             offset -= nitems;
-            status = fseek(p_f, offset, SEEK_END);
+#ifdef _WIN32
+	        status = _fseeki64(p_f, offset, SEEK_END);
+#else
+            status = fseek( p_f, offset, SEEK_END );
+#endif
             if ( status != 0 )
             {
                 free(p_fd->names);

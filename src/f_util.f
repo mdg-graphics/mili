@@ -25,9 +25,10 @@ c ************************************************************************
       else
           i = LEN( string )
           if ( i .gt. limit ) i = limit
-          do while ( ( i .ge. 1 ) .and. ( string(i:i) .eq. ' ' ) )
+          do while ( i .ge. 1 )
+              if ( string(i:i) /= ' ' ) exit
               i = i - 1
-          end do
+          end do          
           
           EFF_LEN = i
       end if
