@@ -104,7 +104,7 @@ void set_timesteps(Mili_analysis *in_db, Mili_analysis *out_db, int *start_state
             j++;
         }
         j++;
-        if ( j == in_fam->state_qty - 1 )
+        if ( j == in_fam->state_qty + 1)
         {
             /*should have been caught in the exterior checks but doesn't hurt to make sure*/
             start_state[0] = -1;
