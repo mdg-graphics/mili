@@ -644,6 +644,8 @@ static void scan_args(int argc, char *argv[])
 
     /* Get user's name. */
     name = getenv("LOGNAME");
+    if (name == NULL) name = getenv("USER");
+    if (name == NULL) name = "unknown";
     strcpy(env.user_name, name);
     if ( !outname_set )
     {
