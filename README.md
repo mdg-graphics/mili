@@ -5,8 +5,19 @@
 Binary Database format used by MDG codes for mesh simulations.
 
 ### Table of Contents
+- [2027 Roadmap Preview](#2027-roadmap-preview)
 - [Developer Guide](#developer-guide)
 - [Developer Workflow](#developer-workflow)
+
+## 2027 Roadmap Preview
+
+The [Mili 2027 roadmap preview](roadmap-preview.md) presents the proposed
+GitLab planning changes for every work item reviewed from the existing backlog,
+including milestones, planning labels, relationships, acceptance criteria, and
+consolidation candidates. It is a review document only: the proposals are not
+approved commitments, and generating the preview did not modify any GitLab work
+items. GitLab remains the authoritative source for issue state, ownership, and
+approved scheduling.
 
 ## GitLab and LC Setup
 
