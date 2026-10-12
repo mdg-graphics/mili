@@ -1392,9 +1392,9 @@ Return_value mc_def_global_ids(Famid fam_id, int mesh_id, char *short_name, int 
         return status;
     }
 
-    strncat(label_prefix, "_LOCAL_MAP", 10);
+    strncat(label_prefix, "_LOCAL_MAP", 11);
     label_name[0] = '\0';
-    strncat(label_name, label_prefix, 21);
+    strncat(label_name, label_prefix, 22);
     strcat(label_name, new_name);
     status = mc_ti_wrt_array(fam_id, M_INT, (char *)label_name, 1, dims, (void *)global_ids);
 
@@ -2713,7 +2713,7 @@ Return_value mc_load_node_labels(Famid fam_id, int mesh_id, char *short_name, in
 {
     Mili_family *fam;
     int i;
-    int num_items_read;
+    int num_items_read = 0;
     Return_value status;
 
     int superclass, temp_mesh_id = mesh_id;
